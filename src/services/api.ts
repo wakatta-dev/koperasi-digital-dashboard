@@ -1,15 +1,19 @@
 /** @format */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
+import { getSession } from "next-auth/react";
 
 const api = axios.create({
   baseURL: "/api",
 });
 
-api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("accessToken");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(async (config) => {
+  const session = await getSession();
+  const token = (session as any)?.accessToken;
+  if (token) {
+    config.headers = config.headers ?? {};
+    (config.headers as any).Authorization = `Bearer ${token}`;
   }
   return config;
 });
