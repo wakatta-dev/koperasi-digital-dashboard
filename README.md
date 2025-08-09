@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Koperasi Digital Dashboard
 
-## Getting Started
+Dashboard web untuk manajemen modul koperasi digital.
+Aplikasi ini dibangun menggunakan [Next.js](https://nextjs.org) dan
+mengonsumsi API backend untuk fitur seperti keanggotaan dan billing.
 
-First, run the development server:
+## Dokumentasi Produk
+Spesifikasi kebutuhan dashboard tersedia pada dokumen berikut:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [docs/prd_dashboard_koperasi.md](docs/prd_dashboard_koperasi.md)
+- [docs/prd_dashboard_billing.md](docs/prd_dashboard_billing.md)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Gunakan dokumen PRD tersebut sebagai acuan saat mengembangkan fitur baru.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Rute Aplikasi
+Dashboard menyediakan rute awal untuk modul-modul berikut:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/members` – manajemen keanggotaan
+- `/savings` – manajemen simpanan non-syariah
+- `/savings/syariah` – manajemen simpanan syariah
+- `/loans` – manajemen pinjaman non-syariah
+- `/financing` – pembiayaan syariah
+- `/shu` – manajemen Sisa Hasil Usaha
+- `/rat` – rapat anggota tahunan
+- `/assets` – manajemen aset koperasi
+- `/transactions` – manajemen transaksi
+- `/notifications` – notifikasi internal
+- `/billing` – modul penagihan langganan
 
-## Learn More
+## Menjalankan Aplikasi
+1. Install dependensi:
+   ```bash
+   npm install
+   ```
+2. Siapkan file `.env.local` dengan variabel:
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:8080
+   ```
+3. Jalankan server pengembangan:
+   ```bash
+   npm run dev
+   ```
+4. Buka [http://localhost:3000](http://localhost:3000) di browser.
 
-To learn more about Next.js, take a look at the following resources:
+## Skrip Tambahan
+- `npm run build` – build produksi
+- `npm run start` – menjalankan hasil build
+- `npm run lint` – menjalankan pemeriksaan kode
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

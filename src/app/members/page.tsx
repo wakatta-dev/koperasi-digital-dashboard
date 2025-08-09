@@ -16,10 +16,13 @@ export default function Members() {
   }, []);
 
   return (
-    <ul>
-      {members.map((m) => (
-        <li key={m.id}>{m.name}</li>
-      ))}
-    </ul>
+    <main className="p-8">
+      <h1 className="text-2xl font-bold mb-4">Daftar Anggota</h1>
+      <ul>
+        {members.map((m) => (
+          <li key={m.id}>{m.name}</li>
+        ))}
+      </ul>
+    </main>
   );
 }
