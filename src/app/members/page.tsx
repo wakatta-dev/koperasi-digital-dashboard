@@ -1,19 +1,7 @@
-'use client';
+import { fetchMembers, Member } from '@/actions/members';
 
-import api from '@/services/api';
-import { useEffect, useState } from 'react';
-
-interface Member {
-  id: number;
-  name: string;
-}
-
-export default function Members() {
-  const [members, setMembers] = useState<Member[]>([]);
-
-  useEffect(() => {
-    api.get('/members').then((res) => setMembers(res.data));
-  }, []);
+export default async function Members() {
+  const members: Member[] = await fetchMembers();
 
   return (
     <main className="p-8">
