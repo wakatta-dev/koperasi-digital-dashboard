@@ -7,8 +7,9 @@ export async function getDashboardSummary() {
   return apiFetch(API_ENDPOINTS.dashboard.summary);
 }
 
-export async function getSalesChart() {
-  return apiFetch(API_ENDPOINTS.dashboard.salesChart);
+export async function getRevenueExpense() {
+  const data = await apiFetch(API_ENDPOINTS.dashboard.revenueExpense);
+  return data?.finance_chart ?? [];
 }
 
 export async function getTopProducts() {

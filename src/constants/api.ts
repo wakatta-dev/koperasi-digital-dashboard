@@ -76,6 +76,7 @@ export const API_ENDPOINTS = {
   dashboard: {
     summary: '/dashboard/summary',
     salesChart: '/dashboard/sales-chart',
+    revenueExpense: '/dashboard/revenue-expense',
     topProducts: '/dashboard/top-products',
     notifications: '/dashboard/notifications',
   },
