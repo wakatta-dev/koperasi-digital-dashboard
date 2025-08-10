@@ -7,7 +7,8 @@ export const translations: Record<Language, Record<string, string>> = {
     documents: "Documents",
     github: "GitHub",
     title: "Digital Cooperative Dashboard",
-    mainDescription: "Platform to manage cooperatives effectively and modernly.",
+    mainDescription:
+      "Platform to manage cooperatives effectively and modernly.",
     pricingInfo:
       "Pricing info: Please contact us for membership packages and other services.",
     loginLink: "Sign in to application",
@@ -61,12 +62,24 @@ export const translations: Record<Language, Record<string, string>> = {
     shuPlaceholder: "Placeholder for Sisa Hasil Usaha module.",
     transactionsManagement: "Transaction Management",
     transactionsPlaceholder: "Placeholder for cooperative transactions module.",
+    welcomeBack: "Welcome back",
+    loginDescription: "Login to your Acme Inc account",
+    forgotPassword: "Forgot your password?",
+    orContinueWith: "Or continue with",
+    loginWithApple: "Login with Apple",
+    loginWithMeta: "Login with Meta",
+    dontHaveAccount: "Don't have an account?",
+    signUp: "Sign up",
+    termsAgreement: "By clicking continue, you agree to our",
+    termsOfService: "Terms of Service",
+    privacyPolicy: "Privacy Policy",
   },
   id: {
     documents: "Dokumen",
     github: "GitHub",
     title: "Koperasi Digital Dashboard",
-    mainDescription: "Platform untuk mengelola koperasi secara efektif dan modern.",
+    mainDescription:
+      "Platform untuk mengelola koperasi secara efektif dan modern.",
     pricingInfo:
       "Informasi harga: Silakan hubungi kami untuk paket keanggotaan dan layanan lainnya.",
     loginLink: "Masuk ke aplikasi",
@@ -120,6 +133,16 @@ export const translations: Record<Language, Record<string, string>> = {
     shuPlaceholder: "Placeholder modul Sisa Hasil Usaha.",
     transactionsManagement: "Manajemen Transaksi",
     transactionsPlaceholder: "Placeholder modul transaksi koperasi.",
+    welcomeBack: "Selamat datang kembali",
+    loginDescription: "Masuk ke akun Acme Inc Anda",
+    forgotPassword: "Lupa kata sandi?",
+    orContinueWith: "Atau lanjutkan dengan",
+    loginWithApple: "Masuk dengan Apple",
+    loginWithMeta: "Masuk dengan Meta",
+    dontHaveAccount: "Belum punya akun?",
+    signUp: "Daftar",
+    termsAgreement: "Dengan mengklik lanjutkan, Anda setuju dengan",
+    termsOfService: "Ketentuan Layanan",
+    privacyPolicy: "Kebijakan Privasi",
   },
 };
-

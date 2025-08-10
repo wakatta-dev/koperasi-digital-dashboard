@@ -2,7 +2,13 @@
 
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { translations, type Language } from "@/constants/translations";
 
 interface LanguageContextValue {
@@ -11,10 +17,12 @@ interface LanguageContextValue {
   t: (key: string) => string; // eslint-disable-line no-unused-vars
 }
 
-const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextValue | undefined>(
+  undefined
+);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Language>("en");
+  const [lang, setLang] = useState<Language>("id");
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -38,4 +46,3 @@ export function useLanguage() {
   }
   return context;
 }
-
