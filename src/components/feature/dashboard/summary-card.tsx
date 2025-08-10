@@ -44,15 +44,15 @@ export default function SummaryCard({
         const change = data?.change ?? 0;
         const trendUp = change >= 0;
         const ChangeIcon = trendUp ? IconTrendingUp : IconTrendingDown;
-        const formattedAmount = amount.toLocaleString("en-US", {
+        const formattedAmount = amount.toLocaleString("id-ID", {
           style: "currency",
-          currency: "USD",
+          currency: "IDR",
         });
         return (
           <Card key={key} className="@container/card">
             <CardHeader>
               <CardDescription>{title}</CardDescription>
-              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              <CardTitle className="text-lg font-semibold tabular-nums @[250px]/card:text-xl">
                 {formattedAmount}
               </CardTitle>
               <CardAction>
@@ -67,7 +67,9 @@ export default function SummaryCard({
                 {trendUp ? "Trending up" : "Trending down"}
                 <ChangeIcon className="size-4" />
               </div>
-              <div className="text-muted-foreground">Change since last period</div>
+              <div className="text-muted-foreground">
+                Change since last period
+              </div>
             </CardFooter>
           </Card>
         );
