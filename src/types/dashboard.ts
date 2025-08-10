@@ -13,7 +13,7 @@ export interface ClientSummary {
 }
 
 export interface OwnerSummary {
-  clients_per_tier: Record<string, number>;
+  clients_per_tier: Record<string, { current: number; prev: number }>;
   open_tickets: number;
   most_active_client: string;
   top_ticket_product: { name: string; tickets: number };

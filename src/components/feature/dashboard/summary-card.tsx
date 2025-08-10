@@ -12,48 +12,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type SummaryItem = {
-  amount: number;
-  change: number;
-};
+type SummaryData = { key: string; value: number; change: number }[];
 
-export type DashboardSummary = {
-  revenue: SummaryItem;
-  expense: SummaryItem;
-  net_profit: SummaryItem;
-  cash_balance: SummaryItem;
-};
-
-export default function SummaryCard({
-  summary,
-}: {
-  summary?: DashboardSummary | null;
-}) {
-  const cards: { title: string; key: keyof DashboardSummary }[] = [
-    { title: "Total Revenue", key: "revenue" },
-    { title: "Total Expense", key: "expense" },
-    { title: "Net Profit", key: "net_profit" },
-    { title: "Cash Balance", key: "cash_balance" },
-  ];
-
+export default function SummaryCard({ data }: { data?: SummaryData }) {
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      {cards.map(({ title, key }) => {
-        const data = summary?.[key];
-        const amount = data?.amount ?? 0;
-        const change = data?.change ?? 0;
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+      {data?.map((item, idx) => {
+        const title = item.key;
+        const amount = item.value ?? 0;
+        const change = item.change ?? 0; // Assuming change is part of the item
         const trendUp = change >= 0;
         const ChangeIcon = trendUp ? IconTrendingUp : IconTrendingDown;
-        const formattedAmount = amount.toLocaleString("id-ID", {
-          style: "currency",
-          currency: "IDR",
-        });
+
         return (
-          <Card key={key} className="@container/card">
+          <Card key={idx} className="@container/card">
             <CardHeader>
-              <CardDescription>{title}</CardDescription>
+              <CardDescription className="uppercase">{title}</CardDescription>
               <CardTitle className="text-lg font-semibold tabular-nums @[250px]/card:text-xl">
-                {formattedAmount}
+                {amount}
               </CardTitle>
               <CardAction>
                 <Badge variant="outline">
