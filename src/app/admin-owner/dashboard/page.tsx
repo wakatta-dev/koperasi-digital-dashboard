@@ -1,6 +1,6 @@
 /** @format */
 
-import { getDashboardSummary, getSalesChart } from "@/actions/dashboard";
+import { getDashboardSummary, getRevenueExpense } from "@/actions/dashboard";
 import DashboardContent from "./dashboard-content";
 
 export default async function DashboardPage() {
@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   }
 
   try {
-    chartData = await getSalesChart();
+    chartData = await getRevenueExpense();
   } catch {
     chartData = [];
   }

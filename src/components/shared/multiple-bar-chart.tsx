@@ -13,7 +13,7 @@ import {
 
 export interface RevenueExpenseData {
   month: string;
-  income: number;
+  revenue: number;
   expense: number;
 }
 
@@ -23,7 +23,7 @@ export default function MultipleBarChart({
   data: RevenueExpenseData[];
 }) {
   const chartConfig = {
-    income: {
+    revenue: {
       label: "Pendapatan",
       color: "hsl(var(--chart-1))",
     },
@@ -31,7 +31,7 @@ export default function MultipleBarChart({
       label: "Pengeluaran",
       color: "hsl(var(--chart-2))",
     },
-  };
+  } as const;
 
   return (
     <ChartContainer config={chartConfig} className="w-full">
@@ -46,7 +46,7 @@ export default function MultipleBarChart({
         <YAxis />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="income" fill="var(--color-income)" radius={4} />
+        <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
         <Bar dataKey="expense" fill="var(--color-expense)" radius={4} />
       </BarChart>
     </ChartContainer>
