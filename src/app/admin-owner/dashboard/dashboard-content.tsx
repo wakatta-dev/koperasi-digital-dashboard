@@ -2,86 +2,67 @@
 
 "use client";
 
-import SummaryCard, {
-  type DashboardSummary,
-} from "@/components/feature/dashboard/summary-card";
-import { BarChartCard } from "@/components/shared/multiple-bar-chart";
-import { RevenueExpenseData } from "@/types/dashboard";
-
-import { useState } from "react";
-
-const chartSeries = [
-  { dataKey: "revenue", label: "Revenue" },
-  { dataKey: "expense", label: "Expense" },
-];
+import type { OwnerSummary } from "@/types/dashboard";
 
 export default function DashboardContent({
   summary,
-  chartData = [],
 }: {
-  summary: DashboardSummary | null;
-  chartData?: RevenueExpenseData[];
+  summary: OwnerSummary | null;
 }) {
-  const [period, setPeriod] = useState(6);
+  if (!summary) {
+    return <div className="p-4">Data tidak tersedia</div>;
+  }
+
+  const {
+    clients_per_tier = {},
+    open_tickets = 0,
+    most_active_client = "",
+    top_ticket_product = { name: "", tickets: 0 },
+    invoice_status = { lunas: 0, belum_lunas: 0 },
+    active_notifications = 0,
+  } = summary;
 
   return (
-    <section className="space-y-4">
-      <SummaryCard summary={summary} />
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="px-4 space-y-2 flex-1">
-          <div className="flex justify-end">
-            <select
-              className="border rounded p-1 text-sm"
-              value={period}
-              onChange={(e) => setPeriod(Number(e.target.value))}
-            >
-              <option value={6}>6 Bulan Terakhir</option>
-              <option value={12}>12 Bulan Terakhir</option>
-            </select>
-          </div>
-          <BarChartCard
-            title="Pendapatan vs Pengeluaran"
-            description="January - June 2024"
-            data={chartData}
-            xKey="month"
-            xTickFormatter={(v) => String(v).slice(0, 3)}
-            series={chartSeries}
-            tooltipIndicator="dashed"
-            footer={{
-              primary: <>Trending up by 5.2% this month</>,
-              secondary: "Showing total visitors for the last 6 months",
-              showTrendingIcon: true,
-            }}
-          />
+    <section className="space-y-4 p-4">
+      <h2 className="text-xl font-semibold">Ringkasan</h2>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="border rounded p-4">
+          <h3 className="font-medium mb-2">Clients per Tier</h3>
+          <ul className="list-disc list-inside">
+            {Object.entries(clients_per_tier).map(([tier, count]) => (
+              <li key={tier}>
+                {tier}: {count}
+              </li>
+            ))}
+          </ul>
         </div>
-
-        <div className="px-4 space-y-2 flex-1">
-          <div className="flex justify-end">
-            <select
-              className="border rounded p-1 text-sm"
-              value={period}
-              onChange={(e) => setPeriod(Number(e.target.value))}
-            >
-              <option value={6}>6 Bulan Terakhir</option>
-              <option value={12}>12 Bulan Terakhir</option>
-            </select>
-          </div>
-          <BarChartCard
-            title="Bar Chart - Multiple"
-            description="January - June 2024"
-            data={chartData}
-            xKey="month"
-            xTickFormatter={(v) => String(v).slice(0, 3)}
-            series={chartSeries}
-            tooltipIndicator="dashed"
-            footer={{
-              primary: <>Trending up by 5.2% this month</>,
-              secondary: "Showing total visitors for the last 6 months",
-              showTrendingIcon: true,
-            }}
-          />
+        <div className="border rounded p-4">
+          <h3 className="font-medium mb-2">Open Tickets</h3>
+          <p>{open_tickets}</p>
+        </div>
+        <div className="border rounded p-4">
+          <h3 className="font-medium mb-2">Most Active Client</h3>
+          <p>{most_active_client || "-"}</p>
+        </div>
+        <div className="border rounded p-4">
+          <h3 className="font-medium mb-2">Top Ticket Product</h3>
+          <p>
+            {top_ticket_product.name || "-"} ({top_ticket_product.tickets || 0})
+          </p>
+        </div>
+        <div className="border rounded p-4">
+          <h3 className="font-medium mb-2">Invoice Status</h3>
+          <ul className="list-disc list-inside">
+            <li>Lunas: {invoice_status.lunas || 0}</li>
+            <li>Belum Lunas: {invoice_status.belum_lunas || 0}</li>
+          </ul>
+        </div>
+        <div className="border rounded p-4">
+          <h3 className="font-medium mb-2">Active Notifications</h3>
+          <p>{active_notifications}</p>
         </div>
       </div>
     </section>
   );
 }
+
