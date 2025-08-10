@@ -74,11 +74,8 @@ export const API_ENDPOINTS = {
     history: '/shu/history',
   },
   dashboard: {
-    summary: '/dashboard/summary',
-    salesChart: '/dashboard/sales-chart',
-    revenueExpense: '/dashboard/revenue-expense',
-    topProducts: '/dashboard/top-products',
-    notifications: '/dashboard/notifications',
+    summaryClient: '/dashboard/summary/client',
+    summaryOwner: '/dashboard/summary/owner',
   },
   reports: {
     profitLoss: '/reports/profit-loss',
