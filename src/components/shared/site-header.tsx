@@ -4,6 +4,7 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useLanguage } from "@/contexts/language-context";
+import { Button } from "../ui/button";
 
 export function SiteHeader() {
   const { lang, toggleLanguage, t } = useLanguage();
@@ -15,8 +16,16 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">Documents</h1>
+        <h1 className="text-base font-medium">{t("documents")}</h1>
       </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={toggleLanguage}
+        className="mr-2"
+      >
+        {lang === "en" ? "ID" : "EN"}
+      </Button>
     </header>
   );
 }
