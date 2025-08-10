@@ -6,9 +6,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function handle(
   req: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const target = `${API_URL}/api/${params.path.join("/")}${req.nextUrl.search}`;
+  const resolvedParams = await params;
+
+  const target = `${API_URL}/api/${resolvedParams?.path?.join("/")}${
+    req?.nextUrl?.search
+  }`;
 
   const headers: HeadersInit = {};
   const auth = req.headers.get("authorization");
@@ -41,31 +45,31 @@ async function handle(
 
 export async function GET(
   req: NextRequest,
-  ctx: { params: { path: string[] } }
+  ctx: { params: Promise<{ path: string[] }> }
 ) {
   return handle(req, ctx);
 }
 export async function POST(
   req: NextRequest,
-  ctx: { params: { path: string[] } }
+  ctx: { params: Promise<{ path: string[] }> }
 ) {
   return handle(req, ctx);
 }
 export async function PUT(
   req: NextRequest,
-  ctx: { params: { path: string[] } }
+  ctx: { params: Promise<{ path: string[] }> }
 ) {
   return handle(req, ctx);
 }
 export async function PATCH(
   req: NextRequest,
-  ctx: { params: { path: string[] } }
+  ctx: { params: Promise<{ path: string[] }> }
 ) {
   return handle(req, ctx);
 }
 export async function DELETE(
   req: NextRequest,
-  ctx: { params: { path: string[] } }
+  ctx: { params: Promise<{ path: string[] }> }
 ) {
   return handle(req, ctx);
 }

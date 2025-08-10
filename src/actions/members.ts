@@ -1,11 +1,17 @@
-'use server';
+/** @format */
 
-import { apiFetch } from './api';
-import { API_ENDPOINTS } from '@/constants/api';
+"use server";
+
+import { apiFetch } from "./api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export interface Member {
-  id: number;
-  name: string;
+  id: string;
+  user_id: string;
+  membership_number: string;
+  status: string;
+  joined_at: string;
+  updated_at: string;
 }
 
 export async function fetchMembers(): Promise<Member[]> {
@@ -18,7 +24,7 @@ export async function registerMember(payload: {
   status: string;
 }) {
   return apiFetch(API_ENDPOINTS.members.register, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(payload),
   });
 }
