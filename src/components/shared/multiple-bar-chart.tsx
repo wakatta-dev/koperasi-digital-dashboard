@@ -51,6 +51,7 @@ export type BarChartCardProps<T extends Record<string, any>> = {
   /** key untuk sumbu X */
   xKey: keyof T & string;
   /** formatter tick sumbu X (opsional) */
+  // eslint-disable-next-line no-unused-vars
   xTickFormatter?: ((value: any, index: number) => string) | undefined;
   /** daftar seri (multi bar) */
   series: SeriesItem[];
