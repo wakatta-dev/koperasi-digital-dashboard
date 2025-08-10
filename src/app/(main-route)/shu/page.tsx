@@ -1,8 +1,13 @@
+"use client";
+
+import { useLanguage } from "@/contexts/language-context";
+
 export default function Shu() {
+  const { t } = useLanguage();
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Manajemen SHU</h1>
-      <p>Placeholder modul Sisa Hasil Usaha.</p>
+      <h1 className="text-2xl font-bold mb-4">{t("shuManagement")}</h1>
+      <p>{t("shuPlaceholder")}</p>
     </main>
   );
 }

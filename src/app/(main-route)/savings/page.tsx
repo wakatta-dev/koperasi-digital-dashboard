@@ -1,14 +1,16 @@
-import Link from 'next/link';
+"use client";
+
+import Link from "next/link";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function Savings() {
+  const { t } = useLanguage();
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Manajemen Simpanan</h1>
-      <p className="mb-6">
-        Placeholder untuk modul simpanan sesuai spesifikasi <code>docs/prd_dashboard_koperasi.md</code>.
-      </p>
+      <h1 className="text-2xl font-bold mb-4">{t("savingsManagement")}</h1>
+      <p className="mb-6">{t("savingsPlaceholder")}</p>
       <Link href="/savings/syariah" className="text-blue-600 underline">
-        Simpanan Syariah
+        {t("syariahSavings")}
       </Link>
     </main>
   );
