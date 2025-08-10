@@ -4,7 +4,7 @@
 import * as React from "react";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -45,16 +45,22 @@ export function LoginForm({
     setError("");
     setIsSubmitting(true);
     try {
-      const res = await signIn("credentials", {
-        ...values,
-        redirect: false,
-      });
+        const res = await signIn("credentials", {
+          ...values,
+          redirect: false,
+        });
 
-      if (res?.error) {
-        setError(t("loginFailed"));
-      } else {
-        router.push("/dashboard");
-      }
+        if (res?.error) {
+          setError(t("loginFailed"));
+        } else {
+          const session = await getSession();
+          const role = (session as any)?.user?.role;
+          if (role === "admin_user") {
+            router.push("/admin-user/dashboard");
+          } else {
+            router.push("/admin-owner/dashboard");
+          }
+        }
     } catch {
       setError(t("loginFailed"));
     } finally {
