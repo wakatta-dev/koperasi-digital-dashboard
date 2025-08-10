@@ -1,8 +1,13 @@
+"use client";
+
+import { useLanguage } from "@/contexts/language-context";
+
 export default function Loans() {
+  const { t } = useLanguage();
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Manajemen Pinjaman</h1>
-      <p>Placeholder modul pinjaman non syariah sesuai <code>docs/prd_dashboard_koperasi.md</code>.</p>
+      <h1 className="text-2xl font-bold mb-4">{t("loansManagement")}</h1>
+      <p>{t("loansPlaceholder")}</p>
     </main>
   );
 }

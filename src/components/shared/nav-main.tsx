@@ -13,26 +13,28 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useLanguage } from "@/contexts/language-context";
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string;
+    titleKey: string;
     url: string;
     icon?: Icon;
   }[];
 }) {
+  const { t } = useLanguage();
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
+            <SidebarMenuItem key={item.titleKey}>
+              <SidebarMenuButton asChild tooltip={t(item.titleKey)}>
                 <Link href={item.url}>
                   {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  <span>{t(item.titleKey)}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
