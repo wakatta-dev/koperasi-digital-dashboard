@@ -12,10 +12,10 @@ import { useState } from "react";
 
 export default function DashboardContent({
   summary,
-  chartData,
+  chartData = [],
 }: {
   summary: DashboardSummary | null;
-  chartData: RevenueExpenseData[];
+  chartData?: RevenueExpenseData[];
 }) {
   const [period, setPeriod] = useState(6);
   const filtered = Array.isArray(chartData)
