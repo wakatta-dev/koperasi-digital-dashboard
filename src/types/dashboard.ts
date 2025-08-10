@@ -12,11 +12,18 @@ export interface ClientSummary {
   current_year_shu: SummaryItem;
 }
 
+export interface OwnerSummaryItem {
+  current: number;
+  prev: number;
+}
 export interface OwnerSummary {
-  clients_per_tier: Record<string, { current: number; prev: number }>;
-  open_tickets: number;
-  most_active_client: string;
-  top_ticket_product: { name: string; tickets: number };
-  invoice_status: { lunas: number; belum_lunas: number };
-  active_notifications: number;
+  monthly_active_client: OwnerSummaryItem;
+  yearly_revenue: OwnerSummaryItem;
+  monthly_revenue: OwnerSummaryItem;
+  open_ticket: OwnerSummaryItem;
+}
+
+export interface NotificationItem {
+  message: string;
+  time: string;
 }

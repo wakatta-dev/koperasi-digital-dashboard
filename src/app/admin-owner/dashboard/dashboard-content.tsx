@@ -2,42 +2,35 @@
 
 "use client";
 
+import NotificationCard from "@/components/feature/dashboard/notification-card";
 import SummaryCard from "@/components/feature/dashboard/summary-card";
-import type { OwnerSummary } from "@/types/dashboard";
+import type { NotificationItem, OwnerSummary } from "@/types/dashboard";
 
 export default function DashboardContent({
   summary,
+  notifications = [],
 }: {
   summary: OwnerSummary | null;
+  notifications?: NotificationItem[];
 }) {
   if (!summary) {
     return <div className="p-4">Data tidak tersedia</div>;
   }
 
-  const {
-    clients_per_tier = {},
-    // open_tickets = 0,
-    // most_active_client = "",
-    // top_ticket_product = { name: "", tickets: 0 },
-    // invoice_status = { lunas: 0, belum_lunas: 0 },
-    // active_notifications = 0,
-  } = summary;
-
-  const result = Object.entries(clients_per_tier).map(
-    ([key, { current, prev }]) => {
-      const change =
-        prev === 0 ? 0 : Number((((current - prev) / prev) * 100).toFixed(2));
-      return {
-        key,
-        value: current,
-        change,
-      };
-    }
-  );
+  const result = Object.entries(summary).map(([key, { current, prev }]) => {
+    const change =
+      prev === 0 ? 0 : Number((((current - prev) / prev) * 100).toFixed(2));
+    return {
+      key,
+      value: current,
+      change,
+    };
+  });
 
   return (
-    <section className="space-y-4 p-4">
+    <section className="space-y-4 px-4">
       <SummaryCard data={result} />
+      <NotificationCard data={notifications} />
     </section>
   );
 }
