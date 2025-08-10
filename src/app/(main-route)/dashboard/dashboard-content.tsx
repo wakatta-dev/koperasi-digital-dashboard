@@ -2,14 +2,20 @@
 
 "use client";
 
-import SummaryCard from "@/components/feature/dashboard/summary-card";
+import SummaryCard, {
+  type DashboardSummary,
+} from "@/components/feature/dashboard/summary-card";
 import { useLanguage } from "@/contexts/language-context";
 
-export default function DashboardContent({ summary }: { summary: any }) {
+export default function DashboardContent({
+  summary,
+}: {
+  summary: DashboardSummary | null;
+}) {
   const { t } = useLanguage();
   return (
     <section>
-      <SummaryCard />
+      <SummaryCard summary={summary} />
       <h1 className="text-2xl font-bold mb-4">{t("dashboard")}</h1>
       {summary ? (
         <pre className="text-sm bg-muted p-4 rounded">
