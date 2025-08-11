@@ -28,9 +28,9 @@ export default function DashboardContent({
   });
 
   return (
-    <section className="space-y-4 px-4">
+    <div className="space-y-4 px-4 h-full">
       <SummaryCard data={result} />
       <NotificationCard data={notifications} />
-    </section>
+    </div>
   );
 }
