@@ -20,8 +20,10 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Button } from "../ui/button";
+import { useLanguage } from "@/contexts/language-context";
 
 export function LoginForm() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole | "">("");
@@ -40,14 +42,14 @@ export function LoginForm() {
       const session = await signIn(email, password, role);
 
       if (!session) {
-        setError("Email, password, atau role tidak valid");
+        setError(t("loginFailed"));
         return;
       }
 
       // Redirect based on role
       router.push(`/${role}/dashboard`);
     } catch {
-      setError("Terjadi kesalahan saat login");
+      setError(t("loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,7 @@ export function LoginForm() {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t("email")}</Label>
         <Input
           id="email"
           type="email"
@@ -75,7 +77,7 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t("password")}</Label>
         <Input
           id="password"
           type="password"
@@ -111,7 +113,7 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Memproses..." : "Masuk"}
+        {loading ? `${t("signIn")}...` : t("signIn")}
       </Button>
 
       <div className="text-sm text-muted-foreground space-y-1">
