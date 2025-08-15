@@ -1,155 +1,126 @@
 /** @format */
+
 "use client";
 
-import * as React from "react";
-import { z } from "zod";
+import type React from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "@/lib/auth";
+import type { UserRole } from "@/lib/types";
+import { Alert, AlertDescription } from "../ui/alert";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Button } from "../ui/button";
 
-import { cn } from "@/lib/utils";
-import { useLanguage } from "@/contexts/language-context";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-// (tetap) schema validasi yang sama
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
-
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<UserRole | "">("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
-  const { t } = useLanguage();
 
-  const [error, setError] = React.useState<string>("");
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!role) return;
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    mode: "onSubmit",
-  });
-
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    setLoading(true);
     setError("");
-    setIsSubmitting(true);
-    try {
-        const res = await signIn("credentials", {
-          ...values,
-          redirect: false,
-        });
 
-        if (res?.error) {
-          setError(t("loginFailed"));
-        } else {
-          const session = await getSession();
-          const role = (session as any)?.user?.role;
-          if (role === "admin_user") {
-            router.push("/admin-user/dashboard");
-          } else {
-            router.push("/admin-owner/dashboard");
-          }
-        }
+    try {
+      const session = await signIn(email, password, role);
+
+      if (!session) {
+        setError("Email, password, atau role tidak valid");
+        return;
+      }
+
+      // Redirect based on role
+      router.push(`/${role}/dashboard`);
     } catch {
-      setError(t("loginFailed"));
+      setError("Terjadi kesalahan saat login");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const emailError = form.formState.errors.email?.message;
-  const passwordError = form.formState.errors.password?.message;
-
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden p-0">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          {/* Form */}
-          <form
-            className="p-6 md:p-8"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-          >
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">
-                  {t("welcomeBack") ?? "Welcome back"}
-                </h1>
-              </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-              {/* Error global */}
-              {error && (
-                <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {error}
-                </p>
-              )}
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="nama@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={loading}
+        />
+      </div>
 
-              {/* Email */}
-              <div className="grid gap-2">
-                <Label htmlFor="email">{t("email")}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  autoComplete="email"
-                  {...form.register("email")}
-                  aria-invalid={!!emailError}
-                  aria-describedby={emailError ? "email-error" : undefined}
-                />
-                {emailError && (
-                  <p id="email-error" className="text-xs text-destructive">
-                    {emailError}
-                  </p>
-                )}
-              </div>
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="Masukkan password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={loading}
+        />
+      </div>
 
-              {/* Password */}
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">{t("password")}</Label>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
-                  >
-                    {t("forgotPassword") ?? "Forgot your password?"}
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  {...form.register("password")}
-                  aria-invalid={!!passwordError}
-                  aria-describedby={
-                    passwordError ? "password-error" : undefined
-                  }
-                />
-                {passwordError && (
-                  <p id="password-error" className="text-xs text-destructive">
-                    {passwordError}
-                  </p>
-                )}
-              </div>
+      <div className="space-y-2">
+        <Label htmlFor="role">Role</Label>
+        <Select
+          value={role}
+          onValueChange={(value) => setRole(value as UserRole)}
+          required
+          disabled={loading}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select a role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Role</SelectLabel>
+              <SelectItem value="vendor">Vendor</SelectItem>
+              <SelectItem value="koperasi">Koperasi</SelectItem>
+              <SelectItem value="umkm">UMKM</SelectItem>
+              <SelectItem value="bumdes">BUMDes</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
 
-              {/* Submit */}
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? t("signingIn") ?? "Signing in..." : t("signIn")}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Memproses..." : "Masuk"}
+      </Button>
+
+      <div className="text-sm text-muted-foreground space-y-1">
+        <p>Demo credentials:</p>
+        <p>• vendor@test.com / password (Vendor)</p>
+        <p>• koperasi@test.com / password (Koperasi)</p>
+        <p>• umkm@test.com / password (UMKM)</p>
+        <p>• bumdes@test.com / password (BUMDes)</p>
+      </div>
+    </form>
   );
 }

@@ -3,7 +3,7 @@
 "use server";
 
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/authOptions";
 
 export async function apiFetch(endpoint: string, options?: RequestInit) {
   const session = (await getServerSession(authOptions)) as any;

@@ -1,0 +1,259 @@
+/** @format */
+
+import { ProtectedRoute } from "@/components/shared/protected-route";
+import { DashboardLayout } from "@/components/shared/dashboard-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  BarChart3,
+  Package,
+  ShoppingCart,
+  Settings,
+  FileText,
+  Calculator,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
+
+const umkmNavigation = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: <BarChart3 className="h-4 w-4" />,
+  },
+  {
+    name: "Inventaris",
+    href: "/inventaris",
+    icon: <Package className="h-4 w-4" />,
+  },
+  {
+    name: "Harga Bertingkat",
+    href: "/harga-bertingkat",
+    icon: <Calculator className="h-4 w-4" />,
+  },
+  { name: "POS", href: "/pos", icon: <ShoppingCart className="h-4 w-4" /> },
+  { name: "Laporan", href: "/laporan", icon: <FileText className="h-4 w-4" /> },
+  {
+    name: "Pengaturan",
+    href: "/pengaturan",
+    icon: <Settings className="h-4 w-4" />,
+  },
+];
+
+const products = [
+  {
+    id: "P001",
+    name: "Kopi Arabica Premium",
+    category: "Minuman",
+    stock: 25,
+    minStock: 10,
+    price: "Rp 15,000",
+    cost: "Rp 8,000",
+    status: "tersedia",
+  },
+  {
+    id: "P002",
+    name: "Roti Bakar Spesial",
+    category: "Makanan",
+    stock: 3,
+    minStock: 15,
+    price: "Rp 12,000",
+    cost: "Rp 6,000",
+    status: "stok_rendah",
+  },
+  {
+    id: "P003",
+    name: "Nasi Gudeg",
+    category: "Makanan",
+    stock: 0,
+    minStock: 20,
+    price: "Rp 18,000",
+    cost: "Rp 10,000",
+    status: "habis",
+  },
+  {
+    id: "P004",
+    name: "Es Teh Manis",
+    category: "Minuman",
+    stock: 50,
+    minStock: 20,
+    price: "Rp 5,000",
+    cost: "Rp 2,000",
+    status: "tersedia",
+  },
+];
+
+export default function InventarisPage() {
+  return (
+    <ProtectedRoute requiredRole="umkm">
+      <DashboardLayout title="Manajemen Inventaris" navigation={umkmNavigation}>
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Inventaris</h2>
+              <p className="text-muted-foreground">
+                Kelola stok dan produk UMKM
+              </p>
+            </div>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Produk
+            </Button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">
+                  Total Produk
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">156</div>
+                <p className="text-xs text-muted-foreground">+8 produk baru</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">
+                  Stok Tersedia
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">142</div>
+                <p className="text-xs text-muted-foreground">91% dari total</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">
+                  Stok Rendah
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">9</div>
+                <p className="text-xs text-muted-foreground">Perlu restok</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">
+                  Stok Habis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">5</div>
+                <p className="text-xs text-muted-foreground">Segera restok</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Search and Filters */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Cari produk..." className="pl-10" />
+                </div>
+                <Button variant="outline">Filter Kategori</Button>
+                <Button variant="outline">Filter Status</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Products Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Daftar Produk</CardTitle>
+              <CardDescription>
+                Kelola inventaris dan stok produk
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                        <Package className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{product.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {product.id} • {product.category}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className="text-right">
+                        <p className="font-medium">Stok: {product.stock}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Min: {product.minStock}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="font-medium">{product.price}</p>
+                        <p className="text-sm text-muted-foreground">
+                          HPP: {product.cost}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {product.status === "stok_rendah" && (
+                          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        )}
+                        <Badge
+                          variant={
+                            product.status === "tersedia"
+                              ? "default"
+                              : product.status === "stok_rendah"
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
+                          {product.status === "tersedia"
+                            ? "Tersedia"
+                            : product.status === "stok_rendah"
+                            ? "Stok Rendah"
+                            : "Habis"}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
