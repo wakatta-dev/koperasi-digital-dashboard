@@ -1,7 +1,5 @@
 /** @format */
 
-import { ProtectedRoute } from "@/components/shared/protected-route";
-import { DashboardLayout } from "@/components/shared/dashboard-layout";
 import {
   Card,
   CardContent,
@@ -13,12 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  BarChart3,
-  Package,
   ShoppingCart,
-  Settings,
-  FileText,
-  Calculator,
   Search,
   Plus,
   Minus,
@@ -26,31 +19,6 @@ import {
   CreditCard,
   Banknote,
 } from "lucide-react";
-
-const umkmNavigation = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: <BarChart3 className="h-4 w-4" />,
-  },
-  {
-    name: "Inventaris",
-    href: "/inventaris",
-    icon: <Package className="h-4 w-4" />,
-  },
-  {
-    name: "Harga Bertingkat",
-    href: "/harga-bertingkat",
-    icon: <Calculator className="h-4 w-4" />,
-  },
-  { name: "POS", href: "/pos", icon: <ShoppingCart className="h-4 w-4" /> },
-  { name: "Laporan", href: "/laporan", icon: <FileText className="h-4 w-4" /> },
-  {
-    name: "Pengaturan",
-    href: "/pengaturan",
-    icon: <Settings className="h-4 w-4" />,
-  },
-];
 
 const products = [
   { id: "P001", name: "Kopi Arabica Premium", price: 15000, stock: 25 },
@@ -68,157 +36,151 @@ const cartItems = [
 export default function POSPage() {
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
   const tax = subtotal * 0.1; // 10% tax
   const total = subtotal + tax;
 
   return (
-    <ProtectedRoute requiredRole="umkm">
-      <DashboardLayout title="Point of Sale (POS)" navigation={umkmNavigation}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Product Selection */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pilih Produk</CardTitle>
-                <CardDescription>
-                  Klik produk untuk menambahkan ke keranjang
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Cari produk..." className="pl-10" />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Product Selection */}
+      <div className="lg:col-span-2 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pilih Produk</CardTitle>
+            <CardDescription>
+              Klik produk untuk menambahkan ke keranjang
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Cari produk..." className="pl-10" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Stok: {product.stock}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">
+                        Rp {product.price.toLocaleString()}
+                      </p>
+                      <Badge
+                        variant={product.stock > 10 ? "default" : "secondary"}
+                      >
+                        {product.stock > 10 ? "Tersedia" : "Terbatas"}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {products.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium">{product.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Stok: {product.stock}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">
-                            Rp {product.price.toLocaleString()}
-                          </p>
-                          <Badge
-                            variant={
-                              product.stock > 10 ? "default" : "secondary"
-                            }
-                          >
-                            {product.stock > 10 ? "Tersedia" : "Terbatas"}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Cart and Checkout */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Keranjang Belanja</CardTitle>
-                <CardDescription>Item yang dipilih</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {cartItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{item.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Rp {item.price.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {cartItems.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Keranjang kosong</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {cartItems.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ringkasan Pembayaran</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span>Rp {subtotal.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Pajak (10%)</span>
-                      <span>Rp {tax.toLocaleString()}</span>
-                    </div>
-                    <div className="border-t pt-2">
-                      <div className="flex justify-between font-bold">
-                        <span>Total</span>
-                        <span>Rp {total.toLocaleString()}</span>
-                      </div>
-                    </div>
+      {/* Cart and Checkout */}
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Keranjang Belanja</CardTitle>
+            <CardDescription>Item yang dipilih</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {cartItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm">{item.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Rp {item.price.toLocaleString()}
+                    </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Button className="w-full" size="lg">
-                      <Banknote className="h-4 w-4 mr-2" />
-                      Bayar Tunai
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Minus className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full bg-transparent"
-                      size="lg"
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Bayar Non-Tunai
+                    <span className="w-8 text-center">{item.quantity}</span>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                </div>
+              ))}
 
-                  <Button variant="ghost" className="w-full">
-                    Simpan sebagai Draft
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </DashboardLayout>
-    </ProtectedRoute>
+              {cartItems.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Keranjang kosong</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {cartItems.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Ringkasan Pembayaran</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>Rp {subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Pajak (10%)</span>
+                  <span>Rp {tax.toLocaleString()}</span>
+                </div>
+                <div className="border-t pt-2">
+                  <div className="flex justify-between font-bold">
+                    <span>Total</span>
+                    <span>Rp {total.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Button className="w-full" size="lg">
+                  <Banknote className="h-4 w-4 mr-2" />
+                  Bayar Tunai
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  size="lg"
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Bayar Non-Tunai
+                </Button>
+              </div>
+
+              <Button variant="ghost" className="w-full">
+                Simpan sebagai Draft
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
   );
 }
