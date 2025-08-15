@@ -6,7 +6,6 @@ import { Geist } from "next/font/google";
 
 import "./globals.css";
 import { AuthProvider } from "@/components/shared/auth-provider";
-import { SidebarProvider } from "@/components/ui/sidebar";
 
 export const metadata: Metadata = {
   title: "Multi-Tenant Dashboard",
@@ -27,18 +26,7 @@ export default function RootLayout({
     <html lang="en" className={geist.className}>
       <head></head>
       <body>
-        <AuthProvider>
-          <SidebarProvider
-            style={
-              {
-                "--sidebar-width": "calc(var(--spacing) * 72)",
-                "--header-height": "calc(var(--spacing) * 12)",
-              } as React.CSSProperties
-            }
-          >
-            {children}
-          </SidebarProvider>
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

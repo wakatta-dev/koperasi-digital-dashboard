@@ -33,12 +33,12 @@ interface SidebarData {
   navSecondary: {
     title: string;
     url: string;
-    icon: React.ComponentType<{ className?: string }>;
+    icon?: React.ReactNode;
   }[];
   documents: {
-    name: string;
+    title: string;
     url: string;
-    icon: React.ComponentType<{ className?: string }>;
+    icon?: React.ReactNode;
   }[];
 }
 

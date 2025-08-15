@@ -7,7 +7,6 @@ import {
   IconFolder,
   IconShare3,
   IconTrash,
-  type Icon,
 } from "@tabler/icons-react";
 
 import {
@@ -31,9 +30,9 @@ export function NavDocuments({
   items,
 }: {
   items: {
-    name: string;
+    title: string;
     url: string;
-    icon: Icon;
+    icon?: React.ReactNode;
   }[];
 }) {
   const { isMobile } = useSidebar();
@@ -43,11 +42,11 @@ export function NavDocuments({
       <SidebarGroupLabel>Documents</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
+          <SidebarMenuItem key={item.title}>
             <SidebarMenuButton asChild>
               <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
+                {item.icon}
+                <span>{item.title}</span>
               </a>
             </SidebarMenuButton>
             <DropdownMenu>

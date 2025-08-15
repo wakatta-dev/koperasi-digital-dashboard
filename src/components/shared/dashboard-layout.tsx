@@ -45,14 +45,14 @@ export function DashboardLayout({
       icon: item.icon,
     })),
     navSecondary: [
-      { title: "Settings", url: "#", icon: IconSettings },
-      { title: "Get Help", url: "#", icon: IconHelp },
-      { title: "Search", url: "#", icon: IconSearch },
+      { title: "Settings", url: "#", icon: <IconSettings /> },
+      { title: "Get Help", url: "#", icon: <IconHelp /> },
+      { title: "Search", url: "#", icon: <IconSearch /> },
     ],
     documents: [
-      { name: "Data Library", url: "#", icon: IconDatabase },
-      { name: "Reports", url: "#", icon: IconReport },
-      { name: "Word Assistant", url: "#", icon: IconFileWord },
+      { title: "Data Library", url: "#", icon: <IconDatabase /> },
+      { title: "Reports", url: "#", icon: <IconReport /> },
+      { title: "Word Assistant", url: "#", icon: <IconFileWord /> },
     ],
   };
 
