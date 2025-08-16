@@ -11,6 +11,13 @@
 
 **Endpoint:** `GET /api/umkm/pricing-tiers`
 
+- **Request:** _tanpa parameter_
+- **Response:**
+  - `tier`: Nama tingkat pelanggan.
+  - `diskon`: Persentase diskon.
+  - `anggota`: Jumlah anggota pada tingkat tersebut.
+  - `produk`: Daftar produk dengan harga khusus per tingkat.
+
 **Format Data:**
 ```json
 [
