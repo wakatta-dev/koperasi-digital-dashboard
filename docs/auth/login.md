@@ -15,6 +15,20 @@ Halaman ini menampilkan form masuk untuk seluruh tenant.
 ### Endpoint & Format Data
 **Endpoint**: `POST /auth/login`
 
+#### Request
+- `email` (string): Alamat email terdaftar
+- `password` (string): Password akun
+- `role` (enum): Pilih salah satu: `vendor`, `koperasi`, `umkm`, `bumdes`
+
+#### Response
+- `token` (string): Token JWT
+- `user` (object):
+  - `id` (string): ID pengguna
+  - `email` (string): Email pengguna
+  - `name` (string): Nama pengguna
+  - `role` (string): Role pengguna
+  - `organizationId` (string): ID organisasi
+
 **Request Body**
 ```json
 {

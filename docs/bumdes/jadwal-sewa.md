@@ -8,27 +8,41 @@
   - Melihat detail pemesanan tiap hari.
 - **Endpoint:**
   - `GET /api/jadwal-sewa`
-    - **Parameter:** tidak ada
-    - **Respons:**
-      - `200 OK` berisi array daftar jadwal
+    - **Parameter:**
+      - `page` *(opsional)* – nomor halaman.
+      - `limit` *(opsional)* – jumlah data per halaman.
+      - `asetId` *(opsional)* – filter berdasarkan ID aset.
+    - **Respons 200:**
+      - `data` – array jadwal sewa.
+      - `total` – jumlah total jadwal.
+      - `page` – halaman saat ini.
+      - `limit` – jumlah data per halaman.
+  - `GET /api/jadwal-sewa/{id}`
+    - **Parameter:**
+      - `id` – ID jadwal.
+    - **Respons 200:**
+      - Objek jadwal sewa.
   - `POST /api/jadwal-sewa`
-    - **Parameter (body):**
-      - `asetId` (number) - ID aset yang disewa
-      - `tanggalMulai` (string, YYYY-MM-DD) - tanggal mulai sewa
-      - `tanggalSelesai` (string, YYYY-MM-DD) - tanggal selesai sewa
-      - `penyewa` (string) - nama penyewa
-    - **Respons:**
-      - `201 Created` berisi objek jadwal baru dengan `id`
+    - **Parameter (body JSON):**
+      - `asetId` – ID aset yang disewa.
+      - `tanggalMulai` – tanggal mulai sewa.
+      - `tanggalSelesai` – tanggal selesai sewa.
+      - `penyewa` – nama penyewa.
+    - **Respons 201:**
+      - `message` – status pembuatan jadwal.
+      - `data` – jadwal sewa yang baru dibuat.
   - `PUT /api/jadwal-sewa/{id}`
     - **Parameter:**
-      - `id` (path) - ID jadwal yang akan diubah
-      - Body seperti pada `POST` (opsional)
-    - **Respons:**
-      - `200 OK` berisi objek jadwal yang telah diperbarui
+      - `id` – ID jadwal.
+      - `asetId`, `tanggalMulai`, `tanggalSelesai`, `penyewa` *(body JSON)* – field yang diubah.
+    - **Respons 200:**
+      - `message` – status pembaruan jadwal.
+      - `data` – jadwal sewa setelah diperbarui.
   - `DELETE /api/jadwal-sewa/{id}`
-    - **Parameter:** `id` (path) - ID jadwal yang dibatalkan
-    - **Respons:**
-      - `200 OK` berisi pesan status pembatalan
+    - **Parameter:**
+      - `id` – ID jadwal.
+    - **Respons 200:**
+      - `message` – status penghapusan jadwal.
 - **Format Data:**
   ```json
   {
