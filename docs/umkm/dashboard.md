@@ -12,6 +12,12 @@
 
 **Endpoint:** `GET /api/umkm/dashboard`
 
+- **Request:** Tidak ada body
+- **Response:**
+  - `stats`
+  - `transaksiTerbaru`
+  - `stokRendah`
+
 **Format Data:**
 ```json
 {

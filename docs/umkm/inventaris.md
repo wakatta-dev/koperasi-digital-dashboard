@@ -10,6 +10,10 @@
 - Tabel produk dengan detail stok, harga, status, dan aksi.
 
 **Endpoint:** `GET /api/umkm/inventory`
+- **Request:** _tanpa body_
+- **Response:**
+  - `stats` - statistik inventaris total produk, ketersediaan, stok rendah, dan stok habis.
+  - `produk` - daftar produk dengan `id`, `nama`, `stok`, `harga`, dan `status`.
 
 **Format Data:**
 ```json

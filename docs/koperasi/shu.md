@@ -9,8 +9,22 @@
   - Pembagian SHU per anggota beserta status pembayaran.
 - **Endpoint**:
   - `GET /api/koperasi/shu/stats`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `total` - total SHU.
+      - `bagianAnggota` - bagian untuk anggota.
+      - `bagianModal` - bagian untuk modal.
   - `GET /api/koperasi/shu/history`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `tahun` - tahun perhitungan.
+      - `total` - total SHU per tahun.
   - `GET /api/koperasi/shu/distribusi`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `anggota` - nama anggota.
+      - `jumlah` - jumlah SHU yang diterima.
+      - `status` - status pembayaran.
 - **Format Data**:
 
   ```json

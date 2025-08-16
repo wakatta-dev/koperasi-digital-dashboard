@@ -9,7 +9,20 @@
   - Tabel riwayat transaksi dengan jenis, jumlah, saldo, dan aksi detail.
 - **Endpoint**:
   - `GET /api/koperasi/simpanan/stats`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `total` - total simpanan.
+      - `pokok` - total simpanan pokok.
+      - `wajib` - total simpanan wajib.
+      - `sukarela` - total simpanan sukarela.
   - `GET /api/koperasi/simpanan`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `id` - ID transaksi.
+      - `jenis` - jenis simpanan.
+      - `jumlah` - jumlah transaksi.
+      - `saldo` - saldo setelah transaksi.
+      - `tanggal` - tanggal transaksi.
 - **Format Data**:
 
   ```json
