@@ -9,7 +9,19 @@
   - Tabel anggota dengan informasi simpanan, status, serta aksi lihat dan edit.
 - **Endpoint**:
   - `GET /api/koperasi/anggota/stats`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `total` - total anggota.
+      - `aktif` - jumlah anggota aktif.
+      - `baru` - jumlah anggota baru.
   - `GET /api/koperasi/anggota`
+    - **Request:**
+      - `search` - kata kunci pencarian anggota (opsional).
+    - **Response:**
+      - `id` - ID anggota.
+      - `nama` - nama anggota.
+      - `simpanan` - total simpanan.
+      - `status` - status keanggotaan.
 - **Format Data**:
 
   ```json
