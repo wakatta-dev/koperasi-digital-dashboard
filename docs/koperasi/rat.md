@@ -9,7 +9,24 @@
   - Riwayat RAT sebelumnya beserta persentase kehadiran dan status.
 - **Endpoint**:
   - `GET /api/koperasi/rat/upcoming`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `upcoming` - detail RAT mendatang:
+        - `tanggal` - tanggal pelaksanaan.
+        - `waktu` - waktu pelaksanaan.
+        - `lokasi` - lokasi RAT.
+      - `stats` - statistik kehadiran:
+        - `totalAnggota` - jumlah anggota.
+        - `konfirmasi` - anggota yang telah konfirmasi.
+        - `kuorum` - batas minimum kehadiran.
+        - `hariTersisa` - sisa hari menuju RAT.
   - `GET /api/koperasi/rat/history`
+    - **Request:** _tanpa body_
+    - **Response:**
+      - `history` - daftar RAT sebelumnya:
+        - `tahun` - tahun pelaksanaan.
+        - `hadir` - jumlah anggota hadir.
+        - `status` - status RAT.
 - **Format Data**:
 
   ```json
