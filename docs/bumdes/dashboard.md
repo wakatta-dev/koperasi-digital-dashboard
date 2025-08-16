@@ -7,6 +7,12 @@
   - Menavigasi cepat ke modul lain.
   - Meninjau notifikasi penting.
 - **Endpoint:** `GET /api/dashboard/summary`
+  - **Request:** _tanpa body_
+  - **Response:**
+    - `totalUnit` - jumlah unit usaha.
+    - `totalAset` - jumlah aset yang dimiliki.
+    - `pendapatan` - total pendapatan.
+    - `notifikasi` - daftar notifikasi terbaru.
 - **Format Data:**
   ```json
   {
