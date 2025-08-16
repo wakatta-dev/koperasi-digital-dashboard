@@ -8,7 +8,33 @@
   - Menyesuaikan preferensi sistem.
 - **Endpoint:**
   - `GET /api/pengaturan` - daftar pengaturan
+    - Request: `-`
+    - Response:
+      ```json
+      [
+        {
+          "id": 1,
+          "nama": "tema",
+          "nilai": "gelap"
+        }
+      ]
+      ```
   - `PUT /api/pengaturan/{id}` - ubah pengaturan
+    - Request:
+      ```json
+      {
+        "nama": "tema",
+        "nilai": "gelap"
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "id": 1,
+        "nama": "tema",
+        "nilai": "gelap"
+      }
+      ```
 - **Format Data:**
   ```json
   {
