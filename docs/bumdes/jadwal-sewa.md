@@ -7,10 +7,28 @@
   - Mengubah atau membatalkan jadwal yang ada.
   - Melihat detail pemesanan tiap hari.
 - **Endpoint:**
-  - `GET /api/jadwal-sewa` - daftar jadwal
-  - `POST /api/jadwal-sewa` - buat jadwal
-  - `PUT /api/jadwal-sewa/{id}` - ubah jadwal
-  - `DELETE /api/jadwal-sewa/{id}` - batalkan jadwal
+  - `GET /api/jadwal-sewa`
+    - **Parameter:** tidak ada
+    - **Respons:**
+      - `200 OK` berisi array daftar jadwal
+  - `POST /api/jadwal-sewa`
+    - **Parameter (body):**
+      - `asetId` (number) - ID aset yang disewa
+      - `tanggalMulai` (string, YYYY-MM-DD) - tanggal mulai sewa
+      - `tanggalSelesai` (string, YYYY-MM-DD) - tanggal selesai sewa
+      - `penyewa` (string) - nama penyewa
+    - **Respons:**
+      - `201 Created` berisi objek jadwal baru dengan `id`
+  - `PUT /api/jadwal-sewa/{id}`
+    - **Parameter:**
+      - `id` (path) - ID jadwal yang akan diubah
+      - Body seperti pada `POST` (opsional)
+    - **Respons:**
+      - `200 OK` berisi objek jadwal yang telah diperbarui
+  - `DELETE /api/jadwal-sewa/{id}`
+    - **Parameter:** `id` (path) - ID jadwal yang dibatalkan
+    - **Respons:**
+      - `200 OK` berisi pesan status pembatalan
 - **Format Data:**
   ```json
   {
