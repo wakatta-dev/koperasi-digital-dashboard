@@ -6,3 +6,9 @@
   - Melihat metrik kinerja utama.
   - Menavigasi cepat ke modul lain.
   - Meninjau notifikasi penting.
+
+## User Flow
+
+1. Pilih menu **Dashboard** pada navigasi utama.
+2. Tinjau ringkasan statistik dan aktivitas terbaru.
+3. Gunakan tautan cepat atau notifikasi untuk berpindah ke modul terkait.

@@ -40,7 +40,7 @@ const dashboardStats = [
     icon: <Users className="h-4 w-4" />,
   },
   {
-    title: "Pending Invoices",
+    title: "Open Ticket",
     value: "12",
     change: "-2",
     trend: "down" as const,
@@ -126,8 +126,8 @@ export default function VendorDashboard() {
                         order.status === "completed"
                           ? "default"
                           : order.status === "pending"
-                            ? "secondary"
-                            : "outline"
+                          ? "secondary"
+                          : "outline"
                       }
                     >
                       {order.status}
