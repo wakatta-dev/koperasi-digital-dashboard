@@ -6,6 +6,19 @@ import {
   logout,
 } from "./auth";
 
+async function getTenantId(): Promise<string | null> {
+  if (typeof window !== "undefined") {
+    const match = document.cookie.match(/(?:^|; )tenantId=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+  try {
+    const { cookies } = await import("next/headers");
+    return cookies().get("tenantId")?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 export class ApiError extends Error {
@@ -25,6 +38,10 @@ async function request(path: string, options: RequestInit = {}) {
   const headers = new Headers(options.headers);
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+  const tenantId = await getTenantId();
+  if (tenantId) {
+    headers.set("X-Tenant-ID", tenantId);
   }
 
   let body = options.body;
