@@ -41,8 +41,36 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Resolve tenant ID from cookie or domain lookup
+  const host = request.headers.get("host") ?? "";
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    "";
+
+  let tenantId = request.cookies.get("tenantId")?.value;
+  if (!tenantId && apiBase && host) {
+    try {
+      const res = await fetch(
+        `${apiBase}/tenant/by-domain?domain=${host}`,
+      );
+      if (res.ok) {
+        const { data } = await res.json();
+        tenantId = String(data.tenant_id);
+      }
+    } catch {
+      /* ignore lookup errors */
+    }
+  }
+
+  // Prepare headers for downstream requests
+  const headers = new Headers(request.headers);
+  if (tenantId) {
+    headers.set("X-Tenant-ID", tenantId);
+  }
 
   // Skip middleware for static files and API routes
   if (
@@ -50,7 +78,11 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.includes(".")
   ) {
-    return NextResponse.next();
+    const res = NextResponse.next({ request: { headers } });
+    if (tenantId) {
+      res.cookies.set("tenantId", tenantId, { path: "/" });
+    }
+    return res;
   }
 
   // Get session from cookies
@@ -63,19 +95,27 @@ export function middleware(request: NextRequest) {
     "/koperasi": "koperasi",
     "/umkm": "umkm",
     "/bumdes": "bumdes",
-  };
+  } as const;
 
   // Check if accessing a protected dashboard route
   const protectedRoute = Object.keys(routeRoleMap).find((route) =>
-    pathname.startsWith(route)
+    pathname.startsWith(route),
   );
+
+  const withTenant = (response: NextResponse): NextResponse => {
+    if (tenantId) {
+      response.headers.set("X-Tenant-ID", tenantId);
+      response.cookies.set("tenantId", tenantId, { path: "/" });
+    }
+    return response;
+  };
 
   if (protectedRoute) {
     // Redirect to login if no session
     if (!session) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return withTenant(NextResponse.redirect(loginUrl));
     }
 
     // Check if user has correct role for the route
@@ -84,27 +124,31 @@ export function middleware(request: NextRequest) {
     if (session.user.role !== requiredRole) {
       // Redirect to appropriate dashboard based on user role
       const userDashboard = `/${session.user.role}/dashboard`;
-      return NextResponse.redirect(new URL(userDashboard, request.url));
+      return withTenant(
+        NextResponse.redirect(new URL(userDashboard, request.url)),
+      );
     }
   }
 
   // Redirect authenticated users from login page to their dashboard
   if (pathname === "/login" && session) {
     const userDashboard = `/${session.user.role}/dashboard`;
-    return NextResponse.redirect(new URL(userDashboard, request.url));
+    return withTenant(NextResponse.redirect(new URL(userDashboard, request.url)));
   }
 
   // Redirect root path to login or user dashboard
   if (pathname === "/") {
     if (session) {
       const userDashboard = `/${session.user.role}/dashboard`;
-      return NextResponse.redirect(new URL(userDashboard, request.url));
+      return withTenant(
+        NextResponse.redirect(new URL(userDashboard, request.url)),
+      );
     } else {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return withTenant(NextResponse.redirect(new URL("/login", request.url)));
     }
   }
 
-  return NextResponse.next();
+  return withTenant(NextResponse.next({ request: { headers } }));
 }
 
 export const config = {
