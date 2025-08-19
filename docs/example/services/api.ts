@@ -1,51 +1,57 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-
 let accessToken: string | null = null;
 
-export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-});
+export class ApiError extends Error {
+  status: number;
+  data: any;
+  constructor(status: number, data: any) {
+    super(`Request failed with status ${status}`);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
 
-api.interceptors.request.use((config: AxiosRequestConfig) => {
+async function request(path: string, options: RequestInit = {}) {
+  const headers = new Headers(options.headers);
   if (accessToken) {
-    config.headers = {
-      ...(config.headers || {}),
-      Authorization: `Bearer ${accessToken}`,
-    };
+    headers.set('Authorization', `Bearer ${accessToken}`);
   }
-  return config;
-});
 
-api.interceptors.response.use(
-  (res) => res,
-  async (error: AxiosError) => {
-    if (error.response?.status === 401 && error.config && !error.config.headers?.['x-retry']) {
-      try {
-        const refresh = await axios.post(
-          '/api/auth/refresh',
-          { refresh_token: getRefreshTokenFromCookie() },
-          { baseURL: api.defaults.baseURL }
-        );
-        accessToken = refresh.data.access_token;
-        error.config.headers = {
-          ...(error.config.headers || {}),
-          Authorization: `Bearer ${accessToken}`,
-          'x-retry': 'true',
-        };
-        return api(error.config);
-      } catch (err) {
-        return Promise.reject(err);
-      }
-    }
-    return Promise.reject(error);
+  let body = options.body;
+  if (body && typeof body !== 'string' && !(body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+    body = JSON.stringify(body);
   }
-);
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+    body,
+  });
+
+  const contentType = res.headers.get('content-type');
+  const data = contentType && contentType.includes('application/json')
+    ? await res.json()
+    : await res.text();
+
+  if (!res.ok) {
+    throw new ApiError(res.status, data);
+  }
+
+  return data;
+}
+
+export const api = {
+  get: (path: string, options?: RequestInit) =>
+    request(path, { ...options, method: 'GET' }),
+  post: (path: string, body?: any, options?: RequestInit) =>
+    request(path, { ...options, method: 'POST', body }),
+  put: (path: string, body?: any, options?: RequestInit) =>
+    request(path, { ...options, method: 'PUT', body }),
+  delete: (path: string, options?: RequestInit) =>
+    request(path, { ...options, method: 'DELETE' }),
+};
 
 export function setAccessToken(token: string) {
   accessToken = token;
-}
-
-function getRefreshTokenFromCookie(): string {
-  // Implementasi mendapatkan refresh token dari cookie sesuai kebutuhan
-  return '';
 }
