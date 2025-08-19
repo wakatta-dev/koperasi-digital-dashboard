@@ -1,6 +1,10 @@
 /** @format */
 
-import { getSession } from "next-auth/react";
+import {
+  getAccessToken,
+  refreshToken as refreshAccessToken,
+  logout,
+} from "./auth";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
@@ -16,11 +20,11 @@ export class ApiError extends Error {
 }
 
 async function request(path: string, options: RequestInit = {}) {
-  const session = await getSession();
-  const token = (session as any)?.accessToken;
+  let accessToken = await getAccessToken();
+
   const headers = new Headers(options.headers);
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
   let body = options.body;
@@ -29,17 +33,26 @@ async function request(path: string, options: RequestInit = {}) {
     body = JSON.stringify(body);
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
+  let res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
+
+  if (res.status === 401) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      accessToken = newToken;
+      headers.set("Authorization", `Bearer ${accessToken}`);
+      res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
+    } else {
+      await logout();
+    }
+  }
 
   const contentType = res.headers.get("content-type");
-  const data = contentType && contentType.includes("application/json")
-    ? await res.json()
-    : await res.text();
+  const data =
+    contentType && contentType.includes("application/json")
+      ? await res.json()
+      : await res.text();
 
   if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem("accessToken");
-    }
     throw new ApiError(res.status, data);
   }
 
