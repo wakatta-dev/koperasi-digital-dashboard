@@ -4,7 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import { decodeJwt } from "jose"; // ✅ lebih aman dari manual base64 decode
 import { getTenantId } from "@/services/api";
 
-async function refreshAccessToken(token: any) {
+export async function refreshAccessToken(token: any) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,

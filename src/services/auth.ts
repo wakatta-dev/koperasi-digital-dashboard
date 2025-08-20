@@ -22,7 +22,11 @@ export async function logout() {
     headers: { "Content-Type": "application/json" },
     credentials: "include",
   }).catch(() => null);
-  await signOut({ redirect: false });
+  if (typeof window !== "undefined") {
+    document.cookie =
+      "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }
+  await signOut({ callbackUrl: "/login" });
 }
 
 export async function getAccessToken(): Promise<string | null> {
