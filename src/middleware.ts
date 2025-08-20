@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -55,14 +56,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/tenant-not-found", request.url));
   }
 
-  // cek session
-  const sessionCookie = request.cookies.get("auth-session");
-  let session: any = null;
-  try {
-    session = sessionCookie ? JSON.parse(sessionCookie.value) : null;
-  } catch {
-    session = null;
-  }
+  // cek token NextAuth
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+  const userRole = (token as any)?.role;
 
   const routeRoleMap = {
     "/vendor": "vendor",
@@ -76,7 +75,7 @@ export async function middleware(request: NextRequest) {
   );
 
   if (protectedRoute) {
-    if (!session) {
+    if (!token) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return withTenant(NextResponse.redirect(loginUrl));
@@ -84,24 +83,24 @@ export async function middleware(request: NextRequest) {
 
     const requiredRole =
       routeRoleMap[protectedRoute as keyof typeof routeRoleMap];
-    if (session.user.role !== requiredRole) {
-      const userDashboard = `/${session.user.role}/dashboard`;
+    if (userRole !== requiredRole) {
+      const userDashboard = `/${userRole}/dashboard`;
       return withTenant(
         NextResponse.redirect(new URL(userDashboard, request.url))
       );
     }
   }
 
-  if (pathname === "/login" && session) {
-    const userDashboard = `/${session.user.role}/dashboard`;
+  if (pathname === "/login" && token) {
+    const userDashboard = `/${userRole}/dashboard`;
     return withTenant(
       NextResponse.redirect(new URL(userDashboard, request.url))
     );
   }
 
   if (pathname === "/") {
-    if (session) {
-      const userDashboard = `/${session.user.role}/dashboard`;
+    if (token) {
+      const userDashboard = `/${userRole}/dashboard`;
       return withTenant(
         NextResponse.redirect(new URL(userDashboard, request.url))
       );
