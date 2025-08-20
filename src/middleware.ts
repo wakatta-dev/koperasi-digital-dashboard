@@ -85,6 +85,11 @@ export async function middleware(request: NextRequest) {
     return res;
   }
 
+  // Redirect to info page if tenant cannot be resolved
+  if (!tenantId && pathname !== "/tenant-not-found") {
+    return NextResponse.redirect(new URL("/tenant-not-found", request.url));
+  }
+
   // Get session from cookies
   const sessionCookie = request.cookies.get("auth-session");
   const session = sessionCookie ? JSON.parse(sessionCookie.value) : null;
