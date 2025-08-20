@@ -66,7 +66,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          cookies().set("refresh_token", data.refresh_token, {
+          (await cookies()).set("refresh_token", data.refresh_token, {
             httpOnly: true,
             path: "/",
             sameSite: "strict",
