@@ -1,6 +1,6 @@
 /** @format */
 
-import { NextAuthOptions } from "next-auth";
+import { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { cookies } from "next/headers";
 
@@ -38,7 +38,7 @@ async function refreshAccessToken(token: any) {
   }
 }
 
-export const authOptions: NextAuthOptions = {
+export const authOptions: AuthOptions = {
   providers: [
     Credentials({
       name: "Credentials",
@@ -108,7 +108,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    // signIn: "/login",
+    signIn: "/auth/login",
+    signOut: "/auth/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
