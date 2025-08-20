@@ -6,7 +6,7 @@ import {
   logout,
 } from "./auth";
 
-async function getTenantId(): Promise<string | null> {
+export async function getTenantId(): Promise<string | null> {
   if (typeof window !== "undefined") {
     const match = document.cookie.match(/(?:^|; )tenantId=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : null;
