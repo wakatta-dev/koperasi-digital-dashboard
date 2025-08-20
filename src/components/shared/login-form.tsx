@@ -5,20 +5,11 @@
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getSession } from "next-auth/react";
 import { login } from "@/services/auth";
-import type { UserRole } from "@/lib/types";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 import { Button } from "../ui/button";
 import { useLanguage } from "@/contexts/language-context";
 
@@ -26,22 +17,24 @@ export function LoginForm() {
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole | "">("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!role) return;
 
     setLoading(true);
     setError("");
 
     try {
       await login(email, password);
-      // Redirect based on role
-      router.push(`/${role}/dashboard`);
+      const session: any = await getSession();
+      if (session?.user.role) {
+        router.push(`/${session.user.role}/dashboard`);
+      } else {
+        router.push("/");
+      }
     } catch {
       setError(t("loginFailed"));
     } finally {
@@ -83,39 +76,16 @@ export function LoginForm() {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="role">Role</Label>
-        <Select
-          value={role}
-          onValueChange={(value) => setRole(value as UserRole)}
-          required
-          disabled={loading}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Role</SelectLabel>
-              <SelectItem value="vendor">Vendor</SelectItem>
-              <SelectItem value="koperasi">Koperasi</SelectItem>
-              <SelectItem value="umkm">UMKM</SelectItem>
-              <SelectItem value="bumdes">BUMDes</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? `${t("signIn")}...` : t("signIn")}
       </Button>
 
       <div className="text-sm text-muted-foreground space-y-1">
         <p>Demo credentials:</p>
-        <p>• vendor@test.com / password (Vendor)</p>
-        <p>• koperasi@test.com / password (Koperasi)</p>
-        <p>• umkm@test.com / password (UMKM)</p>
-        <p>• bumdes@test.com / password (BUMDes)</p>
+        <p>• vendor@test.com / password</p>
+        <p>• koperasi@test.com / password</p>
+        <p>• umkm@test.com / password</p>
+        <p>• bumdes@test.com / password</p>
       </div>
     </form>
   );
