@@ -12,7 +12,7 @@ import {
   IconSearch,
   IconSettings,
 } from "@tabler/icons-react";
-import { useAuth } from "./auth-provider";
+import { useSession } from "next-auth/react";
 import { SidebarInset } from "../ui/sidebar";
 import { SiteHeader } from "./site-header";
 import { AppSidebar } from "./app-sidebar";
@@ -31,12 +31,12 @@ export function DashboardLayout({
   children,
   navigation,
 }: DashboardLayoutProps) {
-  const { user } = useAuth();
+  const { data: session } = useSession();
 
   const sidebarData = {
     user: {
-      name: user?.name ?? "",
-      email: user?.email ?? "",
+      name: session?.user?.name ?? "",
+      email: session?.user?.email ?? "",
       avatar: "/avatars/shadcn.jpg",
     },
     navMain: navigation.map((item) => ({

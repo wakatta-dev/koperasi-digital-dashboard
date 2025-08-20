@@ -5,7 +5,7 @@
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "@/lib/auth";
+import { login } from "@/services/auth";
 import type { UserRole } from "@/lib/types";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Input } from "../ui/input";
@@ -39,13 +39,7 @@ export function LoginForm() {
     setError("");
 
     try {
-      const session = await signIn(email, password, role);
-
-      if (!session) {
-        setError(t("loginFailed"));
-        return;
-      }
-
+      await login(email, password);
       // Redirect based on role
       router.push(`/${role}/dashboard`);
     } catch {
