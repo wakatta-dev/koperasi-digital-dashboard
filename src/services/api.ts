@@ -13,7 +13,7 @@ async function getTenantId(): Promise<string | null> {
   }
   try {
     const { cookies } = await import("next/headers");
-    return cookies().get("tenantId")?.value ?? null;
+    return (await cookies()).get("tenantId")?.value ?? null;
   } catch {
     return null;
   }
