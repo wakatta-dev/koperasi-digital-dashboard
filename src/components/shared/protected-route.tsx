@@ -5,8 +5,8 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import type { UserRole } from "@/lib/types";
-import { useAuth } from "./auth-provider";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -17,24 +17,25 @@ export function ProtectedRoute({
   children,
   requiredRole,
 }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
+    if (status !== "loading") {
+      const role = (session?.user as any)?.role;
+      if (!session?.user) {
         router.push("/login");
         return;
       }
 
-      if (requiredRole && user.role !== requiredRole) {
+      if (requiredRole && role !== requiredRole) {
         router.push("/login");
         return;
       }
     }
-  }, [user, loading, requiredRole, router]);
+  }, [session, status, requiredRole, router]);
 
-  if (loading) {
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -45,7 +46,8 @@ export function ProtectedRoute({
     );
   }
 
-  if (!user || (requiredRole && user.role !== requiredRole)) {
+  const role = (session?.user as any)?.role;
+  if (!session?.user || (requiredRole && role !== requiredRole)) {
     return null;
   }
 

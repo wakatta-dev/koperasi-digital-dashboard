@@ -6,7 +6,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import "./globals.css";
-import { AuthProvider } from "@/components/shared/auth-provider";
+import SessionProviderWrapper from "@/components/session-provider";
 import { LanguageProvider } from "@/contexts/language-context";
 
 export const metadata: Metadata = {
@@ -28,11 +28,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={geist.className}>
       <head></head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <LanguageProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <SessionProviderWrapper>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <LanguageProvider>{children}</LanguageProvider>
+          </ThemeProvider>
+        </SessionProviderWrapper>
       </body>
     </html>
   );

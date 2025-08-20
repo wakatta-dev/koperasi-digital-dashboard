@@ -26,7 +26,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "./auth-provider";
+import { logout } from "@/services/auth";
 
 export function NavUser({
   user,
@@ -38,7 +38,6 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
-  const { logout } = useAuth();
 
   return (
     <SidebarMenu>
