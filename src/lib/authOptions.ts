@@ -1,13 +1,7 @@
 /** @format */
-
 import { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { cookies } from "next/headers";
-
-function decodeJwt(token: string) {
-  const payload = token.split(".")[1];
-  return JSON.parse(Buffer.from(payload, "base64").toString());
-}
+import { decodeJwt } from "jose"; // ✅ lebih aman dari manual base64 decode
 
 async function refreshAccessToken(token: any) {
   try {
@@ -22,18 +16,22 @@ async function refreshAccessToken(token: any) {
 
     const json = await res.json().catch(() => null);
     const data = json?.data;
-    if (!res.ok || !data) {
-      throw new Error("Refresh token failed");
-    }
 
-    const decoded = decodeJwt(data.access_token);
+    if (!res.ok || !data) throw new Error("Refresh token failed");
+
+    const decoded: any = decodeJwt(data.access_token);
+
     return {
       ...token,
       accessToken: data.access_token,
-      accessTokenExpires: decoded.exp * 1000,
+      accessTokenExpires: decoded?.exp
+        ? decoded.exp * 1000
+        : Date.now() + 15 * 60 * 1000, // fallback 15 menit
       refreshToken: data.refresh_token ?? token.refreshToken,
+      error: undefined,
     };
-  } catch {
+  } catch (err) {
+    console.error("refreshAccessToken error:", err);
     return { ...token, error: "RefreshAccessTokenError" };
   }
 }
@@ -51,7 +49,7 @@ export const authOptions: AuthOptions = {
           const res = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
             {
-              method: "post",
+              method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 email: credentials?.email,
@@ -62,54 +60,62 @@ export const authOptions: AuthOptions = {
 
           const json = await res.json().catch(() => null);
           const data = json?.data;
-          if (!res.ok || !data) {
-            return null;
-          }
+          if (!res.ok || !data) return null;
 
-          (await cookies()).set("refresh_token", data.refresh_token, {
-            httpOnly: true,
-            path: "/",
-            sameSite: "strict",
-          });
-
-          const decoded = decodeJwt(data.access_token);
+          const decoded: any = decodeJwt(data.access_token);
 
           return {
-            ...data.user,
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            role: data.user.role,
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
-            accessTokenExpires: decoded.exp * 1000,
-          } as any;
-        } catch {
+            accessTokenExpires: decoded?.exp
+              ? decoded.exp * 1000
+              : Date.now() + 15 * 60 * 1000,
+          };
+        } catch (err) {
+          console.error("authorize error:", err);
           return null;
         }
       },
     }),
   ],
+
   session: {
     strategy: "jwt",
   },
+
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        return { ...token, ...user };
-      }
+      // Saat login pertama kali
+      if (user) return { ...token, ...user };
 
-      if (Date.now() < (token as any).accessTokenExpires) {
-        return token;
-      }
+      // Jika access token masih valid, return existing token
+      if (Date.now() < (token as any).accessTokenExpires) return token;
 
+      // Kalau sudah expired, refresh
       return await refreshAccessToken(token);
     },
-    session({ session, token }) {
-      (session as any).user = token;
+
+    async session({ session, token }) {
+      session.user = {
+        id: (token as any).id,
+        email: (token as any).email,
+        name: (token as any).name,
+        role: (token as any).role,
+      };
       (session as any).accessToken = (token as any).accessToken;
+      (session as any).error = (token as any).error;
       return session;
     },
   },
+
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/login",
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
