@@ -3,18 +3,6 @@
 import { apiFetch } from './api';
 import { API_ENDPOINTS } from '@/constants/api';
 
-export async function register(payload: {
-  email: string;
-  full_name: string;
-  password: string;
-  role: string;
-}) {
-  return apiFetch(API_ENDPOINTS.auth.register, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-}
-
 export async function login(payload: {
   email: string;
   password: string;
@@ -25,18 +13,15 @@ export async function login(payload: {
   });
 }
 
-export async function forgotPassword(payload: { email: string }) {
-  return apiFetch(API_ENDPOINTS.auth.forgotPassword, {
+export async function refresh(payload: { refresh_token: string }) {
+  return apiFetch(API_ENDPOINTS.auth.refresh, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
-export async function resetPassword(payload: {
-  token: string;
-  password: string;
-}) {
-  return apiFetch(API_ENDPOINTS.auth.resetPassword, {
+export async function logout(payload: { refresh_token: string }) {
+  return apiFetch(API_ENDPOINTS.auth.logout, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
