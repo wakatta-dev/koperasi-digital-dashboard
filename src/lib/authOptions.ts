@@ -9,7 +9,7 @@ function decodeJwt(token: string) {
   return JSON.parse(Buffer.from(payload, "base64").toString());
 }
 
-async function refreshAccessToken(token: any) {
+export async function refreshAccessToken(token: any) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,

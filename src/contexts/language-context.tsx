@@ -2,7 +2,7 @@
 
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
   useEffect,
