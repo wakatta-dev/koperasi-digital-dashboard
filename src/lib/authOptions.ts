@@ -71,10 +71,11 @@ export const authOptions: AuthOptions = {
           const decoded: any = decodeJwt(data.access_token);
 
           return {
-            id: data.user.id,
-            email: data.user.email,
-            name: data.user.name,
-            role: data.user.role,
+            id: data.id,
+            email: data.email,
+            name: data.nama,
+            role: data.role,
+            jenis_tenant: data.jenis_tenant,
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
             accessTokenExpires: decoded?.exp
@@ -111,6 +112,7 @@ export const authOptions: AuthOptions = {
         email: (token as any).email,
         name: (token as any).name,
         role: (token as any).role,
+        jenis_tenant: (token as any).jenis_tenant,
       };
       (session as any).accessToken = (token as any).accessToken;
       (session as any).error = (token as any).error;

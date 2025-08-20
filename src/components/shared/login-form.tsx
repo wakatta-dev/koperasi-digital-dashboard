@@ -30,8 +30,8 @@ export function LoginForm() {
     try {
       await login(email, password);
       const session: any = await getSession();
-      if (session?.user.role) {
-        router.push(`/${session.user.role}/dashboard`);
+      if (session?.user.jenis_tenant) {
+        router.push(`/${session.user.jenis_tenant}/dashboard`);
       } else {
         router.push("/");
       }

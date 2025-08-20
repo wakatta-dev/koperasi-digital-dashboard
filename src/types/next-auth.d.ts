@@ -6,9 +6,12 @@ import NextAuth from "next-auth";
 
 declare module "next-auth" {
   interface Session {
-    user: User;
+    user: User & {
+      jenis_tenant?: string;
+    };
     accessToken?: string;
     error?: string;
+    jenis_tenant?: string;
   }
 }
 
@@ -18,6 +21,7 @@ declare module "next-auth/jwt" {
     email?: string;
     name?: string;
     role?: string;
+    jenis_tenant?: string;
     accessToken?: string;
     refreshToken?: string;
     accessTokenExpires?: number;

@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
   });
-  const userRole = (token as any)?.role;
+  const userRole = (token as any)?.jenis_tenant;
 
   const routeRoleMap = {
     "/vendor": "vendor",

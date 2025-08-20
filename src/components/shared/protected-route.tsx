@@ -22,7 +22,7 @@ export function ProtectedRoute({
 
   useEffect(() => {
     if (status !== "loading") {
-      const role = (session?.user as any)?.role;
+      const role = (session?.user as any)?.jenis_tenant;
       if (!session?.user) {
         router.push("/login");
         return;
@@ -46,7 +46,9 @@ export function ProtectedRoute({
     );
   }
 
-  const role = (session?.user as any)?.role;
+  const role = (session?.user as any)?.jenis_tenant;
+
+  console.log(session?.user);
   if (!session?.user || (requiredRole && role !== requiredRole)) {
     return null;
   }
