@@ -8,10 +8,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") ?? "";
 
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
-    "";
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "";
 
   let tenantId = request.cookies.get("tenantId")?.value;
 

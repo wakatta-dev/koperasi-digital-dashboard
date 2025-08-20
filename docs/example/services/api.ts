@@ -23,7 +23,7 @@ async function request(path: string, options: RequestInit = {}) {
     body = JSON.stringify(body);
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
     ...options,
     headers,
     body,
