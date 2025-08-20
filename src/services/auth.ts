@@ -2,7 +2,7 @@
 
 import { getSession, signIn, signOut } from "next-auth/react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export async function login(email: string, password: string) {
   const res = await signIn("credentials", {
@@ -17,7 +17,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout() {
-  await fetch(`${API_BASE_URL}/auth/logout`, {
+  await fetch(`${API_URL}/auth/logout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

@@ -92,7 +92,7 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 let accessToken: string | null = null;
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 api.interceptors.request.use((config: AxiosRequestConfig) => {
@@ -155,11 +155,11 @@ export function useUsers() {
 
 ### Konfigurasi Base URL
 
-`NEXT_PUBLIC_API_BASE_URL` dapat didefinisikan di `.env.local` agar
+`NEXT_PUBLIC_API_URL` dapat didefinisikan di `.env.local` agar
 axios menggunakan alamat yang sesuai:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
 ### Logout
