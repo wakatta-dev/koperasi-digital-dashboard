@@ -73,33 +73,6 @@
 
 ---
 
-## 📊 Rekomendasi Penyimpanan di Database
-
-Buat tabel `modules` dengan kolom:
-
-```sql
-CREATE TABLE modules (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  code VARCHAR(50) UNIQUE NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS tenant_modules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id INT NOT NULL REFERENCES tenants(id),
-    module_id UUID NOT NULL REFERENCES modules(id),
-    status VARCHAR(20) NOT NULL,
-    start_date DATE,
-    end_date DATE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-```
-
 Contoh seed data:
 
 | tenant_type | module_code |
