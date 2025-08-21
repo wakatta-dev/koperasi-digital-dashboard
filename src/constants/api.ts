@@ -3,6 +3,11 @@
 export const API_ENDPOINTS = {
   tenant: {
     byDomain: "/tenant/by-domain",
+    list: "/tenants",
+    detail: (id: string | number) => `/tenants/${id}`,
+    status: (id: string | number) => `/tenants/${id}/status`,
+    users: (id: string | number) => `/tenants/${id}/users`,
+    modules: (id: string | number) => `/tenants/${id}/modules`,
   },
   auth: {
     login: "/auth/login",

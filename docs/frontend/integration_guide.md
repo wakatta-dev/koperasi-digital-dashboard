@@ -64,6 +64,10 @@ Semua endpoint berikut membutuhkan `Authorization` dan `X-Tenant-ID` kecuali dis
 
 Contoh proses menambah pengguna ke tenant dapat dilihat pada handler `AddUser`.
 
+### Alur UI Manajemen Tenant
+
+Dashboard kini menyediakan halaman **Tenants** di `/vendor/clients` untuk menampilkan daftar tenant dan membuat tenant baru. Klik salah satu tenant akan membuka halaman detail `/vendor/clients/[id]` yang memuat form informasi dasar, toggle status aktif, daftar pengguna beserta form penambahan pengguna, serta daftar modul yang dapat diaktif/nonaktifkan.
+
 ## Manajemen Role & Permission
 | Endpoint | Method | Body |
 |----------|--------|------|

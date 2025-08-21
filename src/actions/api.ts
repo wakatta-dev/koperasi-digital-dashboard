@@ -4,6 +4,7 @@
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { getTenantId } from "@/services/api";
 import type { ApiResponse } from "@/types/api";
 
 export async function apiRequest<T = any>(
@@ -11,6 +12,7 @@ export async function apiRequest<T = any>(
   options?: RequestInit
 ): Promise<ApiResponse<T>> {
   const session = (await getServerSession(authOptions)) as any;
+  const tenantId = await getTenantId();
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api${endpoint}`,
@@ -22,6 +24,7 @@ export async function apiRequest<T = any>(
         ...(session?.accessToken
           ? { Authorization: `Bearer ${session.accessToken}` }
           : {}),
+        ...(tenantId ? { "X-Tenant-ID": tenantId } : {}),
         ...(options?.headers || {}),
       },
     }
