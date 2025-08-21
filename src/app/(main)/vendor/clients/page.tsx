@@ -1,112 +1,52 @@
 /** @format */
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { listTenants } from "@/actions/tenants";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Plus, Search, Mail, Phone } from "lucide-react";
 
-const clients = [
-  {
-    id: "1",
-    name: "PT Maju Jaya",
-    email: "contact@majujaya.com",
-    phone: "+62 21 1234567",
-    totalOrders: 15,
-    totalSpent: "Rp 12,500,000",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "CV Berkah Sejahtera",
-    email: "info@berkahsejahtera.com",
-    phone: "+62 22 7654321",
-    totalOrders: 8,
-    totalSpent: "Rp 6,750,000",
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "UD Mandiri",
-    email: "admin@udmandiri.com",
-    phone: "+62 24 9876543",
-    totalOrders: 3,
-    totalSpent: "Rp 2,100,000",
-    status: "inactive",
-  },
-];
+export default async function TenantsPage() {
+  const { data: tenants } = await listTenants();
 
-export default function ClientsPage() {
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Clients</h2>
-          <p className="text-muted-foreground">
-            Manage your client relationships
-          </p>
-        </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Client
-        </Button>
+        <h2 className="text-2xl font-bold">Tenants</h2>
+        <Link href="/vendor/clients/create">
+          <Button>Create</Button>
+        </Link>
       </div>
-
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search clients..." className="pl-10" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Clients Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clients.map((client) => (
-          <Card key={client.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{client.name}</CardTitle>
-                <Badge
-                  variant={client.status === "active" ? "default" : "secondary"}
-                >
-                  {client.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{client.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{client.phone}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Orders</p>
-                  <p className="font-semibold">{client.totalOrders}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Spent</p>
-                  <p className="font-semibold">{client.totalSpent}</p>
-                </div>
-              </div>
-
-              <Button variant="outline" className="w-full bg-transparent">
-                View Details
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Domain</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {tenants?.map((t) => (
+            <TableRow key={t.id}>
+              <TableCell>{t.name}</TableCell>
+              <TableCell>{t.type}</TableCell>
+              <TableCell>{t.domain}</TableCell>
+              <TableCell>{t.status}</TableCell>
+              <TableCell>
+                <Link href={`/vendor/clients/${t.id}`}>View</Link>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

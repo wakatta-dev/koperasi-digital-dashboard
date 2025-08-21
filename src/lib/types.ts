@@ -16,3 +16,11 @@ export interface DashboardStats {
   change?: string;
   trend?: "up" | "down" | "neutral";
 }
+
+export interface Tenant {
+  id: string | number;
+  name: string;
+  type: string;
+  domain: string;
+  status: string;
+}
