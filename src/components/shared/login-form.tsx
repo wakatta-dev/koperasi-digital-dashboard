@@ -79,14 +79,6 @@ export function LoginForm() {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? `${t("signIn")}...` : t("signIn")}
       </Button>
-
-      <div className="text-sm text-muted-foreground space-y-1">
-        <p>Demo credentials:</p>
-        <p>• vendor@test.com / password</p>
-        <p>• koperasi@test.com / password</p>
-        <p>• umkm@test.com / password</p>
-        <p>• bumdes@test.com / password</p>
-      </div>
     </form>
   );
 }
