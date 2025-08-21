@@ -68,8 +68,6 @@ export const authOptions: AuthOptions = {
           const data = json?.data;
           if (!res.ok || !data) return null;
 
-          const decoded: any = decodeJwt(data.access_token);
-
           return {
             id: data.id,
             email: data.email,
@@ -78,9 +76,6 @@ export const authOptions: AuthOptions = {
             jenis_tenant: data.jenis_tenant,
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
-            accessTokenExpires: decoded?.exp
-              ? decoded.exp * 1000
-              : Date.now() + 15 * 60 * 1000,
           };
         } catch (err) {
           console.error("authorize error:", err);
