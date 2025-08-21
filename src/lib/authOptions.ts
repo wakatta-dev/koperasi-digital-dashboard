@@ -1,7 +1,6 @@
 /** @format */
 import { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { decodeJwt } from "jose"; // ✅ lebih aman dari manual base64 decode
 import { getTenantId } from "@/services/api";
 
 export async function refreshAccessToken(token: any) {
@@ -20,13 +19,11 @@ export async function refreshAccessToken(token: any) {
 
     if (!res.ok || !data) throw new Error("Refresh token failed");
 
-    const decoded: any = decodeJwt(data.access_token);
-
     return {
       ...token,
       accessToken: data.access_token,
-      accessTokenExpires: decoded?.exp
-        ? decoded.exp * 1000
+      accessTokenExpires: data.expires_at
+        ? data.expires_at * 1000
         : Date.now() + 15 * 60 * 1000, // fallback 15 menit
       refreshToken: data.refresh_token ?? token.refreshToken,
       error: undefined,
@@ -76,6 +73,9 @@ export const authOptions: AuthOptions = {
             jenis_tenant: data.jenis_tenant,
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
+            accessTokenExpires: data.expires_at
+              ? data.expires_at * 1000
+              : Date.now() + 15 * 60 * 1000,
           };
         } catch (err) {
           console.error("authorize error:", err);
