@@ -43,7 +43,8 @@ describe('auth flow', () => {
 
   it('redirects to dashboard based on role after successful login', async () => {
     (login as any).mockResolvedValue(loginFixture);
-    (getSession as any).mockResolvedValue({ user: { role: 'umkm' } });
+    // session should provide jenis_tenant to match LoginForm logic
+    (getSession as any).mockResolvedValue({ user: { jenis_tenant: 'umkm' } });
 
     const { getByLabelText, getByRole } = render(
       <LanguageProvider>

@@ -3,6 +3,7 @@ import { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { decodeJwt } from "jose"; // ✅ lebih aman dari manual base64 decode
 import { getTenantId } from "@/services/api";
+import { NEXTAUTH_SECRET } from "@/lib/env";
 
 export async function refreshAccessToken(token: any) {
   try {
@@ -125,5 +126,6 @@ export const authOptions: AuthOptions = {
     signOut: "/auth/login",
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  // Use a constant secret to prevent runtime decryption errors
+  secret: NEXTAUTH_SECRET,
 };

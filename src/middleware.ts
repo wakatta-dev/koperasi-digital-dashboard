@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { NEXTAUTH_SECRET } from "@/lib/env";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -56,7 +57,7 @@ export async function middleware(request: NextRequest) {
   // cek token NextAuth
   const token = await getToken({
     req: request,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: NEXTAUTH_SECRET,
   });
   const userRole = (token as any)?.jenis_tenant;
 
