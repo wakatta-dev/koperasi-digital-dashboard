@@ -2,7 +2,7 @@
 
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { api, ApiError, getTenantId } from "@/services/api";
+import { api, getTenantId } from "@/services/api";
 import { getAccessToken, refreshToken, logout } from "@/services/auth";
 
 vi.mock("@/services/auth", () => ({
@@ -62,15 +62,12 @@ describe("api service", () => {
         json: async () => ({ error: "unauthorized" }),
       }) as any;
 
-    const promise = api.get("/test");
-    await expect(promise).rejects.toBeInstanceOf(ApiError);
-    await promise.catch((err) => {
-      expect((err as any).status).toBe(401);
-    });
+    const result = await api.get("/test");
+    expect(result.success).toBe(false);
     expect(logout).toHaveBeenCalled();
   });
 
-  it("throws ApiError for non-ok response", async () => {
+  it("returns error response for non-ok status", async () => {
     (getAccessToken as any).mockResolvedValue(null);
 
     global.fetch = vi
@@ -82,12 +79,9 @@ describe("api service", () => {
         json: async () => ({ message: "boom" }),
       }) as any;
 
-    const promise = api.get("/err");
-    await expect(promise).rejects.toBeInstanceOf(ApiError);
-    await promise.catch((err) => {
-      expect((err as any).status).toBe(500);
-      expect((err as any).data).toEqual({ message: "boom" });
-    });
+    const result = await api.get("/err");
+    expect(result.success).toBe(false);
+    expect(result.message).toBe("boom");
   });
 
   it("getTenantId reads from cookie", async () => {

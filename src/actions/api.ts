@@ -33,54 +33,67 @@ export async function apiRequest<T = any>(
       },
     });
 
-  let res = await request(token);
+  try {
+    let res = await request(token);
 
-  if (res.status === 401) {
-    const newToken = await refreshToken();
-    if (newToken) {
-      token = newToken;
-      res = await request(token);
-    } else {
-      await logout();
-      const error: any = new Error("Unauthorized");
-      error.status = 401;
-      throw error;
-    }
-  }
-
-  const json = (await res.json().catch(() => null)) as ApiResponse<T>;
-
-  if (!res.ok) {
-    let errorMessage = res.statusText;
-
-    // kalau backend balikin body text biasa (bukan JSON), tangkap juga
-    try {
-      const errJson = await res.json();
-      errorMessage = errJson?.message || JSON.stringify(errJson);
-    } catch {
-      try {
-        const errText = await res.text();
-        if (errText) errorMessage = errText;
-      } catch {
-        // fallback terakhir tetap pakai statusText
+    if (res.status === 401) {
+      const newToken = await refreshToken();
+      if (newToken) {
+        token = newToken;
+        res = await request(token);
+      } else {
+        await logout();
+        return {
+          success: false,
+          message: "Unauthorized",
+          data: null as any,
+          meta: {
+            request_id: "",
+            timestamp: new Date().toISOString(),
+          } as any,
+          errors: null,
+        };
       }
     }
 
-    const error: any = new Error(errorMessage || "API request failed");
-    error.status = res.status;
-    throw error;
-  }
+    const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;
 
-  return json;
+    if (!res.ok || !json) {
+      const errorMessage =
+        json?.message || res.statusText || "API request failed";
+      return {
+        success: false,
+        message: errorMessage,
+        data: null as any,
+        meta:
+          (json?.meta as any) ?? {
+            request_id: "",
+            timestamp: new Date().toISOString(),
+          },
+        errors: json?.errors ?? null,
+      };
+    }
+
+    return json;
+  } catch (err) {
+    console.error("apiRequest error:", err);
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "API request failed",
+      data: null as any,
+      meta: {
+        request_id: "",
+        timestamp: new Date().toISOString(),
+      } as any,
+      errors: err,
+    };
+  }
 }
 
 export async function apiFetch<T = any>(
   endpoint: string,
   options?: RequestInit
-): Promise<T> {
+): Promise<T | null> {
   const json = await apiRequest<T>(endpoint, options);
-  if (!json?.success) {
-    throw new Error(json?.message || "API request failed");
-  }
-  return json.data as T;
+  return json.success ? (json.data as T) : null;
 }

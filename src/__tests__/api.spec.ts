@@ -30,20 +30,18 @@ describe("apiFetch", () => {
   it.each([
     [404, "Not Found"],
     [500, "Server Error"],
-  ])("throws error for status %s", async (status, message) => {
+  ])("returns null for status %s", async (status, message) => {
     global.fetch = vi
       .fn()
       .mockResolvedValue({
         ok: false,
         status,
+        statusText: message,
         json: async () => ({ message }),
       }) as any;
 
-    const promise = apiFetch("/test");
-    await expect(promise).rejects.toThrow(message);
-    await promise.catch((err) => {
-      expect((err as any).status).toBe(status);
-    });
+    const result = await apiFetch("/test");
+    expect(result).toBeNull();
   });
 });
 
