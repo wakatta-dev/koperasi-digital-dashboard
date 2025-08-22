@@ -1,8 +1,10 @@
-import useSWR from 'swr';
-import { api } from '../services/api';
+/** @format */
+
+import useSWR from "swr";
+import { api } from "../services/api";
 
 export function useUsers() {
-  const { data, error, mutate } = useSWR('/api/users', async (url: string) => {
+  const { data, error, mutate } = useSWR("/api/users", async (url: string) => {
     return api.get(url);
   });
 
