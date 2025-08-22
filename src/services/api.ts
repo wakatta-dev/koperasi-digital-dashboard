@@ -76,11 +76,10 @@ async function request<T>(
         success: false,
         message: json?.message || res.statusText || "API request failed",
         data: null as any,
-        meta:
-          (json?.meta as any) ?? {
-            request_id: "",
-            timestamp: new Date().toISOString(),
-          },
+        meta: (json?.meta as any) ?? {
+          request_id: "",
+          timestamp: new Date().toISOString(),
+        },
         errors: json?.errors ?? null,
       };
     }
