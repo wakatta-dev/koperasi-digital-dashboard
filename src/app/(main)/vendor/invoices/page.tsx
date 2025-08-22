@@ -11,35 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { FileText, Plus, Search, Download, Eye } from "lucide-react";
+import { listInvoicesAction } from "@/actions/billing";
 
-const invoices = [
-  {
-    id: "INV-001",
-    client: "PT Maju Jaya",
-    amount: "Rp 2,450,000",
-    date: "2024-01-15",
-    dueDate: "2024-02-15",
-    status: "paid",
-  },
-  {
-    id: "INV-002",
-    client: "CV Berkah Sejahtera",
-    amount: "Rp 1,750,000",
-    date: "2024-01-20",
-    dueDate: "2024-02-20",
-    status: "pending",
-  },
-  {
-    id: "INV-003",
-    client: "UD Mandiri",
-    amount: "Rp 890,000",
-    date: "2024-01-25",
-    dueDate: "2024-02-25",
-    status: "overdue",
-  },
-];
+export default async function InvoicesPage() {
+  const invoices = await listInvoicesAction("vendor");
 
-export default function InvoicesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -84,19 +60,21 @@ export default function InvoicesPage() {
                     <FileText className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">{invoice.id}</h3>
+                    <h3 className="font-medium">{invoice.number}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {invoice.client}
+                      {invoice.issued_at}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="font-medium">{invoice.amount}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Due: {invoice.dueDate}
-                    </p>
+                    <p className="font-medium">Rp {invoice.total}</p>
+                    {invoice.due_date && (
+                      <p className="text-sm text-muted-foreground">
+                        Due: {invoice.due_date}
+                      </p>
+                    )}
                   </div>
 
                   <Badge
