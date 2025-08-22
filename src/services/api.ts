@@ -102,31 +102,37 @@ async function request<T>(
 }
 
 export const api = {
-  get: (path: string, options?: RequestInit) =>
-    request(path, { ...options, method: "GET" }),
-  post: (path: string, body?: any, options?: RequestInit) =>
-    request(path, { ...options, method: "POST", body }),
-  put: (path: string, body?: any, options?: RequestInit) =>
-    request(path, { ...options, method: "PUT", body }),
-  delete: (path: string, options?: RequestInit) =>
-    request(path, { ...options, method: "DELETE" }),
+  get: <T>(path: string, options?: RequestInit) =>
+    request<T>(path, { ...options, method: "GET" }),
+  post: <T>(path: string, body?: any, options?: RequestInit) =>
+    request<T>(path, { ...options, method: "POST", body }),
+  put: <T>(path: string, body?: any, options?: RequestInit) =>
+    request<T>(path, { ...options, method: "PUT", body }),
+  delete: <T>(path: string, options?: RequestInit) =>
+    request<T>(path, { ...options, method: "DELETE" }),
 };
 
 export function login(payload: {
   email: string;
   password: string;
 }): Promise<ApiResponse<LoginResponse>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.login}`, payload);
+  return api.post<LoginResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.auth.login}`,
+    payload,
+  );
 }
 
 export function refreshToken(payload: {
   refresh_token: string;
 }): Promise<ApiResponse<RefreshResponse>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.refresh}`, payload);
+  return api.post<RefreshResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.auth.refresh}`,
+    payload,
+  );
 }
 
 export function logout(): Promise<ApiResponse<any>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.logout}`);
+  return api.post<any>(`${API_PREFIX}${API_ENDPOINTS.auth.logout}`);
 }
 
 export function listTenants(
@@ -135,13 +141,15 @@ export function listTenants(
   const query = params
     ? `?${new URLSearchParams(params as any).toString()}`
     : "";
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.tenant.list}${query}`);
+  return api.get<Tenant[]>(
+    `${API_PREFIX}${API_ENDPOINTS.tenant.list}${query}`,
+  );
 }
 
 export function getTenantByDomain(
   domain: string
 ): Promise<ApiResponse<Tenant>> {
-  return api.get(
+  return api.get<Tenant>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.byDomain}?domain=${encodeURIComponent(
       domain
     )}`
@@ -154,47 +162,64 @@ export function listUsers(
   const query = params
     ? `?${new URLSearchParams(params as any).toString()}`
     : "";
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.users.list}${query}`);
+  return api.get<User[]>(
+    `${API_PREFIX}${API_ENDPOINTS.users.list}${query}`,
+  );
 }
 
 export function createUser(payload: Partial<User>): Promise<ApiResponse<User>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.users.list}`, payload);
+  return api.post<User>(
+    `${API_PREFIX}${API_ENDPOINTS.users.list}`,
+    payload,
+  );
 }
 
 export function resetPassword(payload: {
   email: string;
 }): Promise<ApiResponse<any>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.users.resetPassword}`, payload);
+  return api.post<any>(
+    `${API_PREFIX}${API_ENDPOINTS.users.resetPassword}`,
+    payload,
+  );
 }
 
 export function listRoles(): Promise<ApiResponse<Role[]>> {
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.roles.list}`);
+  return api.get<Role[]>(`${API_PREFIX}${API_ENDPOINTS.roles.list}`);
 }
 
 export function assignRole(
   userId: string | number,
   payload: { role_id: string | number; tenant_id?: string | number }
 ): Promise<ApiResponse<any>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`, payload);
+  return api.post<any>(
+    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
+    payload,
+  );
 }
 
 export function listVendorPlans(): Promise<ApiResponse<Plan[]>> {
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`);
+  return api.get<Plan[]>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`,
+  );
 }
 
 export function listVendorInvoices(): Promise<ApiResponse<Invoice[]>> {
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`);
+  return api.get<Invoice[]>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`,
+  );
 }
 
 export function listClientInvoices(): Promise<ApiResponse<Invoice[]>> {
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`);
+  return api.get<Invoice[]>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`,
+  );
 }
 
 export function createPayment(
   invoiceId: string | number,
   payload: Partial<Payment>
 ): Promise<ApiResponse<Payment>> {
-  return api.post(
+  return api.post<Payment>(
     `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(invoiceId).payments}`,
     payload
   );
