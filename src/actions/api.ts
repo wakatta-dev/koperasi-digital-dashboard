@@ -28,6 +28,13 @@ export async function apiRequest<T = any>(
   });
 
   const json = (await res.json().catch(() => null)) as ApiResponse<T>;
+
+  if (!res.ok) {
+    const error: any = new Error(json?.message || res.statusText);
+    error.status = res.status;
+    throw error;
+  }
+
   return json;
 }
 
@@ -36,5 +43,8 @@ export async function apiFetch<T = any>(
   options?: RequestInit
 ): Promise<T> {
   const json = await apiRequest<T>(endpoint, options);
-  return json?.data as T;
+  if (!json?.success) {
+    throw new Error(json?.message || "API request failed");
+  }
+  return json.data as T;
 }
