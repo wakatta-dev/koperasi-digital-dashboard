@@ -10,13 +10,9 @@ import {
   listVendorPlans,
 } from "@/services/api";
 
-export async function listInvoicesAction(
-  type: "vendor" | "client" = "client"
-) {
+export async function listInvoicesAction(type: "vendor" | "client" = "client") {
   const res =
-    type === "vendor"
-      ? await listVendorInvoices()
-      : await listClientInvoices();
+    type === "vendor" ? await listVendorInvoices() : await listClientInvoices();
   return ensureSuccess(res);
 }
 

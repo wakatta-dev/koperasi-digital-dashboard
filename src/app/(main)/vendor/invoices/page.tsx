@@ -82,8 +82,8 @@ export default async function InvoicesPage() {
                       invoice.status === "paid"
                         ? "default"
                         : invoice.status === "pending"
-                          ? "secondary"
-                          : "destructive"
+                        ? "secondary"
+                        : "destructive"
                     }
                   >
                     {invoice.status}

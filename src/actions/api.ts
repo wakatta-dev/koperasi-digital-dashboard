@@ -6,7 +6,6 @@ import { cookies } from "next/headers";
 import { authOptions } from "@/lib/authOptions";
 import type { ApiResponse } from "@/types/api";
 import { UserSession } from "@/types/session";
-import { env } from "@/lib/env";
 import { refreshToken, logout } from "@/services/auth";
 
 export async function apiRequest<T = any>(
@@ -14,11 +13,11 @@ export async function apiRequest<T = any>(
   options?: RequestInit
 ): Promise<ApiResponse<T>> {
   const session = (await getServerSession(authOptions)) as UserSession;
-  const tenantId = cookies().get("tenantId")?.value;
+  const tenantId = (await cookies()).get("tenantId")?.value;
   let token = session?.accessToken;
 
   const request = async (access?: string) =>
-    fetch(`${env.NEXT_PUBLIC_API_URL}/api${endpoint}`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api${endpoint}`, {
       cache: "no-store",
       ...options,
       headers: {
