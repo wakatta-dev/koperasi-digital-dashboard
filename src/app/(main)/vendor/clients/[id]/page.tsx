@@ -1,6 +1,6 @@
 /** @format */
 
-import { redirect, revalidatePath } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,14 +23,19 @@ import {
   listTenantModules,
   updateTenantModule,
 } from "@/actions/tenants";
+import { revalidatePath } from "next/cache";
 
 interface PageProps {
-  params: { id: string };
-  searchParams?: { message?: string; error?: string };
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ message?: string; error?: string }>;
 }
 
-export default async function TenantDetailPage({ params, searchParams }: PageProps) {
-  const id = params.id;
+export default async function TenantDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
+  const id = (await params).id;
+  const searchParam = await searchParams;
   const { data: tenant, success } = await getTenant(id);
   if (!success || !tenant) redirect("/tenant-not-found");
 
@@ -46,9 +51,13 @@ export default async function TenantDetailPage({ params, searchParams }: PagePro
     });
     revalidatePath(`/vendor/clients/${id}`);
     if (!res.success) {
-      redirect(`/vendor/clients/${id}?error=${encodeURIComponent(res.message)}`);
+      redirect(
+        `/vendor/clients/${id}?error=${encodeURIComponent(res.message)}`
+      );
     }
-    redirect(`/vendor/clients/${id}?message=${encodeURIComponent(res.message)}`);
+    redirect(
+      `/vendor/clients/${id}?message=${encodeURIComponent(res.message)}`
+    );
   }
 
   async function updateStatusAction(formData: FormData) {
@@ -93,11 +102,11 @@ export default async function TenantDetailPage({ params, searchParams }: PagePro
   return (
     <div className="space-y-8">
       <Link href="/vendor/clients">← Back</Link>
-      {searchParams?.message && (
-        <p className="text-green-600">{searchParams.message}</p>
+      {searchParam?.message && (
+        <p className="text-green-600">{searchParam.message}</p>
       )}
-      {searchParams?.error && (
-        <p className="text-red-600">{searchParams.error}</p>
+      {searchParam?.error && (
+        <p className="text-red-600">{searchParam.error}</p>
       )}
       <form action={updateTenantAction} className="space-y-4">
         <div>
@@ -167,7 +176,9 @@ export default async function TenantDetailPage({ params, searchParams }: PagePro
                       <option value="active">active</option>
                       <option value="inactive">inactive</option>
                     </select>
-                    <Button type="submit" size="sm" className="ml-2">Save</Button>
+                    <Button type="submit" size="sm" className="ml-2">
+                      Save
+                    </Button>
                   </form>
                 </TableCell>
               </TableRow>

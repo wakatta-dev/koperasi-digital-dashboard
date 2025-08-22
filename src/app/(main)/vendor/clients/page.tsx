@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export default async function TenantsPage() {
-  const { data: tenants } = await listTenants();
+  const tenants = (await listTenants({ limit: 10 })) as any;
 
   return (
     <div className="space-y-6">
@@ -34,7 +34,7 @@ export default async function TenantsPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tenants?.map((t) => (
+          {tenants?.data?.map((t: any) => (
             <TableRow key={t.id}>
               <TableCell>{t.name}</TableCell>
               <TableCell>{t.type}</TableCell>

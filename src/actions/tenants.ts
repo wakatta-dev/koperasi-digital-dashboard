@@ -1,64 +1,95 @@
-'use server';
+/** @format */
 
-import { apiRequest } from './api';
-import { API_ENDPOINTS } from '@/constants/api';
-import type { Tenant, User } from '@/lib/types';
-import type { ApiResponse } from '@/types/api';
+"use server";
 
-export async function listTenants(params?: { limit?: number; cursor?: string; }): Promise<ApiResponse<Tenant[]>> {
+import { apiRequest } from "./api";
+import { API_ENDPOINTS } from "@/constants/api";
+import type { Tenant, User } from "@/lib/types";
+import type { ApiResponse } from "@/types/api";
+
+export async function listTenants(params?: {
+  limit?: number;
+  cursor?: string;
+}): Promise<ApiResponse<Tenant[]>> {
   const search = new URLSearchParams();
-  if (params?.limit) search.set('limit', String(params.limit));
-  if (params?.cursor) search.set('cursor', params.cursor);
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.cursor) search.set("cursor", params.cursor);
   const endpoint = search.toString()
     ? `${API_ENDPOINTS.tenant.list}?${search.toString()}`
     : API_ENDPOINTS.tenant.list;
   return apiRequest<Tenant[]>(endpoint);
 }
 
-export async function getTenant(id: string | number): Promise<ApiResponse<Tenant>> {
+export async function getTenant(
+  id: string | number
+): Promise<ApiResponse<Tenant>> {
   return apiRequest<Tenant>(API_ENDPOINTS.tenant.detail(id));
 }
 
-export async function createTenant(payload: { name: string; type: string; domain: string; }): Promise<ApiResponse<Tenant>> {
+export async function createTenant(payload: {
+  name: string;
+  type: string;
+  domain: string;
+}): Promise<ApiResponse<Tenant>> {
   return apiRequest<Tenant>(API_ENDPOINTS.tenant.list, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export async function updateTenant(id: string | number, payload: { name?: string; type?: string; domain?: string; }): Promise<ApiResponse<Tenant>> {
+export async function updateTenant(
+  id: string | number,
+  payload: { name?: string; type?: string; domain?: string }
+): Promise<ApiResponse<Tenant>> {
   return apiRequest<Tenant>(API_ENDPOINTS.tenant.detail(id), {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(payload),
   });
 }
 
-export async function updateTenantStatus(id: string | number, payload: { status: string; }): Promise<ApiResponse<Tenant>> {
+export async function updateTenantStatus(
+  id: string | number,
+  payload: { status: string }
+): Promise<ApiResponse<Tenant>> {
   return apiRequest<Tenant>(API_ENDPOINTS.tenant.status(id), {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(payload),
   });
 }
 
-export async function listTenantUsers(id: string | number): Promise<ApiResponse<User[]>> {
+export async function listTenantUsers(
+  id: string | number
+): Promise<ApiResponse<User[]>> {
   return apiRequest<User[]>(API_ENDPOINTS.tenant.users(id));
 }
 
-export async function addTenantUser(id: string | number, payload: { email: string; password: string; full_name: string; role_id: number; }): Promise<ApiResponse<User>> {
+export async function addTenantUser(
+  id: string | number,
+  payload: {
+    email: string;
+    password: string;
+    full_name: string;
+    role_id: number;
+  }
+): Promise<ApiResponse<User>> {
   return apiRequest<User>(API_ENDPOINTS.tenant.users(id), {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export async function listTenantModules(id: string | number): Promise<ApiResponse<any[]>> {
+export async function listTenantModules(
+  id: string | number
+): Promise<ApiResponse<any[]>> {
   return apiRequest<any[]>(API_ENDPOINTS.tenant.modules(id));
 }
 
-export async function updateTenantModule(id: string | number, payload: { module_id: number; status: string; }): Promise<ApiResponse<any>> {
+export async function updateTenantModule(
+  id: string | number,
+  payload: { module_id: number; status: string }
+): Promise<ApiResponse<any>> {
   return apiRequest<any>(API_ENDPOINTS.tenant.modules(id), {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(payload),
   });
 }
-
