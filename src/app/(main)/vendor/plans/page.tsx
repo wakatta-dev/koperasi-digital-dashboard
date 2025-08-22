@@ -3,6 +3,10 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { listVendorPlansAction } from "@/actions/billing";
 
+export const dynamic = "force-dynamic"; // ⬅️ cegah SSG
+export const fetchCache = "force-no-store"; // ⬅️ jangan cache
+export const revalidate = 0; // ⬅️ no ISR
+
 export default async function PlansPage() {
   const plans = await listVendorPlansAction();
 
@@ -25,4 +29,3 @@ export default async function PlansPage() {
     </div>
   );
 }
-
