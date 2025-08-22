@@ -34,18 +34,10 @@ export async function getTenantId(): Promise<string | null> {
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_PREFIX = "/api";
 
-export class ApiError extends Error {
-  status: number;
-  data: any;
-  constructor(status: number, data: any) {
-    super(`Request failed with status ${status}`);
-    this.name = "ApiError";
-    this.status = status;
-    this.data = data;
-  }
-}
-
-async function request(path: string, options: RequestInit = {}) {
+async function request<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
   let accessToken = await getAccessToken();
 
   const headers = new Headers(options.headers);
@@ -63,30 +55,50 @@ async function request(path: string, options: RequestInit = {}) {
     body = JSON.stringify(body);
   }
 
-  let res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
+  try {
+    let res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
 
-  if (res.status === 401) {
-    const newToken = await refreshAuthToken();
-    if (newToken) {
-      accessToken = newToken;
-      headers.set("Authorization", `Bearer ${accessToken}`);
-      res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
-    } else {
-      await authLogout();
+    if (res.status === 401) {
+      const newToken = await refreshAuthToken();
+      if (newToken) {
+        accessToken = newToken;
+        headers.set("Authorization", `Bearer ${accessToken}`);
+        res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
+      } else {
+        await authLogout();
+      }
     }
+
+    const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;
+
+    if (!res.ok || !json) {
+      return {
+        success: false,
+        message: json?.message || res.statusText || "API request failed",
+        data: null as any,
+        meta:
+          (json?.meta as any) ?? {
+            request_id: "",
+            timestamp: new Date().toISOString(),
+          },
+        errors: json?.errors ?? null,
+      };
+    }
+
+    return json;
+  } catch (err) {
+    console.error("request error:", err);
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "API request error",
+      data: null as any,
+      meta: {
+        request_id: "",
+        timestamp: new Date().toISOString(),
+      } as any,
+      errors: err,
+    };
   }
-
-  const contentType = res.headers.get("content-type");
-  const data =
-    contentType && contentType.includes("application/json")
-      ? await res.json()
-      : await res.text();
-
-  if (!res.ok) {
-    throw new ApiError(res.status, data);
-  }
-
-  return data;
 }
 
 export const api = {

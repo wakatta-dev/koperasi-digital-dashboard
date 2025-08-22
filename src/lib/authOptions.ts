@@ -17,7 +17,10 @@ export async function refreshAccessToken(token: any) {
     const json = await res.json().catch(() => null);
     const data = json?.data;
 
-    if (!res.ok || !data) throw new Error("Refresh token failed");
+    if (!res.ok || !data) {
+      console.error("refreshAccessToken failed", res.status, json);
+      return { ...token, error: "RefreshAccessTokenError" };
+    }
 
     return {
       ...token,
