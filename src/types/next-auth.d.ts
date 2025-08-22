@@ -6,7 +6,8 @@ import NextAuth from "next-auth";
 
 declare module "next-auth" {
   interface Session {
-    user: User & {
+    user: Partial<User> & {
+      name?: string;
       jenis_tenant?: string;
     };
     accessToken?: string;

@@ -1,9 +1,8 @@
 /** @format */
 
 import { getSession, signIn, signOut } from "next-auth/react";
-import { env } from "@/lib/env";
 
-const API_URL = env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function login(email: string, password: string) {
   const res = await signIn("credentials", {
@@ -74,7 +73,9 @@ export async function refreshToken(): Promise<string | null> {
       } else {
         try {
           const { cookies } = await import("next/headers");
-          (await cookies()).set("refresh_token", data.refresh_token, { path: "/" });
+          (await cookies()).set("refresh_token", data.refresh_token, {
+            path: "/",
+          });
         } catch {
           /* noop */
         }

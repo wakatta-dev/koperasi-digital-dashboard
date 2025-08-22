@@ -2,12 +2,11 @@
 import { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getTenantId } from "@/services/api";
-import { env } from "./env";
 
 export async function refreshAccessToken(token: any) {
   try {
     const res = await fetch(
-      `${env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,7 +47,7 @@ export const authOptions: AuthOptions = {
 
         try {
           const res = await fetch(
-            `${env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
             {
               method: "POST",
               headers: {
@@ -121,5 +120,5 @@ export const authOptions: AuthOptions = {
     signOut: "/auth/login",
   },
 
-  secret: env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
 };

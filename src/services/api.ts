@@ -6,7 +6,6 @@ import {
   logout as authLogout,
 } from "./auth";
 import { API_ENDPOINTS } from "@/constants/api";
-import { env } from "@/lib/env";
 import type {
   ApiResponse,
   LoginResponse,
@@ -32,7 +31,7 @@ export async function getTenantId(): Promise<string | null> {
   }
 }
 
-const BASE_URL = env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_PREFIX = "/api";
 
 export class ApiError extends Error {
@@ -121,20 +120,28 @@ export function logout(): Promise<ApiResponse<any>> {
 export function listTenants(
   params?: Record<string, string | number>
 ): Promise<ApiResponse<Tenant[]>> {
-  const query = params ? `?${new URLSearchParams(params as any).toString()}` : "";
+  const query = params
+    ? `?${new URLSearchParams(params as any).toString()}`
+    : "";
   return api.get(`${API_PREFIX}${API_ENDPOINTS.tenant.list}${query}`);
 }
 
-export function getTenantByDomain(domain: string): Promise<ApiResponse<Tenant>> {
+export function getTenantByDomain(
+  domain: string
+): Promise<ApiResponse<Tenant>> {
   return api.get(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.byDomain}?domain=${encodeURIComponent(domain)}`
+    `${API_PREFIX}${API_ENDPOINTS.tenant.byDomain}?domain=${encodeURIComponent(
+      domain
+    )}`
   );
 }
 
 export function listUsers(
   params?: Record<string, string | number>
 ): Promise<ApiResponse<User[]>> {
-  const query = params ? `?${new URLSearchParams(params as any).toString()}` : "";
+  const query = params
+    ? `?${new URLSearchParams(params as any).toString()}`
+    : "";
   return api.get(`${API_PREFIX}${API_ENDPOINTS.users.list}${query}`);
 }
 
@@ -145,10 +152,7 @@ export function createUser(payload: Partial<User>): Promise<ApiResponse<User>> {
 export function resetPassword(payload: {
   email: string;
 }): Promise<ApiResponse<any>> {
-  return api.post(
-    `${API_PREFIX}${API_ENDPOINTS.users.resetPassword}`,
-    payload
-  );
+  return api.post(`${API_PREFIX}${API_ENDPOINTS.users.resetPassword}`, payload);
 }
 
 export function listRoles(): Promise<ApiResponse<Role[]>> {
@@ -159,10 +163,7 @@ export function assignRole(
   userId: string | number,
   payload: { role_id: string | number; tenant_id?: string | number }
 ): Promise<ApiResponse<any>> {
-  return api.post(
-    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
-    payload
-  );
+  return api.post(`${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`, payload);
 }
 
 export function listVendorPlans(): Promise<ApiResponse<Plan[]>> {
