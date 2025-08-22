@@ -26,7 +26,7 @@ import { render, fireEvent, waitFor } from "@testing-library/react";
 import { LoginForm } from "@/components/shared/login-form";
 import { LanguageProvider } from "@/contexts/language-context";
 import { refreshAccessToken } from "@/lib/authOptions";
-import { logout, login } from "@/services/auth";
+import { logout, login, refreshToken } from "@/services/auth";
 import { getSession, signOut } from "next-auth/react";
 import React from "react";
 
@@ -41,11 +41,13 @@ const logoutFixture = { message: "logged out" };
 describe("auth flow", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    document.cookie =
+      "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   });
 
   it("redirects to dashboard based on role after successful login", async () => {
     (login as any).mockResolvedValue(loginFixture);
-    (getSession as any).mockResolvedValue({ user: { role: "umkm" } });
+    (getSession as any).mockResolvedValue({ user: { jenis_tenant: "umkm" } });
 
     const { getByLabelText, getByRole } = render(
       <LanguageProvider>
@@ -83,6 +85,37 @@ describe("auth flow", () => {
     const refreshed = await refreshAccessToken(token);
     expect(refreshed.accessToken).toBe(fakeJwt);
     expect(refreshed.refreshToken).toBe("new_refresh");
+  });
+
+  it("refreshToken returns new access token and updates cookie", async () => {
+    document.cookie = "refresh_token=old";
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: { access_token: "new_access", refresh_token: "new_refresh" },
+      }),
+    }) as any;
+
+    const token = await refreshToken();
+    expect(token).toBe("new_access");
+    expect(document.cookie).toContain("refresh_token=new_refresh");
+    const call = (fetch as any).mock.calls[0];
+    expect(call[0]).toContain("/auth/refresh");
+    expect(call[1].body).toBe(JSON.stringify({ refresh_token: "old" }));
+  });
+
+  it("refreshToken returns null on failure", async () => {
+    document.cookie = "refresh_token=old";
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({})
+    }) as any;
+
+    const token = await refreshToken();
+    expect(token).toBeNull();
+    expect(document.cookie).toContain("refresh_token=old");
   });
 
   it("logout clears refresh_token cookie and redirects to /login", async () => {

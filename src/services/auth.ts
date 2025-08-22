@@ -35,6 +35,53 @@ export async function getAccessToken(): Promise<string | null> {
 }
 
 export async function refreshToken(): Promise<string | null> {
-  const session: any = await getSession();
-  return session?.accessToken ?? null;
+  try {
+    let rt: string | null = null;
+    if (typeof window !== "undefined") {
+      const match = document.cookie.match(/(?:^|; )refresh_token=([^;]+)/);
+      rt = match ? decodeURIComponent(match[1]) : null;
+    } else {
+      try {
+        const { cookies } = await import("next/headers");
+        rt = (await cookies()).get("refresh_token")?.value ?? null;
+      } catch {
+        rt = null;
+      }
+    }
+
+    if (!rt) {
+      const session: any = await getSession();
+      rt = session?.refreshToken ?? null;
+    }
+
+    if (!rt) return null;
+
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: rt }),
+      credentials: "include",
+    });
+
+    const json = await res.json().catch(() => null);
+    const data = json?.data;
+    if (!res.ok || !data?.access_token) return null;
+
+    if (data.refresh_token) {
+      if (typeof window !== "undefined") {
+        document.cookie = `refresh_token=${data.refresh_token}; path=/`;
+      } else {
+        try {
+          const { cookies } = await import("next/headers");
+          (await cookies()).set("refresh_token", data.refresh_token, { path: "/" });
+        } catch {
+          /* noop */
+        }
+      }
+    }
+
+    return data.access_token as string;
+  } catch {
+    return null;
+  }
 }

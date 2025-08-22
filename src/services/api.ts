@@ -1,10 +1,6 @@
 /** @format */
 
-import {
-  getAccessToken,
-  refreshToken as refreshAccessToken,
-  logout,
-} from "./auth";
+import { getAccessToken, refreshToken, logout } from "./auth";
 
 export async function getTenantId(): Promise<string | null> {
   if (typeof window !== "undefined") {
@@ -53,7 +49,7 @@ async function request(path: string, options: RequestInit = {}) {
   let res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
 
   if (res.status === 401) {
-    const newToken = await refreshAccessToken();
+    const newToken = await refreshToken();
     if (newToken) {
       accessToken = newToken;
       headers.set("Authorization", `Bearer ${accessToken}`);
