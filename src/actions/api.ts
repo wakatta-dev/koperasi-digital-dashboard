@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import type { ApiResponse } from "@/types/api";
 import { UserSession } from "@/types/session";
+import { env } from "@/lib/env";
 
 export async function apiRequest<T = any>(
   endpoint: string,
@@ -12,7 +13,7 @@ export async function apiRequest<T = any>(
 ): Promise<ApiResponse<T>> {
   const session = (await getServerSession(authOptions)) as UserSession;
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api${endpoint}`, {
+  const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/api${endpoint}`, {
     cache: "no-store",
     ...options,
     headers: {

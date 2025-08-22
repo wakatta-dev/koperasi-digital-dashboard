@@ -1,6 +1,7 @@
 /** @format */
 
 import { getAccessToken, refreshToken, logout } from "./auth";
+import { env } from "@/lib/env";
 
 export async function getTenantId(): Promise<string | null> {
   if (typeof window !== "undefined") {
@@ -15,7 +16,7 @@ export async function getTenantId(): Promise<string | null> {
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const BASE_URL = env.NEXT_PUBLIC_API_URL;
 
 export class ApiError extends Error {
   status: number;

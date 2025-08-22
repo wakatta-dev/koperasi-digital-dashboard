@@ -32,9 +32,13 @@ Dashboard menyediakan rute awal untuk modul-modul berikut:
    ```bash
    npm install
    ```
-2. Siapkan file `.env.local` dengan variabel:
+2. Siapkan file `.env.local` dengan variabel wajib berikut:
    ```bash
    NEXT_PUBLIC_API_URL=http://localhost:8080
+   NEXT_PUBLIC_BASE_URL=http://localhost:3000
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your_secret_key
+   NEXTAUTH_URL_INTERNAL=http://localhost:3000
    ```
 3. Jalankan server pengembangan:
    ```bash
