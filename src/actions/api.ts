@@ -2,31 +2,47 @@
 "use server";
 
 import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import { authOptions } from "@/lib/authOptions";
 import type { ApiResponse } from "@/types/api";
 import { UserSession } from "@/types/session";
 import { env } from "@/lib/env";
+import { refreshToken, logout } from "@/services/auth";
 
 export async function apiRequest<T = any>(
   endpoint: string,
   options?: RequestInit
 ): Promise<ApiResponse<T>> {
   const session = (await getServerSession(authOptions)) as UserSession;
+  const tenantId = cookies().get("tenantId")?.value;
+  let token = session?.accessToken;
 
-  const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/api${endpoint}`, {
-    cache: "no-store",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(session?.accessToken
-        ? { Authorization: `Bearer ${session.accessToken}` }
-        : {}),
-      ...(session.user?.id
-        ? { "X-Tenant-ID": session.user?.id.toString() }
-        : {}),
-      ...(options?.headers || {}),
-    },
-  });
+  const request = async (access?: string) =>
+    fetch(`${env.NEXT_PUBLIC_API_URL}/api${endpoint}`, {
+      cache: "no-store",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(access ? { Authorization: `Bearer ${access}` } : {}),
+        ...(tenantId ? { "X-Tenant-ID": tenantId } : {}),
+        ...(options?.headers || {}),
+      },
+    });
+
+  let res = await request(token);
+
+  if (res.status === 401) {
+    const newToken = await refreshToken();
+    if (newToken) {
+      token = newToken;
+      res = await request(token);
+    } else {
+      await logout();
+      const error: any = new Error("Unauthorized");
+      error.status = 401;
+      throw error;
+    }
+  }
 
   const json = (await res.json().catch(() => null)) as ApiResponse<T>;
 
