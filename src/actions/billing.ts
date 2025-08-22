@@ -7,6 +7,7 @@ import {
   listVendorInvoices,
   listClientInvoices,
   createPayment,
+  listVendorPlans,
 } from "@/services/api";
 
 export async function listInvoicesAction(
@@ -33,4 +34,13 @@ export async function createPaymentAction(
 
 export type CreatePaymentActionResult = Awaited<
   ReturnType<typeof createPaymentAction>
+>;
+
+export async function listVendorPlansAction() {
+  const res = await listVendorPlans();
+  return ensureSuccess(res);
+}
+
+export type ListVendorPlansActionResult = Awaited<
+  ReturnType<typeof listVendorPlansAction>
 >;
