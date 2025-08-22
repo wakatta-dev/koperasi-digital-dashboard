@@ -40,6 +40,8 @@ Dashboard menyediakan rute awal untuk modul-modul berikut:
    NEXTAUTH_SECRET=your_secret_key
    NEXTAUTH_URL_INTERNAL=http://localhost:3000
    ```
+   Aplikasi akan langsung gagal dijalankan jika `NEXTAUTH_SECRET`
+   belum dikonfigurasi.
 3. Jalankan server pengembangan:
    ```bash
    npm run dev

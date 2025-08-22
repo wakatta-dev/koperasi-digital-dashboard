@@ -2,6 +2,7 @@
 import { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getTenantId } from "@/services/api";
+import { NEXTAUTH_SECRET } from "@/lib/env";
 
 export async function refreshAccessToken(token: any) {
   try {
@@ -120,5 +121,5 @@ export const authOptions: AuthOptions = {
     signOut: "/auth/login",
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: NEXTAUTH_SECRET,
 };
