@@ -11,9 +11,16 @@ import {
 } from "@/services/api";
 
 export async function listInvoicesAction(type: "vendor" | "client" = "client") {
-  const res =
-    type === "vendor" ? await listVendorInvoices() : await listClientInvoices();
-  return ensureSuccess(res);
+  try {
+    const res =
+      type === "vendor"
+        ? await listVendorInvoices()
+        : await listClientInvoices();
+
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListInvoicesActionResult = Awaited<

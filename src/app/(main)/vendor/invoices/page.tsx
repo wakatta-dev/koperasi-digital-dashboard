@@ -50,7 +50,7 @@ export default async function InvoicesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {invoices.map((invoice) => (
+            {invoices?.map((invoice) => (
               <div
                 key={invoice.id}
                 className="flex items-center justify-between p-4 border rounded-lg"
