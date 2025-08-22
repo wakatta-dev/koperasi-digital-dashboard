@@ -28,6 +28,23 @@ export const API_ENDPOINTS = {
     permissions: (id: string | number) => `/roles/${id}/permissions`,
     permission: (id: string | number, pid: string | number) => `/roles/${id}/permissions/${pid}`,
   },
+  billing: {
+    vendor: {
+      plans: "/billing/vendor/plans",
+      plan: (id: string | number) => `/billing/vendor/plans/${id}`,
+      invoices: "/billing/vendor/invoices",
+      invoice: (id: string | number) => `/billing/vendor/invoices/${id}`,
+      payments: (id: string | number) => ({
+        verify: `/billing/vendor/payments/${id}/verify`,
+      }),
+    },
+    client: {
+      invoices: "/billing/client/invoices",
+      invoice: (id: string | number) => ({
+        payments: `/billing/client/invoices/${id}/payments`,
+      }),
+    },
+  },
 } as const;
 
 export type ApiEndpoint = typeof API_ENDPOINTS;
