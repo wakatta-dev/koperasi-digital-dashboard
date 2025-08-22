@@ -3,12 +3,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { env } from "@/lib/env";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") ?? "";
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "";
+  const apiBase = env.NEXT_PUBLIC_API_URL;
 
   let tenantId = request.cookies.get("tenantId")?.value;
 
@@ -56,7 +57,7 @@ export async function middleware(request: NextRequest) {
   // cek token NextAuth
   const token = await getToken({
     req: request,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: env.NEXTAUTH_SECRET,
   });
   const userRole = (token as any)?.jenis_tenant;
 

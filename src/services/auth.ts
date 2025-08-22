@@ -1,8 +1,9 @@
 /** @format */
 
 import { getSession, signIn, signOut } from "next-auth/react";
+import { env } from "@/lib/env";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_URL = env.NEXT_PUBLIC_API_URL;
 
 export async function login(email: string, password: string) {
   const res = await signIn("credentials", {

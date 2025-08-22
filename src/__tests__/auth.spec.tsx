@@ -1,7 +1,9 @@
 /** @format */
 
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import React from "react";
+import { render, fireEvent, waitFor } from "@testing-library/react";
 
 const push = vi.fn();
 
@@ -22,13 +24,28 @@ vi.mock("@/services/auth", async () => {
   };
 });
 
-import { render, fireEvent, waitFor } from "@testing-library/react";
-import { LoginForm } from "@/components/shared/login-form";
-import { LanguageProvider } from "@/contexts/language-context";
-import { refreshAccessToken } from "@/lib/authOptions";
-import { logout, login, refreshToken } from "@/services/auth";
-import { getSession, signOut } from "next-auth/react";
-import React from "react";
+let LoginForm: typeof import("@/components/shared/login-form").LoginForm;
+let LanguageProvider: typeof import("@/contexts/language-context").LanguageProvider;
+let refreshAccessToken: typeof import("@/lib/authOptions").refreshAccessToken;
+let logout: typeof import("@/services/auth").logout;
+let login: typeof import("@/services/auth").login;
+let refreshToken: typeof import("@/services/auth").refreshToken;
+let getSession: typeof import("next-auth/react").getSession;
+let signOut: typeof import("next-auth/react").signOut;
+
+beforeEach(async () => {
+  process.env.NEXT_PUBLIC_API_URL = "http://example.com";
+  process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
+  process.env.NEXTAUTH_URL = "http://localhost:3000";
+  process.env.NEXTAUTH_SECRET = "secret";
+  process.env.NEXTAUTH_URL_INTERNAL = "http://localhost:3000";
+  vi.resetModules();
+  LoginForm = (await import("@/components/shared/login-form")).LoginForm;
+  LanguageProvider = (await import("@/contexts/language-context")).LanguageProvider;
+  refreshAccessToken = (await import("@/lib/authOptions")).refreshAccessToken;
+  ({ logout, login, refreshToken } = await import("@/services/auth"));
+  ({ getSession, signOut } = await import("next-auth/react"));
+});
 
 // fixtures based on docs/frontend/auth_flow.md
 const loginFixture = {
