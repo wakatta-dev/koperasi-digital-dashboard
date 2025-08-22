@@ -51,7 +51,22 @@ export async function apiRequest<T = any>(
   const json = (await res.json().catch(() => null)) as ApiResponse<T>;
 
   if (!res.ok) {
-    const error: any = new Error(json?.message || res.statusText);
+    let errorMessage = res.statusText;
+
+    // kalau backend balikin body text biasa (bukan JSON), tangkap juga
+    try {
+      const errJson = await res.json();
+      errorMessage = errJson?.message || JSON.stringify(errJson);
+    } catch {
+      try {
+        const errText = await res.text();
+        if (errText) errorMessage = errText;
+      } catch {
+        // fallback terakhir tetap pakai statusText
+      }
+    }
+
+    const error: any = new Error(errorMessage || "API request failed");
     error.status = res.status;
     throw error;
   }

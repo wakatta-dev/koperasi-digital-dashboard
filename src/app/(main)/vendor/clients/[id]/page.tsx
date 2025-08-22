@@ -2,10 +2,10 @@
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -14,121 +14,89 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
 import {
   getTenant,
-  updateTenant,
-  updateTenantStatus,
-  listTenantUsers,
-  addTenantUser,
   listTenantModules,
-  updateTenantModule,
+  listTenantUsers,
 } from "@/actions/tenants";
-import { revalidatePath } from "next/cache";
+import {
+  updateTenantAction,
+  updateStatusAction,
+  addUserAction,
+  toggleModuleAction,
+} from "./_actions";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
-  searchParams?: Promise<{ message?: string; error?: string }>;
+  params: { id: string };
+  searchParams?: { message?: string; error?: string };
 }
 
 export default async function TenantDetailPage({
   params,
   searchParams,
 }: PageProps) {
-  const id = (await params).id;
-  const searchParam = await searchParams;
+  const id = params.id;
   const { data: tenant, success } = await getTenant(id);
   if (!success || !tenant) redirect("/tenant-not-found");
 
   const usersRes = await listTenantUsers(id);
   const modulesRes = await listTenantModules(id);
 
-  async function updateTenantAction(formData: FormData) {
-    "use server";
-    const res = await updateTenant(id, {
-      name: String(formData.get("name")),
-      type: String(formData.get("type")),
-      domain: String(formData.get("domain")),
-    });
-    revalidatePath(`/vendor/clients/${id}`);
-    if (!res.success) {
-      redirect(
-        `/vendor/clients/${id}?error=${encodeURIComponent(res.message)}`
-      );
-    }
-    redirect(
-      `/vendor/clients/${id}?message=${encodeURIComponent(res.message)}`
-    );
-  }
-
-  async function updateStatusAction(formData: FormData) {
-    "use server";
-    const status = formData.get("status") === "on" ? "active" : "inactive";
-    const res = await updateTenantStatus(id, { status });
-    revalidatePath(`/vendor/clients/${id}`);
-    const target = res.success
-      ? `/vendor/clients/${id}?message=${encodeURIComponent(res.message)}`
-      : `/vendor/clients/${id}?error=${encodeURIComponent(res.message)}`;
-    redirect(target);
-  }
-
-  async function addUserAction(formData: FormData) {
-    "use server";
-    const res = await addTenantUser(id, {
-      email: String(formData.get("email")),
-      password: String(formData.get("password")),
-      full_name: String(formData.get("full_name")),
-      role_id: Number(formData.get("role_id")),
-    });
-    revalidatePath(`/vendor/clients/${id}`);
-    const target = res.success
-      ? `/vendor/clients/${id}?message=${encodeURIComponent(res.message)}`
-      : `/vendor/clients/${id}?error=${encodeURIComponent(res.message)}`;
-    redirect(target);
-  }
-
-  async function toggleModuleAction(formData: FormData) {
-    "use server";
-    const res = await updateTenantModule(id, {
-      module_id: Number(formData.get("module_id")),
-      status: String(formData.get("status")),
-    });
-    revalidatePath(`/vendor/clients/${id}`);
-    const target = res.success
-      ? `/vendor/clients/${id}?message=${encodeURIComponent(res.message)}`
-      : `/vendor/clients/${id}?error=${encodeURIComponent(res.message)}`;
-    redirect(target);
-  }
-
   return (
-    <div className="space-y-8">
-      <Link href="/vendor/clients">← Back</Link>
-      {searchParam?.message && (
-        <p className="text-green-600">{searchParam.message}</p>
-      )}
-      {searchParam?.error && (
-        <p className="text-red-600">{searchParam.error}</p>
-      )}
-      <form action={updateTenantAction} className="space-y-4">
-        <div>
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" defaultValue={tenant.name} />
-        </div>
-        <div>
-          <Label htmlFor="type">Type</Label>
-          <Input id="type" name="type" defaultValue={tenant.type} />
-        </div>
-        <div>
-          <Label htmlFor="domain">Domain</Label>
-          <Input id="domain" name="domain" defaultValue={tenant.domain} />
-        </div>
-        <Button type="submit">Save</Button>
-      </form>
+    <div className="p-6 space-y-10">
+      <Link href="/vendor/clients" className="text-sm text-muted-foreground">
+        ← Back
+      </Link>
 
-      <form action={updateStatusAction} className="flex items-center gap-2">
+      {searchParams?.message && (
+        <p className="text-sm text-green-600">{searchParams.message}</p>
+      )}
+      {searchParams?.error && (
+        <p className="text-sm text-red-600">{searchParams.error}</p>
+      )}
+
+      {/* Tenant Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Tenant</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            action={updateTenantAction.bind(null, id)}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" name="name" defaultValue={tenant.name} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Input id="type" name="type" defaultValue={tenant.type} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="domain">Domain</Label>
+              <Input id="domain" name="domain" defaultValue={tenant.domain} />
+            </div>
+            <Button type="submit">Save</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Status Toggle */}
+      <form
+        action={updateStatusAction.bind(null, id)}
+        className="flex items-center gap-2"
+      >
         <Switch name="status" defaultChecked={tenant.status === "active"} />
         <Button type="submit">Update Status</Button>
       </form>
 
+      <Separator />
+
+      {/* Users Section */}
       <section className="space-y-4">
         <h3 className="text-xl font-semibold">Users</h3>
         <Table>
@@ -139,23 +107,58 @@ export default async function TenantDetailPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {usersRes.data?.map((u) => (
-              <TableRow key={u.id}>
-                <TableCell>{u.name}</TableCell>
-                <TableCell>{u.email}</TableCell>
+            {usersRes.data?.length ? (
+              usersRes.data.map((u) => (
+                <TableRow key={u.id}>
+                  <TableCell>{u.full_name}</TableCell>
+                  <TableCell>{u.email}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={2} className="text-muted-foreground italic">
+                  No users found.
+                </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
-        <form action={addUserAction} className="space-y-2">
-          <Input name="email" placeholder="email" />
-          <Input name="password" placeholder="password" type="password" />
-          <Input name="full_name" placeholder="full name" />
-          <Input name="role_id" placeholder="role id" />
-          <Button type="submit">Add User</Button>
-        </form>
+
+        <div className="mt-4">
+          <h4 className="text-lg font-medium">Add New User</h4>
+          <form
+            action={addUserAction.bind(null, id)}
+            className="space-y-3 mt-2"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" placeholder="Email" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input id="full_name" name="full_name" placeholder="Full Name" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role_id">Role ID</Label>
+              <Input id="role_id" name="role_id" placeholder="Role ID" />
+            </div>
+            <Button type="submit">Add User</Button>
+          </form>
+        </div>
       </section>
 
+      <Separator />
+
+      {/* Modules Section */}
       <section className="space-y-4">
         <h3 className="text-xl font-semibold">Modules</h3>
         <Table>
@@ -166,23 +169,38 @@ export default async function TenantDetailPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {modulesRes.data?.map((m) => (
-              <TableRow key={m.id}>
-                <TableCell>{m.name}</TableCell>
-                <TableCell>
-                  <form action={toggleModuleAction}>
-                    <input type="hidden" name="module_id" value={m.id} />
-                    <select name="status" defaultValue={m.status}>
-                      <option value="active">active</option>
-                      <option value="inactive">inactive</option>
-                    </select>
-                    <Button type="submit" size="sm" className="ml-2">
-                      Save
-                    </Button>
-                  </form>
+            {modulesRes.data?.length ? (
+              modulesRes.data.map((mod) => (
+                <TableRow key={mod.id}>
+                  <TableCell className="w-full">{mod.name || "-"}</TableCell>
+                  <TableCell>
+                    <form
+                      action={toggleModuleAction.bind(null, id)}
+                      className="flex items-center gap-2"
+                    >
+                      <input type="hidden" name="module_id" value={mod.id} />
+                      <select
+                        name="status"
+                        defaultValue={mod.status}
+                        className="border rounded px-2 py-1"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                      <Button type="submit" size="sm">
+                        Save
+                      </Button>
+                    </form>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={2} className="text-muted-foreground italic">
+                  No modules found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </section>

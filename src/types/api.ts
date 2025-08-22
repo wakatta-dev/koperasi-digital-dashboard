@@ -1,3 +1,5 @@
+/** @format */
+
 export interface Pagination {
   next_cursor?: string;
   prev_cursor?: string;
@@ -78,6 +80,7 @@ export interface Tenant {
   name: string;
   domain: string;
   type: string;
+  status: string;
   is_active: boolean;
   created_at: string;
   updated_at?: string;
