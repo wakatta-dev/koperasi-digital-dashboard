@@ -2,14 +2,6 @@
 
 export type UserRole = "vendor" | "koperasi" | "umkm" | "bumdes";
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  organizationId?: string;
-}
-
 export interface DashboardStats {
   title: string;
   value: string | number;
@@ -17,10 +9,13 @@ export interface DashboardStats {
   trend?: "up" | "down" | "neutral";
 }
 
-export interface Tenant {
-  id: string | number;
-  name: string;
-  type: string;
-  domain: string;
-  status: string;
-}
+// Re-export API types to keep a single source of truth
+export type {
+  User,
+  Tenant,
+  Role,
+  Plan,
+  Invoice,
+  Payment,
+  LoginResponse,
+} from "@/types/api";

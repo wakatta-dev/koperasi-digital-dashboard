@@ -7,8 +7,17 @@ import {
 } from "./auth";
 import { API_ENDPOINTS } from "@/constants/api";
 import { env } from "@/lib/env";
-import type { ApiResponse } from "@/types/api";
-import type { Tenant, User } from "@/lib/types";
+import type {
+  ApiResponse,
+  LoginResponse,
+  RefreshResponse,
+  Tenant,
+  User,
+  Role,
+  Plan,
+  Invoice,
+  Payment,
+} from "@/types/api";
 
 export async function getTenantId(): Promise<string | null> {
   if (typeof window !== "undefined") {
@@ -95,13 +104,13 @@ export const api = {
 export function login(payload: {
   email: string;
   password: string;
-}): Promise<ApiResponse<any>> {
+}): Promise<ApiResponse<LoginResponse>> {
   return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.login}`, payload);
 }
 
 export function refreshToken(payload: {
   refresh_token: string;
-}): Promise<ApiResponse<any>> {
+}): Promise<ApiResponse<RefreshResponse>> {
   return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.refresh}`, payload);
 }
 
@@ -142,13 +151,6 @@ export function resetPassword(payload: {
   );
 }
 
-interface Role {
-  id: string | number;
-  name: string;
-  description?: string;
-  tenant_id?: string | number;
-}
-
 export function listRoles(): Promise<ApiResponse<Role[]>> {
   return api.get(`${API_PREFIX}${API_ENDPOINTS.roles.list}`);
 }
@@ -163,22 +165,22 @@ export function assignRole(
   );
 }
 
-export function listVendorPlans(): Promise<ApiResponse<any[]>> {
+export function listVendorPlans(): Promise<ApiResponse<Plan[]>> {
   return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`);
 }
 
-export function listVendorInvoices(): Promise<ApiResponse<any[]>> {
+export function listVendorInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`);
 }
 
-export function listClientInvoices(): Promise<ApiResponse<any[]>> {
+export function listClientInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`);
 }
 
 export function createPayment(
   invoiceId: string | number,
-  payload: any
-): Promise<ApiResponse<any>> {
+  payload: Partial<Payment>
+): Promise<ApiResponse<Payment>> {
   return api.post(
     `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(invoiceId).payments}`,
     payload

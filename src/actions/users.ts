@@ -4,8 +4,7 @@
 
 import { apiRequest } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
-import type { User } from "@/lib/types";
-import type { ApiResponse } from "@/types/api";
+import type { ApiResponse, User } from "@/types/api";
 import { ensureSuccess } from "@/lib/api";
 import {
   listUsers as listUsersService,

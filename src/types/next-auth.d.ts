@@ -1,6 +1,6 @@
 /** @format */
 
-import { User } from "@/lib/types";
+import type { User } from "@/types/api";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import NextAuth from "next-auth";
 
