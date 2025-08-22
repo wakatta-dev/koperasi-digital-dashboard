@@ -1,7 +1,14 @@
 /** @format */
 
-import { getAccessToken, refreshToken, logout } from "./auth";
+import {
+  getAccessToken,
+  refreshToken as refreshAuthToken,
+  logout as authLogout,
+} from "./auth";
+import { API_ENDPOINTS } from "@/constants/api";
 import { env } from "@/lib/env";
+import type { ApiResponse } from "@/types/api";
+import type { Tenant, User } from "@/lib/types";
 
 export async function getTenantId(): Promise<string | null> {
   if (typeof window !== "undefined") {
@@ -17,6 +24,7 @@ export async function getTenantId(): Promise<string | null> {
 }
 
 const BASE_URL = env.NEXT_PUBLIC_API_URL;
+const API_PREFIX = "/api";
 
 export class ApiError extends Error {
   status: number;
@@ -50,13 +58,13 @@ async function request(path: string, options: RequestInit = {}) {
   let res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
 
   if (res.status === 401) {
-    const newToken = await refreshToken();
+    const newToken = await refreshAuthToken();
     if (newToken) {
       accessToken = newToken;
       headers.set("Authorization", `Bearer ${accessToken}`);
       res = await fetch(`${BASE_URL}${path}`, { ...options, headers, body });
     } else {
-      await logout();
+      await authLogout();
     }
   }
 
@@ -83,5 +91,98 @@ export const api = {
   delete: (path: string, options?: RequestInit) =>
     request(path, { ...options, method: "DELETE" }),
 };
+
+export function login(payload: {
+  email: string;
+  password: string;
+}): Promise<ApiResponse<any>> {
+  return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.login}`, payload);
+}
+
+export function refreshToken(payload: {
+  refresh_token: string;
+}): Promise<ApiResponse<any>> {
+  return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.refresh}`, payload);
+}
+
+export function logout(): Promise<ApiResponse<any>> {
+  return api.post(`${API_PREFIX}${API_ENDPOINTS.auth.logout}`);
+}
+
+export function listTenants(
+  params?: Record<string, string | number>
+): Promise<ApiResponse<Tenant[]>> {
+  const query = params ? `?${new URLSearchParams(params as any).toString()}` : "";
+  return api.get(`${API_PREFIX}${API_ENDPOINTS.tenant.list}${query}`);
+}
+
+export function getTenantByDomain(domain: string): Promise<ApiResponse<Tenant>> {
+  return api.get(
+    `${API_PREFIX}${API_ENDPOINTS.tenant.byDomain}?domain=${encodeURIComponent(domain)}`
+  );
+}
+
+export function listUsers(
+  params?: Record<string, string | number>
+): Promise<ApiResponse<User[]>> {
+  const query = params ? `?${new URLSearchParams(params as any).toString()}` : "";
+  return api.get(`${API_PREFIX}${API_ENDPOINTS.users.list}${query}`);
+}
+
+export function createUser(payload: Partial<User>): Promise<ApiResponse<User>> {
+  return api.post(`${API_PREFIX}${API_ENDPOINTS.users.list}`, payload);
+}
+
+export function resetPassword(payload: {
+  email: string;
+}): Promise<ApiResponse<any>> {
+  return api.post(
+    `${API_PREFIX}${API_ENDPOINTS.users.resetPassword}`,
+    payload
+  );
+}
+
+interface Role {
+  id: string | number;
+  name: string;
+  description?: string;
+  tenant_id?: string | number;
+}
+
+export function listRoles(): Promise<ApiResponse<Role[]>> {
+  return api.get(`${API_PREFIX}${API_ENDPOINTS.roles.list}`);
+}
+
+export function assignRole(
+  userId: string | number,
+  payload: { role_id: string | number; tenant_id?: string | number }
+): Promise<ApiResponse<any>> {
+  return api.post(
+    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
+    payload
+  );
+}
+
+export function listVendorPlans(): Promise<ApiResponse<any[]>> {
+  return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`);
+}
+
+export function listVendorInvoices(): Promise<ApiResponse<any[]>> {
+  return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`);
+}
+
+export function listClientInvoices(): Promise<ApiResponse<any[]>> {
+  return api.get(`${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`);
+}
+
+export function createPayment(
+  invoiceId: string | number,
+  payload: any
+): Promise<ApiResponse<any>> {
+  return api.post(
+    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(invoiceId).payments}`,
+    payload
+  );
+}
 
 export default api;
