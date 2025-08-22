@@ -6,6 +6,12 @@ import { apiRequest } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
 import type { User } from "@/lib/types";
 import type { ApiResponse } from "@/types/api";
+import { ensureSuccess } from "@/lib/api";
+import {
+  listUsers as listUsersService,
+  createUser as createUserService,
+  resetPassword,
+} from "@/services/api";
 
 export async function listUsers(params?: {
   limit?: number;
@@ -35,3 +41,32 @@ export async function createUser(payload: {
     body: JSON.stringify(payload),
   });
 }
+
+export async function listUsersAction(
+  params?: Record<string, string | number>
+) {
+  const res = await listUsersService(params);
+  return ensureSuccess(res);
+}
+
+export type ListUsersActionResult = Awaited<
+  ReturnType<typeof listUsersAction>
+>;
+
+export async function createUserAction(payload: Partial<User>) {
+  const res = await createUserService(payload);
+  return ensureSuccess(res);
+}
+
+export type CreateUserActionResult = Awaited<
+  ReturnType<typeof createUserAction>
+>;
+
+export async function resetPasswordAction(payload: { email: string }) {
+  const res = await resetPassword(payload);
+  return ensureSuccess(res);
+}
+
+export type ResetPasswordActionResult = Awaited<
+  ReturnType<typeof resetPasswordAction>
+>;

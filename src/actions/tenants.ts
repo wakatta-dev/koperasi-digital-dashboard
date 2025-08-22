@@ -6,6 +6,11 @@ import { apiRequest } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
 import type { Tenant, User } from "@/lib/types";
 import type { ApiResponse } from "@/types/api";
+import { ensureSuccess } from "@/lib/api";
+import {
+  listTenants as listTenantsService,
+  getTenantByDomain,
+} from "@/services/api";
 
 export async function listTenants(params?: {
   limit?: number;
@@ -93,3 +98,23 @@ export async function updateTenantModule(
     body: JSON.stringify(payload),
   });
 }
+
+export async function listTenantsAction(
+  params?: Record<string, string | number>
+) {
+  const res = await listTenantsService(params);
+  return ensureSuccess(res);
+}
+
+export type ListTenantsActionResult = Awaited<
+  ReturnType<typeof listTenantsAction>
+>;
+
+export async function getTenantByDomainAction(domain: string) {
+  const res = await getTenantByDomain(domain);
+  return ensureSuccess(res);
+}
+
+export type GetTenantByDomainActionResult = Awaited<
+  ReturnType<typeof getTenantByDomainAction>
+>;
