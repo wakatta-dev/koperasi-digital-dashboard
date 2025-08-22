@@ -1,10 +1,9 @@
 /** @format */
 
-import { getSession, signIn, signOut } from "next-auth/react";
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function login(email: string, password: string) {
+  const { signIn } = await import("next-auth/react");
   const res = await signIn("credentials", {
     redirect: false,
     email,
@@ -25,13 +24,25 @@ export async function logout() {
   if (typeof window !== "undefined") {
     document.cookie =
       "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    const { signOut } = await import("next-auth/react");
+    await signOut({ callbackUrl: "/login" });
   }
-  await signOut({ callbackUrl: "/login" });
 }
 
 export async function getAccessToken(): Promise<string | null> {
-  const session: any = await getSession();
-  return session?.accessToken ?? null;
+  try {
+    if (typeof window !== "undefined") {
+      const { getSession } = await import("next-auth/react");
+      const session: any = await getSession();
+      return session?.accessToken ?? null;
+    }
+    const { getServerSession } = await import("next-auth");
+    const { authOptions } = await import("@/lib/authOptions");
+    const session: any = await getServerSession(authOptions);
+    return session?.accessToken ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function refreshToken(): Promise<string | null> {
@@ -50,8 +61,16 @@ export async function refreshToken(): Promise<string | null> {
     }
 
     if (!rt) {
-      const session: any = await getSession();
-      rt = session?.refreshToken ?? null;
+      if (typeof window !== "undefined") {
+        const { getSession } = await import("next-auth/react");
+        const session: any = await getSession();
+        rt = session?.refreshToken ?? null;
+      } else {
+        const { getServerSession } = await import("next-auth");
+        const { authOptions } = await import("@/lib/authOptions");
+        const session: any = await getServerSession(authOptions);
+        rt = session?.refreshToken ?? null;
+      }
     }
 
     if (!rt) return null;

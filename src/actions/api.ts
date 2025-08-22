@@ -13,7 +13,12 @@ export async function apiRequest<T = any>(
   options?: RequestInit
 ): Promise<ApiResponse<T>> {
   const session = (await getServerSession(authOptions)) as UserSession;
-  const tenantId = (await cookies()).get("tenantId")?.value;
+  let tenantId: string | undefined;
+  try {
+    tenantId = (await cookies()).get("tenantId")?.value;
+  } catch {
+    tenantId = undefined;
+  }
   let token = session?.accessToken;
 
   const request = async (access?: string) =>
