@@ -52,6 +52,7 @@ export interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
+  subscription_id?: number;
 }
 
 export interface Invoice {
@@ -65,6 +66,7 @@ export interface Invoice {
   items: InvoiceItem[];
   created_at: string;
   updated_at: string;
+  subscription_id?: number;
 }
 
 export interface Payment {
