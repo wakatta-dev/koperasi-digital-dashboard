@@ -38,12 +38,13 @@ export function ProtectedRoute({
 
   if (status === "loading") {
     return (
-      <EnterpriseLoading
-        duration={4000}
-        showProgress={true}
-        title="Enterprise Dashboard"
-        subtitle="Initializing your business intelligence platform"
-      />
+      <div className="w-screen">
+        <EnterpriseLoading
+          duration={4000}
+          title="Loading..."
+          subtitle="Harap tunggu..."
+        />
+      </div>
     );
   }
 

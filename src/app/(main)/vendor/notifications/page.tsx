@@ -11,7 +11,7 @@ import {
 import { revalidatePath } from "next/cache";
 
 type NotificationItem = NonNullable<
-  Awaited<ReturnType<typeof listNotificationsAction>>["data"]
+  Awaited<ReturnType<typeof listNotificationsAction>>
 >[number] & {
   read: boolean;
   time: string;
@@ -19,8 +19,9 @@ type NotificationItem = NonNullable<
 };
 
 export default async function NotificationsPage() {
-  const res = await listNotificationsAction({ limit: 20 });
-  const notifications: NotificationItem[] = (res.data ?? []).map((n: any) => ({
+  const res = await listNotificationsAction({ limit: 10 });
+
+  const notifications: NotificationItem[] = (res ?? []).map((n: any) => ({
     ...n,
     read: n.status === "read",
     time: new Date(n.created_at).toLocaleString(),
@@ -32,8 +33,8 @@ export default async function NotificationsPage() {
     const unread = notifications.filter((n) => !n.read);
     await Promise.all(
       unread.map((n) =>
-        updateNotificationStatusAction(n.id, { status: "read" }),
-      ),
+        updateNotificationStatusAction(n.id, { status: "read" })
+      )
     );
     revalidatePath("/vendor/notifications");
   }

@@ -37,7 +37,7 @@ export async function createNotification(payload: {
 
 export async function updateNotificationStatus(
   id: string | number,
-  payload: { status: string },
+  payload: { status: string }
 ): Promise<ApiResponse<Notification>> {
   return apiRequest<Notification>(API_ENDPOINTS.notifications.status(id), {
     method: "PATCH",
@@ -46,19 +46,21 @@ export async function updateNotificationStatus(
 }
 
 export async function listNotificationsAction(
-  params?: Record<string, string | number>,
+  params?: Record<string, string | number>
 ) {
-  const res = await listNotificationsService(params);
-  return ensureSuccess(res);
+  try {
+    const res = await listNotificationsService(params);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListNotificationsActionResult = Awaited<
   ReturnType<typeof listNotificationsAction>
 >;
 
-export async function createNotificationAction(
-  payload: Partial<Notification>,
-) {
+export async function createNotificationAction(payload: Partial<Notification>) {
   const res = await createNotificationService(payload);
   return ensureSuccess(res);
 }
@@ -69,7 +71,7 @@ export type CreateNotificationActionResult = Awaited<
 
 export async function updateNotificationStatusAction(
   id: string | number,
-  payload: { status: string },
+  payload: { status: string }
 ) {
   const res = await updateNotificationStatusService(id, payload);
   return ensureSuccess(res);
