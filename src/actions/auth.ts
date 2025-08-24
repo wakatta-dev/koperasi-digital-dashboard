@@ -5,7 +5,11 @@
 import { apiFetch } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { ensureSuccess } from "@/lib/api";
-import { login as loginService, logout as logoutService } from "@/services/api";
+import {
+  login as loginService,
+  logout as logoutService,
+  refreshToken as refreshTokenService,
+} from "@/services/api";
 import { cookies } from "next/headers";
 
 export async function login(payload: { email: string; password: string }) {
@@ -35,6 +39,15 @@ export async function loginAction(payload: { email: string; password: string }) 
 }
 
 export type LoginActionResult = Awaited<ReturnType<typeof loginAction>>;
+
+export async function refreshTokenAction(payload: { refresh_token: string }) {
+  const res = await refreshTokenService(payload);
+  return ensureSuccess(res);
+}
+
+export type RefreshTokenActionResult = Awaited<
+  ReturnType<typeof refreshTokenAction>
+>;
 
 export async function logoutAction() {
   let refreshToken: string | undefined;
