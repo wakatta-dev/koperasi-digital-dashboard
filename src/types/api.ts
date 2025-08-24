@@ -161,5 +161,14 @@ export interface User {
   role: Role;
 }
 
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type StringMap = Record<string, string>;
 export type NumberMap = Record<string, number>;

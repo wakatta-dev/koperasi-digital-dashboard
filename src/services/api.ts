@@ -16,6 +16,7 @@ import type {
   Plan,
   Invoice,
   Payment,
+  Notification,
 } from "@/types/api";
 
 export async function getTenantId(): Promise<string | null> {
@@ -107,6 +108,8 @@ export const api = {
     request<T>(path, { ...options, method: "POST", body }),
   put: <T>(path: string, body?: any, options?: RequestInit) =>
     request<T>(path, { ...options, method: "PUT", body }),
+  patch: <T>(path: string, body?: any, options?: RequestInit) =>
+    request<T>(path, { ...options, method: "PATCH", body }),
   delete: <T>(path: string, options?: RequestInit) =>
     request<T>(path, { ...options, method: "DELETE" }),
 };
@@ -192,6 +195,36 @@ export function assignRole(
 ): Promise<ApiResponse<any>> {
   return api.post<any>(
     `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
+    payload,
+  );
+}
+
+export function listNotifications(
+  params?: Record<string, string | number>
+): Promise<ApiResponse<Notification[]>> {
+  const query = params
+    ? `?${new URLSearchParams(params as any).toString()}`
+    : "";
+  return api.get<Notification[]>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.list}${query}`,
+  );
+}
+
+export function createNotification(
+  payload: Partial<Notification>
+): Promise<ApiResponse<Notification>> {
+  return api.post<Notification>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.create}`,
+    payload,
+  );
+}
+
+export function updateNotificationStatus(
+  id: string | number,
+  payload: { status: string }
+): Promise<ApiResponse<Notification>> {
+  return api.patch<Notification>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.status(id)}`,
     payload,
   );
 }
