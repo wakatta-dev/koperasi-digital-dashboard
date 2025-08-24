@@ -10,6 +10,7 @@ export function listNotifications(
   const query = params
     ? `?${new URLSearchParams(params as any).toString()}`
     : "";
+  console.log(`${API_PREFIX}${API_ENDPOINTS.notifications.list}${query}`);
   return api.get<Notification[]>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.list}${query}`
   );

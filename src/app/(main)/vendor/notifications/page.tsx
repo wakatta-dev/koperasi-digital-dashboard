@@ -9,6 +9,7 @@ import {
   updateNotificationStatusAction,
 } from "@/actions/notifications";
 import { revalidatePath } from "next/cache";
+import { getTenantId } from "@/services/api";
 
 type NotificationItem = NonNullable<
   Awaited<ReturnType<typeof listNotificationsAction>>
@@ -19,7 +20,11 @@ type NotificationItem = NonNullable<
 };
 
 export default async function NotificationsPage() {
-  const res = await listNotificationsAction({ limit: 10 });
+  const tenant = await getTenantId();
+  const res = await listNotificationsAction({
+    limit: 10,
+    tenant_id: tenant ?? "",
+  });
 
   const notifications: NotificationItem[] = (res ?? []).map((n: any) => ({
     ...n,
