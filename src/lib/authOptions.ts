@@ -18,8 +18,7 @@ export async function refreshAccessToken(token: any) {
     const data = json?.data;
 
     if (!res.ok || !data) {
-      console.error("refreshAccessToken failed", res.status, json);
-      return { ...token, error: "RefreshAccessTokenError" };
+      return null; // Logout when refresh fails
     }
 
     return {
@@ -31,9 +30,8 @@ export async function refreshAccessToken(token: any) {
       refreshToken: data.refresh_token ?? token.refreshToken,
       error: undefined,
     };
-  } catch (err) {
-    console.error("refreshAccessToken error:", err);
-    return { ...token, error: "RefreshAccessTokenError" };
+  } catch {
+    return null; // Logout on unexpected errors
   }
 }
 
