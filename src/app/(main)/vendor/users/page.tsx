@@ -11,35 +11,58 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Users, Plus, Search, Shield, Edit, Trash2 } from "lucide-react";
+import {
+  listUsersAction,
+  createUserAction,
+  updateUserAction,
+  deleteUserAction,
+} from "@/actions/users";
+import { revalidatePath } from "next/cache";
 
-const users = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@vendor.com",
-    role: "Admin",
-    status: "active",
-    lastLogin: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@vendor.com",
-    role: "Manager",
-    status: "active",
-    lastLogin: "2024-01-14",
-  },
-  {
-    id: "3",
-    name: "Bob Wilson",
-    email: "bob@vendor.com",
-    role: "Staff",
-    status: "inactive",
-    lastLogin: "2024-01-10",
-  },
-];
+async function handleCreate() {
+  "use server";
+  try {
+    const res = await createUserAction({
+      email: "new@vendor.com",
+      password: "password",
+      full_name: "New User",
+      role_id: 1,
+    });
+    console.log(res);
+  } catch (err) {
+    console.error(err);
+  }
+  revalidatePath("/vendor/users");
+}
 
-export default function UsersPage() {
+async function handleUpdate(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id"));
+  try {
+    const res = await updateUserAction(id, {
+      full_name: "Updated Name",
+    });
+    console.log(res);
+  } catch (err) {
+    console.error(err);
+  }
+  revalidatePath("/vendor/users");
+}
+
+async function handleDelete(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id"));
+  try {
+    const res = await deleteUserAction(id);
+    console.log(res);
+  } catch (err) {
+    console.error(err);
+  }
+  revalidatePath("/vendor/users");
+}
+
+export default async function UsersPage() {
+  const users = await listUsersAction({ limit: 20 });
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -50,10 +73,12 @@ export default function UsersPage() {
             Manage team members and permissions
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
+        <form action={handleCreate}>
+          <Button type="submit">
+            <Plus className="h-4 w-4 mr-2" />
+            Add User
+          </Button>
+        </form>
       </div>
 
       {/* Search */}
@@ -86,7 +111,7 @@ export default function UsersPage() {
                     <Users className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">{user.name}</h3>
+                    <h3 className="font-medium">{user.full_name}</h3>
                     <p className="text-sm text-muted-foreground">
                       {user.email}
                     </p>
@@ -97,26 +122,30 @@ export default function UsersPage() {
                   <div className="text-right">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{user.role}</span>
+                      <span className="font-medium">{user.role?.name}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Last login: {user.lastLogin}
+                      Last login: {user.last_login}
                     </p>
                   </div>
 
-                  <Badge
-                    variant={user.status === "active" ? "default" : "secondary"}
-                  >
-                    {user.status}
+                  <Badge variant={user.status ? "default" : "secondary"}>
+                    {user.status ? "active" : "inactive"}
                   </Badge>
 
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <form action={handleUpdate} className="contents">
+                      <input type="hidden" name="id" value={user.id} />
+                      <Button variant="ghost" size="icon" type="submit">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </form>
+                    <form action={handleDelete} className="contents">
+                      <input type="hidden" name="id" value={user.id} />
+                      <Button variant="ghost" size="icon" type="submit">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </form>
                   </div>
                 </div>
               </div>
