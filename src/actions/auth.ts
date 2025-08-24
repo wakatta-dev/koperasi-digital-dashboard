@@ -6,6 +6,7 @@ import { apiFetch } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { ensureSuccess } from "@/lib/api";
 import { login as loginService, logout as logoutService } from "@/services/api";
+import { cookies } from "next/headers";
 
 export async function login(payload: { email: string; password: string }) {
   return apiFetch(API_ENDPOINTS.auth.login, {
@@ -36,7 +37,16 @@ export async function loginAction(payload: { email: string; password: string }) 
 export type LoginActionResult = Awaited<ReturnType<typeof loginAction>>;
 
 export async function logoutAction() {
-  const res = await logoutService();
+  let refreshToken: string | undefined;
+  try {
+    refreshToken = (await cookies()).get("refresh_token")?.value;
+  } catch {
+    refreshToken = undefined;
+  }
+  if (!refreshToken) {
+    throw new Error("No refresh token available");
+  }
+  const res = await logoutService({ refresh_token: refreshToken });
   return ensureSuccess(res);
 }
 
