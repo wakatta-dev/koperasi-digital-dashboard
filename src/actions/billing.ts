@@ -7,6 +7,7 @@ import {
   listVendorInvoices,
   listClientInvoices,
   createPayment,
+  verifyVendorPayment,
   listVendorPlans,
   createVendorPlan,
   getVendorPlan,
@@ -41,6 +42,15 @@ export async function createPaymentAction(
 
 export type CreatePaymentActionResult = Awaited<
   ReturnType<typeof createPaymentAction>
+>;
+
+export async function verifyVendorPaymentAction(id: string | number) {
+  const res = await verifyVendorPayment(id);
+  return ensureSuccess(res);
+}
+
+export type VerifyVendorPaymentActionResult = Awaited<
+  ReturnType<typeof verifyVendorPaymentAction>
 >;
 
 export async function listVendorPlansAction() {
