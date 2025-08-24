@@ -15,6 +15,7 @@ import {
   Ticket,
   TrendingUp,
   DollarSign,
+  BellIcon,
 } from "lucide-react";
 
 const dashboardStats = [
@@ -87,50 +88,59 @@ export default function VendorDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>Latest orders from your clients</CardDescription>
+            <CardTitle>Notifications</CardTitle>
+            <CardDescription>Recent updates from your clients</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-0">
+            <div>
               {[
                 {
                   client: "PT Maju Jaya",
-                  product: "Office Supplies",
-                  amount: "Rp 450,000",
+                  message: "Order for Office Supplies has been completed.",
                   status: "completed",
                 },
                 {
                   client: "CV Berkah",
-                  product: "Cleaning Equipment",
-                  amount: "Rp 320,000",
+                  message: "Order for Cleaning Equipment is pending approval.",
                   status: "pending",
                 },
                 {
                   client: "UD Sejahtera",
-                  product: "Stationery",
-                  amount: "Rp 180,000",
+                  message: "Order for Stationery is being processed.",
                   status: "processing",
                 },
-              ].map((order, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{order.client}</p>
+              ].map((notif, index, arr) => (
+                <div
+                  key={index}
+                  className={`flex items-start gap-4 px-6 py-4 ${
+                    index !== arr.length - 1 ? "border-b" : ""
+                  }`}
+                >
+                  {/* Icon or Avatar */}
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                    <BellIcon className="h-5 w-5 text-muted-foreground" />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-sm font-medium">{notif.client}</p>
                     <p className="text-sm text-muted-foreground">
-                      {order.product}
+                      {notif.message}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">{order.amount}</p>
+
+                  {/* Optional Status Badge */}
+                  <div>
                     <Badge
                       variant={
-                        order.status === "completed"
+                        notif.status === "completed"
                           ? "default"
-                          : order.status === "pending"
+                          : notif.status === "pending"
                           ? "secondary"
                           : "outline"
                       }
                     >
-                      {order.status}
+                      {notif.status}
                     </Badge>
                   </div>
                 </div>

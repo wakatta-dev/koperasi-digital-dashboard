@@ -48,7 +48,6 @@ export function ProtectedRoute({
 
   const role = (session?.user as any)?.jenis_tenant;
 
-  console.log(session?.user);
   if (!session?.user || (requiredRole && role !== requiredRole)) {
     return null;
   }
