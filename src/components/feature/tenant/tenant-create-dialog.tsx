@@ -42,7 +42,7 @@ export function TenantCreateDialog() {
 
         <form
           ref={formRef}
-          action={async (formData) => {
+          action={async () => {
             // await createTenantAction(formData);
             setOpen(false);
             router.refresh(); // Reload data after create

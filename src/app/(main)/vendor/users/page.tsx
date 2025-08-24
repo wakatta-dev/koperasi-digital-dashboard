@@ -11,58 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Users, Plus, Search, Shield, Edit, Trash2 } from "lucide-react";
-import {
-  listUsersAction,
-  createUserAction,
-  updateUserAction,
-  deleteUserAction,
-} from "@/actions/users";
-import { revalidatePath } from "next/cache";
-
-async function handleCreate() {
-  "use server";
-  try {
-    const res = await createUserAction({
-      email: "new@vendor.com",
-      password: "password",
-      full_name: "New User",
-      role_id: 1,
-    });
-    console.log(res);
-  } catch (err) {
-    console.error(err);
-  }
-  revalidatePath("/vendor/users");
-}
-
-async function handleUpdate(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id"));
-  try {
-    const res = await updateUserAction(id, {
-      full_name: "Updated Name",
-    });
-    console.log(res);
-  } catch (err) {
-    console.error(err);
-  }
-  revalidatePath("/vendor/users");
-}
-
-async function handleDelete(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id"));
-  try {
-    const res = await deleteUserAction(id);
-    console.log(res);
-  } catch (err) {
-    console.error(err);
-  }
-  revalidatePath("/vendor/users");
-}
+// import { listUsersAction } from "@/actions/users";
 
 export default async function UsersPage() {
-  const users = await listUsersAction({ limit: 20 });
+  // const users = await listUsersAction({ limit: 20 });
+  const users = [] as any[];
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -73,7 +26,7 @@ export default async function UsersPage() {
             Manage team members and permissions
           </p>
         </div>
-        <form action={handleCreate}>
+        <form>
           <Button type="submit">
             <Plus className="h-4 w-4 mr-2" />
             Add User
@@ -134,13 +87,13 @@ export default async function UsersPage() {
                   </Badge>
 
                   <div className="flex items-center gap-2">
-                    <form action={handleUpdate} className="contents">
+                    <form className="contents">
                       <input type="hidden" name="id" value={user.id} />
                       <Button variant="ghost" size="icon" type="submit">
                         <Edit className="h-4 w-4" />
                       </Button>
                     </form>
-                    <form action={handleDelete} className="contents">
+                    <form className="contents">
                       <input type="hidden" name="id" value={user.id} />
                       <Button variant="ghost" size="icon" type="submit">
                         <Trash2 className="h-4 w-4" />

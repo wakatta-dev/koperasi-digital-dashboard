@@ -10,52 +10,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Package, Plus, Search, Edit, Trash2 } from "lucide-react";
-import {
-  listVendorPlansAction,
-  createVendorPlanAction,
-  updateVendorPlanAction,
-  deleteVendorPlanAction,
-} from "@/actions/billing";
-import { revalidatePath } from "next/cache";
-
-async function handleCreate() {
-  "use server";
-  try {
-    await createVendorPlanAction({
-      name: "New Plan",
-      price: 100000,
-      duration_months: 1,
-    });
-  } catch (err) {
-    console.error(err);
-  }
-  revalidatePath("/vendor/plans");
-}
-
-async function handleUpdate(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id"));
-  try {
-    await updateVendorPlanAction(id, { name: "Updated Plan" });
-  } catch (err) {
-    console.error(err);
-  }
-  revalidatePath("/vendor/plans");
-}
-
-async function handleDelete(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id"));
-  try {
-    await deleteVendorPlanAction(id);
-  } catch (err) {
-    console.error(err);
-  }
-  revalidatePath("/vendor/plans");
-}
+// import { listVendorPlansAction } from "@/actions/billing";
 
 export default async function PlansPage() {
-  const plans = await listVendorPlansAction({ limit: 20 });
+  // const plans = await listVendorPlansAction({ limit: 20 });
+  const plans = [] as any[];
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -63,7 +22,7 @@ export default async function PlansPage() {
           <h2 className="text-2xl font-bold">Plans</h2>
           <p className="text-muted-foreground">Manage your plans</p>
         </div>
-        <form action={handleCreate}>
+        <form>
           <Button type="submit">
             <Plus className="h-4 w-4 mr-2" />
             Add Plan
@@ -119,13 +78,13 @@ export default async function PlansPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <form action={handleUpdate} className="contents">
+                    <form className="contents">
                       <input type="hidden" name="id" value={plan.id} />
                       <Button variant="ghost" size="icon" type="submit">
                         <Edit className="h-4 w-4" />
                       </Button>
                     </form>
-                    <form action={handleDelete} className="contents">
+                    <form className="contents">
                       <input type="hidden" name="id" value={plan.id} />
                       <Button variant="ghost" size="icon" type="submit">
                         <Trash2 className="h-4 w-4" />
@@ -141,4 +100,3 @@ export default async function PlansPage() {
     </div>
   );
 }
-
