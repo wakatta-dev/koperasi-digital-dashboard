@@ -20,22 +20,24 @@ export const API_ENDPOINTS = {
     status: (id: string | number) => `/users/${id}/status`,
     resetPassword: "/users/reset-password",
     roles: (id: string | number) => `/users/${id}/roles`,
-    role: (id: string | number, rid: string | number) => `/users/${id}/roles/${rid}`,
+    role: (id: string | number, rid: string | number) =>
+      `/users/${id}/roles/${rid}`,
   },
   roles: {
     list: "/roles",
     detail: (id: string | number) => `/roles/${id}`,
     permissions: (id: string | number) => `/roles/${id}/permissions`,
-    permission: (id: string | number, pid: string | number) => `/roles/${id}/permissions/${pid}`,
+    permission: (id: string | number, pid: string | number) =>
+      `/roles/${id}/permissions/${pid}`,
   },
   billing: {
     vendor: {
-      plans: "/billing/vendor/plans",
-      plan: (id: string | number) => `/billing/vendor/plans/${id}`,
-      invoices: "/billing/vendor/invoices",
-      invoice: (id: string | number) => `/billing/vendor/invoices/${id}`,
+      plans: "/vendor/plans",
+      plan: (id: string | number) => `/vendor/plans/${id}`,
+      invoices: "/vendor/invoices",
+      invoice: (id: string | number) => `/vendor/invoices/${id}`,
       payments: (id: string | number) => ({
-        verify: `/billing/vendor/payments/${id}/verify`,
+        verify: `/vendor/payments/${id}/verify`,
       }),
     },
     client: {
