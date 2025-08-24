@@ -360,6 +360,33 @@ export function listVendorInvoices(): Promise<ApiResponse<Invoice[]>> {
   );
 }
 
+export function createVendorInvoice(
+  payload: Partial<Invoice>,
+): Promise<ApiResponse<Invoice>> {
+  return api.post<Invoice>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`,
+    payload,
+  );
+}
+
+export function updateVendorInvoice(
+  id: string | number,
+  payload: Partial<Invoice>,
+): Promise<ApiResponse<Invoice>> {
+  return api.put<Invoice>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`,
+    payload,
+  );
+}
+
+export function deleteVendorInvoice(
+  id: string | number,
+): Promise<ApiResponse<any>> {
+  return api.delete<any>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`,
+  );
+}
+
 export function listClientInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get<Invoice[]>(
     `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`,
