@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { UserRole } from "@/lib/types";
+import EnterpriseLoading from "./enterprise-loading";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -37,12 +38,12 @@ export function ProtectedRoute({
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <EnterpriseLoading
+        duration={4000}
+        showProgress={true}
+        title="Enterprise Dashboard"
+        subtitle="Initializing your business intelligence platform"
+      />
     );
   }
 
