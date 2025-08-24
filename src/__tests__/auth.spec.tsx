@@ -35,13 +35,13 @@ let signOut: typeof import("next-auth/react").signOut;
 
 beforeEach(async () => {
   process.env.NEXT_PUBLIC_API_URL = "http://example.com";
-  process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
   process.env.NEXTAUTH_URL = "http://localhost:3000";
   process.env.NEXTAUTH_SECRET = "secret";
   process.env.NEXTAUTH_URL_INTERNAL = "http://localhost:3000";
   vi.resetModules();
   LoginForm = (await import("@/components/shared/login-form")).LoginForm;
-  LanguageProvider = (await import("@/contexts/language-context")).LanguageProvider;
+  LanguageProvider = (await import("@/contexts/language-context"))
+    .LanguageProvider;
   refreshAccessToken = (await import("@/lib/authOptions")).refreshAccessToken;
   ({ logout, login, refreshToken } = await import("@/services/auth"));
   ({ getSession, signOut } = await import("next-auth/react"));
@@ -127,7 +127,7 @@ describe("auth flow", () => {
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      json: async () => ({})
+      json: async () => ({}),
     }) as any;
 
     const token = await refreshToken();
