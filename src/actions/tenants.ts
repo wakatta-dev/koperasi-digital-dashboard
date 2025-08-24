@@ -2,12 +2,18 @@
 
 "use server";
 
-import { apiRequest } from "./api";
-import { API_ENDPOINTS } from "@/constants/api";
 import type { ApiResponse, Tenant, User } from "@/types/api";
 import { ensureSuccess } from "@/lib/api";
 import {
   listTenants as listTenantsService,
+  getTenant as getTenantService,
+  createTenant as createTenantService,
+  updateTenant as updateTenantService,
+  updateTenantStatus as updateTenantStatusService,
+  listTenantUsers as listTenantUsersService,
+  addTenantUser as addTenantUserService,
+  listTenantModules as listTenantModulesService,
+  updateTenantModule as updateTenantModuleService,
   getTenantByDomain,
 } from "@/services/api";
 
@@ -15,19 +21,13 @@ export async function listTenants(params?: {
   limit?: number;
   cursor?: string;
 }): Promise<ApiResponse<Tenant[]>> {
-  const search = new URLSearchParams();
-  if (params?.limit) search.set("limit", String(params.limit));
-  if (params?.cursor) search.set("cursor", params.cursor);
-  const endpoint = search.toString()
-    ? `${API_ENDPOINTS.tenant.list}?${search.toString()}`
-    : API_ENDPOINTS.tenant.list;
-  return apiRequest<Tenant[]>(endpoint);
+  return listTenantsService(params);
 }
 
 export async function getTenant(
-  id: string | number
+  id: string | number,
 ): Promise<ApiResponse<Tenant>> {
-  return apiRequest<Tenant>(API_ENDPOINTS.tenant.detail(id));
+  return getTenantService(id);
 }
 
 export async function createTenant(payload: {
@@ -35,36 +35,28 @@ export async function createTenant(payload: {
   type: string;
   domain: string;
 }): Promise<ApiResponse<Tenant>> {
-  return apiRequest<Tenant>(API_ENDPOINTS.tenant.list, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  return createTenantService(payload);
 }
 
 export async function updateTenant(
   id: string | number,
-  payload: { name?: string; type?: string; domain?: string }
+  payload: { name?: string; type?: string; domain?: string },
 ): Promise<ApiResponse<Tenant>> {
-  return apiRequest<Tenant>(API_ENDPOINTS.tenant.detail(id), {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-  });
+  return updateTenantService(id, payload);
 }
 
 export async function updateTenantStatus(
   id: string | number,
-  payload: { status: string }
+  payload: { status: string },
 ): Promise<ApiResponse<Tenant>> {
-  return apiRequest<Tenant>(API_ENDPOINTS.tenant.status(id), {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-  });
+  return updateTenantStatusService(id, payload);
 }
 
 export async function listTenantUsers(
-  id: string | number
+  id: string | number,
+  params?: { limit?: number; cursor?: string },
 ): Promise<ApiResponse<User[]>> {
-  return apiRequest<User[]>(API_ENDPOINTS.tenant.users(id));
+  return listTenantUsersService(id, params);
 }
 
 export async function addTenantUser(
@@ -74,28 +66,23 @@ export async function addTenantUser(
     password: string;
     full_name: string;
     role_id: number;
-  }
+  },
 ): Promise<ApiResponse<User>> {
-  return apiRequest<User>(API_ENDPOINTS.tenant.users(id), {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  return addTenantUserService(id, payload);
 }
 
 export async function listTenantModules(
-  id: string | number
+  id: string | number,
+  params?: { limit?: number; cursor?: string },
 ): Promise<ApiResponse<any[]>> {
-  return apiRequest<any[]>(API_ENDPOINTS.tenant.modules(id));
+  return listTenantModulesService(id, params);
 }
 
 export async function updateTenantModule(
   id: string | number,
-  payload: { module_id: number; status: string }
+  payload: { module_id: number; status: string },
 ): Promise<ApiResponse<any>> {
-  return apiRequest<any>(API_ENDPOINTS.tenant.modules(id), {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-  });
+  return updateTenantModuleService(id, payload);
 }
 
 export async function listTenantsAction(
