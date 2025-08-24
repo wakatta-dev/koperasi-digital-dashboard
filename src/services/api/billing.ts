@@ -4,8 +4,14 @@ import { API_ENDPOINTS } from "@/constants/api";
 import type { ApiResponse, Plan, Invoice, Payment } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
-export function listVendorPlans(): Promise<ApiResponse<Plan[]>> {
-  return api.get<Plan[]>(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`);
+export function listVendorPlans(
+  params: { limit: number; cursor?: string },
+): Promise<ApiResponse<Plan[]>> {
+  const search = new URLSearchParams({ limit: String(params.limit) });
+  if (params.cursor) search.set("cursor", params.cursor);
+  return api.get<Plan[]>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}?${search.toString()}`,
+  );
 }
 
 export function createVendorPlan(
