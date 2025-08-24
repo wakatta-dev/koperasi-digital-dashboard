@@ -5,99 +5,93 @@ import type { ApiResponse, Plan, Invoice, Payment } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
 export function listVendorPlans(): Promise<ApiResponse<Plan[]>> {
-  return api.get<Plan[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`,
-  );
+  return api.get<Plan[]>(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`);
 }
 
 export function createVendorPlan(
-  payload: Partial<Plan>,
+  payload: Partial<Plan>
 ): Promise<ApiResponse<Plan>> {
   return api.post<Plan>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`,
-    payload,
+    payload
   );
 }
 
-export function getVendorPlan(
-  id: string | number,
-): Promise<ApiResponse<Plan>> {
-  return api.get<Plan>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`,
-  );
+export function getVendorPlan(id: string | number): Promise<ApiResponse<Plan>> {
+  return api.get<Plan>(`${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`);
 }
 
 export function updateVendorPlan(
   id: string | number,
-  payload: Partial<Plan>,
+  payload: Partial<Plan>
 ): Promise<ApiResponse<Plan>> {
   return api.put<Plan>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`,
-    payload,
+    payload
   );
 }
 
 export function deleteVendorPlan(
-  id: string | number,
+  id: string | number
 ): Promise<ApiResponse<any>> {
   return api.delete<any>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`
   );
 }
 
 export function listVendorInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get<Invoice[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices(5)}`
   );
 }
 
 export function createVendorInvoice(
-  payload: Partial<Invoice>,
+  payload: Partial<Invoice>
 ): Promise<ApiResponse<Invoice>> {
   return api.post<Invoice>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`,
-    payload,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices(5)}`,
+    payload
   );
 }
 
 export function updateVendorInvoice(
   id: string | number,
-  payload: Partial<Invoice>,
+  payload: Partial<Invoice>
 ): Promise<ApiResponse<Invoice>> {
   return api.put<Invoice>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`,
-    payload,
+    payload
   );
 }
 
 export function deleteVendorInvoice(
-  id: string | number,
+  id: string | number
 ): Promise<ApiResponse<any>> {
   return api.delete<any>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`
   );
 }
 
 export function listClientInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get<Invoice[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`
   );
 }
 
 export function createPayment(
   invoiceId: string | number,
-  payload: Partial<Payment>,
+  payload: Partial<Payment>
 ): Promise<ApiResponse<Payment>> {
   return api.post<Payment>(
     `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(invoiceId).payments}`,
-    payload,
+    payload
   );
 }
 
 export function verifyVendorPayment(
-  id: string | number,
+  id: string | number
 ): Promise<ApiResponse<Payment>> {
   return api.patch<Payment>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`
   );
 }

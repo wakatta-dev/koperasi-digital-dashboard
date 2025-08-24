@@ -39,7 +39,8 @@ export const API_ENDPOINTS = {
     vendor: {
       plans: "/vendor/plans",
       plan: (id: string | number) => `/vendor/plans/${id}`,
-      invoices: "/vendor/invoices",
+      invoices: (limit: number, cursor?: string) =>
+        `/vendor/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       invoice: (id: string | number) => `/vendor/invoices/${id}`,
       payments: (id: string | number) => ({
         verify: `/vendor/payments/${id}/verify`,
