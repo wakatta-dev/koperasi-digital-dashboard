@@ -5,8 +5,12 @@
 import { ensureSuccess } from "@/lib/api";
 import {
   listVendorInvoices,
+  createVendorInvoice,
+  updateVendorInvoice,
+  deleteVendorInvoice,
   listClientInvoices,
   createPayment,
+  verifyVendorPayment,
   listVendorPlans,
   createVendorPlan,
   getVendorPlan,
@@ -41,6 +45,44 @@ export async function createPaymentAction(
 
 export type CreatePaymentActionResult = Awaited<
   ReturnType<typeof createPaymentAction>
+>;
+
+export async function verifyVendorPaymentAction(id: string | number) {
+  const res = await verifyVendorPayment(id);
+  return ensureSuccess(res);
+}
+
+export type VerifyVendorPaymentActionResult = Awaited<
+  ReturnType<typeof verifyVendorPaymentAction>>;
+             
+export async function createVendorInvoiceAction(payload: any) {
+  const res = await createVendorInvoice(payload);
+  return ensureSuccess(res);
+}
+
+export type CreateVendorInvoiceActionResult = Awaited<
+  ReturnType<typeof createVendorInvoiceAction>
+>;
+
+export async function updateVendorInvoiceAction(
+  id: string | number,
+  payload: any,
+) {
+  const res = await updateVendorInvoice(id, payload);
+  return ensureSuccess(res);
+}
+
+export type UpdateVendorInvoiceActionResult = Awaited<
+  ReturnType<typeof updateVendorInvoiceAction>
+>;
+
+export async function deleteVendorInvoiceAction(id: string | number) {
+  const res = await deleteVendorInvoice(id);
+  return ensureSuccess(res);
+}
+
+export type DeleteVendorInvoiceActionResult = Awaited<
+  ReturnType<typeof deleteVendorInvoiceAction>
 >;
 
 export async function listVendorPlansAction() {

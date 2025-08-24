@@ -14,6 +14,7 @@ import type {
   User,
   Role,
   UserRole,
+  Permission,
   Plan,
   Invoice,
   Payment,
@@ -311,6 +312,60 @@ export function listRoles(): Promise<ApiResponse<Role[]>> {
   return api.get<Role[]>(`${API_PREFIX}${API_ENDPOINTS.roles.list}`);
 }
 
+export function createRole(
+  payload: Partial<Role>,
+): Promise<ApiResponse<Role>> {
+  return api.post<Role>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.list}`,
+    payload,
+  );
+}
+
+export function updateRole(
+  id: string | number,
+  payload: Partial<Role>,
+): Promise<ApiResponse<Role>> {
+  return api.put<Role>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.detail(id)}`,
+    payload,
+  );
+}
+
+export function deleteRole(
+  id: string | number,
+): Promise<ApiResponse<{ id: number }>> {
+  return api.delete<{ id: number }>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.detail(id)}`,
+  );
+}
+
+export function listRolePermissions(
+  id: string | number,
+): Promise<ApiResponse<Permission[]>> {
+  return api.get<Permission[]>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}`,
+  );
+}
+
+export function addRolePermission(
+  id: string | number,
+  payload: { obj: string; act: string },
+): Promise<ApiResponse<Permission>> {
+  return api.post<Permission>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}`,
+    payload,
+  );
+}
+
+export function deleteRolePermission(
+  roleId: string | number,
+  permissionId: string | number,
+): Promise<ApiResponse<{ id: number }>> {
+  return api.delete<{ id: number }>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.permission(roleId, permissionId)}`,
+  );
+}
+
 export function assignRole(
   userId: string | number,
   payload: { role_id: string | number; tenant_id?: string | number }
@@ -332,8 +387,8 @@ export function listUserRoles(
 export function removeUserRole(
   userId: string | number,
   roleId: string | number,
-): Promise<ApiResponse<any>> {
-  return api.delete<any>(
+): Promise<ApiResponse<{ id: number }>> {
+  return api.delete<{ id: number }>(
     `${API_PREFIX}${API_ENDPOINTS.users.role(userId, roleId)}`,
   );
 }
@@ -415,6 +470,33 @@ export function listVendorInvoices(): Promise<ApiResponse<Invoice[]>> {
   );
 }
 
+export function createVendorInvoice(
+  payload: Partial<Invoice>,
+): Promise<ApiResponse<Invoice>> {
+  return api.post<Invoice>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`,
+    payload,
+  );
+}
+
+export function updateVendorInvoice(
+  id: string | number,
+  payload: Partial<Invoice>,
+): Promise<ApiResponse<Invoice>> {
+  return api.put<Invoice>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`,
+    payload,
+  );
+}
+
+export function deleteVendorInvoice(
+  id: string | number,
+): Promise<ApiResponse<any>> {
+  return api.delete<any>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`,
+  );
+}
+
 export function listClientInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get<Invoice[]>(
     `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`,
@@ -428,6 +510,14 @@ export function createPayment(
   return api.post<Payment>(
     `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(invoiceId).payments}`,
     payload
+  );
+}
+
+export function verifyVendorPayment(
+  id: string | number,
+): Promise<ApiResponse<Payment>> {
+  return api.patch<Payment>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`,
   );
 }
 

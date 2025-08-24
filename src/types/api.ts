@@ -52,6 +52,7 @@ export interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
+  subscription_id?: number;
 }
 
 export interface Invoice {
@@ -65,6 +66,7 @@ export interface Invoice {
   items: InvoiceItem[];
   created_at: string;
   updated_at: string;
+  subscription_id?: number;
 }
 
 export interface Payment {
@@ -118,6 +120,17 @@ export interface CasbinRule {
   v3: string;
   v4: string;
   v5: string;
+}
+
+export interface Permission {
+  id: number;
+  ptype: string;
+  v0: string;
+  v1: string;
+  v2: string;
+  v3: string;
+  v4?: string;
+  v5?: string;
 }
 
 export interface UserTenantAccess {
