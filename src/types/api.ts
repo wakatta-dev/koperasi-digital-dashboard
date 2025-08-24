@@ -120,6 +120,17 @@ export interface CasbinRule {
   v5: string;
 }
 
+export interface Permission {
+  id: number;
+  ptype: string;
+  v0: string;
+  v1: string;
+  v2: string;
+  v3: string;
+  v4?: string;
+  v5?: string;
+}
+
 export interface UserTenantAccess {
   id: string;
   user_id: number;
