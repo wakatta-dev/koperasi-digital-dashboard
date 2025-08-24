@@ -202,6 +202,41 @@ export function listVendorPlans(): Promise<ApiResponse<Plan[]>> {
   );
 }
 
+export function createVendorPlan(
+  payload: Partial<Plan>,
+): Promise<ApiResponse<Plan>> {
+  return api.post<Plan>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}`,
+    payload,
+  );
+}
+
+export function getVendorPlan(
+  id: string | number,
+): Promise<ApiResponse<Plan>> {
+  return api.get<Plan>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`,
+  );
+}
+
+export function updateVendorPlan(
+  id: string | number,
+  payload: Partial<Plan>,
+): Promise<ApiResponse<Plan>> {
+  return api.put<Plan>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`,
+    payload,
+  );
+}
+
+export function deleteVendorPlan(
+  id: string | number,
+): Promise<ApiResponse<any>> {
+  return api.delete<any>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plan(id)}`,
+  );
+}
+
 export function listVendorInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get<Invoice[]>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices}`,
