@@ -27,7 +27,7 @@ const dashboardStats = [
     icon: <DollarSign className="h-4 w-4" />,
   },
   {
-    title: "Active Products",
+    title: "Active Plans",
     value: "156",
     change: "+3",
     trend: "up" as const,
@@ -157,13 +157,13 @@ export default function VendorDashboard() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <a
-                href="/products"
+                href="/vendor/plans"
                 className="p-4 border rounded-lg hover:bg-muted transition-colors"
               >
                 <Package className="h-6 w-6 mb-2" />
-                <p className="font-medium">Add Product</p>
+                <p className="font-medium">Add Plan</p>
                 <p className="text-sm text-muted-foreground">
-                  Create new product
+                  Create new plan
                 </p>
               </a>
               <a
