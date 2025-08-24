@@ -10,6 +10,7 @@ type Props = {
 function MainLayout({ children }: Props) {
   return (
     <SidebarProvider
+      className="h-screen pb-4"
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",

@@ -59,11 +59,9 @@ export function DashboardLayout({
   return (
     <React.Fragment>
       <AppSidebar variant="inset" data={sidebarData} />
-      <SidebarInset className="flex flex-col h-screen">
+      <SidebarInset className="flex flex-col h-full">
         <SiteHeader />
-        <div className="flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto p-4">{children}</div>
-        </div>
+        <div className="h-full overflow-y-auto p-4">{children}</div>
       </SidebarInset>
     </React.Fragment>
   );
