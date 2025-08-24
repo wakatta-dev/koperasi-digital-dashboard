@@ -8,61 +8,69 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Package, Plus, Search, Edit, Trash2 } from "lucide-react";
+import {
+  listVendorPlansAction,
+  createVendorPlanAction,
+  updateVendorPlanAction,
+  deleteVendorPlanAction,
+} from "@/actions/billing";
+import { revalidatePath } from "next/cache";
 
-const plans = [
-  {
-    id: "1",
-    name: "Basic Plan",
-    tier: "Starter",
-    price: "Rp 100,000",
-    users: 100,
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Standard Plan",
-    tier: "Business",
-    price: "Rp 250,000",
-    users: 250,
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Premium Plan",
-    tier: "Enterprise",
-    price: "Rp 500,000",
-    users: 0,
-    status: "inactive",
-  },
-  {
-    id: "4",
-    name: "Custom Plan",
-    tier: "Tailored",
-    price: "Rp 850,000",
-    users: 67,
-    status: "active",
-  },
-];
+async function handleCreate() {
+  "use server";
+  try {
+    await createVendorPlanAction({
+      name: "New Plan",
+      price: 100000,
+      duration_months: 1,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+  revalidatePath("/vendor/plans");
+}
 
-export default function PlansPage() {
+async function handleUpdate(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id"));
+  try {
+    await updateVendorPlanAction(id, { name: "Updated Plan" });
+  } catch (err) {
+    console.error(err);
+  }
+  revalidatePath("/vendor/plans");
+}
+
+async function handleDelete(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id"));
+  try {
+    await deleteVendorPlanAction(id);
+  } catch (err) {
+    console.error(err);
+  }
+  revalidatePath("/vendor/plans");
+}
+
+export default async function PlansPage() {
+  const plans = await listVendorPlansAction({ limit: 20 });
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Plans</h2>
           <p className="text-muted-foreground">Manage your plans</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Plan
-        </Button>
+        <form action={handleCreate}>
+          <Button type="submit">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Plan
+          </Button>
+        </form>
       </div>
 
-      {/* Search and Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
@@ -75,7 +83,6 @@ export default function PlansPage() {
         </CardContent>
       </Card>
 
-      {/* Plans Table */}
       <Card>
         <CardHeader>
           <CardTitle>Plan List</CardTitle>
@@ -94,29 +101,36 @@ export default function PlansPage() {
                   </div>
                   <div>
                     <h3 className="font-medium">{plan.name}</h3>
-                    <p className="text-sm text-muted-foreground">{plan.tier}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Duration: {plan.duration_months} months
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="font-medium">{plan.price}</p>
-                    <p className="text-sm text-muted-foreground">Users: {plan.users}</p>
+                    <p className="font-medium">
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0,
+                      }).format(plan.price)}
+                    </p>
                   </div>
 
-                  <Badge
-                    variant={plan.status === "active" ? "default" : "destructive"}
-                  >
-                    {plan.status === "active" ? "Active" : "Inactive"}
-                  </Badge>
-
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <form action={handleUpdate} className="contents">
+                      <input type="hidden" name="id" value={plan.id} />
+                      <Button variant="ghost" size="icon" type="submit">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </form>
+                    <form action={handleDelete} className="contents">
+                      <input type="hidden" name="id" value={plan.id} />
+                      <Button variant="ghost" size="icon" type="submit">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </form>
                   </div>
                 </div>
               </div>
@@ -127,3 +141,4 @@ export default function PlansPage() {
     </div>
   );
 }
+

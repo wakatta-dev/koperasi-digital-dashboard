@@ -85,8 +85,10 @@ export type DeleteVendorInvoiceActionResult = Awaited<
   ReturnType<typeof deleteVendorInvoiceAction>
 >;
 
-export async function listVendorPlansAction() {
-  const res = await listVendorPlans();
+export async function listVendorPlansAction(
+  params: { limit: number; cursor?: string },
+) {
+  const res = await listVendorPlans(params);
   return ensureSuccess(res);
 }
 
