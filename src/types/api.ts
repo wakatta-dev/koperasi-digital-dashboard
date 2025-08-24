@@ -41,6 +41,7 @@ export interface Plan {
   id: number;
   name: string;
   price: number;
+  duration_months?: number;
   created_at: string;
   updated_at: string;
 }
