@@ -403,4 +403,12 @@ export function createPayment(
   );
 }
 
+export function verifyVendorPayment(
+  id: string | number,
+): Promise<ApiResponse<Payment>> {
+  return api.patch<Payment>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`,
+  );
+}
+
 export default api;
