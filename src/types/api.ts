@@ -107,6 +107,8 @@ export interface RoleUser {
   role: Role;
 }
 
+export type UserRole = RoleUser;
+
 export interface CasbinRule {
   id: number;
   p_type: string;

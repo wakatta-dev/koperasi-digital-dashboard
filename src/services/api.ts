@@ -13,6 +13,7 @@ import type {
   Tenant,
   User,
   Role,
+  UserRole,
   Plan,
   Invoice,
   Payment,
@@ -260,8 +261,45 @@ export function createUser(payload: Partial<User>): Promise<ApiResponse<User>> {
   );
 }
 
+export function getUser(
+  id: string | number,
+): Promise<ApiResponse<User>> {
+  return api.get<User>(
+    `${API_PREFIX}${API_ENDPOINTS.users.detail(id)}`,
+  );
+}
+
+export function updateUser(
+  id: string | number,
+  payload: Partial<User>,
+): Promise<ApiResponse<User>> {
+  return api.patch<User>(
+    `${API_PREFIX}${API_ENDPOINTS.users.detail(id)}`,
+    payload,
+  );
+}
+
+export function patchUserStatus(
+  id: string | number,
+  payload: { status: string },
+): Promise<ApiResponse<User>> {
+  return api.patch<User>(
+    `${API_PREFIX}${API_ENDPOINTS.users.status(id)}`,
+    payload,
+  );
+}
+
+export function deleteUser(
+  id: string | number,
+): Promise<ApiResponse<any>> {
+  return api.delete<any>(
+    `${API_PREFIX}${API_ENDPOINTS.users.detail(id)}`,
+  );
+}
+
 export function resetPassword(payload: {
   email: string;
+  new_password: string;
 }): Promise<ApiResponse<any>> {
   return api.post<any>(
     `${API_PREFIX}${API_ENDPOINTS.users.resetPassword}`,
@@ -280,6 +318,23 @@ export function assignRole(
   return api.post<any>(
     `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
     payload,
+  );
+}
+
+export function listUserRoles(
+  userId: string | number,
+): Promise<ApiResponse<UserRole[]>> {
+  return api.get<UserRole[]>(
+    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
+  );
+}
+
+export function removeUserRole(
+  userId: string | number,
+  roleId: string | number,
+): Promise<ApiResponse<any>> {
+  return api.delete<any>(
+    `${API_PREFIX}${API_ENDPOINTS.users.role(userId, roleId)}`,
   );
 }
 

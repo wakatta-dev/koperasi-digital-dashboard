@@ -4,12 +4,18 @@
 
 import { apiRequest } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, User } from "@/types/api";
+import type { ApiResponse, User, UserRole } from "@/types/api";
 import { ensureSuccess } from "@/lib/api";
 import {
   listUsers as listUsersService,
   createUser as createUserService,
   resetPassword,
+  getUser as getUserService,
+  updateUser as updateUserService,
+  patchUserStatus as patchUserStatusService,
+  deleteUser as deleteUserService,
+  listUserRoles as listUserRolesService,
+  removeUserRole as removeUserRoleService,
 } from "@/services/api";
 
 export async function listUsers(params?: {
@@ -41,6 +47,49 @@ export async function createUser(payload: {
   });
 }
 
+export async function updateUser(
+  id: string | number,
+  payload: Partial<User>,
+): Promise<ApiResponse<User>> {
+  return apiRequest<User>(API_ENDPOINTS.users.detail(id), {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function patchUserStatus(
+  id: string | number,
+  payload: { status: string },
+): Promise<ApiResponse<User>> {
+  return apiRequest<User>(API_ENDPOINTS.users.status(id), {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteUser(
+  id: string | number,
+): Promise<ApiResponse<any>> {
+  return apiRequest<any>(API_ENDPOINTS.users.detail(id), {
+    method: "DELETE",
+  });
+}
+
+export async function listUserRoles(
+  id: string | number,
+): Promise<ApiResponse<UserRole[]>> {
+  return apiRequest<UserRole[]>(API_ENDPOINTS.users.roles(id));
+}
+
+export async function removeUserRole(
+  id: string | number,
+  rid: string | number,
+): Promise<ApiResponse<any>> {
+  return apiRequest<any>(API_ENDPOINTS.users.role(id, rid), {
+    method: "DELETE",
+  });
+}
+
 export async function listUsersAction(
   params?: Record<string, string | number>
 ) {
@@ -52,6 +101,15 @@ export type ListUsersActionResult = Awaited<
   ReturnType<typeof listUsersAction>
 >;
 
+export async function getUserAction(id: string | number) {
+  const res = await getUserService(id);
+  return ensureSuccess(res);
+}
+
+export type GetUserActionResult = Awaited<
+  ReturnType<typeof getUserAction>
+>;
+
 export async function createUserAction(payload: Partial<User>) {
   const res = await createUserService(payload);
   return ensureSuccess(res);
@@ -61,7 +119,64 @@ export type CreateUserActionResult = Awaited<
   ReturnType<typeof createUserAction>
 >;
 
-export async function resetPasswordAction(payload: { email: string }) {
+export async function updateUserAction(
+  id: string | number,
+  payload: Partial<User>,
+) {
+  const res = await updateUserService(id, payload);
+  return ensureSuccess(res);
+}
+
+export type UpdateUserActionResult = Awaited<
+  ReturnType<typeof updateUserAction>
+>;
+
+export async function patchUserStatusAction(
+  id: string | number,
+  payload: { status: string },
+) {
+  const res = await patchUserStatusService(id, payload);
+  return ensureSuccess(res);
+}
+
+export type PatchUserStatusActionResult = Awaited<
+  ReturnType<typeof patchUserStatusAction>
+>;
+
+export async function deleteUserAction(id: string | number) {
+  const res = await deleteUserService(id);
+  return ensureSuccess(res);
+}
+
+export type DeleteUserActionResult = Awaited<
+  ReturnType<typeof deleteUserAction>
+>;
+
+export async function listUserRolesAction(id: string | number) {
+  const res = await listUserRolesService(id);
+  return ensureSuccess(res);
+}
+
+export type ListUserRolesActionResult = Awaited<
+  ReturnType<typeof listUserRolesAction>
+>;
+
+export async function removeUserRoleAction(
+  userId: string | number,
+  roleId: string | number,
+) {
+  const res = await removeUserRoleService(userId, roleId);
+  return ensureSuccess(res);
+}
+
+export type RemoveUserRoleActionResult = Awaited<
+  ReturnType<typeof removeUserRoleAction>
+>;
+
+export async function resetPasswordAction(payload: {
+  email: string;
+  new_password: string;
+}) {
   const res = await resetPassword(payload);
   return ensureSuccess(res);
 }
