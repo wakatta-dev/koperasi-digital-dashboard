@@ -133,8 +133,13 @@ export function refreshToken(payload: {
   );
 }
 
-export function logout(): Promise<ApiResponse<any>> {
-  return api.post<any>(`${API_PREFIX}${API_ENDPOINTS.auth.logout}`);
+export function logout(payload: {
+  refresh_token: string;
+}): Promise<ApiResponse<any>> {
+  return api.post<any>(
+    `${API_PREFIX}${API_ENDPOINTS.auth.logout}`,
+    payload,
+  );
 }
 
 export function listTenants(
