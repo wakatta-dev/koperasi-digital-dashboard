@@ -4,43 +4,40 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, Info } from "lucide-react";
+import {
+  listNotificationsAction,
+  updateNotificationStatusAction,
+} from "@/actions/notifications";
+import { revalidatePath } from "next/cache";
 
-const notifications = [
-  {
-    id: "1",
-    title: "New Order Received",
-    message: "PT Maju Jaya placed a new order worth Rp 2,450,000",
-    type: "success",
-    time: "2 hours ago",
-    read: false,
-  },
-  {
-    id: "2",
-    title: "Low Stock Alert",
-    message: "Wireless Mouse is running low on stock (3 items remaining)",
-    type: "warning",
-    time: "4 hours ago",
-    read: false,
-  },
-  {
-    id: "3",
-    title: "Invoice Payment Received",
-    message: "Payment received for invoice INV-001 from CV Berkah",
-    type: "success",
-    time: "1 day ago",
-    read: true,
-  },
-  {
-    id: "4",
-    title: "System Maintenance",
-    message: "Scheduled maintenance will occur tonight from 2-4 AM",
-    type: "info",
-    time: "2 days ago",
-    read: true,
-  },
-];
+type NotificationItem = NonNullable<
+  Awaited<ReturnType<typeof listNotificationsAction>>["data"]
+>[number] & {
+  read: boolean;
+  time: string;
+  type?: string;
+};
 
-export default function NotificationsPage() {
+export default async function NotificationsPage() {
+  const res = await listNotificationsAction({ limit: 20 });
+  const notifications: NotificationItem[] = (res.data ?? []).map((n: any) => ({
+    ...n,
+    read: n.status === "read",
+    time: new Date(n.created_at).toLocaleString(),
+    type: n.type ?? "info",
+  }));
+
+  async function markAllAsRead() {
+    "use server";
+    const unread = notifications.filter((n) => !n.read);
+    await Promise.all(
+      unread.map((n) =>
+        updateNotificationStatusAction(n.id, { status: "read" }),
+      ),
+    );
+    revalidatePath("/vendor/notifications");
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -51,7 +48,11 @@ export default function NotificationsPage() {
             Stay updated with your business activities
           </p>
         </div>
-        <Button variant="outline">Mark All as Read</Button>
+        <form action={markAllAsRead}>
+          <Button type="submit" variant="outline">
+            Mark All as Read
+          </Button>
+        </form>
       </div>
 
       {/* Notifications List */}
