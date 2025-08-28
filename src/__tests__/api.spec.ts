@@ -14,7 +14,6 @@ const originalFetch = global.fetch;
 describe("apiFetch", () => {
   beforeEach(async () => {
     process.env.NEXT_PUBLIC_API_URL = "http://example.com";
-    process.env.NEXT_PUBLIC_BASE_URL = "http://localhost:3000";
     process.env.NEXTAUTH_URL = "http://localhost:3000";
     process.env.NEXTAUTH_SECRET = "secret";
     process.env.NEXTAUTH_URL_INTERNAL = "http://localhost:3000";
@@ -31,17 +30,14 @@ describe("apiFetch", () => {
     [404, "Not Found"],
     [500, "Server Error"],
   ])("returns null for status %s", async (status, message) => {
-    global.fetch = vi
-      .fn()
-      .mockResolvedValue({
-        ok: false,
-        status,
-        statusText: message,
-        json: async () => ({ message }),
-      }) as any;
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status,
+      statusText: message,
+      json: async () => ({ message }),
+    }) as any;
 
     const result = await apiFetch("/test");
     expect(result).toBeNull();
   });
 });
-
