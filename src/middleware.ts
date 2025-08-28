@@ -54,9 +54,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // cek token NextAuth
+  // Ensure we read the correct cookie name in production ("__Secure-")
+  // This avoids login loops on HTTPS (e.g., Vercel) where cookies are secure.
+  const isSecure = request.nextUrl.protocol === "https:" || process.env.NODE_ENV === "production";
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: isSecure,
   });
   const userRole = (token as any)?.jenis_tenant;
 

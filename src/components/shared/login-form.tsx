@@ -4,7 +4,7 @@
 
 import type React from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSession } from "next-auth/react";
 import { login } from "@/services/auth";
 import { Alert, AlertDescription } from "../ui/alert";
@@ -20,6 +20,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +31,10 @@ export function LoginForm() {
     try {
       await login(email, password);
       const session: any = await getSession();
-      if (session?.user.jenis_tenant) {
+      const redirectTarget = searchParams?.get("redirect");
+      if (redirectTarget) {
+        router.push(redirectTarget);
+      } else if (session?.user.jenis_tenant) {
         router.push(`/${session.user.jenis_tenant}/dashboard`);
       } else {
         router.push("/");
