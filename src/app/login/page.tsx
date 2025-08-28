@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/language-context";
 import type React from "react";
+import { Suspense } from "react";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -23,7 +24,9 @@ export default function LoginPage() {
           <CardDescription>{t("loginDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <Suspense fallback={null}>
+            <LoginForm />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
