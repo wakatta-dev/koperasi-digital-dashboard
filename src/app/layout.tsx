@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import SessionProviderWrapper from "@/components/session-provider";
 import { LanguageProvider } from "@/contexts/language-context";
+import QueryProvider from "@/components/query-provider";
 
 export const metadata: Metadata = {
   title: "Multi-Tenant Dashboard",
@@ -29,9 +30,11 @@ export default function RootLayout({
       <head></head>
       <body>
         <SessionProviderWrapper>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            <LanguageProvider>{children}</LanguageProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+              <LanguageProvider>{children}</LanguageProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </SessionProviderWrapper>
       </body>
     </html>
