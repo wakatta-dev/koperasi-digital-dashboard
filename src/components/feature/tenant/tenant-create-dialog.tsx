@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -15,13 +15,40 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  createTenantSchema,
+  type CreateTenantSchema,
+} from "@/validators/tenant";
 
 export function TenantCreateDialog() {
   const [open, setOpen] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const form = useForm<CreateTenantSchema>({
+    resolver: zodResolver(createTenantSchema),
+    defaultValues: {
+      name: "",
+      type: "",
+      domain: "",
+    },
+  });
+
+  const onSubmit = async (values: CreateTenantSchema) => {
+    // TODO: integrate with server action when available
+    // await createTenantAction(values)
+    setOpen(false);
+    router.refresh();
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -40,56 +67,62 @@ export function TenantCreateDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          ref={formRef}
-          action={async () => {
-            // await createTenantAction(formData);
-            setOpen(false);
-            router.refresh(); // Reload data after create
-          }}
-          className="space-y-4"
-        >
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
               name="name"
-              placeholder="e.g. Acme Corp"
-              required
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Acme Corp" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Input
-              id="type"
+            <FormField
+              control={form.control}
               name="type"
-              placeholder="e.g. vendor, client"
-              required
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. vendor, client" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="domain">Domain</Label>
-            <Input
-              id="domain"
+            <FormField
+              control={form.control}
               name="domain"
-              placeholder="e.g. acme.localhost"
-              required
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Domain</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. acme.localhost" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <DialogFooter className="mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit">Create</Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Create</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
