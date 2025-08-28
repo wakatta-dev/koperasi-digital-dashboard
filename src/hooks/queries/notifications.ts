@@ -12,10 +12,14 @@ import {
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 
-export function useNotifications(params?: Record<string, string | number>) {
+export function useNotifications(
+  params?: Record<string, string | number>,
+  initialData?: Notification[] | undefined
+) {
   return useQuery({
     queryKey: QK.notifications.list(params),
     queryFn: async () => ensureSuccess(await listNotifications(params)),
+    ...(initialData ? { initialData } : {}),
   });
 }
 
@@ -23,7 +27,8 @@ export function useNotificationActions() {
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: async (payload: Partial<Notification>) => ensureSuccess(await createNotification(payload)),
+    mutationFn: async (payload: Partial<Notification>) =>
+      ensureSuccess(await createNotification(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.notifications.all });
     },
@@ -31,7 +36,9 @@ export function useNotificationActions() {
 
   const updateStatus = useMutation({
     mutationFn: async (vars: { id: string | number; status: string }) =>
-      ensureSuccess(await updateNotificationStatus(vars.id, { status: vars.status })),
+      ensureSuccess(
+        await updateNotificationStatus(vars.id, { status: vars.status })
+      ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.notifications.all });
     },
@@ -39,4 +46,3 @@ export function useNotificationActions() {
 
   return { create, updateStatus } as const;
 }
-

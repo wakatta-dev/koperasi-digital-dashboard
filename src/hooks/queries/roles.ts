@@ -18,18 +18,24 @@ import {
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 
-export function useRoles() {
+export function useRoles(initialData?: Role[] | undefined) {
   return useQuery({
     queryKey: QK.roles.lists(),
     queryFn: async () => ensureSuccess(await listRoles()),
+    ...(initialData ? { initialData } : {}),
   });
 }
 
-export function useRolePermissions(roleId?: string | number) {
+export function useRolePermissions(
+  roleId?: string | number,
+  initialData?: Permission[] | undefined
+) {
   return useQuery({
     queryKey: QK.roles.permissions(roleId ?? ""),
     enabled: !!roleId,
-    queryFn: async () => ensureSuccess(await listRolePermissions(roleId as string | number)),
+    queryFn: async () =>
+      ensureSuccess(await listRolePermissions(roleId as string | number)),
+    ...(initialData ? { initialData } : {}),
   });
 }
 
@@ -37,7 +43,8 @@ export function useRoleActions() {
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: async (payload: Partial<Role>) => ensureSuccess(await createRole(payload)),
+    mutationFn: async (payload: Partial<Role>) =>
+      ensureSuccess(await createRole(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.roles.lists() });
     },
@@ -52,22 +59,32 @@ export function useRoleActions() {
   });
 
   const remove = useMutation({
-    mutationFn: async (id: string | number) => ensureSuccess(await deleteRole(id)),
+    mutationFn: async (id: string | number) =>
+      ensureSuccess(await deleteRole(id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.roles.lists() });
     },
   });
 
   const addPermission = useMutation({
-    mutationFn: async (vars: { id: string | number; obj: string; act: string }) =>
-      ensureSuccess(await addRolePermission(vars.id, { obj: vars.obj, act: vars.act })),
+    mutationFn: async (vars: {
+      id: string | number;
+      obj: string;
+      act: string;
+    }) =>
+      ensureSuccess(
+        await addRolePermission(vars.id, { obj: vars.obj, act: vars.act })
+      ),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.roles.permissions(vars.id) });
     },
   });
 
   const deletePermission = useMutation({
-    mutationFn: async (vars: { roleId: string | number; permissionId: string | number }) =>
+    mutationFn: async (vars: {
+      roleId: string | number;
+      permissionId: string | number;
+    }) =>
       ensureSuccess(await deleteRolePermission(vars.roleId, vars.permissionId)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.roles.permissions(vars.roleId) });
@@ -75,13 +92,24 @@ export function useRoleActions() {
   });
 
   const assign = useMutation({
-    mutationFn: async (vars: { userId: string | number; role_id: string | number; tenant_id?: string | number }) =>
-      ensureSuccess(await assignRole(vars.userId, { role_id: vars.role_id, tenant_id: vars.tenant_id })),
+    mutationFn: async (vars: {
+      userId: string | number;
+      role_id: string | number;
+      tenant_id?: string | number;
+    }) =>
+      ensureSuccess(
+        await assignRole(vars.userId, {
+          role_id: vars.role_id,
+          tenant_id: vars.tenant_id,
+        })
+      ),
   });
 
   const removeUserRoleMut = useMutation({
-    mutationFn: async (vars: { userId: string | number; roleId: string | number }) =>
-      ensureSuccess(await removeUserRole(vars.userId, vars.roleId)),
+    mutationFn: async (vars: {
+      userId: string | number;
+      roleId: string | number;
+    }) => ensureSuccess(await removeUserRole(vars.userId, vars.roleId)),
   });
 
   return {
@@ -94,4 +122,3 @@ export function useRoleActions() {
     removeUserRole: removeUserRoleMut,
   } as const;
 }
-

@@ -30,10 +30,12 @@ import {
   createTenantSchema,
   type CreateTenantSchema,
 } from "@/validators/tenant";
+import { useTenantActions } from "@/hooks/queries/tenants";
 
 export function TenantCreateDialog() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { create } = useTenantActions();
   const form = useForm<CreateTenantSchema>({
     resolver: zodResolver(createTenantSchema),
     defaultValues: {
@@ -44,10 +46,13 @@ export function TenantCreateDialog() {
   });
 
   const onSubmit = async (values: CreateTenantSchema) => {
-    // TODO: integrate with server action when available
-    // await createTenantAction(values)
-    setOpen(false);
-    router.refresh();
+    try {
+      await create.mutateAsync(values);
+      setOpen(false);
+      router.refresh();
+    } catch (_e) {
+      // Errors surfaced via toast or form; keep dialog open
+    }
   };
 
   return (

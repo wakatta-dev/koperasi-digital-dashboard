@@ -21,32 +21,43 @@ import {
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 
-export function useVendorPlans(params: { limit: number; cursor?: string }) {
+export function useVendorPlans(
+  params: { limit: number; cursor?: string },
+  initialData?: Plan[] | undefined
+) {
   return useQuery({
     queryKey: QK.billing.vendor.plans(params),
     queryFn: async () => ensureSuccess(await listVendorPlans(params)),
+    ...(initialData ? { initialData } : {}),
   });
 }
 
-export function useVendorPlan(id?: string | number) {
+export function useVendorPlan(
+  id?: string | number,
+  initialData?: Plan | undefined
+) {
   return useQuery({
     queryKey: QK.billing.vendor.plan(id ?? ""),
     enabled: !!id,
-    queryFn: async () => ensureSuccess(await getVendorPlan(id as string | number)),
+    queryFn: async () =>
+      ensureSuccess(await getVendorPlan(id as string | number)),
+    ...(initialData ? { initialData } : {}),
   });
 }
 
-export function useVendorInvoices() {
+export function useVendorInvoices(initialData?: Invoice[] | undefined) {
   return useQuery({
     queryKey: QK.billing.vendor.invoices(),
     queryFn: async () => ensureSuccess(await listVendorInvoices()),
+    ...(initialData ? { initialData } : {}),
   });
 }
 
-export function useClientInvoices() {
+export function useClientInvoices(initialData?: Invoice[] | undefined) {
   return useQuery({
     queryKey: QK.billing.client.invoices(),
     queryFn: async () => ensureSuccess(await listClientInvoices()),
+    ...(initialData ? { initialData } : {}),
   });
 }
 
@@ -54,10 +65,17 @@ export function useBillingActions() {
   const qc = useQueryClient();
 
   const createPlan = useMutation({
-    mutationFn: async (payload: Partial<Plan>) => ensureSuccess(await createVendorPlan(payload)),
+    mutationFn: async (payload: Partial<Plan>) =>
+      ensureSuccess(await createVendorPlan(payload)),
     onSuccess: () => {
       // Invalidate any vendor plans lists
-      qc.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === "billing" && q.queryKey[1] === "vendor" && q.queryKey[2] === "plans" });
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "billing" &&
+          q.queryKey[1] === "vendor" &&
+          q.queryKey[2] === "plans",
+      });
     },
   });
 
@@ -66,27 +84,43 @@ export function useBillingActions() {
       ensureSuccess(await updateVendorPlan(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.plan(vars.id) });
-      qc.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === "billing" && q.queryKey[1] === "vendor" && q.queryKey[2] === "plans" });
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "billing" &&
+          q.queryKey[1] === "vendor" &&
+          q.queryKey[2] === "plans",
+      });
     },
   });
 
   const deletePlan = useMutation({
-    mutationFn: async (id: string | number) => ensureSuccess(await deleteVendorPlan(id)),
+    mutationFn: async (id: string | number) =>
+      ensureSuccess(await deleteVendorPlan(id)),
     onSuccess: () => {
-      qc.invalidateQueries({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === "billing" && q.queryKey[1] === "vendor" && q.queryKey[2] === "plans" });
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "billing" &&
+          q.queryKey[1] === "vendor" &&
+          q.queryKey[2] === "plans",
+      });
     },
   });
 
   const createVendorInv = useMutation({
-    mutationFn: async (payload: Partial<Invoice>) => ensureSuccess(await createVendorInvoice(payload)),
+    mutationFn: async (payload: Partial<Invoice>) =>
+      ensureSuccess(await createVendorInvoice(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
     },
   });
 
   const updateVendorInv = useMutation({
-    mutationFn: async (vars: { id: string | number; payload: Partial<Invoice> }) =>
-      ensureSuccess(await updateVendorInvoice(vars.id, vars.payload)),
+    mutationFn: async (vars: {
+      id: string | number;
+      payload: Partial<Invoice>;
+    }) => ensureSuccess(await updateVendorInvoice(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoice(vars.id) });
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
@@ -94,22 +128,26 @@ export function useBillingActions() {
   });
 
   const deleteVendorInv = useMutation({
-    mutationFn: async (id: string | number) => ensureSuccess(await deleteVendorInvoice(id)),
+    mutationFn: async (id: string | number) =>
+      ensureSuccess(await deleteVendorInvoice(id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
     },
   });
 
   const createClientPayment = useMutation({
-    mutationFn: async (vars: { invoiceId: string | number; payload: Partial<Payment> }) =>
-      ensureSuccess(await createPayment(vars.invoiceId, vars.payload)),
+    mutationFn: async (vars: {
+      invoiceId: string | number;
+      payload: Partial<Payment>;
+    }) => ensureSuccess(await createPayment(vars.invoiceId, vars.payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.client.invoices() });
     },
   });
 
   const verifyVendorPay = useMutation({
-    mutationFn: async (id: string | number) => ensureSuccess(await verifyVendorPayment(id)),
+    mutationFn: async (id: string | number) =>
+      ensureSuccess(await verifyVendorPayment(id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
     },
@@ -126,4 +164,3 @@ export function useBillingActions() {
     verifyVendorPay,
   } as const;
 }
-
