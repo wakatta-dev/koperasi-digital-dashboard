@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Users as UsersIcon, Plus, Search, Shield, Edit, Trash2 } from "lucide-react";
+import { Users as UsersIcon, Search, Shield, Edit, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { useUsers, useUserActions } from "@/hooks/queries/users";
 import type { User } from "@/types/api";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { UserUpsertDialog } from "@/components/feature/vendor/users/user-upsert-dialog";
 
 type Props = {
   initialData?: User[];
@@ -29,12 +30,7 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
           <h2 className="text-2xl font-bold">Users</h2>
           <p className="text-muted-foreground">Manage team members and permissions</p>
         </div>
-        <form>
-          <Button type="submit">
-            <Plus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
-        </form>
+        <UserUpsertDialog />
       </div>
 
       {/* Search */}
@@ -83,9 +79,14 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
                   </Badge>
 
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" type="button">
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <UserUpsertDialog
+                      user={user}
+                      trigger={
+                        <Button variant="ghost" size="icon" type="button">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
                     <Button
                       variant="ghost"
                       size="icon"
@@ -104,4 +105,3 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
     </div>
   );
 }
-

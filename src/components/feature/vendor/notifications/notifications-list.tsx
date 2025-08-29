@@ -13,6 +13,7 @@ import {
 } from "@/hooks/queries/notifications";
 import type { Notification } from "@/types/api";
 import { cn } from "@/lib/utils";
+import { NotificationCreateDialog } from "@/components/feature/vendor/notifications/notification-create-dialog";
 
 type NotificationView = Notification & {
   read: boolean;
@@ -69,9 +70,12 @@ export function VendorNotificationsList({ initialData, limit = 10 }: Props) {
             Stay updated with your business activities
           </p>
         </div>
-        <Button type="button" variant="outline" onClick={markAllAsRead}>
-          Mark All as Read
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" onClick={markAllAsRead}>
+            Mark All as Read
+          </Button>
+          <NotificationCreateDialog />
+        </div>
       </div>
 
       {/* Notifications List */}

@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Package, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { Package, Search, Edit, Trash2 } from "lucide-react";
 import { useVendorPlans, useBillingActions } from "@/hooks/queries/billing";
 import type { Plan } from "@/types/api";
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PlanUpsertDialog } from "@/components/feature/vendor/plans/plan-upsert-dialog";
 
 type Props = {
   initialData?: Plan[];
@@ -33,12 +34,7 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
           <h2 className="text-2xl font-bold">Plans</h2>
           <p className="text-muted-foreground">Manage your plans</p>
         </div>
-        <form>
-          <Button type="submit">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Plan
-          </Button>
-        </form>
+        <PlanUpsertDialog />
       </div>
 
       <Card>
@@ -89,9 +85,14 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" type="button">
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <PlanUpsertDialog
+                      plan={plan}
+                      trigger={
+                        <Button variant="ghost" size="icon" type="button">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
                     <Button
                       variant="ghost"
                       size="icon"

@@ -1,4 +1,5 @@
 /** @format */
+"use client";
 
 import {
   Card,
@@ -17,6 +18,7 @@ import {
   DollarSign,
   BellIcon,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const dashboardStats = [
   {
@@ -54,33 +56,40 @@ export default function VendorDashboard() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {dashboardStats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp
-                  className={`h-3 w-3 ${
-                    stat.trend === "up" ? "text-green-500" : "text-red-500"
-                  }`}
-                />
-                <span
-                  className={
-                    stat.trend === "up" ? "text-green-500" : "text-red-500"
-                  }
-                >
-                  {stat.change}
-                </span>
-                <span>from last month</span>
-              </div>
-            </CardContent>
-          </Card>
+        {dashboardStats.map((stat, i) => (
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.15, duration: 0.4 }}
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                {stat.icon}
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <TrendingUp
+                    className={`h-3 w-3 ${
+                      stat.trend === "up" ? "text-green-500" : "text-red-500"
+                    }`}
+                  />
+                  <span
+                    className={
+                      stat.trend === "up" ? "text-green-500" : "text-red-500"
+                    }
+                  >
+                    {stat.change}
+                  </span>
+                  <span>from last month</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
@@ -110,8 +119,11 @@ export default function VendorDashboard() {
                   status: "processing",
                 },
               ].map((notif, index, arr) => (
-                <div
+                <motion.div
                   key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.2, duration: 0.4 }}
                   className={`flex items-start gap-4 px-6 py-4 ${
                     index !== arr.length - 1 ? "border-b" : ""
                   }`}
@@ -143,7 +155,7 @@ export default function VendorDashboard() {
                       {notif.status}
                     </Badge>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </CardContent>
@@ -156,44 +168,44 @@ export default function VendorDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <a
-                href="/vendor/plans"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <Package className="h-6 w-6 mb-2" />
-                <p className="font-medium">Add Plan</p>
-                <p className="text-sm text-muted-foreground">
-                  Create new plan
-                </p>
-              </a>
-              <a
-                href="/invoices"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <FileText className="h-6 w-6 mb-2" />
-                <p className="font-medium">New Invoice</p>
-                <p className="text-sm text-muted-foreground">
-                  Generate invoice
-                </p>
-              </a>
-              <a
-                href="/clients"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <Users className="h-6 w-6 mb-2" />
-                <p className="font-medium">Add Client</p>
-                <p className="text-sm text-muted-foreground">
-                  Register new client
-                </p>
-              </a>
-              <a
-                href="/tickets"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <Ticket className="h-6 w-6 mb-2" />
-                <p className="font-medium">Support</p>
-                <p className="text-sm text-muted-foreground">Create ticket</p>
-              </a>
+              {[
+                {
+                  href: "/vendor/plans",
+                  icon: <Package className="h-6 w-6 mb-2" />,
+                  title: "Add Plan",
+                  desc: "Create new plan",
+                },
+                {
+                  href: "/invoices",
+                  icon: <FileText className="h-6 w-6 mb-2" />,
+                  title: "New Invoice",
+                  desc: "Generate invoice",
+                },
+                {
+                  href: "/clients",
+                  icon: <Users className="h-6 w-6 mb-2" />,
+                  title: "Add Client",
+                  desc: "Register new client",
+                },
+                {
+                  href: "/tickets",
+                  icon: <Ticket className="h-6 w-6 mb-2" />,
+                  title: "Support",
+                  desc: "Create ticket",
+                },
+              ].map((action, index) => (
+                <motion.a
+                  key={index}
+                  href={action.href}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="p-4 border rounded-lg hover:bg-muted transition-colors block"
+                >
+                  {action.icon}
+                  <p className="font-medium">{action.title}</p>
+                  <p className="text-sm text-muted-foreground">{action.desc}</p>
+                </motion.a>
+              ))}
             </div>
           </CardContent>
         </Card>

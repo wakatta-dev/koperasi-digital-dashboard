@@ -2,7 +2,7 @@
 
 "use client";
 
-import { FileText, Plus, Search, Download, Eye } from "lucide-react";
+import { FileText, Search, Download, Eye } from "lucide-react";
 import { useVendorInvoices } from "@/hooks/queries/billing";
 import type { Invoice } from "@/types/api";
 import {
@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { InvoiceUpsertDialog } from "@/components/feature/vendor/invoices/invoice-upsert-dialog";
 
 type Props = {
   initialData?: Invoice[];
@@ -33,10 +34,7 @@ export function VendorInvoicesList({ initialData }: Props) {
             Track and manage your invoices
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Invoice
-        </Button>
+        <InvoiceUpsertDialog />
       </div>
 
       {/* Search */}
