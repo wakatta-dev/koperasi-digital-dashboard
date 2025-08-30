@@ -10,7 +10,7 @@ export async function refreshAccessToken(token: any) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh_token: token.refreshToken }),
+        body: JSON.stringify({ refresh_token: token?.refreshToken }),
       }
     );
 
@@ -18,7 +18,8 @@ export async function refreshAccessToken(token: any) {
     const data = json?.data;
 
     if (!res.ok || !data) {
-      return null; // Logout when refresh fails
+      // Keep existing token but flag error so UI can handle sign-out
+      return { ...token, error: "RefreshAccessTokenError" };
     }
 
     return {
@@ -27,11 +28,12 @@ export async function refreshAccessToken(token: any) {
       accessTokenExpires: data.expires_at
         ? data.expires_at * 1000
         : Date.now() + 15 * 60 * 1000, // fallback 15 menit
-      refreshToken: data.refresh_token ?? token.refreshToken,
+      refreshToken: data.refresh_token ?? token?.refreshToken,
       error: undefined,
     };
   } catch {
-    return null; // Logout on unexpected errors
+    // Never return null from jwt callback path
+    return { ...token, error: "RefreshAccessTokenError" };
   }
 }
 
@@ -96,22 +98,24 @@ export const authOptions: AuthOptions = {
       if (user) return { ...token, ...user };
 
       // Jika access token masih valid, return existing token
-      if (Date.now() < (token as any).accessTokenExpires) return token;
+      if ((token as any)?.accessTokenExpires && Date.now() < (token as any).accessTokenExpires)
+        return token;
 
       // Kalau sudah expired, refresh
       return await refreshAccessToken(token);
     },
 
     async session({ session, token }) {
+      // Safely map fields from token → session
       session.user = {
-        id: (token as any).id,
-        email: (token as any).email,
-        name: (token as any).name,
-        role: (token as any).role,
-        jenis_tenant: (token as any).jenis_tenant,
-      };
-      (session as any).accessToken = (token as any).accessToken;
-      (session as any).error = (token as any).error;
+        id: (token as any)?.id,
+        email: (token as any)?.email,
+        name: (token as any)?.name,
+        role: (token as any)?.role,
+        jenis_tenant: (token as any)?.jenis_tenant,
+      } as any;
+      (session as any).accessToken = (token as any)?.accessToken;
+      (session as any).error = (token as any)?.error;
       return session;
     },
   },
