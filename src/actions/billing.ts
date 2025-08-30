@@ -47,14 +47,18 @@ export type CreatePaymentActionResult = Awaited<
   ReturnType<typeof createPaymentAction>
 >;
 
-export async function verifyVendorPaymentAction(id: string | number, payload?: any) {
+export async function verifyVendorPaymentAction(
+  id: string | number,
+  payload?: any
+) {
   const res = await verifyVendorPayment(id, payload);
   return ensureSuccess(res);
 }
 
 export type VerifyVendorPaymentActionResult = Awaited<
-  ReturnType<typeof verifyVendorPaymentAction>>;
-             
+  ReturnType<typeof verifyVendorPaymentAction>
+>;
+
 export async function createVendorInvoiceAction(payload: any) {
   const res = await createVendorInvoice(payload);
   return ensureSuccess(res);
@@ -66,7 +70,7 @@ export type CreateVendorInvoiceActionResult = Awaited<
 
 export async function updateVendorInvoiceAction(
   id: string | number,
-  payload: any,
+  payload: any
 ) {
   const res = await updateVendorInvoice(id, payload);
   return ensureSuccess(res);
@@ -85,9 +89,10 @@ export type DeleteVendorInvoiceActionResult = Awaited<
   ReturnType<typeof deleteVendorInvoiceAction>
 >;
 
-export async function listVendorPlansAction(
-  params: { limit: number; cursor?: string },
-) {
+export async function listVendorPlansAction(params: {
+  limit: number;
+  cursor?: string;
+}) {
   const res = await listVendorPlans(params);
   return ensureSuccess(res);
 }
@@ -116,7 +121,7 @@ export type GetVendorPlanActionResult = Awaited<
 
 export async function updateVendorPlanAction(
   id: string | number,
-  payload: any,
+  payload: any
 ) {
   const res = await updateVendorPlan(id, payload);
   return ensureSuccess(res);
