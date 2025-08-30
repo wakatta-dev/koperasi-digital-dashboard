@@ -48,6 +48,11 @@ export async function middleware(request: NextRequest) {
     return withTenant(NextResponse.next());
   }
 
+  // jika sudah punya tenantId tapi berada di halaman tenant-not-found → redirect ke root
+  if (tenantId && pathname === "/tenant-not-found") {
+    return withTenant(NextResponse.redirect(new URL("/", request.url)));
+  }
+
   // kalau masih nggak ketemu → redirect
   if (!tenantId && pathname !== "/tenant-not-found") {
     return NextResponse.redirect(new URL("/tenant-not-found", request.url));
