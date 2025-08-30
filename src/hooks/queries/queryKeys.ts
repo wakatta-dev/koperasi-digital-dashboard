@@ -11,7 +11,8 @@ export const QK = {
   },
   roles: {
     all: ["roles"] as const,
-    lists: () => ["roles", "list"] as const,
+    lists: (params?: Record<string, any>) =>
+      ["roles", "list", params ?? {}] as const,
     details: () => ["roles", "detail"] as const,
     detail: (id: string | number) => ["roles", "detail", String(id)] as const,
     permissions: (id: string | number) => ["roles", "permissions", String(id)] as const,
@@ -64,4 +65,3 @@ export type QueryKey = ReturnType<
   | typeof QK.billing.vendor.invoice
   | typeof QK.billing.client.invoices
 >;
-

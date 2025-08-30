@@ -25,8 +25,8 @@ export async function middleware(request: NextRequest) {
         const { data } = await res.json();
         tenantId = data?.tenant_id ? String(data.tenant_id) : undefined;
       }
-    } catch (err) {
-      console.error("Tenant lookup failed:", err);
+    } catch (err: any) {
+      console.error("Tenant lookup failed:", err?.message);
     }
   }
 
@@ -56,7 +56,9 @@ export async function middleware(request: NextRequest) {
   // cek token NextAuth
   // Ensure we read the correct cookie name in production ("__Secure-")
   // This avoids login loops on HTTPS (e.g., Vercel) where cookies are secure.
-  const isSecure = request.nextUrl.protocol === "https:" || process.env.NODE_ENV === "production";
+  const isSecure =
+    request.nextUrl.protocol === "https:" ||
+    process.env.NODE_ENV === "production";
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,

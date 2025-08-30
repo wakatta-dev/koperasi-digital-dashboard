@@ -17,7 +17,8 @@ import {
 import type { Role, Permission } from "@/types/api";
 
 export async function listRolesAction() {
-  const res = await listRoles();
+  // Provide a sensible default limit for listing roles
+  const res = await listRoles({ limit: 100 });
   return ensureSuccess(res);
 }
 

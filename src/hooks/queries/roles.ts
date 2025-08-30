@@ -18,10 +18,18 @@ import {
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 
-export function useRoles(initialData?: Role[] | undefined) {
+export function useRoles(
+  params: { limit?: number; cursor?: string } = { limit: 100 },
+  initialData?: Role[] | undefined,
+) {
+  const finalParams = {
+    limit: typeof params.limit === "number" ? params.limit : 100,
+    ...(params.cursor ? { cursor: params.cursor } : {}),
+  } as { limit: number; cursor?: string };
+
   return useQuery({
-    queryKey: QK.roles.lists(),
-    queryFn: async () => ensureSuccess(await listRoles()),
+    queryKey: QK.roles.lists(finalParams),
+    queryFn: async () => ensureSuccess(await listRoles(finalParams)),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -46,7 +54,12 @@ export function useRoleActions() {
     mutationFn: async (payload: Partial<Role>) =>
       ensureSuccess(await createRole(payload)),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK.roles.lists() });
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "roles" &&
+          q.queryKey[1] === "list",
+      });
     },
   });
 
@@ -54,7 +67,12 @@ export function useRoleActions() {
     mutationFn: async (vars: { id: string | number; payload: Partial<Role> }) =>
       ensureSuccess(await updateRole(vars.id, vars.payload)),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK.roles.lists() });
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "roles" &&
+          q.queryKey[1] === "list",
+      });
     },
   });
 
@@ -62,7 +80,12 @@ export function useRoleActions() {
     mutationFn: async (id: string | number) =>
       ensureSuccess(await deleteRole(id)),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QK.roles.lists() });
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "roles" &&
+          q.queryKey[1] === "list",
+      });
     },
   });
 

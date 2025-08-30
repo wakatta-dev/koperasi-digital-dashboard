@@ -25,6 +25,14 @@ import {
   useTenantUsers,
   useTenantModules,
 } from "@/hooks/queries/tenants";
+import { useRoles } from "@/hooks/queries/roles";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   id: string;
@@ -48,6 +56,7 @@ export default function TenantDetailClient({
   const { data: tenant } = useTenant(id, initialTenant);
   const { data: users } = useTenantUsers(id, undefined, initialUsers);
   const { data: modules } = useTenantModules(id, undefined, initialModules);
+  const { data: roles = [] } = useRoles();
 
   const [statusMessage, setStatusMessage] = useState<string | undefined>(
     initialMessage,
@@ -65,6 +74,7 @@ export default function TenantDetailClient({
   const [statusChecked, setStatusChecked] = useState(
     tenant?.status === "active",
   );
+  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
 
   const isSaving = useMemo(
     () =>
@@ -108,13 +118,18 @@ export default function TenantDetailClient({
     const email = String(fd.get("email") ?? "");
     const password = String(fd.get("password") ?? "");
     const full_name = String(fd.get("full_name") ?? "");
-    const role_id = Number(fd.get("role_id") ?? "");
+    if (!selectedRoleId) {
+      setStatusError("Role wajib dipilih");
+      return;
+    }
+    const role_id = Number(selectedRoleId);
 
     setStatusError(undefined);
     try {
       await addUser.mutateAsync({ id, payload: { email, password, full_name, role_id } });
       setStatusMessage("User added");
       e.currentTarget.reset();
+      setSelectedRoleId("");
       router.refresh();
     } catch (err: any) {
       setStatusError(err?.message ?? "Failed to add user");
@@ -268,8 +283,25 @@ export default function TenantDetailClient({
                 <Input id="full_name" name="full_name" placeholder="Full Name" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role_id">Role ID</Label>
-                <Input id="role_id" name="role_id" placeholder="Role ID" />
+                <Label htmlFor="role_id">Role</Label>
+                <input type="hidden" name="role_id" value={selectedRoleId} />
+                <Select
+                  value={selectedRoleId}
+                  onValueChange={(v) => setSelectedRoleId(v)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles
+                      ?.filter((r: any) => r.tenant_id === tenant?.id)
+                      .map((r: any) => (
+                        <SelectItem key={r.id} value={String(r.id)}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="md:col-span-2">
                 <Button type="submit" disabled={isSaving}>
@@ -331,4 +363,3 @@ export default function TenantDetailClient({
     </div>
   );
 }
-

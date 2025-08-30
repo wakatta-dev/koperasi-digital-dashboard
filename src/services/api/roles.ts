@@ -4,8 +4,16 @@ import { API_ENDPOINTS } from "@/constants/api";
 import type { ApiResponse, Permission, Role, UserRole } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
-export function listRoles(): Promise<ApiResponse<Role[]>> {
-  return api.get<Role[]>(`${API_PREFIX}${API_ENDPOINTS.roles.list}`);
+export function listRoles(
+  params?: { limit: number; cursor?: string },
+): Promise<ApiResponse<Role[]>> {
+  let query = "";
+  if (params && typeof params.limit !== "undefined") {
+    const search = new URLSearchParams({ limit: String(params.limit) });
+    if (params.cursor) search.set("cursor", params.cursor);
+    query = `?${search.toString()}`;
+  }
+  return api.get<Role[]>(`${API_PREFIX}${API_ENDPOINTS.roles.list}${query}`);
 }
 
 export function createRole(
