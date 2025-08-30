@@ -69,6 +69,8 @@ export function InvoiceUpsertDialog({ trigger }: Props) {
           price: Number(it.price),
         })),
         total,
+        tenant_id: values.tenant_id ?? undefined,
+        subscription_id: values.subscription_id ?? undefined,
       };
       await createVendorInv.mutateAsync(payload);
       setOpen(false);
@@ -133,6 +135,35 @@ export function InvoiceUpsertDialog({ trigger }: Props) {
                     <FormLabel>Jatuh Tempo</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="tenant_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tenant ID (opsional)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={1} placeholder="mis. 123" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="subscription_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subscription ID (opsional)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={1} placeholder="mis. 456" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

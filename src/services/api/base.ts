@@ -25,7 +25,7 @@ export const API_PREFIX = "/api";
 
 async function request<T>(
   path: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   let accessToken = await getAccessToken();
 

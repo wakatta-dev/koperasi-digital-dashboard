@@ -38,5 +38,7 @@ export interface Payment {
   method: string;
   proof_url: string;
   status: string;
+  gateway?: string;
+  external_id?: string;
   created_at: string;
 }

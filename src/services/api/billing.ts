@@ -4,13 +4,14 @@ import { API_ENDPOINTS } from "@/constants/api";
 import type { ApiResponse, Plan, Invoice, Payment } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
-export function listVendorPlans(
-  params: { limit: number; cursor?: string },
-): Promise<ApiResponse<Plan[]>> {
+export function listVendorPlans(params: {
+  limit: number;
+  cursor?: string;
+}): Promise<ApiResponse<Plan[]>> {
   const search = new URLSearchParams({ limit: String(params.limit) });
   if (params.cursor) search.set("cursor", params.cursor);
   return api.get<Plan[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}?${search.toString()}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}?${search.toString()}`
   );
 }
 
@@ -80,7 +81,7 @@ export function deleteVendorInvoice(
 
 export function listClientInvoices(): Promise<ApiResponse<Invoice[]>> {
   return api.get<Invoice[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices}`
+    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices(5)}`
   );
 }
 
@@ -95,9 +96,15 @@ export function createPayment(
 }
 
 export function verifyVendorPayment(
-  id: string | number
+  id: string | number,
+  payload?: Partial<Payment> & {
+    status?: string;
+    gateway?: string;
+    external_id?: string;
+  }
 ): Promise<ApiResponse<Payment>> {
   return api.patch<Payment>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`,
+    payload ?? {}
   );
 }

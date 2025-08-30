@@ -21,6 +21,14 @@ export const createInvoiceSchema = z.object({
   issued_at: z.string({ error: "Tanggal terbit wajib diisi" }).min(1, "Tanggal terbit wajib diisi"),
   due_date: z.string().optional(),
   items: z.array(invoiceItemSchema).min(1, "Minimal satu item"),
+  tenant_id: z
+    .union([z.string(), z.number()])
+    .transform((v) => (v === "" ? undefined : Number(v)))
+    .optional(),
+  subscription_id: z
+    .union([z.string(), z.number()])
+    .transform((v) => (v === "" ? undefined : Number(v)))
+    .optional(),
 });
 
 export type CreateInvoiceSchema = z.infer<typeof createInvoiceSchema>;

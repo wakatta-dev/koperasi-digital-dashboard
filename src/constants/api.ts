@@ -48,9 +48,10 @@ export const API_ENDPOINTS = {
       }),
     },
     client: {
-      invoices: "/billing/client/invoices",
+      invoices: (limit: number, cursor?: string) =>
+        `/client/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       invoice: (id: string | number) => ({
-        payments: `/billing/client/invoices/${id}/payments`,
+        payments: `/client/invoices/${id}/payments`,
       }),
     },
   },

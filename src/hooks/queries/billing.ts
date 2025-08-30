@@ -146,8 +146,8 @@ export function useBillingActions() {
   });
 
   const verifyVendorPay = useMutation({
-    mutationFn: async (id: string | number) =>
-      ensureSuccess(await verifyVendorPayment(id)),
+    mutationFn: async (vars: { id: string | number; payload?: any }) =>
+      ensureSuccess(await verifyVendorPayment(vars.id, vars.payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
     },

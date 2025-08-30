@@ -47,8 +47,8 @@ export type CreatePaymentActionResult = Awaited<
   ReturnType<typeof createPaymentAction>
 >;
 
-export async function verifyVendorPaymentAction(id: string | number) {
-  const res = await verifyVendorPayment(id);
+export async function verifyVendorPaymentAction(id: string | number, payload?: any) {
+  const res = await verifyVendorPayment(id, payload);
   return ensureSuccess(res);
 }
 

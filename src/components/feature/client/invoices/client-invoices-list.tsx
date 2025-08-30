@@ -2,8 +2,8 @@
 
 "use client";
 
-import { FileText, Search, Download, Eye } from "lucide-react";
-import { useVendorInvoices } from "@/hooks/queries/billing";
+import { FileText, Search, Download } from "lucide-react";
+import { useClientInvoices } from "@/hooks/queries/billing";
 import type { Invoice } from "@/types/api";
 import {
   Card,
@@ -12,32 +12,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { InvoiceUpsertDialog } from "@/components/feature/vendor/invoices/invoice-upsert-dialog";
-import { PaymentVerifyDialog } from "@/components/feature/vendor/payments/payment-verify-dialog";
+import { UploadPaymentDialog } from "./upload-payment-dialog";
 
 type Props = {
   initialData?: Invoice[];
 };
 
-export function VendorInvoicesList({ initialData }: Props) {
-  const { data: invoices = [] } = useVendorInvoices(initialData);
+export function ClientInvoicesList({ initialData }: Props) {
+  const { data: invoices = [] } = useClientInvoices(initialData);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Invoices</h2>
-          <p className="text-muted-foreground">
-            Track and manage your invoices
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <PaymentVerifyDialog />
-          <InvoiceUpsertDialog />
+          <h2 className="text-2xl font-bold">Tagihan</h2>
+          <p className="text-muted-foreground">Daftar tagihan Anda</p>
         </div>
       </div>
 
@@ -46,7 +38,7 @@ export function VendorInvoicesList({ initialData }: Props) {
         <CardContent className="pt-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search invoices..." className="pl-10" />
+            <Input placeholder="Cari tagihan..." className="pl-10" />
           </div>
         </CardContent>
       </Card>
@@ -54,8 +46,8 @@ export function VendorInvoicesList({ initialData }: Props) {
       {/* Invoices Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Invoice List</CardTitle>
-          <CardDescription>All your invoices and their status</CardDescription>
+          <CardTitle>Daftar Tagihan</CardTitle>
+          <CardDescription>Tagihan dan status pembayarannya</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -81,7 +73,7 @@ export function VendorInvoicesList({ initialData }: Props) {
                     <p className="font-medium">Rp {invoice.total}</p>
                     {invoice.due_date && (
                       <p className="text-sm text-muted-foreground">
-                        Due: {invoice.due_date}
+                        Jatuh tempo: {invoice.due_date}
                       </p>
                     )}
                   </div>
@@ -99,12 +91,15 @@ export function VendorInvoicesList({ initialData }: Props) {
                   </Badge>
 
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
+                    {invoice.status !== "paid" && (
+                      <UploadPaymentDialog invoiceId={invoice.id} />
+                    )}
+                    <a
+                      className="text-sm text-muted-foreground hover:underline"
+                      href="#"
+                    >
                       <Download className="h-4 w-4" />
-                    </Button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -115,3 +110,4 @@ export function VendorInvoicesList({ initialData }: Props) {
     </div>
   );
 }
+
