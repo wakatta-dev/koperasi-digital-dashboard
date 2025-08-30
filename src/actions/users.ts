@@ -77,8 +77,14 @@ export async function deleteUser(
 
 export async function listUserRoles(
   id: string | number,
+  params?: { limit: number; cursor?: string },
 ): Promise<ApiResponse<UserRole[]>> {
-  return apiRequest<UserRole[]>(API_ENDPOINTS.users.roles(id));
+  const search = new URLSearchParams({
+    limit: String(params?.limit ?? 100),
+  });
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const url = `${API_ENDPOINTS.users.roles(id)}?${search.toString()}`;
+  return apiRequest<UserRole[]>(url);
 }
 
 export async function removeUserRole(
@@ -153,7 +159,7 @@ export type DeleteUserActionResult = Awaited<
 >;
 
 export async function listUserRolesAction(id: string | number) {
-  const res = await listUserRolesService(id);
+  const res = await listUserRolesService(id, { limit: 100 });
   return ensureSuccess(res);
 }
 

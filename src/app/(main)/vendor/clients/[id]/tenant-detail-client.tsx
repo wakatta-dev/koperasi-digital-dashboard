@@ -59,10 +59,10 @@ export default function TenantDetailClient({
   const { data: roles = [] } = useRoles();
 
   const [statusMessage, setStatusMessage] = useState<string | undefined>(
-    initialMessage,
+    initialMessage
   );
   const [statusError, setStatusError] = useState<string | undefined>(
-    initialError,
+    initialError
   );
 
   // Form state derived from tenant
@@ -72,7 +72,7 @@ export default function TenantDetailClient({
     domain: tenant?.domain ?? "",
   }));
   const [statusChecked, setStatusChecked] = useState(
-    tenant?.status === "active",
+    tenant?.status === "active"
   );
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
 
@@ -82,7 +82,12 @@ export default function TenantDetailClient({
       updateStatus.isPending ||
       addUser.isPending ||
       updateModule.isPending,
-    [update.isPending, updateStatus.isPending, addUser.isPending, updateModule.isPending],
+    [
+      update.isPending,
+      updateStatus.isPending,
+      addUser.isPending,
+      updateModule.isPending,
+    ]
   );
 
   const onSubmitTenant = async (e: React.FormEvent) => {
@@ -126,7 +131,10 @@ export default function TenantDetailClient({
 
     setStatusError(undefined);
     try {
-      await addUser.mutateAsync({ id, payload: { email, password, full_name, role_id } });
+      await addUser.mutateAsync({
+        id,
+        payload: { email, password, full_name, role_id },
+      });
       setStatusMessage("User added");
       e.currentTarget.reset();
       setSelectedRoleId("");
@@ -259,7 +267,10 @@ export default function TenantDetailClient({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={2} className="text-muted-foreground italic">
+                  <TableCell
+                    colSpan={2}
+                    className="text-muted-foreground italic"
+                  >
                     No users found.
                   </TableCell>
                 </TableRow>
@@ -269,18 +280,30 @@ export default function TenantDetailClient({
 
           <div>
             <h4 className="text-lg font-medium mb-2">Add New User</h4>
-            <form onSubmit={onSubmitAddUser} className="grid gap-4 md:grid-cols-2">
+            <form
+              onSubmit={onSubmitAddUser}
+              className="grid gap-4 md:grid-cols-2"
+            >
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" name="email" placeholder="Email" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" placeholder="Password" />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="full_name">Full Name</Label>
-                <Input id="full_name" name="full_name" placeholder="Full Name" />
+                <Input
+                  id="full_name"
+                  name="full_name"
+                  placeholder="Full Name"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role_id">Role</Label>
@@ -294,7 +317,7 @@ export default function TenantDetailClient({
                   </SelectTrigger>
                   <SelectContent>
                     {roles
-                      ?.filter((r: any) => r.tenant_id === tenant?.id)
+                      ?.filter((r: any) => r.jenis_tenant === tenant?.type)
                       .map((r: any) => (
                         <SelectItem key={r.id} value={String(r.id)}>
                           {r.name}
@@ -332,7 +355,10 @@ export default function TenantDetailClient({
                   <TableRow key={mod.id}>
                     <TableCell className="w-full">{mod.name || "-"}</TableCell>
                     <TableCell>
-                      <form onSubmit={onSubmitModule} className="flex items-center gap-2">
+                      <form
+                        onSubmit={onSubmitModule}
+                        className="flex items-center gap-2"
+                      >
                         <input type="hidden" name="module_id" value={mod.id} />
                         <select
                           name="status"
@@ -351,7 +377,10 @@ export default function TenantDetailClient({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={2} className="text-muted-foreground italic">
+                  <TableCell
+                    colSpan={2}
+                    className="text-muted-foreground italic"
+                  >
                     No modules found.
                   </TableCell>
                 </TableRow>

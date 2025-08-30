@@ -42,7 +42,9 @@ export function useRolePermissions(
     queryKey: QK.roles.permissions(roleId ?? ""),
     enabled: !!roleId,
     queryFn: async () =>
-      ensureSuccess(await listRolePermissions(roleId as string | number)),
+      ensureSuccess(
+        await listRolePermissions(roleId as string | number, { limit: 100 })
+      ),
     ...(initialData ? { initialData } : {}),
   });
 }

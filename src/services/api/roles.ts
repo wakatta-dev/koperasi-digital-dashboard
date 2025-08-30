@@ -1,7 +1,13 @@
 /** @format */
 
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, Permission, Role, UserRole } from "@/types/api";
+import type {
+  ApiResponse,
+  Permission,
+  Role,
+  UserRole,
+  TenantRole,
+} from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
 export function listRoles(
@@ -45,9 +51,20 @@ export function deleteRole(
 
 export function listRolePermissions(
   id: string | number,
+  params?: { limit: number; cursor?: string },
 ): Promise<ApiResponse<Permission[]>> {
+  let query = "";
+  const final = {
+    limit: params?.limit ?? 100,
+    ...(params?.cursor ? { cursor: params.cursor } : {}),
+  } as { limit: number; cursor?: string };
+  if (typeof final.limit !== "undefined") {
+    const search = new URLSearchParams({ limit: String(final.limit) });
+    if (final.cursor) search.set("cursor", final.cursor);
+    query = `?${search.toString()}`;
+  }
   return api.get<Permission[]>(
-    `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}`,
+    `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}${query}`,
   );
 }
 
@@ -73,8 +90,8 @@ export function deleteRolePermission(
 export function assignRole(
   userId: string | number,
   payload: { role_id: string | number; tenant_id?: string | number },
-): Promise<ApiResponse<any>> {
-  return api.post<any>(
+): Promise<ApiResponse<{ user_id: number; role_id: number }>> {
+  return api.post<{ user_id: number; role_id: number }>(
     `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
     payload,
   );
@@ -82,17 +99,37 @@ export function assignRole(
 
 export function listUserRoles(
   userId: string | number,
+  params?: { limit: number; cursor?: string },
 ): Promise<ApiResponse<UserRole[]>> {
+  let query = "";
+  const final = {
+    limit: params?.limit ?? 100,
+    ...(params?.cursor ? { cursor: params.cursor } : {}),
+  } as { limit: number; cursor?: string };
+  if (typeof final.limit !== "undefined") {
+    const search = new URLSearchParams({ limit: String(final.limit) });
+    if (final.cursor) search.set("cursor", final.cursor);
+    query = `?${search.toString()}`;
+  }
   return api.get<UserRole[]>(
-    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
+    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}${query}`,
   );
 }
 
 export function removeUserRole(
   userId: string | number,
   roleId: string | number,
-): Promise<ApiResponse<{ id: number }>> {
-  return api.delete<{ id: number }>(
+): Promise<ApiResponse<{ user_id: number; role_id: number }>> {
+  return api.delete<{ user_id: number; role_id: number }>(
     `${API_PREFIX}${API_ENDPOINTS.users.role(userId, roleId)}`,
+  );
+}
+
+export function assignRoleToTenant(
+  payload: { role_id: number; tenant_id: number },
+): Promise<ApiResponse<TenantRole>> {
+  return api.post<TenantRole>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.tenants}`,
+    payload,
   );
 }

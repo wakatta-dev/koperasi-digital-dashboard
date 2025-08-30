@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
     permissions: (id: string | number) => `/roles/${id}/permissions`,
     permission: (id: string | number, pid: string | number) =>
       `/roles/${id}/permissions/${pid}`,
+    tenants: "/roles/tenants",
   },
   notifications: {
     list: "/notifications",

@@ -75,7 +75,7 @@ export type DeleteRoleActionResult = Awaited<
 export async function listRolePermissionsAction(
   id: string | number,
 ): Promise<Permission[]> {
-  const res = await listRolePermissions(id);
+  const res = await listRolePermissions(id, { limit: 100 });
   return ensureSuccess(res);
 }
 
@@ -110,7 +110,7 @@ export type DeleteRolePermissionActionResult = Awaited<
 export async function removeUserRoleAction(
   userId: string | number,
   roleId: string | number,
-): Promise<{ id: number }> {
+): Promise<{ user_id: number; role_id: number }> {
   const res = await removeUserRole(userId, roleId);
   return ensureSuccess(res);
 }

@@ -46,7 +46,9 @@ export function useUserRoles(
     queryKey: QK.users.roles(userId ?? ""),
     enabled: !!userId,
     queryFn: async () =>
-      ensureSuccess(await listUserRoles(userId as string | number)),
+      ensureSuccess(
+        await listUserRoles(userId as string | number, { limit: 100 })
+      ),
     ...(initialData ? { initialData } : {}),
   });
 }
