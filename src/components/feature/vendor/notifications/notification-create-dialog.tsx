@@ -31,6 +31,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { PlusIcon } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -39,6 +40,7 @@ type Props = {
 export function NotificationCreateDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false);
   const { create } = useNotificationActions();
+  const confirm = useConfirm();
 
   const form = useForm<z.input<typeof createNotificationSchema>>({
     resolver: zodResolver(createNotificationSchema),
@@ -51,6 +53,13 @@ export function NotificationCreateDialog({ trigger }: Props) {
 
   const onSubmit = async (values: z.input<typeof createNotificationSchema>) => {
     try {
+      const ok = await confirm({
+        variant: "create",
+        title: "Buat notifikasi?",
+        description: `Notifikasi '${values.title}' akan dikirimkan.`,
+        confirmText: "Buat",
+      });
+      if (!ok) return;
       await create.mutateAsync(values as any);
       setOpen(false);
     } catch (_e) {}

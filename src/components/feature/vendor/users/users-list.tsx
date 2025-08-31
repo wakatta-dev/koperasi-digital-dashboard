@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { UserUpsertDialog } from "@/components/feature/vendor/users/user-upsert-dialog";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   initialData?: User[];
@@ -21,6 +22,7 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
   const params = useMemo(() => ({ limit }), [limit]);
   const { data: users = [] } = useUsers(params, initialData);
   const { remove } = useUserActions();
+  const confirm = useConfirm();
 
   return (
     <div className="space-y-6">
@@ -91,7 +93,16 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
                       variant="ghost"
                       size="icon"
                       type="button"
-                      onClick={() => remove.mutate(user.id)}
+                      onClick={async () => {
+                        const ok = await confirm({
+                          variant: "delete",
+                          title: "Hapus pengguna?",
+                          description: `Akun ${user.email} akan dihapus.`,
+                          confirmText: "Hapus",
+                        });
+                        if (!ok) return;
+                        remove.mutate(user.id);
+                      }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

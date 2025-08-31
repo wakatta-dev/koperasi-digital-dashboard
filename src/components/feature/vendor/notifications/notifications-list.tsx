@@ -14,6 +14,7 @@ import {
 import type { Notification } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { NotificationCreateDialog } from "@/components/feature/vendor/notifications/notification-create-dialog";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type NotificationView = Notification & {
   read: boolean;
@@ -45,6 +46,7 @@ export function VendorNotificationsList({ initialData, limit = 10 }: Props) {
   const params = useMemo(() => ({ limit }), [limit]);
   const { data: notifs = [] } = useNotifications(params, initialData);
   const { updateStatus } = useNotificationActions();
+  const confirm = useConfirm();
 
   const notifications: NotificationView[] = (notifs ?? []).map((n: any) => ({
     ...n,
@@ -55,6 +57,14 @@ export function VendorNotificationsList({ initialData, limit = 10 }: Props) {
 
   const markAllAsRead = async () => {
     const unread = notifications.filter((n) => !n.read);
+    if (!unread.length) return;
+    const ok = await confirm({
+      variant: "edit",
+      title: "Tandai semua terbaca?",
+      description: `${unread.length} notifikasi akan ditandai sebagai terbaca.`,
+      confirmText: "Tandai",
+    });
+    if (!ok) return;
     await Promise.all(
       unread.map((n) => updateStatus.mutateAsync({ id: n.id, status: "read" }))
     );

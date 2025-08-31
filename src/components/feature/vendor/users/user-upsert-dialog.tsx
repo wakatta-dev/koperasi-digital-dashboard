@@ -31,6 +31,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { PlusIcon, Edit } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   user?: User;
@@ -42,6 +43,7 @@ export function UserUpsertDialog({ user, trigger }: Props) {
   const [open, setOpen] = useState(false);
   const { create, update } = useUserActions();
   const { data: roles = [] } = useRoles();
+  const confirm = useConfirm();
 
   const form = useForm<any>({
     resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
@@ -63,6 +65,15 @@ export function UserUpsertDialog({ user, trigger }: Props) {
 
   const onSubmit = async (values: any) => {
     try {
+      const ok = await confirm({
+        variant: isEdit ? "edit" : "create",
+        title: isEdit ? "Simpan perubahan user?" : "Buat user baru?",
+        description: isEdit
+          ? `Perubahan untuk ${values.email} akan disimpan.`
+          : `Akun ${values.email} akan dibuat.`,
+        confirmText: isEdit ? "Simpan" : "Buat",
+      });
+      if (!ok) return;
       if (isEdit) {
         await update.mutateAsync({
           id: user!.id,

@@ -26,6 +26,7 @@ import {
   useTenantModules,
 } from "@/hooks/queries/tenants";
 import { useRoles } from "@/hooks/queries/roles";
+import { useConfirm } from "@/hooks/use-confirm";
 import {
   Select,
   SelectContent,
@@ -52,6 +53,7 @@ export default function TenantDetailClient({
   initialError,
 }: Props) {
   const router = useRouter();
+  const confirm = useConfirm();
   const { update, updateStatus, addUser, updateModule } = useTenantActions();
   const { data: tenant } = useTenant(id, initialTenant);
   const { data: users } = useTenantUsers(id, undefined, initialUsers);
@@ -92,6 +94,13 @@ export default function TenantDetailClient({
 
   const onSubmitTenant = async (e: React.FormEvent) => {
     e.preventDefault();
+    const ok = await confirm({
+      variant: "edit",
+      title: "Simpan perubahan tenant?",
+      description: "Perubahan data tenant akan disimpan.",
+      confirmText: "Simpan",
+    });
+    if (!ok) return;
     setStatusError(undefined);
     try {
       await update.mutateAsync({ id, payload: formValues });
@@ -104,11 +113,19 @@ export default function TenantDetailClient({
 
   const onSubmitStatus = async (e: React.FormEvent) => {
     e.preventDefault();
+    const nextStatus = statusChecked ? "active" : "inactive";
+    const ok = await confirm({
+      variant: "edit",
+      title: "Ubah status tenant?",
+      description: `Status akan diubah menjadi ${nextStatus}.`,
+      confirmText: "Ubah",
+    });
+    if (!ok) return;
     setStatusError(undefined);
     try {
       await updateStatus.mutateAsync({
         id,
-        status: statusChecked ? "active" : "inactive",
+        status: nextStatus,
       });
       setStatusMessage("Status updated");
       router.refresh();
@@ -129,6 +146,13 @@ export default function TenantDetailClient({
     }
     const role_id = Number(selectedRoleId);
 
+    const ok = await confirm({
+      variant: "create",
+      title: "Tambah pengguna baru?",
+      description: `Akun ${email} akan dibuat.`,
+      confirmText: "Buat",
+    });
+    if (!ok) return;
     setStatusError(undefined);
     try {
       await addUser.mutateAsync({
@@ -150,6 +174,13 @@ export default function TenantDetailClient({
     const module_id = Number(fd.get("module_id") ?? "");
     const status = String(fd.get("status") ?? "");
 
+    const ok = await confirm({
+      variant: "edit",
+      title: "Simpan perubahan modul?",
+      description: `Status modul akan diubah menjadi ${status}.`,
+      confirmText: "Simpan",
+    });
+    if (!ok) return;
     setStatusError(undefined);
     try {
       await updateModule.mutateAsync({ id, module_id, status });

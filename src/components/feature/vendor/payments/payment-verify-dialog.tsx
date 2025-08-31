@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -29,6 +30,7 @@ export function PaymentVerifyDialog({ trigger }: Props) {
   const [gateway, setGateway] = useState("");
   const [externalId, setExternalId] = useState("");
   const { verifyVendorPay } = useBillingActions();
+  const confirm = useConfirm();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +38,13 @@ export function PaymentVerifyDialog({ trigger }: Props) {
     try {
       const id = paymentId.trim();
       if (!id) return;
+      const ok = await confirm({
+        variant: "edit",
+        title: "Verifikasi pembayaran?",
+        description: `Payment ID ${id} akan diubah menjadi ${status}.`,
+        confirmText: "Verifikasi",
+      });
+      if (!ok) return;
       await verifyVendorPay.mutateAsync({
         id,
         payload: {
@@ -129,4 +138,3 @@ export function PaymentVerifyDialog({ trigger }: Props) {
     </Dialog>
   );
 }
-

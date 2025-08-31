@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { PlusIcon, Trash2 } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -36,6 +37,7 @@ type Props = {
 export function InvoiceUpsertDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false);
   const { createVendorInv } = useBillingActions();
+  const confirm = useConfirm();
 
   const form = useForm<z.input<typeof createInvoiceSchema>>({
     resolver: zodResolver(createInvoiceSchema),
@@ -72,6 +74,13 @@ export function InvoiceUpsertDialog({ trigger }: Props) {
         tenant_id: values.tenant_id ?? undefined,
         subscription_id: values.subscription_id ?? undefined,
       };
+      const ok = await confirm({
+        variant: "create",
+        title: "Buat invoice?",
+        description: `Invoice ${values.number || "baru"} akan dibuat dengan total ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(total)}.`,
+        confirmText: "Buat",
+      });
+      if (!ok) return;
       await createVendorInv.mutateAsync(payload);
       setOpen(false);
     } catch (_e) {}

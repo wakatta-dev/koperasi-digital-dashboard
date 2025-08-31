@@ -31,11 +31,13 @@ import {
   type CreateTenantSchema,
 } from "@/validators/tenant";
 import { useTenantActions } from "@/hooks/queries/tenants";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function TenantCreateDialog() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { create } = useTenantActions();
+  const confirm = useConfirm();
   const form = useForm<CreateTenantSchema>({
     resolver: zodResolver(createTenantSchema),
     defaultValues: {
@@ -47,6 +49,13 @@ export function TenantCreateDialog() {
 
   const onSubmit = async (values: CreateTenantSchema) => {
     try {
+      const ok = await confirm({
+        variant: "create",
+        title: "Buat tenant baru?",
+        description: `Tenant ${values.name} akan dibuat.`,
+        confirmText: "Buat",
+      });
+      if (!ok) return;
       await create.mutateAsync(values);
       setOpen(false);
       router.refresh();

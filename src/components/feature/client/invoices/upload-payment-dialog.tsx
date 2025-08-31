@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   invoiceId: string | number;
@@ -29,6 +30,7 @@ export function UploadPaymentDialog({ invoiceId, trigger }: Props) {
   const [gateway, setGateway] = useState("");
   const [externalId, setExternalId] = useState("");
   const { createClientPayment } = useBillingActions();
+  const confirm = useConfirm();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +42,13 @@ export function UploadPaymentDialog({ invoiceId, trigger }: Props) {
         gateway: gateway || undefined,
         external_id: externalId || undefined,
       } as any;
+      const ok = await confirm({
+        variant: "create",
+        title: "Kirim bukti pembayaran?",
+        description: "Data pembayaran akan dikirim ke server.",
+        confirmText: "Kirim",
+      });
+      if (!ok) return;
       await createClientPayment.mutateAsync({ invoiceId, payload });
       setOpen(false);
       setProofUrl("");
@@ -108,4 +117,3 @@ export function UploadPaymentDialog({ invoiceId, trigger }: Props) {
     </Dialog>
   );
 }
-

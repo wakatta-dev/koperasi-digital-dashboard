@@ -9,6 +9,7 @@ import "./globals.css";
 import SessionProviderWrapper from "@/components/session-provider";
 import { LanguageProvider } from "@/contexts/language-context";
 import QueryProvider from "@/components/query-provider";
+import { ConfirmDialogProvider } from "@/components/shared/confirm-dialog-provider";
 
 export const metadata: Metadata = {
   title: "Multi-Tenant Dashboard",
@@ -32,7 +33,9 @@ export default function RootLayout({
         <SessionProviderWrapper>
           <QueryProvider>
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-              <LanguageProvider>{children}</LanguageProvider>
+              <LanguageProvider>
+                <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
+              </LanguageProvider>
             </ThemeProvider>
           </QueryProvider>
         </SessionProviderWrapper>

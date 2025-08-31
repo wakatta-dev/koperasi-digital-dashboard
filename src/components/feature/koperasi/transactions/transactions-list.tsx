@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TransactionsExportButton } from "./transactions-export-button";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   initialData?: Transaction[];
@@ -18,6 +19,7 @@ type Props = {
 export function TransactionsList({ initialData }: Props) {
   const { data: txs = [] } = useTransactions(undefined, initialData);
   const { create, remove } = useTransactionActions();
+  const confirm = useConfirm();
   const [form, setForm] = useState<any>({
     type: "CashIn",
     category: "operasional",
@@ -67,6 +69,13 @@ export function TransactionsList({ initialData }: Props) {
           <div className="mt-3">
             <Button
               onClick={async () => {
+                const ok = await confirm({
+                  variant: "create",
+                  title: "Simpan transaksi?",
+                  description: "Transaksi baru akan dibuat.",
+                  confirmText: "Simpan",
+                });
+                if (!ok) return;
                 await create.mutateAsync(form);
                 setForm((s: any) => ({ ...s, amount: 0, description: "" }));
               }}
@@ -98,7 +107,22 @@ export function TransactionsList({ initialData }: Props) {
                   <div className="text-xs text-muted-foreground">{t.payment_method}</div>
                 </div>
                 <div>
-                  <Button variant="ghost" size="sm" onClick={() => remove.mutate(t.id)}>Hapus</Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      const ok = await confirm({
+                        variant: "delete",
+                        title: "Hapus transaksi?",
+                        description: "Tindakan ini tidak dapat dibatalkan.",
+                        confirmText: "Hapus",
+                      });
+                      if (!ok) return;
+                      remove.mutate(t.id);
+                    }}
+                  >
+                    Hapus
+                  </Button>
                 </div>
               </div>
             ))}

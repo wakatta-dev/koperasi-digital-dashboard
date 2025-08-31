@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlanUpsertDialog } from "@/components/feature/vendor/plans/plan-upsert-dialog";
+import { useConfirm } from "@/hooks/use-confirm";
 
 import { motion } from "framer-motion";
 
@@ -28,6 +29,7 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
   const params = useMemo(() => ({ limit }), [limit]);
   const { data: plans = [] } = useVendorPlans(params, initialData);
   const { deletePlan } = useBillingActions();
+  const confirm = useConfirm();
 
   return (
     <div className="space-y-6">
@@ -102,7 +104,16 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
                       variant="ghost"
                       size="icon"
                       type="button"
-                      onClick={() => deletePlan.mutate(plan.id)}
+                      onClick={async () => {
+                        const ok = await confirm({
+                          variant: "delete",
+                          title: "Hapus plan?",
+                          description: `Plan ${plan.name} akan dihapus.`,
+                          confirmText: "Hapus",
+                        });
+                        if (!ok) return;
+                        deletePlan.mutate(plan.id);
+                      }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

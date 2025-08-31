@@ -18,15 +18,21 @@ Referensi implementasi utama terdapat pada:
 
 - Repository: query agregasi ke tabel `cash_transactions`, `ledger_entries`, dan `billing.invoices` (grouping by month/per account).
 - Service: merangkai DTO laporan dari hasil agregasi repository.
-- Handler (HTTP): endpoint untuk finance summary dan billing summary.
+- Handler (HTTP): endpoint untuk finance summary, billing summary, cash flow, profit/loss, dan balance sheet.
 
 ## Entitas (DTO) & Skema
 
 - FinanceReportResponse
   - `total_income`, `total_expense`, `ending_balance`, `by_period[]` (`month`, `income`, `expense`)
 - BillingReportResponse
-  - `total_invoices`, `total_paid`, `total_pending`, `outstanding_amount`, `overdue_invoices[]` (`id`, `number`, `tenant_id`, `total`, `due_date`)
-- LedgerReportRow (untuk laporan detail di service): `account_code`, `account_name`, `debit`, `credit`
+  - `total_invoices`, `status_detail{paid,pending,overdue}`, `revenue{outstanding,subscription}`, `overdue_invoices[]` (`id`, `number`, `tenant_id`, `total`, `due_date`)
+- CashflowReportResponse
+  - `total_cash_in`, `total_cash_out`, `data[]` (`label`, `cash_in`, `cash_out`)
+- ProfitLossReportResponse
+  - `net_profit`, `data[]` (`label`, `profit`, `loss`)
+- BalanceSheetReportResponse
+  - `total_assets`, `total_liabilities`, `breakdown[]` (`account`, `amount`)
+- LedgerReportRow (untuk kebutuhan internal di service): `account_code`, `account_name`, `debit`, `credit`
 
 ## Alur Bisnis Utama
 
@@ -43,6 +49,9 @@ Semua response menggunakan format `APIResponse`.
 
 - `GET /reports/finance?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — ringkasan kas per periode.
 - `GET /reports/billing?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — ringkasan billing per periode.
+- `GET /reports/cashflow?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — ringkasan arus kas beserta total in/out per kategori.
+- `GET /reports/profit-loss?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — laporan laba rugi beserta net profit per akun.
+- `GET /reports/balance-sheet?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — laporan neraca dengan total aset/liabilitas dan breakdown akun.
 
 Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
 
@@ -66,7 +75,31 @@ Header umum:
     - `start` (opsional, `YYYY-MM-DD`)
     - `end` (opsional, `YYYY-MM-DD`)
   - Response 200: `data` BillingReportResponse
-    - `total_invoices`, `total_paid`, `total_pending`, `outstanding_amount`, `overdue_invoices[]` (`id`, `number`, `tenant_id`, `total`, `due_date`).
+    - `total_invoices`, `status_detail` (jumlah `paid`, `pending`, `overdue`), `revenue` (`outstanding`, `subscription`), `overdue_invoices[]` (`id`, `number`, `tenant_id`, `total`, `due_date`).
+
+- `GET /reports/cashflow`
+  - Query:
+    - `tenant_id` (wajib, int)
+    - `start` (opsional, `YYYY-MM-DD`)
+    - `end` (opsional, `YYYY-MM-DD`)
+  - Response 200: `data` CashflowReportResponse
+    - `total_cash_in`, `total_cash_out`, `data[]` (`label`, `cash_in`, `cash_out`).
+
+- `GET /reports/profit-loss`
+  - Query:
+    - `tenant_id` (wajib, int)
+    - `start` (opsional, `YYYY-MM-DD`)
+    - `end` (opsional, `YYYY-MM-DD`)
+  - Response 200: `data` ProfitLossReportResponse
+    - `net_profit`, `data[]` (`label`, `profit`, `loss`).
+
+- `GET /reports/balance-sheet`
+  - Query:
+    - `tenant_id` (wajib, int)
+    - `start` (opsional, `YYYY-MM-DD`)
+    - `end` (opsional, `YYYY-MM-DD`)
+  - Response 200: `data` BalanceSheetReportResponse
+    - `total_assets`, `total_liabilities`, `breakdown[]` (`account`, `amount`).
 
 ## Contoh Response (Finance)
 
@@ -78,6 +111,64 @@ Header umum:
   "by_period": [
     {"month": "2025-07", "income": 6000000, "expense": 2000000},
     {"month": "2025-08", "income": 9000000, "expense": 3000000}
+  ]
+}
+```
+
+## Contoh Response (Billing)
+
+```json
+{
+  "total_invoices": 4,
+  "status_detail": {
+    "paid": 2,
+    "pending": 1,
+    "overdue": 1
+  },
+  "revenue": {
+    "outstanding": 750,
+    "subscription": 300
+  },
+  "overdue_invoices": [
+    {"id": 3, "number": "INV3", "tenant_id": 1, "total": 250, "due_date": "2025-08-01T00:00:00Z"}
+  ]
+}
+```
+
+## Contoh Response (Cashflow)
+
+```json
+{
+  "total_cash_in": 1200,
+  "total_cash_out": 800,
+  "data": [
+    {"label": "operational", "cash_in": 700, "cash_out": 500},
+    {"label": "investment", "cash_in": 500, "cash_out": 300}
+  ]
+}
+```
+
+## Contoh Response (Profit/Loss)
+
+```json
+{
+  "net_profit": 400,
+  "data": [
+    {"label": "sales", "profit": 700, "loss": 200},
+    {"label": "other", "profit": 100, "loss": 200}
+  ]
+}
+```
+
+## Contoh Response (Balance Sheet)
+
+```json
+{
+  "total_assets": 1500,
+  "total_liabilities": 900,
+  "breakdown": [
+    {"account": "cash", "amount": 600},
+    {"account": "inventory", "amount": 900}
   ]
 }
 ```
@@ -102,7 +193,7 @@ Header umum:
 ## Catatan Implementasi
 
 - Ekspresi tanggal menyesuaikan dialektor DB (Postgres vs SQLite) untuk grouping bulanan.
-- Tersedia metode service untuk laporan tambahan (cash flow, profit/loss, balance sheet) meski belum diekspos rute publik.
+- Endpoint cash flow, profit/loss, dan balance sheet menyertakan KPI ringkas dan struktur khusus untuk visualisasi.
 
 ## Peran Modul Reporting per Jenis Tenant (Rangkuman)
 
@@ -113,3 +204,4 @@ Header umum:
 
 1. Bendahara melihat ringkasan kas bulan berjalan melalui `/reports/finance`.
 2. Admin memantau jumlah invoice overdue melalui `/reports/billing`.
+3. Akuntan menyusun laporan neraca melalui `/reports/balance-sheet`.
