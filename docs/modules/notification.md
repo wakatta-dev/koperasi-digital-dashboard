@@ -45,7 +45,7 @@ Referensi implementasi utama terdapat pada:
 Semua response menggunakan format `APIResponse`.
 
 - `POST /notifications` — buat notifikasi.
-- `GET /notifications?tenant_id={id}&user_id={id?}&type={t?}&status={s?}&from={RFC3339?}&to={RFC3339?}&limit={n}&cursor={c?}` — daftar notifikasi (cursor id uuid).
+- `GET /notifications?tenant_id={id?}&user_id={id?}&type={t?}&status={s?}&from={RFC3339?}&to={RFC3339?}&limit={n}&cursor={c?}` — daftar notifikasi (cursor id uuid). Jika `tenant_id` tidak dikirim, sistem mengambil dari context (header `X-Tenant-ID`/domain).
 - `PATCH /notifications/{id}` — update `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`).
 
 Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
@@ -69,7 +69,7 @@ Header umum:
 
 - `GET /notifications`
   - Query:
-    - `tenant_id` (wajib)
+    - `tenant_id` (opsional; default dari context/`X-Tenant-ID`)
     - `user_id` (opsional)
     - `type` (opsional)
     - `status` (opsional)

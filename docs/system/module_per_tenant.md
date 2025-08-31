@@ -23,7 +23,7 @@
 (Fokus pengelolaan SaaS: produk, portofolio klien, penagihan, dukungan)
 
 - Dashboard Vendor
-- Products (paket & add-on)
+- Plans (paket & add-on)
 
 ---
 
