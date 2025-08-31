@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlanUpsertDialog } from "@/components/feature/vendor/plans/plan-upsert-dialog";
 
+import { motion } from "framer-motion";
+
 type Props = {
   initialData?: Plan[];
   limit?: number;
@@ -56,9 +58,12 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {plans.map((plan) => (
-              <div
+            {plans.map((plan, index) => (
+              <motion.div
                 key={plan.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
                 className="flex items-center justify-between p-4 border rounded-lg"
               >
                 <div className="flex items-center gap-4">
@@ -103,7 +108,7 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
                     </Button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </CardContent>
