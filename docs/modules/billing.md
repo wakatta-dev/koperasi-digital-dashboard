@@ -24,7 +24,7 @@ Catatan: Aktivasi/nonaktif modul tenant dilakukan via entitas `tenant.TenantModu
 - Service: logika bisnis billing (hitung total invoice, penomoran, validasi, perubahan status, audit, re-aktivasi modul ketika pembayaran diverifikasi, penandaan overdue, dsb.).
 - Handler (HTTP): validasi input, parsing query/path, memanggil service, dan menuliskan response yang terstandarisasi.
 - AuditService: mencatat histori perubahan status untuk invoice dan subscription.
-- Finance: integrasi sederhana untuk pencatatan kas masuk saat pembayaran terverifikasi.
+- Finance: integrasi sederhana untuk pencatatan kas masuk saat pembayaran terverifikasi melalui `CreateTransaction`.
 
 ## Entitas & Skema Data
 
@@ -173,7 +173,7 @@ Semua perubahan status dicatat ke `StatusAudit` untuk audit trail.
   - Saat subscription `suspended` atau invoice `overdue`, Billing memanggil `DeactivateTenantModules(tenantID)` untuk menonaktifkan seluruh modul tenant.
   - Saat payment `verified`, Billing memanggil `ActivateTenantModules(tenantID)` dan, jika invoice terkait subscription, status subscription dikembalikan ke `active`.
 - Integrasi Keuangan
-  - Setelah payment `verified`, Billing mencatat transaksi kas masuk via modul Finance (`RecordCashIn`).
+  - Setelah payment `verified`, Billing mencatat transaksi kas masuk via modul Finance menggunakan `CreateTransaction`.
 
 Dampak per jenis tenant:
 - Vendor: tidak dinonaktifkan oleh mekanisme ini; Vendor adalah pengelola, bukan tenant yang terbatas modulnya.
