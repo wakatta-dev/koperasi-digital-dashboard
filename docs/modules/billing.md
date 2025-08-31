@@ -114,6 +114,113 @@ Keamanan: semua endpoint membutuhkan `Bearer` token, dan konteks tenant (mis. he
 - Subscription
   - `GET /client/subscription`: status langganan saat ini dan saran aksi (`extend` atau `pay`).
 
+## Rincian Endpoint (Params, Payload, Response)
+
+Header umum (kecuali disebut sebaliknya):
+- Authorization: `Bearer <token>`
+- `X-Tenant-ID`: ID tenant (opsional jika penentuan berdasarkan domain host sudah aktif)
+
+### Vendor / Plans
+
+- `GET /vendor/plans/?limit={n}&cursor={cursor?}`
+  - Query: `limit` (wajib, int > 0), `cursor` (opsional, string id terakhir)
+  - Response 200: `data` berupa array Plan, `meta.pagination` berisi `next_cursor`, `has_next`, `has_prev`, `limit`.
+
+- `POST /vendor/plans/`
+  - Body Plan:
+    - `name` (string, wajib)
+    - `price` (number, wajib)
+    - `duration_months` (int, wajib, > 0)
+  - Response 201: `data` Plan yang dibuat.
+
+- `GET /vendor/plans/{id}`
+  - Path: `id` (int, wajib)
+  - Response 200: `data` Plan; 404 bila tidak ditemukan.
+
+- `PUT /vendor/plans/{id}`
+  - Path: `id` (int, wajib)
+  - Body Plan (field yang diubah): `name`, `price`, `duration_months`
+  - Response 200: `data` Plan setelah diperbarui.
+
+- `DELETE /vendor/plans/{id}`
+  - Path: `id` (int, wajib)
+  - Response 200: `data` `{ "id": <int> }`.
+
+### Vendor / Invoices
+
+- `GET /vendor/invoices/?limit={n}&cursor={cursor?}&status={s?}&periode={YYYY-MM?}`
+  - Query:
+    - `limit` (wajib, int > 0)
+    - `cursor` (opsional, string id terakhir)
+    - `status` (opsional, `pending|paid|overdue`)
+    - `periode` (opsional, `YYYY-MM`)
+  - Response 200: `data` array Invoice, dengan pagination.
+
+- `POST /vendor/invoices/`
+  - Body Invoice:
+    - `tenant_id` (uint, wajib)
+    - `due_date` (RFC3339, wajib)
+    - `subscription_id` (uint, opsional)
+    - `number` (string, opsional; jika kosong dibuat otomatis unik)
+    - `items[]` (wajib, minimal 1): elemen `description` (string), `quantity` (int>0), `price` (number>=0)
+  - Response 201: `data` Invoice (dengan `total` dihitung dari items).
+
+- `PATCH /vendor/invoices/{id}`
+  - Path: `id` (int, wajib)
+  - Body Invoice (field yang diubah): `number`, `due_date`, `items[]`, `subscription_id`
+  - Response 200: `data` Invoice setelah diperbarui.
+
+- `DELETE /vendor/invoices/{id}`
+  - Path: `id` (int, wajib)
+  - Response 200: `data` `{ "id": <int> }`.
+
+### Vendor / Payments
+
+- `PATCH /vendor/payments/{id}/verify`
+  - Path: `id` (int, wajib)
+  - Body VerifyPaymentRequest:
+    - `status` (wajib, `verified|rejected`)
+    - `gateway` (opsional, mis. `midtrans`)
+    - `external_id` (opsional, referensi eksternal)
+  - Response 200: `data` Payment (status terbaru). Jika `verified` maka efek samping: Invoice→`paid`, aktivasi modul tenant, pencatatan transaksi Finance.
+
+### Vendor / Subscriptions
+
+- `GET /vendor/subscriptions/summary`
+  - Response 200: `data` `{ "active": <int64>, "suspended": <int64>, "overdue": <int64> }`.
+
+### Vendor / Audit
+
+- `GET /vendor/audits/?limit={n}&cursor={cursor?}`
+  - Query: `limit` (wajib, int>0), `cursor` (opsional)
+  - Response 200: `data` array StatusAudit, pagination tersedia.
+
+### Client (Tenant)
+
+- `GET /client/invoices/?limit={n}&cursor={cursor?}`
+  - Query: `limit` (wajib, int>0), `cursor` (opsional)
+  - Response 200: `data` array Invoice milik tenant pemanggil.
+
+- `GET /client/invoices/{id}`
+  - Path: `id` (int, wajib; harus milik tenant)
+  - Response 200: `data` Invoice; 404 jika tidak ditemukan atau bukan milik tenant.
+
+- `POST /client/invoices/{id}/payments`
+  - Path: `id` (int, wajib; invoice milik tenant)
+  - Body PaymentRequest:
+    - `method` (wajib, saat ini hanya `manual`)
+    - `proof_url` (wajib untuk `manual`)
+    - `gateway` (opsional)
+    - `external_id` (opsional)
+  - Response 201: `data` Payment dengan status awal `pending`.
+
+- `GET /client/invoices/{id}/audits`
+  - Path: `id` (int, wajib)
+  - Response 200: `data` array StatusAudit milik invoice tersebut.
+
+- `GET /client/subscription`
+  - Response 200: `data` `{ "status": "active|suspended|overdue|pending|cancelled", "action": "extend|pay" }`.
+
 ## Contoh Payload
 
 - Invoice (POST/PUT)

@@ -78,6 +78,50 @@ Modul ini menyediakan endpoint dasar untuk mengelola transaksi serta ekspor data
 - `DELETE /transactions/:id` — hapus transaksi.
 - `GET /transactions/export?format=csv|xlsx` — ekspor data transaksi.
 
+## Rincian Endpoint (Params, Payload, Response)
+
+Header umum:
+- Authorization: `Bearer <token>`
+- `X-Tenant-ID`: ID tenant (atau gunakan domain)
+
+- `POST /transactions`
+  - Body CreateTransactionRequest:
+    - `transaction_date` (RFC3339, opsional; default now)
+    - `type` (wajib, `CashIn|CashOut|Transfer`)
+    - `category` (wajib, salah satu dari `simpanan|pinjaman|operasional|penjualan|pembelian_aset`)
+    - `amount` (wajib, number)
+    - `payment_method` (wajib, string)
+    - `description` (opsional)
+    - `debit_account_code`, `debit_account_name` (wajib)
+    - `credit_account_code`, `credit_account_name` (wajib)
+  - Response 201: `data` Transaction lengkap beserta `ledger_entries` debit/kredit.
+
+- `GET /transactions`
+  - Query filter (opsional):
+    - `start` (YYYY-MM-DD), `end` (YYYY-MM-DD)
+    - `type` (`CashIn|CashOut|Transfer`)
+    - `category` (lihat kategori di atas)
+    - `min_amount` (number), `max_amount` (number)
+  - Response 200: `data` array Transaction.
+
+- `GET /transactions/:id/history`
+  - Path: `id` (int, wajib)
+  - Response 200: `data` array TransactionHistory; 404 jika transaksi tidak ditemukan pada tenant yang sama.
+
+- `PATCH /transactions/:id`
+  - Path: `id` (int, wajib)
+  - Body UpdateTransactionRequest (seluruh field opsional; yang diisi akan diperbarui):
+    - `transaction_date`, `type`, `category`, `amount`, `payment_method`, `description`, `debit_*`, `credit_*`
+  - Response 200: `data` Transaction terbaru + riwayat audit dicatat.
+
+- `DELETE /transactions/:id`
+  - Path: `id` (int, wajib)
+  - Response 200: `data` `{ "id": <int> }` dan audit penghapusan dicatat.
+
+- `GET /transactions/export?format=csv|xlsx`
+  - Query filter sama dengan `GET /transactions` + `format` (opsional, default `csv`)
+  - Response 200: file CSV/XLSX untuk diunduh.
+
 ## Status & Transisi
 
 - `type` menentukan arah transaksi: `CashIn` (kas masuk), `CashOut` (kas keluar), atau `Transfer`.
