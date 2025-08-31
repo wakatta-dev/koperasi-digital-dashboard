@@ -42,3 +42,29 @@ export interface Payment {
   external_id?: string;
   created_at: string;
 }
+
+// Additional types to cover docs/modules/billing.md
+export interface SubscriptionSummary {
+  active: number;
+  suspended: number;
+  overdue: number;
+}
+
+export interface StatusAudit {
+  id: number;
+  entity: string; // e.g., "invoice" | "subscription"
+  entity_id: number;
+  old_status?: string | null;
+  new_status: string;
+  created_at: string;
+}
+
+export interface Subscription {
+  id: number;
+  tenant_id: number;
+  plan_id: number;
+  status: string;
+  start_date: string;
+  end_date?: string | null;
+  plan?: Plan;
+}

@@ -16,6 +16,11 @@ import {
   getVendorPlan,
   updateVendorPlan,
   deleteVendorPlan,
+  getClientInvoice,
+  listClientInvoiceAudits,
+  getClientSubscription,
+  getVendorSubscriptionsSummary,
+  listVendorAudits,
 } from "@/services/api";
 
 export async function listInvoicesAction(type: "vendor" | "client" = "client") {
@@ -139,3 +144,31 @@ export async function deleteVendorPlanAction(id: string | number) {
 export type DeleteVendorPlanActionResult = Awaited<
   ReturnType<typeof deleteVendorPlanAction>
 >;
+
+export async function getClientInvoiceAction(id: string | number) {
+  const res = await getClientInvoice(id);
+  return ensureSuccess(res);
+}
+
+export async function listClientInvoiceAuditsAction(
+  id: string | number,
+  params?: { limit?: number; cursor?: string }
+) {
+  const res = await listClientInvoiceAudits(id, params);
+  return ensureSuccess(res);
+}
+
+export async function getClientSubscriptionAction() {
+  const res = await getClientSubscription();
+  return ensureSuccess(res);
+}
+
+export async function getVendorSubscriptionsSummaryAction() {
+  const res = await getVendorSubscriptionsSummary();
+  return ensureSuccess(res);
+}
+
+export async function listVendorAuditsAction(params?: { limit?: number; cursor?: string }) {
+  const res = await listVendorAudits(params);
+  return ensureSuccess(res);
+}

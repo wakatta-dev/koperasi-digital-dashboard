@@ -9,6 +9,12 @@ export const API_ENDPOINTS = {
     users: (id: string | number) => `/tenants/${id}/users`,
     modules: (id: string | number) => `/tenants/${id}/modules`,
   },
+  transactions: {
+    list: "/transactions",
+    detail: (id: string | number) => `/transactions/${id}`,
+    history: (id: string | number) => `/transactions/${id}/history`,
+    export: "/transactions/export",
+  },
   auth: {
     login: "/auth/login",
     refresh: "/auth/refresh",
@@ -34,7 +40,7 @@ export const API_ENDPOINTS = {
   notifications: {
     list: "/notifications",
     create: "/notifications",
-    status: (id: string | number) => `/notifications/${id}/status`,
+    status: (id: string | number) => `/notifications/${id}`,
   },
   billing: {
     vendor: {
@@ -46,14 +52,26 @@ export const API_ENDPOINTS = {
       payments: (id: string | number) => ({
         verify: `/vendor/payments/${id}/verify`,
       }),
+      subscriptions: {
+        summary: "/vendor/subscriptions/summary",
+      },
+      audits: (limit: number, cursor?: string) =>
+        `/vendor/audits?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
     },
     client: {
       invoices: (limit: number, cursor?: string) =>
         `/client/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       invoice: (id: string | number) => ({
+        detail: `/client/invoices/${id}`,
         payments: `/client/invoices/${id}/payments`,
+        audits: `/client/invoices/${id}/audits`,
       }),
+      subscription: "/client/subscription",
     },
+  },
+  reports: {
+    finance: "/reports/finance",
+    billing: "/reports/billing",
   },
 } as const;
 

@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { UploadPaymentDialog } from "./upload-payment-dialog";
+import Link from "next/link";
 
 type Props = {
   initialData?: Invoice[];
@@ -91,6 +92,9 @@ export function ClientInvoicesList({ initialData }: Props) {
                   </Badge>
 
                   <div className="flex items-center gap-2">
+                    <Link href={`/koperasi/tagihan/${invoice.id}`} className="text-sm text-muted-foreground hover:underline">
+                      Detail
+                    </Link>
                     {invoice.status !== "paid" && (
                       <UploadPaymentDialog invoiceId={invoice.id} />
                     )}
@@ -110,4 +114,3 @@ export function ClientInvoicesList({ initialData }: Props) {
     </div>
   );
 }
-

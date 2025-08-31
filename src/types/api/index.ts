@@ -7,3 +7,5 @@ export * from "./tenant";
 export * from "./role";
 export * from "./user";
 export * from "./notification";
+export * from "./reporting";
+export * from "./transactions";

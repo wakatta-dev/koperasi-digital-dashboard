@@ -9,3 +9,5 @@ export * from "./users";
 export * from "./roles";
 export * from "./notifications";
 export * from "./billing";
+export * from "./reporting";
+export * from "./transactions";

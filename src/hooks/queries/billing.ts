@@ -20,6 +20,8 @@ import {
 } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
+import type { StatusAudit, Subscription, SubscriptionSummary } from "@/types/api";
+import { getClientInvoice, getClientSubscription, listClientInvoiceAudits, getVendorSubscriptionsSummary, listVendorAudits } from "@/services/api";
 
 export function useVendorPlans(
   params: { limit: number; cursor?: string },
@@ -57,6 +59,61 @@ export function useClientInvoices(initialData?: Invoice[] | undefined) {
   return useQuery({
     queryKey: QK.billing.client.invoices(),
     queryFn: async () => ensureSuccess(await listClientInvoices()),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useClientInvoice(
+  id?: string | number,
+  initialData?: Invoice | undefined
+) {
+  return useQuery({
+    queryKey: QK.billing.client.invoice(id ?? ""),
+    enabled: !!id,
+    queryFn: async () => ensureSuccess(await getClientInvoice(id as string | number)),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useClientInvoiceAudits(
+  id?: string | number,
+  params?: { limit?: number; cursor?: string },
+  initialData?: StatusAudit[] | undefined
+) {
+  return useQuery({
+    queryKey: QK.billing.client.invoiceAudits(id ?? "", params),
+    enabled: !!id,
+    queryFn: async () => ensureSuccess(await listClientInvoiceAudits(id as string | number, params)),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useClientSubscription(initialData?: Subscription | undefined) {
+  return useQuery({
+    queryKey: QK.billing.client.subscription(),
+    queryFn: async () => ensureSuccess(await getClientSubscription()),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useVendorSubscriptionsSummary(
+  initialData?: SubscriptionSummary | undefined
+) {
+  return useQuery({
+    queryKey: QK.billing.vendor.subscriptions.summary(),
+    queryFn: async () => ensureSuccess(await getVendorSubscriptionsSummary()),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useVendorAudits(
+  params?: { limit?: number; cursor?: string },
+  initialData?: StatusAudit[] | undefined
+) {
+  const final = { limit: params?.limit ?? 50, cursor: params?.cursor };
+  return useQuery({
+    queryKey: QK.billing.vendor.audits(final),
+    queryFn: async () => ensureSuccess(await listVendorAudits(final)),
     ...(initialData ? { initialData } : {}),
   });
 }

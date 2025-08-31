@@ -1,7 +1,15 @@
 /** @format */
 
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, Plan, Invoice, Payment } from "@/types/api";
+import type {
+  ApiResponse,
+  Plan,
+  Invoice,
+  Payment,
+  SubscriptionSummary,
+  StatusAudit,
+  Subscription,
+} from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
 export function listVendorPlans(params: {
@@ -106,5 +114,59 @@ export function verifyVendorPayment(
   return api.patch<Payment>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`,
     payload ?? {}
+  );
+}
+
+// Additional endpoints based on docs/modules/billing.md
+
+export function getVendorSubscriptionsSummary(): Promise<
+  ApiResponse<SubscriptionSummary>
+> {
+  return api.get<SubscriptionSummary>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.subscriptions.summary}`
+  );
+}
+
+export function listVendorAudits(params?: {
+  limit?: number;
+  cursor?: string;
+}): Promise<ApiResponse<StatusAudit[]>> {
+  const final = { limit: params?.limit ?? 100, cursor: params?.cursor } as {
+    limit: number;
+    cursor?: string;
+  };
+  const search = new URLSearchParams({ limit: String(final.limit) });
+  if (final.cursor) search.set("cursor", final.cursor);
+  return api.get<StatusAudit[]>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.audits(
+      final.limit,
+      final.cursor
+    )}`
+  );
+}
+
+export function getClientInvoice(
+  id: string | number
+): Promise<ApiResponse<Invoice>> {
+  return api.get<Invoice>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(id).detail}`
+  );
+}
+
+export function listClientInvoiceAudits(
+  id: string | number,
+  params?: { limit?: number; cursor?: string }
+): Promise<ApiResponse<StatusAudit[]>> {
+  const search = new URLSearchParams();
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const q = search.toString();
+  const base = `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(id).audits}`;
+  return api.get<StatusAudit[]>(q ? `${base}?${q}` : base);
+}
+
+export function getClientSubscription(): Promise<ApiResponse<Subscription>> {
+  return api.get<Subscription>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.client.subscription}`
   );
 }
