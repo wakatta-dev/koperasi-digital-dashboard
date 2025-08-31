@@ -14,6 +14,8 @@ vi.mock("next-auth/react", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  // emulate Next.js useSearchParams hook
+  useSearchParams: () => new URLSearchParams(""),
 }));
 
 vi.mock("@/services/auth", async () => {
