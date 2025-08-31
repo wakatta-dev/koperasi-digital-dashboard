@@ -11,3 +11,6 @@ export * from "./notifications";
 export * from "./billing";
 export * from "./reporting";
 export * from "./transactions";
+export * from "./savings";
+export * from "./loans";
+export * from "./ticketing";

@@ -25,3 +25,31 @@ export interface BillingReportResponse {
   }>;
 }
 
+// Additional report DTOs based on docs/modules/reporting.md
+export interface CashflowReportResponse {
+  total_cash_in: number;
+  total_cash_out: number;
+  data: Array<{
+    label: string;
+    cash_in: number;
+    cash_out: number;
+  }>;
+}
+
+export interface ProfitLossReportResponse {
+  net_profit: number;
+  data: Array<{
+    label: string;
+    profit: number;
+    loss: number;
+  }>;
+}
+
+export interface BalanceSheetReportResponse {
+  total_assets: number;
+  total_liabilities: number;
+  breakdown: Array<{
+    account: string;
+    amount: number;
+  }>;
+}

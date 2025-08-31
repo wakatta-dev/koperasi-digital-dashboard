@@ -46,6 +46,9 @@ export const API_ENDPOINTS = {
     vendor: {
       plans: "/vendor/plans",
       plan: (id: string | number) => `/vendor/plans/${id}`,
+      // Base collection path for invoices
+      invoicesBase: "/vendor/invoices",
+      // Helper for GET list with limit/cursor (kept for back-compat)
       invoices: (limit: number, cursor?: string) =>
         `/vendor/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       invoice: (id: string | number) => `/vendor/invoices/${id}`,
@@ -59,6 +62,9 @@ export const API_ENDPOINTS = {
         `/vendor/audits?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
     },
     client: {
+      // Base collection path for invoices
+      invoicesBase: "/client/invoices",
+      // Helper for GET list with limit/cursor (kept for back-compat)
       invoices: (limit: number, cursor?: string) =>
         `/client/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       invoice: (id: string | number) => ({
@@ -72,6 +78,36 @@ export const API_ENDPOINTS = {
   reports: {
     finance: "/reports/finance",
     billing: "/reports/billing",
+    cashflow: "/reports/cashflow",
+    profitLoss: "/reports/profit-loss",
+    balanceSheet: "/reports/balance-sheet",
+  },
+  savings: {
+    deposit: (memberId: string | number) => `/coop/savings/${memberId}/deposit`,
+    verify: (transactionId: string | number) =>
+      `/coop/savings/${transactionId}/verify`,
+    withdraw: (memberId: string | number) => `/coop/savings/${memberId}/withdraw`,
+    approve: (transactionId: string | number) =>
+      `/coop/savings/${transactionId}/approve`,
+    transactions: (memberId: string | number) =>
+      `/coop/savings/${memberId}/transactions`,
+    proof: (transactionId: string | number) =>
+      `/coop/savings/${transactionId}/proof`,
+  },
+  loans: {
+    apply: "/coop/loans/apply",
+    approve: (id: string | number) => `/coop/loans/${id}/approve`,
+    disburse: (id: string | number) => `/coop/loans/${id}/disburse`,
+    installments: (id: string | number) => `/coop/loans/${id}/installments`,
+    payInstallment: (id: string | number) => `/coop/loans/installments/${id}/pay`,
+    releaseLetter: (id: string | number) => `/coop/loans/${id}/release-letter`,
+  },
+  tickets: {
+    list: "/tickets",
+    create: "/tickets",
+    detail: (id: string) => `/tickets/${id}`,
+    replies: (id: string) => `/tickets/${id}/replies`,
+    update: (id: string) => `/tickets/${id}`,
   },
 } as const;
 

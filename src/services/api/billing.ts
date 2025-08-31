@@ -54,17 +54,27 @@ export function deleteVendorPlan(
   );
 }
 
-export function listVendorInvoices(): Promise<ApiResponse<Invoice[]>> {
-  return api.get<Invoice[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices(5)}`
-  );
+export function listVendorInvoices(params?: {
+  limit?: number;
+  cursor?: string;
+  status?: string;
+  periode?: string; // YYYY-MM
+}): Promise<ApiResponse<Invoice[]>> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params?.limit ?? 100));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.status) search.set("status", params.status);
+  if (params?.periode) search.set("periode", params.periode);
+  const q = search.toString();
+  const base = `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoicesBase}`;
+  return api.get<Invoice[]>(q ? `${base}?${q}` : base);
 }
 
 export function createVendorInvoice(
   payload: Partial<Invoice>
 ): Promise<ApiResponse<Invoice>> {
   return api.post<Invoice>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoices(5)}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoicesBase}`,
     payload
   );
 }
@@ -73,7 +83,7 @@ export function updateVendorInvoice(
   id: string | number,
   payload: Partial<Invoice>
 ): Promise<ApiResponse<Invoice>> {
-  return api.put<Invoice>(
+  return api.patch<Invoice>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`,
     payload
   );
@@ -87,10 +97,16 @@ export function deleteVendorInvoice(
   );
 }
 
-export function listClientInvoices(): Promise<ApiResponse<Invoice[]>> {
-  return api.get<Invoice[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.client.invoices(5)}`
-  );
+export function listClientInvoices(params?: {
+  limit?: number;
+  cursor?: string;
+}): Promise<ApiResponse<Invoice[]>> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params?.limit ?? 100));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const q = search.toString();
+  const base = `${API_PREFIX}${API_ENDPOINTS.billing.client.invoicesBase}`;
+  return api.get<Invoice[]>(q ? `${base}?${q}` : base);
 }
 
 export function createPayment(
