@@ -41,7 +41,7 @@ type Props = {
 export function UserUpsertDialog({ user, trigger }: Props) {
   const isEdit = !!user;
   const [open, setOpen] = useState(false);
-  const { create, update } = useUserActions();
+  const { create, update, patchStatus } = useUserActions();
   const { data: roles = [] } = useRoles();
   const confirm = useConfirm();
 
@@ -80,20 +80,26 @@ export function UserUpsertDialog({ user, trigger }: Props) {
           payload: {
             full_name: values.full_name,
             email: values.email,
-            role_id: Number(values.role_id),
-            status: values.status,
+            tenant_role_id: Number(values.role_id),
           },
         });
+        // Patch status separately to match docs (PATCH /users/{id}/status)
+        if (typeof values.status === "boolean" && values.status !== !!user!.status) {
+          await patchStatus.mutateAsync({ id: user!.id, status: !!values.status });
+        }
       } else {
         const payload: any = {
           full_name: values.full_name,
           email: values.email,
-          role_id: Number(values.role_id),
+          tenant_role_id: Number(values.role_id),
           // server expects `password`; cast to any to satisfy typing
           password: values.password,
-          status: values.status,
         };
-        await create.mutateAsync(payload);
+        const created = await create.mutateAsync(payload);
+        // If user was toggled off at creation, patch status afterwards per docs
+        if (created?.id && values.status === false) {
+          await patchStatus.mutateAsync({ id: created.id, status: false });
+        }
       }
       setOpen(false);
     } catch (_e) {

@@ -47,7 +47,7 @@ export async function updateTenant(
 
 export async function updateTenantStatus(
   id: string | number,
-  payload: { status: string },
+  payload: { is_active: boolean },
 ): Promise<ApiResponse<Tenant>> {
   return updateTenantStatusService(id, payload);
 }
@@ -65,7 +65,7 @@ export async function addTenantUser(
     email: string;
     password: string;
     full_name: string;
-    role_id: number;
+    tenant_role_id: number;
   },
 ): Promise<ApiResponse<User>> {
   return addTenantUserService(id, payload);

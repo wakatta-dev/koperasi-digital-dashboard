@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tenant, User } from "@/types/api";
 import {
@@ -73,9 +74,7 @@ export default function TenantDetailClient({
     type: tenant?.type ?? "",
     domain: tenant?.domain ?? "",
   }));
-  const [statusChecked, setStatusChecked] = useState(
-    tenant?.status === "active"
-  );
+  const [statusChecked, setStatusChecked] = useState(!!tenant?.is_active);
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
 
   const isSaving = useMemo(
@@ -123,10 +122,7 @@ export default function TenantDetailClient({
     if (!ok) return;
     setStatusError(undefined);
     try {
-      await updateStatus.mutateAsync({
-        id,
-        status: nextStatus,
-      });
+      await updateStatus.mutateAsync({ id, is_active: statusChecked });
       setStatusMessage("Status updated");
       router.refresh();
     } catch (err: any) {
@@ -144,7 +140,7 @@ export default function TenantDetailClient({
       setStatusError("Role wajib dipilih");
       return;
     }
-    const role_id = Number(selectedRoleId);
+    const tenant_role_id = Number(selectedRoleId);
 
     const ok = await confirm({
       variant: "create",
@@ -157,7 +153,7 @@ export default function TenantDetailClient({
     try {
       await addUser.mutateAsync({
         id,
-        payload: { email, password, full_name, role_id },
+        payload: { email, password, full_name, tenant_role_id },
       });
       setStatusMessage("User added");
       e.currentTarget.reset();
@@ -391,9 +387,26 @@ export default function TenantDetailClient({
                         className="flex items-center gap-2"
                       >
                         <input type="hidden" name="module_id" value={mod.id} />
+                        <Badge
+                          variant={
+                            mod.status === "aktif" || mod.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {mod.status === "aktif" || mod.status === "active"
+                            ? "Active"
+                            : "Inactive"}
+                        </Badge>
                         <select
                           name="status"
-                          defaultValue={mod.status}
+                          defaultValue={
+                            mod.status === "aktif"
+                              ? "active"
+                              : mod.status === "nonaktif"
+                              ? "inactive"
+                              : mod.status
+                          }
                           className="border rounded px-2 py-1 text-sm"
                         >
                           <option value="active">Active</option>

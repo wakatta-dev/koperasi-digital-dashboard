@@ -74,7 +74,7 @@ export function useUserActions() {
   });
 
   const patchStatus = useMutation({
-    mutationFn: async (vars: { id: string | number; status: string }) =>
+    mutationFn: async (vars: { id: string | number; status: boolean }) =>
       ensureSuccess(await patchUserStatus(vars.id, { status: vars.status })),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.users.detail(vars.id) });

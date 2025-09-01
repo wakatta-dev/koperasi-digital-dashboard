@@ -50,7 +50,7 @@ export function updateTenant(
 
 export function updateTenantStatus(
   id: string | number,
-  payload: { status: string },
+  payload: { is_active: boolean },
 ): Promise<ApiResponse<Tenant>> {
   return api.patch<Tenant>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.status(id)}`,
@@ -72,7 +72,7 @@ export function listTenantUsers(
 
 export function addTenantUser(
   id: string | number,
-  payload: Partial<User> & { role_id?: number; password?: string },
+  payload: Partial<User> & { tenant_role_id?: number; password?: string },
 ): Promise<ApiResponse<User>> {
   return api.post<User>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.users(id)}`,
@@ -96,8 +96,18 @@ export function updateTenantModule(
   id: string | number,
   payload: { module_id: number; status: string },
 ): Promise<ApiResponse<any>> {
+  // Map UI values (active/inactive) to backend enum (aktif/nonaktif) per docs
+  const mapped = {
+    module_id: payload.module_id,
+    status:
+      payload.status === "active"
+        ? "aktif"
+        : payload.status === "inactive"
+        ? "nonaktif"
+        : payload.status,
+  };
   return api.patch<any>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.modules(id)}`,
-    payload,
+    mapped,
   );
 }

@@ -36,7 +36,7 @@ export async function getUser(id: string | number): Promise<ApiResponse<User>> {
 }
 
 export async function createUser(payload: {
-  role_id: number;
+  tenant_role_id: number;
   email: string;
   password: string;
   full_name: string;
@@ -52,14 +52,14 @@ export async function updateUser(
   payload: Partial<User>,
 ): Promise<ApiResponse<User>> {
   return apiRequest<User>(API_ENDPOINTS.users.detail(id), {
-    method: "PATCH",
+    method: "PUT",
     body: JSON.stringify(payload),
   });
 }
 
 export async function patchUserStatus(
   id: string | number,
-  payload: { status: string },
+  payload: { status: boolean },
 ): Promise<ApiResponse<User>> {
   return apiRequest<User>(API_ENDPOINTS.users.status(id), {
     method: "PATCH",
@@ -139,7 +139,7 @@ export type UpdateUserActionResult = Awaited<
 
 export async function patchUserStatusAction(
   id: string | number,
-  payload: { status: string },
+  payload: { status: boolean },
 ) {
   const res = await patchUserStatusService(id, payload);
   return ensureSuccess(res);

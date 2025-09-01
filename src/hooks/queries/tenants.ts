@@ -106,8 +106,10 @@ export function useTenantActions() {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async (vars: { id: string | number; status: string }) =>
-      ensureSuccess(await updateTenantStatus(vars.id, { status: vars.status })),
+    mutationFn: async (vars: { id: string | number; is_active: boolean }) =>
+      ensureSuccess(
+        await updateTenantStatus(vars.id, { is_active: vars.is_active })
+      ),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tenants.detail(vars.id) });
       qc.invalidateQueries({ queryKey: QK.tenants.lists() });
@@ -117,7 +119,7 @@ export function useTenantActions() {
   const addUser = useMutation({
     mutationFn: async (vars: {
       id: string | number;
-      payload: Partial<User> & { role_id?: number; password?: string };
+      payload: Partial<User> & { tenant_role_id?: number; password?: string };
     }) => ensureSuccess(await addTenantUser(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tenants.users(vars.id) });

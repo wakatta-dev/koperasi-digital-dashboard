@@ -30,9 +30,9 @@ export function getUser(id: string | number): Promise<ApiResponse<User>> {
 
 export function updateUser(
   id: string | number,
-  payload: Partial<User>,
+  payload: Partial<User> & { tenant_role_id?: number },
 ): Promise<ApiResponse<User>> {
-  return api.patch<User>(
+  return api.put<User>(
     `${API_PREFIX}${API_ENDPOINTS.users.detail(id)}`,
     payload,
   );
@@ -40,7 +40,7 @@ export function updateUser(
 
 export function patchUserStatus(
   id: string | number,
-  payload: { status: string },
+  payload: { status: boolean },
 ): Promise<ApiResponse<User>> {
   return api.patch<User>(
     `${API_PREFIX}${API_ENDPOINTS.users.status(id)}`,

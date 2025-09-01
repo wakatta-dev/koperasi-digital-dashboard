@@ -25,8 +25,8 @@ export async function updateTenantAction(id: string, formData: FormData) {
 }
 
 export async function updateStatusAction(id: string, formData: FormData) {
-  const status = formData.get("status") === "on" ? "active" : "inactive";
-  const res = await updateTenantStatus(id, { status });
+  const is_active = formData.get("status") === "on";
+  const res = await updateTenantStatus(id, { is_active });
   revalidatePath(`/vendor/clients/${id}`);
   const target = res.success
     ? `/vendor/clients/${id}?message=${encodeURIComponent(res.message)}`
@@ -39,7 +39,7 @@ export async function addUserAction(id: string, formData: FormData) {
     email: String(formData.get("email")),
     password: String(formData.get("password")),
     full_name: String(formData.get("full_name")),
-    role_id: Number(formData.get("role_id")),
+    tenant_role_id: Number(formData.get("role_id")),
   });
   revalidatePath(`/vendor/clients/${id}`);
   const target = res.success
