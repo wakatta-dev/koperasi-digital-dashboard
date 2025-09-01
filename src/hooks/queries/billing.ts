@@ -9,14 +9,18 @@ import {
   createVendorPlan,
   getVendorPlan,
   updateVendorPlan,
+  updateVendorPlanStatus,
   deleteVendorPlan,
   listVendorInvoices,
   createVendorInvoice,
   updateVendorInvoice,
+  updateVendorInvoiceStatus,
   deleteVendorInvoice,
   listClientInvoices,
   createPayment,
   verifyVendorPayment,
+  listVendorSubscriptions,
+  updateVendorSubscriptionStatus,
 } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
@@ -118,6 +122,17 @@ export function useVendorAudits(
   });
 }
 
+export function useVendorSubscriptions(
+  params?: { status?: string; limit?: number; cursor?: string },
+  initialData?: Subscription[] | undefined
+) {
+  return useQuery({
+    queryKey: QK.billing.vendor.subscriptions.list(params ?? {}),
+    queryFn: async () => ensureSuccess(await listVendorSubscriptions(params)),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
 export function useBillingActions() {
   const qc = useQueryClient();
 
@@ -184,6 +199,14 @@ export function useBillingActions() {
     },
   });
 
+  const updateVendorInvStatus = useMutation({
+    mutationFn: async (vars: { id: string | number; status: string; note?: string }) =>
+      ensureSuccess(await updateVendorInvoiceStatus(vars.id, { status: vars.status, note: vars.note })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
+    },
+  });
+
   const deleteVendorInv = useMutation({
     mutationFn: async (id: string | number) =>
       ensureSuccess(await deleteVendorInvoice(id)),
@@ -210,14 +233,45 @@ export function useBillingActions() {
     },
   });
 
+  const updatePlanStatus = useMutation({
+    mutationFn: async (vars: { id: string | number; status: string }) =>
+      ensureSuccess(await updateVendorPlanStatus(vars.id, { status: vars.status })),
+    onSuccess: () => {
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "billing" &&
+          q.queryKey[1] === "vendor" &&
+          q.queryKey[2] === "plans",
+      });
+    },
+  });
+
+  const updateSubscriptionStatus = useMutation({
+    mutationFn: async (vars: { id: string | number; status: string }) =>
+      ensureSuccess(await updateVendorSubscriptionStatus(vars.id, { status: vars.status })),
+    onSuccess: () => {
+      qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === "billing" &&
+          q.queryKey[1] === "vendor" &&
+          q.queryKey[2] === "subscriptions",
+      });
+    },
+  });
+
   return {
     createPlan,
     updatePlan,
+    updatePlanStatus,
     deletePlan,
     createVendorInv,
     updateVendorInv,
+    updateVendorInvStatus,
     deleteVendorInv,
     createClientPayment,
     verifyVendorPay,
+    updateSubscriptionStatus,
   } as const;
 }

@@ -46,6 +46,16 @@ export function updateVendorPlan(
   );
 }
 
+export function updateVendorPlanStatus(
+  id: string | number,
+  payload: { status: string }
+): Promise<ApiResponse<Plan>> {
+  return api.patch<Plan>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.planStatus(id)}`,
+    payload
+  );
+}
+
 export function deleteVendorPlan(
   id: string | number
 ): Promise<ApiResponse<any>> {
@@ -97,6 +107,16 @@ export function deleteVendorInvoice(
   );
 }
 
+export function updateVendorInvoiceStatus(
+  id: string | number,
+  payload: { status: string; note?: string }
+): Promise<ApiResponse<Invoice>> {
+  return api.patch<Invoice>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoiceStatus(id)}`,
+    payload
+  );
+}
+
 export function listClientInvoices(params?: {
   limit?: number;
   cursor?: string;
@@ -140,6 +160,30 @@ export function getVendorSubscriptionsSummary(): Promise<
 > {
   return api.get<SubscriptionSummary>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.subscriptions.summary}`
+  );
+}
+
+export function listVendorSubscriptions(params?: {
+  status?: string;
+  limit?: number;
+  cursor?: string;
+}): Promise<ApiResponse<Subscription[]>> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set("status", params.status);
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const q = search.toString();
+  const base = `${API_PREFIX}${API_ENDPOINTS.billing.vendor.subscriptions.list}`;
+  return api.get<Subscription[]>(q ? `${base}?${q}` : base);
+}
+
+export function updateVendorSubscriptionStatus(
+  id: string | number,
+  payload: { status: string }
+): Promise<ApiResponse<Subscription>> {
+  return api.patch<Subscription>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.subscriptions.status(id)}`,
+    payload
   );
 }
 

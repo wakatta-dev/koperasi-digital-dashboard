@@ -37,29 +37,32 @@ export const API_ENDPOINTS = {
       `/roles/${id}/permissions/${pid}`,
     tenants: "/roles/tenants",
   },
-  notifications: {
-    list: "/notifications",
-    create: "/notifications",
-    status: (id: string | number) => `/notifications/${id}`,
-  },
+  // notifications section defined later to include reminders
   billing: {
     vendor: {
       plans: "/vendor/plans",
       plan: (id: string | number) => `/vendor/plans/${id}`,
+      planStatus: (id: string | number) => `/vendor/plans/${id}/status`,
       // Base collection path for invoices
       invoicesBase: "/vendor/invoices",
       // Helper for GET list with limit/cursor (kept for back-compat)
       invoices: (limit: number, cursor?: string) =>
         `/vendor/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       invoice: (id: string | number) => `/vendor/invoices/${id}`,
+      invoiceStatus: (id: string | number) => `/vendor/invoices/${id}/status`,
       payments: (id: string | number) => ({
         verify: `/vendor/payments/${id}/verify`,
       }),
       subscriptions: {
         summary: "/vendor/subscriptions/summary",
+        list: "/vendor/subscriptions",
+        status: (id: string | number) => `/vendor/subscriptions/${id}/status`,
       },
       audits: (limit: number, cursor?: string) =>
         `/vendor/audits?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
+      gateways: {
+        webhook: (gateway: string) => `/vendor/payment-gateways/${gateway}/webhook`,
+      },
     },
     client: {
       // Base collection path for invoices
@@ -74,6 +77,18 @@ export const API_ENDPOINTS = {
       }),
       subscription: "/client/subscription",
     },
+  },
+  vendor: {
+    dashboard: "/vendor/dashboard",
+    reports: {
+      financial: "/vendor/reports/financial",
+      usage: "/vendor/reports/usage",
+      export: "/vendor/reports/export",
+      exports: "/vendor/reports/exports",
+    },
+    tenants: "/vendor/tenants",
+    tenantsVerify: "/vendor/tenants/verify",
+    tenantStatus: (id: string | number) => `/vendor/tenants/${id}/status`,
   },
   reports: {
     finance: "/reports/finance",
@@ -108,6 +123,12 @@ export const API_ENDPOINTS = {
     detail: (id: string) => `/tickets/${id}`,
     replies: (id: string) => `/tickets/${id}/replies`,
     update: (id: string) => `/tickets/${id}`,
+  },
+  notifications: {
+    list: "/notifications",
+    create: "/notifications",
+    status: (id: string | number) => `/notifications/${id}`,
+    reminders: "/notifications/reminders",
   },
 } as const;
 

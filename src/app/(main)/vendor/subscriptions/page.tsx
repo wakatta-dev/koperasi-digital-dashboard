@@ -1,13 +1,20 @@
 /** @format */
 
-import { getVendorSubscriptionsSummary } from "@/services/api";
+import { getVendorSubscriptionsSummary, listVendorSubscriptions } from "@/services/api";
 import { SubscriptionsSummary } from "@/components/feature/vendor/subscriptions/subscriptions-summary";
+import { VendorSubscriptionsList } from "@/components/feature/vendor/subscriptions/subscriptions-list";
 
 export const dynamic = "force-dynamic";
 
 export default async function SubscriptionsPage() {
   const res = await getVendorSubscriptionsSummary().catch(() => null);
   const initial = res?.data ?? undefined;
-  return <SubscriptionsSummary initialData={initial} />;
+  const listRes = await listVendorSubscriptions({ limit: 20 }).catch(() => null);
+  const initialSubs = listRes?.data ?? undefined;
+  return (
+    <div className="space-y-6">
+      <SubscriptionsSummary initialData={initial} />
+      <VendorSubscriptionsList initialData={initialSubs} limit={20} />
+    </div>
+  );
 }
-

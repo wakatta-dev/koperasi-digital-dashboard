@@ -27,3 +27,12 @@ export interface NotificationItem {
   message: string;
   time: string;
 }
+
+// Minimal vendor dashboard DTO per docs/test-case/vendor/02_dashboard_vendor.md
+export interface VendorDashboard {
+  tenants_total: number;
+  active_subscriptions: number;
+  overdue_invoices: number;
+  // allow additional metrics without breaking typing
+  [key: string]: any;
+}

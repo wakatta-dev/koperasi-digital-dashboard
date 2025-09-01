@@ -53,3 +53,29 @@ export interface BalanceSheetReportResponse {
     amount: number;
   }>;
 }
+
+// Vendor reports (minimal DTOs based on docs/test-case/vendor/06_reporting.md)
+export interface VendorFinancialReport {
+  total_income: number;
+  total_expense: number;
+  ending_balance?: number;
+  by_period?: Array<{ label: string; income: number; expense: number }>;
+}
+
+export interface VendorUsageReport {
+  total_events?: number;
+  data: Array<{
+    tenant_id?: number;
+    module?: string;
+    count: number;
+    label?: string;
+  }>;
+}
+
+export interface ReportExportMeta {
+  id: number;
+  report_type: string;
+  format: string; // pdf|xlsx
+  created_at: string;
+  status?: string;
+}

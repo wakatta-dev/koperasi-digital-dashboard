@@ -9,6 +9,7 @@ import {
   createNotification,
   updateNotificationStatus,
 } from "@/services/api";
+import { listNotificationReminders, upsertNotificationReminders } from "@/services/api/vendor";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 
@@ -45,4 +46,23 @@ export function useNotificationActions() {
   });
 
   return { create, updateStatus } as const;
+}
+
+export function useNotificationReminders(initialData?: any[] | undefined) {
+  return useQuery({
+    queryKey: ["notifications", "reminders"],
+    queryFn: async () => ensureSuccess(await listNotificationReminders()),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useNotificationReminderActions() {
+  const qc = useQueryClient();
+  const upsert = useMutation({
+    mutationFn: async (payload: any[]) => ensureSuccess(await upsertNotificationReminders(payload as any)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications", "reminders"] });
+    },
+  });
+  return { upsert } as const;
 }

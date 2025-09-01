@@ -41,6 +41,12 @@ export const QK = {
       invoice: (id: string | number) => ["billing", "vendor", "invoice", String(id)] as const,
       subscriptions: {
         summary: () => ["billing", "vendor", "subscriptions", "summary"] as const,
+        list: (params?: Record<string, any>) => [
+          "billing",
+          "vendor",
+          "subscriptions",
+          params ?? {},
+        ] as const,
       },
       audits: (params?: { limit?: number; cursor?: string }) => [
         "billing",
@@ -95,6 +101,7 @@ export type QueryKey = ReturnType<
   | typeof QK.billing.vendor.invoice
   | typeof QK.billing.client.invoices
   | typeof QK.billing.vendor.subscriptions.summary
+  | typeof QK.billing.vendor.subscriptions.list
   | typeof QK.billing.vendor.audits
   | typeof QK.billing.client.invoice
   | typeof QK.billing.client.invoiceAudits

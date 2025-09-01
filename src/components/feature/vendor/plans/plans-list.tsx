@@ -28,7 +28,7 @@ type Props = {
 export function VendorPlansList({ initialData, limit = 20 }: Props) {
   const params = useMemo(() => ({ limit }), [limit]);
   const { data: plans = [] } = useVendorPlans(params, initialData);
-  const { deletePlan } = useBillingActions();
+  const { deletePlan, updatePlanStatus } = useBillingActions();
   const confirm = useConfirm();
 
   return (
@@ -92,6 +92,24 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <select
+                      defaultValue={(plan as any).status ?? "active"}
+                      className="border rounded px-2 py-1 text-sm"
+                      onChange={async (e) => {
+                        const next = e.target.value;
+                        const ok = await confirm({
+                          variant: "edit",
+                          title: "Ubah status plan?",
+                          description: `Status akan menjadi ${next}.`,
+                          confirmText: "Simpan",
+                        });
+                        if (!ok) return;
+                        await updatePlanStatus.mutateAsync({ id: plan.id, status: next });
+                      }}
+                    >
+                      <option value="active">active</option>
+                      <option value="inactive">inactive</option>
+                    </select>
                     <PlanUpsertDialog
                       plan={plan}
                       trigger={

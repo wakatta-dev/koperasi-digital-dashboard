@@ -26,7 +26,7 @@ type Props = {
 
 export function VendorInvoicesList({ initialData }: Props) {
   const { data: invoices = [] } = useVendorInvoices(initialData);
-  const { deleteVendorInv } = useBillingActions();
+  const { deleteVendorInv, updateVendorInvStatus } = useBillingActions();
   const confirm = useConfirm();
 
   return (
@@ -101,6 +101,26 @@ export function VendorInvoicesList({ initialData }: Props) {
                   >
                     {invoice.status}
                   </Badge>
+                  <select
+                    defaultValue={invoice.status}
+                    className="border rounded px-2 py-1 text-sm"
+                    onChange={async (e) => {
+                      const next = e.target.value;
+                      const ok = await confirm({
+                        variant: "edit",
+                        title: "Ubah status invoice?",
+                        description: `Status akan menjadi ${next}.`,
+                        confirmText: "Simpan",
+                      });
+                      if (!ok) return;
+                      await updateVendorInvStatus.mutateAsync({ id: invoice.id, status: next });
+                    }}
+                  >
+                    <option value="pending">pending</option>
+                    <option value="paid">paid</option>
+                    <option value="overdue">overdue</option>
+                    <option value="cancelled">cancelled</option>
+                  </select>
 
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon">
