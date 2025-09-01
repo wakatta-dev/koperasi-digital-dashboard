@@ -30,25 +30,38 @@ import {
 import { PlusIcon, Trash2 } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 
+import type { Invoice } from "@/types/api";
+
 type Props = {
   trigger?: React.ReactNode;
+  invoice?: Invoice;
 };
 
-export function InvoiceUpsertDialog({ trigger }: Props) {
+export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
   const [open, setOpen] = useState(false);
-  const { createVendorInv } = useBillingActions();
+  const { createVendorInv, updateVendorInv } = useBillingActions();
   const confirm = useConfirm();
+  const isEdit = !!invoice;
 
   const form = useForm<z.input<typeof createInvoiceSchema>>({
     resolver: zodResolver(createInvoiceSchema),
-    defaultValues: {
-      number: "",
-      issued_at: new Date().toISOString().slice(0, 10),
-      due_date: undefined,
-      items: [
-        { description: "Langganan", quantity: 1, price: 0 },
-      ],
-    },
+    defaultValues: isEdit
+      ? {
+          number: invoice!.number,
+          issued_at: (invoice!.issued_at || "").slice(0, 10),
+          due_date: invoice!.due_date ? invoice!.due_date.slice(0, 10) : undefined,
+          items: (invoice!.items ?? []).map((it) => ({ description: it.description, quantity: it.quantity as any, price: it.price as any })),
+          tenant_id: (invoice as any).tenant_id as any,
+          subscription_id: (invoice as any).subscription_id as any,
+        }
+      : {
+          number: "",
+          issued_at: new Date().toISOString().slice(0, 10),
+          due_date: undefined,
+          items: [
+            { description: "Langganan", quantity: 1, price: 0 },
+          ],
+        },
   });
 
   const { fields, append, remove } = useFieldArray({ control: form.control, name: "items" });
@@ -74,36 +87,51 @@ export function InvoiceUpsertDialog({ trigger }: Props) {
         tenant_id: values.tenant_id ?? undefined,
         subscription_id: values.subscription_id ?? undefined,
       };
-      const ok = await confirm({
-        variant: "create",
-        title: "Buat invoice?",
-        description: `Invoice ${values.number || "baru"} akan dibuat dengan total ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(total)}.`,
-        confirmText: "Buat",
-      });
-      if (!ok) return;
-      await createVendorInv.mutateAsync(payload);
+      if (isEdit) {
+        const ok = await confirm({
+          variant: "edit",
+          title: "Simpan perubahan invoice?",
+          description: `Invoice ${values.number} akan diperbarui.`,
+          confirmText: "Simpan",
+        });
+        if (!ok) return;
+        await updateVendorInv.mutateAsync({ id: invoice!.id, payload });
+      } else {
+        const ok = await confirm({
+          variant: "create",
+          title: "Buat invoice?",
+          description: `Invoice ${values.number || "baru"} akan dibuat dengan total ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(total)}.`,
+          confirmText: "Buat",
+        });
+        if (!ok) return;
+        await createVendorInv.mutateAsync(payload);
+      }
       setOpen(false);
     } catch (_e) {}
   };
 
   const Trigger = useMemo(() => {
     if (trigger) return trigger;
-    return (
+    return isEdit ? (
+      <Button type="button" variant="ghost" size="icon">
+        <PlusIcon className="w-4 h-4" />
+      </Button>
+    ) : (
       <Button type="button">
         <PlusIcon className="w-4 h-4 mr-2" />
         Create Invoice
       </Button>
     );
-  }, [trigger]);
+  }, [trigger, isEdit]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Create Invoice</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Invoice" : "Create Invoice"}</DialogTitle>
           <DialogDescription>
-            Isi data invoice dan item. Total dihitung otomatis.
+            {isEdit ? "Ubah data invoice." : "Isi data invoice dan item. Total dihitung otomatis."}
           </DialogDescription>
         </DialogHeader>
 

@@ -1,0 +1,175 @@
+/** @format */
+
+"use client";
+
+import { useMemo, useState } from "react";
+import { useTickets } from "@/hooks/queries/ticketing";
+import type { Ticket } from "@/types/api";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { Search, Ticket as TicketIcon } from "lucide-react";
+import { TicketCreateDialog } from "./ticket-create-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type Props = { initialData?: Ticket[]; limit?: number };
+
+export function VendorTicketsList({ initialData, limit = 10 }: Props) {
+  const [filters, setFilters] = useState<{
+    status?: string;
+    priority?: string;
+    category?: string;
+  }>({});
+  const params = useMemo(() => ({ limit, ...filters }), [limit, filters]);
+  const { data: tickets = [] } = useTickets(params, initialData);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Support Tickets</h2>
+          <p className="text-muted-foreground">
+            Kelola dan pantau tiket dukungan
+          </p>
+        </div>
+        <TicketCreateDialog />
+      </div>
+
+      <Card>
+        <CardContent className="pt-6 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Cari judul (client-side)" className="pl-10" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Select
+              value={filters.status ?? ""}
+              onValueChange={(v) =>
+                setFilters((f) => ({ ...f, status: v || undefined }))
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Status (semua)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">open</SelectItem>
+                <SelectItem value="in_progress">in_progress</SelectItem>
+                <SelectItem value="resolved">resolved</SelectItem>
+                <SelectItem value="closed">closed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.priority ?? ""}
+              onValueChange={(v) =>
+                setFilters((f) => ({ ...f, priority: v || undefined }))
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Priority (semua)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">low</SelectItem>
+                <SelectItem value="medium">medium</SelectItem>
+                <SelectItem value="high">high</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.category ?? ""}
+              onValueChange={(v) =>
+                setFilters((f) => ({ ...f, category: v || undefined }))
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Category (semua)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="billing">billing</SelectItem>
+                <SelectItem value="technical">technical</SelectItem>
+                <SelectItem value="access">access</SelectItem>
+                <SelectItem value="other">other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setFilters({})}
+            >
+              Reset Filter
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ticket List</CardTitle>
+          <CardDescription>Semua tiket yang masuk</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {tickets.map((t) => (
+              <div
+                key={t.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                    <TicketIcon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{t.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t.category} • {t.priority}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Badge
+                    variant={
+                      t.status === "open"
+                        ? "destructive"
+                        : t.status === "in_progress"
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
+                    {t.status}
+                  </Badge>
+                  <Link href={`/vendor/tickets/${t.id}`}>
+                    <Button variant="outline" size="sm">
+                      View
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ))}
+            {tickets.length === 0 && (
+              <div className="text-sm text-muted-foreground italic">
+                Tidak ada tiket.
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

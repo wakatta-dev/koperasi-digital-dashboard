@@ -65,7 +65,7 @@ export function useUserActions() {
   });
 
   const update = useMutation({
-    mutationFn: async (vars: { id: string | number; payload: Partial<User> }) =>
+    mutationFn: async (vars: { id: string | number; payload: Partial<User> & { tenant_role_id?: number } }) =>
       ensureSuccess(await updateUser(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.users.detail(vars.id) });

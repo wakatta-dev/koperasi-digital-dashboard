@@ -2,7 +2,7 @@
 
 "use client";
 
-import { FileText, Search, Download, Eye } from "lucide-react";
+import { FileText, Search, Download, Eye, Edit, Trash2 } from "lucide-react";
 import { useVendorInvoices } from "@/hooks/queries/billing";
 import type { Invoice } from "@/types/api";
 import {
@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { InvoiceUpsertDialog } from "@/components/feature/vendor/invoices/invoice-upsert-dialog";
 import { PaymentVerifyDialog } from "@/components/feature/vendor/payments/payment-verify-dialog";
+import { useBillingActions } from "@/hooks/queries/billing";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   initialData?: Invoice[];
@@ -24,6 +26,8 @@ type Props = {
 
 export function VendorInvoicesList({ initialData }: Props) {
   const { data: invoices = [] } = useVendorInvoices(initialData);
+  const { deleteVendorInv } = useBillingActions();
+  const confirm = useConfirm();
 
   return (
     <div className="space-y-6">
@@ -104,6 +108,30 @@ export function VendorInvoicesList({ initialData }: Props) {
                     </Button>
                     <Button variant="ghost" size="icon">
                       <Download className="h-4 w-4" />
+                    </Button>
+                    <InvoiceUpsertDialog
+                      invoice={invoice}
+                      trigger={
+                        <Button variant="ghost" size="icon">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={async () => {
+                        const ok = await confirm({
+                          variant: "delete",
+                          title: "Hapus invoice?",
+                          description: `Invoice ${invoice.number} akan dihapus.`,
+                          confirmText: "Hapus",
+                        });
+                        if (!ok) return;
+                        deleteVendorInv.mutate(invoice.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

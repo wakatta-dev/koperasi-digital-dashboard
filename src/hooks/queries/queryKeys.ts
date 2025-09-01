@@ -67,6 +67,13 @@ export const QK = {
     list: (params?: Record<string, any>) => ["transactions", "list", params ?? {}] as const,
     history: (id: string | number) => ["transactions", "history", String(id)] as const,
   },
+  tickets: {
+    all: ["tickets"] as const,
+    lists: () => ["tickets", "list"] as const,
+    list: (params?: Record<string, any>) => ["tickets", "list", params ?? {}] as const,
+    details: () => ["tickets", "detail"] as const,
+    detail: (id: string) => ["tickets", "detail", id] as const,
+  },
 } as const;
 
 export type QueryKey = ReturnType<
@@ -94,4 +101,6 @@ export type QueryKey = ReturnType<
   | typeof QK.billing.client.subscription
   | typeof QK.transactions.list
   | typeof QK.transactions.history
+  | typeof QK.tickets.list
+  | typeof QK.tickets.detail
 >;

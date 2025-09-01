@@ -1,0 +1,70 @@
+/** @format */
+
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Ticket, TicketReply } from "@/types/api";
+import {
+  createTicket,
+  listTickets,
+  getTicket,
+  addTicketReply,
+  updateTicket,
+} from "@/services/api";
+import { ensureSuccess } from "@/lib/api";
+import { QK } from "./queryKeys";
+
+export function useTickets(
+  params: { status?: string; priority?: string; category?: string; limit?: number; cursor?: string } = { limit: 10 },
+  initialData?: Ticket[] | undefined,
+) {
+  const final = { limit: typeof params.limit === "number" ? params.limit : 10, ...params } as any;
+  return useQuery({
+    queryKey: QK.tickets.list(final),
+    queryFn: async () => ensureSuccess(await listTickets(final)),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useTicket(
+  id?: string,
+  initialData?: Ticket | undefined,
+) {
+  return useQuery({
+    queryKey: QK.tickets.detail(id ?? ""),
+    enabled: !!id,
+    queryFn: async () => ensureSuccess(await getTicket(id as string)),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useTicketActions() {
+  const qc = useQueryClient();
+
+  const create = useMutation({
+    mutationFn: async (payload: Partial<Ticket>) => ensureSuccess(await createTicket(payload as any)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.tickets.lists() });
+    },
+  });
+
+  const addReply = useMutation({
+    mutationFn: async (vars: { id: string; payload: Partial<TicketReply> }) =>
+      ensureSuccess(await addTicketReply(vars.id, vars.payload as any)),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: QK.tickets.detail(vars.id) });
+    },
+  });
+
+  const update = useMutation({
+    mutationFn: async (vars: { id: string; payload: { status?: string; agent_id?: number } }) =>
+      ensureSuccess(await updateTicket(vars.id, vars.payload)),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: QK.tickets.detail(vars.id) });
+      qc.invalidateQueries({ queryKey: QK.tickets.lists() });
+    },
+  });
+
+  return { create, addReply, update } as const;
+}
+
