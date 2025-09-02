@@ -11,13 +11,17 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
 export function NotificationRemindersPanel() {
-  const { data: reminders = [] } = useNotificationReminders();
+  // Avoid defaulting to [] here, which creates a new array each render
+  // and can cause an infinite loop when syncing to local state.
+  const { data: reminders } = useNotificationReminders();
   const { upsert } = useNotificationReminderActions();
 
   const [rows, setRows] = useState<NotificationReminder[]>([]);
 
   useEffect(() => {
-    setRows(reminders as any);
+    if (reminders !== undefined) {
+      setRows(reminders as any);
+    }
   }, [reminders]);
 
   const addRow = () => {
@@ -78,4 +82,3 @@ export function NotificationRemindersPanel() {
     </Card>
   );
 }
-

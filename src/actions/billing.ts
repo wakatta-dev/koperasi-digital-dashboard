@@ -168,7 +168,10 @@ export async function getVendorSubscriptionsSummaryAction() {
   return ensureSuccess(res);
 }
 
-export async function listVendorAuditsAction(params?: { limit?: number; cursor?: string }) {
+export async function listVendorAuditsAction(params?: {
+  limit?: number;
+  cursor?: string;
+}) {
   const res = await listVendorAudits(params);
   return ensureSuccess(res);
 }
