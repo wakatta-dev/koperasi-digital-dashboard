@@ -2,6 +2,11 @@
 import { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getTenantId } from "@/services/api";
+import {
+  CSRF_COOKIE_NAME,
+  isSecureCookies,
+  sessionCookieName,
+} from "@/constants/cookies";
 
 export async function refreshAccessToken(token: any) {
   try {
@@ -36,6 +41,8 @@ export async function refreshAccessToken(token: any) {
     return { ...token, error: "RefreshAccessTokenError" };
   }
 }
+
+const USE_SECURE_COOKIES = isSecureCookies();
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -90,6 +97,29 @@ export const authOptions: AuthOptions = {
 
   session: {
     strategy: "jwt",
+  },
+
+  // Make cookie names app-specific and secure in production
+  useSecureCookies: USE_SECURE_COOKIES,
+  cookies: {
+    sessionToken: {
+      name: sessionCookieName(USE_SECURE_COOKIES),
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: USE_SECURE_COOKIES,
+        path: "/",
+      },
+    },
+    csrfToken: {
+      name: CSRF_COOKIE_NAME,
+      options: {
+        httpOnly: false,
+        sameSite: "lax",
+        secure: USE_SECURE_COOKIES,
+        path: "/",
+      },
+    },
   },
 
   callbacks: {

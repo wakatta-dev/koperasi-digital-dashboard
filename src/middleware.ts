@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { sessionCookieName } from "@/constants/cookies";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -58,16 +59,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/tenant-not-found", request.url));
   }
 
-  // cek token NextAuth
-  // Ensure we read the correct cookie name in production ("__Secure-")
-  // This avoids login loops on HTTPS (e.g., Vercel) where cookies are secure.
+  // cek token NextAuth dengan nama cookie yang di-kustom agar unik per aplikasi
   const isSecure =
     request.nextUrl.protocol === "https:" ||
     process.env.NODE_ENV === "production";
+  const cookieName = sessionCookieName(isSecure);
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
-    secureCookie: isSecure,
+    cookieName,
   });
   const userRole = (token as any)?.jenis_tenant;
 
