@@ -8,6 +8,9 @@ Referensi implementasi utama terdapat pada:
 - `internal/modules/user/service.go`
 - `internal/modules/user/handler.go`
 - `internal/modules/user/routes.go`
+- `internal/modules/user/vendor_service.go`
+- `internal/modules/user/vendor_handler.go`
+- `internal/modules/user/vendor_routes.go`
 
 ## Ringkasan Peran per Tenant
 
@@ -52,6 +55,18 @@ Semua response menggunakan format `APIResponse`.
 - `DELETE /users/{id}`: hapus user.
 - `POST /users/reset-password`: reset password berdasarkan email.
 
+Vendor (admin vendor) — internal pengguna vendor:
+- `POST /api/vendor/users` — undang user vendor (email, nama, role).
+- `GET /api/vendor/users?limit={n}&cursor={id?}` — daftar user vendor (cursor numerik).
+- `PATCH /api/vendor/users/{id}/role` — ubah role user vendor.
+- `DELETE /api/vendor/users/{id}` — hapus user vendor.
+
+Vendor Users
+- POST `/api/vendor/users` — undang user vendor
+- GET `/api/vendor/users` — daftar user vendor (cursor numerik)
+- PATCH `/api/vendor/users/{id}/role` — ubah role user vendor
+- DELETE `/api/vendor/users/{id}` — hapus user vendor
+
 Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
 
 ## Rincian Endpoint (Params, Payload, Response)
@@ -95,6 +110,26 @@ Header umum:
     - `email` (wajib)
     - `new_password` (wajib)
   - Response 200: `data` `{ "message": "password reset" }`.
+
+- `POST /api/vendor/users`
+  - Body:
+    - `email` (wajib, email valid)
+    - `full_name` (wajib)
+    - `role_id` (wajib, uint)
+  - Response 201: `data` User
+
+- `GET /api/vendor/users?limit={n}&cursor={c?}`
+  - Query: `limit` (wajib), `cursor` (opsional, id terakhir)
+  - Response 200: `data` array User + `meta.pagination`.
+
+- `PATCH /api/vendor/users/{id}/role`
+  - Path: `id` (int, wajib)
+  - Body: `{ "role_id": <uint> }`
+  - Response 200: `data` `{ "id": <int> }`.
+
+- `DELETE /api/vendor/users/{id}`
+  - Path: `id` (int, wajib)
+  - Response 200: `data` `{ "id": <int> }`.
 
 ## Contoh Payload
 
@@ -156,3 +191,9 @@ Header umum:
 1. Admin tenant menambahkan user kasir melalui `POST /users/`.
 2. Saat rotasi peran, admin memperbarui `tenant_role_id` user.
 3. Ketika user resign, admin menonaktifkan status atau menghapus user sesuai kebijakan.
+
+## Tautan Cepat
+
+- Auth: [auth.md](auth.md)
+- Roles & Permissions: [authorization.md](authorization.md)
+- Tenant: [tenant.md](tenant.md)

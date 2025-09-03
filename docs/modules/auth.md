@@ -43,7 +43,9 @@ Klaim JWT (`auth.Claims`): `user_id`, `tenant_id`, `tenant_type`, `role`, serta 
 1) Login
 - Validasi email/password dengan bcrypt.
 - Verifikasi `tenant_id` dari konteks header `XTenantID` harus sama dengan `user.tenant_id`.
-- Hasilkan `access_token` (JWT) dan `refresh_token` (disimpan/di-upsert per user dengan masa berlaku 24 jam default).
+- Hasilkan `access_token` (JWT) dan `refresh_token` (token disimpan sebagai hash SHA256 di DB dan di-upsert per user dengan masa
+  berlaku 24 jam default).
+- Refresh token asli hanya dikembalikan pada response login.
 
 2) Refresh Token
 - Validasi keberadaan dan kedaluwarsa `refresh_token`.
@@ -56,15 +58,15 @@ Klaim JWT (`auth.Claims`): `user_id`, `tenant_id`, `tenant_type`, `role`, serta 
 
 Semua response menggunakan format `APIResponse`.
 
-- `POST /auth/login` — login dan terima token.
-- `POST /auth/refresh` — minta access token baru dari refresh token.
-- `POST /auth/logout` — logout dan hapus refresh token.
+- `POST /api/auth/login` — login dan terima token.
+- `POST /api/auth/refresh` — minta access token baru dari refresh token.
+- `POST /api/auth/logout` — logout dan hapus refresh token.
 
 Keamanan: endpoint login/refresh/logout tidak memerlukan Bearer token, namun membutuhkan konteks tenant via header `X-Tenant-ID` (atau domain) untuk memvalidasi tenant pengguna saat login.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
-- `POST /auth/login`
+- `POST /api/auth/login`
   - Header: `X-Tenant-ID` (wajib bila tidak menggunakan domain)
   - Body LoginRequest:
     - `email` (wajib, email valid)
@@ -73,12 +75,18 @@ Keamanan: endpoint login/refresh/logout tidak memerlukan Bearer token, namun mem
     - `id`, `nama`, `role`, `jenis_tenant`, `email`, `access_token`, `refresh_token`, `expires_at`
   - Error 401: `invalid credentials` atau `unauthorized` jika tenant tidak cocok.
 
-- `POST /auth/refresh`
+- `POST /api/auth/refresh`
   - Body RefreshRequest: `{ "refresh_token": "..." }` (wajib)
   - Response 200: `data` `{ "access_token": "..." }`
   - Error 401: `invalid refresh token` atau kedaluwarsa.
 
-- `POST /auth/logout`
+## Tautan Cepat
+
+- Tenant: [tenant.md](tenant.md)
+- Users: [user.md](user.md)
+- Roles & Permissions: [authorization.md](authorization.md)
+
+- `POST /api/auth/logout`
   - Body RefreshRequest: `{ "refresh_token": "..." }` (wajib)
   - Response 200: `data` `{ "message": "logged out" }`
 
@@ -130,6 +138,6 @@ Keamanan: endpoint login/refresh/logout tidak memerlukan Bearer token, namun mem
 ## Skenario Penggunaan
 
 1. Pengguna membuka halaman login dan memilih tenant/domain yang tepat.
-2. Mengirim email+password ke `/auth/login` dan menerima `access_token` + `refresh_token`.
-3. Saat `access_token` mendekati kedaluwarsa, klien memanggil `/auth/refresh` dengan `refresh_token`.
-4. Saat pengguna keluar, klien memanggil `/auth/logout` untuk menghapus `refresh_token`.
+2. Mengirim email+password ke `/api/auth/login` dan menerima `access_token` + `refresh_token`.
+3. Saat `access_token` mendekati kedaluwarsa, klien memanggil `/api/auth/refresh` dengan `refresh_token`.
+4. Saat pengguna keluar, klien memanggil `/api/auth/logout` untuk menghapus `refresh_token`.

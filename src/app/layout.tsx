@@ -10,6 +10,7 @@ import SessionProviderWrapper from "@/components/session-provider";
 import { LanguageProvider } from "@/contexts/language-context";
 import QueryProvider from "@/components/query-provider";
 import { ConfirmDialogProvider } from "@/components/shared/confirm-dialog-provider";
+import FcmInitializer from "@/components/fcm-initializer";
 
 export const metadata: Metadata = {
   title: "Multi-Tenant Dashboard",
@@ -34,7 +35,10 @@ export default function RootLayout({
           <QueryProvider>
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
               <LanguageProvider>
-                <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
+                <ConfirmDialogProvider>
+                  <FcmInitializer />
+                  {children}
+                </ConfirmDialogProvider>
               </LanguageProvider>
             </ThemeProvider>
           </QueryProvider>

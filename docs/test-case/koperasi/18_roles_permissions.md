@@ -1,6 +1,6 @@
 # Test Case — Roles & Permissions (Koperasi)
 
-Catatan rujukan: `docs/modules/role.md`
+Catatan rujukan: `docs/modules/authorization.md`
 
 ## Roles (CRUD & Binding ke Tenant Sendiri)
 

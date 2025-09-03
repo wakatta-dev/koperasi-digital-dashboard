@@ -1,16 +1,18 @@
-# Modul Roles & Permissions
+# Modul Authorization (Roles & Permissions)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Roles. Modul ini mengelola role (per tenant), pemetaan user-role, serta permission berbasis Casbin.
+Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Authorization. Modul ini mengelola role (per tenant), pemetaan user-role, serta permission berbasis Casbin.
+
+Detail autentikasi (login, JWT) dibahas pada modul [Auth](auth.md); dokumen ini berfokus pada otorisasi dan manajemen peran.
 
 Referensi implementasi utama terdapat pada:
-- `internal/modules/role/entity.go`
-- `internal/modules/role/dto.go`
-- `internal/modules/role/repository.go`
-- `internal/modules/role/service_role.go`
-- `internal/modules/role/service_user_role.go`
-- `internal/modules/role/service_permission.go`
-- `internal/modules/role/handler.go`
-- `internal/modules/role/routes.go`
+- `internal/modules/authorization/entity.go`
+- `internal/modules/authorization/dto.go`
+- `internal/modules/authorization/repository.go`
+- `internal/modules/authorization/service_role.go`
+- `internal/modules/authorization/service_user_role.go`
+- `internal/modules/authorization/service_permission.go`
+- `internal/modules/authorization/handler.go`
+- `internal/modules/authorization/routes.go`
 
 ## Ringkasan Peran per Tenant
 
@@ -30,8 +32,8 @@ Referensi implementasi utama terdapat pada:
 
 - Role (`auth.Role`) — `id`, `name` (unik), `jenis_tenant`, `description`, timestamps
 - TenantRole (`auth.TenantRole`) — `id`, `tenant_id`, `role_id`, preload `Role`
-- RoleUser (`role.RoleUser`) — `id`, `user_id`, `role_id`, `tenant_id`, preload `Role`
-- CasbinRule (`role.CasbinRule`) — `id`, `ptype`, `v0..v5` (mirror `casbin_rule`)
+- RoleUser (`authorization.RoleUser`) — `id`, `user_id`, `role_id`, `tenant_id`, preload `Role`
+- CasbinRule (`authorization.CasbinRule`) — `id`, `ptype`, `v0..v5` (mirror `casbin_rule`)
 
 Kamus Casbin (konvensi):
 - Grouping policy: subject=`user_id` (string), role=`role_name`, domain=`tenant_type`.
@@ -182,3 +184,9 @@ Header umum:
 1. Admin vendor membuat role baru dan menambahkannya ke tenant tertentu.
 2. Admin tenant menetapkan role kepada user dan menambahkan permission `GET` untuk objek yang diperlukan.
 3. Saat user berpindah tugas, admin menghapus role dari user dan Casbin di-update otomatis.
+
+## Tautan Cepat
+
+- Auth: [auth.md](auth.md)
+- Users: [user.md](user.md)
+- Tenant: [tenant.md](tenant.md)

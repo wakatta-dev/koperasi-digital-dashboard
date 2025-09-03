@@ -1,64 +1,104 @@
 # Modul SHU (Sisa Hasil Usaha)
 
-Dokumentasi ini menjelaskan peran, arsitektur, dan alur bisnis dari modul SHU. Modul ini menyediakan layanan internal untuk pencatatan distribusi SHU dengan integrasi ke modul Finance.
+Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul SHU. Modul ini menangani input total SHU tahunan, simulasi distribusi, eksekusi distribusi, serta riwayat distribusi per tenant dan per anggota.
 
 Referensi implementasi utama terdapat pada:
+- `internal/modules/shu/entity.go`
+- `internal/modules/shu/repository.go`
 - `internal/modules/shu/service.go`
+- `internal/modules/shu/handler.go`
+- `internal/modules/shu/routes.go`
 
 ## Ringkasan Peran per Tenant
 
-- Vendor: tidak langsung menggunakan layanan ini.
-- Koperasi/UMKM/BUMDes: sistem memanggil service ini saat terjadi distribusi SHU agar tercatat di transaksi kas dan ledger.
+- Koperasi/UMKM/BUMDes: input nilai SHU tahunan, simulasi distribusi, dan distribusi aktual ke anggota.
+- Vendor: tidak menggunakan endpoint ini secara langsung.
 
 ## Arsitektur & Komponen
 
-- Service: `DistributeSHU(tenantID, userID, amount, method, description)` memanggil `finance.CreateTransaction` bertipe `CashOut` kategori `operasional` dengan pasangan debit/kredit akunnya.
+- Repository: simpan nilai SHU tahunan dan riwayat distribusi.
+- Service: simulasi dan eksekusi distribusi (integrasi ke Finance untuk pencatatan kas keluar, dan ke Membership untuk dasar perhitungan bila diperlukan).
+- Handler (HTTP): endpoint input, simulasi, distribusi, dan riwayat.
 
-## Entitas & Skema Data
+## Entitas & Skema Data (ringkas)
 
-- Tidak menambah entitas baru; menggunakan entitas transaksi dari modul Finance.
+- YearlySHU — `year`, `total_shu`, `tenant_id`, timestamps
+- SHUDistribution — `member_id`, `year`, `amount`, timestamps
 
 ## Alur Bisnis Utama
 
-1) Distribusi SHU
-- Mencatat transaksi kas keluar (`CashOut`) kategori `operasional`.
-- Entri ledger via Finance: Debit `SHU Distribution`, Kredit `Cash`.
+1) Input Total SHU Tahunan — menyimpan total SHU tahun berjalan.
+2) Simulasi Distribusi — menghitung alokasi ke anggota (tanpa mencatat transaksi).
+3) Distribusi — mengeksekusi pembagian, mencatat kas keluar (Finance) dan jejak distribusi.
+4) Riwayat — melihat riwayat per tahun dan per anggota.
 
 ## Endpoint API
 
-- Tidak ada endpoint HTTP publik untuk modul ini saat ini; dipanggil secara internal oleh modul/fitur lain.
+Semua endpoint dilindungi `Bearer` + `X-Tenant-ID` dan menggunakan response standar `APIResponse`.
 
-## Contoh Pemanggilan (Service)
+- `POST /coop/shu/yearly` — input total SHU tahunan.
+- `POST /coop/shu/yearly/{year}/simulate` — simulasi distribusi untuk tahun tertentu.
+- `POST /coop/shu/yearly/{year}/distribute` — distribusi aktual SHU tahun tertentu.
+- `GET /coop/shu/history` — daftar nilai SHU tahunan yang pernah dicatat.
+- `GET /coop/shu/member/{member_id}` — riwayat SHU per anggota.
+- `GET /coop/shu/export/{year}` — ekspor laporan SHU untuk tahun tertentu.
 
-```go
-_ = shuSvc.DistributeSHU(tenantID, userID, 2_500_000, "transfer", "Pembagian SHU 2025")
-```
+## Rincian Endpoint (Params, Payload, Response)
+
+Header umum:
+- Authorization: `Bearer <token>`
+- `X-Tenant-ID`: ID tenant
+
+- `POST /coop/shu/yearly`
+  - Body YearlySHURequest:
+    - `year` (wajib, int)
+    - `total_shu` (wajib, number)
+  - Response 201: `data` YearlySHU
+
+- `POST /coop/shu/yearly/{year}/simulate`
+  - Path: `year` (int, wajib)
+  - Response 200: `data` array `SHUDistribution`
+
+- `POST /coop/shu/yearly/{year}/distribute`
+  - Path: `year` (int, wajib)
+  - Body DistributionRequest: `{ "method": "transfer|cash|...", "description": "..." }`
+  - Response 200: `data` `{ "status": "ok" }`
+
+- `GET /coop/shu/history`
+  - Response 200: `data` array YearlySHU
+
+- `GET /coop/shu/member/{member_id}`
+  - Path: `member_id` (int, wajib)
+  - Response 200: `data` array SHUDistribution
+
+- `GET /coop/shu/export/{year}`
+  - Path: `year` (int, wajib)
+  - Response 200: `data` `{ "status": "exported", "year": "..." }`
 
 ## Status & Transisi
 
-- Tidak ada status khusus; fokus pada pencatatan transaksi.
+- Tidak ada status kompleks; fokus pada jejak input/simulasi/distribusi dan pencatatan transaksi kas.
 
 ## Paginasi & Response
 
-- Tidak relevan.
+- Tidak ada paginasi, seluruh response berbentuk array atau objek sesuai endpoint.
 
 ## Integrasi & Dampak ke Modul Lain
 
-- Finance: membuat `cash_transactions` dan `ledger_entries` melalui `CreateTransaction`.
+- Finance: mencatat kas keluar saat distribusi melalui `CreateTransaction`.
+- Membership: sumber data anggota untuk distribusi (implisit di service).
 
 ## Keamanan
 
-- Keamanan mengikuti konteks pemanggil service (tenant/user) yang disuplai saat pemanggilan.
-
-## Catatan Implementasi
-
-- Service akan mengembalikan `nil` jika port Finance belum di-wire (opsional pada pengujian/lingkungan tertentu).
-
-## Peran Modul SHU per Jenis Tenant (Rangkuman)
-
-- Koperasi/UMKM/BUMDes: pencatatan akuntansi saat distribusi SHU.
+- Middleware memastikan autentikasi `Bearer` dan isolasi tenant (`X-Tenant-ID`).
 
 ## Skenario Penggunaan
 
-1. Rapat memutuskan pembagian SHU; sistem mencatat kas keluar dan ledger terkait.
+1. Input total SHU tahun berjalan, lalu jalankan simulasi untuk memeriksa alokasi.
+2. Lakukan distribusi; sistem mencatat kas keluar dan menyimpan detail alokasi per anggota.
 
+## Tautan Cepat
+
+- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
+- Reporting: [reporting.md](reporting.md)
+- Membership: [membership.md](membership.md)

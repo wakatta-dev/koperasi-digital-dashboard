@@ -154,3 +154,11 @@ Header umum:
 3. Bendahara mencairkan pinjaman; sistem mencatat `CashOut` dan status `disbursed`.
 4. Anggota membayar angsuran; sistem menghitung denda jika terlambat, menandai angsuran `paid` bila lunas, dan mencatat `CashIn`.
 5. Setelah semua angsuran `paid`, surat lunas tersedia.
+
+## Tautan Cepat
+
+- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
+- Billing: [billing.md](billing.md)
+- Membership: [membership.md](membership.md)
+- Risk: [risk.md](risk.md)
+- Dashboard: [dashboard.md](dashboard.md)

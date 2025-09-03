@@ -18,6 +18,9 @@ Catatan rujukan: `docs/modules/notification.md`
 ### KOP-NOTF-010 — Ubah status READ
 - PATCH `/notifications/{id}` body `{ "status": "READ" }` → 200; `read_at` terisi.
 
+### KOP-NOTF-011 — Kirim notifikasi ke anggota
+- POST `/notifications` body `{ "tenant_id":1, "channel":"IN_APP", "type":"SYSTEM", "category":"GENERAL", "title":"Hi", "body":"Hello" }` dengan header `X-Tenant-ID` → 201 `success`.
+
 ## Reminders
 
 ### KOP-NOTF-020 — List reminders

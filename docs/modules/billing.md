@@ -31,7 +31,7 @@ Catatan: Aktivasi/nonaktif modul tenant dilakukan via entitas `tenant.TenantModu
 Ringkasannya (lihat tag GORM pada file entitas untuk detail kolom):
 
 - Plan
-  - `id`, `name`, `price`, `duration_months`, `created_at`, `updated_at`
+  - `id`, `name`, `type`, `price`, `status`, `module_code`, `created_at`, `updated_at`
 - TenantSubscription
   - `id`, `tenant_id`, `plan_id`, `start_date`, `end_date?`, `status` (default: `active`), timestamp, preload `Plan`
 - Invoice
@@ -51,7 +51,7 @@ Enum dan konstanta penting:
 
 1) Plan (produk paket langganan)
 - Vendor dapat membuat, membaca, memperbarui, dan menghapus plan.
-- `duration_months` harus > 0.
+
 
 2) Subscription (langganan tenant)
 - Pembuatan subscription akan mengisi `start_date` dan `status` default `active`.
@@ -82,26 +82,33 @@ Keamanan: semua endpoint membutuhkan `Bearer` token, dan konteks tenant (mis. he
 ### Vendor
 
 - Plans
-  - `GET /vendor/plans/?limit={n}&cursor={cursor?}`: daftar plan (paginasi cursor).
-  - `POST /vendor/plans/`: buat plan baru.
-  - `GET /vendor/plans/{id}`: detail plan.
-  - `PUT /vendor/plans/{id}`: update plan (name/price/duration).
-  - `DELETE /vendor/plans/{id}`: hapus plan.
+- `GET /api/vendor/plans/?limit={n}&cursor={cursor?}`: daftar plan (paginasi cursor).
+- `POST /api/vendor/plans/`: buat plan baru.
+- `GET /api/vendor/plans/{id}`: detail plan.
+- `PUT /api/vendor/plans/{id}`: update plan (name/price/duration).
+- `DELETE /api/vendor/plans/{id}`: hapus plan.
 
 - Invoices
-  - `GET /vendor/invoices/?limit={n}&cursor={cursor?}&status={s?}&periode={YYYY-MM?}`: daftar invoice.
-  - `POST /vendor/invoices/`: buat invoice (items, due_date, subscription_id?).
-  - `PATCH /vendor/invoices/{id}`: update invoice (number, due_date, items, subscription_id).
-  - `DELETE /vendor/invoices/{id}`: hapus invoice.
+- `GET /api/vendor/invoices/?limit={n}&cursor={cursor?}&status={s?}&periode={YYYY-MM?}`: daftar invoice.
+- `POST /api/vendor/invoices/`: buat invoice (items, due_date, subscription_id?).
+- `PATCH /api/vendor/invoices/{id}`: update invoice (number, due_date, items, subscription_id).
+- `PATCH /api/vendor/invoices/{id}/status`: ubah status invoice.
+- `POST /api/vendor/invoices/{id}/payments`: buat catatan pembayaran manual pada invoice.
+- `DELETE /api/vendor/invoices/{id}`: hapus invoice.
 
 - Payments
-  - `PATCH /vendor/payments/{id}/verify`: verifikasi pembayaran manual (`status=verified|rejected`, opsional `gateway`, `external_id`).
+- `PATCH /api/vendor/payments/{id}/verify`: verifikasi pembayaran manual (`status=verified|rejected`, opsional `gateway`, `external_id`).
+
+- Payment Gateways
+- `POST /api/vendor/payment-gateways/{gateway}/webhook`: terima webhook dari gateway pembayaran dan verifikasi signature.
 
 - Subscriptions
-  - `GET /vendor/subscriptions/summary`: ringkasan status subscription (`active`, `suspended`, `overdue`).
+- `GET /api/vendor/subscriptions/?limit={n}&cursor={cursor?}&status={s?}`: daftar subscription.
+- `PATCH /api/vendor/subscriptions/{id}/status`: ubah status subscription.
+- `GET /api/vendor/subscriptions/summary`: ringkasan status subscription (`active`, `suspended`, `overdue`).
 
 - Audit
-  - `GET /vendor/audits/?limit={n}&cursor={cursor?}`: daftar audit status (global).
+- `GET /api/vendor/audits?limit={n}&cursor={cursor?}&entity={type?}&user={id?}&date={YYYY-MM-DD?}`: daftar audit status.
 
 ### Client (Tenant)
 
@@ -122,33 +129,35 @@ Header umum (kecuali disebut sebaliknya):
 
 ### Vendor / Plans
 
-- `GET /vendor/plans/?limit={n}&cursor={cursor?}`
+- `GET /api/vendor/plans/?limit={n}&cursor={cursor?}`
   - Query: `limit` (wajib, int > 0), `cursor` (opsional, string id terakhir)
   - Response 200: `data` berupa array Plan, `meta.pagination` berisi `next_cursor`, `has_next`, `has_prev`, `limit`.
 
-- `POST /vendor/plans/`
+- `POST /api/vendor/plans/`
   - Body Plan:
     - `name` (string, wajib)
+    - `type` (string, wajib, `package|addon`)
     - `price` (number, wajib)
-    - `duration_months` (int, wajib, > 0)
+    - `status` (string, default `active`)
+    - `module_code` (string, opsional)
   - Response 201: `data` Plan yang dibuat.
 
-- `GET /vendor/plans/{id}`
+- `GET /api/vendor/plans/{id}`
   - Path: `id` (int, wajib)
   - Response 200: `data` Plan; 404 bila tidak ditemukan.
 
-- `PUT /vendor/plans/{id}`
+- `PUT /api/vendor/plans/{id}`
   - Path: `id` (int, wajib)
-  - Body Plan (field yang diubah): `name`, `price`, `duration_months`
+  - Body Plan (field yang diubah): `name`, `type`, `price`, `status`, `module_code`
   - Response 200: `data` Plan setelah diperbarui.
 
-- `DELETE /vendor/plans/{id}`
+- `DELETE /api/vendor/plans/{id}`
   - Path: `id` (int, wajib)
   - Response 200: `data` `{ "id": <int> }`.
 
 ### Vendor / Invoices
 
-- `GET /vendor/invoices/?limit={n}&cursor={cursor?}&status={s?}&periode={YYYY-MM?}`
+- `GET /api/vendor/invoices/?limit={n}&cursor={cursor?}&status={s?}&periode={YYYY-MM?}`
   - Query:
     - `limit` (wajib, int > 0)
     - `cursor` (opsional, string id terakhir)
@@ -156,7 +165,7 @@ Header umum (kecuali disebut sebaliknya):
     - `periode` (opsional, `YYYY-MM`)
   - Response 200: `data` array Invoice, dengan pagination.
 
-- `POST /vendor/invoices/`
+- `POST /api/vendor/invoices/`
   - Body Invoice:
     - `tenant_id` (uint, wajib)
     - `due_date` (RFC3339, wajib)
@@ -165,18 +174,51 @@ Header umum (kecuali disebut sebaliknya):
     - `items[]` (wajib, minimal 1): elemen `description` (string), `quantity` (int>0), `price` (number>=0)
   - Response 201: `data` Invoice (dengan `total` dihitung dari items).
 
-- `PATCH /vendor/invoices/{id}`
+- `PATCH /api/vendor/invoices/{id}`
   - Path: `id` (int, wajib)
   - Body Invoice (field yang diubah): `number`, `due_date`, `items[]`, `subscription_id`
   - Response 200: `data` Invoice setelah diperbarui.
 
-- `DELETE /vendor/invoices/{id}`
+- `DELETE /api/vendor/invoices/{id}`
   - Path: `id` (int, wajib)
   - Response 200: `data` `{ "id": <int> }`.
 
+- `PATCH /api/vendor/invoices/{id}/status`
+  - Path: `id` (int, wajib)
+  - Body: `{ "status": "pending|paid|overdue" }`
+  - Response 200: `data` Invoice dengan status terbaru.
+  - Contoh:
+    ```http
+    PATCH /api/vendor/invoices/10/status
+    { "status": "paid" }
+    ```
+    Response 200:
+    ```json
+    { "data": { "id": 10, "status": "paid" } }
+    ```
+
+- `POST /api/vendor/invoices/{id}/payments`
+  - Path: `id` (int, wajib)
+  - Body PaymentRequest:
+    - `method` (wajib, mis. `manual`)
+    - `proof_url` (opsional untuk `manual`)
+    - `amount` (opsional, number>=0)
+    - `gateway` (opsional)
+    - `external_id` (opsional)
+  - Response 201: `data` Payment dengan status awal `pending`.
+  - Contoh:
+    ```http
+    POST /api/vendor/invoices/10/payments
+    { "method": "manual", "proof_url": "https://cdn.example.com/bukti.jpg" }
+    ```
+    Response 201:
+    ```json
+    { "data": { "id": 99, "invoice_id": 10, "status": "pending" } }
+    ```
+
 ### Vendor / Payments
 
-- `PATCH /vendor/payments/{id}/verify`
+- `PATCH /api/vendor/payments/{id}/verify`
   - Path: `id` (int, wajib)
   - Body VerifyPaymentRequest:
     - `status` (wajib, `verified|rejected`)
@@ -184,14 +226,40 @@ Header umum (kecuali disebut sebaliknya):
     - `external_id` (opsional, referensi eksternal)
   - Response 200: `data` Payment (status terbaru). Jika `verified` maka efek samping: Invoice→`paid`, aktivasi modul tenant, pencatatan transaksi Finance.
 
+### Vendor / Payment Gateways
+
+- `POST /api/vendor/payment-gateways/{gateway}/webhook`
+  - Path: `gateway` (string, wajib; contoh `midtrans`)
+  - Tujuan: menerima notifikasi pembayaran dari gateway dan memverifikasi keaslian.
+  - Body: payload spesifik gateway (mis. `order_id`, `transaction_status`, `signature`).
+  - Verifikasi: sistem memeriksa signature/token; jika tidak valid, balasan `401`/`400`.
+  - Response 200: acknowledge `{ "received": true }`.
+  - Contoh payload:
+    ```json
+    {
+      "order_id": "INV-001",
+      "transaction_status": "settlement",
+      "signature": "abc123"
+    }
+    ```
+
 ### Vendor / Subscriptions
 
-- `GET /vendor/subscriptions/summary`
+- `GET /api/vendor/subscriptions/?limit={n}&cursor={cursor?}&status={s?}`
+  - Query: `limit` (wajib, int > 0), `cursor` (opsional), `status` (opsional, `active|suspended|overdue|cancelled`)
+  - Response 200: `data` array Subscription dengan pagination.
+
+- `PATCH /api/vendor/subscriptions/{id}/status`
+  - Path: `id` (int, wajib)
+  - Body: `{ "status": "active|suspended|cancelled" }`
+  - Response 200: `data` Subscription dengan status terbaru.
+
+- `GET /api/vendor/subscriptions/summary`
   - Response 200: `data` `{ "active": <int64>, "suspended": <int64>, "overdue": <int64> }`.
 
 ### Vendor / Audit
 
-- `GET /vendor/audits/?limit={n}&cursor={cursor?}`
+- `GET /api/vendor/audits?limit={n}&cursor={cursor?}&entity={type?}&user={id?}&date={YYYY-MM-DD?}`
   - Query: `limit` (wajib, int>0), `cursor` (opsional)
   - Response 200: `data` array StatusAudit, pagination tersedia.
 
@@ -346,3 +414,10 @@ Berikut contoh alur yang umum ditemui ketika menggunakan modul Billing.
 2. Vendor dapat melihat riwayat perubahan tersebut melalui endpoint audit untuk kebutuhan penelusuran.
 
 Contoh skenario di atas dapat dikombinasikan sesuai kebutuhan bisnis dan dijalankan menggunakan koleksi Postman atau alat serupa.
+
+## Tautan Cepat
+
+- Tenant: [tenant.md](tenant.md)
+- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
+- Notifications: [notification.md](notification.md)
+- Reporting: [reporting.md](reporting.md)

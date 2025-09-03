@@ -14,7 +14,7 @@
 - Finance / Transactions
 - Reporting & Analytics
 - Notifications & Reminder
-- Ticketing / Support
+- Ticket / Support
 - Landing Page & Branding
 
 ---

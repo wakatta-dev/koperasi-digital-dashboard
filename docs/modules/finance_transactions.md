@@ -6,8 +6,10 @@ Referensi implementasi utama terdapat pada:
 - `internal/modules/finance/entity.go`
 - `internal/modules/finance/repository.go`
 - `internal/modules/finance/service.go`
+- `internal/modules/finance/ledger.go`
 - `internal/modules/finance/ledger_repository.go`
-- `internal/modules/finance/audit.go`
+- `internal/modules/finance/ledger_service.go`
+- `internal/modules/finance/ports.go`
 - `internal/modules/finance/handler.go`
 - `internal/modules/finance/routes.go`
 
@@ -160,3 +162,10 @@ Header umum:
 1. Sistem atau pengguna menambahkan kemampuan `RecordCashOut`.
 2. Setiap pengeluaran (misal refund) dicatat dengan tipe `CashOut`.
 3. Laporan keuangan mencerminkan saldo kas yang lebih akurat.
+
+## Tautan Cepat
+
+- Billing: [billing.md](billing.md)
+- Reporting: [reporting.md](reporting.md)
+- Cashbook: [cashbook.md](cashbook.md)
+- Dashboard: [dashboard.md](dashboard.md)

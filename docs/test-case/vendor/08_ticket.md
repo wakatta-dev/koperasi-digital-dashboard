@@ -1,6 +1,6 @@
-# Test Case — Ticketing (Vendor)
+# Test Case — Ticket (Vendor)
 
-Catatan rujukan: `docs/modules/ticketing.md`
+Catatan rujukan: `docs/modules/ticket.md`
 
 Fokus: alur interaksi antara pengguna tenant (client) dan agen/vendor.
 

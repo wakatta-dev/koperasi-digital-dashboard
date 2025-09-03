@@ -23,9 +23,11 @@ Referensi implementasi utama terdapat pada:
 ## Entitas & Skema Data
 
 - Notification
-  - `id` (uuid), `tenant_id`, `user_id?`, `channel` (`IN_APP|EMAIL|PUSH`), `type` (`SYSTEM|BILLING|RAT|LOAN|SAVINGS|CUSTOM`), `title`, `body`, `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`), `created_at`, `sent_at?`, `read_at?`
+  - `id` (uuid), `tenant_id`, `user_id?`, `segment?` (`VENDOR|KOPERASI|UMKM|BUMDES`), `channel` (`IN_APP|EMAIL|PUSH`), `type` (`SYSTEM|BILLING|RAT|LOAN|SAVINGS|CUSTOM`), `category`, `target_type` (`SINGLE|ALL|GROUP`), `title`, `body`, `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`), `send_status` (`PENDING|SENT|FAILED`), `created_at`, `sent_at?`, `read_at?`
 - NotificationFilter
-  - `tenant_id`, `user_id?`, `type?`, `status?`, `from?`, `to?`
+  - `tenant_id`, `user_id?`, `type?`, `status?`, `category?`, `send_status?`, `from?`, `to?`
+- NotificationReminder
+  - `event_type`, `schedule_offset`, `active`
 
 ## Alur Bisnis Utama
 
@@ -44,9 +46,19 @@ Referensi implementasi utama terdapat pada:
 
 Semua response menggunakan format `APIResponse`.
 
-- `POST /notifications` — buat notifikasi.
-- `GET /notifications?tenant_id={id?}&user_id={id?}&type={t?}&status={s?}&from={RFC3339?}&to={RFC3339?}&limit={n}&cursor={c?}` — daftar notifikasi (cursor id uuid). Jika `tenant_id` tidak dikirim, sistem mengambil dari context (header `X-Tenant-ID`/domain).
-- `PATCH /notifications/{id}` — update `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`).
+### Tenant Routes
+
+- `POST /api/koperasi/notifications` — buat notifikasi.
+- `GET /api/koperasi/notifications?tenant_id={id?}&user_id={id?}&type={t?}&status={s?}&category={c?}&send_status={s?}&from={RFC3339?}&to={RFC3339?}&limit={n}&cursor={c?}` — daftar notifikasi (cursor id uuid). Jika `tenant_id` tidak dikirim, sistem mengambil dari context (header `X-Tenant-ID`/domain).
+- `PATCH /api/koperasi/notifications/{id}` — update `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`).
+- `GET /api/koperasi/notifications/reminders` — daftar reminder penjadwalan notifikasi untuk tenant saat ini.
+- `PUT /api/koperasi/notifications/reminders` — upsert reminder penjadwalan notifikasi (batch).
+
+### Vendor Routes
+
+- `POST /api/notifications/broadcast` — broadcast notifikasi ke tenant tertentu.
+- `POST /api/notifications/bulk` — antre notifikasi bulk berdasarkan segmen tenant.
+- `GET /api/notifications?tenant={id?}&category={c?}&date={YYYY-MM-DD?}&limit={n}&cursor={c?}` — daftar notifikasi vendor.
 
 Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
 
@@ -56,31 +68,54 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
 
-- `POST /notifications`
+- `POST /api/koperasi/notifications`
   - Body:
     - `tenant_id` (wajib, > 0)
     - `user_id` (opsional, > 0 untuk per-user; kosong untuk broadcast tenant)
+    - `segment` (opsional, `VENDOR|KOPERASI|UMKM|BUMDES`)
     - `channel` (wajib, `IN_APP|EMAIL|PUSH`)
     - `type` (wajib, `SYSTEM|BILLING|RAT|LOAN|SAVINGS|CUSTOM`)
+    - `category` (wajib)
+    - `target_type` (wajib, `SINGLE|ALL|GROUP`)
     - `title` (wajib, maks 100)
     - `body` (wajib)
     - `status` (opsional, `DRAFT|PUBLISHED|SENT|READ|ARCHIVED`; default `DRAFT`)
+    - `send_status` (opsional, `PENDING|SENT|FAILED`; default `PENDING`)
   - Response 201: `data` Notification (dengan `id` uuid, timestamps). Untuk `EMAIL/PUSH` pengiriman belum diimplementasi (placeholder).
 
-- `GET /notifications`
+- `GET /api/koperasi/notifications`
   - Query:
     - `tenant_id` (opsional; default dari context/`X-Tenant-ID`)
     - `user_id` (opsional)
     - `type` (opsional)
     - `status` (opsional)
+    - `category` (opsional)
+    - `send_status` (opsional)
     - `from` (opsional, RFC3339), `to` (opsional, RFC3339)
     - `limit` (wajib, int>0), `cursor` (opsional, string id uuid terakhir)
   - Response 200: `data` array Notification + `meta.pagination`.
 
-- `PATCH /notifications/{id}`
+- `PATCH /api/koperasi/notifications/{id}`
   - Path: `id` (string uuid, wajib)
   - Body: `{ "status": "DRAFT|PUBLISHED|SENT|READ|ARCHIVED" }` (wajib)
   - Response 200: `data` `{ "id": "...", "status": "..." }`. Timestamp `sent_at` diisi saat `SENT`, `read_at` saat `READ`.
+
+- `GET /api/koperasi/notifications/reminders`
+  - Response 200: `data` array `NotificationReminder` untuk tenant saat ini.
+
+- `PUT /api/koperasi/notifications/reminders`
+  - Body: array `reminderRequest`:
+    - `event_type` (wajib)
+    - `schedule_offset` (wajib, int; offset jadwal dalam satuan domain yang ditetapkan)
+    - `active` (opsional, bool)
+  - Response 200: tanpa data (`data: null`) — seluruh entri di-upsert.
+
+## Tautan Cepat
+
+- Billing: [billing.md](billing.md)
+- Ticket: [ticket.md](ticket.md)
+- RAT: [rat.md](rat.md)
+- Livechat: [livechat.md](livechat.md)
 
 ## Contoh Payload
 
@@ -89,11 +124,15 @@ Header umum:
 {
   "tenant_id": 12,
   "user_id": 99,
+  "segment": "KOPERASI",
   "channel": "IN_APP",
   "type": "BILLING",
+  "category": "BILLING",
+  "target_type": "SINGLE",
   "title": "Tagihan Jatuh Tempo",
   "body": "Segera lakukan pembayaran.",
-  "status": "PUBLISHED"
+  "status": "PUBLISHED",
+  "send_status": "PENDING"
 }
 ```
 
@@ -114,6 +153,7 @@ Header umum:
 ## Integrasi & Dampak ke Modul Lain
 
 - Billing/Finance/RAT/Loan/Savings: dapat menggunakan notifikasi tipe terkait untuk informasi status/tagihan/transaksi.
+- Livechat: mengirim notifikasi in-app saat agen membalas chat.
 - Kanal `EMAIL`/`PUSH` akan membutuhkan integrasi eksternal (placeholder).
 
 ## Keamanan

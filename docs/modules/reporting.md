@@ -33,6 +33,12 @@ Referensi implementasi utama terdapat pada:
 - BalanceSheetReportResponse
   - `total_assets`, `total_liabilities`, `breakdown[]` (`account`, `amount`)
 - LedgerReportRow (untuk kebutuhan internal di service): `account_code`, `account_name`, `debit`, `credit`
+- ReportExport
+  - `id`, `report_type`, `params`, `file_url`, `created_at`
+- ReportArchive
+  - `id`, `tenant_id`, `type`, `period_start`, `period_end`, `file_url`, `created_at`
+- AccountMapping
+  - `id`, `account_code`, `category`, `cash_flow_type?`
 
 ## Alur Bisnis Utama
 
@@ -52,6 +58,12 @@ Semua response menggunakan format `APIResponse`.
 - `GET /reports/cashflow?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — ringkasan arus kas beserta total in/out per kategori.
 - `GET /reports/profit-loss?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — laporan laba rugi beserta net profit per akun.
 - `GET /reports/balance-sheet?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — laporan neraca dengan total aset/liabilitas dan breakdown akun.
+- `GET /reports/export?tenant_id={id}&type={finance|billing|cashflow|profit-loss|balance-sheet}&start={YYYY-MM-DD}&end={YYYY-MM-DD}&format={pdf|xlsx?}` — unduh file laporan.
+- `GET /reports/history?tenant_id={id}` — daftar arsip laporan yang pernah diekspor.
+- `GET /api/vendor/reports/financial?start_date={YYYY-MM-DD?}&end_date={YYYY-MM-DD?}&group_by={month|quarter|year?}` — ringkasan keuangan vendor.
+- `GET /api/vendor/reports/usage?tenant={id?}&module={code?}` — ringkasan penggunaan tenant/modul.
+- `POST /api/vendor/reports/export` — ekspor laporan vendor.
+- `GET /api/vendor/reports/exports` — daftar ekspor laporan vendor.
 
 Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
 
@@ -100,6 +112,43 @@ Header umum:
     - `end` (opsional, `YYYY-MM-DD`)
   - Response 200: `data` BalanceSheetReportResponse
     - `total_assets`, `total_liabilities`, `breakdown[]` (`account`, `amount`).
+
+- `GET /reports/export`
+  - Query:
+    - `tenant_id` (wajib, int)
+    - `type` (wajib, salah satu tipe laporan di atas)
+    - `start` (wajib, `YYYY-MM-DD`)
+    - `end` (wajib, `YYYY-MM-DD`)
+    - `format` (opsional, default `pdf`, opsi `pdf|xlsx`)
+  - Response 200: file biner (Content-Type sesuai `format`, dengan header `Content-Disposition`).
+
+- `GET /reports/history`
+  - Query:
+    - `tenant_id` (wajib, int)
+  - Response 200: `data` array `ReportArchive` (riwayat arsip laporan yang tersedia).
+
+- `GET /api/vendor/reports/financial`
+  - Query:
+    - `start_date` (opsional, `YYYY-MM-DD`)
+    - `end_date` (opsional, `YYYY-MM-DD`)
+    - `group_by` (opsional, `month|quarter|year`)
+  - Response 200: `data` FinancialReport
+
+- `GET /api/vendor/reports/usage`
+  - Query:
+    - `tenant` (opsional, int)
+    - `module` (opsional, string)
+  - Response 200: `data` UsageReport
+
+- `POST /api/vendor/reports/export`
+  - Body JSON:
+    - `report_type` (wajib, string)
+    - `format` (opsional, default `pdf`, opsi `pdf|xlsx`)
+    - `params` (wajib, objek parameter laporan)
+  - Response 200: file biner (Content-Type sesuai `format`)
+
+- `GET /api/vendor/reports/exports`
+  - Response 200: `data` array `ReportExport`
 
 ## Contoh Response (Finance)
 
@@ -205,3 +254,9 @@ Header umum:
 1. Bendahara melihat ringkasan kas bulan berjalan melalui `/reports/finance`.
 2. Admin memantau jumlah invoice overdue melalui `/reports/billing`.
 3. Akuntan menyusun laporan neraca melalui `/reports/balance-sheet`.
+
+## Tautan Cepat
+
+- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
+- Billing: [billing.md](billing.md)
+- Dashboard: [dashboard.md](dashboard.md)

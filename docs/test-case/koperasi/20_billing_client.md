@@ -21,6 +21,9 @@ Catatan rujukan: `docs/modules/billing.md` bagian Client (Tenant), `internal/mod
 ### KOP-BCL-010 — Status subscription saat ini
 - GET `/client/subscription` → 200 `{ "status": "active|suspended|overdue|pending|cancelled", "action": "extend|pay" }`.
 
+### KOP-BCL-015 — List invoice client
+- GET `/client/invoices?limit=10` dengan header `X-Tenant-ID` → 200 `data[]` invoice.
+
 ## Payments (Tenant)
 
 ### KOP-BCL-020 — Unggah bukti pembayaran manual (jika tersedia)

@@ -12,7 +12,7 @@ Modul yang dicakup (Koperasi + Core):
 - Cashbook (entri kas manual, ringkasan, ekspor)
 - Asset (CRUD, depresiasi, status, ekspor)
 - Reporting (finance/billing/cashflow/profit-loss/balance-sheet)
-- Notifications & Ticketing (operasional lintas modul)
+- Notifications & Ticket (operasional lintas modul)
  - Finance/Transactions (pencatatan kas generik)
  - Tenant & Roles/Permissions (operasional tenant sendiri)
  - Billing Client (tagihan tenant, pembayaran manual, status subscription)
@@ -38,5 +38,5 @@ Modul yang dicakup (Koperasi + Core):
 10) Finance/Transactions: catat transaksi kas umum + ekspor.
 11) Tenant & Roles/Permissions: atur modul & peran pengguna.
 12) Billing Client: tinjau tagihan layananan SaaS dan unggah bukti pembayaran.
-13) Notifications & Ticketing: kirim notifikasi internal, buat tiket dukungan.
+13) Notifications & Ticket: kirim notifikasi internal, buat tiket dukungan.
  

@@ -8,7 +8,7 @@ Modul yang dicakup (Vendor + Core):
 - Billing & Subscription (Plans, Invoices, Payments, Subscriptions, Audits)
 - Reporting (vendor financial, usage, export)
 - Notifications (in-app + reminders)
-- Ticketing (dukungan)
+- Ticket (dukungan)
 
 ## Prasyarat Umum
 - Header: `Authorization: Bearer <token>` dan `X-Tenant-ID: <tenant_vendor_id>` untuk endpoint non-publik.
@@ -29,7 +29,7 @@ Modul yang dicakup (Vendor + Core):
 5) Dashboard Vendor → verifikasi metrik ringkas.
 6) Reporting (financial/usage/export) → verifikasi agregasi & validasi parameter.
 7) Notifications → buat/list/ubah status + reminders.
-8) Ticketing → buat tiket (client) → tindak oleh vendor (agent) → tutup.
+8) Ticket → buat tiket (client) → tindak oleh vendor (agent) → tutup.
 
 Setiap modul juga menyertakan negative-path (header hilang, role salah, body invalid, pagination/filter invalid, dsb.).
 

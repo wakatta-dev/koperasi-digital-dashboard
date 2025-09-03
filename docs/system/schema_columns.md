@@ -5,9 +5,15 @@ Summary of tables defined in `migrations/` and their columns.
 ## tenants
 - id SERIAL PRIMARY KEY
 - name VARCHAR(255) NOT NULL
+- legal_entity VARCHAR(255)
 - domain VARCHAR(255) UNIQUE NOT NULL
+- pic_name VARCHAR(255)
+- pic_phone VARCHAR(50)
+- pic_email VARCHAR(255)
 - type VARCHAR(50) NOT NULL
+- status VARCHAR(50) NOT NULL DEFAULT 'active'
 - is_active BOOLEAN NOT NULL DEFAULT TRUE
+- primary_plan_id INT
 - created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 - updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 
@@ -90,10 +96,18 @@ Summary of tables defined in `migrations/` and their columns.
 ## plans
 - id SERIAL PRIMARY KEY
 - name VARCHAR(100) NOT NULL
+- type VARCHAR(20) NOT NULL
 - price NUMERIC(10,2) NOT NULL
-- duration_months INT NOT NULL
+- status VARCHAR(20) NOT NULL
+- module_code VARCHAR(50)
 - created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 - updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+## tenant_plans
+- tenant_id INT NOT NULL REFERENCES tenants(id)
+- plan_id INT NOT NULL REFERENCES plans(id)
+- is_primary BOOLEAN NOT NULL DEFAULT FALSE
+- PRIMARY KEY (tenant_id, plan_id)
 
 ## tenant_subscriptions
 - id SERIAL PRIMARY KEY
@@ -185,3 +199,10 @@ Summary of tables defined in `migrations/` and their columns.
 - new_status VARCHAR(20)
 - changed_by INT
 - changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+## module_usage_logs
+- tenant_id INT NOT NULL REFERENCES tenants(id)
+- module_code VARCHAR(50) NOT NULL
+- count INT NOT NULL DEFAULT 0
+- last_used_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+- PRIMARY KEY (tenant_id, module_code)

@@ -29,3 +29,8 @@ Alur menyeluruh lintas modul untuk memvalidasi integrasi operasional koperasi.
 - 2) Entri cashbook in/out (KOP-CBK-001/002) → summary/export (KOP-CBK-003/004).
 - 3) Reporting cashflow (KOP-REPT-020) mengagregasi transaksi kas.
 
+## KOP-XF-006 — Transaksi → Pelaporan → Notifikasi
+- 1) Lakukan transaksi keuangan.
+- 2) Ekspor/lihat laporan terkait transaksi.
+- 3) Sistem mengirim notifikasi ke anggota/tenant.
+

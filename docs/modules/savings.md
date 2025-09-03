@@ -148,3 +148,11 @@ Header umum:
 
 1. Teller mencatat setoran manual, lalu supervisor memverifikasi transaksi tersebut.
 2. Anggota mengajukan penarikan; bendahara menyetujui dan sistem mencatat kas keluar.
+
+## Tautan Cepat
+
+- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
+- Billing: [billing.md](billing.md)
+- Membership: [membership.md](membership.md)
+- Reporting: [reporting.md](reporting.md)
+- Dashboard: [dashboard.md](dashboard.md)

@@ -1,6 +1,6 @@
 # Test Case — Roles & Permissions (Vendor)
 
-Catatan rujukan: `docs/modules/role.md`
+Catatan rujukan: `docs/modules/authorization.md`
 
 ## Roles (CRUD & Assign ke Tenant)
 

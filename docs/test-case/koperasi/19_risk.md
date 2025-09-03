@@ -19,6 +19,10 @@ Catatan rujukan: `docs/modules/risk.md`, `internal/modules/risk/*`
 ### KOP-RISK-005 — Hapus aturan risiko
 - DELETE `/coop/risk/config/{id}` → 200.
 
+### KOP-RISK-006 — Evaluasi risiko anggota
+- POST `/coop/risk/score` body `{ "member_id": 1 }` dengan header `X-Tenant-ID` → 200 `data` RiskResult.
+- GET `/coop/risk/result/{member_id}` memastikan hasil tersimpan.
+
 ## Negative & Validasi
 
 ### KOP-RISK-020 — Score request invalid

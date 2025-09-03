@@ -35,3 +35,7 @@ Catatan rujukan: `docs/modules/asset.md`, `internal/modules/asset/*`
 
 ### KOP-AST-022 — Harga/umur manfaat tidak valid
 - `purchase_price<=0` atau `useful_life_months<=0` → 400.
+
+### KOP-AST-030 — Integrasi CRUD aset
+- Jalankan alur tambah, ubah, daftar, ubah status, dan hapus aset menggunakan header `X-Tenant-ID`.
+- Pastikan respons mengikuti format standar (`success`, `data`, `meta`).

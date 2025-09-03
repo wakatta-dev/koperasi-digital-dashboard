@@ -1,6 +1,6 @@
-# Test Case — Ticketing (Koperasi)
+# Test Case — Ticket (Koperasi)
 
-Catatan rujukan: `docs/modules/ticketing.md`
+Catatan rujukan: `docs/modules/ticket.md`
 
 ## Alur Dasar: Buat → Tindak → Selesai
 
@@ -29,6 +29,10 @@ Catatan rujukan: `docs/modules/ticketing.md`
 
 ### KOP-TICK-012 — Riwayat aktivitas
 - GET `/tickets/{id}/activities` → 200 `data[]`.
+
+### KOP-TICK-013 — Lifecycle tiket
+- POST `/tickets` → 201, PATCH `/tickets/{id}` ubah status → 200, kemudian GET detail memastikan status berubah.
+- Semua permintaan memakai header `X-Tenant-ID` dan mengikuti struktur respons standar.
 
 ## Negative & Validasi
 

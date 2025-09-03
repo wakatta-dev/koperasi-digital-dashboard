@@ -1,6 +1,6 @@
 # Test Case — Dashboard Vendor
 
-Catatan rujukan: `docs/modules/dashboard_vendor.md`, `internal/modules/dashboard/vendor_handler.go`
+Catatan rujukan: `docs/modules/dashboard.md`, `internal/modules/dashboard/vendor_handler.go`
 
 ## VND-DASH-001 — Akses dashboard sukses (admin_vendor)
 - Tujuan: Mendapatkan ringkasan dashboard vendor.

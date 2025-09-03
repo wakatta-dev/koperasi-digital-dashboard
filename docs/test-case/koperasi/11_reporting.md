@@ -39,6 +39,9 @@ Endpoint tenant: `/reports/*` dengan query `tenant_id=<tenant_koperasi_id>`.
 ### KOP-REPT-031 — History arsip laporan
 - GET `/reports/history?tenant_id=<id>` → 200 `data[]` ReportArchive.
 
+### KOP-REPT-050 — Integrasi history laporan
+- GET `/reports/history?tenant_id=<id>` dengan header `X-Tenant-ID` → 200 `success`.
+
 ## Negative & Validasi
 
 ### KOP-REPT-040 — Validasi query

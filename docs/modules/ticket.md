@@ -1,6 +1,6 @@
-# Modul Ticketing
+# Modul Ticket
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Ticketing. Modul ini digunakan untuk pengelolaan tiket dukungan (support) antara pengguna dan agen.
+Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Ticket. Modul ini digunakan untuk pengelolaan tiket dukungan (support) antara pengguna dan agen.
 
 Referensi implementasi utama terdapat pada:
 - `internal/modules/ticket/entity.go`
@@ -16,9 +16,9 @@ Referensi implementasi utama terdapat pada:
 
 ## Arsitektur & Komponen
 
-- **Entity**: mendefinisikan struktur `Ticket` dan `TicketReply` serta filter pencarian.
+- **Entity**: mendefinisikan struktur `Ticket`, `TicketReply`, `TicketActivityLog`, `TicketCategorySLA` serta filter pencarian.
 - **Repository**: operasi CRUD dasar untuk tiket dan balasan termasuk paginasi dan filter.
-- **Service**: logika bisnis pembuatan tiket, balasan, pembaruan status, penugasan agen, serta integrasi notifikasi dan audit.
+- **Service**: logika bisnis pembuatan tiket, balasan, pembaruan status, penugasan agen, pemeriksaan SLA/eskalasi, serta integrasi notifikasi dan audit.
 - **Handler (HTTP)**: memaparkan endpoint untuk membuat tiket, menambah balasan, listing, mengambil detail, mengubah status/agen.
 - **Routes**: mendaftarkan rute `/tickets` dan turunannya.
 
@@ -28,11 +28,13 @@ Referensi implementasi utama terdapat pada:
 - `id` (uuid, pk)
 - `tenant_id` (uint, index)
 - `user_id` (uint, index)
+- `member_id` (uint?, index) — relasi opsional ke anggota koperasi
 - `agent_id` (uint?, index)
 - `title` (string)
-- `category` (string: billing|technical|access|other)
+- `category` (string: billing|technical|account|service)
 - `priority` (string: low|medium|high)
 - `status` (string: open|in_progress|resolved|closed)
+- `escalation_level` (int, default 0, tingkat eskalasi SLA)
 - `description` (text)
 - `attachment_url` (string?)
 - `created_at`, `updated_at`
@@ -45,15 +47,31 @@ Referensi implementasi utama terdapat pada:
 - `attachment_url` (string?)
 - `created_at`
 
+### `ticket_categories` (SLA per kategori)
+Menyimpan konfigurasi Service Level Agreement untuk setiap kategori tiket. Nilai ini digunakan layanan untuk mengevaluasi dan menaikkan `escalation_level` ketika batas waktu dilampaui.
+- `category` (string, pk)
+- `sla_response_minutes` (int)
+- `sla_resolution_minutes` (int)
+
+### `ticket_activity_logs`
+Mencatat perubahan status atau penugasan tiket sebagai jejak audit.
+- `id` (uuid, pk)
+- `ticket_id` (uuid, fk -> tickets.id)
+- `actor_id` (uint, index)
+- `action` (string)
+- `message` (text?)
+- `created_at`
+
 ## Endpoint API
 
 Semua respons menggunakan format `APIResponse` dan membutuhkan header `Authorization: Bearer <token>` serta `X-Tenant-ID`.
 
 - `POST /tickets` — buat tiket baru.
-- `GET /tickets?status=&priority=&category=&limit={n}&cursor={id?}` — daftar tiket milik pengguna.
+- `GET /tickets?status=&priority=&category=&member_id={id?}&limit={n}&cursor={id?}` — daftar tiket milik pengguna (dengan filter opsional `member_id`).
 - `GET /tickets/{id}` — detail tiket termasuk balasan.
 - `POST /tickets/{id}/replies` — tambah balasan pada tiket.
 - `PATCH /tickets/{id}` — ubah `status` atau tetapkan `agent_id`.
+- `GET /tickets/{id}/activities` — daftar aktivitas/audit tiket.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -64,17 +82,18 @@ Header umum:
 - `POST /tickets`
   - Body createTicketRequest:
     - `title` (wajib)
-    - `category` (wajib; `billing|technical|access|other`)
+    - `category` (wajib; `billing|technical|account|service`)
     - `priority` (wajib; `low|medium|high`)
     - `description` (wajib)
     - `attachment_url` (opsional)
   - Response 201: `data` `Ticket` (status awal `open`).
 
-- `GET /tickets?status=&priority=&category=&limit={n}&cursor={id?}`
+- `GET /tickets?status=&priority=&category=&member_id={id?}&limit={n}&cursor={id?}`
   - Query:
     - `status` (opsional; `open|in_progress|resolved|closed`)
     - `priority` (opsional)
-    - `category` (opsional)
+    - `category` (opsional; `billing|technical|account|service`)
+    - `member_id` (opsional, int)
     - `limit` (wajib, int>0)
     - `cursor` (opsional, string id terakhir)
   - Response 200: `data` array `Ticket` + `meta.pagination` (cursor string berbasis `id`).
@@ -96,6 +115,24 @@ Header umum:
     - `status` (opsional; `open|in_progress|resolved|closed`)
     - `agent_id` (opsional; uint)
   - Response 200: `data` berisi field yang diperbarui (`status` dan/atau `agent_id`).
+
+- `GET /tickets/{id}/activities`
+  - Path: `id` (uuid, wajib)
+  - Response 200: `data` array `TicketActivityLog` (riwayat perubahan status/penugasan).
+
+## Vendor
+
+Endpoint untuk agen/vendor:
+
+- `GET /api/vendor/tickets` — daftar semua tiket untuk agen.
+- `GET /api/vendor/tickets/{id}/replies` — lihat balasan tiket tertentu.
+- `POST /api/vendor/tickets/{id}/replies` — balas tiket.
+- `POST /api/vendor/tickets/sla` — atur SLA kategori tiket.
+- `GET /api/vendor/tickets/sla` — daftar konfigurasi SLA.
+
+### SLA Management (TicketCategorySLA)
+
+`TicketCategorySLA` menyimpan batas waktu respons dan resolusi per kategori tiket. Service mengecek nilai ini dan menaikkan `escalation_level` ketika SLA terlewati sehingga tiket dapat dieskalasi.
 
 ## Contoh Payload
 
@@ -124,6 +161,46 @@ Header umum:
 }
 ```
 
+### Ticket Response
+```json
+{
+  "id": "8d5d...",
+  "tenant_id": 1,
+  "user_id": 1,
+  "member_id": 42,
+  "agent_id": 7,
+  "title": "Aplikasi error",
+  "category": "technical",
+  "priority": "high",
+  "status": "open",
+  "escalation_level": 0,
+  "description": "Tidak bisa login",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### Ticket Activity Log
+```json
+{
+  "id": "log-uuid",
+  "ticket_id": "8d5d...",
+  "actor_id": 7,
+  "action": "status_change",
+  "message": "status changed to in_progress",
+  "created_at": "2024-01-02T00:00:00Z"
+}
+```
+
+### Ticket Category SLA
+```json
+{
+  "category": "billing",
+  "sla_response_minutes": 60,
+  "sla_resolution_minutes": 1440
+}
+```
+
 ## Status & Transisi
 
 - Tiket: `open` → `in_progress` → `resolved` → `closed` (dapat berubah sesuai kebutuhan layanan).
@@ -137,6 +214,7 @@ Header umum:
 
 - Notifications: notifikasi in-app dibuat saat tiket dibuat, dibalas, atau status diubah (ditujukan ke pihak lain: agen atau pengguna).
 - Audit: perubahan status dicatat oleh `AuditService` (internal).
+- Livechat: tiket dibuat otomatis ketika agen offline saat memulai sesi chat.
 
 ## Keamanan
 
@@ -147,7 +225,7 @@ Header umum:
 - Cursor menggunakan perbandingan `id > cursor` (uuid) dan pengurutan `id`; urutan tidak merepresentasikan kronologi waktu secara ketat.
 - Kanal notifikasi aktif adalah `IN_APP`; kanal lain dapat ditambahkan kemudian.
 
-## Peran Modul Ticketing per Jenis Tenant (Rangkuman)
+## Peran Modul Ticket per Jenis Tenant (Rangkuman)
 
 - Pengguna Tenant: membuat tiket, menambah balasan, memantau status.
 - Agen/Vendor: menangani tiket, memperbarui status, dan komunikasi.
@@ -157,3 +235,8 @@ Header umum:
 1. Pengguna membuat tiket `technical` prioritas `high` dan melampirkan tangkapan layar.
 2. Agen menandai tiket menjadi `in_progress` dan menambahkan balasan.
 3. Setelah solusi diberikan, agen menandai `resolved`; pengguna memastikan perbaikan dan menutup tiket (`closed`).
+
+## Tautan Cepat
+
+- Notifications: [notification.md](notification.md)
+- Dashboard: [dashboard.md](dashboard.md)
