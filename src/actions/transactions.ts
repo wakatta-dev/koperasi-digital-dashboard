@@ -3,7 +3,7 @@
 "use server";
 
 import { ensureSuccess } from "@/lib/api";
-import type { Transaction, TransactionHistory } from "@/types/api";
+import type { Transaction } from "@/types/api";
 import {
   createTransaction as createTx,
   deleteTransaction as deleteTx,

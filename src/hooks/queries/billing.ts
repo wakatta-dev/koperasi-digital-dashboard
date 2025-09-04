@@ -26,6 +26,7 @@ import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 import type { StatusAudit, Subscription, SubscriptionSummary } from "@/types/api";
 import { getClientInvoice, getClientSubscription, listClientInvoiceAudits, getVendorSubscriptionsSummary, listVendorAudits } from "@/services/api";
+import { toast } from "sonner";
 
 export function useVendorPlans(
   params: { limit: number; cursor?: string },
@@ -188,11 +189,9 @@ export function useBillingActions() {
       ensureSuccess(await createVendorInvoice(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
-      const { toast } = require("sonner");
       toast.success("Invoice berhasil dibuat");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal membuat invoice");
     }
   });
@@ -205,11 +204,9 @@ export function useBillingActions() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoice(vars.id) });
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
-      const { toast } = require("sonner");
       toast.success("Invoice diperbarui");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal memperbarui invoice");
     }
   });
@@ -219,11 +216,9 @@ export function useBillingActions() {
       ensureSuccess(await updateVendorInvoiceStatus(vars.id, { status: vars.status, note: vars.note })),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
-      const { toast } = require("sonner");
       toast.success("Status invoice diperbarui");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal memperbarui status");
     }
   });
@@ -233,11 +228,9 @@ export function useBillingActions() {
       ensureSuccess(await deleteVendorInvoice(id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
-      const { toast } = require("sonner");
       toast.success("Invoice dihapus");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal menghapus invoice");
     }
   });
@@ -249,11 +242,9 @@ export function useBillingActions() {
     }) => ensureSuccess(await createPayment(vars.invoiceId, vars.payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.client.invoices() });
-      const { toast } = require("sonner");
       toast.success("Pembayaran terkirim");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal mengirim pembayaran");
     }
   });
@@ -263,11 +254,9 @@ export function useBillingActions() {
       ensureSuccess(await verifyVendorPayment(vars.id, vars.payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
-      const { toast } = require("sonner");
       toast.success("Pembayaran diverifikasi");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal verifikasi pembayaran");
     }
   });
@@ -283,11 +272,9 @@ export function useBillingActions() {
           q.queryKey[1] === "vendor" &&
           q.queryKey[2] === "plans",
       });
-      const { toast } = require("sonner");
       toast.success("Status plan diperbarui");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal memperbarui status plan");
     }
   });
@@ -303,11 +290,9 @@ export function useBillingActions() {
           q.queryKey[1] === "vendor" &&
           q.queryKey[2] === "subscriptions",
       });
-      const { toast } = require("sonner");
       toast.success("Status subscription diperbarui");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal memperbarui status subscription");
     }
   });

@@ -14,7 +14,7 @@ import { translations, type Language } from "@/constants/translations";
 interface LanguageContextValue {
   lang: Language;
   toggleLanguage: () => void;
-  t: (key: string) => string; // eslint-disable-line no-unused-vars
+  t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(

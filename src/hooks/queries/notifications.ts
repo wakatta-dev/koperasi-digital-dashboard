@@ -12,6 +12,7 @@ import {
 import { listNotificationReminders, upsertNotificationReminders } from "@/services/api/vendor";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
+import { toast } from "sonner";
 
 export function useNotifications(
   params?: Record<string, string | number>,
@@ -26,7 +27,6 @@ export function useNotifications(
 
 export function useNotificationActions() {
   const qc = useQueryClient();
-  const { toast } = require("sonner");
 
   const create = useMutation({
     mutationFn: async (payload: Partial<Notification>) =>
@@ -67,11 +67,9 @@ export function useNotificationReminderActions() {
     mutationFn: async (payload: any[]) => ensureSuccess(await upsertNotificationReminders(payload as any)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notifications", "reminders"] });
-      const { toast } = require("sonner");
       toast.success("Konfigurasi reminder disimpan");
     },
     onError: (err: any) => {
-      const { toast } = require("sonner");
       toast.error(err?.message || "Gagal menyimpan reminder");
     }
   });

@@ -15,6 +15,7 @@ import {
   addRolePermission,
   deleteRolePermission,
 } from "@/services/api";
+import { toast } from "sonner";
 
 export function useRoles(
   params?: { limit?: number; cursor?: string },
@@ -44,7 +45,6 @@ export function useRolePermissions(
 
 export function useRoleActions() {
   const qc = useQueryClient();
-  const { toast } = require("sonner");
 
   const create = useMutation({
     mutationFn: async (payload: Partial<Role>) => ensureSuccess(await createRole(payload)),
@@ -97,4 +97,3 @@ export function useRoleActions() {
 
   return { create, update, remove, addPermission, removePermission } as const;
 }
-

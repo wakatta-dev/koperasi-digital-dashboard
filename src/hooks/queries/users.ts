@@ -18,6 +18,7 @@ import {
 import { assignRole } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
+import { toast } from "sonner";
 
 export function useUsers(
   params?: Record<string, string | number>,
@@ -56,7 +57,6 @@ export function useUserRoles(
 
 export function useUserActions() {
   const qc = useQueryClient();
-  const { toast } = require("sonner");
 
   const create = useMutation({
     mutationFn: async (payload: Partial<User>) =>

@@ -13,13 +13,9 @@ process.env.TZ = process.env.TZ || "UTC";
 // TextEncoder/TextDecoder polyfill for environments that lack them
 try {
   const { TextEncoder, TextDecoder } = await import("node:util");
-  // @ts-ignore
   if (typeof (global as any).TextEncoder === "undefined")
-    // @ts-ignore
     (global as any).TextEncoder = TextEncoder;
-  // @ts-ignore
   if (typeof (global as any).TextDecoder === "undefined")
-    // @ts-ignore
     (global as any).TextDecoder = TextDecoder as any;
 } catch {}
 
@@ -27,9 +23,8 @@ try {
 // If a test needs to override, it will stub global.fetch explicitly.
 
 // JSDOM missing implementation stubs used by some components
-if (typeof window !== "undefined") {
+  if (typeof window !== "undefined") {
   if (typeof (window as any).matchMedia === "undefined") {
-    // @ts-ignore
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",

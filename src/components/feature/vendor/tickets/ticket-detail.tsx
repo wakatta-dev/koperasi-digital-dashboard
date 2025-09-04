@@ -24,9 +24,10 @@ export function VendorTicketDetail({ id, initialTicket }: Props) {
   const [status, setStatus] = useState<string | undefined>(ticket?.status);
   const [agentId, setAgentId] = useState<string>("");
 
-  if (!ticket) return null;
-
+  // Hooks must be called unconditionally; fetch activities regardless of ticket presence
   const { data: activities = [] } = useTicketActivities(id, { limit: 100 });
+
+  if (!ticket) return null;
 
   return (
     <div className="space-y-6">

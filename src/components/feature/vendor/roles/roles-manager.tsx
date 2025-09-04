@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRoles, useRolePermissions, useRoleActions } from "@/hooks/queries/roles";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ export function RolesManager() {
   const confirm = useConfirm();
   const [newRole, setNewRole] = useState({ name: "", description: "" });
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [perm, setPerm] = useState<{ obj: string; act: string }>({ obj: "", act: "" });
+  // state for adding permission is handled inside RolePermissions component
 
   return (
     <div className="space-y-6">
@@ -105,4 +105,3 @@ function RolePermissions({ roleId, onAdd, onRemove }: { roleId: number; onAdd: (
     </div>
   );
 }
-
