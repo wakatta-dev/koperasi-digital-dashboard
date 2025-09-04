@@ -7,12 +7,17 @@ import { WebhookSimulator } from "@/components/feature/vendor/payments/webhook-s
 export const dynamic = "force-dynamic";
 
 export default async function InvoicesPage() {
-  const res = await listVendorInvoices({ limit: 50 }).catch(() => null);
+  const res = await listVendorInvoices({ limit: 10 }).catch(() => null);
   const invoices = res?.data ?? [];
-  const initialCursor = (res?.meta?.pagination as any)?.next_cursor as string | undefined;
+  const initialCursor = (res?.meta?.pagination as any)?.next_cursor as
+    | string
+    | undefined;
   return (
     <div className="space-y-6">
-      <VendorInvoicesList initialData={invoices ?? []} initialCursor={initialCursor} />
+      <VendorInvoicesList
+        initialData={invoices ?? []}
+        initialCursor={initialCursor}
+      />
       <WebhookSimulator />
     </div>
   );

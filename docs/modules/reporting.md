@@ -66,7 +66,7 @@ Semua response menggunakan format `APIResponse`.
 - `GET /reports/financial?start_date={YYYY-MM-DD?}&end_date={YYYY-MM-DD?}&group_by={month|quarter|year?}` — ringkasan keuangan vendor.
 - `GET /reports/usage?tenant={id?}&module={code?}` — ringkasan penggunaan tenant/modul.
 - `POST /reports/export` — ekspor laporan vendor.
-- `GET /reports/exports` — daftar ekspor laporan vendor.
+- `GET /reports/exports?limit={n}&cursor={c?}` — daftar ekspor laporan vendor.
 
 Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
 
@@ -151,7 +151,8 @@ Header umum:
   - Response 200: file biner (Content-Type sesuai `format`)
 
 - `GET /reports/exports`
-  - Response 200: `data` array `ReportExport`
+  - Query: `limit` (wajib, int), `cursor` (opsional, string id)
+  - Response 200: `data` array `ReportExport` + `meta.pagination`
 
 ## Contoh Request & Response
 
@@ -315,18 +316,26 @@ Response: file biner (Content-Type sesuai `format`).
 
 #### `GET /reports/exports`
 ```http
-GET /reports/exports
+GET /reports/exports?limit=10
 ```
 ```json
-[
-  {
-    "id": 1,
-    "report_type": "financial",
-    "params": "{\"start_date\":\"2025-01-01\",\"end_date\":\"2025-03-31\"}",
-    "file_url": "https://cdn.example/exports/report1.pdf",
-    "created_at": "2025-03-31T10:00:00Z"
+{
+  "data": [
+    {
+      "id": 1,
+      "report_type": "financial",
+      "params": "{\"start_date\":\"2025-01-01\",\"end_date\":\"2025-03-31\"}",
+      "file_url": "https://cdn.example/exports/report1.pdf",
+      "created_at": "2025-03-31T10:00:00Z"
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
   }
-]
+}
 ```
 
 ## Status & Transisi
@@ -335,7 +344,8 @@ GET /reports/exports
 
 ## Paginasi & Response
 
-- Tidak menggunakan paginasi; response berupa ringkasan agregat.
+- Sebagian besar endpoint tidak menggunakan paginasi.
+- `GET /reports/exports` mendukung `limit` & `cursor` dan mengembalikan `meta.pagination`.
 
 ## Integrasi & Dampak ke Modul Lain
 

@@ -19,7 +19,7 @@ import {
   Bell,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useVendorDashboard, useVendorFinancial } from "@/hooks/queries/vendor";
+import { useVendorDashboard } from "@/hooks/queries/vendor";
 import { useVendorSubscriptionsSummary } from "@/hooks/queries/billing";
 import {
   Pie,
@@ -34,21 +34,7 @@ import React from "react";
 export default function VendorDashboard() {
   const { data: dashboard } = useVendorDashboard();
   const { data: sum } = useVendorSubscriptionsSummary();
-  const { data: notifications = [] } = useNotifications();
-
-  // Finance reports: total and current month
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const now = new Date();
-  const ym = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
-  const startOfMonth = `${ym}-01`;
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const endOfMonth = `${ym}-${pad(lastDay)}`;
-
-  const { data: finAll } = useVendorFinancial();
-  const { data: finMonth } = useVendorFinancial({
-    start_date: startOfMonth,
-    end_date: endOfMonth,
-  });
+  // const { data: notifications = [] } = useNotifications();
 
   // Format helpers
   const fmtNumber = (n: number) => new Intl.NumberFormat("id-ID").format(n);
@@ -76,14 +62,14 @@ export default function VendorDashboard() {
     },
     {
       title: "Total Pendapatan",
-      value: fmtIDR(Number(finAll?.total_income ?? 0)),
+      value: fmtIDR(Number(dashboard?.total_revenue ?? 0)),
       change: "",
       trend: "up",
       icon: <DollarSign className="h-4 w-4" />,
     },
     {
       title: "Pendapatan Bulan Ini",
-      value: fmtIDR(Number(finMonth?.total_income ?? 0)),
+      value: fmtIDR(Number(dashboard?.monthly_revenue ?? 0)),
       change: "",
       trend: "up",
       icon: <DollarSign className="h-4 w-4" />,
@@ -141,15 +127,16 @@ export default function VendorDashboard() {
       </div>
 
       {/* Recent Notifications */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* Notifications */}
+        <Card className="h-full">
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
             <CardDescription>Recent updates from your clients</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 max-h-[300px] overflow-y-auto">
             <div>
-              {(notifications || [])
+              {(dashboard?.recent_notifications || [])
                 .slice(0, 5)
                 .map((n: any, index: number, arr: any[]) => (
                   <motion.div
@@ -187,7 +174,7 @@ export default function VendorDashboard() {
                     </div>
                   </motion.div>
                 ))}
-              {!notifications?.length && (
+              {!dashboard?.recent_notifications?.length && (
                 <div className="px-6 py-4 text-sm text-muted-foreground italic">
                   No notifications
                 </div>
@@ -196,7 +183,8 @@ export default function VendorDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Quick Actions */}
+        <Card className="h-full">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Common tasks and shortcuts</CardDescription>
@@ -245,56 +233,6 @@ export default function VendorDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Subscriptions Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscriptions Summary</CardTitle>
-          <CardDescription>
-            Distribusi status langganan saat ini
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    dataKey="value"
-                    data={[
-                      { name: "active", value: sum?.active ?? 0 },
-                      { name: "suspended", value: sum?.suspended ?? 0 },
-                      { name: "overdue", value: sum?.overdue ?? 0 },
-                    ]}
-                    innerRadius={40}
-                    outerRadius={70}
-                    label
-                  >
-                    <Cell fill="#16a34a" />
-                    <Cell fill="#f59e0b" />
-                    <Cell fill="#dc2626" />
-                  </Pie>
-                  <RTooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-green-600" /> Active:{" "}
-                {sum?.active ?? 0}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-yellow-500" />{" "}
-                Suspended: {sum?.suspended ?? 0}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-600" /> Overdue:{" "}
-                {sum?.overdue ?? 0}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Recent Audits */}
       {Array.isArray((dashboard as any)?.recent_audits) && (

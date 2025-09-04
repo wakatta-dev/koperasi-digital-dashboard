@@ -78,7 +78,7 @@ Enum dan konstanta penting:
 Semua endpoint menggunakan format `APIResponse` dan memerlukan autentikasi `Bearer` serta konteks tenant melalui header `X-Tenant-ID`.
 
 ### Paket (Plans)
-- `GET /plans` — daftar plan.
+- `GET /plans?limit={n}&cursor={c?}` — daftar plan.
 - `POST /plans` — buat plan baru.
 - `GET /plans/{id}` — detail plan.
 - `PUT /plans/{id}` — ubah plan.
@@ -86,29 +86,29 @@ Semua endpoint menggunakan format `APIResponse` dan memerlukan autentikasi `Bear
 - `DELETE /plans/{id}` — hapus plan.
 
 ### Invoice
-- `GET /invoices` — daftar invoice (vendor).
+- `GET /invoices?limit={n}&cursor={c?}` — daftar invoice (vendor).
 - `POST /invoices` — buat invoice (vendor).
 - `GET /invoices/{id}` — detail invoice (vendor).
 - `PUT /invoices/{id}` — ubah invoice (vendor).
 - `PATCH /invoices/{id}/status` — ubah status invoice (vendor).
 - `DELETE /invoices/{id}` — hapus invoice (vendor).
 - `POST /invoices/{id}/payments` — tambah pembayaran manual.
-- `GET /client/invoices` — daftar invoice tenant.
+- `GET /client/invoices?limit={n}&cursor={c?}` — daftar invoice tenant.
 - `GET /client/invoices/{id}` — detail invoice tenant.
-- `GET /client/invoices/{id}/audits` — histori audit invoice.
+- `GET /client/invoices/{id}/audits?limit={n}&cursor={c?}` — histori audit invoice.
 
 ### Pembayaran
 - `POST /payments/{id}/verify` — verifikasi pembayaran manual.
 - `POST /payment-gateways/{gateway}/webhook` — terima webhook gateway.
 
 ### Langganan (Subscriptions)
-- `GET /subscriptions` — daftar subscription (vendor).
+- `GET /subscriptions?limit={n}&cursor={c?}` — daftar subscription (vendor).
 - `PATCH /subscriptions/{id}/status` — ubah status subscription (vendor).
 - `GET /subscriptions/summary` — ringkasan subscription (vendor).
 - `GET /client/subscription` — status langganan tenant.
 
 ### Audits
-- `GET /audits` — daftar audit status.
+- `GET /audits?limit={n}&cursor={c?}` — daftar audit status.
 
 ## Status & Transisi
 
@@ -128,6 +128,21 @@ Semua perubahan status dicatat ke `StatusAudit` untuk audit trail.
 - Paginasi menggunakan cursor (string/ID terakhir) dan `limit`.
 - Bidang `meta.pagination` memiliki `next_cursor`, `has_next`, `has_prev`, dan `limit`.
 - Kesalahan (error) khusus akan berada di objek `errors` pada response seragam.
+
+Contoh response:
+```json
+{
+  "data": [
+    {"id": 1, "number": "INV-001"}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
+  }
+}
+```
 
 ## Integrasi & Dampak ke Modul Tenant
 

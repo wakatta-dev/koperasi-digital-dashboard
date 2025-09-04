@@ -39,6 +39,7 @@ Dokumen ini merangkum seluruh modul pada sistem dan menautkan ke detail masing-m
   - Authorization: `Bearer <token>`
   - `X-Tenant-ID`: ID tenant (atau resolusi domain, bila diaktifkan)
 - Paginasi
+  - Semua endpoint list menggunakan query `cursor` & `limit`
   - Numerik: `cursor` berbasis integer (umumnya untuk entitas dengan PK auto-increment)
   - String: `cursor` berbasis UUID/string (umumnya untuk ID bertipe UUID)
 - Response

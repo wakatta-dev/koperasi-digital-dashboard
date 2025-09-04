@@ -221,6 +221,21 @@ Header umum:
 
 - Listing menggunakan `limit` dan `cursor` string (id terakhir). `meta.pagination` menyertakan `next_cursor`, `has_next`, `has_prev`, `limit`.
 
+Contoh response:
+```json
+{
+  "data": [
+    {"id": "tix-1", "title": "Aplikasi error"}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": "tix-2",
+      "prev_cursor": null
+    }
+  }
+}
+```
+
 ## Integrasi & Dampak ke Modul Lain
 
 - Notifications: notifikasi in-app dibuat saat tiket dibuat, dibalas, atau status diubah (ditujukan ke pihak lain: agen atau pengguna).

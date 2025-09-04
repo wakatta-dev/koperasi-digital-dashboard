@@ -175,6 +175,21 @@ Header umum:
 
 - Cursor string (uuid `id`) dan `limit` wajib untuk listing. `meta.pagination` disertakan.
 
+Contoh response:
+```json
+{
+  "data": [
+    {"id": "notif-1", "title": "Tagihan Jatuh Tempo"}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
+  }
+}
+```
+
 ## Integrasi & Dampak ke Modul Lain
 
 - Billing/Finance/RAT/Loan/Savings: dapat menggunakan notifikasi tipe terkait untuk informasi status/tagihan/transaksi.

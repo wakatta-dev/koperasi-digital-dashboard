@@ -46,7 +46,7 @@ Semua endpoint menggunakan response standar `APIResponse`.
 - Tenant
   - `GET /dashboard/summary?tenant_id={id}` — ringkasan metrik.
   - `GET /dashboard/trend?tenant_id={id}&start={RFC3339?}&end={RFC3339?}` — tren simpanan/pinjaman.
-  - `GET /dashboard/notifications?tenant_id={id}` — daftar notifikasi terkini.
+  - `GET /dashboard/notifications?tenant_id={id}&limit={n}&cursor={c?}` — daftar notifikasi terkini.
 
 - Vendor
   - `GET /dashboard` — ringkasan untuk admin vendor (perlu `Bearer` + `X-Tenant-ID` dari tenant vendor dengan role admin/super admin).
@@ -70,8 +70,8 @@ Header umum:
   - Response 200: `data` array TrendData
 
 - `GET /dashboard/notifications`
-  - Query: `tenant_id` (wajib, int)
-  - Response 200: `data` array Notification
+  - Query: `tenant_id` (wajib, int), `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: `data` array Notification + `meta.pagination`
 
 - `GET /dashboard`
   - Response 200: `data` VendorDashboard
@@ -172,8 +172,16 @@ GET /dashboard/trend?tenant_id=1&start=2025-08-01T00:00:00Z&end=2025-08-31T23:59
 
 - Notifications
 ```json
-GET /dashboard/notifications?tenant_id=1
-[
-  {"id": "...", "tenant_id": 1, "type": "SYSTEM", "message": "RAT dijadwalkan", "status": "PUBLISHED", "created_at": "2025-08-25T10:00:00Z"}
-]
+GET /dashboard/notifications?tenant_id=1&limit=10
+{
+  "data": [
+    {"id": "...", "tenant_id": 1, "type": "SYSTEM", "message": "RAT dijadwalkan", "status": "PUBLISHED", "created_at": "2025-08-25T10:00:00Z"}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
+  }
+}
 ```

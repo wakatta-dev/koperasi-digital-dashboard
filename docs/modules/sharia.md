@@ -16,7 +16,7 @@ Semua endpoint membutuhkan autentikasi `Bearer` dan konteks tenant melalui heade
 - `POST /sharia-financings/apply` — ajukan pembiayaan syariah.
 - `POST /sharia-financings/{id}/approve` — setujui pembiayaan.
 - `POST /sharia-financings/{id}/disburse` — cairkan pembiayaan.
-- `GET /sharia-financings/{id}/installments` — daftar angsuran.
+- `GET /sharia-financings/{id}/installments?limit={n}&cursor={c?}` — daftar angsuran.
 - `POST /sharia-financings/installments/{id}/pay` — bayar angsuran.
 - `GET /sharia-financings/{id}/release-letter` — surat lunas.
 
@@ -54,7 +54,10 @@ Response 204: tanpa body (pembiayaan tercatat cair).
 Path:
 - `id` (int, wajib) — ID pembiayaan
 
-Response 200: array `ShariaInstallment` terurut `due_date`.
+Query:
+- `limit` (wajib, int), `cursor` (opsional, string)
+
+Response 200: `data` array `ShariaInstallment` + `meta.pagination`.
 
 ### `POST /sharia-financings/installments/{id}/pay`
 Path:
@@ -96,6 +99,22 @@ POST /sharia-financings/9/disburse
 ```json
 POST /sharia-financings/installments/81/pay
 { "amount": 900000, "date": "2025-09-30T00:00:00Z", "method": "transfer" }
+```
+
+- List Installments (paginasi)
+```json
+GET /sharia-financings/1/installments?limit=2
+{
+  "data": [
+    {"id": 1, "amount": 900000}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
+  }
+}
 ```
 
 ## Tautan Cepat

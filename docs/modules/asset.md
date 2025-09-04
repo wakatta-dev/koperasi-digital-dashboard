@@ -44,8 +44,8 @@ Semua endpoint dilindungi `Bearer` + `X-Tenant-ID` dan menggunakan JSON standar.
  - `POST /assets` — menambahkan aset baru beserta informasi akuisisi dan parameter depresiasi.
  - `PUT /assets/{id}` — memperbarui detail aset yang ada seperti kategori, umur manfaat, atau lokasi.
  - `DELETE /assets/{id}` — menghapus aset dari daftar tenant.
- - `GET /assets` — mengambil daftar aset yang dimiliki tenant beserta ringkasan data.
- - `GET /assets/{id}/depreciation` — melihat riwayat perhitungan depresiasi untuk aset tertentu.
+- `GET /assets?limit={n}&cursor={c?}` — mengambil daftar aset yang dimiliki tenant beserta ringkasan data.
+- `GET /assets/{id}/depreciation?limit={n}&cursor={c?}` — melihat riwayat perhitungan depresiasi untuk aset tertentu.
  - `PATCH /assets/{id}/status` — mengubah status aset menjadi aktif atau nonaktif.
  - `GET /assets/export` — mengekspor daftar aset untuk diunduh (saat ini placeholder).
 
@@ -73,11 +73,13 @@ Header umum:
   - Response 204: tanpa body
 
 - `GET /assets`
-  - Response 200: `data` array Asset
+  - Query: `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: `data` array Asset + `meta.pagination`
 
 - `GET /assets/{id}/depreciation`
   - Path: `id` (int)
-  - Response 200: `data` array AssetDepreciation
+  - Query: `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: `data` array AssetDepreciation + `meta.pagination`
 
 - `PATCH /assets/{id}/status`
   - Path: `id` (int)
@@ -108,6 +110,22 @@ POST /assets
 ```json
 PATCH /assets/5/status
 { "status": "inactive" }
+```
+
+- List Assets (paginasi)
+```json
+GET /assets?limit=2
+{
+  "data": [
+    {"id": 1, "name": "Laptop Kasir"}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": "2",
+      "prev_cursor": null
+    }
+  }
+}
 ```
 
 ## Tautan Cepat

@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileText, Search, Download, Eye, Edit, Trash2 } from "lucide-react";
+import { FileText, Search, Download, Eye, Edit, Trash2, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useInfiniteVendorInvoices } from "@/hooks/queries/billing";
 import type { Invoice } from "@/types/api";
@@ -21,6 +21,15 @@ import { InvoiceUpsertDialog } from "@/components/feature/vendor/invoices/invoic
 import { PaymentVerifyDialog } from "@/components/feature/vendor/payments/payment-verify-dialog";
 import { useBillingActions } from "@/hooks/queries/billing";
 import { useConfirm } from "@/hooks/use-confirm";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 
 type Props = {
   initialData?: Invoice[];
@@ -88,65 +97,80 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
         </div>
       </div>
 
-      {/* Filters & Search */}
-      <Card>
-        <CardContent className="pt-6 space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Cari nomor/tenant (opsional)"
-                className="pl-10"
-              />
-            </div>
-            <select
-              className="border rounded px-2 py-2 text-sm"
-              value={status ?? ""}
-              onChange={(e) => setStatus(e.target.value || undefined)}
-            >
-              <option value="">Status (Semua)</option>
-              <option value="pending">pending</option>
-              <option value="paid">paid</option>
-              <option value="overdue">overdue</option>
-              <option value="cancelled">cancelled</option>
-            </select>
-            <Input
-              type="month"
-              value={periode ?? ""}
-              onChange={(e) => setPeriode(e.target.value || undefined)}
-            />
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => {
-                  setStatus(undefined);
-                  setPeriode(undefined);
-                }}
-              >
-                Reset
+      {/* Filters & Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {/* Placeholder for quick info if needed */}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" type="button" onClick={exportCsv}>
+            <Download className="h-4 w-4 mr-2" /> CSV
+          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" type="button">
+                <SlidersHorizontal className="h-4 w-4 mr-2" /> Filter
               </Button>
-              <Button variant="outline" type="button" onClick={exportCsv}>
-                <Download className="h-4 w-4 mr-2" /> CSV
-              </Button>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!hasNextPage || isFetchingNextPage}
-              onClick={() => fetchNextPage()}
-            >
-              {isFetchingNextPage
-                ? "Memuat..."
-                : hasNextPage
-                ? "Muat lagi"
-                : "Tidak ada data lagi"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            </SheetTrigger>
+            <SheetContent side="right" className="p-0">
+              <SheetHeader>
+                <SheetTitle>Filter Invoices</SheetTitle>
+                <SheetDescription>
+                  Atur pencarian dan filter untuk daftar invoice
+                </SheetDescription>
+              </SheetHeader>
+              <div className="p-4 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="search">Pencarian</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="search" placeholder="Cari nomor/tenant (opsional)" className="pl-10" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    className="border rounded px-2 py-2 text-sm w-full"
+                    value={status ?? ""}
+                    onChange={(e) => setStatus(e.target.value || undefined)}
+                  >
+                    <option value="">Semua</option>
+                    <option value="pending">pending</option>
+                    <option value="paid">paid</option>
+                    <option value="overdue">overdue</option>
+                    <option value="cancelled">cancelled</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="periode">Periode</Label>
+                  <Input
+                    id="periode"
+                    type="month"
+                    value={periode ?? ""}
+                    onChange={(e) => setPeriode(e.target.value || undefined)}
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => {
+                      setStatus(undefined);
+                      setPeriode(undefined);
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
 
       {/* Invoices Table */}
       <Card>
@@ -258,6 +282,20 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                 </div>
               </div>
             ))}
+          </div>
+          <div className="flex items-center gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!hasNextPage || isFetchingNextPage}
+              onClick={() => fetchNextPage()}
+            >
+              {isFetchingNextPage
+                ? "Memuat..."
+                : hasNextPage
+                ? "Muat lagi"
+                : "Tidak ada data lagi"}
+            </Button>
           </div>
         </CardContent>
       </Card>

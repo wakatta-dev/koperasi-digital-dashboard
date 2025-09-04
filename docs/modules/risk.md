@@ -61,20 +61,29 @@ Contoh response:
 ### `GET /risk/config`
 Daftar aturan risiko pada tenant.
 
-- Response 200: array `RiskRule`
+- Query: `limit` (wajib, int), `cursor` (opsional, string)
+- Response 200: `data` array `RiskRule` + `meta.pagination`
 
 Contoh response:
 ```json
-[
-  {
-    "id": 3,
-    "tenant_id": 1,
-    "factor": "loan_count",
-    "weight": 10,
-    "threshold": 1,
-    "created_at": "2025-09-01T10:00:00Z"
+{
+  "data": [
+    {
+      "id": 3,
+      "tenant_id": 1,
+      "factor": "loan_count",
+      "weight": 10,
+      "threshold": 1,
+      "created_at": "2025-09-01T10:00:00Z"
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
   }
-]
+}
 ```
 
 ### `POST /risk/config`

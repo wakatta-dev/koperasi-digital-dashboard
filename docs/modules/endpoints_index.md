@@ -37,3 +37,19 @@ Ringkasan endpoint utama yang didokumentasikan. Seluruh endpoint memerlukan `Aut
 | | GET /tickets/{id}/replies | Daftar balasan tiket (vendor) |
 | | POST /tickets/sla | Atur SLA kategori tiket |
 | | GET /tickets/sla | Daftar konfigurasi SLA |
+| [Asset](asset.md) | GET /assets | Daftar aset |
+| | GET /assets/{id}/depreciation | Riwayat depresiasi aset |
+| [Risk](risk.md) | GET /risk/config | Daftar aturan risiko |
+| [Savings](savings.md) | GET /savings/{member_id}/transactions | Riwayat transaksi simpanan |
+| [RAT](rat.md) | GET /rat/history | Riwayat RAT |
+| [Sharia Financing](sharia.md) | GET /sharia-financings/{id}/installments | Angsuran pembiayaan syariah |
+| [Notifications](notification.md) | GET /notifications | Daftar notifikasi |
+| [Loan](loan.md) | GET /loans/{id}/installments | Angsuran pinjaman |
+| [Finance/Transactions](finance_transactions.md) | GET /transactions | Daftar transaksi keuangan |
+| | GET /transactions/{id}/history | Riwayat transaksi |
+| [Billing](billing.md) | GET /plans | Daftar plan |
+| | GET /invoices | Daftar invoice |
+| | GET /client/invoices | Daftar invoice tenant |
+| | GET /client/invoices/{id}/audits | Audit invoice tenant |
+| | GET /subscriptions | Daftar subscription |
+| | GET /audits | Audit status |

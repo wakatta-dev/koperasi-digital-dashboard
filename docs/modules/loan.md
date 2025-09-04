@@ -93,7 +93,8 @@ Header umum:
 
 - `GET /loans/{id}/installments`
   - Path: `id` (int, wajib)
-  - Response 200: `[]LoanInstallment` (urut `due_date`).
+  - Query: `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: `data` array `LoanInstallment` + `meta.pagination`.
 
 - `POST /loans/installments/{id}/pay`
   - Path: `id` (int, wajib; id angsuran)
@@ -119,6 +120,22 @@ Header umum:
 { "amount": 900000, "date": "2025-09-30T00:00:00Z", "method": "transfer" }
 ```
 
+- List Installments (paginasi)
+```json
+GET /loans/1/installments?limit=2
+{
+  "data": [
+    {"id": 1, "amount": 900000}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
+  }
+}
+```
+
 ## Status & Transisi
 
 - Aplikasi: `pending` → `approved` → `disbursed`.
@@ -126,8 +143,8 @@ Header umum:
 
 ## Paginasi & Response
 
-- Tidak ada paginasi pada endpoint modul Loan saat ini.
-- Response mengikuti output handler (objek JSON langsung, tidak memakai wrapper `APIResponse`).
+- `GET /loans/{id}/installments` menggunakan `limit` dan `cursor` string.
+- Response dibungkus `APIResponse` dengan `meta.pagination`.
 
 ## Integrasi & Dampak ke Modul Lain
 

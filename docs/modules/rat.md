@@ -20,7 +20,7 @@ Semua endpoint membutuhkan autentikasi `Bearer` dan identitas tenant lewat heade
 - `POST /rat/{id}/voting` — buat item voting.
 - `POST /rat/voting/{item_id}/vote` — pemungutan suara anggota.
 - `GET /rat/voting/{item_id}/result` — perolehan suara untuk suatu item.
-- `GET /rat/history` — daftar riwayat RAT milik tenant.
+- `GET /rat/history?limit={n}&cursor={c?}` — daftar riwayat RAT milik tenant.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -69,7 +69,8 @@ Header umum:
   - Response 200: `VotingResult` berisi `item_id`, `counts` (pemetaan pilihan→jumlah), dan `total`.
 
 - `GET /rat/history`
-  - Response 200: array `RAT` milik tenant.
+  - Query: `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: array `RAT` milik tenant + `meta.pagination`.
 
 ## Contoh Payload & Response
 
@@ -115,6 +116,22 @@ POST /rat/voting/3/vote
   "item_id": 3,
   "counts": { "Setuju": 40, "Tidak": 10 },
   "total": 50
+}
+```
+
+- History (paginasi)
+```json
+GET /rat/history?limit=2
+{
+  "data": [
+    {"id": 7, "year": 2024}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": "8",
+      "prev_cursor": null
+    }
+  }
 }
 ```
 

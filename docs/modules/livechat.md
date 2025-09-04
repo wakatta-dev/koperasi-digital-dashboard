@@ -26,7 +26,7 @@ Semua endpoint memerlukan `Bearer` token, `X-Tenant-ID`, dan role `SUPPORT_AGENT
 
 - `POST /livechat/sessions` — mulai sesi chat dengan tenant; gagal jika agen offline atau masih ada sesi aktif.
 - `POST /livechat/sessions/{id}/messages` — kirim pesan pada sesi `id`.
-- `GET /livechat/sessions/{id}/messages` — daftar pesan pada sesi `id`.
+- `GET /livechat/sessions/{id}/messages?limit={n}&cursor={c?}` — daftar pesan pada sesi `id`.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -53,7 +53,8 @@ Header umum:
 
 - `GET /livechat/sessions/{id}/messages`
   - Path: `id` (string, id sesi)
-  - Response 200: `data` array `ChatMessage` terurut naik berdasarkan `created_at`
+  - Query: `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: `data` array `ChatMessage` + `meta.pagination`
   - Error 403: role tidak diizinkan
   - Error 500: kegagalan server/internal
 
@@ -95,19 +96,27 @@ Contoh response:
 
 - Daftar Pesan
 ```http
-GET /livechat/sessions/SESSION-ID/messages
+GET /livechat/sessions/SESSION-ID/messages?limit=20
 ```
 Contoh response:
 ```json
-[
-  {
-    "id": "MSG-ID",
-    "session_id": "SESSION-ID",
-    "sender_id": 1,
-    "message": "Halo, ada yang bisa dibantu?",
-    "created_at": "2025-09-01T10:05:00Z"
+{
+  "data": [
+    {
+      "id": "MSG-ID",
+      "session_id": "SESSION-ID",
+      "sender_id": 1,
+      "message": "Halo, ada yang bisa dibantu?",
+      "created_at": "2025-09-01T10:05:00Z"
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
   }
-]
+}
 ```
 
 ## Integrasi & Dampak ke Modul Lain

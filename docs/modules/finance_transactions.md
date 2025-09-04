@@ -74,8 +74,8 @@ Enum dan konstanta penting:
 Modul ini menyediakan endpoint dasar untuk mengelola transaksi serta ekspor data.
 
 - `POST /transactions` — tambah transaksi.
-- `GET /transactions` — daftar transaksi.
-- `GET /transactions/{id}/history` — riwayat perubahan.
+- `GET /transactions?limit={n}&cursor={c?}` — daftar transaksi.
+- `GET /transactions/{id}/history?limit={n}&cursor={c?}` — riwayat perubahan.
 - `PATCH /transactions/{id}` — perbarui transaksi.
 - `DELETE /transactions/{id}` — hapus transaksi.
 - `GET /transactions/export` — ekspor data transaksi (format `csv|xlsx`).
@@ -104,11 +104,13 @@ Header umum:
     - `type` (`CashIn|CashOut|Transfer`)
     - `category` (lihat kategori di atas)
     - `min_amount` (number), `max_amount` (number)
-  - Response 200: `data` array Transaction.
+  - `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: `data` array Transaction + `meta.pagination`.
 
 - `GET /transactions/{id}/history`
   - Path: `id` (int, wajib)
-  - Response 200: `data` array TransactionHistory; 404 jika transaksi tidak ditemukan pada tenant yang sama.
+  - Query: `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: `data` array TransactionHistory + `meta.pagination`; 404 jika transaksi tidak ditemukan pada tenant yang sama.
 
 - `PATCH /transactions/{id}`
   - Path: `id` (int, wajib)
@@ -123,6 +125,26 @@ Header umum:
 - `GET /transactions/export`
   - Query filter sama dengan `GET /transactions` + `format` (`csv`|`xlsx`, opsional, default `csv`)
   - Response 200: file CSV/XLSX untuk diunduh.
+
+## Paginasi & Response
+
+- Listing transaksi dan riwayat menggunakan `limit` dan `cursor` string.
+- Response dibungkus `APIResponse` dengan `meta.pagination`.
+
+Contoh response `GET /transactions`:
+```json
+{
+  "data": [
+    {"id": 1, "amount": 1000}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
+  }
+}
+```
 
 ## Status & Transisi
 

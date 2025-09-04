@@ -73,7 +73,7 @@ Semua endpoint membutuhkan autentikasi `Bearer` dan konteks tenant via `X-Tenant
 - `POST /savings/{transaction_id}/verify` — verifikasi setoran manual.
 - `POST /savings/{member_id}/withdraw` — ajukan penarikan.
 - `POST /savings/{transaction_id}/approve` — setujui penarikan.
-- `GET /savings/{member_id}/transactions` — daftar transaksi simpanan anggota.
+- `GET /savings/{member_id}/transactions?limit={n}&cursor={c?}` — daftar transaksi simpanan anggota.
 - `GET /savings/{transaction_id}/proof` — dapatkan `proof_url` transaksi.
 
 ## Rincian Endpoint (Params, Payload, Response)
@@ -110,7 +110,8 @@ Header umum:
 
 - `GET /savings/{member_id}/transactions`
   - Path: `member_id` (uint, wajib)
-  - Response 200: array `SavingsTransaction`.
+  - Query: `limit` (wajib, int), `cursor` (opsional, string)
+  - Response 200: array `SavingsTransaction` + `meta.pagination`.
 
 - `GET /savings/{transaction_id}/proof`
   - Path: `transaction_id` (uint, wajib)
@@ -135,8 +136,23 @@ Header umum:
 
 ## Paginasi & Response
 
-- Tidak ada paginasi; `ListTransactions` mengembalikan array sederhana (tanpa cursor).
-- Response mengikuti output handler saat ini (objek JSON langsung, tidak memakai wrapper `APIResponse`).
+- Listing transaksi menggunakan `limit` dan `cursor` string (id terakhir).
+- Response dibungkus `APIResponse` dengan `meta.pagination`.
+
+Contoh response:
+```json
+{
+  "data": [
+    {"id": 1, "amount": 100000}
+  ],
+  "meta": {
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null
+    }
+  }
+}
+```
 
 ## Integrasi & Dampak ke Modul Lain
 
