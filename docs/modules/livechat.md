@@ -24,9 +24,9 @@ Referensi implementasi utama:
 
 Semua endpoint memerlukan `Bearer` token, `X-Tenant-ID`, dan role `SUPPORT_AGENT`.
 
-- `POST /api/vendor/livechat/sessions` — mulai sesi chat dengan tenant.
-- `POST /api/vendor/livechat/sessions/{id}/messages` — kirim pesan.
-- `GET /api/vendor/livechat/sessions/{id}/messages` — daftar pesan.
+- `POST /livechat/sessions` — mulai sesi chat dengan tenant; gagal jika agen offline atau masih ada sesi aktif.
+- `POST /livechat/sessions/{id}/messages` — kirim pesan pada sesi `id`.
+- `GET /livechat/sessions/{id}/messages` — daftar pesan pada sesi `id`.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -35,33 +35,34 @@ Header umum:
 - `X-Tenant-ID`: ID tenant
 - Role: `SUPPORT_AGENT`
 
-- `POST /api/vendor/livechat/sessions`
+- `POST /livechat/sessions`
   - Body:
     - `agent_id` (opsional, uint; jika kosong akan menggunakan agen yang sedang login)
   - Response 201: `data` `ChatSession` (id, tenant_id, agent_id, status, timestamps)
-  - Error 400: body tidak valid
+  - Error 400: body tidak valid, agen offline, atau sesi aktif sudah ada
   - Error 403: role tidak diizinkan
 
-- `POST /api/vendor/livechat/sessions/{id}/messages`
+- `POST /livechat/sessions/{id}/messages`
   - Path: `id` (string, id sesi)
   - Body:
     - `message` (wajib, string)
-  - Response 201: `data` `ChatMessage` (id, session_id, sender_id, message, created_at)
+  - Response 201: `data` `ChatMessage` (id, session_id, sender_id, message, created_at; `id` dihasilkan otomatis)
   - Error 400: `message` kosong
   - Error 403: role tidak diizinkan
   - Error 500: kegagalan server/internal
 
-- `GET /api/vendor/livechat/sessions/{id}/messages`
+- `GET /livechat/sessions/{id}/messages`
   - Path: `id` (string, id sesi)
-  - Response 200: `data` array `ChatMessage`
+  - Response 200: `data` array `ChatMessage` terurut naik berdasarkan `created_at`
   - Error 403: role tidak diizinkan
   - Error 500: kegagalan server/internal
+
 
 ## Contoh Request & Response
 
 - Mulai Sesi
 ```json
-POST /api/vendor/livechat/sessions
+POST /livechat/sessions
 { "agent_id": 1 }
 ```
 Contoh response:
@@ -78,7 +79,7 @@ Contoh response:
 
 - Kirim Pesan
 ```json
-POST /api/vendor/livechat/sessions/SESSION-ID/messages
+POST /livechat/sessions/SESSION-ID/messages
 { "message": "Halo, ada yang bisa dibantu?" }
 ```
 Contoh response:
@@ -94,7 +95,7 @@ Contoh response:
 
 - Daftar Pesan
 ```http
-GET /api/vendor/livechat/sessions/SESSION-ID/messages
+GET /livechat/sessions/SESSION-ID/messages
 ```
 Contoh response:
 ```json

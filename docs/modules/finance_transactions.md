@@ -75,10 +75,10 @@ Modul ini menyediakan endpoint dasar untuk mengelola transaksi serta ekspor data
 
 - `POST /transactions` — tambah transaksi.
 - `GET /transactions` — daftar transaksi.
-- `GET /transactions/:id/history` — riwayat perubahan.
-- `PATCH /transactions/:id` — perbarui transaksi.
-- `DELETE /transactions/:id` — hapus transaksi.
-- `GET /transactions/export?format=csv|xlsx` — ekspor data transaksi.
+- `GET /transactions/{id}/history` — riwayat perubahan.
+- `PATCH /transactions/{id}` — perbarui transaksi.
+- `DELETE /transactions/{id}` — hapus transaksi.
+- `GET /transactions/export` — ekspor data transaksi (format `csv|xlsx`).
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -106,22 +106,22 @@ Header umum:
     - `min_amount` (number), `max_amount` (number)
   - Response 200: `data` array Transaction.
 
-- `GET /transactions/:id/history`
+- `GET /transactions/{id}/history`
   - Path: `id` (int, wajib)
   - Response 200: `data` array TransactionHistory; 404 jika transaksi tidak ditemukan pada tenant yang sama.
 
-- `PATCH /transactions/:id`
+- `PATCH /transactions/{id}`
   - Path: `id` (int, wajib)
   - Body UpdateTransactionRequest (seluruh field opsional; yang diisi akan diperbarui):
     - `transaction_date`, `type`, `category`, `amount`, `payment_method`, `description`, `debit_*`, `credit_*`
   - Response 200: `data` Transaction terbaru + riwayat audit dicatat.
 
-- `DELETE /transactions/:id`
+- `DELETE /transactions/{id}`
   - Path: `id` (int, wajib)
   - Response 200: `data` `{ "id": <int> }` dan audit penghapusan dicatat.
 
-- `GET /transactions/export?format=csv|xlsx`
-  - Query filter sama dengan `GET /transactions` + `format` (opsional, default `csv`)
+- `GET /transactions/export`
+  - Query filter sama dengan `GET /transactions` + `format` (`csv`|`xlsx`, opsional, default `csv`)
   - Response 200: file CSV/XLSX untuk diunduh.
 
 ## Status & Transisi

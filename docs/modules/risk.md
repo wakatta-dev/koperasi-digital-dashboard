@@ -13,61 +13,115 @@ Referensi implementasi utama terdapat pada:
 
 Semua endpoint dilindungi `Bearer` + `X-Tenant-ID`.
 
-- `POST /coop/risk/score` — hitung skor risiko anggota.
-- `GET /coop/risk/result/{member_id}` — ambil hasil skor terbaru.
-- `GET /coop/risk/config` — daftar aturan risiko.
-- `POST /coop/risk/config` — simpan aturan risiko baru.
-- `DELETE /coop/risk/config/{id}` — hapus aturan risiko.
+### `POST /risk/score`
+Hitung skor risiko anggota.
 
-## Rincian Endpoint
+- Body: `ScoreRequest` (`member_id`)
+- Response 200: `RiskResult`
 
-- `POST /coop/risk/score` — Body ScoreRequest → 200 `data` RiskResult
-- `GET /coop/risk/result/{member_id}` → 200 `data` RiskResult (404 bila tidak ada)
-- `GET /coop/risk/config` → 200 `data` array RiskRule
-- `POST /coop/risk/config` — Body RuleRequest → 201 `data` RiskRule
-- `DELETE /coop/risk/config/{id}` → 200 sukses
-
-## Contoh Payload & Response
-
-- Hitung Skor Risiko
+Contoh request:
 ```json
-POST /coop/risk/score
 {
   "member_id": 12
 }
 ```
+
 Contoh response:
 ```json
 {
-  "score": 72.5,
-  "level": "MEDIUM",
-  "factors": [
-    {"name": "repayment_history", "weight": 0.4, "value": 0.8},
-    {"name": "savings_balance", "weight": 0.3, "value": 0.6}
-  ],
+  "id": 1,
+  "tenant_id": 1,
+  "member_id": 12,
+  "score": 85,
+  "decision": "auto-approve",
+  "details": "{\"loan_count\":1,\"membership_years\":2}",
   "created_at": "2025-09-01T10:00:00Z"
 }
 ```
 
-- Tambah Aturan Risiko
+### `GET /risk/result/{member_id}`
+Ambil hasil skor risiko terbaru.
+
+- Path: `member_id` (uint)
+- Response 200: `RiskResult` (`404` bila tidak ada)
+
+Contoh response:
 ```json
-POST /coop/risk/config
 {
-  "factor": "repayment_history",
-  "weight": 0.4,
-  "threshold": 0.7
+  "id": 1,
+  "tenant_id": 1,
+  "member_id": 12,
+  "score": 85,
+  "decision": "auto-approve",
+  "details": "{\"loan_count\":1,\"membership_years\":2}",
+  "created_at": "2025-09-01T10:00:00Z"
 }
 ```
+
+### `GET /risk/config`
+Daftar aturan risiko pada tenant.
+
+- Response 200: array `RiskRule`
+
+Contoh response:
+```json
+[
+  {
+    "id": 3,
+    "tenant_id": 1,
+    "factor": "loan_count",
+    "weight": 10,
+    "threshold": 1,
+    "created_at": "2025-09-01T10:00:00Z"
+  }
+]
+```
+
+### `POST /risk/config`
+Simpan aturan risiko baru.
+
+- Body: `RuleRequest` (`factor`, `weight`, `threshold`)
+- Response 201: `RiskRule`
+
+Contoh request:
+```json
+{
+  "factor": "loan_count",
+  "weight": 10,
+  "threshold": 1
+}
+```
+
 Contoh response:
 ```json
 {
   "id": 3,
   "tenant_id": 1,
-  "factor": "repayment_history",
-  "weight": 0.4,
-  "threshold": 0.7
+  "factor": "loan_count",
+  "weight": 10,
+  "threshold": 1,
+  "created_at": "2025-09-01T10:00:00Z"
 }
 ```
+
+### `DELETE /risk/config/{id}`
+Hapus aturan risiko.
+
+- Path: `id` (uint)
+- Response 200: sukses tanpa body
+
+## Struktur Data
+
+- `ScoreRequest`
+  - `member_id` (uint)
+- `RuleRequest`
+  - `factor` (string)
+  - `weight` (int)
+  - `threshold` (float)
+- `RiskRule`
+  - `id`, `tenant_id`, `factor`, `weight`, `threshold`, `created_at`
+- `RiskResult`
+  - `id`, `tenant_id`, `member_id`, `score`, `decision`, `details` (JSON string), `created_at`
 
 ## Tautan Cepat
 

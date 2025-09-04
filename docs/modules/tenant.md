@@ -12,8 +12,8 @@ Referensi implementasi utama terdapat pada:
 
 ## Ringkasan Peran per Tenant
 
-- Vendor: membuat tenant baru non-vendor, melihat/mengelola tenant, melihat modul-tenant.
-- Koperasi/UMKM/BUMDes: melihat tenant miliknya, mengelola pengguna di dalam tenant (non-vendor), melihat dan memperbarui status modul tenant.
+- Vendor: membuat tenant baru non-vendor, melihat/mengelola tenant, memantau modul per-tenant (read-only/override via billing).
+- Koperasi/UMKM/BUMDes (client): melihat tenant miliknya, mengelola pengguna di dalam tenant, melihat dan memperbarui status modul tenant miliknya.
 
 ## Arsitektur & Komponen
 
@@ -56,42 +56,35 @@ Status penting:
 
 Semua response menggunakan format `APIResponse`. Paginasi menggunakan cursor pada beberapa endpoint.
 
-- Tenants
-  - `GET /api/tenants/?limit={n}&cursor={cursor?}`: daftar tenant (cursor numerik berdasarkan `id`).
-  - `POST /api/tenants/`: buat tenant baru (khusus `vendor`; `type` tidak boleh `vendor`).
-  - `GET /api/tenants/{id}`: detail tenant.
-  - `PATCH /api/tenants/{id}`: perbarui `name`/`type`.
-  - `PATCH /api/tenants/{id}/status`: ubah `is_active`.
+- `GET /tenants` — vendor: daftar tenant.
+- `POST /tenants` — vendor: buat tenant baru.
+- `GET /tenants/{id}` — vendor: detail tenant.
+- `PATCH /tenants/{id}` — vendor: perbarui `name`/`type`.
+- `PATCH /tenants/{id}/status` — ubah `is_active`.
+- `POST /tenants/{id}/users` — client: tambah user ke tenant sendiri.
+- `GET /tenants/{id}/users` — client: daftar user tenant.
+- `GET /tenants/{id}/modules` — client: daftar modul tenant.
+- `PATCH /tenants/{id}/modules` — client: ubah status modul.
+- `GET /tenant/by-domain` — publik untuk lookup domain.
 
-- Users di Tenant
-  - `POST /api/tenants/{id}/users`: tambah user ke tenant.
-  - `GET /api/tenants/{id}/users?limit={n}&cursor={cursor?}`: daftar user (cursor string dari `user_tenant_access.id`).
+Vendor onboarding & administrasi:
+- `POST /vendor/tenants` — registrasi tenant (tanpa autentikasi).
+- `POST /vendor/tenants/verify` — verifikasi OTP registrasi.
+- `PATCH /vendor/tenants/{id}/status` — ubah status tenant (admin vendor).
 
-- Modules di Tenant
-  - `GET /api/tenants/{id}/modules?limit={n}&cursor={cursor?}`: daftar modul tenant (cursor string berdasarkan `tenant_modules.id`).
-  - `PATCH /api/tenants/{id}/modules`: upsert status modul (`aktif|nonaktif`).
-
-- Publik
-  - `GET /api/tenant/by-domain?domain={domain}`: dapatkan `tenant_id`, `nama`, `type`, `is_active` berdasarkan domain.
-
-- Vendor (Self-registration & kontrol status)
-  - `POST /api/tenants/`: registrasi tenant (self-registration) dengan OTP via email (tanpa autentikasi).
-  - `POST /api/tenants/verify`: verifikasi OTP untuk mengaktifkan tenant dan membuat user awal (tanpa autentikasi).
-  - `PATCH /api/tenants/{id}/status`: ubah status aktif/nonaktif tenant (khusus admin vendor, dengan token).
-
-Keamanan: seluruh endpoint selain by-domain dilindungi `Bearer` token + `XTenantID`; pembuatan tenant dibatasi untuk tenant `vendor`.
+Keamanan: seluruh endpoint selain by-domain dilindungi `Bearer` token + `X-Tenant-ID`; pembuatan tenant dibatasi untuk tenant `vendor`.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
-Header umum (non-publik):
+ Header umum (non-publik):
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
 
-- `GET /api/tenants/?limit={n}&cursor={cursor?}`
+- `GET /tenants?limit={n}&cursor={cursor?}`
   - Query: `limit` (wajib, int>0), `cursor` (opsional, string id terakhir)
   - Response 200: `data` array Tenant + `meta.pagination`.
 
-- `POST /api/tenants/`
+- `POST /tenants`
   - Body CreateTenantRequest:
     - `name` (wajib)
     - `type` (wajib; tidak boleh `vendor`)
@@ -99,21 +92,21 @@ Header umum (non-publik):
   - Syarat: hanya tenant bertipe `vendor` yang boleh memanggil.
   - Response 201: `data` Tenant baru.
 
-- `GET /api/tenants/{id}`
+- `GET /tenants/{id}`
   - Path: `id` (int, wajib; harus sama dengan `X-Tenant-ID` karena isolasi akses)
   - Response 200: `data` Tenant; 404 jika tidak ditemukan.
 
-- `PATCH /api/tenants/{id}`
+- `PATCH /tenants/{id}`
   - Path: `id` (int, wajib)
   - Body UpdateTenantRequest: `name` (wajib), `type` (wajib)
   - Response 200: `data` Tenant terkini.
 
-- `PATCH /api/tenants/{id}/status`
+- `PATCH /tenants/{id}/status`
   - Path: `id` (int, wajib)
   - Body UpdateStatusRequest: `{ "is_active": true|false }`
   - Response 200: `data` `{ "is_active": <bool> }`.
 
-- `POST /api/tenants/{id}/users`
+- `POST /tenants/{id}/users`
   - Path: `id` (int, wajib)
   - Body AddUserRequest:
     - `email` (wajib, email valid)
@@ -123,26 +116,26 @@ Header umum (non-publik):
   - Catatan: untuk tenant non-`vendor`.
   - Response 201: `data` `{ "user_id": <uint> }`.
 
-- `GET /api/tenants/{id}/users?limit={n}&cursor={c?}`
+- `GET /tenants/{id}/users?limit={n}&cursor={c?}`
   - Path: `id` (int, wajib)
   - Query: `limit` (wajib, int>0), `cursor` (opsional, string uuid baris terakhir)
   - Response 200: `data` array `UserTenantAccess` + pagination.
 
-- `GET /api/tenants/{id}/modules?limit={n}&cursor={c?}`
+- `GET /tenants/{id}/modules?limit={n}&cursor={c?}`
   - Path: `id` (int, wajib)
   - Query: `limit` (wajib, int>0), `cursor` (opsional, string uuid baris terakhir)
   - Response 200: `data` array `TenantModule` (termasuk denormalisasi `name`, `code`).
 
-- `PATCH /api/tenants/{id}/modules`
+- `PATCH /tenants/{id}/modules`
   - Path: `id` (int, wajib)
   - Body UpdateModuleRequest: `{ "module_id": "<uuid>", "status": "aktif|nonaktif" }`
   - Response 200: `data` `{ "module_id": "...", "status": "..." }`.
 
-- `GET /api/tenant/by-domain?domain={domain}` (publik)
+- `GET /tenant/by-domain?domain={domain}` (publik)
   - Query: `domain` (wajib)
   - Response 200: `data` `{ "tenant_id": <uint>, "nama": "...", "type": "...", "is_active": <bool> }`.
 
-- `POST /api/tenants/` (publik)
+- `POST /vendor/tenants` (publik)
   - Body RegisterRequest:
     - `name` (wajib)
     - `domain` (wajib, unik)
@@ -154,13 +147,13 @@ Header umum (non-publik):
     - `addon_plan_ids` (opsional, array uint)
   - Response 201: `{ "registration_id": "<uuid>" }` dan OTP dikirim via email.
 
-- `POST /api/tenants/verify` (publik)
+- `POST /vendor/tenants/verify` (publik)
   - Body VerifyRequest:
     - `registration_id` (wajib)
     - `otp` (wajib, 6 digit)
   - Response 200: pesan sukses; efek samping: tenant dibuat & aktif, user awal dibuat dan diikat role super admin, plan di-assign, dan invoice awal dibuat.
 
-- `PATCH /api/tenants/{id}/status`
+- `PATCH /vendor/tenants/{id}/status`
   - Header: Authorization: `Bearer <token>`, `X-Tenant-ID` (tenant vendor)
   - Path: `id` (int, wajib)
   - Body UpdateStatusRequest: `{ "is_active": true|false }`
@@ -223,8 +216,8 @@ Header umum (non-publik):
 
 ## Keamanan
 
-- Middleware memastikan isolasi tenant (`XTenantID`) dan otorisasi via Casbin.
-- Pembuatan tenant hanya oleh tenant `vendor` dan `type` tidak boleh `vendor`.
+- Middleware memastikan isolasi tenant (`X-Tenant-ID`) dan otorisasi via Casbin.
+- Pembuatan dan manajemen tenant adalah kewenangan Vendor; tenant client hanya dapat mengelola user dan modul pada tenantnya sendiri.
 
 ## Catatan Implementasi
 
@@ -234,11 +227,15 @@ Header umum (non-publik):
 ## Peran Modul Tenant per Jenis Tenant (Rangkuman)
 
 - Vendor: membuat dan mengelola tenant; memantau modul tenant.
-- Koperasi/UMKM/BUMDes: mengelola user internal dan status modul per-tenant.
+- Koperasi/UMKM/BUMDes: mengelola user internal dan status modul pada tenantnya sendiri.
+
+Catatan keselarasan PRD:
+- PRD Dashboard Vendor menyebut Vendor dapat melihat detail semua klien dan menonaktifkan akun klien. Karena itu endpoint manajemen tenant berada di `/tenants/*`.
+- Alur self-registration tetap publik di `/tenants` dan `/tenants/verify`.
 
 ## Skenario Penggunaan
 
-1. Admin Vendor membuat tenant Koperasi baru melalui `POST /api/tenants/`.
-2. Admin Tenant menambahkan user internal ke tenant (`POST /api/tenants/{id}/users`).
-3. Admin Tenant mengaktifkan modul yang diperlukan (`PATCH /api/tenants/{id}/modules`).
+1. Admin Vendor membuat tenant Koperasi baru melalui `POST /tenants`.
+2. Admin Tenant menambahkan user internal ke tenant (`POST /tenants/{id}/users`).
+3. Admin Tenant mengaktifkan modul yang diperlukan (`PATCH /tenants/{id}/modules`).
 4. Sistem Billing otomatis menonaktifkan modul saat langganan `suspended` dan mengaktifkan kembali saat `paid`.

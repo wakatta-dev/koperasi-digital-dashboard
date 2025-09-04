@@ -30,24 +30,38 @@ Referensi implementasi utama terdapat pada:
 
 Catatan: jenis simpanan (`type`) tidak dibatasi di kode; konvensi domain biasanya `pokok|wajib|sukarela`.
 
-## Alur Bisnis Utama
+## Alur Deposit, Withdraw, dan Verifikasi
 
-1) Setoran (Deposit)
-- Membuat transaksi `setoran` berstatus `pending`.
-- Jika `method != manual`, status langsung `verified`, saldo akun bertambah, bukti (`proof_url`) dihasilkan otomatis, dan transaksi kas masuk dicatat via Finance.
-- Opsional: biaya administrasi dicatat via Billing (`ChargeFee`).
+### Setoran (Deposit)
 
-2) Verifikasi Setoran Manual
-- Mengubah status `pending` → `verified`, menambah saldo, menghasilkan `proof_url`, dan mencatat kas masuk via Finance.
+1. Klien memanggil `POST /savings/{member_id}/deposit` dengan data setoran.
+2. Service membuat `SavingsTransaction` berstatus `pending`.
+3. Jika `method != manual`:
+   - status langsung berubah `verified`, saldo akun bertambah, dan `proof_url` digenerate.
+   - transaksi kas masuk dicatat via Finance (`RecordDeposit`).
+   - bila `fee` diisi, modul Billing mencatat biaya administrasi (`ChargeFee`).
+4. Jika `method == manual`, transaksi tetap `pending` menunggu verifikasi; biaya administrasi tetap dapat dicatat bila ada.
 
-3) Penarikan (Withdrawal)
-- Validasi saldo mencukupi, membuat transaksi `penarikan` berstatus `pending`.
-- Opsional: biaya administrasi dicatat via Billing.
+### Verifikasi Setoran Manual
 
-4) Persetujuan Penarikan
-- Mengubah status `pending` → `approved`, mengurangi saldo, menghasilkan `proof_url`, dan mencatat kas keluar via Finance.
+1. Supervisor memanggil `POST /savings/{transaction_id}/verify`.
+2. Service mengambil transaksi `pending` dan mengubah status menjadi `verified`.
+3. Saldo akun bertambah, `proof_url` dihasilkan, dan Finance mencatat kas masuk.
 
-5) Riwayat & Bukti
+### Penarikan (Withdrawal)
+
+1. Klien memanggil `POST /savings/{member_id}/withdraw`.
+2. Service memastikan saldo mencukupi lalu membuat `SavingsTransaction` berstatus `pending`.
+3. Jika `fee` diberikan, modul Billing mencatat biaya administrasi.
+
+### Persetujuan Penarikan
+
+1. Admin memanggil `POST /savings/{transaction_id}/approve`.
+2. Service mengurangi saldo akun dan mengubah status transaksi menjadi `approved`.
+3. `proof_url` dihasilkan dan Finance mencatat transaksi kas keluar (`RecordWithdrawal`).
+
+### Riwayat & Bukti
+
 - `ListTransactions(member_id)` menampilkan riwayat transaksi simpanan anggota.
 - `GetProof(transaction_id)` menampilkan `proof_url` untuk transaksi terkait.
 
@@ -55,12 +69,12 @@ Catatan: jenis simpanan (`type`) tidak dibatasi di kode; konvensi domain biasany
 
 Semua endpoint membutuhkan autentikasi `Bearer` dan konteks tenant via `X-Tenant-ID`.
 
-- `POST /coop/savings/{member_id}/deposit` — buat transaksi setoran.
-- `POST /coop/savings/{transaction_id}/verify` — verifikasi setoran manual.
-- `POST /coop/savings/{member_id}/withdraw` — ajukan penarikan.
-- `POST /coop/savings/{transaction_id}/approve` — setujui penarikan.
-- `GET /coop/savings/{member_id}/transactions` — daftar transaksi simpanan anggota.
-- `GET /coop/savings/{transaction_id}/proof` — dapatkan `proof_url` transaksi.
+- `POST /savings/{member_id}/deposit` — buat transaksi setoran.
+- `POST /savings/{transaction_id}/verify` — verifikasi setoran manual.
+- `POST /savings/{member_id}/withdraw` — ajukan penarikan.
+- `POST /savings/{transaction_id}/approve` — setujui penarikan.
+- `GET /savings/{member_id}/transactions` — daftar transaksi simpanan anggota.
+- `GET /savings/{transaction_id}/proof` — dapatkan `proof_url` transaksi.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -68,7 +82,7 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
 
-- `POST /coop/savings/{member_id}/deposit`
+- `POST /savings/{member_id}/deposit`
   - Path: `member_id` (uint, wajib)
   - Body DepositRequest:
     - `type` (wajib; contoh: `pokok|wajib|sukarela`)
@@ -77,11 +91,11 @@ Header umum:
     - `fee` (opsional, number)
   - Response 201: objek `SavingsTransaction` (status awal `pending` atau `verified` jika non-manual).
 
-- `POST /coop/savings/{transaction_id}/verify`
+- `POST /savings/{transaction_id}/verify`
   - Path: `transaction_id` (uint, wajib; transaksi `setoran`)
   - Response 200: `SavingsTransaction` (status `verified`).
 
-- `POST /coop/savings/{member_id}/withdraw`
+- `POST /savings/{member_id}/withdraw`
   - Path: `member_id` (uint, wajib)
   - Body WithdrawalRequest:
     - `type` (wajib)
@@ -90,15 +104,15 @@ Header umum:
     - `fee` (opsional)
   - Response 201: `SavingsTransaction` (status `pending`).
 
-- `POST /coop/savings/{transaction_id}/approve`
+- `POST /savings/{transaction_id}/approve`
   - Path: `transaction_id` (uint, wajib; transaksi `penarikan`)
   - Response 200: `SavingsTransaction` (status `approved`).
 
-- `GET /coop/savings/{member_id}/transactions`
+- `GET /savings/{member_id}/transactions`
   - Path: `member_id` (uint, wajib)
   - Response 200: array `SavingsTransaction`.
 
-- `GET /coop/savings/{transaction_id}/proof`
+- `GET /savings/{transaction_id}/proof`
   - Path: `transaction_id` (uint, wajib)
   - Response 200: `{ "proof": "<proof_url>" }`.
 

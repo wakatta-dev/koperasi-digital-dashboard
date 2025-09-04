@@ -26,41 +26,50 @@ Referensi implementasi utama terdapat pada:
 - Member: `id`, `tenant_id`, `user_id`, `no_anggota`, `status`, timestamps
 - MemberDocument: `id`, `member_id`, `type`, `file_url`
 
+## Alur Penggunaan
+
+1. Calon anggota mengirim data pendaftaran melalui `POST /members/register` beserta dokumen pendukung.
+2. Petugas koperasi meninjau dan menyetujui/menolak pendaftaran via `POST /members/{id}/verify`.
+3. Setelah disetujui, profil anggota bisa diambil dengan `GET /members/{id}` untuk menampilkan atau memeriksa data.
+4. Status keanggotaan dapat diperbarui kapan saja menggunakan `PATCH /members/{id}/status` (misal aktif/nonaktif).
+5. Anggota yang aktif dapat meminta pembuatan kartu anggota digital/fisik lewat `POST /members/{id}/card`.
+6. Kartu dengan QR dapat divalidasi petugas saat digunakan melalui `GET /members/card/validate/{qr}`.
+
 ## Endpoint API
 
 Semua endpoint dilindungi `Bearer` + `X-Tenant-ID`.
 
-- `POST /coop/members/register` — pendaftaran anggota.
-- `POST /coop/members/{id}/verify` — verifikasi/tolak pendaftaran.
-- `GET /coop/members/{id}` — profil anggota.
-- `PATCH /coop/members/{id}/status` — ubah status.
-- `POST /coop/members/{id}/card` — buat kartu anggota (QR) dan kembalikan info kartu.
-- `GET /coop/members/card/validate/{qr}` — validasi QR kartu.
+- `POST /members/register` — pendaftaran anggota.
+- `POST /members/{id}/verify` — verifikasi/tolak pendaftaran.
+- `GET /members/{id}` — profil anggota.
+- `PATCH /members/{id}/status` — ubah status.
+- `POST /members/{id}/card` — buat kartu anggota (QR) dan kembalikan info kartu.
+- `GET /members/card/validate/{qr}` — validasi QR kartu.
 
 ## Rincian Endpoint
 
-- `POST /coop/members/register`
+- `POST /members/register`
   - Body RegisterMemberRequest: `user_id`, `no_anggota`, `initial_deposit?`, `documents[]`
     - `documents[]` elemennya: `{ "type": "…", "data": "<bytes>" }` (diunggah via storage dan disimpan sebagai `file_url` di server)
   - Response 201: `data` Member
 
-- `POST /coop/members/{id}/verify`
+- `POST /members/{id}/verify`
   - Body VerifyMemberRequest: `{ "approve": true|false, "reason?": "..." }`
   - Response 200: sukses (tanpa body khusus)
 
-- `GET /coop/members/{id}` → `data` profil
+- `GET /members/{id}` → `data` profil
 
-- `PATCH /coop/members/{id}/status` → body `{ "status": "ACTIVE|INACTIVE|SUSPENDED|..." }`
+- `PATCH /members/{id}/status` → body `{ "status": "ACTIVE|INACTIVE|SUSPENDED|..." }`
 
-- `POST /coop/members/{id}/card` → `data` info kartu (termasuk QR)
+- `POST /members/{id}/card` → `data` info kartu (termasuk QR)
 
-- `GET /coop/members/card/validate/{qr}` → `data` info anggota hasil validasi QR
+- `GET /members/card/validate/{qr}` → `data` info anggota hasil validasi QR
 
 ## Contoh Payload & Response
 
 - Register Member
 ```json
-POST /coop/members/register
+POST /members/register
 {
   "user_id": 101,
   "no_anggota": "AGG-2025-001",
@@ -74,21 +83,21 @@ Contoh response: `201 Created` body berisi data Member yang terdaftar.
 
 - Verify Member
 ```json
-POST /coop/members/12/verify
+POST /members/12/verify
 { "approve": true }
 ```
 Response: `200 OK`
 
 - Update Status
 ```json
-PATCH /coop/members/12/status
+PATCH /members/12/status
 { "status": "ACTIVE" }
 ```
 Response: `200 OK`
 
 - Generate Card
 ```json
-POST /coop/members/12/card
+POST /members/12/card
 ```
 Contoh response:
 ```json
@@ -101,7 +110,7 @@ Contoh response:
 
 - Validate Card
 ```http
-GET /coop/members/card/validate/MEMBER-12-QR-ENCODED
+GET /members/card/validate/MEMBER-12-QR-ENCODED
 ```
 Response: data profil ringkas anggota terkait QR.
 

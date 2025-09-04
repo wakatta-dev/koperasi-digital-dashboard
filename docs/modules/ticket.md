@@ -11,7 +11,6 @@ Referensi implementasi utama terdapat pada:
 
 ## Ringkasan Peran per Tenant
 
-- Pengguna tenant: membuat tiket, melihat detail, dan menambahkan balasan.
 - Agen/vendor: meninjau, membalas, memperbarui status, dan mengelola penugasan agen.
 
 ## Arsitektur & Komponen
@@ -66,69 +65,81 @@ Mencatat perubahan status atau penugasan tiket sebagai jejak audit.
 
 Semua respons menggunakan format `APIResponse` dan membutuhkan header `Authorization: Bearer <token>` serta `X-Tenant-ID`.
 
+### Tenant
 - `POST /tickets` — buat tiket baru.
-- `GET /tickets?status=&priority=&category=&member_id={id?}&limit={n}&cursor={id?}` — daftar tiket milik pengguna (dengan filter opsional `member_id`).
-- `GET /tickets/{id}` — detail tiket termasuk balasan.
-- `POST /tickets/{id}/replies` — tambah balasan pada tiket.
-- `PATCH /tickets/{id}` — ubah `status` atau tetapkan `agent_id`.
-- `GET /tickets/{id}/activities` — daftar aktivitas/audit tiket.
+- `GET /tickets` — daftar tiket milik pengguna/tenant.
+- `GET /tickets/{id}` — detail tiket.
+- `POST /tickets/{id}/replies` — balas tiket.
+- `PATCH /tickets/{id}` — perbarui status atau penugasan.
+- `GET /tickets/{id}/activities` — riwayat aktivitas.
+
+### Vendor
+- `GET /tickets` — daftar semua tiket untuk agen.
+- `GET /tickets/{id}/replies` — lihat balasan tiket tertentu.
+- `POST /tickets/{id}/replies` — balas tiket.
+- `POST /tickets/sla` — atur SLA kategori tiket.
+- `GET /tickets/sla` — daftar konfigurasi SLA.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
 Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
-
+ 
 - `POST /tickets`
-  - Body createTicketRequest:
+  - Body:
     - `title` (wajib)
-    - `category` (wajib; `billing|technical|account|service`)
-    - `priority` (wajib; `low|medium|high`)
+    - `category` (wajib, `billing|technical|account|service`)
+    - `priority` (wajib, `low|medium|high`)
     - `description` (wajib)
     - `attachment_url` (opsional)
-  - Response 201: `data` `Ticket` (status awal `open`).
+  - Response 201: `Ticket` baru.
 
-- `GET /tickets?status=&priority=&category=&member_id={id?}&limit={n}&cursor={id?}`
-  - Query:
-    - `status` (opsional; `open|in_progress|resolved|closed`)
-    - `priority` (opsional)
-    - `category` (opsional; `billing|technical|account|service`)
-    - `member_id` (opsional, int)
-    - `limit` (wajib, int>0)
-    - `cursor` (opsional, string id terakhir)
-  - Response 200: `data` array `Ticket` + `meta.pagination` (cursor string berbasis `id`).
+- `GET /tickets`
+  - Query: `status?`, `priority?`, `category?`, `member_id?`, `limit` (wajib, int>0), `cursor?`
+  - Response 200: daftar `Ticket` + `meta.pagination`.
 
 - `GET /tickets/{id}`
   - Path: `id` (uuid, wajib)
-  - Response 200: `data` `Ticket` berikut `replies` yang terurut.
+  - Response 200: detail `Ticket`.
 
 - `POST /tickets/{id}/replies`
   - Path: `id` (uuid, wajib)
-  - Body addReplyRequest:
-    - `message` (wajib)
-    - `attachment_url` (opsional)
-  - Response 201: `data` `TicketReply`.
+  - Body: `message` (wajib), `attachment_url` (opsional)
+  - Response 201: `TicketReply`.
 
 - `PATCH /tickets/{id}`
   - Path: `id` (uuid, wajib)
-  - Body updateTicketRequest:
-    - `status` (opsional; `open|in_progress|resolved|closed`)
-    - `agent_id` (opsional; uint)
-  - Response 200: `data` berisi field yang diperbarui (`status` dan/atau `agent_id`).
+  - Body: `status` (opsional, `open|in_progress|resolved|closed`), `agent_id` (opsional, uint)
+  - Response 200: `Ticket` terkini.
 
 - `GET /tickets/{id}/activities`
   - Path: `id` (uuid, wajib)
-  - Response 200: `data` array `TicketActivityLog` (riwayat perubahan status/penugasan).
+  - Response 200: array `TicketActivityLog`.
 
-## Vendor
+- `GET /tickets` (vendor)
+  - Query: `tenant?`, `status?`, `category?`, `limit` (wajib, int>0), `cursor?`
+  - Response 200: daftar `Ticket` lintas tenant + `meta.pagination`.
 
-Endpoint untuk agen/vendor:
+- `GET /tickets/{id}/replies` (vendor)
+  - Path: `id` (uuid, wajib)
+  - Query: `limit` (wajib, int>0), `cursor?`
+  - Response 200: daftar `TicketReply` + `meta.pagination`.
 
-- `GET /api/vendor/tickets` — daftar semua tiket untuk agen.
-- `GET /api/vendor/tickets/{id}/replies` — lihat balasan tiket tertentu.
-- `POST /api/vendor/tickets/{id}/replies` — balas tiket.
-- `POST /api/vendor/tickets/sla` — atur SLA kategori tiket.
-- `GET /api/vendor/tickets/sla` — daftar konfigurasi SLA.
+- `POST /tickets/{id}/replies` (vendor)
+  - Path: `id` (uuid, wajib)
+  - Body: `message` (wajib), `attachment_url` (opsional)
+  - Response 201: `TicketReply`.
+
+- `POST /tickets/sla` (vendor)
+  - Body:
+    - `category` (wajib)
+    - `sla_response_minutes` (wajib, int)
+    - `sla_resolution_minutes` (wajib, int)
+  - Response 200: sukses tanpa data.
+
+- `GET /tickets/sla` (vendor)
+  - Response 200: daftar `TicketCategorySLA`.
 
 ### SLA Management (TicketCategorySLA)
 

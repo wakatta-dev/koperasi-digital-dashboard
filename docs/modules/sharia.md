@@ -1,6 +1,6 @@
 # Modul Sharia Financing
 
-Modul Sharia Financing setara alur pinjaman namun sesuai akad syariah: pengajuan, persetujuan, pencairan, pembayaran angsuran, dan surat lunas.
+Modul Sharia Financing setara alur pinjaman namun mengikuti akad syariah: pengajuan, persetujuan, pencairan, pembayaran angsuran, dan surat lunas.
 
 Referensi implementasi utama terdapat pada:
 - `internal/modules/sharia/entity.go`
@@ -11,49 +11,90 @@ Referensi implementasi utama terdapat pada:
 
 ## Endpoint API
 
-Semua endpoint dilindungi `Bearer` + `X-Tenant-ID`.
+Semua endpoint membutuhkan autentikasi `Bearer` dan konteks tenant melalui header `X-Tenant-ID`.
 
-- `POST /coop/sharia-financings/apply` — ajukan pembiayaan.
-- `POST /coop/sharia-financings/{id}/approve` — setujui pembiayaan.
-- `POST /coop/sharia-financings/{id}/disburse` — cairkan pembiayaan.
-- `GET /coop/sharia-financings/{id}/installments` — daftar angsuran.
-- `POST /coop/sharia-financings/installments/{id}/pay` — bayar angsuran.
-- `GET /coop/sharia-financings/{id}/release-letter` — surat lunas.
+- `POST /sharia-financings/apply` — ajukan pembiayaan syariah.
+- `POST /sharia-financings/{id}/approve` — setujui pembiayaan.
+- `POST /sharia-financings/{id}/disburse` — cairkan pembiayaan.
+- `GET /sharia-financings/{id}/installments` — daftar angsuran.
+- `POST /sharia-financings/installments/{id}/pay` — bayar angsuran.
+- `GET /sharia-financings/{id}/release-letter` — surat lunas.
 
 ## Rincian Endpoint
 
-- `POST /coop/sharia-financings/apply` — Body ApplyRequest → 201 `data` ShariaFinancing
-- `POST /coop/sharia-financings/{id}/approve` → 200 `data` ShariaFinancing
-- `POST /coop/sharia-financings/{id}/disburse` — Body `{ "method": "..." }` → 204
-- `GET /coop/sharia-financings/{id}/installments` → 200 `data` array ShariaInstallment
-- `POST /coop/sharia-financings/installments/{id}/pay` — Body PaymentRequest → 200 `data` ShariaInstallment
-- `GET /coop/sharia-financings/{id}/release-letter` → 200 `{ "message": "..." }`
+Header umum:
+- Authorization: `Bearer <token>`
+- `X-Tenant-ID`: ID tenant
 
-## Contoh Payload & Response
+### `POST /sharia-financings/apply`
+Body `ApplyRequest`:
+- `member_id` (uint, wajib)
+- `akad_type` (string, wajib) — jenis akad, misal *murabahah*
+- `amount` (float64, wajib) — nilai pokok
+- `margin` (float64, wajib) — margin keuntungan
+- `tenor` (int, wajib) — jumlah bulan angsuran
+
+Response 201: objek `ShariaFinancing` berstatus `pending`.
+
+### `POST /sharia-financings/{id}/approve`
+Path:
+- `id` (int, wajib) — ID pembiayaan
+
+Response 200: objek `ShariaFinancing` berstatus `approved`.
+
+### `POST /sharia-financings/{id}/disburse`
+Path:
+- `id` (int, wajib) — ID pembiayaan
+Body:
+- `{ "method": "transfer|cash|..." }`
+
+Response 204: tanpa body (pembiayaan tercatat cair).
+
+### `GET /sharia-financings/{id}/installments`
+Path:
+- `id` (int, wajib) — ID pembiayaan
+
+Response 200: array `ShariaInstallment` terurut `due_date`.
+
+### `POST /sharia-financings/installments/{id}/pay`
+Path:
+- `id` (int, wajib) — ID angsuran
+Body `PaymentRequest`:
+- `amount` (float64, wajib)
+- `date` (RFC3339, wajib)
+- `method` (string, wajib)
+
+Response 200: `ShariaInstallment` terbaru (status dapat `paid`).
+
+### `GET /sharia-financings/{id}/release-letter`
+Path:
+- `id` (int, wajib) — ID pembiayaan
+
+Response 200: `{ "message": "Financing {id} settled" }` bila seluruh angsuran lunas.
+
+## Contoh Payload
 
 - Apply
 ```json
-POST /coop/sharia-financings/apply
+POST /sharia-financings/apply
 {
   "member_id": 12,
-  "application": { "amount": 10000000, "tenor": 12, "rate": 10.5, "purpose": "Modal kerja" }
+  "akad_type": "murabahah",
+  "amount": 10000000,
+  "margin": 10.5,
+  "tenor": 12
 }
-```
-
-- Approve
-```http
-POST /coop/sharia-financings/9/approve
 ```
 
 - Disburse
 ```json
-POST /coop/sharia-financings/9/disburse
+POST /sharia-financings/9/disburse
 { "method": "transfer" }
 ```
 
 - Pay Installment
 ```json
-POST /coop/sharia-financings/installments/81/pay
+POST /sharia-financings/installments/81/pay
 { "amount": 900000, "date": "2025-09-30T00:00:00Z", "method": "transfer" }
 ```
 

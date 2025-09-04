@@ -41,13 +41,13 @@ Catatan: struktur di atas mengikuti tag dan nama field pada `entity.go`/`dto.go`
 
 Semua endpoint dilindungi `Bearer` + `X-Tenant-ID` dan menggunakan JSON standar.
 
-- `POST /coop/assets` — tambah aset.
-- `PUT /coop/assets/{id}` — perbarui aset.
-- `DELETE /coop/assets/{id}` — hapus aset.
-- `GET /coop/assets` — daftar aset.
-- `GET /coop/assets/{id}/depreciation` — riwayat depresiasi aset.
-- `PATCH /coop/assets/{id}/status` — ubah status aset.
-- `GET /coop/assets/export` — ekspor aset (placeholder).
+ - `POST /assets` — menambahkan aset baru beserta informasi akuisisi dan parameter depresiasi.
+ - `PUT /assets/{id}` — memperbarui detail aset yang ada seperti kategori, umur manfaat, atau lokasi.
+ - `DELETE /assets/{id}` — menghapus aset dari daftar tenant.
+ - `GET /assets` — mengambil daftar aset yang dimiliki tenant beserta ringkasan data.
+ - `GET /assets/{id}/depreciation` — melihat riwayat perhitungan depresiasi untuk aset tertentu.
+ - `PATCH /assets/{id}/status` — mengubah status aset menjadi aktif atau nonaktif.
+ - `GET /assets/export` — mengekspor daftar aset untuk diunduh (saat ini placeholder).
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -55,7 +55,7 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant
 
-- `POST /coop/assets`
+- `POST /assets`
   - Body AssetRequest:
     - `code`, `name`, `category`
     - `acquisition_date` (RFC3339), `acquisition_cost`
@@ -63,35 +63,35 @@ Header umum:
     - `location` (opsional)
   - Response 201: `data` Asset
 
-- `PUT /coop/assets/{id}`
+- `PUT /assets/{id}`
   - Path: `id` (int)
   - Body AssetRequest (field lengkap)
   - Response 200: `data` Asset
 
-- `DELETE /coop/assets/{id}`
+- `DELETE /assets/{id}`
   - Path: `id` (int)
   - Response 204: tanpa body
 
-- `GET /coop/assets`
+- `GET /assets`
   - Response 200: `data` array Asset
 
-- `GET /coop/assets/{id}/depreciation`
+- `GET /assets/{id}/depreciation`
   - Path: `id` (int)
   - Response 200: `data` array AssetDepreciation
 
-- `PATCH /coop/assets/{id}/status`
+- `PATCH /assets/{id}/status`
   - Path: `id` (int)
   - Body StatusRequest: `{ "status": "active|inactive" }`
   - Response 204: tanpa body
 
-- `GET /coop/assets/export`
+- `GET /assets/export`
   - Response 200: placeholder `{ "message": "export not implemented" }`
 
 ## Contoh Payload & Response
 
 - Create Asset
 ```json
-POST /coop/assets
+POST /assets
 {
   "code": "AST-001",
   "name": "Laptop Kasir",
@@ -106,7 +106,7 @@ POST /coop/assets
 
 - Update Status
 ```json
-PATCH /coop/assets/5/status
+PATCH /assets/5/status
 { "status": "inactive" }
 ```
 

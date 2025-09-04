@@ -58,12 +58,14 @@ Konstanta/aturan penting:
 
 Semua endpoint membutuhkan autentikasi `Bearer` dan konteks tenant via `X-Tenant-ID`.
 
-- `POST /coop/loans/apply` — ajukan pinjaman baru.
-- `POST /coop/loans/{id}/approve` — setujui pengajuan pinjaman.
-- `POST /coop/loans/{id}/disburse` — cairkan pinjaman yang disetujui.
-- `GET /coop/loans/{id}/installments` — daftar angsuran pinjaman.
-- `POST /coop/loans/installments/{id}/pay` — bayar angsuran pinjaman.
-- `GET /coop/loans/{id}/release-letter` — dapatkan surat lunas bila semua angsuran lunas.
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST   | `/loans/apply`                     | Ajukan pinjaman baru |
+| POST   | `/loans/{id}/approve`              | Setujui pengajuan pinjaman |
+| POST   | `/loans/{id}/disburse`             | Cairkan pinjaman yang disetujui |
+| GET    | `/loans/{id}/installments`         | Daftar angsuran pinjaman |
+| POST   | `/loans/installments/{id}/pay`     | Bayar angsuran pinjaman |
+| GET    | `/loans/{id}/release-letter`       | Dapatkan surat lunas bila semua angsuran lunas |
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -71,7 +73,7 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
 
-- `POST /coop/loans/apply`
+- `POST /loans/apply`
   - Body ApplyRequest:
     - `member_id` (wajib, uint)
     - `amount` (wajib, > 0)
@@ -80,20 +82,20 @@ Header umum:
     - `purpose` (opsional)
   - Response 201: `LoanApplication` (status `pending`).
 
-- `POST /coop/loans/{id}/approve`
+- `POST /loans/{id}/approve`
   - Path: `id` (int, wajib)
   - Response 200: `LoanApplication` (status `approved` + angsuran terbentuk).
 
-- `POST /coop/loans/{id}/disburse`
+- `POST /loans/{id}/disburse`
   - Path: `id` (int, wajib)
   - Body: `{ "method": "transfer|cash|..." }`
   - Response 204: tanpa body (pencairan tercatat di Finance, status `disbursed`).
 
-- `GET /coop/loans/{id}/installments`
+- `GET /loans/{id}/installments`
   - Path: `id` (int, wajib)
   - Response 200: `[]LoanInstallment` (urut `due_date`).
 
-- `POST /coop/loans/installments/{id}/pay`
+- `POST /loans/installments/{id}/pay`
   - Path: `id` (int, wajib; id angsuran)
   - Body PaymentRequest:
     - `amount` (wajib, > 0)
@@ -101,7 +103,7 @@ Header umum:
     - `method` (wajib)
   - Response 200: `LoanInstallment` terkini (status bisa `paid` jika terbayar penuh).
 
-- `GET /coop/loans/{id}/release-letter`
+- `GET /loans/{id}/release-letter`
   - Path: `id` (int, wajib)
   - Response 200: `{ "message": "Loan {id} settled" }` jika lunas; selain itu error.
 

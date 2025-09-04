@@ -36,12 +36,14 @@ Referensi implementasi utama terdapat pada:
 
 Semua endpoint dilindungi `Bearer` + `X-Tenant-ID` dan menggunakan response standar `APIResponse`.
 
-- `POST /coop/shu/yearly` — input total SHU tahunan.
-- `POST /coop/shu/yearly/{year}/simulate` — simulasi distribusi untuk tahun tertentu.
-- `POST /coop/shu/yearly/{year}/distribute` — distribusi aktual SHU tahun tertentu.
-- `GET /coop/shu/history` — daftar nilai SHU tahunan yang pernah dicatat.
-- `GET /coop/shu/member/{member_id}` — riwayat SHU per anggota.
-- `GET /coop/shu/export/{year}` — ekspor laporan SHU untuk tahun tertentu.
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST   | `/shu/yearly` | Input total SHU tahunan |
+| POST   | `/shu/yearly/{year}/simulate` | Simulasi distribusi untuk tahun tertentu |
+| POST   | `/shu/yearly/{year}/distribute` | Distribusi aktual SHU tahun tertentu |
+| GET    | `/shu/history` | Daftar nilai SHU tahunan yang pernah dicatat |
+| GET    | `/shu/member/{member_id}` | Riwayat SHU per anggota |
+| GET    | `/shu/export/{year}` | Ekspor laporan SHU untuk tahun tertentu |
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -49,29 +51,29 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant
 
-- `POST /coop/shu/yearly`
+- `POST /shu/yearly`
   - Body YearlySHURequest:
     - `year` (wajib, int)
     - `total_shu` (wajib, number)
   - Response 201: `data` YearlySHU
 
-- `POST /coop/shu/yearly/{year}/simulate`
+- `POST /shu/yearly/{year}/simulate`
   - Path: `year` (int, wajib)
   - Response 200: `data` array `SHUDistribution`
 
-- `POST /coop/shu/yearly/{year}/distribute`
+- `POST /shu/yearly/{year}/distribute`
   - Path: `year` (int, wajib)
   - Body DistributionRequest: `{ "method": "transfer|cash|...", "description": "..." }`
   - Response 200: `data` `{ "status": "ok" }`
 
-- `GET /coop/shu/history`
+- `GET /shu/history`
   - Response 200: `data` array YearlySHU
 
-- `GET /coop/shu/member/{member_id}`
+- `GET /shu/member/{member_id}`
   - Path: `member_id` (int, wajib)
   - Response 200: `data` array SHUDistribution
 
-- `GET /coop/shu/export/{year}`
+- `GET /shu/export/{year}`
   - Path: `year` (int, wajib)
   - Response 200: `data` `{ "status": "exported", "year": "..." }`
 

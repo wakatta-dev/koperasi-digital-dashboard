@@ -8,6 +8,7 @@ Referensi implementasi utama terdapat pada:
 - `internal/modules/notification/service.go`
 - `internal/modules/notification/handler.go`
 - `internal/modules/notification/routes.go`
+- `internal/modules/notification/device_token.go`
 
 ## Ringkasan Peran per Tenant
 
@@ -42,25 +43,30 @@ Referensi implementasi utama terdapat pada:
 3) Pembaruan Status
 - Ubah status notifikasi; otomatis menyetel `sent_at` bila `SENT` dan `read_at` bila `READ`.
 
+4) Token Perangkat
+- Pengguna mendaftarkan token perangkat untuk menerima push notification dan dapat menghapusnya saat logout.
+
 ## Endpoint API
 
 Semua response menggunakan format `APIResponse`.
 
 ### Tenant Routes
 
-- `POST /api/koperasi/notifications` — buat notifikasi.
-- `GET /api/koperasi/notifications?tenant_id={id?}&user_id={id?}&type={t?}&status={s?}&category={c?}&send_status={s?}&from={RFC3339?}&to={RFC3339?}&limit={n}&cursor={c?}` — daftar notifikasi (cursor id uuid). Jika `tenant_id` tidak dikirim, sistem mengambil dari context (header `X-Tenant-ID`/domain).
-- `PATCH /api/koperasi/notifications/{id}` — update `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`).
-- `GET /api/koperasi/notifications/reminders` — daftar reminder penjadwalan notifikasi untuk tenant saat ini.
-- `PUT /api/koperasi/notifications/reminders` — upsert reminder penjadwalan notifikasi (batch).
+- `POST /notifications` — buat notifikasi.
+- `GET /notifications?tenant_id={id?}&user_id={id?}&type={t?}&status={s?}&category={c?}&send_status={s?}&from={RFC3339?}&to={RFC3339?}&limit={n}&cursor={c?}` — daftar notifikasi (cursor id uuid). Jika `tenant_id` tidak dikirim, sistem mengambil dari context (header `X-Tenant-ID`/domain).
+- `PATCH /notifications/{id}` — update `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`).
+- `GET /notifications/reminders` — daftar reminder penjadwalan notifikasi untuk tenant saat ini.
+- `PUT /notifications/reminders` — upsert reminder penjadwalan notifikasi (batch).
+- `POST /notifications/device-tokens` — simpan token perangkat untuk push notification.
+- `DELETE /notifications/device-tokens` — hapus token perangkat.
 
 ### Vendor Routes
 
-- `POST /api/notifications/broadcast` — broadcast notifikasi ke tenant tertentu.
-- `POST /api/notifications/bulk` — antre notifikasi bulk berdasarkan segmen tenant.
-- `GET /api/notifications?tenant={id?}&category={c?}&date={YYYY-MM-DD?}&limit={n}&cursor={c?}` — daftar notifikasi vendor.
+- `POST /notifications/broadcast` — broadcast notifikasi ke tenant tertentu.
+- `POST /notifications/bulk` — antre notifikasi bulk berdasarkan segmen tenant.
+- `GET /notifications?tenant={id?}&category={c?}&date={YYYY-MM-DD?}&limit={n}&cursor={c?}` — daftar notifikasi vendor.
 
-Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
+Keamanan: semua endpoint dilindungi `Bearer` token + `X-Tenant-ID`.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -68,7 +74,7 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
 
-- `POST /api/koperasi/notifications`
+- `POST /notifications`
   - Body:
     - `tenant_id` (wajib, > 0)
     - `user_id` (opsional, > 0 untuk per-user; kosong untuk broadcast tenant)
@@ -83,7 +89,7 @@ Header umum:
     - `send_status` (opsional, `PENDING|SENT|FAILED`; default `PENDING`)
   - Response 201: `data` Notification (dengan `id` uuid, timestamps). Untuk `EMAIL/PUSH` pengiriman belum diimplementasi (placeholder).
 
-- `GET /api/koperasi/notifications`
+- `GET /notifications`
   - Query:
     - `tenant_id` (opsional; default dari context/`X-Tenant-ID`)
     - `user_id` (opsional)
@@ -95,20 +101,29 @@ Header umum:
     - `limit` (wajib, int>0), `cursor` (opsional, string id uuid terakhir)
   - Response 200: `data` array Notification + `meta.pagination`.
 
-- `PATCH /api/koperasi/notifications/{id}`
+- `PATCH /notifications/{id}`
   - Path: `id` (string uuid, wajib)
   - Body: `{ "status": "DRAFT|PUBLISHED|SENT|READ|ARCHIVED" }` (wajib)
   - Response 200: `data` `{ "id": "...", "status": "..." }`. Timestamp `sent_at` diisi saat `SENT`, `read_at` saat `READ`.
 
-- `GET /api/koperasi/notifications/reminders`
+- `GET /notifications/reminders`
   - Response 200: `data` array `NotificationReminder` untuk tenant saat ini.
 
-- `PUT /api/koperasi/notifications/reminders`
+- `PUT /notifications/reminders`
+
   - Body: array `reminderRequest`:
     - `event_type` (wajib)
     - `schedule_offset` (wajib, int; offset jadwal dalam satuan domain yang ditetapkan)
     - `active` (opsional, bool)
   - Response 200: tanpa data (`data: null`) — seluruh entri di-upsert.
+
+- `POST /notifications/device-tokens`
+  - Body: `{ "token": "<string>" }` (wajib; token perangkat FCM/APNS untuk user saat ini)
+  - Response 201: `data` `{ "token": "..." }`.
+
+- `DELETE /notifications/device-tokens`
+  - Body: `{ "token": "<string>" }` (wajib)
+  - Response 200: `data` `{ "token": "..." }`.
 
 ## Tautan Cepat
 
@@ -139,6 +154,16 @@ Header umum:
 - Update Status
 ```json
 { "status": "READ" }
+```
+
+- Register Device Token
+```json
+{ "token": "abcdef123" }
+```
+
+- Unregister Device Token
+```json
+{ "token": "abcdef123" }
 ```
 
 ## Status & Transisi

@@ -17,7 +17,7 @@ Referensi implementasi utama terdapat pada:
 ## Ringkasan Peran per Tenant
 
 - Vendor: mengelola role global dan mengikat role ke tenant-tenant (AssignRoleToTenant).
-- Koperasi/UMKM/BUMDes: mengelola pemetaan user-role pada tenantnya dan permission (policy) sesuai domain tenant.
+- Koperasi/UMKM/BUMDes (client): mengelola role lokal, pemetaan user-role, dan permission (policy) terbatas pada tenantnya sendiri.
 
 ## Arsitektur & Komponen
 
@@ -54,81 +54,102 @@ Kamus Casbin (konvensi):
 
 Semua response menggunakan format `APIResponse`. Beberapa endpoint menggunakan paginasi cursor.
 
-- Roles
-  - `GET /roles/?limit={n}&cursor={cursor?}`: daftar role (berdasarkan `TenantRole` milik tenant saat ini).
-  - `POST /roles/`: buat role baru.
-  - `PUT /roles/{id}`: update role.
-  - `DELETE /roles/{id}`: hapus role dari tenant saat ini (menghapus binding TenantRole).
-  - `POST /roles/tenants`: assign role ke tenant (membuat `TenantRole`).
+### Roles
+- `GET /roles` — vendor: daftar role global; client: role terikat pada tenant saat ini.
+- `POST /roles` — vendor: buat role global; client: buat role lokal.
+- `PUT /roles/{id}` — perbarui role.
+- `DELETE /roles/{id}` — hapus role atau unbind dari tenant.
+- `POST /roles/tenants` — vendor: assign role ke tenant.
 
-- Permissions
-  - `GET /roles/{id}/permissions?limit={n}&cursor={cursor?}`: daftar policy Casbin untuk role tersebut pada domain `tenant_type`.
-  - `POST /roles/{id}/permissions`: tambah policy (`obj`, `act`).
-  - `DELETE /roles/{id}/permissions/{pid}`: hapus policy berdasarkan id rule.
+### Permissions
+- `GET /roles/{id}/permissions` — client: daftar policy Casbin untuk role.
+- `POST /roles/{id}/permissions` — client: tambah policy.
+- `DELETE /roles/{id}/permissions/{pid}` — client: hapus policy.
 
-- User Roles
-  - `GET /users/{id}/roles?limit={n}&cursor={cursor?}`: daftar role user (paginasi cursor numerik).
-  - `POST /users/{id}/roles`: tetapkan role ke user pada tenant tertentu.
-  - `DELETE /users/{id}/roles/{rid}`: hapus role dari user pada tenant saat ini.
+### User Roles
+- `GET /users/{id}/roles` — client: daftar role user pada tenant saat ini.
+- `POST /users/{id}/roles` — client: tetapkan role ke user.
+- `DELETE /users/{id}/roles/{rid}` — client: hapus role dari user.
 
-Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`; Casbin digunakan untuk otorisasi berlapis.
+Keamanan: semua endpoint dilindungi `Bearer` token + `X-Tenant-ID`; Casbin digunakan untuk otorisasi berlapis.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
-Header umum:
+ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
 
-- `GET /roles/?limit={n}&cursor={c?}`
-  - Query: `limit` (wajib, int>0), `cursor` (opsional)
-  - Response 200: `data` array Role yang terikat dengan tenant saat ini (melalui `TenantRole`).
+- `GET /roles`
+   - Tujuan: mengambil daftar role yang tersedia pada tenant saat ini.
+   - Parameter:
+     - Query: `limit` (wajib, int>0), `cursor` (opsional)
+   - Respon 200: `data` array Role yang terikat dengan tenant saat ini (melalui `TenantRole`).
 
-- `POST /roles/`
-  - Body CreateRoleRequest: `{ "name": "...", "description": "..." }` (keduanya wajib)
-  - Response 201: `data` Role baru.
+- `POST /roles`
+   - Tujuan: membuat role baru (global untuk vendor, lokal untuk tenant).
+   - Parameter:
+     - Body CreateRoleRequest: `{ "name": "...", "description": "..." }` (keduanya wajib)
+   - Respon 201: `data` Role baru.
 
 - `PUT /roles/{id}`
-  - Path: `id` (int, wajib)
-  - Body UpdateRoleRequest: sama seperti create (wajib)
-  - Response 200: `data` Role terkini.
+   - Tujuan: memperbarui informasi role.
+   - Parameter:
+     - Path: `id` (int, wajib)
+     - Body UpdateRoleRequest: sama seperti create (wajib)
+   - Respon 200: `data` Role terkini.
 
 - `DELETE /roles/{id}`
-  - Path: `id` (int, wajib)
-  - Efek: menghapus binding role dari tenant saat ini (TenantRole), bukan menghapus definisi role global.
-  - Response 200: `data` `{ "id": <int> }`.
+   - Tujuan: menghapus binding role dari tenant saat ini.
+   - Parameter:
+     - Path: `id` (int, wajib)
+   - Respon 200: `data` `{ "id": <int> }` (role global tetap ada).
 
 - `POST /roles/tenants`
-  - Body AssignRoleToTenantRequest: `{ "role_id": <uint>, "tenant_id": <uint> }` (wajib)
-  - Response 201: `data` TenantRole baru.
+   - Tujuan: mengaitkan role global ke tenant tertentu.
+   - Parameter:
+     - Body AssignRoleToTenantRequest: `{ "role_id": <uint>, "tenant_id": <uint> }` (wajib)
+   - Respon 201: `data` TenantRole baru.
+   - Akses: hanya Vendor. Client tidak dapat meng-assign role ke tenant lain.
 
-- `GET /roles/{id}/permissions?limit={n}&cursor={c?}`
-  - Path: `id` (int, wajib)
-  - Query: `limit` (wajib), `cursor` (opsional)
-  - Domain kebijakan diambil dari `tenant_type` (klaim JWT) secara otomatis.
-  - Response 200: `data` array CasbinRule.
+- `GET /roles/{id}/permissions`
+   - Tujuan: menampilkan daftar policy Casbin untuk role.
+   - Parameter:
+     - Path: `id` (int, wajib)
+     - Query: `limit` (wajib), `cursor` (opsional)
+   - Respon 200: `data` array CasbinRule; domain kebijakan diambil dari `tenant_type` (klaim JWT) secara otomatis.
 
 - `POST /roles/{id}/permissions`
-  - Path: `id` (int, wajib)
-  - Body PermissionRequest: `{ "obj": "/resource", "act": "GET|POST|..." }` (wajib)
-  - Response 201: `data` `{ "obj": "...", "act": "..." }`.
+   - Tujuan: menambah policy pada role tertentu.
+   - Parameter:
+     - Path: `id` (int, wajib)
+     - Body PermissionRequest: `{ "obj": "/resource", "act": "GET|POST|..." }` (wajib)
+   - Respon 201: `data` `{ "obj": "...", "act": "..." }`.
 
 - `DELETE /roles/{id}/permissions/{pid}`
-  - Path: `id` (role id, int), `pid` (permission id, int) — keduanya wajib
-  - Response 200: `data` `{ "id": <int> }`.
+   - Tujuan: menghapus policy dari role.
+   - Parameter:
+     - Path: `id` (role id, int), `pid` (permission id, int) — keduanya wajib
+   - Respon 200: `data` `{ "id": <int> }`.
 
-- `GET /users/{id}/roles?limit={n}&cursor={c?}`
-  - Path: `id` (user id, int, wajib)
-  - Query: `limit` (wajib), `cursor` (opsional)
-  - Response 200: `data` array RoleUser (dengan preload Role) + pagination.
+- `GET /users/{id}/roles`
+   - Tujuan: mengambil daftar role yang dimiliki user pada tenant saat ini.
+   - Parameter:
+     - Path: `id` (user id, int, wajib)
+     - Query: `limit` (wajib), `cursor` (opsional)
+   - Respon 200: `data` array RoleUser (dengan preload Role) + pagination.
 
 - `POST /users/{id}/roles`
-  - Path: `id` (user id, int, wajib)
-  - Body AssignRoleRequest: `{ "role_id": <uint>, "tenant_id": <uint> }` (wajib)
-  - Response 201: `data` `{ "user_id": <int>, "role_id": <uint> }`.
+   - Tujuan: menetapkan role ke user pada tenant tertentu.
+   - Parameter:
+     - Path: `id` (user id, int, wajib)
+     - Body AssignRoleRequest: `{ "role_id": <uint>, "tenant_id": <uint> }` (wajib)
+   - Respon 201: `data` `{ "user_id": <int>, "role_id": <uint> }`.
 
 - `DELETE /users/{id}/roles/{rid}`
-  - Path: `id` (user id), `rid` (role id) — wajib
-  - Response 200: `data` `{ "user_id": <int>, "role_id": <int> }`.
+   - Tujuan: menghapus role dari user pada tenant.
+   - Parameter:
+     - Path: `id` (user id), `rid` (role id) — wajib
+   - Respon 200: `data` `{ "user_id": <int>, "role_id": <int> }`.
 
 ## Contoh Payload
 
@@ -168,6 +189,7 @@ Header umum:
 ## Keamanan
 
 - Casbin menegakkan kebijakan akses berdasarkan kombinasi subject (`user_id`), role, dan domain (`tenant_type`).
+- Client dibatasi hanya dapat mengelola role/permission dan mapping user-role pada tenant yang sama dengan `X-Tenant-ID` pada request.
 
 ## Catatan Implementasi
 
@@ -176,8 +198,8 @@ Header umum:
 
 ## Peran Modul Roles per Jenis Tenant (Rangkuman)
 
-- Vendor: mendefinisikan role, mengikatnya ke tenant-tenant.
-- Koperasi/UMKM/BUMDes: mengatur role pengguna dan permission operasional per tenant.
+- Vendor: mendefinisikan role global dan mengikatnya ke tenant-tenant.
+- Koperasi/UMKM/BUMDes: mengatur role pengguna dan permission operasional hanya untuk tenantnya sendiri.
 
 ## Skenario Penggunaan
 

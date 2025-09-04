@@ -75,253 +75,40 @@ Enum dan konstanta penting:
 
 ## Endpoint API
 
-Semua response menggunakan format `APIResponse` dengan metadata dan dukungan pagination (cursor based). Contoh response ada pada dokumen frontend `docs/frontend/api_response.md`.
+Semua endpoint menggunakan format `APIResponse` dan memerlukan autentikasi `Bearer` serta konteks tenant melalui header `X-Tenant-ID`.
 
-Keamanan: semua endpoint membutuhkan `Bearer` token, dan konteks tenant (mis. header `XTenantID`/middleware) untuk endpoint Client.
+### Paket (Plans)
+- `GET /plans` — daftar plan.
+- `POST /plans` — buat plan baru.
+- `GET /plans/{id}` — detail plan.
+- `PUT /plans/{id}` — ubah plan.
+- `PATCH /plans/{id}/status` — ubah status plan.
+- `DELETE /plans/{id}` — hapus plan.
 
-### Vendor
+### Invoice
+- `GET /invoices` — daftar invoice (vendor).
+- `POST /invoices` — buat invoice (vendor).
+- `GET /invoices/{id}` — detail invoice (vendor).
+- `PUT /invoices/{id}` — ubah invoice (vendor).
+- `PATCH /invoices/{id}/status` — ubah status invoice (vendor).
+- `DELETE /invoices/{id}` — hapus invoice (vendor).
+- `POST /invoices/{id}/payments` — tambah pembayaran manual.
+- `GET /client/invoices` — daftar invoice tenant.
+- `GET /client/invoices/{id}` — detail invoice tenant.
+- `GET /client/invoices/{id}/audits` — histori audit invoice.
 
-- Plans
-- `GET /api/vendor/plans/?limit={n}&cursor={cursor?}`: daftar plan (paginasi cursor).
-- `POST /api/vendor/plans/`: buat plan baru.
-- `GET /api/vendor/plans/{id}`: detail plan.
-- `PUT /api/vendor/plans/{id}`: update plan (name/price/duration).
-- `DELETE /api/vendor/plans/{id}`: hapus plan.
+### Pembayaran
+- `POST /payments/{id}/verify` — verifikasi pembayaran manual.
+- `POST /payment-gateways/{gateway}/webhook` — terima webhook gateway.
 
-- Invoices
-- `GET /api/vendor/invoices/?limit={n}&cursor={cursor?}&status={s?}&periode={YYYY-MM?}`: daftar invoice.
-- `POST /api/vendor/invoices/`: buat invoice (items, due_date, subscription_id?).
-- `PATCH /api/vendor/invoices/{id}`: update invoice (number, due_date, items, subscription_id).
-- `PATCH /api/vendor/invoices/{id}/status`: ubah status invoice.
-- `POST /api/vendor/invoices/{id}/payments`: buat catatan pembayaran manual pada invoice.
-- `DELETE /api/vendor/invoices/{id}`: hapus invoice.
+### Langganan (Subscriptions)
+- `GET /subscriptions` — daftar subscription (vendor).
+- `PATCH /subscriptions/{id}/status` — ubah status subscription (vendor).
+- `GET /subscriptions/summary` — ringkasan subscription (vendor).
+- `GET /client/subscription` — status langganan tenant.
 
-- Payments
-- `PATCH /api/vendor/payments/{id}/verify`: verifikasi pembayaran manual (`status=verified|rejected`, opsional `gateway`, `external_id`).
-
-- Payment Gateways
-- `POST /api/vendor/payment-gateways/{gateway}/webhook`: terima webhook dari gateway pembayaran dan verifikasi signature.
-
-- Subscriptions
-- `GET /api/vendor/subscriptions/?limit={n}&cursor={cursor?}&status={s?}`: daftar subscription.
-- `PATCH /api/vendor/subscriptions/{id}/status`: ubah status subscription.
-- `GET /api/vendor/subscriptions/summary`: ringkasan status subscription (`active`, `suspended`, `overdue`).
-
-- Audit
-- `GET /api/vendor/audits?limit={n}&cursor={cursor?}&entity={type?}&user={id?}&date={YYYY-MM-DD?}`: daftar audit status.
-
-### Client (Tenant)
-
-- Invoices
-  - `GET /client/invoices/?limit={n}&cursor={cursor?}`: daftar invoice milik tenant.
-  - `GET /client/invoices/{id}`: detail invoice milik tenant.
-  - `POST /client/invoices/{id}/payments`: unggah bukti pembayaran manual.
-  - `GET /client/invoices/{id}/audits`: histori audit invoice tersebut.
-
-- Subscription
-  - `GET /client/subscription`: status langganan saat ini dan saran aksi (`extend` atau `pay`).
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum (kecuali disebut sebaliknya):
-- Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant (opsional jika penentuan berdasarkan domain host sudah aktif)
-
-### Vendor / Plans
-
-- `GET /api/vendor/plans/?limit={n}&cursor={cursor?}`
-  - Query: `limit` (wajib, int > 0), `cursor` (opsional, string id terakhir)
-  - Response 200: `data` berupa array Plan, `meta.pagination` berisi `next_cursor`, `has_next`, `has_prev`, `limit`.
-
-- `POST /api/vendor/plans/`
-  - Body Plan:
-    - `name` (string, wajib)
-    - `type` (string, wajib, `package|addon`)
-    - `price` (number, wajib)
-    - `status` (string, default `active`)
-    - `module_code` (string, opsional)
-  - Response 201: `data` Plan yang dibuat.
-
-- `GET /api/vendor/plans/{id}`
-  - Path: `id` (int, wajib)
-  - Response 200: `data` Plan; 404 bila tidak ditemukan.
-
-- `PUT /api/vendor/plans/{id}`
-  - Path: `id` (int, wajib)
-  - Body Plan (field yang diubah): `name`, `type`, `price`, `status`, `module_code`
-  - Response 200: `data` Plan setelah diperbarui.
-
-- `DELETE /api/vendor/plans/{id}`
-  - Path: `id` (int, wajib)
-  - Response 200: `data` `{ "id": <int> }`.
-
-### Vendor / Invoices
-
-- `GET /api/vendor/invoices/?limit={n}&cursor={cursor?}&status={s?}&periode={YYYY-MM?}`
-  - Query:
-    - `limit` (wajib, int > 0)
-    - `cursor` (opsional, string id terakhir)
-    - `status` (opsional, `pending|paid|overdue`)
-    - `periode` (opsional, `YYYY-MM`)
-  - Response 200: `data` array Invoice, dengan pagination.
-
-- `POST /api/vendor/invoices/`
-  - Body Invoice:
-    - `tenant_id` (uint, wajib)
-    - `due_date` (RFC3339, wajib)
-    - `subscription_id` (uint, opsional)
-    - `number` (string, opsional; jika kosong dibuat otomatis unik)
-    - `items[]` (wajib, minimal 1): elemen `description` (string), `quantity` (int>0), `price` (number>=0)
-  - Response 201: `data` Invoice (dengan `total` dihitung dari items).
-
-- `PATCH /api/vendor/invoices/{id}`
-  - Path: `id` (int, wajib)
-  - Body Invoice (field yang diubah): `number`, `due_date`, `items[]`, `subscription_id`
-  - Response 200: `data` Invoice setelah diperbarui.
-
-- `DELETE /api/vendor/invoices/{id}`
-  - Path: `id` (int, wajib)
-  - Response 200: `data` `{ "id": <int> }`.
-
-- `PATCH /api/vendor/invoices/{id}/status`
-  - Path: `id` (int, wajib)
-  - Body: `{ "status": "pending|paid|overdue" }`
-  - Response 200: `data` Invoice dengan status terbaru.
-  - Contoh:
-    ```http
-    PATCH /api/vendor/invoices/10/status
-    { "status": "paid" }
-    ```
-    Response 200:
-    ```json
-    { "data": { "id": 10, "status": "paid" } }
-    ```
-
-- `POST /api/vendor/invoices/{id}/payments`
-  - Path: `id` (int, wajib)
-  - Body PaymentRequest:
-    - `method` (wajib, mis. `manual`)
-    - `proof_url` (opsional untuk `manual`)
-    - `amount` (opsional, number>=0)
-    - `gateway` (opsional)
-    - `external_id` (opsional)
-  - Response 201: `data` Payment dengan status awal `pending`.
-  - Contoh:
-    ```http
-    POST /api/vendor/invoices/10/payments
-    { "method": "manual", "proof_url": "https://cdn.example.com/bukti.jpg" }
-    ```
-    Response 201:
-    ```json
-    { "data": { "id": 99, "invoice_id": 10, "status": "pending" } }
-    ```
-
-### Vendor / Payments
-
-- `PATCH /api/vendor/payments/{id}/verify`
-  - Path: `id` (int, wajib)
-  - Body VerifyPaymentRequest:
-    - `status` (wajib, `verified|rejected`)
-    - `gateway` (opsional, mis. `midtrans`)
-    - `external_id` (opsional, referensi eksternal)
-  - Response 200: `data` Payment (status terbaru). Jika `verified` maka efek samping: Invoice→`paid`, aktivasi modul tenant, pencatatan transaksi Finance.
-
-### Vendor / Payment Gateways
-
-- `POST /api/vendor/payment-gateways/{gateway}/webhook`
-  - Path: `gateway` (string, wajib; contoh `midtrans`)
-  - Tujuan: menerima notifikasi pembayaran dari gateway dan memverifikasi keaslian.
-  - Body: payload spesifik gateway (mis. `order_id`, `transaction_status`, `signature`).
-  - Verifikasi: sistem memeriksa signature/token; jika tidak valid, balasan `401`/`400`.
-  - Response 200: acknowledge `{ "received": true }`.
-  - Contoh payload:
-    ```json
-    {
-      "order_id": "INV-001",
-      "transaction_status": "settlement",
-      "signature": "abc123"
-    }
-    ```
-
-### Vendor / Subscriptions
-
-- `GET /api/vendor/subscriptions/?limit={n}&cursor={cursor?}&status={s?}`
-  - Query: `limit` (wajib, int > 0), `cursor` (opsional), `status` (opsional, `active|suspended|overdue|cancelled`)
-  - Response 200: `data` array Subscription dengan pagination.
-
-- `PATCH /api/vendor/subscriptions/{id}/status`
-  - Path: `id` (int, wajib)
-  - Body: `{ "status": "active|suspended|cancelled" }`
-  - Response 200: `data` Subscription dengan status terbaru.
-
-- `GET /api/vendor/subscriptions/summary`
-  - Response 200: `data` `{ "active": <int64>, "suspended": <int64>, "overdue": <int64> }`.
-
-### Vendor / Audit
-
-- `GET /api/vendor/audits?limit={n}&cursor={cursor?}&entity={type?}&user={id?}&date={YYYY-MM-DD?}`
-  - Query: `limit` (wajib, int>0), `cursor` (opsional)
-  - Response 200: `data` array StatusAudit, pagination tersedia.
-
-### Client (Tenant)
-
-- `GET /client/invoices/?limit={n}&cursor={cursor?}`
-  - Query: `limit` (wajib, int>0), `cursor` (opsional)
-  - Response 200: `data` array Invoice milik tenant pemanggil.
-
-- `GET /client/invoices/{id}`
-  - Path: `id` (int, wajib; harus milik tenant)
-  - Response 200: `data` Invoice; 404 jika tidak ditemukan atau bukan milik tenant.
-
-- `POST /client/invoices/{id}/payments`
-  - Path: `id` (int, wajib; invoice milik tenant)
-  - Body PaymentRequest:
-    - `method` (wajib, saat ini hanya `manual`)
-    - `proof_url` (wajib untuk `manual`)
-    - `gateway` (opsional)
-    - `external_id` (opsional)
-  - Response 201: `data` Payment dengan status awal `pending`.
-
-- `GET /client/invoices/{id}/audits`
-  - Path: `id` (int, wajib)
-  - Response 200: `data` array StatusAudit milik invoice tersebut.
-
-- `GET /client/subscription`
-  - Response 200: `data` `{ "status": "active|suspended|overdue|pending|cancelled", "action": "extend|pay" }`.
-
-## Contoh Payload
-
-- Invoice (POST/PUT)
-```json
-{
-  "tenant_id": 123,
-  "due_date": "2025-09-30T00:00:00Z",
-  "subscription_id": 45,
-  "items": [
-    {"description": "Langganan Paket Pro", "quantity": 1, "price": 250000},
-    {"description": "Add-on Laporan", "quantity": 1, "price": 50000}
-  ]
-}
-```
-
-- Payment Manual (Client -> POST)
-```json
-{
-  "method": "manual",
-  "proof_url": "https://cdn.example.com/bukti/transfer-INV-001.jpg",
-  "gateway": "midtrans",
-  "external_id": "trx-123456"
-}
-```
-
-- Verifikasi Pembayaran (Vendor -> PATCH)
-```json
-{
-  "status": "verified",
-  "gateway": "midtrans",
-  "external_id": "trx-123456"
-}
-```
+### Audits
+- `GET /audits` — daftar audit status.
 
 ## Status & Transisi
 

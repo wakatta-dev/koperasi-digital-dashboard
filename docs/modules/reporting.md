@@ -53,6 +53,7 @@ Referensi implementasi utama terdapat pada:
 
 Semua response menggunakan format `APIResponse`.
 
+### Tenant
 - `GET /reports/finance?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — ringkasan kas per periode.
 - `GET /reports/billing?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — ringkasan billing per periode.
 - `GET /reports/cashflow?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — ringkasan arus kas beserta total in/out per kategori.
@@ -60,10 +61,12 @@ Semua response menggunakan format `APIResponse`.
 - `GET /reports/balance-sheet?tenant_id={id}&start={YYYY-MM-DD?}&end={YYYY-MM-DD?}` — laporan neraca dengan total aset/liabilitas dan breakdown akun.
 - `GET /reports/export?tenant_id={id}&type={finance|billing|cashflow|profit-loss|balance-sheet}&start={YYYY-MM-DD}&end={YYYY-MM-DD}&format={pdf|xlsx?}` — unduh file laporan.
 - `GET /reports/history?tenant_id={id}` — daftar arsip laporan yang pernah diekspor.
-- `GET /api/vendor/reports/financial?start_date={YYYY-MM-DD?}&end_date={YYYY-MM-DD?}&group_by={month|quarter|year?}` — ringkasan keuangan vendor.
-- `GET /api/vendor/reports/usage?tenant={id?}&module={code?}` — ringkasan penggunaan tenant/modul.
-- `POST /api/vendor/reports/export` — ekspor laporan vendor.
-- `GET /api/vendor/reports/exports` — daftar ekspor laporan vendor.
+
+### Vendor
+- `GET /reports/financial?start_date={YYYY-MM-DD?}&end_date={YYYY-MM-DD?}&group_by={month|quarter|year?}` — ringkasan keuangan vendor.
+- `GET /reports/usage?tenant={id?}&module={code?}` — ringkasan penggunaan tenant/modul.
+- `POST /reports/export` — ekspor laporan vendor.
+- `GET /reports/exports` — daftar ekspor laporan vendor.
 
 Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
 
@@ -127,31 +130,37 @@ Header umum:
     - `tenant_id` (wajib, int)
   - Response 200: `data` array `ReportArchive` (riwayat arsip laporan yang tersedia).
 
-- `GET /api/vendor/reports/financial`
+- `GET /reports/financial`
   - Query:
     - `start_date` (opsional, `YYYY-MM-DD`)
     - `end_date` (opsional, `YYYY-MM-DD`)
     - `group_by` (opsional, `month|quarter|year`)
   - Response 200: `data` FinancialReport
 
-- `GET /api/vendor/reports/usage`
+- `GET /reports/usage`
   - Query:
     - `tenant` (opsional, int)
     - `module` (opsional, string)
   - Response 200: `data` UsageReport
 
-- `POST /api/vendor/reports/export`
+- `POST /reports/export`
   - Body JSON:
     - `report_type` (wajib, string)
     - `format` (opsional, default `pdf`, opsi `pdf|xlsx`)
     - `params` (wajib, objek parameter laporan)
   - Response 200: file biner (Content-Type sesuai `format`)
 
-- `GET /api/vendor/reports/exports`
+- `GET /reports/exports`
   - Response 200: `data` array `ReportExport`
 
-## Contoh Response (Finance)
+## Contoh Request & Response
 
+### Tenant
+
+#### `GET /reports/finance`
+```http
+GET /reports/finance?tenant_id=1&start=2025-07-01&end=2025-08-31
+```
 ```json
 {
   "total_income": 15000000,
@@ -164,8 +173,10 @@ Header umum:
 }
 ```
 
-## Contoh Response (Billing)
-
+#### `GET /reports/billing`
+```http
+GET /reports/billing?tenant_id=1&start=2025-07-01&end=2025-08-31
+```
 ```json
 {
   "total_invoices": 4,
@@ -184,8 +195,10 @@ Header umum:
 }
 ```
 
-## Contoh Response (Cashflow)
-
+#### `GET /reports/cashflow`
+```http
+GET /reports/cashflow?tenant_id=1&start=2025-07-01&end=2025-08-31
+```
 ```json
 {
   "total_cash_in": 1200,
@@ -197,8 +210,10 @@ Header umum:
 }
 ```
 
-## Contoh Response (Profit/Loss)
-
+#### `GET /reports/profit-loss`
+```http
+GET /reports/profit-loss?tenant_id=1&start=2025-07-01&end=2025-08-31
+```
 ```json
 {
   "net_profit": 400,
@@ -209,8 +224,10 @@ Header umum:
 }
 ```
 
-## Contoh Response (Balance Sheet)
-
+#### `GET /reports/balance-sheet`
+```http
+GET /reports/balance-sheet?tenant_id=1&start=2025-07-01&end=2025-08-31
+```
 ```json
 {
   "total_assets": 1500,
@@ -220,6 +237,96 @@ Header umum:
     {"account": "inventory", "amount": 900}
   ]
 }
+```
+
+#### `GET /reports/export`
+```http
+GET /reports/export?tenant_id=1&type=finance&start=2025-07-01&end=2025-07-31&format=pdf
+```
+Response: file biner (Content-Type sesuai `format`).
+
+#### `GET /reports/history`
+```http
+GET /reports/history?tenant_id=1
+```
+```json
+[
+  {
+    "id": 1,
+    "tenant_id": 1,
+    "type": "finance",
+    "period_start": "2025-07-01T00:00:00Z",
+    "period_end": "2025-07-31T23:59:59Z",
+    "file_url": "https://cdn.example/reports/finance-2025-07.pdf",
+    "created_at": "2025-08-01T10:00:00Z"
+  }
+]
+```
+
+### Vendor
+
+#### `GET /reports/financial`
+```http
+GET /reports/financial?start_date=2025-01-01&end_date=2025-03-31&group_by=month
+```
+```json
+{
+  "revenue_by_period": [
+    {"period": "2025-01", "amount": 1000},
+    {"period": "2025-02", "amount": 1500}
+  ],
+  "revenue_by_product": [
+    {"product": "subscription", "amount": 2000},
+    {"product": "addon", "amount": 500}
+  ],
+  "cash_in": 5000,
+  "cash_out": 3000,
+  "profit": 2000
+}
+```
+
+#### `GET /reports/usage`
+```http
+GET /reports/usage?tenant=1&module=billing
+```
+```json
+{
+  "top_modules": [
+    {"module_code": "billing", "total": 100},
+    {"module_code": "savings", "total": 50}
+  ],
+  "tenant_usage": [
+    {"module_code": "billing", "count": 80},
+    {"module_code": "savings", "count": 20}
+  ]
+}
+```
+
+#### `POST /reports/export`
+```json
+POST /reports/export
+{
+  "report_type": "financial",
+  "format": "pdf",
+  "params": {"start_date": "2025-01-01", "end_date": "2025-03-31"}
+}
+```
+Response: file biner (Content-Type sesuai `format`).
+
+#### `GET /reports/exports`
+```http
+GET /reports/exports
+```
+```json
+[
+  {
+    "id": 1,
+    "report_type": "financial",
+    "params": "{\"start_date\":\"2025-01-01\",\"end_date\":\"2025-03-31\"}",
+    "file_url": "https://cdn.example/exports/report1.pdf",
+    "created_at": "2025-03-31T10:00:00Z"
+  }
+]
 ```
 
 ## Status & Transisi

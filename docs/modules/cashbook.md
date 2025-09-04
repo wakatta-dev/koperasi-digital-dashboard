@@ -25,9 +25,9 @@ Referensi implementasi utama terdapat pada:
 
 Semua endpoint dilindungi `Bearer` + `X-Tenant-ID`.
 
-- `POST /coop/cash/manual` — buat entri kas manual.
-- `GET /coop/cash/summary?start={RFC3339?}&end={RFC3339?}` — ringkasan kas periode.
-- `POST /coop/cash/export` — ekspor ringkasan (menghasilkan file biner, content type dari service).
+- `POST /cash/manual` — buat entri kas manual.
+- `GET /cash/summary` — ringkasan kas periode (query `start`/`end` opsional, RFC3339).
+- `POST /cash/export` — ekspor ringkasan (menghasilkan file biner, content type dari service).
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -35,15 +35,15 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant
 
-- `POST /coop/cash/manual`
-  - Body ManualEntryRequest: `amount`, `type`, `category`, `note?`
+- `POST /cash/manual`
+  - Body ManualEntryRequest: `source`, `amount`, `type` (`in|out`), `description?`
   - Response 201: `data` CashEntry
 
-- `GET /coop/cash/summary`
+- `GET /cash/summary`
   - Query: `start`, `end` (opsional, RFC3339)
-  - Response 200: `data` ringkasan kas
+  - Response 200: `data` ringkasan kas (`total_in`, `total_out`)
 
-- `POST /coop/cash/export`
+- `POST /cash/export`
   - Body: `{ "report_type": "..." }`
   - Response 200: file biner (header `Content-Type` di-set oleh handler)
 
@@ -51,20 +51,19 @@ Header umum:
 
 - Create Manual Entry
 ```json
-POST /coop/cash/manual
-{ "amount": 250000, "type": "in", "category": "operasional", "note": "Penjualan tunai" }
+POST /cash/manual
+{ "source": "operasional", "amount": 250000, "type": "in", "description": "Penjualan tunai" }
 ```
 
 - Summary
 ```http
-GET /coop/cash/summary?start=2025-08-01T00:00:00Z&end=2025-08-31T23:59:59Z
+GET /cash/summary?start=2025-08-01T00:00:00Z&end=2025-08-31T23:59:59Z
 ```
 Contoh response:
 ```json
 {
   "total_in": 5000000,
-  "total_out": 3200000,
-  "balance": 1800000
+  "total_out": 3200000
 }
 ```
 

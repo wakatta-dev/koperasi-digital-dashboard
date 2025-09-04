@@ -47,27 +47,28 @@ Referensi implementasi utama terdapat pada:
 
 Semua response menggunakan format `APIResponse`.
 
-- `POST /users/`: buat user baru pada tenant saat ini.
-- `GET /users/?limit={n}&cursor={cursor?}`: daftar user untuk tenant saat ini (cursor numerik id terakhir).
-- `GET /users/{id}`: detail user.
-- `PUT /users/{id}`: update `tenant_role_id`/`full_name`.
-- `PATCH /users/{id}/status`: update `status` aktif/nonaktif.
-- `DELETE /users/{id}`: hapus user.
-- `POST /users/reset-password`: reset password berdasarkan email.
+### Client
 
-Vendor (admin vendor) — internal pengguna vendor:
-- `POST /api/vendor/users` — undang user vendor (email, nama, role).
-- `GET /api/vendor/users?limit={n}&cursor={id?}` — daftar user vendor (cursor numerik).
-- `PATCH /api/vendor/users/{id}/role` — ubah role user vendor.
-- `DELETE /api/vendor/users/{id}` — hapus user vendor.
+| Method | Path | Deskripsi |
+|--------|------|-----------|
+| POST | /users | Buat user baru pada tenant saat ini |
+| GET | /users | Daftar user untuk tenant saat ini (cursor numerik id terakhir) |
+| GET | /users/{id} | Detail user |
+| PUT | /users/{id} | Perbarui `tenant_role_id`/`full_name` |
+| PATCH | /users/{id}/status | Ubah `status` aktif/nonaktif |
+| DELETE | /users/{id} | Hapus user |
+| POST | /users/reset-password | Reset password berdasarkan email |
 
-Vendor Users
-- POST `/api/vendor/users` — undang user vendor
-- GET `/api/vendor/users` — daftar user vendor (cursor numerik)
-- PATCH `/api/vendor/users/{id}/role` — ubah role user vendor
-- DELETE `/api/vendor/users/{id}` — hapus user vendor
+### Vendor
 
-Keamanan: semua endpoint dilindungi `Bearer` token + `XTenantID`.
+| Method | Path | Deskripsi |
+|--------|------|-----------|
+| POST | /users | Undang user vendor (email, nama, role) |
+| GET | /users | Daftar user vendor (cursor numerik) |
+| PATCH | /users/{id}/role | Ubah role user vendor |
+| DELETE | /users/{id} | Hapus user vendor |
+
+Keamanan: semua endpoint dilindungi `Bearer` token + `X-Tenant-ID`.
 
 ## Rincian Endpoint (Params, Payload, Response)
 
@@ -75,61 +76,65 @@ Header umum:
 - Authorization: `Bearer <token>`
 - `X-Tenant-ID`: ID tenant (atau domain)
 
-- `POST /users/`
-  - Body CreateUserRequest:
-    - `tenant_role_id` (wajib, uint)
-    - `email` (wajib, email valid)
-    - `password` (wajib)
-    - `full_name` (wajib)
-  - Response 201: `data` User (termasuk id, email, full_name, tenant_id, tenant_role_id, status, timestamps).
+### Client
 
-- `GET /users/?limit={n}&cursor={c?}`
-  - Query: `limit` (wajib, int>0), `cursor` (opsional, string id terakhir)
-  - Response 200: `data` array User + `meta.pagination`.
+#### POST /users
+- Body CreateUserRequest:
+  - `tenant_role_id` (wajib, uint)
+  - `email` (wajib, email valid)
+  - `password` (wajib)
+  - `full_name` (wajib)
+- Response 201: `data` User (termasuk id, email, full_name, tenant_id, tenant_role_id, status, timestamps).
 
-- `GET /users/{id}`
-  - Path: `id` (int, wajib)
-  - Response 200: `data` User; 404 jika tidak ditemukan.
+#### GET /users
+- Query: `limit` (wajib, int>0), `cursor` (opsional, string id terakhir)
+- Response 200: `data` array User + `meta.pagination`.
 
-- `PUT /users/{id}`
-  - Path: `id` (int, wajib)
-  - Body UpdateUserRequest (opsional): `tenant_role_id`, `full_name`
-  - Response 200: `data` User terkini.
+#### GET /users/{id}
+- Path: `id` (int, wajib)
+- Response 200: `data` User; 404 jika tidak ditemukan.
 
-- `PATCH /users/{id}/status`
-  - Path: `id` (int, wajib)
-  - Body UpdateStatusRequest: `{ "status": true|false }`
-  - Response 200: `data` `{ "status": <bool> }`.
+#### PUT /users/{id}
+- Path: `id` (int, wajib)
+- Body UpdateUserRequest (opsional): `tenant_role_id`, `full_name`
+- Response 200: `data` User terkini.
 
-- `DELETE /users/{id}`
-  - Path: `id` (int, wajib)
-  - Response 200: `data` `{ "id": <int> }`.
+#### PATCH /users/{id}/status
+- Path: `id` (int, wajib)
+- Body UpdateStatusRequest: `{ "status": true|false }`
+- Response 200: `data` `{ "status": <bool> }`.
 
-- `POST /users/reset-password`
-  - Body ResetPasswordRequest:
-    - `email` (wajib)
-    - `new_password` (wajib)
-  - Response 200: `data` `{ "message": "password reset" }`.
+#### DELETE /users/{id}
+- Path: `id` (int, wajib)
+- Response 200: `data` `{ "id": <int> }`.
 
-- `POST /api/vendor/users`
-  - Body:
-    - `email` (wajib, email valid)
-    - `full_name` (wajib)
-    - `role_id` (wajib, uint)
-  - Response 201: `data` User
+#### POST /users/reset-password
+- Body ResetPasswordRequest:
+  - `email` (wajib)
+  - `new_password` (wajib)
+- Response 200: `data` `{ "message": "password reset" }`.
 
-- `GET /api/vendor/users?limit={n}&cursor={c?}`
-  - Query: `limit` (wajib), `cursor` (opsional, id terakhir)
-  - Response 200: `data` array User + `meta.pagination`.
+### Vendor
 
-- `PATCH /api/vendor/users/{id}/role`
-  - Path: `id` (int, wajib)
-  - Body: `{ "role_id": <uint> }`
-  - Response 200: `data` `{ "id": <int> }`.
+#### POST /users
+- Body:
+  - `email` (wajib, email valid)
+  - `full_name` (wajib)
+  - `role_id` (wajib, uint)
+- Response 201: `data` User
 
-- `DELETE /api/vendor/users/{id}`
-  - Path: `id` (int, wajib)
-  - Response 200: `data` `{ "id": <int> }`.
+#### GET /users
+- Query: `limit` (wajib), `cursor` (opsional, id terakhir)
+- Response 200: `data` array User + `meta.pagination`.
+
+#### PATCH /users/{id}/role
+- Path: `id` (int, wajib)
+- Body: `{ "role_id": <uint> }`
+- Response 200: `data` `{ "id": <int> }`.
+
+#### DELETE /users/{id}
+- Path: `id` (int, wajib)
+- Response 200: `data` `{ "id": <int> }`.
 
 ## Contoh Payload
 
