@@ -3,8 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useVendorSubscriptions } from "@/hooks/queries/billing";
-import { listVendorSubscriptions } from "@/services/api";
+import { useInfiniteVendorSubscriptions } from "@/hooks/queries/billing";
 import type { Subscription } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,27 +11,15 @@ import { Button } from "@/components/ui/button";
 import { useBillingActions } from "@/hooks/queries/billing";
 import { useConfirm } from "@/hooks/use-confirm";
 
-type Props = { initialData?: Subscription[]; limit?: number };
+type Props = { initialData?: Subscription[]; initialCursor?: string; limit?: number };
 
-export function VendorSubscriptionsList({ initialData, limit = 20 }: Props) {
+export function VendorSubscriptionsList({ initialData, initialCursor, limit = 20 }: Props) {
   const [status, setStatus] = useState<string | undefined>(undefined);
   const params = useMemo(() => ({ limit, ...(status ? { status } : {}) }), [limit, status]);
-  const { data: base = [] } = useVendorSubscriptions(params, initialData);
-  const [extra, setExtra] = useState<Subscription[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const subs = useMemo(() => [...base, ...extra], [base, extra]);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteVendorSubscriptions(params, { initialData, initialCursor });
+  const subs = useMemo(() => (data?.pages ?? []).flatMap((p) => p.items), [data]);
   const { updateSubscriptionStatus } = useBillingActions();
   const confirm = useConfirm();
-
-  async function loadMore() {
-    const res = await listVendorSubscriptions({ ...params, cursor: nextCursor } as any).catch(() => null);
-    if (res?.success) {
-      const page = res.data || [];
-      const next = (res.meta?.pagination as any)?.next_cursor as string | undefined;
-      setNextCursor(next);
-      setExtra((prev) => prev.concat(page));
-    }
-  }
 
   function exportCsv() {
     const rows = [["id","tenant_id","plan_id","status","start_date","end_date"], ...subs.map((s) => [s.id,s.tenant_id,s.plan_id,s.status,s.start_date,s.end_date ?? ""])];
@@ -62,11 +49,13 @@ export function VendorSubscriptionsList({ initialData, limit = 20 }: Props) {
               <option value="terminated">terminated</option>
               <option value="overdue">overdue</option>
             </select>
-            <Button type="button" variant="outline" size="sm" onClick={() => { setStatus(undefined); setNextCursor(undefined); setExtra([]); }}>
+            <Button type="button" variant="outline" size="sm" onClick={() => { setStatus(undefined); }}>
               Reset
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={exportCsv}>Export CSV</Button>
-            <Button type="button" variant="outline" size="sm" onClick={loadMore}>Muat lagi</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetchingNextPage}>
+              {isFetchingNextPage ? "Memuat..." : hasNextPage ? "Muat lagi" : "Tidak ada data lagi"}
+            </Button>
           </div>
         </div>
       </CardHeader>

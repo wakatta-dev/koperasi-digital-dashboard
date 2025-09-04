@@ -2,7 +2,12 @@
 
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { Invoice, Payment, Plan } from "@/types/api";
 import {
   listVendorPlans,
@@ -24,8 +29,18 @@ import {
 } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
-import type { StatusAudit, Subscription, SubscriptionSummary } from "@/types/api";
-import { getClientInvoice, getClientSubscription, listClientInvoiceAudits, getVendorSubscriptionsSummary, listVendorAudits } from "@/services/api";
+import type {
+  StatusAudit,
+  Subscription,
+  SubscriptionSummary,
+} from "@/types/api";
+import {
+  getClientInvoice,
+  getClientSubscription,
+  listClientInvoiceAudits,
+  getVendorSubscriptionsSummary,
+  listVendorAudits,
+} from "@/services/api";
 import { toast } from "sonner";
 
 export function useVendorPlans(
@@ -53,13 +68,57 @@ export function useVendorPlan(
 }
 
 export function useVendorInvoices(
-  params?: { limit?: number; cursor?: string; status?: string; periode?: string },
+  params?: {
+    limit?: number;
+    cursor?: string;
+    status?: string;
+    periode?: string;
+  },
   initialData?: Invoice[] | undefined
 ) {
   return useQuery({
     queryKey: QK.billing.vendor.invoices(),
     queryFn: async () => ensureSuccess(await listVendorInvoices(params)),
     ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useInfiniteVendorInvoices(
+  params?: { limit?: number; status?: string; periode?: string },
+  initial?: { initialData?: Invoice[]; initialCursor?: string }
+) {
+  const baseParams = params ?? {};
+  return useInfiniteQuery({
+    queryKey: QK.billing.vendor.invoicesInfinite(baseParams),
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }) => {
+      const res = await listVendorInvoices({
+        ...baseParams,
+        cursor: pageParam,
+      });
+      const items = ensureSuccess(res);
+      const nextCursor = res.meta?.pagination?.next_cursor as
+        | string
+        | undefined;
+      return { items, nextCursor } as { items: Invoice[]; nextCursor?: string };
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    ...(initial?.initialData
+      ? {
+          initialData: {
+            pages: [
+              {
+                items: initial.initialData,
+                nextCursor: initial.initialCursor,
+              },
+            ],
+            pageParams: [undefined],
+          },
+        }
+      : {}),
+    select(data) {
+      return (data?.pages ?? []).flatMap((p) => p.items) ?? [];
+    },
   });
 }
 
@@ -78,7 +137,8 @@ export function useClientInvoice(
   return useQuery({
     queryKey: QK.billing.client.invoice(id ?? ""),
     enabled: !!id,
-    queryFn: async () => ensureSuccess(await getClientInvoice(id as string | number)),
+    queryFn: async () =>
+      ensureSuccess(await getClientInvoice(id as string | number)),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -91,7 +151,10 @@ export function useClientInvoiceAudits(
   return useQuery({
     queryKey: QK.billing.client.invoiceAudits(id ?? "", params),
     enabled: !!id,
-    queryFn: async () => ensureSuccess(await listClientInvoiceAudits(id as string | number, params)),
+    queryFn: async () =>
+      ensureSuccess(
+        await listClientInvoiceAudits(id as string | number, params)
+      ),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -126,6 +189,45 @@ export function useVendorAudits(
   });
 }
 
+export function useInfiniteVendorAudits(
+  params?: { limit?: number },
+  initial?: { initialData?: StatusAudit[]; initialCursor?: string }
+) {
+  const final = { limit: params?.limit ?? 50 };
+  return useInfiniteQuery({
+    queryKey: QK.billing.vendor.auditsInfinite(final),
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }) => {
+      const res = await listVendorAudits({
+        limit: final.limit,
+        cursor: pageParam,
+      });
+      const items = ensureSuccess(res);
+      const nextCursor = res.meta?.pagination?.next_cursor as
+        | string
+        | undefined;
+      return { items, nextCursor } as {
+        items: StatusAudit[];
+        nextCursor?: string;
+      };
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    ...(initial?.initialData
+      ? {
+          initialData: {
+            pages: [
+              {
+                items: initial.initialData,
+                nextCursor: initial.initialCursor,
+              },
+            ],
+            pageParams: [undefined],
+          },
+        }
+      : {}),
+  });
+}
+
 export function useVendorSubscriptions(
   params?: { status?: string; limit?: number; cursor?: string },
   initialData?: Subscription[] | undefined
@@ -134,6 +236,45 @@ export function useVendorSubscriptions(
     queryKey: QK.billing.vendor.subscriptions.list(params ?? {}),
     queryFn: async () => ensureSuccess(await listVendorSubscriptions(params)),
     ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useInfiniteVendorSubscriptions(
+  params?: { status?: string; limit?: number },
+  initial?: { initialData?: Subscription[]; initialCursor?: string }
+) {
+  const baseParams = params ?? {};
+  return useInfiniteQuery({
+    queryKey: QK.billing.vendor.subscriptions.infinite(baseParams),
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }) => {
+      const res = await listVendorSubscriptions({
+        ...baseParams,
+        cursor: pageParam,
+      });
+      const items = ensureSuccess(res);
+      const nextCursor = res.meta?.pagination?.next_cursor as
+        | string
+        | undefined;
+      return { items, nextCursor } as {
+        items: Subscription[];
+        nextCursor?: string;
+      };
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    ...(initial?.initialData
+      ? {
+          initialData: {
+            pages: [
+              {
+                items: initial.initialData,
+                nextCursor: initial.initialCursor,
+              },
+            ],
+            pageParams: [undefined],
+          },
+        }
+      : {}),
   });
 }
 
@@ -193,7 +334,7 @@ export function useBillingActions() {
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal membuat invoice");
-    }
+    },
   });
 
   const updateVendorInv = useMutation({
@@ -208,19 +349,28 @@ export function useBillingActions() {
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal memperbarui invoice");
-    }
+    },
   });
 
   const updateVendorInvStatus = useMutation({
-    mutationFn: async (vars: { id: string | number; status: string; note?: string }) =>
-      ensureSuccess(await updateVendorInvoiceStatus(vars.id, { status: vars.status, note: vars.note })),
+    mutationFn: async (vars: {
+      id: string | number;
+      status: string;
+      note?: string;
+    }) =>
+      ensureSuccess(
+        await updateVendorInvoiceStatus(vars.id, {
+          status: vars.status,
+          note: vars.note,
+        })
+      ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
       toast.success("Status invoice diperbarui");
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal memperbarui status");
-    }
+    },
   });
 
   const deleteVendorInv = useMutation({
@@ -232,7 +382,7 @@ export function useBillingActions() {
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal menghapus invoice");
-    }
+    },
   });
 
   const createClientPayment = useMutation({
@@ -246,7 +396,7 @@ export function useBillingActions() {
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal mengirim pembayaran");
-    }
+    },
   });
 
   const verifyVendorPay = useMutation({
@@ -258,12 +408,14 @@ export function useBillingActions() {
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal verifikasi pembayaran");
-    }
+    },
   });
 
   const updatePlanStatus = useMutation({
     mutationFn: async (vars: { id: string | number; status: string }) =>
-      ensureSuccess(await updateVendorPlanStatus(vars.id, { status: vars.status })),
+      ensureSuccess(
+        await updateVendorPlanStatus(vars.id, { status: vars.status })
+      ),
     onSuccess: () => {
       qc.invalidateQueries({
         predicate: (q) =>
@@ -276,12 +428,14 @@ export function useBillingActions() {
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal memperbarui status plan");
-    }
+    },
   });
 
   const updateSubscriptionStatus = useMutation({
     mutationFn: async (vars: { id: string | number; status: string }) =>
-      ensureSuccess(await updateVendorSubscriptionStatus(vars.id, { status: vars.status })),
+      ensureSuccess(
+        await updateVendorSubscriptionStatus(vars.id, { status: vars.status })
+      ),
     onSuccess: () => {
       qc.invalidateQueries({
         predicate: (q) =>
@@ -294,7 +448,7 @@ export function useBillingActions() {
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal memperbarui status subscription");
-    }
+    },
   });
 
   return {

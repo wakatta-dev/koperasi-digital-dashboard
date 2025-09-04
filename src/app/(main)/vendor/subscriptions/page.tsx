@@ -11,10 +11,11 @@ export default async function SubscriptionsPage() {
   const initial = res?.data ?? undefined;
   const listRes = await listVendorSubscriptions({ limit: 20 }).catch(() => null);
   const initialSubs = listRes?.data ?? undefined;
+  const initialCursor = (listRes?.meta?.pagination as any)?.next_cursor as string | undefined;
   return (
     <div className="space-y-6">
       <SubscriptionsSummary initialData={initial} />
-      <VendorSubscriptionsList initialData={initialSubs} limit={20} />
+      <VendorSubscriptionsList initialData={initialSubs} initialCursor={initialCursor} limit={20} />
     </div>
   );
 }

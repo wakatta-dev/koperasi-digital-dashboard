@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useVendorAudits } from "@/hooks/queries/billing";
+import { useInfiniteVendorAudits } from "@/hooks/queries/billing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,32 +15,13 @@ import {
 } from "@/components/ui/tooltip";
 import { HistoryIcon, ArrowRightLeftIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { listVendorAudits } from "@/services/api";
 
-type Props = { initialData?: any[]; limit?: number };
+type Props = { initialData?: any[]; initialCursor?: string; limit?: number };
 
-export function VendorAuditsList({ initialData, limit = 50 }: Props) {
+export function VendorAuditsList({ initialData, initialCursor, limit = 50 }: Props) {
   const [lim, setLim] = useState<number>(limit);
-  const { data: base = [] } = useVendorAudits({ limit: lim }, initialData);
-  const [extra, setExtra] = useState<any[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
-  const data = useMemo(() => [...base, ...extra], [base, extra]);
-
-  async function loadMore() {
-    setLoading(true);
-    try {
-      const res = await listVendorAudits({ limit: lim, cursor: nextCursor }).catch(() => null);
-      if (res?.success) {
-        const page = res.data || [];
-        const next = (res.meta?.pagination as any)?.next_cursor as string | undefined;
-        setNextCursor(next);
-        setExtra((prev) => prev.concat(page));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteVendorAudits({ limit: lim }, { initialData: initialData, initialCursor });
+  const list = useMemo(() => (data?.pages ?? []).flatMap((p) => p.items), [data]);
 
   return (
     <Card>
@@ -56,17 +37,17 @@ export function VendorAuditsList({ initialData, limit = 50 }: Props) {
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
-          <button className="border rounded px-2 py-1" onClick={loadMore} disabled={loading}>{loading ? "Memuat..." : "Muat lagi"}</button>
+          <button className="border rounded px-2 py-1" onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetchingNextPage}>{isFetchingNextPage ? "Memuat..." : hasNextPage ? "Muat lagi" : "Tidak ada data lagi"}</button>
         </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[300px] pr-4">
           <div className="space-y-3 text-sm">
-            {data.length === 0 && (
+            {list.length === 0 && (
               <div className="text-muted-foreground italic">No audits</div>
             )}
 
-            {data.map((a: any) => (
+            {list.map((a: any) => (
               <div
                 key={a.id}
                 className="group flex items-start gap-3 rounded-md border p-3 transition-all hover:bg-muted/50"

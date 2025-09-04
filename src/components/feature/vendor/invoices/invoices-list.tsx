@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { FileText, Search, Download, Eye, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useVendorInvoices } from "@/hooks/queries/billing";
+import { useInfiniteVendorInvoices } from "@/hooks/queries/billing";
 import type { Invoice } from "@/types/api";
 import {
   Card,
@@ -20,53 +20,50 @@ import { Badge } from "@/components/ui/badge";
 import { InvoiceUpsertDialog } from "@/components/feature/vendor/invoices/invoice-upsert-dialog";
 import { PaymentVerifyDialog } from "@/components/feature/vendor/payments/payment-verify-dialog";
 import { useBillingActions } from "@/hooks/queries/billing";
-import { listVendorInvoices } from "@/services/api";
 import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   initialData?: Invoice[];
+  initialCursor?: string;
 };
 
-export function VendorInvoicesList({ initialData }: Props) {
+export function VendorInvoicesList({ initialData, initialCursor }: Props) {
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [periode, setPeriode] = useState<string | undefined>(undefined);
-  const params = useMemo(() => ({ limit: 50, ...(status ? { status } : {}), ...(periode ? { periode } : {}) }), [status, periode]);
-  const { data: base = [] } = useVendorInvoices(params, initialData);
-  const [extra, setExtra] = useState<Invoice[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const invoices = useMemo(() => {
-    const map = new Map<number, Invoice>();
-    [...base, ...extra].forEach((i) => map.set(i.id, i));
-    return Array.from(map.values());
-  }, [base, extra]);
-
-  async function loadMore() {
-    setLoadingMore(true);
-    try {
-      const res = await listVendorInvoices({ ...params, cursor: nextCursor });
-      if (res.success) {
-        const page = res.data || [];
-        const next = (res.meta?.pagination as any)?.next_cursor as string | undefined;
-        setNextCursor(next);
-        setExtra((prev) => {
-          const ids = new Set(prev.map((x) => x.id).concat(base.map((x) => x.id)));
-          return prev.concat(page.filter((x) => !ids.has(x.id)));
-        });
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  }
+  const params = useMemo(
+    () => ({
+      limit: 10,
+      ...(status ? { status } : {}),
+      ...(periode ? { periode } : {}),
+    }),
+    [status, periode]
+  );
+  const {
+    data: invoices,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteVendorInvoices(params, { initialData, initialCursor });
   const { deleteVendorInv, updateVendorInvStatus } = useBillingActions();
   const confirm = useConfirm();
 
   function exportCsv() {
     const rows = [
       ["id", "number", "issued_at", "due_date", "total", "status"],
-      ...invoices.map((i) => [i.id, i.number, i.issued_at, i.due_date ?? "", i.total, i.status]),
+      ...(invoices ?? []).map((i) => [
+        i.id,
+        i.number,
+        i.issued_at,
+        i.due_date ?? "",
+        i.total,
+        i.status,
+      ]),
     ];
-    const csv = rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = rows
+      .map((r) =>
+        r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -97,24 +94,56 @@ export function VendorInvoicesList({ initialData }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Cari nomor/tenant (opsional)" className="pl-10" />
+              <Input
+                placeholder="Cari nomor/tenant (opsional)"
+                className="pl-10"
+              />
             </div>
-            <select className="border rounded px-2 py-2 text-sm" value={status ?? ""} onChange={(e) => setStatus(e.target.value || undefined)}>
+            <select
+              className="border rounded px-2 py-2 text-sm"
+              value={status ?? ""}
+              onChange={(e) => setStatus(e.target.value || undefined)}
+            >
               <option value="">Status (Semua)</option>
               <option value="pending">pending</option>
               <option value="paid">paid</option>
               <option value="overdue">overdue</option>
               <option value="cancelled">cancelled</option>
             </select>
-            <Input type="month" value={periode ?? ""} onChange={(e) => setPeriode(e.target.value || undefined)} />
+            <Input
+              type="month"
+              value={periode ?? ""}
+              onChange={(e) => setPeriode(e.target.value || undefined)}
+            />
             <div className="flex items-center gap-2">
-              <Button variant="outline" type="button" onClick={() => { setStatus(undefined); setPeriode(undefined); }}>Reset</Button>
-              <Button variant="outline" type="button" onClick={exportCsv}><Download className="h-4 w-4 mr-2" /> CSV</Button>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => {
+                  setStatus(undefined);
+                  setPeriode(undefined);
+                }}
+              >
+                Reset
+              </Button>
+              <Button variant="outline" type="button" onClick={exportCsv}>
+                <Download className="h-4 w-4 mr-2" /> CSV
+              </Button>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" disabled={loadingMore} onClick={loadMore}>{loadingMore ? "Memuat..." : "Muat lagi"}</Button>
-            {nextCursor && <span className="text-xs text-muted-foreground">cursor: {nextCursor}</span>}
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!hasNextPage || isFetchingNextPage}
+              onClick={() => fetchNextPage()}
+            >
+              {isFetchingNextPage
+                ? "Memuat..."
+                : hasNextPage
+                ? "Muat lagi"
+                : "Tidak ada data lagi"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -127,7 +156,7 @@ export function VendorInvoicesList({ initialData }: Props) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {invoices.map((invoice) => (
+            {(invoices ?? []).map((invoice) => (
               <div
                 key={invoice.id}
                 className="flex items-center justify-between p-4 border rounded-lg"
@@ -177,7 +206,10 @@ export function VendorInvoicesList({ initialData }: Props) {
                         confirmText: "Simpan",
                       });
                       if (!ok) return;
-                      await updateVendorInvStatus.mutateAsync({ id: invoice.id, status: next });
+                      await updateVendorInvStatus.mutateAsync({
+                        id: invoice.id,
+                        status: next,
+                      });
                     }}
                   >
                     <option value="pending">pending</option>
@@ -187,7 +219,10 @@ export function VendorInvoicesList({ initialData }: Props) {
                   </select>
 
                   <div className="flex items-center gap-2">
-                    <Link href={`/vendor/invoices/${invoice.id}`} className="inline-flex">
+                    <Link
+                      href={`/vendor/invoices/${invoice.id}`}
+                      className="inline-flex"
+                    >
                       <Button variant="ghost" size="icon" type="button">
                         <Eye className="h-4 w-4" />
                       </Button>

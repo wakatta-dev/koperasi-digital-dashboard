@@ -8,6 +8,6 @@ export const dynamic = "force-dynamic";
 export default async function AuditsPage() {
   const res = await listVendorAudits({ limit: 50 }).catch(() => null);
   const initial = res?.data ?? undefined;
-  return <VendorAuditsList initialData={initial} limit={50} />;
+  const initialCursor = (res?.meta?.pagination as any)?.next_cursor as string | undefined;
+  return <VendorAuditsList initialData={initial} initialCursor={initialCursor} limit={50} />;
 }
-

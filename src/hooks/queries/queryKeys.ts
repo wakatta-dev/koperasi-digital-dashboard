@@ -38,6 +38,7 @@ export const QK = {
       plans: (params: { limit: number; cursor?: string }) => ["billing", "vendor", "plans", params] as const,
       plan: (id: string | number) => ["billing", "vendor", "plan", String(id)] as const,
       invoices: () => ["billing", "vendor", "invoices"] as const,
+      invoicesInfinite: (params?: Record<string, any>) => ["billing", "vendor", "invoices", "infinite", params ?? {}] as const,
       invoice: (id: string | number) => ["billing", "vendor", "invoice", String(id)] as const,
       subscriptions: {
         summary: () => ["billing", "vendor", "subscriptions", "summary"] as const,
@@ -47,11 +48,25 @@ export const QK = {
           "subscriptions",
           params ?? {},
         ] as const,
+        infinite: (params?: Record<string, any>) => [
+          "billing",
+          "vendor",
+          "subscriptions",
+          "infinite",
+          params ?? {},
+        ] as const,
       },
       audits: (params?: { limit?: number; cursor?: string }) => [
         "billing",
         "vendor",
         "audits",
+        params ?? {},
+      ] as const,
+      auditsInfinite: (params?: { limit?: number; cursor?: string }) => [
+        "billing",
+        "vendor",
+        "audits",
+        "infinite",
         params ?? {},
       ] as const,
     },
@@ -101,11 +116,14 @@ export type QueryKey = ReturnType<
   | typeof QK.billing.vendor.plans
   | typeof QK.billing.vendor.plan
   | typeof QK.billing.vendor.invoices
+  | typeof QK.billing.vendor.invoicesInfinite
   | typeof QK.billing.vendor.invoice
   | typeof QK.billing.client.invoices
   | typeof QK.billing.vendor.subscriptions.summary
   | typeof QK.billing.vendor.subscriptions.list
+  | typeof QK.billing.vendor.subscriptions.infinite
   | typeof QK.billing.vendor.audits
+  | typeof QK.billing.vendor.auditsInfinite
   | typeof QK.billing.client.invoice
   | typeof QK.billing.client.invoiceAudits
   | typeof QK.billing.client.subscription
