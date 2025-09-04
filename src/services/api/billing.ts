@@ -99,6 +99,14 @@ export function updateVendorInvoice(
   );
 }
 
+export function getVendorInvoice(
+  id: string | number
+): Promise<ApiResponse<Invoice>> {
+  return api.get<Invoice>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoice(id)}`
+  );
+}
+
 export function deleteVendorInvoice(
   id: string | number
 ): Promise<ApiResponse<any>> {

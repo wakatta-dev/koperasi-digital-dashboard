@@ -18,13 +18,14 @@ const schema = z.object({
   initial_deposit: z.coerce.number().int().optional(),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
 export function MemberRegisterDialog() {
   const [open, setOpen] = useState(false);
-  const form = useForm<FormValues>({
+  const form = useForm<FormInput, any, FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { user_id: 0, no_anggota: "", initial_deposit: undefined },
+    defaultValues: { user_id: 0, no_anggota: "", initial_deposit: undefined } as Partial<FormInput>,
   });
 
   async function onSubmit(values: FormValues) {
@@ -58,7 +59,7 @@ export function MemberRegisterDialog() {
                 <FormItem>
                   <FormLabel>User ID</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="User ID" {...field} />
+                    <Input type="number" placeholder="User ID" {...field} value={field.value as any} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -84,7 +85,7 @@ export function MemberRegisterDialog() {
                 <FormItem>
                   <FormLabel>Setoran Awal (opsional)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="100000" {...field} />
+                    <Input type="number" placeholder="100000" {...field} value={field.value as any} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,4 +100,3 @@ export function MemberRegisterDialog() {
     </Dialog>
   );
 }
-

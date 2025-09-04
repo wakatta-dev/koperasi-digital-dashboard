@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import type { Ticket, TicketReply } from "@/types/api";
-import { useTicket, useTicketActions } from "@/hooks/queries/ticketing";
+import { useTicket, useTicketActions, useTicketActivities } from "@/hooks/queries/ticketing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,8 @@ export function VendorTicketDetail({ id, initialTicket }: Props) {
   const [agentId, setAgentId] = useState<string>("");
 
   if (!ticket) return null;
+
+  const { data: activities = [] } = useTicketActivities(id, { limit: 100 });
 
   return (
     <div className="space-y-6">
@@ -117,6 +119,24 @@ export function VendorTicketDetail({ id, initialTicket }: Props) {
               <Button type="submit">Kirim</Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Activities</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {activities.map((a: any) => (
+            <div key={a.id} className="flex items-center justify-between border rounded p-2 text-sm">
+              <div>#{a.id}</div>
+              <div>{a.action}</div>
+              <div className="text-muted-foreground">{a.created_at}</div>
+            </div>
+          ))}
+          {!activities.length && (
+            <div className="text-xs text-muted-foreground italic">Tidak ada aktivitas</div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TenantCreateDialog } from "@/components/feature/tenant/tenant-create-dialog";
+import { TenantSelfRegisterDialog } from "@/components/feature/vendor/clients/tenant-self-register-dialog";
 
 export default async function TenantsPage() {
   const tenants = await listTenants({ limit: 10 });
@@ -23,7 +24,10 @@ export default async function TenantsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Tenants</h2>
-        <TenantCreateDialog />
+        <div className="flex items-center gap-2">
+          <TenantSelfRegisterDialog />
+          <TenantCreateDialog />
+        </div>
       </div>
 
       {/* Tenant Table */}

@@ -13,6 +13,7 @@ import {
   FileText,
   Bell,
   Ticket,
+  Shield,
 } from 'lucide-react';
 
 const navigation = [
@@ -24,6 +25,7 @@ const navigation = [
   { name: 'Subscriptions', href: '/vendor/subscriptions', icon: <FileText className="h-4 w-4" /> },
   { name: 'Audits', href: '/vendor/audits', icon: <FileText className="h-4 w-4" /> },
   { name: 'Users', href: '/vendor/users', icon: <Users className="h-4 w-4" /> },
+  { name: 'Roles', href: '/vendor/roles', icon: <Shield className="h-4 w-4" /> },
   { name: 'Notifications', href: '/vendor/notifications', icon: <Bell className="h-4 w-4" /> },
   { name: 'Tickets', href: '/vendor/tickets', icon: <Ticket className="h-4 w-4" /> },
 ];
@@ -37,6 +39,7 @@ const titleMap: Record<string, string> = {
   '/vendor/subscriptions': 'Subscriptions Summary',
   '/vendor/audits': 'Audit Logs',
   '/vendor/users': 'Users Management',
+  '/vendor/roles': 'Roles & Permissions',
   '/vendor/notifications': 'Notifications',
   '/vendor/tickets': 'Support Tickets',
 };

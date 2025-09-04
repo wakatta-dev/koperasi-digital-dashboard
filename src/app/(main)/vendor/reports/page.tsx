@@ -1,6 +1,10 @@
 /** @format */
 
-import { getVendorFinancialReport, getVendorUsageReport, listVendorReportExports } from "@/services/api/vendor";
+import {
+  getVendorFinancialReport,
+  getVendorUsageReport,
+  listVendorReportExports,
+} from "@/services/api/vendor";
 import VendorReportsClient from "@/components/feature/vendor/reports/vendor-reports-client";
 
 export const dynamic = "force-dynamic";
@@ -20,4 +24,3 @@ export default async function VendorReportsPage() {
     />
   );
 }
-

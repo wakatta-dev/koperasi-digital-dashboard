@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useMemo, useState } from "react";
 import { useVendorAudits } from "@/hooks/queries/billing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +15,32 @@ import {
 } from "@/components/ui/tooltip";
 import { HistoryIcon, ArrowRightLeftIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { listVendorAudits } from "@/services/api";
 
 type Props = { initialData?: any[]; limit?: number };
 
 export function VendorAuditsList({ initialData, limit = 50 }: Props) {
-  const { data = [] } = useVendorAudits({ limit }, initialData);
+  const [lim, setLim] = useState<number>(limit);
+  const { data: base = [] } = useVendorAudits({ limit: lim }, initialData);
+  const [extra, setExtra] = useState<any[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const data = useMemo(() => [...base, ...extra], [base, extra]);
+
+  async function loadMore() {
+    setLoading(true);
+    try {
+      const res = await listVendorAudits({ limit: lim, cursor: nextCursor }).catch(() => null);
+      if (res?.success) {
+        const page = res.data || [];
+        const next = (res.meta?.pagination as any)?.next_cursor as string | undefined;
+        setNextCursor(next);
+        setExtra((prev) => prev.concat(page));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <Card>
@@ -26,6 +48,15 @@ export function VendorAuditsList({ initialData, limit = 50 }: Props) {
         <div className="flex items-center gap-2">
           <HistoryIcon className="w-5 h-5 text-muted-foreground" />
           <CardTitle>Audit Logs</CardTitle>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Limit</span>
+          <select className="border rounded px-2 py-1" value={String(lim)} onChange={(e) => setLim(Number(e.target.value || 50))}>
+            {[20, 50, 100, 200].map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          <button className="border rounded px-2 py-1" onClick={loadMore} disabled={loading}>{loading ? "Memuat..." : "Muat lagi"}</button>
         </div>
       </CardHeader>
       <CardContent>

@@ -11,6 +11,7 @@ import { LanguageProvider } from "@/contexts/language-context";
 import QueryProvider from "@/components/query-provider";
 import { ConfirmDialogProvider } from "@/components/shared/confirm-dialog-provider";
 import FcmInitializer from "@/components/fcm-initializer";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Multi-Tenant Dashboard",
@@ -37,6 +38,7 @@ export default function RootLayout({
               <LanguageProvider>
                 <ConfirmDialogProvider>
                   <FcmInitializer />
+                  <Toaster position="top-right" richColors closeButton />
                   {children}
                 </ConfirmDialogProvider>
               </LanguageProvider>

@@ -26,13 +26,16 @@ export function useNotifications(
 
 export function useNotificationActions() {
   const qc = useQueryClient();
+  const { toast } = require("sonner");
 
   const create = useMutation({
     mutationFn: async (payload: Partial<Notification>) =>
       ensureSuccess(await createNotification(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.notifications.all });
+      toast.success("Notifikasi dibuat");
     },
+    onError: (err: any) => toast.error(err?.message || "Gagal membuat notifikasi"),
   });
 
   const updateStatus = useMutation({
@@ -42,7 +45,9 @@ export function useNotificationActions() {
       ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.notifications.all });
+      toast.success("Status notifikasi diperbarui");
     },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui notifikasi"),
   });
 
   return { create, updateStatus } as const;
@@ -62,7 +67,13 @@ export function useNotificationReminderActions() {
     mutationFn: async (payload: any[]) => ensureSuccess(await upsertNotificationReminders(payload as any)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notifications", "reminders"] });
+      const { toast } = require("sonner");
+      toast.success("Konfigurasi reminder disimpan");
     },
+    onError: (err: any) => {
+      const { toast } = require("sonner");
+      toast.error(err?.message || "Gagal menyimpan reminder");
+    }
   });
   return { upsert } as const;
 }

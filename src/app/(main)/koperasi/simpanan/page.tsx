@@ -1,5 +1,8 @@
 /** @format */
 
+"use client";
+
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,41 +14,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
-
-const simpananTransactions = [
-  {
-    id: "SP001",
-    memberName: "Budi Santoso",
-    memberId: "A001",
-    type: "setoran",
-    category: "Simpanan Wajib",
-    amount: "Rp 100,000",
-    date: "2024-01-15",
-    balance: "Rp 1,200,000",
-  },
-  {
-    id: "SP002",
-    memberName: "Siti Aminah",
-    memberId: "A002",
-    type: "setoran",
-    category: "Simpanan Sukarela",
-    amount: "Rp 500,000",
-    date: "2024-01-14",
-    balance: "Rp 1,300,000",
-  },
-  {
-    id: "SP003",
-    memberName: "Ahmad Wijaya",
-    memberId: "A003",
-    type: "penarikan",
-    category: "Simpanan Sukarela",
-    amount: "Rp 200,000",
-    date: "2024-01-13",
-    balance: "Rp 800,000",
-  },
-];
+import { listSavingsTransactions, verifySavingsDeposit, approveSavingsWithdrawal } from "@/services/api";
+import { SavingsDepositDialog } from "@/components/feature/koperasi/savings/savings-deposit-dialog";
+import { SavingsWithdrawDialog } from "@/components/feature/koperasi/savings/savings-withdraw-dialog";
+import { toast } from "sonner";
 
 export default function SimpananPage() {
+  const [memberId, setMemberId] = useState<string>("");
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<string | number | null>(null);
+  const [approvingId, setApprovingId] = useState<string | number | null>(null);
+
+  async function load() {
+    if (!memberId) return;
+    setLoading(true);
+    try {
+      const res = await listSavingsTransactions(memberId);
+      if (res.success) setRows(res.data || []);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -57,14 +48,8 @@ export default function SimpananPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <ArrowDownCircle className="h-4 w-4 mr-2" />
-            Penarikan
-          </Button>
-          <Button>
-            <ArrowUpCircle className="h-4 w-4 mr-2" />
-            Setoran
-          </Button>
+          <SavingsWithdrawDialog memberId={memberId} onSuccess={load} />
+          <SavingsDepositDialog memberId={memberId} onSuccess={load} />
         </div>
       </div>
 
@@ -120,18 +105,15 @@ export default function SimpananPage() {
         </Card>
       </div>
 
-      {/* Search */}
+      {/* Search / Member Filter */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Cari transaksi simpanan..."
-                className="pl-10"
-              />
+              <Input placeholder="Masukkan ID anggota..." className="pl-10" value={memberId} onChange={(e) => setMemberId(e.target.value)} />
             </div>
-            <Button variant="outline">Filter</Button>
+            <Button variant="outline" onClick={load} disabled={!memberId || loading}>{loading ? "Memuat..." : "Muat"}</Button>
           </div>
         </CardContent>
       </Card>
@@ -146,9 +128,9 @@ export default function SimpananPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {simpananTransactions.map((transaction) => (
+            {rows.map((transaction: any) => (
               <div
-                key={transaction.id}
+                key={String(transaction.id)}
                 className="flex items-center justify-between p-4 border rounded-lg"
               >
                 <div className="flex items-center gap-4">
@@ -160,47 +142,46 @@ export default function SimpananPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-medium">{transaction.memberName}</h3>
+                    <h3 className="font-medium">Anggota #{transaction.member_id ?? memberId}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {transaction.memberId} • {transaction.category}
+                      {transaction.category ?? "-"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {transaction.date}
+                      {transaction.created_at ?? transaction.date}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p
-                      className={`font-medium ${
-                        transaction.type === "setoran"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {transaction.type === "setoran" ? "+" : "-"}
-                      {transaction.amount}
+                    <p className={`font-medium ${transaction.type === "setoran" ? "text-green-600" : "text-red-600"}`}>
+                      {transaction.type === "setoran" ? "+" : "-"} {transaction.amount}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Saldo: {transaction.balance}
+                      Metode: {transaction.method ?? transaction.payment_method ?? "-"}
                     </p>
                   </div>
 
-                  <Badge
-                    variant={
-                      transaction.type === "setoran" ? "default" : "secondary"
-                    }
-                  >
-                    {transaction.type}
-                  </Badge>
-
-                  <Button variant="ghost" size="sm">
-                    Detail
-                  </Button>
+                  <Badge variant={transaction.type === "setoran" ? "default" : "secondary"}>{transaction.type}</Badge>
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs text-muted-foreground">{transaction.status}</div>
+                    {transaction.type === "setoran" && transaction.status === "pending" && (
+                      <Button variant="ghost" size="sm" disabled={verifyingId === transaction.id} onClick={async () => {
+                        try { setVerifyingId(transaction.id); await verifySavingsDeposit(transaction.id); toast.success("Setoran diverifikasi"); await load(); } catch (e: any) { toast.error(e?.message || "Gagal verifikasi"); } finally { setVerifyingId(null); }
+                      }}>{verifyingId === transaction.id ? "Memproses..." : "Verifikasi"}</Button>
+                    )}
+                    {transaction.type === "penarikan" && transaction.status === "pending" && (
+                      <Button variant="ghost" size="sm" disabled={approvingId === transaction.id} onClick={async () => {
+                        try { setApprovingId(transaction.id); await approveSavingsWithdrawal(transaction.id); toast.success("Penarikan disetujui"); await load(); } catch (e: any) { toast.error(e?.message || "Gagal menyetujui"); } finally { setApprovingId(null); }
+                      }}>{approvingId === transaction.id ? "Memproses..." : "Setujui"}</Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
+            {!rows.length && (
+              <div className="text-sm text-muted-foreground italic">Masukkan ID anggota untuk melihat riwayat.</div>
+            )}
           </div>
         </CardContent>
       </Card>

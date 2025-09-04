@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "mock:api": "node mock-api/server.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -42,7 +43,9 @@
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.0.17",
-    "zustand": "^5.0.7"
+    "zustand": "^5.0.7",
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

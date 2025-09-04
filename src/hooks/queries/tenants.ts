@@ -85,13 +85,16 @@ export function useTenantModules(
 
 export function useTenantActions() {
   const qc = useQueryClient();
+  const { toast } = require("sonner");
 
   const create = useMutation({
     mutationFn: async (payload: Partial<Tenant>) =>
       ensureSuccess(await createTenant(payload as any)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.tenants.lists() });
+      toast.success("Tenant dibuat");
     },
+    onError: (err: any) => toast.error(err?.message || "Gagal membuat tenant"),
   });
 
   const update = useMutation({
@@ -102,7 +105,9 @@ export function useTenantActions() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tenants.detail(vars.id) });
       qc.invalidateQueries({ queryKey: QK.tenants.lists() });
+      toast.success("Tenant diperbarui");
     },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui tenant"),
   });
 
   const updateStatus = useMutation({
@@ -113,7 +118,9 @@ export function useTenantActions() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tenants.detail(vars.id) });
       qc.invalidateQueries({ queryKey: QK.tenants.lists() });
+      toast.success("Status tenant diperbarui");
     },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui status"),
   });
 
   const addUser = useMutation({
@@ -123,7 +130,9 @@ export function useTenantActions() {
     }) => ensureSuccess(await addTenantUser(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tenants.users(vars.id) });
+      toast.success("User ditambahkan");
     },
+    onError: (err: any) => toast.error(err?.message || "Gagal menambah user"),
   });
 
   const updateModule = useMutation({
@@ -140,7 +149,9 @@ export function useTenantActions() {
       ),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tenants.modules(vars.id) });
+      toast.success("Status modul diperbarui");
     },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui modul"),
   });
 
   return { create, update, updateStatus, addUser, updateModule } as const;

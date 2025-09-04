@@ -12,41 +12,16 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Users, Search, Edit, Eye } from "lucide-react";
 import { MemberRegisterDialog } from "@/components/feature/koperasi/membership/member-register-dialog";
+import { getKoperasiDashboardSummary, listUsers } from "@/services/api";
 
-const members = [
-  {
-    id: "A001",
-    name: "Budi Santoso",
-    email: "budi@email.com",
-    phone: "081234567890",
-    joinDate: "2023-01-15",
-    status: "aktif",
-    simpananPokok: "Rp 500,000",
-    simpananWajib: "Rp 1,200,000",
-  },
-  {
-    id: "A002",
-    name: "Siti Aminah",
-    email: "siti@email.com",
-    phone: "081234567891",
-    joinDate: "2023-02-20",
-    status: "aktif",
-    simpananPokok: "Rp 500,000",
-    simpananWajib: "Rp 800,000",
-  },
-  {
-    id: "A003",
-    name: "Ahmad Wijaya",
-    email: "ahmad@email.com",
-    phone: "081234567892",
-    joinDate: "2022-12-10",
-    status: "non-aktif",
-    simpananPokok: "Rp 500,000",
-    simpananWajib: "Rp 600,000",
-  },
-];
+export default async function KeanggotaanPage() {
+  const [summaryRes, usersRes] = await Promise.all([
+    getKoperasiDashboardSummary().catch(() => null),
+    listUsers().catch(() => null),
+  ]);
+  const summary = summaryRes && summaryRes.success ? summaryRes.data : null;
+  const members = usersRes && usersRes.success ? (usersRes.data as any[]) : [];
 
-export default function KeanggotaanPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -65,10 +40,8 @@ export default function KeanggotaanPage() {
             <CardTitle className="text-sm font-medium">Total Anggota</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">
-              +23 anggota baru bulan ini
-            </p>
+            <div className="text-2xl font-bold">{summary?.active_members ?? "-"}</div>
+            <p className="text-xs text-muted-foreground">Aktif saat ini</p>
           </CardContent>
         </Card>
         <Card>
@@ -76,10 +49,8 @@ export default function KeanggotaanPage() {
             <CardTitle className="text-sm font-medium">Anggota Aktif</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,189</div>
-            <p className="text-xs text-muted-foreground">
-              95.3% dari total anggota
-            </p>
+            <div className="text-2xl font-bold">{summary?.active_members ?? "-"}</div>
+            <p className="text-xs text-muted-foreground">Terverifikasi</p>
           </CardContent>
         </Card>
         <Card>
@@ -87,7 +58,7 @@ export default function KeanggotaanPage() {
             <CardTitle className="text-sm font-medium">Anggota Baru</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
+            <div className="text-2xl font-bold">-</div>
             <p className="text-xs text-muted-foreground">Bulan ini</p>
           </CardContent>
         </Card>
@@ -111,9 +82,9 @@ export default function KeanggotaanPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {members.map((member) => (
+            {members.map((member: any) => (
               <div
-                key={member.id}
+                key={String(member.id)}
                 className="flex items-center justify-between p-4 border rounded-lg"
               >
                 <div className="flex items-center gap-4">
@@ -121,33 +92,13 @@ export default function KeanggotaanPage() {
                     <Users className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">{member.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      ID: {member.id} • {member.email}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Bergabung: {member.joinDate}
-                    </p>
+                    <h3 className="font-medium">{member.full_name ?? member.name ?? member.email}</h3>
+                    <p className="text-sm text-muted-foreground">ID: {member.id} • {member.email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      Simpanan Pokok: {member.simpananPokok}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Simpanan Wajib: {member.simpananWajib}
-                    </p>
-                  </div>
-
-                  <Badge
-                    variant={
-                      member.status === "aktif" ? "default" : "secondary"
-                    }
-                  >
-                    {member.status}
-                  </Badge>
+                  <Badge variant={member.status ? "default" : "secondary"}>{member.status ? "aktif" : "non-aktif"}</Badge>
 
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon">
@@ -160,6 +111,9 @@ export default function KeanggotaanPage() {
                 </div>
               </div>
             ))}
+            {!members?.length && (
+              <div className="text-sm text-muted-foreground italic">Belum ada anggota</div>
+            )}
           </div>
         </CardContent>
       </Card>

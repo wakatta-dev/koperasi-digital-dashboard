@@ -57,3 +57,41 @@ export function updateTicket(
   );
 }
 
+// New: list replies (vendor) with optional pagination
+export function listTicketReplies(
+  id: string,
+  params?: { limit?: number; cursor?: string }
+): Promise<ApiResponse<any[]>> {
+  const search = new URLSearchParams();
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const q = search.toString();
+  const base = `${API_PREFIX}${API_ENDPOINTS.tickets.replies(id)}`;
+  return api.get<any[]>(q ? `${base}?${q}` : base);
+}
+
+// New: list activities
+export function listTicketActivities(
+  id: string,
+  params?: { limit?: number; cursor?: string }
+): Promise<ApiResponse<any[]>> {
+  const search = new URLSearchParams();
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const q = search.toString();
+  const base = `${API_PREFIX}${API_ENDPOINTS.tickets.activities(id)}`;
+  return api.get<any[]>(q ? `${base}?${q}` : base);
+}
+
+// New: SLA config
+export function upsertTicketSLA(payload: {
+  category: string;
+  sla_response_minutes: number;
+  sla_resolution_minutes: number;
+}): Promise<ApiResponse<any>> {
+  return api.post<any>(`${API_PREFIX}${API_ENDPOINTS.tickets.sla}`, payload);
+}
+
+export function listTicketSLA(): Promise<ApiResponse<any[]>> {
+  return api.get<any[]>(`${API_PREFIX}${API_ENDPOINTS.tickets.sla}`);
+}

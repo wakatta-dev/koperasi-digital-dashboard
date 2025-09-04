@@ -40,28 +40,30 @@ export const API_ENDPOINTS = {
   // notifications section defined later to include reminders
   billing: {
     vendor: {
-      plans: "/vendor/plans",
-      plan: (id: string | number) => `/vendor/plans/${id}`,
-      planStatus: (id: string | number) => `/vendor/plans/${id}/status`,
+      plans: "/plans",
+      plan: (id: string | number) => `/plans/${id}`,
+      planStatus: (id: string | number) => `/plans/${id}/status`,
       // Base collection path for invoices
-      invoicesBase: "/vendor/invoices",
+      invoicesBase: "/invoices",
       // Helper for GET list with limit/cursor (kept for back-compat)
       invoices: (limit: number, cursor?: string) =>
-        `/vendor/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
-      invoice: (id: string | number) => `/vendor/invoices/${id}`,
-      invoiceStatus: (id: string | number) => `/vendor/invoices/${id}/status`,
+        `/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
+      invoice: (id: string | number) => `/invoices/${id}`,
+      // Optional: vendor can also create manual payment on an invoice (per docs generic path)
+      invoicePayments: (id: string | number) => `/invoices/${id}/payments`,
+      invoiceStatus: (id: string | number) => `/invoices/${id}/status`,
       payments: (id: string | number) => ({
-        verify: `/vendor/payments/${id}/verify`,
+        verify: `/payments/${id}/verify`,
       }),
       subscriptions: {
-        summary: "/vendor/subscriptions/summary",
-        list: "/vendor/subscriptions",
-        status: (id: string | number) => `/vendor/subscriptions/${id}/status`,
+        summary: "/subscriptions/summary",
+        list: "/subscriptions",
+        status: (id: string | number) => `/subscriptions/${id}/status`,
       },
       audits: (limit: number, cursor?: string) =>
-        `/vendor/audits?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
+        `/audits?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       gateways: {
-        webhook: (gateway: string) => `/vendor/payment-gateways/${gateway}/webhook`,
+        webhook: (gateway: string) => `/payment-gateways/${gateway}/webhook`,
       },
     },
     client: {
@@ -107,7 +109,8 @@ export const API_ENDPOINTS = {
     // Per endpoints_index: /api/koperasi/assets*
     list: "/koperasi/assets",
     detail: (id: string | number) => `/koperasi/assets/${id}`,
-    depreciation: (id: string | number) => `/koperasi/assets/${id}/depreciation`,
+    depreciation: (id: string | number) =>
+      `/koperasi/assets/${id}/depreciation`,
     status: (id: string | number) => `/koperasi/assets/${id}/status`,
     export: "/koperasi/assets/export",
   },
@@ -118,14 +121,17 @@ export const API_ENDPOINTS = {
     detail: (id: string | number) => `/koperasi/members/${id}`,
     status: (id: string | number) => `/koperasi/members/${id}/status`,
     card: (id: string | number) => `/koperasi/members/${id}/card`,
-    cardValidate: (qr: string) => `/koperasi/members/card/validate/${encodeURIComponent(qr)}`,
+    cardValidate: (qr: string) =>
+      `/koperasi/members/card/validate/${encodeURIComponent(qr)}`,
   },
   savings: {
     // Per docs/modules/endpoints_index.md → koperasi namespace
-    deposit: (memberId: string | number) => `/koperasi/savings/${memberId}/deposit`,
+    deposit: (memberId: string | number) =>
+      `/koperasi/savings/${memberId}/deposit`,
     verify: (transactionId: string | number) =>
       `/koperasi/savings/${transactionId}/verify`,
-    withdraw: (memberId: string | number) => `/koperasi/savings/${memberId}/withdraw`,
+    withdraw: (memberId: string | number) =>
+      `/koperasi/savings/${memberId}/withdraw`,
     approve: (transactionId: string | number) =>
       `/koperasi/savings/${transactionId}/approve`,
     transactions: (memberId: string | number) =>
@@ -139,14 +145,27 @@ export const API_ENDPOINTS = {
     trend: "/koperasi/dashboard/trend",
     notifications: "/koperasi/dashboard/notifications",
   },
+  shu: {
+    // Koperasi SHU endpoints (per docs/modules/shu.md and koperasi group)
+    yearly: "/koperasi/shu/yearly",
+    simulate: (year: string | number) =>
+      `/koperasi/shu/yearly/${year}/simulate`,
+    distribute: (year: string | number) =>
+      `/koperasi/shu/yearly/${year}/distribute`,
+    history: "/koperasi/shu/history",
+    member: (memberId: string | number) => `/koperasi/shu/member/${memberId}`,
+    export: (year: string | number) => `/koperasi/shu/export/${year}`,
+  },
   loans: {
     // Per docs/modules/endpoints_index.md → koperasi namespace
     apply: "/koperasi/loans/apply",
     approve: (id: string | number) => `/koperasi/loans/${id}/approve`,
     disburse: (id: string | number) => `/koperasi/loans/${id}/disburse`,
     installments: (id: string | number) => `/koperasi/loans/${id}/installments`,
-    payInstallment: (id: string | number) => `/koperasi/loans/installments/${id}/pay`,
-    releaseLetter: (id: string | number) => `/koperasi/loans/${id}/release-letter`,
+    payInstallment: (id: string | number) =>
+      `/koperasi/loans/installments/${id}/pay`,
+    releaseLetter: (id: string | number) =>
+      `/koperasi/loans/${id}/release-letter`,
   },
   tickets: {
     list: "/tickets",
@@ -154,6 +173,8 @@ export const API_ENDPOINTS = {
     detail: (id: string) => `/tickets/${id}`,
     replies: (id: string) => `/tickets/${id}/replies`,
     update: (id: string) => `/tickets/${id}`,
+    activities: (id: string) => `/tickets/${id}/activities`,
+    sla: "/vendor/tickets/sla",
   },
   notifications: {
     // Vendor-level notifications (per docs/modules/notification.md → Vendor Routes)

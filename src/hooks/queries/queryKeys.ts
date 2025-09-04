@@ -79,6 +79,9 @@ export const QK = {
     list: (params?: Record<string, any>) => ["tickets", "list", params ?? {}] as const,
     details: () => ["tickets", "detail"] as const,
     detail: (id: string) => ["tickets", "detail", id] as const,
+    replies: (id: string, params?: Record<string, any>) => ["tickets", "replies", id, params ?? {}] as const,
+    activities: (id: string, params?: Record<string, any>) => ["tickets", "activities", id, params ?? {}] as const,
+    sla: () => ["tickets", "sla"] as const,
   },
 } as const;
 

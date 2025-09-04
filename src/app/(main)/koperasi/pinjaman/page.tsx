@@ -1,5 +1,8 @@
 /** @format */
 
+"use client";
+
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,210 +11,126 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  CreditCard,
-  Plus,
-  Search,
-  Eye,
-  CheckCircle,
-  XCircle,
-  Clock,
-} from "lucide-react";
-
-const pinjamanData = [
-  {
-    id: "PJ001",
-    memberName: "Budi Santoso",
-    memberId: "A001",
-    amount: "Rp 5,000,000",
-    purpose: "Modal Usaha",
-    status: "aktif",
-    remaining: "Rp 3,200,000",
-    installment: "Rp 450,000",
-    dueDate: "2024-02-15",
-    term: "12 bulan",
-  },
-  {
-    id: "PJ002",
-    memberName: "Siti Aminah",
-    memberId: "A002",
-    amount: "Rp 2,000,000",
-    purpose: "Pendidikan",
-    status: "menunggu",
-    remaining: "Rp 2,000,000",
-    installment: "Rp 200,000",
-    dueDate: "-",
-    term: "10 bulan",
-  },
-  {
-    id: "PJ003",
-    memberName: "Ahmad Wijaya",
-    memberId: "A003",
-    amount: "Rp 3,500,000",
-    purpose: "Renovasi Rumah",
-    status: "lunas",
-    remaining: "Rp 0",
-    installment: "Rp 350,000",
-    dueDate: "Lunas",
-    term: "10 bulan",
-  },
-];
+import { CreditCard, Search, CheckCircle } from "lucide-react";
+import { applyLoan, approveLoan, disburseLoan, listLoanInstallments, payLoanInstallment } from "@/services/api";
 
 export default function PinjamanPage() {
+  const [applyPayload, setApplyPayload] = useState<any>({ member_id: "", amount: 0, purpose: "", term_months: 12 });
+  const [loanId, setLoanId] = useState<string>("");
+  const [installments, setInstallments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  async function onApply() {
+    setLoading(true);
+    try {
+      await applyLoan({
+        member_id: Number(applyPayload.member_id),
+        amount: Number(applyPayload.amount),
+        purpose: String(applyPayload.purpose || ""),
+        term_months: Number(applyPayload.term_months || 12),
+      });
+      setApplyPayload({ member_id: "", amount: 0, purpose: "", term_months: 12 });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadInstallments() {
+    if (!loanId) return;
+    const res = await listLoanInstallments(loanId);
+    if (res.success) setInstallments(res.data || []);
+  }
+
+  async function onApprove() {
+    if (!loanId) return;
+    await approveLoan(loanId);
+    await loadInstallments();
+  }
+
+  async function onDisburse() {
+    if (!loanId) return;
+    await disburseLoan(loanId);
+    await loadInstallments();
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Pinjaman</h2>
-          <p className="text-muted-foreground">
-            Kelola pinjaman anggota koperasi
-          </p>
+          <p className="text-muted-foreground">Kelola pinjaman anggota koperasi</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Pengajuan Baru
-        </Button>
+        <div className="flex items-center gap-2"/>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Total Pinjaman
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Rp 1.8M</div>
-            <p className="text-xs text-muted-foreground">Pinjaman aktif</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Menunggu Persetujuan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">Pengajuan baru</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Pinjaman Aktif
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">Sedang berjalan</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Tunggakan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">Perlu tindak lanjut</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
+      {/* Apply Loan */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Cari pinjaman..." className="pl-10" />
-            </div>
-            <Button variant="outline">Filter</Button>
+        <CardHeader>
+          <CardTitle>Pengajuan Baru</CardTitle>
+          <CardDescription>Ajukan pinjaman untuk anggota</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <Input placeholder="ID Anggota" value={applyPayload.member_id} onChange={(e) => setApplyPayload((s: any) => ({ ...s, member_id: e.target.value }))} />
+            <Input type="number" placeholder="Jumlah" value={applyPayload.amount} onChange={(e) => setApplyPayload((s: any) => ({ ...s, amount: Number(e.target.value || 0) }))} />
+            <Input placeholder="Keperluan" value={applyPayload.purpose} onChange={(e) => setApplyPayload((s: any) => ({ ...s, purpose: e.target.value }))} />
+            <Input type="number" placeholder="Tenor (bulan)" value={applyPayload.term_months} onChange={(e) => setApplyPayload((s: any) => ({ ...s, term_months: Number(e.target.value || 0) }))} />
+            <Button onClick={onApply} disabled={loading || !applyPayload.member_id || !applyPayload.amount}>Ajukan</Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Loans Table */}
+      {/* Loan Operations */}
       <Card>
         <CardHeader>
-          <CardTitle>Daftar Pinjaman</CardTitle>
-          <CardDescription>Status dan detail pinjaman anggota</CardDescription>
+          <CardTitle>Operasi Pinjaman</CardTitle>
+          <CardDescription>Setujui/Cairkan dan lihat angsuran berdasarkan ID</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+            <div className="relative md:col-span-2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input className="pl-10" placeholder="ID pinjaman" value={loanId} onChange={(e) => setLoanId(e.target.value)} />
+            </div>
+            <Button variant="outline" onClick={loadInstallments} disabled={!loanId}>Muat Angsuran</Button>
+            <Button variant="secondary" onClick={onApprove} disabled={!loanId}><CheckCircle className="h-4 w-4 mr-2" />Setujui</Button>
+            <Button variant="default" onClick={onDisburse} disabled={!loanId}><CreditCard className="h-4 w-4 mr-2" />Cairkan</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Installments */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Daftar Angsuran</CardTitle>
+          <CardDescription>Status dan detail angsuran</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {pinjamanData.map((pinjaman) => (
-              <div
-                key={pinjaman.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                    {pinjaman.status === "aktif" && (
-                      <CreditCard className="h-6 w-6 text-blue-600" />
-                    )}
-                    {pinjaman.status === "menunggu" && (
-                      <Clock className="h-6 w-6 text-yellow-600" />
-                    )}
-                    {pinjaman.status === "lunas" && (
-                      <CheckCircle className="h-6 w-6 text-green-600" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{pinjaman.memberName}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {pinjaman.id} • {pinjaman.purpose}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {pinjaman.amount} • {pinjaman.term}
-                    </p>
-                  </div>
+            {installments.map((ins: any) => (
+              <div key={String(ins.id)} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <div className="font-medium">Angsuran #{ins.sequence ?? ins.id}</div>
+                  <div className="text-sm text-muted-foreground">Jatuh tempo: {ins.due_date ?? "-"}</div>
                 </div>
-
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="font-medium">Sisa: {pinjaman.remaining}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Angsuran: {pinjaman.installment}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Jatuh tempo: {pinjaman.dueDate}
-                    </p>
+                    <p className="font-medium">Jumlah: {ins.amount}</p>
+                    <p className="text-sm text-muted-foreground">Status: {ins.status}</p>
                   </div>
-
-                  <Badge
-                    variant={
-                      pinjaman.status === "aktif"
-                        ? "default"
-                        : pinjaman.status === "menunggu"
-                          ? "secondary"
-                          : "outline"
-                    }
-                  >
-                    {pinjaman.status}
-                  </Badge>
-
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Eye className="h-4 w-4" />
+                  {ins.status !== "paid" && (
+                    <Button variant="ghost" size="sm" onClick={async () => { await payLoanInstallment(ins.id); await loadInstallments(); }}>
+                      <CheckCircle className="h-4 w-4 mr-2" /> Bayar
                     </Button>
-                    {pinjaman.status === "menunggu" && (
-                      <>
-                        <Button variant="ghost" size="icon">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
+            {!installments.length && (
+              <div className="text-sm text-muted-foreground italic">Masukkan ID pinjaman untuk melihat angsuran.</div>
+            )}
           </div>
         </CardContent>
       </Card>
