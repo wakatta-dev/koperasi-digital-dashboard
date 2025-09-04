@@ -99,8 +99,12 @@ export async function removeUserRole(
 export async function listUsersAction(
   params?: Record<string, string | number>
 ) {
-  const res = await listUsersService(params);
-  return ensureSuccess(res);
+  try {
+    const res = await listUsersService(params);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListUsersActionResult = Awaited<
@@ -108,8 +112,12 @@ export type ListUsersActionResult = Awaited<
 >;
 
 export async function getUserAction(id: string | number) {
-  const res = await getUserService(id);
-  return ensureSuccess(res);
+  try {
+    const res = await getUserService(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type GetUserActionResult = Awaited<
@@ -117,8 +125,12 @@ export type GetUserActionResult = Awaited<
 >;
 
 export async function createUserAction(payload: Partial<User>) {
-  const res = await createUserService(payload);
-  return ensureSuccess(res);
+  try {
+    const res = await createUserService(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type CreateUserActionResult = Awaited<
@@ -129,8 +141,12 @@ export async function updateUserAction(
   id: string | number,
   payload: Partial<User>,
 ) {
-  const res = await updateUserService(id, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await updateUserService(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type UpdateUserActionResult = Awaited<
@@ -141,8 +157,12 @@ export async function patchUserStatusAction(
   id: string | number,
   payload: { status: boolean },
 ) {
-  const res = await patchUserStatusService(id, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await patchUserStatusService(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type PatchUserStatusActionResult = Awaited<
@@ -150,8 +170,12 @@ export type PatchUserStatusActionResult = Awaited<
 >;
 
 export async function deleteUserAction(id: string | number) {
-  const res = await deleteUserService(id);
-  return ensureSuccess(res);
+  try {
+    const res = await deleteUserService(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type DeleteUserActionResult = Awaited<
@@ -159,8 +183,12 @@ export type DeleteUserActionResult = Awaited<
 >;
 
 export async function listUserRolesAction(id: string | number) {
-  const res = await listUserRolesService(id, { limit: 100 });
-  return ensureSuccess(res);
+  try {
+    const res = await listUserRolesService(id, { limit: 100 });
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListUserRolesActionResult = Awaited<
@@ -171,8 +199,12 @@ export async function removeUserRoleAction(
   userId: string | number,
   roleId: string | number,
 ) {
-  const res = await removeUserRoleService(userId, roleId);
-  return ensureSuccess(res);
+  try {
+    const res = await removeUserRoleService(userId, roleId);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type RemoveUserRoleActionResult = Awaited<
@@ -183,8 +215,12 @@ export async function resetPasswordAction(payload: {
   email: string;
   new_password: string;
 }) {
-  const res = await resetPassword(payload);
-  return ensureSuccess(res);
+  try {
+    const res = await resetPassword(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type ResetPasswordActionResult = Awaited<

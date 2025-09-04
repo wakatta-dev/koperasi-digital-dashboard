@@ -18,8 +18,12 @@ import type { Role, Permission } from "@/types/api";
 
 export async function listRolesAction() {
   // Provide a sensible default limit for listing roles
-  const res = await listRoles({ limit: 100 });
-  return ensureSuccess(res);
+  try {
+    const res = await listRoles({ limit: 100 });
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListRolesActionResult = Awaited<
@@ -40,9 +44,13 @@ export type AssignRoleActionResult = Awaited<
 
 export async function createRoleAction(
   payload: Partial<Role>,
-): Promise<Role> {
-  const res = await createRole(payload);
-  return ensureSuccess(res);
+): Promise<Role | null> {
+  try {
+    const res = await createRole(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type CreateRoleActionResult = Awaited<
@@ -52,9 +60,13 @@ export type CreateRoleActionResult = Awaited<
 export async function updateRoleAction(
   id: string | number,
   payload: Partial<Role>,
-): Promise<Role> {
-  const res = await updateRole(id, payload);
-  return ensureSuccess(res);
+): Promise<Role | null> {
+  try {
+    const res = await updateRole(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type UpdateRoleActionResult = Awaited<
@@ -63,9 +75,13 @@ export type UpdateRoleActionResult = Awaited<
 
 export async function deleteRoleAction(
   id: string | number,
-): Promise<{ id: number }> {
-  const res = await deleteRole(id);
-  return ensureSuccess(res);
+): Promise<{ id: number } | null> {
+  try {
+    const res = await deleteRole(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type DeleteRoleActionResult = Awaited<
@@ -75,8 +91,12 @@ export type DeleteRoleActionResult = Awaited<
 export async function listRolePermissionsAction(
   id: string | number,
 ): Promise<Permission[]> {
-  const res = await listRolePermissions(id, { limit: 100 });
-  return ensureSuccess(res);
+  try {
+    const res = await listRolePermissions(id, { limit: 100 });
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListRolePermissionsActionResult = Awaited<
@@ -86,9 +106,13 @@ export type ListRolePermissionsActionResult = Awaited<
 export async function addRolePermissionAction(
   id: string | number,
   payload: { obj: string; act: string },
-): Promise<Permission> {
-  const res = await addRolePermission(id, payload);
-  return ensureSuccess(res);
+): Promise<Permission | null> {
+  try {
+    const res = await addRolePermission(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type AddRolePermissionActionResult = Awaited<
@@ -98,9 +122,13 @@ export type AddRolePermissionActionResult = Awaited<
 export async function deleteRolePermissionAction(
   roleId: string | number,
   permissionId: string | number,
-): Promise<{ id: number }> {
-  const res = await deleteRolePermission(roleId, permissionId);
-  return ensureSuccess(res);
+): Promise<{ id: number } | null> {
+  try {
+    const res = await deleteRolePermission(roleId, permissionId);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type DeleteRolePermissionActionResult = Awaited<
@@ -110,9 +138,13 @@ export type DeleteRolePermissionActionResult = Awaited<
 export async function removeUserRoleAction(
   userId: string | number,
   roleId: string | number,
-): Promise<{ user_id: number; role_id: number }> {
-  const res = await removeUserRole(userId, roleId);
-  return ensureSuccess(res);
+): Promise<{ user_id: number; role_id: number } | null> {
+  try {
+    const res = await removeUserRole(userId, roleId);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type RemoveUserRoleActionResult = Awaited<

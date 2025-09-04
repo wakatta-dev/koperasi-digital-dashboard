@@ -16,9 +16,24 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout() {
-  await fetch(`${API_URL}/auth/logout`, {
+  // Try to read refresh_token from cookie/session similar to refreshToken()
+  let rt: string | null = null;
+  try {
+    if (typeof window !== "undefined") {
+      const match = document.cookie.match(/(?:^|; )refresh_token=([^;]+)/);
+      rt = match ? decodeURIComponent(match[1]) : null;
+    } else {
+      const { cookies } = await import("next/headers");
+      rt = (await cookies()).get("refresh_token")?.value ?? null;
+    }
+  } catch {
+    rt = null;
+  }
+
+  await fetch(`${API_URL}/api/auth/logout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(rt ? { refresh_token: rt } : {}),
     credentials: "include",
   }).catch(() => null);
   if (typeof window !== "undefined") {
@@ -75,7 +90,7 @@ export async function refreshToken(): Promise<string | null> {
 
     if (!rt) return null;
 
-    const res = await fetch(`${API_URL}/auth/refresh`, {
+    const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: rt }),

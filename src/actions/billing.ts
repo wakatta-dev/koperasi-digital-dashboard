@@ -44,8 +44,12 @@ export async function createPaymentAction(
   invoiceId: string | number,
   payload: any
 ) {
-  const res = await createPayment(invoiceId, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await createPayment(invoiceId, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type CreatePaymentActionResult = Awaited<
@@ -56,8 +60,12 @@ export async function verifyVendorPaymentAction(
   id: string | number,
   payload?: any
 ) {
-  const res = await verifyVendorPayment(id, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await verifyVendorPayment(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type VerifyVendorPaymentActionResult = Awaited<
@@ -65,8 +73,12 @@ export type VerifyVendorPaymentActionResult = Awaited<
 >;
 
 export async function createVendorInvoiceAction(payload: any) {
-  const res = await createVendorInvoice(payload);
-  return ensureSuccess(res);
+  try {
+    const res = await createVendorInvoice(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type CreateVendorInvoiceActionResult = Awaited<
@@ -77,8 +89,12 @@ export async function updateVendorInvoiceAction(
   id: string | number,
   payload: any
 ) {
-  const res = await updateVendorInvoice(id, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await updateVendorInvoice(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type UpdateVendorInvoiceActionResult = Awaited<
@@ -86,8 +102,12 @@ export type UpdateVendorInvoiceActionResult = Awaited<
 >;
 
 export async function deleteVendorInvoiceAction(id: string | number) {
-  const res = await deleteVendorInvoice(id);
-  return ensureSuccess(res);
+  try {
+    const res = await deleteVendorInvoice(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type DeleteVendorInvoiceActionResult = Awaited<
@@ -98,8 +118,12 @@ export async function listVendorPlansAction(params: {
   limit: number;
   cursor?: string;
 }) {
-  const res = await listVendorPlans(params);
-  return ensureSuccess(res);
+  try {
+    const res = await listVendorPlans(params);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListVendorPlansActionResult = Awaited<
@@ -107,8 +131,12 @@ export type ListVendorPlansActionResult = Awaited<
 >;
 
 export async function createVendorPlanAction(payload: any) {
-  const res = await createVendorPlan(payload);
-  return ensureSuccess(res);
+  try {
+    const res = await createVendorPlan(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type CreateVendorPlanActionResult = Awaited<
@@ -116,8 +144,12 @@ export type CreateVendorPlanActionResult = Awaited<
 >;
 
 export async function getVendorPlanAction(id: string | number) {
-  const res = await getVendorPlan(id);
-  return ensureSuccess(res);
+  try {
+    const res = await getVendorPlan(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type GetVendorPlanActionResult = Awaited<
@@ -128,8 +160,12 @@ export async function updateVendorPlanAction(
   id: string | number,
   payload: any
 ) {
-  const res = await updateVendorPlan(id, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await updateVendorPlan(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type UpdateVendorPlanActionResult = Awaited<
@@ -137,8 +173,12 @@ export type UpdateVendorPlanActionResult = Awaited<
 >;
 
 export async function deleteVendorPlanAction(id: string | number) {
-  const res = await deleteVendorPlan(id);
-  return ensureSuccess(res);
+  try {
+    const res = await deleteVendorPlan(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type DeleteVendorPlanActionResult = Awaited<
@@ -146,32 +186,52 @@ export type DeleteVendorPlanActionResult = Awaited<
 >;
 
 export async function getClientInvoiceAction(id: string | number) {
-  const res = await getClientInvoice(id);
-  return ensureSuccess(res);
+  try {
+    const res = await getClientInvoice(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export async function listClientInvoiceAuditsAction(
   id: string | number,
   params?: { limit?: number; cursor?: string }
 ) {
-  const res = await listClientInvoiceAudits(id, params);
-  return ensureSuccess(res);
+  try {
+    const res = await listClientInvoiceAudits(id, params);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export async function getClientSubscriptionAction() {
-  const res = await getClientSubscription();
-  return ensureSuccess(res);
+  try {
+    const res = await getClientSubscription();
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export async function getVendorSubscriptionsSummaryAction() {
-  const res = await getVendorSubscriptionsSummary();
-  return ensureSuccess(res);
+  try {
+    const res = await getVendorSubscriptionsSummary();
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export async function listVendorAuditsAction(params?: {
   limit?: number;
   cursor?: string;
 }) {
-  const res = await listVendorAudits(params);
-  return ensureSuccess(res);
+  try {
+    const res = await listVendorAudits(params);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }

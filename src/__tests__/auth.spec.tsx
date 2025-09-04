@@ -120,7 +120,7 @@ describe("auth flow", () => {
     expect(token).toBe("new_access");
     expect(document.cookie).toContain("refresh_token=new_refresh");
     const call = (fetch as any).mock.calls[0];
-    expect(call[0]).toContain("/auth/refresh");
+    expect(call[0]).toContain("/api/auth/refresh");
     expect(call[1].body).toBe(JSON.stringify({ refresh_token: "old" }));
   });
 

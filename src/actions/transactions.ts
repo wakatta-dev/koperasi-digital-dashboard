@@ -13,8 +13,12 @@ import {
 } from "@/services/api";
 
 export async function listTransactionsAction(params?: Record<string, string | number>) {
-  const res = await listTx(params);
-  return ensureSuccess(res);
+  try {
+    const res = await listTx(params);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListTransactionsActionResult = Awaited<
@@ -29,22 +33,37 @@ export async function createTransactionAction(
     credit_account_name: string;
   }
 ) {
-  const res = await createTx(payload as any);
-  return ensureSuccess(res);
+  try {
+    const res = await createTx(payload as any);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export async function updateTransactionAction(id: string | number, payload: Partial<Transaction>) {
-  const res = await updateTx(id, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await updateTx(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export async function deleteTransactionAction(id: string | number) {
-  const res = await deleteTx(id);
-  return ensureSuccess(res);
+  try {
+    const res = await deleteTx(id);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export async function getTransactionHistoryAction(id: string | number) {
-  const res = await getTxHistory(id);
-  return ensureSuccess(res);
+  try {
+    const res = await getTxHistory(id);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
-

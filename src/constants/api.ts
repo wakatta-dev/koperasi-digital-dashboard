@@ -97,25 +97,56 @@ export const API_ENDPOINTS = {
     profitLoss: "/reports/profit-loss",
     balanceSheet: "/reports/balance-sheet",
   },
+  cashbook: {
+    // Per endpoints_index: /api/koperasi/cash/*
+    manual: "/koperasi/cash/manual",
+    summary: "/koperasi/cash/summary",
+    export: "/koperasi/cash/export",
+  },
+  assets: {
+    // Per endpoints_index: /api/koperasi/assets*
+    list: "/koperasi/assets",
+    detail: (id: string | number) => `/koperasi/assets/${id}`,
+    depreciation: (id: string | number) => `/koperasi/assets/${id}/depreciation`,
+    status: (id: string | number) => `/koperasi/assets/${id}/status`,
+    export: "/koperasi/assets/export",
+  },
+  membership: {
+    // Per endpoints_index: /api/koperasi/members*
+    register: "/koperasi/members/register",
+    verify: (id: string | number) => `/koperasi/members/${id}/verify`,
+    detail: (id: string | number) => `/koperasi/members/${id}`,
+    status: (id: string | number) => `/koperasi/members/${id}/status`,
+    card: (id: string | number) => `/koperasi/members/${id}/card`,
+    cardValidate: (qr: string) => `/koperasi/members/card/validate/${encodeURIComponent(qr)}`,
+  },
   savings: {
-    deposit: (memberId: string | number) => `/coop/savings/${memberId}/deposit`,
+    // Per docs/modules/endpoints_index.md → koperasi namespace
+    deposit: (memberId: string | number) => `/koperasi/savings/${memberId}/deposit`,
     verify: (transactionId: string | number) =>
-      `/coop/savings/${transactionId}/verify`,
-    withdraw: (memberId: string | number) => `/coop/savings/${memberId}/withdraw`,
+      `/koperasi/savings/${transactionId}/verify`,
+    withdraw: (memberId: string | number) => `/koperasi/savings/${memberId}/withdraw`,
     approve: (transactionId: string | number) =>
-      `/coop/savings/${transactionId}/approve`,
+      `/koperasi/savings/${transactionId}/approve`,
     transactions: (memberId: string | number) =>
-      `/coop/savings/${memberId}/transactions`,
+      `/koperasi/savings/${memberId}/transactions`,
     proof: (transactionId: string | number) =>
-      `/coop/savings/${transactionId}/proof`,
+      `/koperasi/savings/${transactionId}/proof`,
+  },
+  koperasiDashboard: {
+    // Per endpoints_index: /api/koperasi/dashboard/*
+    summary: "/koperasi/dashboard/summary",
+    trend: "/koperasi/dashboard/trend",
+    notifications: "/koperasi/dashboard/notifications",
   },
   loans: {
-    apply: "/coop/loans/apply",
-    approve: (id: string | number) => `/coop/loans/${id}/approve`,
-    disburse: (id: string | number) => `/coop/loans/${id}/disburse`,
-    installments: (id: string | number) => `/coop/loans/${id}/installments`,
-    payInstallment: (id: string | number) => `/coop/loans/installments/${id}/pay`,
-    releaseLetter: (id: string | number) => `/coop/loans/${id}/release-letter`,
+    // Per docs/modules/endpoints_index.md → koperasi namespace
+    apply: "/koperasi/loans/apply",
+    approve: (id: string | number) => `/koperasi/loans/${id}/approve`,
+    disburse: (id: string | number) => `/koperasi/loans/${id}/disburse`,
+    installments: (id: string | number) => `/koperasi/loans/${id}/installments`,
+    payInstallment: (id: string | number) => `/koperasi/loans/installments/${id}/pay`,
+    releaseLetter: (id: string | number) => `/koperasi/loans/${id}/release-letter`,
   },
   tickets: {
     list: "/tickets",
@@ -125,10 +156,12 @@ export const API_ENDPOINTS = {
     update: (id: string) => `/tickets/${id}`,
   },
   notifications: {
+    // Vendor-level notifications (per docs/modules/notification.md → Vendor Routes)
     list: "/notifications",
     create: "/notifications",
     status: (id: string | number) => `/notifications/${id}`,
-    reminders: "/notifications/reminders",
+    // Tenant-level reminders live under koperasi namespace
+    reminders: "/koperasi/notifications/reminders",
   },
 } as const;
 

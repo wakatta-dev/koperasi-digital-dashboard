@@ -61,8 +61,12 @@ export type ListNotificationsActionResult = Awaited<
 >;
 
 export async function createNotificationAction(payload: Partial<Notification>) {
-  const res = await createNotificationService(payload);
-  return ensureSuccess(res);
+  try {
+    const res = await createNotificationService(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type CreateNotificationActionResult = Awaited<
@@ -73,8 +77,12 @@ export async function updateNotificationStatusAction(
   id: string | number,
   payload: { status: string }
 ) {
-  const res = await updateNotificationStatusService(id, payload);
-  return ensureSuccess(res);
+  try {
+    const res = await updateNotificationStatusService(id, payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type UpdateNotificationStatusActionResult = Awaited<

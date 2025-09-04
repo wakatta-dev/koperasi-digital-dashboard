@@ -10,7 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Users, Plus, Search, Edit, Eye } from "lucide-react";
+import { Users, Search, Edit, Eye } from "lucide-react";
+import { MemberRegisterDialog } from "@/components/feature/koperasi/membership/member-register-dialog";
 
 const members = [
   {
@@ -54,10 +55,7 @@ export default function KeanggotaanPage() {
           <h2 className="text-2xl font-bold">Keanggotaan</h2>
           <p className="text-muted-foreground">Kelola data anggota koperasi</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Tambah Anggota
-        </Button>
+        <MemberRegisterDialog />
       </div>
 
       {/* Stats */}

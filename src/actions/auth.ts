@@ -34,15 +34,23 @@ export async function logout(payload: { refresh_token: string }) {
 }
 
 export async function loginAction(payload: { email: string; password: string }) {
-  const res = await loginService(payload);
-  return ensureSuccess(res);
+  try {
+    const res = await loginService(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type LoginActionResult = Awaited<ReturnType<typeof loginAction>>;
 
 export async function refreshTokenAction(payload: { refresh_token: string }) {
-  const res = await refreshTokenService(payload);
-  return ensureSuccess(res);
+  try {
+    const res = await refreshTokenService(payload);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type RefreshTokenActionResult = Awaited<
@@ -57,10 +65,14 @@ export async function logoutAction() {
     refreshToken = undefined;
   }
   if (!refreshToken) {
-    throw new Error("No refresh token available");
+    return null;
   }
-  const res = await logoutService({ refresh_token: refreshToken });
-  return ensureSuccess(res);
+  try {
+    const res = await logoutService({ refresh_token: refreshToken });
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type LogoutActionResult = Awaited<ReturnType<typeof logoutAction>>;

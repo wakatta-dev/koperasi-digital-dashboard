@@ -15,3 +15,7 @@ export * from "./transactions";
 export * from "./savings";
 export * from "./loans";
 export * from "./ticketing";
+export * from "./cashbook";
+export * from "./asset";
+export * from "./membership";
+export * from "./dashboard";

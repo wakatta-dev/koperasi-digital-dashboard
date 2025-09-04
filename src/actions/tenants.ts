@@ -88,8 +88,12 @@ export async function updateTenantModule(
 export async function listTenantsAction(
   params?: Record<string, string | number>
 ) {
-  const res = await listTenantsService(params);
-  return ensureSuccess(res);
+  try {
+    const res = await listTenantsService(params);
+    return ensureSuccess(res);
+  } catch {
+    return [];
+  }
 }
 
 export type ListTenantsActionResult = Awaited<
@@ -97,8 +101,12 @@ export type ListTenantsActionResult = Awaited<
 >;
 
 export async function getTenantByDomainAction(domain: string) {
-  const res = await getTenantByDomain(domain);
-  return ensureSuccess(res);
+  try {
+    const res = await getTenantByDomain(domain);
+    return ensureSuccess(res);
+  } catch {
+    return null;
+  }
 }
 
 export type GetTenantByDomainActionResult = Awaited<
