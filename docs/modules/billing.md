@@ -1,225 +1,213 @@
-# Modul Billing
+# Billing API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Billing. Modul ini bertanggung jawab atas pengelolaan produk/plan berlangganan, langganan tenant, tagihan (invoice), pembayaran manual, serta audit status. Modul juga mengontrol aktivasi/nonaktif modul-tenant berdasarkan status langganan/tagihan.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/billing/entity.go`
-- `internal/modules/billing/repository.go`
-- `internal/modules/billing/service.go`
-- `internal/modules/billing/handler.go`
-- `internal/modules/billing/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
+- Authorization: `Bearer <token>`
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- Vendor: mengelola plan, menerbitkan dan memantau invoice, memverifikasi pembayaran, melihat ringkasan status langganan dan audit.
-- Koperasi: melihat daftar/detil tagihan, mengunggah bukti pembayaran manual, memantau status langganan untuk akses modul koperasi (simpanan, pinjaman, dsb.).
-- UMKM: melihat tagihan, unggah bukti pembayaran, memantau status langganan untuk akses modul operasional (POS, marketplace, dsb.).
-- BUMDes: melihat tagihan, unggah bukti pembayaran, memantau status langganan untuk akses modul per unit usaha/penyewaan.
+## Ringkasan Endpoint
 
-Catatan: Aktivasi/nonaktif modul tenant dilakukan via entitas `tenant.TenantModule` oleh Billing ketika status langganan berubah (lihat Integrasi & Dampak ke Modul Tenant).
+- GET `/plans?limit=..&cursor=..` — daftar plan → 200 `APIResponse<Plan[]>`
+- POST `/plans` — buat plan → 201 `APIResponse<Plan>`
+- GET `/plans/:id` — detail plan → 200 `APIResponse<Plan>`
+- PUT `/plans/:id` — ubah plan → 200 `APIResponse<Plan>`
+- PATCH `/plans/:id/status` — ubah status plan → 200 `APIResponse<Plan>`
+- DELETE `/plans/:id` — hapus plan → 200 `APIResponse<{ id: number }>`
+- GET `/invoices?limit=..&cursor=..` — vendor: daftar invoice → 200 `APIResponse<Invoice[]>`
+- POST `/invoices` — vendor: buat invoice → 201 `APIResponse<Invoice>`
+- GET `/invoices/:id` — vendor: detail invoice → 200 `APIResponse<Invoice>`
+- PUT `/invoices/:id` — vendor: ubah invoice → 200 `APIResponse<Invoice>`
+- PATCH `/invoices/:id/status` — vendor: ubah status → 200 `APIResponse<Invoice>`
+- DELETE `/invoices/:id` — vendor: hapus → 200 `APIResponse<{ id: number }>`
+- POST `/invoices/:id/payments` — vendor: terima pembayaran manual → 201 `APIResponse<Payment>`
+- POST `/payments/:id/verify` — vendor: verifikasi pembayaran → 200 `APIResponse<Payment>`
+- POST `/payment-gateways/:gateway/webhook` — webhook gateway → 200 `APIResponse<null>`
+- GET `/client/invoices?limit=..&cursor=..` — client: daftar invoice → 200 `APIResponse<Invoice[]>`
+- GET `/client/invoices/:id` — client: detail invoice → 200 `APIResponse<Invoice>`
+- GET `/client/invoices/:id/audits` — client: audit invoice → 200 `APIResponse<StatusAudit[]>`
+- GET `/client/subscription` — client: status subscription → 200 `APIResponse<TenantSubscription>`
+- GET `/subscriptions?limit=..&cursor=..` — vendor: daftar subscription → 200 `APIResponse<TenantSubscription[]>`
+- PATCH `/subscriptions/:id/status` — vendor: ubah status → 200 `APIResponse<TenantSubscription>`
+- GET `/subscriptions/summary` — vendor: ringkasan → 200 `APIResponse<{ active: number; suspended: number; overdue: number }>`
+- GET `/audits?limit=..&cursor=..` — vendor: daftar audit → 200 `APIResponse<StatusAudit[]>`
 
-## Arsitektur & Komponen
+## Skema Data Ringkas
 
-- Repository: akses data untuk Plan, Subscription, Invoice, Payment, dan operasi pembantu (pencarian, list, update status, aktivasi modul tenant).
-- Service: logika bisnis billing (hitung total invoice, penomoran, validasi, perubahan status, audit, re-aktivasi modul ketika pembayaran diverifikasi, penandaan overdue, dsb.).
-- Handler (HTTP): validasi input, parsing query/path, memanggil service, dan menuliskan response yang terstandarisasi.
-- AuditService: mencatat histori perubahan status untuk invoice dan subscription.
-- Finance: integrasi sederhana untuk pencatatan kas masuk saat pembayaran terverifikasi melalui `CreateTransaction`.
+- Plan: `id`, `name`, `type`, `price`, `status`, `module_code`, `created_at`, `updated_at`
+- TenantSubscription: `id`, `tenant_id`, `plan_id`, `start_date`, `end_date?`, `status`, `created_at`, `updated_at`, preload `plan`
+- Invoice: `id`, `tenant_id`, `number`, `issued_at`, `due_date`, `subscription_id?`, `total`, `status` (`pending|paid|overdue`), `items[]`
+- InvoiceItem: `id`, `invoice_id`, `description`, `quantity`, `price`
+- Payment: `id`, `invoice_id`, `method`, `proof_url`, `amount?`, `status` (`pending|verified|rejected`), `gateway?`, `external_id?`, `paid_at?`, `created_at`
+- StatusAudit: `id`, `entity_type` (`invoice|subscription`), `entity_id`, `old_status`, `new_status`, `changed_by`, `changed_at`
 
-## Entitas & Skema Data
+## Payload Utama
 
-Ringkasannya (lihat tag GORM pada file entitas untuk detail kolom):
+- Plan (create/update):
+  - `name` (string), `type` (string), `price` (number), `module_code` (string)
 
-- Plan
-  - `id`, `name`, `type`, `price`, `status`, `module_code`, `created_at`, `updated_at`
-- TenantSubscription
-  - `id`, `tenant_id`, `plan_id`, `start_date`, `end_date?`, `status` (default: `active`), timestamp, preload `Plan`
-- Invoice
-  - `id`, `tenant_id`, `number` (unik), `issued_at`, `due_date`, `subscription_id?`, `total`, `status` (`pending|paid|overdue`), `items[]`
-- InvoiceItem
-  - `id`, `invoice_id`, `description`, `quantity`, `price`
-- Payment
-  - `id`, `invoice_id`, `method` (saat ini `manual`), `proof_url`, `amount?`, `status` (`pending|verified|rejected`), `gateway?`, `external_id?`, `paid_at`, `created_at`
-- StatusAudit
-  - `id`, `entity_type` (`invoice|subscription`), `entity_id`, `old_status`, `new_status`, `changed_by`, `changed_at`
+- UpdatePlanStatusRequest:
+  - `{ status: string }`
 
-Enum dan konstanta penting:
-- InvoiceStatus: `pending`, `paid`, `overdue`.
-- PaymentGateway: saat ini `midtrans` (placeholder integrasi gateway; webhook belum diimplementasikan).
+- Invoice (create/update):
+  - `tenant_id` (number), `issued_at` (RFC3339), `due_date` (RFC3339), `subscription_id?` (number), `items[]` (`description`, `quantity`, `price`)
 
-## Alur Bisnis Utama
+- UpdateInvoiceStatusRequest:
+  - `{ status: 'pending'|'paid'|'overdue', note?: string }`
 
-1) Plan (produk paket langganan)
-- Vendor dapat membuat, membaca, memperbarui, dan menghapus plan.
+- PaymentRequest (client submit ke endpoint vendor):
+  - `{ method: string, proof_url: string, gateway?: string, external_id?: string }`
 
+- VerifyPaymentRequest (vendor verify):
+  - `{ status: 'verified'|'rejected', gateway?: string, external_id?: string }`
 
-2) Subscription (langganan tenant)
-- Pembuatan subscription akan mengisi `start_date` dan `status` default `active`.
-- Pembatalan (cancel) mengisi `end_date` dan mencatat audit ke `cancelled`.
-- Suspend (mis. karena overdue) mengubah status ke `suspended` dan menonaktifkan semua modul tenant.
-- Ringkasan subscription (jumlah `active`, `suspended`, `overdue`) tersedia untuk Vendor.
+## Bentuk Response
 
-3) Invoice
-- Nomor invoice otomatis dibuat jika kosong dan dijamin unik.
-- `total` dihitung dari agregasi `items.quantity * items.price`.
-- Mark as overdue akan mengubah status invoice ke `overdue` dan melakukan suspend subscription terkait.
-- Listing mendukung filter `status` dan `periode` (format `YYYY-MM`).
+- Semua endpoint memakai `APIResponse<T>`.
+- Endpoint list menyediakan `meta.pagination` bila mendukung cursor.
 
-4) Payment Manual
-- Tenant mengunggah `proof_url` pembayaran manual pada invoice miliknya.
-- Vendor melakukan verifikasi (`verified` atau `rejected`).
-- Jika `verified`: invoice menjadi `paid`, subscription (jika ada) aktif kembali, modul tenant diaktifkan, dan transaksi kas masuk dicatat di modul keuangan.
+## TypeScript Types (Request & Response)
 
-5) Audit Status
-- Setiap perubahan status pada `invoice` atau `subscription` dicatat di `StatusAudit` untuk pelacakan historis.
+```ts
+// Common
+export type Rfc3339String = string;
 
-## Endpoint API
-
-Semua endpoint menggunakan format `APIResponse` dan memerlukan autentikasi `Bearer` serta konteks tenant melalui header `X-Tenant-ID`.
-
-### Paket (Plans)
-- `GET /plans?limit={n}&cursor={c?}` — daftar plan.
-- `POST /plans` — buat plan baru.
-- `GET /plans/{id}` — detail plan.
-- `PUT /plans/{id}` — ubah plan.
-- `PATCH /plans/{id}/status` — ubah status plan.
-- `DELETE /plans/{id}` — hapus plan.
-
-### Invoice
-- `GET /invoices?limit={n}&cursor={c?}` — daftar invoice (vendor).
-- `POST /invoices` — buat invoice (vendor).
-- `GET /invoices/{id}` — detail invoice (vendor).
-- `PUT /invoices/{id}` — ubah invoice (vendor).
-- `PATCH /invoices/{id}/status` — ubah status invoice (vendor).
-- `DELETE /invoices/{id}` — hapus invoice (vendor).
-- `POST /invoices/{id}/payments` — tambah pembayaran manual.
-- `GET /client/invoices?limit={n}&cursor={c?}` — daftar invoice tenant.
-- `GET /client/invoices/{id}` — detail invoice tenant.
-- `GET /client/invoices/{id}/audits?limit={n}&cursor={c?}` — histori audit invoice.
-
-### Pembayaran
-- `POST /payments/{id}/verify` — verifikasi pembayaran manual.
-- `POST /payment-gateways/{gateway}/webhook` — terima webhook gateway.
-
-### Langganan (Subscriptions)
-- `GET /subscriptions?limit={n}&cursor={c?}` — daftar subscription (vendor).
-- `PATCH /subscriptions/{id}/status` — ubah status subscription (vendor).
-- `GET /subscriptions/summary` — ringkasan subscription (vendor).
-- `GET /client/subscription` — status langganan tenant.
-
-### Audits
-- `GET /audits?limit={n}&cursor={c?}` — daftar audit status.
-
-## Status & Transisi
-
-- Invoice
-  - `pending` → `paid` (ketika payment `verified`)
-  - `pending` → `overdue` (melewati `due_date` dan ditandai overdue)
-
-- Subscription
-  - `active` → `suspended` (ketika invoice terkait jadi `overdue`)
-  - `suspended` → `active` (ketika payment terverifikasi)
-  - `cancelled` (pembatalan): status diubah ke `cancelled`, `end_date` diisi, dan dicatat di audit.
-
-Semua perubahan status dicatat ke `StatusAudit` untuk audit trail.
-
-## Paginasi & Response
-
-- Paginasi menggunakan cursor (string/ID terakhir) dan `limit`.
-- Bidang `meta.pagination` memiliki `next_cursor`, `has_next`, `has_prev`, dan `limit`.
-- Kesalahan (error) khusus akan berada di objek `errors` pada response seragam.
-
-Contoh response:
-```json
-{
-  "data": [
-    {"id": 1, "number": "INV-001"}
-  ],
-  "meta": {
-    "pagination": {
-      "next_cursor": null,
-      "prev_cursor": null
-    }
-  }
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export interface Plan {
+  id: number;
+  name: string;
+  type: string;
+  price: number;
+  status: string;
+  module_code: string;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+export interface TenantSubscription {
+  id: number;
+  tenant_id: number;
+  plan_id: number;
+  start_date: Rfc3339String;
+  end_date?: Rfc3339String;
+  status: string;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+  plan?: Plan;
+}
+
+export interface InvoiceItem { id: number; invoice_id: number; description: string; quantity: number; price: number }
+
+export interface Invoice {
+  id: number;
+  tenant_id: number;
+  number: string;
+  issued_at: Rfc3339String;
+  due_date: Rfc3339String;
+  subscription_id?: number;
+  total: number;
+  status: 'pending' | 'paid' | 'overdue';
+  items: InvoiceItem[];
+}
+
+export interface Payment {
+  id: number;
+  invoice_id: number;
+  method: string;
+  proof_url: string;
+  amount?: number;
+  status: 'pending' | 'verified' | 'rejected';
+  gateway?: string;
+  external_id?: string;
+  paid_at?: Rfc3339String;
+  created_at: Rfc3339String;
+}
+
+export interface StatusAudit {
+  id: number;
+  entity_type: 'invoice' | 'subscription';
+  entity_id: number;
+  old_status: string;
+  new_status: string;
+  changed_by: number;
+  changed_at: Rfc3339String;
+}
+
+// Requests
+export interface UpdatePlanStatusRequest { status: string }
+export interface UpdateInvoiceStatusRequest { status: 'pending' | 'paid' | 'overdue'; note?: string }
+export interface PaymentRequest { method: string; proof_url: string; gateway?: string; external_id?: string }
+export interface VerifyPaymentRequest { status: 'verified' | 'rejected'; gateway?: string; external_id?: string }
+
+// Responses
+export type ListPlansResponse = APIResponse<Plan[]>;
+export type CreatePlanResponse = APIResponse<Plan>;
+export type GetPlanResponse = APIResponse<Plan>;
+export type UpdatePlanResponse = APIResponse<Plan>;
+export type UpdatePlanStatusResponse = APIResponse<Plan>;
+export type DeletePlanResponse = APIResponse<{ id: number }>;
+
+export type ListInvoicesResponse = APIResponse<Invoice[]>;
+export type CreateInvoiceResponse = APIResponse<Invoice>;
+export type GetInvoiceResponse = APIResponse<Invoice>;
+export type UpdateInvoiceResponse = APIResponse<Invoice>;
+export type UpdateInvoiceStatusResponse = APIResponse<Invoice>;
+export type DeleteInvoiceResponse = APIResponse<{ id: number }>;
+export type CreatePaymentResponse = APIResponse<Payment>;
+export type VerifyPaymentResponse = APIResponse<Payment>;
+
+export type ListClientInvoicesResponse = APIResponse<Invoice[]>;
+export type GetClientInvoiceResponse = APIResponse<Invoice>;
+export type GetClientInvoiceAuditsResponse = APIResponse<StatusAudit[]>;
+export type GetClientSubscriptionResponse = APIResponse<TenantSubscription>;
+
+export type ListSubscriptionsResponse = APIResponse<TenantSubscription[]>;
+export type UpdateSubscriptionStatusResponse = APIResponse<TenantSubscription>;
+export type GetSubscriptionsSummaryResponse = APIResponse<{ active: number; suspended: number; overdue: number }>;
+export type ListStatusAuditsResponse = APIResponse<StatusAudit[]>;
 ```
 
-## Integrasi & Dampak ke Modul Tenant
+## Paginasi (Cursor)
 
-- Aktivasi/Nonaktif Modul
-  - Saat subscription `suspended` atau invoice `overdue`, Billing memanggil `DeactivateTenantModules(tenantID)` untuk menonaktifkan seluruh modul tenant.
-  - Saat payment `verified`, Billing memanggil `ActivateTenantModules(tenantID)` dan, jika invoice terkait subscription, status subscription dikembalikan ke `active`.
-- Integrasi Keuangan
-  - Setelah payment `verified`, Billing mencatat transaksi kas masuk via modul Finance menggunakan `CreateTransaction`.
+- Endpoint list menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
-Dampak per jenis tenant:
-- Vendor: tidak dinonaktifkan oleh mekanisme ini; Vendor adalah pengelola, bukan tenant yang terbatas modulnya.
-- Koperasi: modul koperasi (mis. simpanan, pinjaman, SHU, RAT) akan dinonaktifkan saat `suspended/overdue`, aktif kembali saat bayar terverifikasi.
-- UMKM: modul operasi (POS, marketplace, inventaris, dsb.) mengikuti status langganan.
-- BUMDes: modul/unit usaha dan penyewaan mengikuti status langganan.
+## Error Singkat yang Perlu Ditangani
 
-## Keamanan
+- 400: `APIResponse` dengan `errors` per field/body/query invalid.
+- 401/403: token salah/tenant tidak aktif/role tidak sesuai.
+- 404: resource tidak ditemukan (plan/invoice/subscription).
 
-- Semua endpoint diasumsikan berada di balik autentikasi `Bearer` dan konteks tenant (mis. header `XTenantID` → disiapkan oleh middleware).
-- Endpoint Client hanya menampilkan/menyentuh resource yang terkait dengan tenant dari token/konteks.
+## Checklist Integrasi FE
 
-## Catatan Implementasi
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Tampilkan status invoice/subscription dan alur verifikasi pembayaran dengan jelas.
+- Saat verifikasi berhasil, sinkronkan fitur yang bergantung (modul tenant aktif kembali).
 
-- Webhook Gateway: `HandleGatewayWebhook` masih placeholder; integrasi spesifik gateway pembayaran perlu ditambahkan.
-- Cron/Worker Overdue: `ListPendingInvoicesBefore(t)` tersedia untuk membantu job yang menandai invoice `overdue` secara terjadwal.
-- Validasi: Handler melakukan validasi dasar (limit/cursor, body parser, nilai enum sederhana). Validasi bisnis tambahan dapat ditambahkan sesuai kebutuhan.
+Tautan teknis (opsional): implementasi ada di `internal/modules/billing/*.go` bila diperlukan detail lebih lanjut.
 
-## Peran Modul Billing per Jenis Tenant (Rangkuman)
-
-- Vendor
-  - Mengatur katalog plan (paket/add-on), menerbitkan dan memonitor invoice, memverifikasi pembayaran, melihat audit & ringkasan langganan.
-- Koperasi
-  - Mengakses daftar/detil tagihan; mengirim bukti bayar; status langganan mengontrol akses ke modul koperasi.
-- UMKM
-  - Mengakses tagihan dan pembayaran; status langganan mengontrol akses ke modul operasional (POS, marketplace, dsb.).
-- BUMDes
-  - Mengakses tagihan dan pembayaran; status langganan mengontrol akses modul unit usaha/penyewaan.
-
-## Skenario Penggunaan
-
-Berikut contoh alur yang umum ditemui ketika menggunakan modul Billing.
-
-### 1. Langganan Baru sampai Pembayaran Terverifikasi
-
-1. **Vendor** membuat Plan baru dan menawarkannya ke tenant.
-2. **Vendor** membuat Subscription untuk tenant tersebut.
-3. **Vendor** menerbitkan Invoice yang terhubung ke subscription.
-4. **Tenant** (Koperasi/UMKM/BUMDes) melihat invoice pada halaman tagihan.
-5. **Tenant** mengunggah bukti pembayaran manual pada invoice.
-6. **Vendor** memverifikasi pembayaran menjadi `verified`.
-7. Status invoice berubah menjadi `paid`, subscription kembali `active`, dan modul tenant otomatis diaktifkan.
-
-### 2. Invoice Melewati Jatuh Tempo
-
-1. Invoice dibuat dan menunggu pembayaran hingga `due_date`.
-2. Tenant tidak melakukan pembayaran sampai tenggat.
-3. Job terjadwal menandai invoice sebagai `overdue`.
-4. Subscription yang terkait berubah menjadi `suspended` dan modul tenant dinonaktifkan.
-5. Tenant kemudian membayar dan mengunggah bukti.
-6. Vendor memverifikasi pembayaran sehingga invoice menjadi `paid` dan subscription kembali `active`.
-7. Sistem mengaktifkan kembali modul tenant serta mencatat transaksi kas masuk.
-
-### 3. Pembatalan Langganan oleh Vendor
-
-1. Vendor memutuskan untuk menghentikan subscription tenant sebelum masa berlaku berakhir.
-2. Endpoint pembatalan mengisi `end_date`, mengubah status menjadi `cancelled`, dan mencatatnya di `StatusAudit`.
-3. Modul tenant dinonaktifkan permanen hingga dibuat subscription baru.
-
-### 4. Audit dan Pelacakan Status
-
-1. Setiap perubahan status pada invoice atau subscription memanggil `AuditService`.
-2. Vendor dapat melihat riwayat perubahan tersebut melalui endpoint audit untuk kebutuhan penelusuran.
-
-Contoh skenario di atas dapat dikombinasikan sesuai kebutuhan bisnis dan dijalankan menggunakan koleksi Postman atau alat serupa.
-
-## Tautan Cepat
-
-- Tenant: [tenant.md](tenant.md)
-- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
-- Notifications: [notification.md](notification.md)
-- Reporting: [reporting.md](reporting.md)

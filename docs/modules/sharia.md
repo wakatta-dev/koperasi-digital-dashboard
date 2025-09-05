@@ -1,124 +1,125 @@
-# Modul Sharia Financing
+# Sharia Financing API — Panduan Integrasi Frontend (Singkat)
 
-Modul Sharia Financing setara alur pinjaman namun mengikuti akad syariah: pengajuan, persetujuan, pencairan, pembayaran angsuran, dan surat lunas.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/sharia/entity.go`
-- `internal/modules/sharia/repository.go`
-- `internal/modules/sharia/service.go`
-- `internal/modules/sharia/handler.go`
-- `internal/modules/sharia/routes.go`
+## Header Wajib
 
-## Endpoint API
-
-Semua endpoint membutuhkan autentikasi `Bearer` dan konteks tenant melalui header `X-Tenant-ID`.
-
-- `POST /sharia-financings/apply` — ajukan pembiayaan syariah.
-- `POST /sharia-financings/{id}/approve` — setujui pembiayaan.
-- `POST /sharia-financings/{id}/disburse` — cairkan pembiayaan.
-- `GET /sharia-financings/{id}/installments?limit={n}&cursor={c?}` — daftar angsuran.
-- `POST /sharia-financings/installments/{id}/pay` — bayar angsuran.
-- `GET /sharia-financings/{id}/release-letter` — surat lunas.
-
-## Rincian Endpoint
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-### `POST /sharia-financings/apply`
-Body `ApplyRequest`:
-- `member_id` (uint, wajib)
-- `akad_type` (string, wajib) — jenis akad, misal *murabahah*
-- `amount` (float64, wajib) — nilai pokok
-- `margin` (float64, wajib) — margin keuntungan
-- `tenor` (int, wajib) — jumlah bulan angsuran
+## Ringkasan Endpoint
 
-Response 201: objek `ShariaFinancing` berstatus `pending`.
+- POST `/sharia-financings/apply` — ajukan pembiayaan → 201 `ShariaFinancing`
+- POST `/sharia-financings/:id/approve` — setujui → 200 `ShariaFinancing`
+- POST `/sharia-financings/:id/disburse` — cairkan → 204 (tanpa body)
+- GET `/sharia-financings/:id/installments?limit=..&cursor=..` — daftar angsuran → 200 `APIResponse<ShariaInstallment[]>`
+- POST `/sharia-financings/installments/:id/pay` — bayar angsuran → 200 `ShariaInstallment`
+- GET `/sharia-financings/:id/release-letter` — surat lunas → 200 `APIResponse<{ message: string }>`
 
-### `POST /sharia-financings/{id}/approve`
-Path:
-- `id` (int, wajib) — ID pembiayaan
+## Skema Data Ringkas
 
-Response 200: objek `ShariaFinancing` berstatus `approved`.
+- ShariaFinancing: `id`, `tenant_id`, `member_id`, `akad_type`, `amount`, `margin`, `tenor`, `status`, `created_at`, preload `installments[]`, `documents[]`
+- ShariaInstallment: `id`, `financing_id`, `due_date`, `amount`, `paid_amount`, `status` (`unpaid|paid`), `penalty`, `paid_at?`
 
-### `POST /sharia-financings/{id}/disburse`
-Path:
-- `id` (int, wajib) — ID pembiayaan
-Body:
-- `{ "method": "transfer|cash|..." }`
+## Payload Utama
 
-Response 204: tanpa body (pembiayaan tercatat cair).
+- ApplyRequest:
+  - `member_id` (number), `akad_type` (string), `amount` (number), `margin` (number), `tenor` (number)
 
-### `GET /sharia-financings/{id}/installments`
-Path:
-- `id` (int, wajib) — ID pembiayaan
+- Disburse payload:
+  - `{ method: string }`
 
-Query:
-- `limit` (wajib, int), `cursor` (opsional, string)
+- PaymentRequest:
+  - `amount` (number), `date` (RFC3339), `method` (string)
 
-Response 200: `data` array `ShariaInstallment` + `meta.pagination`.
+## Bentuk Response
 
-### `POST /sharia-financings/installments/{id}/pay`
-Path:
-- `id` (int, wajib) — ID angsuran
-Body `PaymentRequest`:
-- `amount` (float64, wajib)
-- `date` (RFC3339, wajib)
-- `method` (string, wajib)
+- Endpoint create/update mengembalikan objek langsung; endpoint list/histori dibungkus `APIResponse<T>` dengan `meta.pagination`.
 
-Response 200: `ShariaInstallment` terbaru (status dapat `paid`).
+## TypeScript Types (Request & Response)
 
-### `GET /sharia-financings/{id}/release-letter`
-Path:
-- `id` (int, wajib) — ID pembiayaan
+```ts
+// Common
+export type Rfc3339String = string;
 
-Response 200: `{ "message": "Financing {id} settled" }` bila seluruh angsuran lunas.
-
-## Contoh Payload
-
-- Apply
-```json
-POST /sharia-financings/apply
-{
-  "member_id": 12,
-  "akad_type": "murabahah",
-  "amount": 10000000,
-  "margin": 10.5,
-  "tenor": 12
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
-```
 
-- Disburse
-```json
-POST /sharia-financings/9/disburse
-{ "method": "transfer" }
-```
-
-- Pay Installment
-```json
-POST /sharia-financings/installments/81/pay
-{ "amount": 900000, "date": "2025-09-30T00:00:00Z", "method": "transfer" }
-```
-
-- List Installments (paginasi)
-```json
-GET /sharia-financings/1/installments?limit=2
-{
-  "data": [
-    {"id": 1, "amount": 900000}
-  ],
-  "meta": {
-    "pagination": {
-      "next_cursor": null,
-      "prev_cursor": null
-    }
-  }
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
 }
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export interface ShariaFinancing {
+  id: number;
+  tenant_id: number;
+  member_id: number;
+  akad_type: string;
+  amount: number;
+  margin: number;
+  tenor: number;
+  status: 'pending' | 'approved' | 'disbursed';
+  created_at: Rfc3339String;
+}
+
+export interface ShariaInstallment {
+  id: number;
+  financing_id: number;
+  due_date: Rfc3339String;
+  amount: number;
+  paid_amount: number;
+  status: 'unpaid' | 'paid';
+  penalty: number;
+  paid_at?: Rfc3339String;
+}
+
+// Requests
+export interface ApplicationRequest { akad_type: string; amount: number; margin: number; tenor: number }
+export interface ApplyRequest extends ApplicationRequest { member_id: number }
+export interface DisburseRequest { method: string }
+export interface PaymentRequest { amount: number; date: Rfc3339String; method: string }
+
+// Responses
+export type ApplyShariaFinancingResponse = ShariaFinancing;
+export type ApproveShariaFinancingResponse = ShariaFinancing;
+export type DisburseShariaFinancingResponse = void; // 204
+export type ListShariaInstallmentsResponse = APIResponse<ShariaInstallment[]>;
+export type PayShariaInstallmentResponse = ShariaInstallment;
+export type ShariaReleaseLetterResponse = APIResponse<{ message: string }>;
 ```
 
-## Tautan Cepat
+## Paginasi (Cursor)
 
-- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
-- Billing: [billing.md](billing.md)
-- Membership: [membership.md](membership.md)
+- Endpoint angsuran menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
+
+## Error Singkat yang Perlu Ditangani
+
+- 400: body/query tidak valid.
+- 401/403: token salah/tenant tidak aktif.
+- 404: pembiayaan/angsuran tidak ditemukan.
+
+## Checklist Integrasi FE
+
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Tampilkan margin/akad pada UI agar pengguna paham struktur pembiayaan.
+- Sinkronkan status aplikasi/angsuran setelah aksi (approve, disburse, pay).
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/sharia/*.go` bila diperlukan detail lebih lanjut.

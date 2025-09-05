@@ -1,134 +1,177 @@
-# Modul Asset
+# Asset API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Asset. Modul ini mengelola daftar aset, depresiasi, status, dan ekspor data aset per tenant.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan contoh request.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/asset/entity.go`
-- `internal/modules/asset/dto.go`
-- `internal/modules/asset/repository.go`
-- `internal/modules/asset/service.go`
-- `internal/modules/asset/handler.go`
-- `internal/modules/asset/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- Vendor: pemantauan agregat (opsional).
-- Koperasi/UMKM/BUMDes: input aset, update data, pantau depresiasi, nonaktifkan aset, ekspor.
-
-## Arsitektur & Komponen
-
-- Repository: CRUD aset dan pembacaan riwayat depresiasi.
-- Service: validasi bisnis, perhitungan depresiasi (level service), perubahan status.
-- Handler (HTTP): endpoint CRUD, depresiasi, update status, ekspor.
-
-## Entitas & Skema Data
-
-- Asset
-  - `id`, `tenant_id`, `code`, `name`, `category`, `acquisition_date`, `acquisition_cost`, `depreciation_method`, `useful_life_months`, `location`, `status`, `created_at`
-- AssetDepreciation
-  - `id`, `asset_id`, `period` (timestamp), `depreciation_amount`, `accumulated_depreciation`, `book_value`, `created_at`
-
-Catatan: struktur di atas mengikuti tag dan nama field pada `entity.go`/`dto.go`.
-
-## Alur Bisnis Utama
-
-1) Pencatatan dan pembaruan aset (detail akuisisi, umur manfaat, metode depresiasi, lokasi).
-2) Melihat riwayat depresiasi per aset.
-3) Menonaktifkan/mengaktifkan aset (status control).
-4) Ekspor daftar aset (placeholder integrasi report di handler).
-
-## Endpoint API
-
-Semua endpoint dilindungi `Bearer` + `X-Tenant-ID` dan menggunakan JSON standar.
-
- - `POST /assets` — menambahkan aset baru beserta informasi akuisisi dan parameter depresiasi.
- - `PUT /assets/{id}` — memperbarui detail aset yang ada seperti kategori, umur manfaat, atau lokasi.
- - `DELETE /assets/{id}` — menghapus aset dari daftar tenant.
-- `GET /assets?limit={n}&cursor={c?}` — mengambil daftar aset yang dimiliki tenant beserta ringkasan data.
-- `GET /assets/{id}/depreciation?limit={n}&cursor={c?}` — melihat riwayat perhitungan depresiasi untuk aset tertentu.
- - `PATCH /assets/{id}/status` — mengubah status aset menjadi aktif atau nonaktif.
- - `GET /assets/export` — mengekspor daftar aset untuk diunduh (saat ini placeholder).
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `POST /assets`
-  - Body AssetRequest:
-    - `code`, `name`, `category`
-    - `acquisition_date` (RFC3339), `acquisition_cost`
-    - `depreciation_method` (mis. `straight_line`), `useful_life_months` (int)
-    - `location` (opsional)
-  - Response 201: `data` Asset
+## Ringkasan Endpoint
 
-- `PUT /assets/{id}`
-  - Path: `id` (int)
-  - Body AssetRequest (field lengkap)
-  - Response 200: `data` Asset
+- POST `/assets` — buat aset baru → 201 `Asset` (objek langsung, tanpa wrapper)
+- PUT `/assets/:id` — ubah aset → 200 `Asset` (objek langsung)
+- DELETE `/assets/:id` — hapus aset → 204 (tanpa body)
+- GET `/assets?limit=..&cursor=..` — daftar aset → 200 `APIResponse{ data=[Asset], meta.pagination }`
+- GET `/assets/:id/depreciation?limit=..&cursor=..` — histori depresiasi → 200 `APIResponse{ data=[AssetDepreciation], meta.pagination }`
+- PATCH `/assets/:id/status` — ubah status `active|inactive` → 204 (tanpa body)
+- GET `/assets/export` — placeholder `{ "message": "export not implemented" }`
 
-- `DELETE /assets/{id}`
-  - Path: `id` (int)
-  - Response 204: tanpa body
+## Payload Utama
 
-- `GET /assets`
-  - Query: `limit` (wajib, int), `cursor` (opsional, string)
-  - Response 200: `data` array Asset + `meta.pagination`
+- AssetRequest (POST/PUT):
+  - `code` (string), 
+  - `name` (string), 
+  - `category` (string)
+  - `acquisition_date` (RFC3339), 
+  - `acquisition_cost` (number)
+  - `depreciation_method` (`straight_line|declining_balance`), 
+  - `useful_life_months` (int)
+  - `location` (string, opsional)
 
-- `GET /assets/{id}/depreciation`
-  - Path: `id` (int)
-  - Query: `limit` (wajib, int), `cursor` (opsional, string)
-  - Response 200: `data` array AssetDepreciation + `meta.pagination`
+  Catatan: `acquisition_date` memakai format waktu RFC3339 (contoh: `2025-08-01T00:00:00Z`).
 
-- `PATCH /assets/{id}/status`
-  - Path: `id` (int)
-  - Body StatusRequest: `{ "status": "active|inactive" }`
-  - Response 204: tanpa body
+- StatusRequest (PATCH status):
+  - `{ "status": "active" | "inactive" }`
 
-- `GET /assets/export`
-  - Response 200: placeholder `{ "message": "export not implemented" }`
+## Bentuk Response
 
-## Contoh Payload & Response
+- Standar list/histori (dibungkus `APIResponse`):
+  - `success` (bool), 
+  - `message` (string), 
+  - `data` (array), 
+  - `meta.pagination` (`next_cursor`, `has_next`, `has_prev`, `limit`), 
+  - `errors`
 
-- Create Asset
-```json
-POST /assets
-{
-  "code": "AST-001",
-  "name": "Laptop Kasir",
-  "category": "Elektronik",
-  "acquisition_date": "2025-08-01T00:00:00Z",
-  "acquisition_cost": 12000000,
-  "depreciation_method": "straight_line",
-  "useful_life_months": 36,
-  "location": "Toko Pusat"
+- POST/PUT: objek `Asset` langsung (tidak dibungkus `APIResponse`).
+- DELETE/PATCH status: `204 No Content` (tanpa body JSON).
+
+## TypeScript Types (Request & Response)
+
+```ts
+// Common
+export type Rfc3339String = string;
+export type DepreciationMethod = 'straight_line' | 'declining_balance';
+
+// Payloads
+export interface AssetRequest {
+  code: string;
+  name: string;
+  category: string;
+  acquisition_date: Rfc3339String;
+  acquisition_cost: number;
+  depreciation_method: DepreciationMethod;
+  useful_life_months: number;
+  location?: string;
 }
-```
 
-- Update Status
-```json
-PATCH /assets/5/status
-{ "status": "inactive" }
-```
-
-- List Assets (paginasi)
-```json
-GET /assets?limit=2
-{
-  "data": [
-    {"id": 1, "name": "Laptop Kasir"}
-  ],
-  "meta": {
-    "pagination": {
-      "next_cursor": "2",
-      "prev_cursor": null
-    }
-  }
+export interface StatusRequest {
+  status: 'active' | 'inactive';
 }
+
+// Entities
+export interface Asset {
+  id: number;
+  tenant_id: number;
+  code: string;
+  name: string;
+  category: string;
+  acquisition_date: Rfc3339String;
+  acquisition_cost: number;
+  depreciation_method: DepreciationMethod;
+  useful_life_months: number;
+  location?: string;
+  status: 'active' | 'inactive';
+  created_at: Rfc3339String;
+}
+
+export interface AssetDepreciation {
+  id: number;
+  asset_id: number;
+  period: Rfc3339String;
+  depreciation_amount: number;
+  accumulated_depreciation: number;
+  book_value: number;
+  created_at: Rfc3339String;
+}
+
+// API wrapper for list/history endpoints
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
+}
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Endpoint-specific shapes
+export type CreateAssetRequest = AssetRequest; // POST /assets
+export type CreateAssetResponse = Asset; // 201
+
+export type UpdateAssetRequest = AssetRequest; // PUT /assets/:id
+export type UpdateAssetResponse = Asset; // 200
+
+export type DeleteAssetResponse = void; // 204
+
+export interface ListAssetsQuery { // GET /assets
+  limit: number;
+  cursor?: string;
+}
+export type ListAssetsResponse = APIResponse<Asset[]>; // 200
+
+export interface GetDepreciationQuery { // GET /assets/:id/depreciation
+  limit: number;
+  cursor?: string;
+}
+export type DepreciationHistoryResponse = APIResponse<AssetDepreciation[]>; // 200
+
+export type UpdateAssetStatusRequest = StatusRequest; // PATCH /assets/:id/status
+export type UpdateAssetStatusResponse = void; // 204
+
+export interface ExportAssetsResponse { // GET /assets/export
+  message: string; // "export not implemented"
+}
+
+// Error union you may encounter on POST/PUT/DELETE/PATCH
+export type HttpError =
+  | APIResponse<null> // when backend uses standardized wrapper
+  | { error: string }; // Fiber default error handler
 ```
 
-## Tautan Cepat
+## Paginasi (Cursor)
 
-- Reporting: [reporting.md](reporting.md)
-- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
+- Kirim `limit` (wajib, int) dan opsional `cursor` (string angka id terakhir).
+- Baca `meta.pagination.next_cursor`; jika ada dan `has_next=true`, gunakan nilainya untuk request berikutnya (`cursor=<next_cursor>`).
+
+## Error Singkat yang Perlu Ditangani
+
+- 400 (validasi, untuk list/histori): `APIResponse` dengan `errors` per field, contoh: `{ "errors": { "limit": ["limit is required"] } }`
+- 400 (POST/PUT body tidak valid): error JSON standar Fiber dengan pesan singkat.
+- 401/403: token salah/tenant tidak aktif.
+- 404: resource tidak ditemukan.
+
+## Checklist Integrasi FE
+
+- Pastikan header `Authorization` dan `X-Tenant-ID` selalu dikirim.
+- Kirim `acquisition_date` dalam format RFC3339.
+- Handle 204 (DELETE/PATCH) tanpa mencoba parse JSON.
+- Untuk list/histori, ambil `meta.pagination.next_cursor` dan `has_next` untuk tombol "Muat lebih banyak"/infinite scroll.
+- Simpan/mapping `status` (`active|inactive`) untuk kontrol tampilan.
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/asset/*.go` bila diperlukan detail lebih lanjut.

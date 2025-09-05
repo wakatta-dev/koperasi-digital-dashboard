@@ -1,136 +1,171 @@
-# Modul Notifications
+# Notifications API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Notifications. Modul ini mengelola pembuatan, listing, dan pembaruan status notifikasi lintas kanal (IN_APP/EMAIL/PUSH) per tenant.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/notification/entity.go`
-- `internal/modules/notification/repository.go`
-- `internal/modules/notification/service.go`
-- `internal/modules/notification/handler.go`
-- `internal/modules/notification/routes.go`
-- `internal/modules/notification/device_token.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- Vendor: dapat mengirim dan meninjau notifikasi sistem global.
-- Koperasi/UMKM/BUMDes: membuat notifikasi internal (mis. billing, RAT, pinjaman, simpanan) kepada user tertentu atau broadcast per tenant.
-
-## Arsitektur & Komponen
-
-- Repository: akses data `Notification` (create/list/read/update status) dengan filter dan cursor.
-- Service: normalisasi kanal/tipe/status, generate id (uuid), dan placeholder trigger pengiriman channel non in-app.
-- Handler (HTTP): endpoint pembuatan, listing dengan filter, dan update status.
-
-## Entitas & Skema Data
-
-- Notification
-  - `id` (uuid), `tenant_id`, `user_id?`, `segment?` (`VENDOR|KOPERASI|UMKM|BUMDES`), `channel` (`IN_APP|EMAIL|PUSH`), `type` (`SYSTEM|BILLING|RAT|LOAN|SAVINGS|CUSTOM`), `category`, `target_type` (`SINGLE|ALL|GROUP`), `title`, `body`, `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`), `send_status` (`PENDING|SENT|FAILED`), `created_at`, `sent_at?`, `read_at?`
-- NotificationFilter
-  - `tenant_id`, `user_id?`, `type?`, `status?`, `category?`, `send_status?`, `from?`, `to?`
-- NotificationReminder
-  - `event_type`, `schedule_offset`, `active`
-
-## Alur Bisnis Utama
-
-1) Pembuatan Notifikasi
-- Simpan notifikasi dengan status default `DRAFT` bila kosong. Kanal/tipe dikonversi ke uppercase.
-- Placeholder untuk integrasi kanal `EMAIL`/`PUSH` (belum diimplementasi; dapat ditambahkan).
-
-2) Listing Notifikasi
-- Filter berdasarkan tenant, user, tipe/status, dan rentang tanggal (`created_at`).
-- Paginasi menggunakan cursor string (`id` uuid).
-
-3) Pembaruan Status
-- Ubah status notifikasi; otomatis menyetel `sent_at` bila `SENT` dan `read_at` bila `READ`.
-
-4) Token Perangkat
-- Pengguna mendaftarkan token perangkat untuk menerima push notification dan dapat menghapusnya saat logout.
-
-## Endpoint API
-
-Semua response menggunakan format `APIResponse`.
-
-### Tenant Routes
-
-- `POST /notifications` — buat notifikasi.
-- `GET /notifications?tenant_id={id?}&user_id={id?}&type={t?}&status={s?}&category={c?}&send_status={s?}&from={RFC3339?}&to={RFC3339?}&limit={n}&cursor={c?}` — daftar notifikasi (cursor id uuid). Jika `tenant_id` tidak dikirim, sistem mengambil dari context (header `X-Tenant-ID`/domain).
-- `PATCH /notifications/{id}` — update `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`).
-- `GET /notifications/reminders` — daftar reminder penjadwalan notifikasi untuk tenant saat ini.
-- `PUT /notifications/reminders` — upsert reminder penjadwalan notifikasi (batch).
-- `POST /notifications/device-tokens` — simpan token perangkat untuk push notification.
-- `DELETE /notifications/device-tokens` — hapus token perangkat.
-
-### Vendor Routes
-
-- `POST /notifications/broadcast` — broadcast notifikasi ke tenant tertentu.
-- `POST /notifications/bulk` — antre notifikasi bulk berdasarkan segmen tenant.
-- `GET /notifications?tenant={id?}&category={c?}&date={YYYY-MM-DD?}&limit={n}&cursor={c?}` — daftar notifikasi vendor.
-
-Keamanan: semua endpoint dilindungi `Bearer` token + `X-Tenant-ID`.
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant (atau domain)
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `POST /notifications`
-  - Body:
-    - `tenant_id` (wajib, > 0)
-    - `user_id` (opsional, > 0 untuk per-user; kosong untuk broadcast tenant)
-    - `segment` (opsional, `VENDOR|KOPERASI|UMKM|BUMDES`)
-    - `channel` (wajib, `IN_APP|EMAIL|PUSH`)
-    - `type` (wajib, `SYSTEM|BILLING|RAT|LOAN|SAVINGS|CUSTOM`)
-    - `category` (wajib)
-    - `target_type` (wajib, `SINGLE|ALL|GROUP`)
-    - `title` (wajib, maks 100)
-    - `body` (wajib)
-    - `status` (opsional, `DRAFT|PUBLISHED|SENT|READ|ARCHIVED`; default `DRAFT`)
-    - `send_status` (opsional, `PENDING|SENT|FAILED`; default `PENDING`)
-  - Response 201: `data` Notification (dengan `id` uuid, timestamps). Untuk `EMAIL/PUSH` pengiriman belum diimplementasi (placeholder).
+## Ringkasan Endpoint
 
-- `GET /notifications`
-  - Query:
-    - `tenant_id` (opsional; default dari context/`X-Tenant-ID`)
-    - `user_id` (opsional)
-    - `type` (opsional)
-    - `status` (opsional)
-    - `category` (opsional)
-    - `send_status` (opsional)
-    - `from` (opsional, RFC3339), `to` (opsional, RFC3339)
-    - `limit` (wajib, int>0), `cursor` (opsional, string id uuid terakhir)
-  - Response 200: `data` array Notification + `meta.pagination`.
+- POST `/notifications` — buat notifikasi → 201 `APIResponse<Notification>`
+- GET `/notifications?tenant_id=..&user_id=..&type=..&status=..&category=..&send_status=..&from=..&to=..&limit=..&cursor=..` — daftar → 200 `APIResponse<Notification[]>`
+- PATCH `/notifications/:id` — ubah status → 200 `APIResponse<{ id: string; status: string }>`
+- GET `/notifications/reminders` — daftar reminder tenant → 200 `APIResponse<NotificationReminder[]>`
+- PUT `/notifications/reminders` — upsert reminder (batch) → 200 `APIResponse<null>`
+- POST `/notifications/device-tokens` — daftar token perangkat → 201 `APIResponse<{ token: string }>`
+- DELETE `/notifications/device-tokens` — hapus token perangkat → 200 `APIResponse<{ token: string }>`
+- POST `/vendor/notifications/broadcast` — vendor: broadcast ke tenant → 200 `APIResponse<null>`
+- POST `/vendor/notifications/bulk` — vendor: antrian bulk by segment → 200 `APIResponse<null>`
+- GET `/vendor/notifications?tenant=..&category=..&date=..&limit=..&cursor=..` — vendor: daftar → 200 `APIResponse<Notification[]>`
 
-- `PATCH /notifications/{id}`
-  - Path: `id` (string uuid, wajib)
-  - Body: `{ "status": "DRAFT|PUBLISHED|SENT|READ|ARCHIVED" }` (wajib)
-  - Response 200: `data` `{ "id": "...", "status": "..." }`. Timestamp `sent_at` diisi saat `SENT`, `read_at` saat `READ`.
+## Skema Data Ringkas
 
-- `GET /notifications/reminders`
-  - Response 200: `data` array `NotificationReminder` untuk tenant saat ini.
+- Notification: `id` (uuid), `tenant_id?`, `user_id?`, `segment?` (`VENDOR|KOPERASI|UMKM|BUMDES`), `channel` (`IN_APP|EMAIL|PUSH`), `type` (`SYSTEM|BILLING|RAT|LOAN|SAVINGS|CUSTOM`), `category`, `target_type` (`SINGLE|ALL|GROUP`), `title`, `body`, `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`), `send_status` (`PENDING|SENT|FAILED`), `created_at`, `sent_at?`, `read_at?`
+- NotificationReminder: `id` (uuid), `tenant_id`, `event_type`, `schedule_offset`, `active`, `created_at`, `updated_at`
+- DeviceToken: `id` (uuid), `user_id`, `token`, `created_at`
 
-- `PUT /notifications/reminders`
+## Payload Utama
 
-  - Body: array `reminderRequest`:
-    - `event_type` (wajib)
-    - `schedule_offset` (wajib, int; offset jadwal dalam satuan domain yang ditetapkan)
-    - `active` (opsional, bool)
-  - Response 200: tanpa data (`data: null`) — seluruh entri di-upsert.
+- CreateNotificationRequest:
+  - `tenant_id` (number, wajib), `user_id?` (number), `channel` (`IN_APP|EMAIL|PUSH`), `type` (`SYSTEM|BILLING|RAT|LOAN|SAVINGS|CUSTOM`), `category` (string), `title` (string), `body` (string), `status?` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`)
 
-- `POST /notifications/device-tokens`
-  - Body: `{ "token": "<string>" }` (wajib; token perangkat FCM/APNS untuk user saat ini)
-  - Response 201: `data` `{ "token": "..." }`.
+- UpdateNotificationStatusRequest:
+  - `status` (`DRAFT|PUBLISHED|SENT|READ|ARCHIVED`)
 
-- `DELETE /notifications/device-tokens`
-  - Body: `{ "token": "<string>" }` (wajib)
-  - Response 200: `data` `{ "token": "..." }`.
+- ReminderRequest[] (PUT reminders):
+  - Elemen: `id?`, `event_type`, `schedule_offset` (number), `active?` (boolean)
 
-## Tautan Cepat
+- DeviceTokenRequest:
+  - `{ token: string }`
 
-- Billing: [billing.md](billing.md)
-- Ticket: [ticket.md](ticket.md)
-- RAT: [rat.md](rat.md)
-- Livechat: [livechat.md](livechat.md)
+- Vendor Broadcast Request:
+  - `{ message: string, targetType: 'SINGLE'|'ALL'|'GROUP', tenantIDs?: number[], category: string }`
+
+- Vendor Bulk Request:
+  - `{ message: string, targetType: 'SINGLE'|'ALL'|'GROUP', segment: 'VENDOR'|'KOPERASI'|'UMKM'|'BUMDES' }`
+
+## Bentuk Response
+
+- Semua endpoint memakai `APIResponse<T>`.
+- Endpoint list menyediakan `meta.pagination` bila mendukung cursor.
+
+## TypeScript Types (Request & Response)
+
+```ts
+// Common
+export type Rfc3339String = string;
+
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
+}
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export type Segment = 'VENDOR' | 'KOPERASI' | 'UMKM' | 'BUMDES';
+export type Channel = 'IN_APP' | 'EMAIL' | 'PUSH';
+export type NotificationType = 'SYSTEM' | 'BILLING' | 'RAT' | 'LOAN' | 'SAVINGS' | 'CUSTOM';
+export type TargetType = 'SINGLE' | 'ALL' | 'GROUP';
+export type NotificationStatus = 'DRAFT' | 'PUBLISHED' | 'SENT' | 'READ' | 'ARCHIVED';
+export type SendStatus = 'PENDING' | 'SENT' | 'FAILED';
+
+export interface Notification {
+  id: string;
+  tenant_id?: number;
+  user_id?: number;
+  segment?: Segment;
+  channel: Channel;
+  type: NotificationType;
+  category: string;
+  target_type: TargetType;
+  title: string;
+  body: string;
+  status: NotificationStatus;
+  send_status: SendStatus;
+  created_at: Rfc3339String;
+  sent_at?: Rfc3339String;
+  read_at?: Rfc3339String;
+}
+
+export interface NotificationReminder {
+  id: string;
+  tenant_id: number;
+  event_type: string;
+  schedule_offset: number;
+  active: boolean;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+export interface DeviceToken { id: string; user_id: number; token: string; created_at: Rfc3339String }
+
+// Requests
+export interface CreateNotificationRequest {
+  tenant_id: number;
+  user_id?: number;
+  channel: Channel;
+  type: NotificationType;
+  category: string;
+  title: string;
+  body: string;
+  status?: NotificationStatus;
+}
+export interface UpdateNotificationStatusRequest { status: NotificationStatus }
+export interface ReminderRequest { id?: string; event_type: string; schedule_offset: number; active?: boolean }
+export interface DeviceTokenRequest { token: string }
+export interface VendorBroadcastRequest { message: string; targetType: TargetType; tenantIDs?: number[]; category: string }
+export interface VendorBulkRequest { message: string; targetType: TargetType; segment: Segment }
+
+// Responses
+export type CreateNotificationResponse = APIResponse<Notification>;
+export type ListNotificationsResponse = APIResponse<Notification[]>;
+export type UpdateNotificationResponse = APIResponse<{ id: string; status: NotificationStatus }>;
+export type GetRemindersResponse = APIResponse<NotificationReminder[]>;
+export type UpsertRemindersResponse = APIResponse<null>;
+export type RegisterDeviceTokenResponse = APIResponse<{ token: string }>;
+export type UnregisterDeviceTokenResponse = APIResponse<{ token: string }>;
+export type VendorBroadcastResponse = APIResponse<null>;
+export type VendorBulkResponse = APIResponse<null>;
+```
+
+## Paginasi (Cursor)
+
+- Endpoint list (`GET /notifications`, vendor list) menggunakan cursor string (`id` uuid) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
+
+## Error Singkat yang Perlu Ditangani
+
+- 400: `APIResponse` dengan `errors` per field/body query invalid.
+- 401/403: token salah/tenant tidak aktif/role vendor tidak sesuai.
+- 404: resource tidak ditemukan (id salah pada update status).
+
+## Checklist Integrasi FE
+
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Untuk list, gunakan filter sesuai kebutuhan dan konsumsi `meta.pagination`.
+- Pastikan status transisi UI saat `READ` dan `SENT` sesuai.
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/notification/*.go` bila diperlukan detail lebih lanjut.
 
 ## Contoh Payload
 
@@ -174,19 +209,28 @@ Header umum:
 ## Paginasi & Response
 
 - Cursor string (uuid `id`) dan `limit` wajib untuk listing. `meta.pagination` disertakan.
+ - Catatan: seluruh contoh response di dokumen ini diasumsikan terbungkus `APIResponse`. Untuk ringkas, beberapa contoh hanya menampilkan bagian `data`.
 
 Contoh response:
 ```json
 {
+  "success": true,
+  "message": "success",
   "data": [
     {"id": "notif-1", "title": "Tagihan Jatuh Tempo"}
   ],
   "meta": {
+    "request_id": "...",
+    "timestamp": "2025-08-25T10:00:00Z",
     "pagination": {
       "next_cursor": null,
-      "prev_cursor": null
+      "prev_cursor": null,
+      "has_next": false,
+      "has_prev": false,
+      "limit": 10
     }
-  }
+  },
+  "errors": null
 }
 ```
 

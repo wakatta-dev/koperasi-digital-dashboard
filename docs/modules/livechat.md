@@ -1,130 +1,111 @@
-# Modul Livechat
+# Livechat API — Panduan Integrasi Frontend (Singkat)
 
-Modul Livechat memungkinkan komunikasi real-time antara tenant dan agen dukungan. Bila agen tidak tersedia, modul membuat tiket dan mengirim notifikasi saat ada balasan agen.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama:
-- `internal/modules/livechat/entity.go`
-- `internal/modules/livechat/repository.go`
-- `internal/modules/livechat/service.go`
-- `internal/modules/livechat/handler.go`
-- `internal/modules/livechat/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- **Agen Dukungan**: memulai sesi, mengirim dan membaca pesan.
-- **Pengguna Tenant**: berinteraksi melalui klien (tidak diekspos langsung oleh handler ini).
-
-## Entitas & Skema Data
-
-- **ChatSession**: `id`, `tenant_id`, `agent_id`, `status`, `created_at`, `updated_at`
-- **ChatMessage**: `id`, `session_id`, `sender_id`, `message`, `created_at`
-- Status sesi: `OPEN`, `CLOSED`
-
-## Endpoint API
-
-Semua endpoint memerlukan `Bearer` token, `X-Tenant-ID`, dan role `SUPPORT_AGENT`.
-
-- `POST /livechat/sessions` — mulai sesi chat dengan tenant; gagal jika agen offline atau masih ada sesi aktif.
-- `POST /livechat/sessions/{id}/messages` — kirim pesan pada sesi `id`.
-- `GET /livechat/sessions/{id}/messages?limit={n}&cursor={c?}` — daftar pesan pada sesi `id`.
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 - Role: `SUPPORT_AGENT`
 
-- `POST /livechat/sessions`
-  - Body:
-    - `agent_id` (opsional, uint; jika kosong akan menggunakan agen yang sedang login)
-  - Response 201: `data` `ChatSession` (id, tenant_id, agent_id, status, timestamps)
-  - Error 400: body tidak valid, agen offline, atau sesi aktif sudah ada
-  - Error 403: role tidak diizinkan
+## Ringkasan Endpoint
 
-- `POST /livechat/sessions/{id}/messages`
-  - Path: `id` (string, id sesi)
-  - Body:
-    - `message` (wajib, string)
-  - Response 201: `data` `ChatMessage` (id, session_id, sender_id, message, created_at; `id` dihasilkan otomatis)
-  - Error 400: `message` kosong
-  - Error 403: role tidak diizinkan
-  - Error 500: kegagalan server/internal
+- POST `/livechat/sessions` — mulai sesi → 201 `APIResponse<ChatSession>`
+- POST `/livechat/sessions/:id/messages` — kirim pesan → 201 `APIResponse<ChatMessage>`
+- GET `/livechat/sessions/:id/messages?limit=..&cursor=..` — list pesan → 200 `APIResponse<ChatMessage[]>`
 
-- `GET /livechat/sessions/{id}/messages`
-  - Path: `id` (string, id sesi)
-  - Query: `limit` (wajib, int), `cursor` (opsional, string)
-  - Response 200: `data` array `ChatMessage` + `meta.pagination`
-  - Error 403: role tidak diizinkan
-  - Error 500: kegagalan server/internal
+## Skema Data Ringkas
 
+- ChatSession: `id` (uuid), `tenant_id`, `agent_id?`, `status` (`OPEN|CLOSED`), `created_at`, `updated_at`
+- ChatMessage: `id` (uuid), `session_id`, `sender_id`, `message`, `created_at`
 
-## Contoh Request & Response
+## Payload Utama
 
-- Mulai Sesi
-```json
-POST /livechat/sessions
-{ "agent_id": 1 }
-```
-Contoh response:
-```json
-{
-  "id": "SESSION-ID",
-  "tenant_id": 1,
-  "agent_id": 1,
-  "status": "OPEN",
-  "created_at": "2025-09-01T10:00:00Z",
-  "updated_at": "2025-09-01T10:00:00Z"
+- StartSessionRequest:
+  - `agent_id?` (number; default user saat ini bila kosong)
+
+- SendMessageRequest:
+  - `message` (string)
+
+## Bentuk Response
+
+- Semua endpoint memakai `APIResponse<T>`.
+- Endpoint list menyediakan `meta.pagination` bila mendukung cursor.
+
+## TypeScript Types (Request & Response)
+
+```ts
+// Common
+export type Rfc3339String = string;
+
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
-```
 
-- Kirim Pesan
-```json
-POST /livechat/sessions/SESSION-ID/messages
-{ "message": "Halo, ada yang bisa dibantu?" }
-```
-Contoh response:
-```json
-{
-  "id": "MSG-ID",
-  "session_id": "SESSION-ID",
-  "sender_id": 1,
-  "message": "Halo, ada yang bisa dibantu?",
-  "created_at": "2025-09-01T10:05:00Z"
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
 }
-```
 
-- Daftar Pesan
-```http
-GET /livechat/sessions/SESSION-ID/messages?limit=20
-```
-Contoh response:
-```json
-{
-  "data": [
-    {
-      "id": "MSG-ID",
-      "session_id": "SESSION-ID",
-      "sender_id": 1,
-      "message": "Halo, ada yang bisa dibantu?",
-      "created_at": "2025-09-01T10:05:00Z"
-    }
-  ],
-  "meta": {
-    "pagination": {
-      "next_cursor": null,
-      "prev_cursor": null
-    }
-  }
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
 }
+
+// Entities
+export type SessionStatus = 'OPEN' | 'CLOSED';
+
+export interface ChatSession {
+  id: string;
+  tenant_id: number;
+  agent_id?: number;
+  status: SessionStatus;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+export interface ChatMessage {
+  id: string;
+  session_id: string;
+  sender_id: number;
+  message: string;
+  created_at: Rfc3339String;
+}
+
+// Requests
+export interface StartSessionRequest { agent_id?: number }
+export interface SendMessageRequest { message: string }
+
+// Responses
+export type StartSessionResponse = APIResponse<ChatSession>;
+export type SendMessageResponse = APIResponse<ChatMessage>;
+export type ListMessagesResponse = APIResponse<ChatMessage[]>;
 ```
 
-## Integrasi & Dampak ke Modul Lain
+## Paginasi (Cursor)
 
-- Ticket: membuat tiket otomatis saat agen offline.
-- Notifications: notifikasi in-app dikirim saat agen membalas.
+- Endpoint list pesan menggunakan cursor string (`id`) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
-## Tautan Cepat
+## Error Singkat yang Perlu Ditangani
 
-- Ticket: [ticket.md](ticket.md)
-- Notifications: [notification.md](notification.md)
+- 400: `message` kosong atau body tidak valid.
+- 401/403: token salah/tenant tidak aktif/role bukan `SUPPORT_AGENT`.
+
+## Checklist Integrasi FE
+
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Pastikan UI menangani status sesi (`OPEN|CLOSED`).
+- Sinkronkan notifikasi in-app saat agen mengirim balasan.
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/livechat/*.go` bila diperlukan detail lebih lanjut.

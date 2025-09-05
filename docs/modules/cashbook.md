@@ -1,74 +1,83 @@
-# Modul Cashbook
+# Cashbook API — Panduan Integrasi Frontend (Singkat)
 
-Modul Cashbook menangani pencatatan kas manual, ringkasan, dan ekspor ringkasannya. Terintegrasi dengan modul Finance (pencatatan transaksi) dan Reporting (ekspor ringkasan).
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/finance/cashbook_entity.go`
-- `internal/modules/finance/cashbook_service.go`
-- `internal/modules/finance/cashbook_handler.go`
-- `internal/modules/finance/cashbook_routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- Koperasi/UMKM/BUMDes: input kas manual (in/out), melihat ringkasan antar tanggal, ekspor ringkasannya.
-
-## Arsitektur & Komponen
-
-- Service: meneruskan pencatatan ke modul Finance dan integrasi ekspor ke reporting.
-- Handler: HTTP endpoint create summary/export.
-
-## Entitas & Skema Data
-
-- CashEntry kini merupakan adaptor dari `finance.Transaction` dengan atribut: `id`, `tenant_id`, `source`, `amount`, `type` (`in|out`), `description`, `created_at`.
-
-## Endpoint API
-
-Semua endpoint dilindungi `Bearer` + `X-Tenant-ID`.
-
-- `POST /cash/manual` — buat entri kas manual.
-- `GET /cash/summary` — ringkasan kas periode (query `start`/`end` opsional, RFC3339).
-- `POST /cash/export` — ekspor ringkasan (menghasilkan file biner, content type dari service).
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `POST /cash/manual`
-  - Body ManualEntryRequest: `source`, `amount`, `type` (`in|out`), `description?`
-  - Response 201: `data` CashEntry
+## Ringkasan Endpoint
 
-- `GET /cash/summary`
-  - Query: `start`, `end` (opsional, RFC3339)
-  - Response 200: `data` ringkasan kas (`total_in`, `total_out`)
+- POST `/cash/manual` — buat entri kas manual → 201 `CashEntry`
+- GET `/cash/summary?start=..&end=..` — ringkasan kas → 200 `CashSummary`
+- POST `/cash/export` — ekspor ringkasan → 200 file (octet-stream)
 
-- `POST /cash/export`
-  - Body: `{ "report_type": "..." }`
-  - Response 200: file biner (header `Content-Type` di-set oleh handler)
+## Skema Data Ringkas
 
-## Contoh Payload & Response
+- CashEntry: `id`, `tenant_id`, `source`, `amount`, `type` (`in|out`), `description`, `created_at`
+- CashSummary: `total_in`, `total_out`
 
-- Create Manual Entry
-```json
-POST /cash/manual
-{ "source": "operasional", "amount": 250000, "type": "in", "description": "Penjualan tunai" }
-```
+## Payload Utama
 
-- Summary
-```http
-GET /cash/summary?start=2025-08-01T00:00:00Z&end=2025-08-31T23:59:59Z
-```
-Contoh response:
-```json
-{
-  "total_in": 5000000,
-  "total_out": 3200000
+- ManualEntryRequest:
+  - `source` (string), `amount` (number), `type` (`in|out`), `description?` (string)
+
+- Export payload:
+  - `{ report_type: string }`
+
+## Bentuk Response
+
+- `POST /cash/manual` dan `GET /cash/summary` mengembalikan objek langsung (tanpa wrapper `APIResponse`).
+- `POST /cash/export` mengembalikan file biner; periksa header `Content-Type` dan `Content-Disposition` bila perlu.
+
+## TypeScript Types (Request & Response)
+
+```ts
+export type Rfc3339String = string;
+
+export interface CashEntry {
+  id: number;
+  tenant_id: number;
+  source: string;
+  amount: number;
+  type: 'in' | 'out';
+  description: string;
+  created_at: Rfc3339String;
 }
+
+export interface CashSummary { total_in: number; total_out: number }
+
+export interface ManualEntryRequest {
+  source: string;
+  amount: number;
+  type: 'in' | 'out';
+  description?: string;
+}
+
+export interface CashExportRequest { report_type: string }
+
+export type CreateManualCashResponse = CashEntry;
+export type GetCashSummaryResponse = CashSummary;
+// Export returns a file (octet-stream) — handle as Blob/ArrayBuffer on FE
 ```
 
-## Tautan Cepat
+## Paginasi (Cursor)
 
-- Reporting: [reporting.md](reporting.md)
-- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
-- Dashboard: [dashboard.md](dashboard.md)
+- Tidak ada paginasi pada endpoint cashbook.
+
+## Error Singkat yang Perlu Ditangani
+
+- 400: body/query tidak valid.
+- 401/403: token salah/tenant tidak aktif.
+- 500: kegagalan integrasi ledger/reporting.
+
+## Checklist Integrasi FE
+
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Tangani response file pada export (Blob/ArrayBuffer + unduhan).
+- Saat create manual entry, refresh ringkasan agar nilai up-to-date.
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/finance/cashbook_*.go` bila diperlukan detail lebih lanjut.

@@ -1,164 +1,121 @@
-# Modul Auth
+# Auth API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Auth. Modul ini menangani autentikasi JWT (login/refresh/logout), pengelolaan refresh token, serta menanamkan konteks tenant dan role untuk otorisasi.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, dan contoh request. Struktur dan poin mengikuti template Asset agar konsisten di semua modul.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/auth/entity.go`
-- `internal/modules/auth/dto.go`
-- `internal/modules/auth/jwt.go`
-- `internal/modules/auth/repository.go`
-- `internal/modules/auth/service.go`
-- `internal/modules/auth/handler.go`
-- `internal/modules/auth/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
+- Authorization: `Bearer <token>`
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- Vendor: menghasilkan token akses untuk admin/support; digunakan mengelola tenant dan modul global.
-- Koperasi/UMKM/BUMDes: login pengguna operasional; token memuat konteks tenant untuk pembatasan akses.
+Catatan: Endpoint Auth (login/refresh/logout) tidak memerlukan `Authorization` header, namun tetap memerlukan `X-Tenant-ID` untuk konteks tenant.
 
-## Arsitektur & Komponen
+## Ringkasan Endpoint
 
-- Repository: akses data untuk `User`, `Tenant`, `Role`, `RefreshToken` (buat/baca/hapus).
-- Service: logika autentikasi (validasi kredensial, hashing bcrypt, pembuatan JWT, manajemen refresh token).
-- JWTManager: pembangkit dan parser JWT, memuat klaim `user_id`, `tenant_id`, `tenant_type`, `role` dengan TTL dari konfigurasi.
-- Handler (HTTP): endpoint `login`, `refresh`, dan `logout` dengan validasi input dan response terstandarisasi.
+- POST `/auth/login` — autentikasi, terima `access_token` + `refresh_token` → 200 `APIResponse<LoginResponse>`
+- POST `/auth/refresh` — buat `access_token` baru dari `refresh_token` → 200 `APIResponse<RefreshResponse>`
+- POST `/auth/logout` — hapus `refresh_token` aktif → 200 `APIResponse<{ message: string }>`
 
-## Entitas & Skema Data
+## Skema Data Ringkas
 
-- Tenant (`auth.Tenant`)
-  - `id`, `name`, `domain` (unik), `type` (`vendor|koperasi|umkm|bumdes`), `is_active`, timestamps
-- Role (`auth.Role`)
-  - `id`, `name` (unik), `jenis_tenant`, `description`, timestamps
-- TenantRole (`auth.TenantRole`)
-  - `id`, `tenant_id`, `role_id`, preload `Tenant`, `Role`
-- User (`auth.User`)
-  - `id`, `tenant_id`, `tenant_role_id`, `email` (unik), `password_hash`, `full_name`, `status`, `last_login?`, timestamps
-- RefreshToken (`auth.RefreshToken`)
-  - `token` (PK), `user_id` (unik), `expires_at`
+- LoginResponse: `id`, `nama`, `role`, `jenis_tenant`, `email`, `access_token`, `refresh_token`, `expires_at`
+- RefreshResponse: `access_token`
+- JWT Claims (impl): `user_id`, `tenant_id`, `tenant_type`, `role`, `exp`, `iat`
 
-Klaim JWT (`auth.Claims`): `user_id`, `tenant_id`, `tenant_type`, `role`, serta `exp`/`iat`.
+## Payload Utama
 
-## Alur Bisnis Utama
+- LoginRequest (POST /auth/login):
+  - `email` (string, wajib, email valid)
+  - `password` (string, wajib)
 
-1) Login
-- Validasi email/password dengan bcrypt.
-- Verifikasi `tenant_id` dari konteks header `X-Tenant-ID` harus sama dengan `user.tenant_id`.
-- Hasilkan `access_token` (JWT) dan `refresh_token` (token disimpan sebagai hash SHA256 di DB dan di-upsert per user dengan masa
-  berlaku 24 jam default).
-- Refresh token asli hanya dikembalikan pada response login.
+- RefreshRequest (POST /auth/refresh, /auth/logout):
+  - `refresh_token` (string, wajib)
 
-2) Refresh Token
-- Validasi keberadaan dan kedaluwarsa `refresh_token`.
-- Ambil user, buat `access_token` baru tanpa mengubah `refresh_token`.
+## Bentuk Response
 
-3) Logout
-- Menghapus `refresh_token` aktif milik user.
+- Semua endpoint pada modul Auth dibungkus `APIResponse<T>`:
+  - `success` (bool), `message` (string), `data` (objek), `meta` (`request_id`, `timestamp`), `errors`
 
-## Endpoint API
+## TypeScript Types (Request & Response)
 
-Semua response menggunakan format `APIResponse`.
+```ts
+// Common
+export type Rfc3339String = string;
 
-- `POST /auth/login` — autentikasi awal dan terima token.
-- `POST /auth/refresh` — minta access token baru dari refresh token.
-- `POST /auth/logout` — logout dan hapus refresh token.
-
-Keamanan: endpoint login/refresh/logout tidak memerlukan Bearer token, namun membutuhkan konteks tenant melalui header `X-Tenant-ID` (atau domain) untuk memvalidasi tenant pengguna saat login.
-
-## Rincian Endpoint (Params, Payload, Response)
-
-- `POST /auth/login`
-  - Header: `X-Tenant-ID` (wajib bila tidak menggunakan domain)
-  - Body LoginRequest:
-    - `email` (wajib, email valid)
-    - `password` (wajib)
-  - Response 200: `data` LoginResponse
-    - `id`, `nama`, `role`, `jenis_tenant`, `email`, `access_token`, `refresh_token`, `expires_at`
-  - Error 401: `invalid credentials` atau `unauthorized` jika tenant tidak cocok.
-
-- `POST /auth/refresh`
-  - Header: `X-Tenant-ID` (wajib bila tidak menggunakan domain)
-  - Body RefreshRequest: `{ "refresh_token": "..." }` (wajib)
-  - Response 200: `data` `{ "access_token": "..." }`
-  - Error 401: `invalid refresh token` atau kedaluwarsa.
-
-- `POST /auth/logout`
-  - Header: `X-Tenant-ID` (wajib bila tidak menggunakan domain)
-  - Body RefreshRequest: `{ "refresh_token": "..." }` (wajib)
-  - Response 200: `data` `{ "message": "logged out" }`
-
-## Prosedur
-
-### Login
-1. Kirim permintaan `POST /auth/login` dengan header `X-Tenant-ID` serta body berisi `email` dan `password`.
-2. Server memvalidasi kredensial pengguna dan kecocokan tenant.
-3. Respons berisi `access_token` dan `refresh_token` bersama informasi pengguna.
-
-### Refresh Token
-1. Kirim `POST /auth/refresh` dengan header `X-Tenant-ID` dan body `refresh_token`.
-2. Server memverifikasi keberadaan serta masa berlaku token.
-3. Server mengirimkan `access_token` baru tanpa mengubah `refresh_token` yang ada.
-
-### Logout
-1. Kirim `POST /auth/logout` dengan header `X-Tenant-ID` dan body `refresh_token` aktif.
-2. Server menghapus token dari penyimpanan.
-3. Respons berisi konfirmasi `logged out`.
-
-## Tautan Cepat
-
-- Tenant: [tenant.md](tenant.md)
-- Users: [user.md](user.md)
-- Roles & Permissions: [authorization.md](authorization.md)
-
-## Contoh Payload
-
-- Login
-  Header: `X-Tenant-ID: <tenant-id>`
-```json
-{
-  "email": "user@contoh.id",
-  "password": "secret"
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Payloads
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RefreshRequest {
+  refresh_token: string;
+}
+
+// Responses
+export interface LoginResponse {
+  id: number;
+  nama: string;
+  role: string;
+  jenis_tenant: string; // vendor|koperasi|umkm|bumdes
+  email: string;
+  access_token: string;
+  refresh_token: string; // only returned on login
+  expires_at: number; // unix seconds
+}
+
+export interface RefreshResponse {
+  access_token: string;
+}
+
+// Endpoint-specific
+export type LoginEndpointResponse = APIResponse<LoginResponse>;
+export type RefreshEndpointResponse = APIResponse<RefreshResponse>;
+export type LogoutEndpointResponse = APIResponse<{ message: string }>;
+
+// Error union possibly returned
+export type HttpError = APIResponse<null>;
 ```
 
-- Refresh / Logout
-  Header: `X-Tenant-ID: <tenant-id>`
-```json
-{
-  "refresh_token": "<refresh-token-string>"
-}
-```
+## Paginasi (Cursor)
 
-## Status & Transisi
+- Tidak ada paginasi pada modul Auth. Abaikan `meta.pagination`.
 
-- RefreshToken: dibuat saat login, kedaluwarsa otomatis (dibersihkan saat refresh jika kadaluarsa), dihapus saat logout.
+## Error Singkat yang Perlu Ditangani
 
-## Paginasi & Response
+- 400: `APIResponse` dengan `errors` per field (validasi body).
+- 401: kredensial salah (`invalid credentials`) atau refresh token tidak valid/kedaluwarsa.
+- 403/404: konteks tenant tidak aktif/tidak ditemukan saat resolve `X-Tenant-ID`.
 
-- Tidak ada paginasi pada modul Auth. Response mengikuti pola seragam dengan `data`, `meta`, dan `errors` bila ada.
+## Checklist Integrasi FE
 
-## Integrasi & Dampak
+- Selalu kirim header `X-Tenant-ID` pada auth endpoints.
+- Simpan `access_token` dan `refresh_token` secara aman; jangan di-commit.
+- Gunakan `expires_at` untuk menjadwalkan refresh token (silent refresh).
+- Tangani 401 dengan prompt login ulang bila refresh gagal.
+- Jangan kirim `Authorization` header ke endpoint login/refresh/logout.
 
-- Token JWT membawa `tenant_type` dan `role` yang digunakan middleware Casbin untuk otorisasi.
-- Modul lain (Users, Roles, Tenants, Billing, Finance, dst.) bergantung pada token ini untuk autentikasi dan isolasi tenant.
-
-## Keamanan
-
-- JWT ditandatangani dengan secret dari konfigurasi; TTL ditetapkan via `JWTManager`.
-- Validasi konteks tenant melalui middleware yang membaca `X-Tenant-ID` dan klaim token.
-
-## Catatan Implementasi
-
-- Belum ada pembaruan kolom `last_login` di alur login (opsional untuk ditambahkan jika dibutuhkan audit akses).
-- Pastikan domain/tenant dipilih benar sebelum login agar tidak terjadi penolakan `unauthorized`.
-
-## Peran Modul Auth per Jenis Tenant (Rangkuman)
-
-- Vendor: mengelola otentikasi admin/vendor untuk operasi global.
-- Koperasi/UMKM/BUMDes: autentikasi pengguna operasional per-tenant untuk akses modul terkait.
-
-## Skenario Penggunaan
-
-1. Pengguna membuka halaman login dan memilih tenant/domain yang tepat.
-2. Mengirim email+password ke `/auth/login` dan menerima `access_token` + `refresh_token`.
-3. Saat `access_token` mendekati kedaluwarsa, klien memanggil `/auth/refresh` dengan `refresh_token`.
-4. Saat pengguna keluar, klien memanggil `/auth/logout` untuk menghapus `refresh_token`.
+Tautan teknis (opsional): implementasi ada di `internal/modules/auth/*.go` bila diperlukan detail lebih lanjut.

@@ -1,36 +1,165 @@
-# Modul Finance / Transactions
+# Finance Transactions API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, dan alur bisnis dari modul Finance/Transactions. Modul ini bertanggung jawab untuk pencatatan pergerakan kas sederhana per tenant dan menyediakan data yang dapat dirangkum oleh modul lain seperti Billing dan Reporting.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/finance/entity.go`
-- `internal/modules/finance/repository.go`
-- `internal/modules/finance/service.go`
-- `internal/modules/finance/ledger.go`
-- `internal/modules/finance/ledger_repository.go`
-- `internal/modules/finance/ledger_service.go`
-- `internal/modules/finance/ports.go`
-- `internal/modules/finance/handler.go`
-- `internal/modules/finance/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
+- Authorization: `Bearer <token>`
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- Vendor: memonitor arus kas masuk/keluar yang terekam untuk setiap tenant, bahan pelaporan.
-- Koperasi/UMKM/BUMDes: transaksi kas dicatat otomatis ketika ada pembayaran atau aktivitas keuangan lain; endpoint REST tersedia untuk kebutuhan internal.
+## Ringkasan Endpoint
 
-## Arsitektur & Komponen
+- POST `/transactions` — buat transaksi → 201 `APIResponse<Transaction>`
+- GET `/transactions?start=..&end=..&type=..&category=..&min_amount=..&max_amount=..&limit=..&cursor=..` — daftar → 200 `APIResponse<Transaction[]>`
+- GET `/transactions/:id/history?limit=..&cursor=..` — histori → 200 `APIResponse<TransactionHistory[]>`
+- PATCH `/transactions/:id` — ubah transaksi → 200 `APIResponse<Transaction>`
+- DELETE `/transactions/:id` — hapus → 200 `APIResponse<{ id: number }>`
+- GET `/transactions/export?start=..&end=..&type=..&category=..&format=csv|xlsx` — ekspor → 200 file
 
-- Repository: akses data untuk `Transaction` (buat transaksi).
-- Service: menyediakan operasi `CreateTransaction`, `GetTransaction`, `ListTransactions`, `UpdateTransaction`, dan `DeleteTransaction` yang otomatis menulis entri `LedgerEntry` dan audit status.
-- Handler/HTTP: menyediakan endpoint `POST /transactions`, `GET /transactions`, `GET /transactions/:id/history`, `PATCH /transactions/:id`, `DELETE /transactions/:id`, dan `GET /transactions/export`.
+## Skema Data Ringkas
 
-## Entitas & Skema Data
+- Transaction: `id`, `tenant_id`, `transaction_date`, `type` (`CashIn|CashOut|Transfer`), `category`, `amount`, `payment_method`, `description`, `created_by`, `updated_by`, `created_at`, `updated_at`, `ledger_entries[]`
+- TransactionHistory: `id`, `transaction_id`, `changed_by`, `old_values`, `new_values`, `changed_at`
+- LedgerEntry: lihat `internal/modules/finance/ledger.go` (opsional untuk FE)
 
-Ringkasan struktur `Transaction`:
+## Payload Utama
 
-- `id` (uint, primary key)
-- `tenant_id` (uint, indeks)
-- `transaction_date` (timestamp)
+- CreateTransactionRequest:
+  - `transaction_date` (RFC3339), `type` (`CashIn|CashOut|Transfer`), `category` (string), `amount` (number), `payment_method` (string), `description?` (string)
+  - `debit_account_code/name`, `credit_account_code/name` (string)
+
+- UpdateTransactionRequest:
+  - Bidang sama seperti create, semuanya opsional.
+
+- Filter query (list/export):
+  - `start` (YYYY-MM-DD), `end` (YYYY-MM-DD), `type?`, `category?`, `min_amount?`, `max_amount?`, serta `limit`+`cursor` untuk list.
+
+## Bentuk Response
+
+- Semua endpoint memakai `APIResponse<T>` kecuali ekspor yang mengembalikan file.
+- Endpoint list/histori menyediakan `meta.pagination` bila mendukung cursor.
+
+## TypeScript Types (Request & Response)
+
+```ts
+// Common
+export type Rfc3339String = string;
+
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
+}
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export type TransactionType = 'CashIn' | 'CashOut' | 'Transfer';
+
+export interface LedgerEntry {
+  id: number;
+  transaction_id: number;
+  account_code: string;
+  account_name: string;
+  debit: number;
+  credit: number;
+}
+
+export interface Transaction {
+  id: number;
+  tenant_id: number;
+  transaction_date: Rfc3339String;
+  type: TransactionType;
+  category: string;
+  amount: number;
+  payment_method: string;
+  description: string;
+  ledger_entries: LedgerEntry[];
+  created_by: number;
+  updated_by: number;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+export interface TransactionHistory {
+  id: number;
+  transaction_id: number;
+  changed_by: number;
+  old_values: string; // JSON string
+  new_values: string; // JSON string
+  changed_at: Rfc3339String;
+}
+
+// Requests
+export interface CreateTransactionRequest {
+  transaction_date: Rfc3339String;
+  type: TransactionType;
+  category: string;
+  amount: number;
+  payment_method: string;
+  description?: string;
+  debit_account_code: string;
+  debit_account_name: string;
+  credit_account_code: string;
+  credit_account_name: string;
+}
+
+export interface UpdateTransactionRequest extends Partial<CreateTransactionRequest> {}
+
+export interface ListTransactionsQuery {
+  start?: string; // YYYY-MM-DD
+  end?: string;   // YYYY-MM-DD
+  type?: TransactionType;
+  category?: string;
+  min_amount?: number;
+  max_amount?: number;
+  limit: number;
+  cursor?: string;
+}
+
+// Responses
+export type CreateTransactionResponse = APIResponse<Transaction>;
+export type ListTransactionsResponse = APIResponse<Transaction[]>;
+export type GetTransactionHistoryResponse = APIResponse<TransactionHistory[]>;
+export type UpdateTransactionResponse = APIResponse<Transaction>;
+export type DeleteTransactionResponse = APIResponse<{ id: number }>;
+// Export returns a file (csv|xlsx)
+```
+
+## Paginasi (Cursor)
+
+- Endpoint list/histori menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
+
+## Error Singkat yang Perlu Ditangani
+
+- 400: `APIResponse` dengan `errors` per field/body/query invalid.
+- 401/403: token salah/tenant tidak aktif.
+- 404: resource tidak ditemukan (id salah atau bukan milik tenant).
+
+## Checklist Integrasi FE
+
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Implementasi filter tanggal (YYYY-MM-DD) dan handle paginasi cursor.
+- Untuk ekspor, tangani `Content-Type` dan `Content-Disposition` untuk unduhan.
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/finance/*.go` bila diperlukan detail lebih lanjut.
 - `type` (string, enum: `CashIn`, `CashOut`, `Transfer`)
 - `category` (string)
 - `amount` (float64)
@@ -72,6 +201,28 @@ Enum dan konstanta penting:
 ## Endpoint API
 
 Modul ini menyediakan endpoint dasar untuk mengelola transaksi serta ekspor data.
+
+### Format Response Standar (APIResponse)
+
+```json
+{
+  "success": true,
+  "message": "success",
+  "data": {},
+  "meta": {
+    "request_id": "<uuid>",
+    "timestamp": "2025-08-25T10:00:00Z",
+    "pagination": {
+      "next_cursor": null,
+      "prev_cursor": null,
+      "has_next": false,
+      "has_prev": false,
+      "limit": 10
+    }
+  },
+  "errors": null
+}
+```
 
 - `POST /transactions` — tambah transaksi.
 - `GET /transactions?limit={n}&cursor={c?}` — daftar transaksi.
@@ -134,15 +285,23 @@ Header umum:
 Contoh response `GET /transactions`:
 ```json
 {
+  "success": true,
+  "message": "success",
   "data": [
     {"id": 1, "amount": 1000}
   ],
   "meta": {
+    "request_id": "...",
+    "timestamp": "2025-08-25T10:00:00Z",
     "pagination": {
       "next_cursor": null,
-      "prev_cursor": null
+      "prev_cursor": null,
+      "has_next": false,
+      "has_prev": false,
+      "limit": 10
     }
-  }
+  },
+  "errors": null
 }
 ```
 

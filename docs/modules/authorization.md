@@ -1,214 +1,163 @@
-# Modul Authorization (Roles & Permissions)
+# Authorization API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Authorization. Modul ini mengelola role (per tenant), pemetaan user-role, serta permission berbasis Casbin.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur dan poin mengikuti template Asset.
 
-Detail autentikasi (login, JWT) dibahas pada modul [Auth](auth.md); dokumen ini berfokus pada otorisasi dan manajemen peran.
+## Header Wajib
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/authorization/entity.go`
-- `internal/modules/authorization/dto.go`
-- `internal/modules/authorization/repository.go`
-- `internal/modules/authorization/service_role.go`
-- `internal/modules/authorization/service_user_role.go`
-- `internal/modules/authorization/service_permission.go`
-- `internal/modules/authorization/handler.go`
-- `internal/modules/authorization/routes.go`
-
-## Ringkasan Peran per Tenant
-
-- Vendor: mengelola role global dan mengikat role ke tenant-tenant (AssignRoleToTenant).
-- Koperasi/UMKM/BUMDes (client): mengelola role lokal, pemetaan user-role, dan permission (policy) terbatas pada tenantnya sendiri.
-
-## Arsitektur & Komponen
-
-- Repository: akses data untuk `auth.Role`, `auth.TenantRole`, `RoleUser`, dan tabel `casbin_rule`.
-- Services:
-  - RoleService: CRUD role + assign role ke tenant (`TenantRole`).
-  - UserRoleService: assign/hapus role pada user per tenant + sinkronisasi Casbin grouping policy.
-  - PermissionService: list/tambah/hapus Casbin policy (objek/aksi) per role dan domain (`tenant_type`).
-- Handler (HTTP): endpoint listing/pembuatan role, binding ke tenant, manajemen permission dan user-role.
-
-## Entitas & Skema Data
-
-- Role (`auth.Role`) — `id`, `name` (unik), `jenis_tenant`, `description`, timestamps
-- TenantRole (`auth.TenantRole`) — `id`, `tenant_id`, `role_id`, preload `Role`
-- RoleUser (`authorization.RoleUser`) — `id`, `user_id`, `role_id`, `tenant_id`, preload `Role`
-- CasbinRule (`authorization.CasbinRule`) — `id`, `ptype`, `v0..v5` (mirror `casbin_rule`)
-
-Kamus Casbin (konvensi):
-- Grouping policy: subject=`user_id` (string), role=`role_name`, domain=`tenant_type`.
-- Policy: `p, role_name, tenant_type, obj, act`.
-
-## Alur Bisnis Utama
-
-1) Manajemen Role
-- Buat role baru, perbarui, hapus. Kaitkan role ke tenant (TenantRole) agar tersedia pada tenant tersebut.
-
-2) Penetapan Role ke User
-- Tetapkan/hapus role untuk user pada tenant tertentu, dan sinkronkan grouping policy Casbin.
-
-3) Permission (Casbin Policy)
-- Tambah/list/hapus permission (`obj`, `act`) untuk `role_name` pada domain `tenant_type`.
-
-## Endpoint API
-
-Semua response menggunakan format `APIResponse`. Beberapa endpoint menggunakan paginasi cursor.
-
-### Roles
-- `GET /roles` — vendor: daftar role global; client: role terikat pada tenant saat ini.
-- `POST /roles` — vendor: buat role global; client: buat role lokal.
-- `PUT /roles/{id}` — perbarui role.
-- `DELETE /roles/{id}` — hapus role atau unbind dari tenant.
-- `POST /roles/tenants` — vendor: assign role ke tenant.
-
-### Permissions
-- `GET /roles/{id}/permissions` — client: daftar policy Casbin untuk role.
-- `POST /roles/{id}/permissions` — client: tambah policy.
-- `DELETE /roles/{id}/permissions/{pid}` — client: hapus policy.
-
-### User Roles
-- `GET /users/{id}/roles` — client: daftar role user pada tenant saat ini.
-- `POST /users/{id}/roles` — client: tetapkan role ke user.
-- `DELETE /users/{id}/roles/{rid}` — client: hapus role dari user.
-
-Keamanan: semua endpoint dilindungi `Bearer` token + `X-Tenant-ID`; Casbin digunakan untuk otorisasi berlapis.
-
-## Rincian Endpoint (Params, Payload, Response)
-
- Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant (atau domain)
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `GET /roles`
-   - Tujuan: mengambil daftar role yang tersedia pada tenant saat ini.
-   - Parameter:
-     - Query: `limit` (wajib, int>0), `cursor` (opsional)
-   - Respon 200: `data` array Role yang terikat dengan tenant saat ini (melalui `TenantRole`).
+## Ringkasan Endpoint
 
-- `POST /roles`
-   - Tujuan: membuat role baru (global untuk vendor, lokal untuk tenant).
-   - Parameter:
-     - Body CreateRoleRequest: `{ "name": "...", "description": "..." }` (keduanya wajib)
-   - Respon 201: `data` Role baru.
+- GET `/roles?limit=..&cursor=..` — daftar role pada tenant saat ini → 200 `APIResponse<Role[]>`
+- POST `/roles` — buat role → 201 `APIResponse<Role>`
+- PUT `/roles/:id` — ubah role → 200 `APIResponse<Role>`
+- DELETE `/roles/:id` — hapus/lepaskan role dari tenant → 200 `APIResponse<{ id: number }>`
+- POST `/roles/tenants` — vendor: kaitkan role ke tenant → 201 `APIResponse<TenantRole>`
+- GET `/roles/:id/permissions?limit=..&cursor=..` — daftar policy → 200 `APIResponse<CasbinRule[]>`
+- POST `/roles/:id/permissions` — tambah policy → 201 `APIResponse<{ obj: string; act: string }>`
+- DELETE `/roles/:id/permissions/:pid` — hapus policy → 200 `APIResponse<{ id: number }>`
+- GET `/users/:id/roles?limit=..&cursor=..` — daftar role user → 200 `APIResponse<RoleUser[]>`
+- POST `/users/:id/roles` — assign role ke user → 201 `APIResponse<{ user_id: number; role_id: number }>`
+- DELETE `/users/:id/roles/:rid` — hapus role user → 200 `APIResponse<{ user_id: number; role_id: number }>`
 
-- `PUT /roles/{id}`
-   - Tujuan: memperbarui informasi role.
-   - Parameter:
-     - Path: `id` (int, wajib)
-     - Body UpdateRoleRequest: sama seperti create (wajib)
-   - Respon 200: `data` Role terkini.
+## Skema Data Ringkas
 
-- `DELETE /roles/{id}`
-   - Tujuan: menghapus binding role dari tenant saat ini.
-   - Parameter:
-     - Path: `id` (int, wajib)
-   - Respon 200: `data` `{ "id": <int> }` (role global tetap ada).
+- Role: `id`, `name`, `jenis_tenant`, `description`, `created_at`, `updated_at`
+- TenantRole: `id`, `tenant_id`, `role_id`, preload `role`
+- RoleUser: `id`, `user_id`, `role_id`, `tenant_id`, preload `role`
+- CasbinRule: `id`, `p_type`, `v0..v5`
 
-- `POST /roles/tenants`
-   - Tujuan: mengaitkan role global ke tenant tertentu.
-   - Parameter:
-     - Body AssignRoleToTenantRequest: `{ "role_id": <uint>, "tenant_id": <uint> }` (wajib)
-   - Respon 201: `data` TenantRole baru.
-   - Akses: hanya Vendor. Client tidak dapat meng-assign role ke tenant lain.
+## Payload Utama
 
-- `GET /roles/{id}/permissions`
-   - Tujuan: menampilkan daftar policy Casbin untuk role.
-   - Parameter:
-     - Path: `id` (int, wajib)
-     - Query: `limit` (wajib), `cursor` (opsional)
-   - Respon 200: `data` array CasbinRule; domain kebijakan diambil dari `tenant_type` (klaim JWT) secara otomatis.
+- CreateRoleRequest / UpdateRoleRequest:
+  - `name` (string, wajib)
+  - `description` (string, wajib)
 
-- `POST /roles/{id}/permissions`
-   - Tujuan: menambah policy pada role tertentu.
-   - Parameter:
-     - Path: `id` (int, wajib)
-     - Body PermissionRequest: `{ "obj": "/resource", "act": "GET|POST|..." }` (wajib)
-   - Respon 201: `data` `{ "obj": "...", "act": "..." }`.
+- AssignRoleToTenantRequest:
+  - `role_id` (number, wajib)
+  - `tenant_id` (number, wajib)
 
-- `DELETE /roles/{id}/permissions/{pid}`
-   - Tujuan: menghapus policy dari role.
-   - Parameter:
-     - Path: `id` (role id, int), `pid` (permission id, int) — keduanya wajib
-   - Respon 200: `data` `{ "id": <int> }`.
+- AssignRoleRequest (user role mapping):
+  - `role_id` (number, wajib)
+  - `tenant_id` (number, wajib)
 
-- `GET /users/{id}/roles`
-   - Tujuan: mengambil daftar role yang dimiliki user pada tenant saat ini.
-   - Parameter:
-     - Path: `id` (user id, int, wajib)
-     - Query: `limit` (wajib), `cursor` (opsional)
-   - Respon 200: `data` array RoleUser (dengan preload Role) + pagination.
+- PermissionRequest:
+  - `obj` (string, wajib)
+  - `act` (string, wajib)
 
-- `POST /users/{id}/roles`
-   - Tujuan: menetapkan role ke user pada tenant tertentu.
-   - Parameter:
-     - Path: `id` (user id, int, wajib)
-     - Body AssignRoleRequest: `{ "role_id": <uint>, "tenant_id": <uint> }` (wajib)
-   - Respon 201: `data` `{ "user_id": <int>, "role_id": <uint> }`.
+## Bentuk Response
 
-- `DELETE /users/{id}/roles/{rid}`
-   - Tujuan: menghapus role dari user pada tenant.
-   - Parameter:
-     - Path: `id` (user id), `rid` (role id) — wajib
-   - Respon 200: `data` `{ "user_id": <int>, "role_id": <int> }`.
+- Semua endpoint memakai `APIResponse<T>` untuk konsistensi.
+- Endpoint list menyediakan `meta.pagination` bila mendukung cursor.
 
-## Contoh Payload
+## TypeScript Types (Request & Response)
 
-- Create/Update Role
-```json
-{ "name": "admin_keuangan", "description": "Akses modul keuangan" }
+```ts
+// Common
+export type Rfc3339String = string;
+
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
+}
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export interface Role {
+  id: number;
+  name: string;
+  jenis_tenant: string;
+  description: string;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+export interface TenantRole {
+  id: number;
+  tenant_id: number;
+  role_id: number;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+  role?: Role;
+}
+
+export interface RoleUser {
+  id: number;
+  user_id: number;
+  role_id: number;
+  tenant_id: number;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+  role?: Role;
+}
+
+export interface CasbinRule {
+  id: number;
+  p_type: string;
+  v0?: string;
+  v1?: string;
+  v2?: string;
+  v3?: string;
+  v4?: string;
+  v5?: string;
+}
+
+// Requests
+export interface CreateRoleRequest { name: string; description: string; }
+export interface UpdateRoleRequest { name: string; description: string; }
+export interface AssignRoleToTenantRequest { role_id: number; tenant_id: number; }
+export interface AssignRoleRequest { role_id: number; tenant_id: number; }
+export interface PermissionRequest { obj: string; act: string; }
+
+// Responses
+export type ListRolesResponse = APIResponse<Role[]>;
+export type CreateRoleResponse = APIResponse<Role>;
+export type UpdateRoleResponse = APIResponse<Role>;
+export type DeleteRoleResponse = APIResponse<{ id: number }>;
+export type AssignRoleToTenantResponse = APIResponse<TenantRole>;
+export type ListPermissionsResponse = APIResponse<CasbinRule[]>;
+export type AddPermissionResponse = APIResponse<{ obj: string; act: string }>;
+export type DeletePermissionResponse = APIResponse<{ id: number }>;
+export type ListUserRolesResponse = APIResponse<RoleUser[]>;
+export type AssignUserRoleResponse = APIResponse<{ user_id: number; role_id: number }>;
+export type DeleteUserRoleResponse = APIResponse<{ user_id: number; role_id: number }>;
 ```
 
-- Assign Role ke Tenant
-```json
-{ "role_id": 7, "tenant_id": 23 }
-```
+## Paginasi (Cursor)
 
-- Add Permission ke Role
-```json
-{ "obj": "/transactions", "act": "GET" }
-```
+- Endpoint list menggunakan cursor numerik (berbasis `id`) dengan `limit` wajib.
+- Gunakan `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
-- Assign Role ke User
-```json
-{ "role_id": 7, "tenant_id": 23 }
-```
+## Error Singkat yang Perlu Ditangani
 
-## Status & Transisi
+- 400: `APIResponse` dengan `errors` per field (misal `limit` atau body invalid).
+- 401/403: token salah/tenant tidak aktif/tidak berhak.
+- 404: resource tidak ditemukan (role/policy/user-role).
 
-- Tidak ada status eksplisit; manajemen relasi (create/update/delete) dan policy (add/remove) menjadi fokus.
+## Checklist Integrasi FE
 
-## Paginasi & Response
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Untuk list, siapkan handler `limit` dan `cursor` serta konsumsi `meta.pagination`.
+- Pastikan domain policy Casbin mengacu ke `jenis_tenant` (di-backend diambil dari klaim JWT).
+- Sinkronkan UI setelah tambah/hapus permission atau user-role.
 
-- Endpoint list mendukung `limit` dan `cursor` (numerik untuk id autoincrement). `meta.pagination` tersedia.
-
-## Integrasi & Dampak ke Modul Lain
-
-- Auth: klaim JWT memuat `role`, digunakan oleh Casbin bersama `tenant_type` sebagai domain.
-- Tenants/Users: penyelarasan peran dilakukan per-tenant melalui `TenantRole` dan pemetaan `RoleUser`.
-
-## Keamanan
-
-- Casbin menegakkan kebijakan akses berdasarkan kombinasi subject (`user_id`), role, dan domain (`tenant_type`).
-- Client dibatasi hanya dapat mengelola role/permission dan mapping user-role pada tenant yang sama dengan `X-Tenant-ID` pada request.
-
-## Catatan Implementasi
-
-- Saat menghapus binding role-user, grouping policy Casbin juga dihapus dan disimpan.
-- Saat menambah permission, pastikan domain yang digunakan adalah `tenant_type` dari token.
-
-## Peran Modul Roles per Jenis Tenant (Rangkuman)
-
-- Vendor: mendefinisikan role global dan mengikatnya ke tenant-tenant.
-- Koperasi/UMKM/BUMDes: mengatur role pengguna dan permission operasional hanya untuk tenantnya sendiri.
-
-## Skenario Penggunaan
-
-1. Admin vendor membuat role baru dan menambahkannya ke tenant tertentu.
-2. Admin tenant menetapkan role kepada user dan menambahkan permission `GET` untuk objek yang diperlukan.
-3. Saat user berpindah tugas, admin menghapus role dari user dan Casbin di-update otomatis.
-
-## Tautan Cepat
-
-- Auth: [auth.md](auth.md)
-- Users: [user.md](user.md)
-- Tenant: [tenant.md](tenant.md)
+Tautan teknis (opsional): implementasi ada di `internal/modules/authorization/*.go` bila diperlukan detail lebih lanjut.

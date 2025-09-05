@@ -1,240 +1,169 @@
-# Modul Ticket
+# Tickets API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Ticket. Modul ini digunakan untuk pengelolaan tiket dukungan (support) antara pengguna dan agen.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/ticket/entity.go`
-- `internal/modules/ticket/repository.go`
-- `internal/modules/ticket/service.go`
-- `internal/modules/ticket/handler.go`
-- `internal/modules/ticket/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- Agen/vendor: meninjau, membalas, memperbarui status, dan mengelola penugasan agen.
-
-## Arsitektur & Komponen
-
-- **Entity**: mendefinisikan struktur `Ticket`, `TicketReply`, `TicketActivityLog`, `TicketCategorySLA` serta filter pencarian.
-- **Repository**: operasi CRUD dasar untuk tiket dan balasan termasuk paginasi dan filter.
-- **Service**: logika bisnis pembuatan tiket, balasan, pembaruan status, penugasan agen, pemeriksaan SLA/eskalasi, serta integrasi notifikasi dan audit.
-- **Handler (HTTP)**: memaparkan endpoint untuk membuat tiket, menambah balasan, listing, mengambil detail, mengubah status/agen.
-- **Routes**: mendaftarkan rute `/tickets` dan turunannya.
-
-## Skema Tabel
-
-### `tickets`
-- `id` (uuid, pk)
-- `tenant_id` (uint, index)
-- `user_id` (uint, index)
-- `member_id` (uint?, index) — relasi opsional ke anggota koperasi
-- `agent_id` (uint?, index)
-- `title` (string)
-- `category` (string: billing|technical|account|service)
-- `priority` (string: low|medium|high)
-- `status` (string: open|in_progress|resolved|closed)
-- `escalation_level` (int, default 0, tingkat eskalasi SLA)
-- `description` (text)
-- `attachment_url` (string?)
-- `created_at`, `updated_at`
-
-### `ticket_replies`
-- `id` (uuid, pk)
-- `ticket_id` (uuid, fk -> tickets.id)
-- `user_id` (uint, index)
-- `message` (text)
-- `attachment_url` (string?)
-- `created_at`
-
-### `ticket_categories` (SLA per kategori)
-Menyimpan konfigurasi Service Level Agreement untuk setiap kategori tiket. Nilai ini digunakan layanan untuk mengevaluasi dan menaikkan `escalation_level` ketika batas waktu dilampaui.
-- `category` (string, pk)
-- `sla_response_minutes` (int)
-- `sla_resolution_minutes` (int)
-
-### `ticket_activity_logs`
-Mencatat perubahan status atau penugasan tiket sebagai jejak audit.
-- `id` (uuid, pk)
-- `ticket_id` (uuid, fk -> tickets.id)
-- `actor_id` (uint, index)
-- `action` (string)
-- `message` (text?)
-- `created_at`
-
-## Endpoint API
-
-Semua respons menggunakan format `APIResponse` dan membutuhkan header `Authorization: Bearer <token>` serta `X-Tenant-ID`.
-
-### Tenant
-- `POST /tickets` — buat tiket baru.
-- `GET /tickets` — daftar tiket milik pengguna/tenant.
-- `GET /tickets/{id}` — detail tiket.
-- `POST /tickets/{id}/replies` — balas tiket.
-- `PATCH /tickets/{id}` — perbarui status atau penugasan.
-- `GET /tickets/{id}/activities` — riwayat aktivitas.
-
-### Vendor
-- `GET /tickets` — daftar semua tiket untuk agen.
-- `GET /tickets/{id}/replies` — lihat balasan tiket tertentu.
-- `POST /tickets/{id}/replies` — balas tiket.
-- `POST /tickets/sla` — atur SLA kategori tiket.
-- `GET /tickets/sla` — daftar konfigurasi SLA.
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant (atau domain)
- 
-- `POST /tickets`
-  - Body:
-    - `title` (wajib)
-    - `category` (wajib, `billing|technical|account|service`)
-    - `priority` (wajib, `low|medium|high`)
-    - `description` (wajib)
-    - `attachment_url` (opsional)
-  - Response 201: `Ticket` baru.
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `GET /tickets`
-  - Query: `status?`, `priority?`, `category?`, `member_id?`, `limit` (wajib, int>0), `cursor?`
-  - Response 200: daftar `Ticket` + `meta.pagination`.
+## Ringkasan Endpoint
 
-- `GET /tickets/{id}`
-  - Path: `id` (uuid, wajib)
-  - Response 200: detail `Ticket`.
+- POST `/tickets` — buat tiket → 201 `APIResponse<Ticket>`
+- GET `/tickets?limit=..&cursor=..` — daftar tiket → 200 `APIResponse<Ticket[]>`
+- GET `/tickets/:id` — detail tiket → 200 `APIResponse<Ticket>`
+- POST `/tickets/:id/replies` — tambah balasan → 201 `APIResponse<TicketReply>`
+- PATCH `/tickets/:id` — ubah status/penugasan → 200 `APIResponse<Ticket>`
+- GET `/tickets/:id/activities` — aktivitas tiket → 200 `APIResponse<TicketActivityLog[]>`
+- GET `/vendor/tickets/:id/replies?limit=..&cursor=..` — vendor: list balasan → 200 `APIResponse<TicketReply[]>`
+- POST `/vendor/tickets/sla` — vendor: set SLA → 200 `APIResponse<null>`
+- GET `/vendor/tickets/sla` — vendor: list SLA → 200 `APIResponse<TicketCategorySLA[]>`
 
-- `POST /tickets/{id}/replies`
-  - Path: `id` (uuid, wajib)
-  - Body: `message` (wajib), `attachment_url` (opsional)
-  - Response 201: `TicketReply`.
+## Skema Data Ringkas
 
-- `PATCH /tickets/{id}`
-  - Path: `id` (uuid, wajib)
-  - Body: `status` (opsional, `open|in_progress|resolved|closed`), `agent_id` (opsional, uint)
-  - Response 200: `Ticket` terkini.
+- Ticket: `id` (uuid), `tenant_id`, `user_id`, `member_id?`, `agent_id?`, `title`, `category` (`billing|technical|account|service`), `priority` (`low|medium|high`), `status` (`open|in_progress|resolved|closed`), `escalation_level`, `description`, `attachment_url?`, timestamps
+- TicketReply: `id` (uuid), `ticket_id`, `user_id`, `message`, `attachment_url?`, `created_at`
+- TicketActivityLog: `id` (uuid), `ticket_id`, `actor_id`, `action`, `message?`, `created_at`
+- TicketCategorySLA: `category`, `sla_response_minutes`, `sla_resolution_minutes`
 
-- `GET /tickets/{id}/activities`
-  - Path: `id` (uuid, wajib)
-  - Response 200: array `TicketActivityLog`.
+## Payload Utama
 
-- `GET /tickets` (vendor)
-  - Query: `tenant?`, `status?`, `category?`, `limit` (wajib, int>0), `cursor?`
-  - Response 200: daftar `Ticket` lintas tenant + `meta.pagination`.
+- CreateTicketRequest:
+  - `title`, `category` (`billing|technical|account|service`), `priority` (`low|medium|high`), `description`, `attachment_url?`
 
-- `GET /tickets/{id}/replies` (vendor)
-  - Path: `id` (uuid, wajib)
-  - Query: `limit` (wajib, int>0), `cursor?`
-  - Response 200: daftar `TicketReply` + `meta.pagination`.
+- AddReplyRequest:
+  - `message`, `attachment_url?`
 
-- `POST /tickets/{id}/replies` (vendor)
-  - Path: `id` (uuid, wajib)
-  - Body: `message` (wajib), `attachment_url` (opsional)
-  - Response 201: `TicketReply`.
+- UpdateTicketRequest:
+  - `status?` (`open|in_progress|resolved|closed`), `agent_id?`
 
-- `POST /tickets/sla` (vendor)
-  - Body:
-    - `category` (wajib)
-    - `sla_response_minutes` (wajib, int)
-    - `sla_resolution_minutes` (wajib, int)
-  - Response 200: sukses tanpa data.
+- SLARequest (vendor):
+  - `category`, `sla_response_minutes`, `sla_resolution_minutes`
 
-- `GET /tickets/sla` (vendor)
-  - Response 200: daftar `TicketCategorySLA`.
+## Bentuk Response
 
-### SLA Management (TicketCategorySLA)
+- Semua endpoint memakai `APIResponse<T>`.
+- Endpoint list menyediakan `meta.pagination` bila mendukung cursor.
 
-`TicketCategorySLA` menyimpan batas waktu respons dan resolusi per kategori tiket. Service mengecek nilai ini dan menaikkan `escalation_level` ketika SLA terlewati sehingga tiket dapat dieskalasi.
+## TypeScript Types (Request & Response)
 
-## Contoh Payload
+```ts
+// Common
+export type Rfc3339String = string;
 
-### Create Ticket
-```json
-{
-  "title": "Aplikasi error",
-  "category": "technical",
-  "priority": "high",
-  "description": "Tidak bisa login",
-  "attachment_url": "https://example.com/screenshot.png"
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export interface Ticket {
+  id: string; // uuid
+  tenant_id: number;
+  user_id: number;
+  member_id?: number;
+  agent_id?: number;
+  title: string;
+  category: 'billing' | 'technical' | 'account' | 'service';
+  priority: 'low' | 'medium' | 'high';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  escalation_level: number;
+  description: string;
+  attachment_url?: string;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+export interface TicketReply {
+  id: string; // uuid
+  ticket_id: string;
+  user_id: number;
+  message: string;
+  attachment_url?: string;
+  created_at: Rfc3339String;
+}
+
+export interface TicketActivityLog {
+  id: string; // uuid
+  ticket_id: string;
+  actor_id: number;
+  action: string;
+  message?: string;
+  created_at: Rfc3339String;
+}
+
+export interface TicketCategorySLA {
+  category: string;
+  sla_response_minutes: number;
+  sla_resolution_minutes: number;
+}
+
+// Requests
+export interface CreateTicketRequest {
+  title: string;
+  category: 'billing' | 'technical' | 'account' | 'service';
+  priority: 'low' | 'medium' | 'high';
+  description: string;
+  attachment_url?: string;
+}
+
+export interface AddReplyRequest { message: string; attachment_url?: string }
+export interface UpdateTicketRequest { status?: 'open' | 'in_progress' | 'resolved' | 'closed'; agent_id?: number }
+export interface SLARequest { category: string; sla_response_minutes: number; sla_resolution_minutes: number }
+
+// Responses
+export type CreateTicketResponse = APIResponse<Ticket>;
+export type ListTicketsResponse = APIResponse<Ticket[]>;
+export type GetTicketResponse = APIResponse<Ticket>;
+export type AddReplyResponse = APIResponse<TicketReply>;
+export type UpdateTicketResponse = APIResponse<Ticket>;
+export type ListActivitiesResponse = APIResponse<TicketActivityLog[]>;
+export type ListRepliesResponse = APIResponse<TicketReply[]>;
+export type SetSLAResponse = APIResponse<null>;
+export type ListSLAResponse = APIResponse<TicketCategorySLA[]>;
 ```
 
-### Add Reply
-```json
-{
-  "message": "Tiket sedang kami proses"
-}
-```
+## Paginasi (Cursor)
 
-### Update Status
-```json
-{
-  "status": "resolved"
-}
-```
+- Endpoint list (`GET /tickets`, `GET /vendor/tickets/:id/replies`) menggunakan cursor dengan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
-### Ticket Response
-```json
-{
-  "id": "8d5d...",
-  "tenant_id": 1,
-  "user_id": 1,
-  "member_id": 42,
-  "agent_id": 7,
-  "title": "Aplikasi error",
-  "category": "technical",
-  "priority": "high",
-  "status": "open",
-  "escalation_level": 0,
-  "description": "Tidak bisa login",
-  "created_at": "2024-01-01T00:00:00Z",
-  "updated_at": "2024-01-01T00:00:00Z"
-}
-```
+## Error Singkat yang Perlu Ditangani
 
-### Ticket Activity Log
-```json
-{
-  "id": "log-uuid",
-  "ticket_id": "8d5d...",
-  "actor_id": 7,
-  "action": "status_change",
-  "message": "status changed to in_progress",
-  "created_at": "2024-01-02T00:00:00Z"
-}
-```
+- 400: `APIResponse` dengan `errors` per field (validasi body/query).
+- 401/403: token salah/tenant tidak aktif/role tidak sesuai (mis. akses SLA vendor).
+- 404: resource tidak ditemukan (ticket/reply/activity).
 
-### Ticket Category SLA
-```json
-{
-  "category": "billing",
-  "sla_response_minutes": 60,
-  "sla_resolution_minutes": 1440
-}
-```
+## Checklist Integrasi FE
 
-## Status & Transisi
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Implementasikan filter (status/priority/category/member_id) saat listing.
+- Tampilkan progres SLA (escalation_level) bila relevan.
 
-- Tiket: `open` → `in_progress` → `resolved` → `closed` (dapat berubah sesuai kebutuhan layanan).
-- Balasan: dapat ditambahkan oleh pengguna atau agen; notifikasi dikirim ke pihak lain.
+Tautan teknis (opsional): implementasi ada di `internal/modules/ticket/*.go` bila diperlukan detail lebih lanjut.
 
 ## Paginasi & Response
 
 - Listing menggunakan `limit` dan `cursor` string (id terakhir). `meta.pagination` menyertakan `next_cursor`, `has_next`, `has_prev`, `limit`.
-
-Contoh response:
-```json
-{
-  "data": [
-    {"id": "tix-1", "title": "Aplikasi error"}
-  ],
-  "meta": {
-    "pagination": {
-      "next_cursor": "tix-2",
-      "prev_cursor": null
-    }
-  }
-}
-```
 
 ## Integrasi & Dampak ke Modul Lain
 

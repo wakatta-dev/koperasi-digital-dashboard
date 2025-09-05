@@ -1,142 +1,120 @@
-# Modul RAT (Rapat Anggota Tahunan)
+# RAT API — Panduan Integrasi Frontend (Singkat)
 
-Modul RAT mencakup penjadwalan RAT, notifikasi, unggah dokumen, pembuatan item voting, pemungutan suara, penayangan hasil, serta riwayat RAT.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/rat/entity.go`
-- `internal/modules/rat/dto.go`
-- `internal/modules/rat/repository.go`
-- `internal/modules/rat/service.go`
-- `internal/modules/rat/handler.go`
-- `internal/modules/rat/routes.go`
+## Header Wajib
 
-## Endpoint API
-
-Semua endpoint membutuhkan autentikasi `Bearer` dan identitas tenant lewat header `X-Tenant-ID`.
-
-- `POST /rat` — jadwalkan RAT baru.
-- `POST /rat/{id}/notify` — kirim notifikasi RAT.
-- `POST /rat/{id}/documents` — unggah dokumen RAT.
-- `POST /rat/{id}/voting` — buat item voting.
-- `POST /rat/voting/{item_id}/vote` — pemungutan suara anggota.
-- `GET /rat/voting/{item_id}/result` — perolehan suara untuk suatu item.
-- `GET /rat/history?limit={n}&cursor={c?}` — daftar riwayat RAT milik tenant.
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `POST /rat`
-  - Body CreateRATRequest:
-    - `year` (int, wajib)
-    - `date` (RFC3339, wajib)
-    - `agenda` (opsional)
-  - Response 201: objek `RAT` yang dibuat.
+## Ringkasan Endpoint
 
-- `POST /rat/{id}/notify`
-  - Path: `id` (int, wajib)
-  - Body: `{ "message": "<isi undangan>" }`
-  - Response 200: `{ "status": "sent" }`
+- POST `/rat` — jadwalkan RAT → 201 `APIResponse<RAT>`
+- POST `/rat/:id/notify` — kirim notifikasi → 200 `APIResponse<null>`
+- POST `/rat/:id/documents` — unggah dokumen → 201 `APIResponse<null>`
+- POST `/rat/:id/voting` — buat item voting → 201 `APIResponse<VotingItem>`
+- POST `/rat/voting/:item_id/vote` — pemungutan suara → 201 `APIResponse<{ status: string }>`
+- GET `/rat/voting/:item_id/result` — hasil voting → 200 `APIResponse<VotingResult>`
+- GET `/rat/history?limit=..&cursor=..` — riwayat RAT → 200 `APIResponse<RAT[]>`
 
-- `POST /rat/{id}/documents`
-  - Path: `id` (int, wajib)
-  - Body UploadDocumentRequest:
-    - `type` (string, wajib)
-    - `data` (bytes base64, wajib)
-  - Response 201: `{ "status": "uploaded" }`
+## Skema Data Ringkas
 
-- `POST /rat/{id}/voting`
-  - Path: `id` (int, wajib)
-  - Body CreateVotingItemRequest:
-    - `question` (string, wajib)
-    - `type` (string, contoh: `single_choice`)
-    - `options` (array/JSON, opsional)
-    - `open_at` (RFC3339, wajib)
-    - `close_at` (RFC3339, wajib)
-  - Response 201: `VotingItem`
+- RAT: `id`, `tenant_id`, `year`, `date`, `agenda`, `created_at`
+- RATDocument: `id`, `rat_id`, `type`, `file_url`
+- VotingItem: `id`, `rat_id`, `question`, `type`, `options`, `open_at`, `close_at`
+- VoteRecord: `id`, `voting_item_id`, `member_id`, `selected_option`
+- VotingResult: `item_id`, `counts` (map), `total`
 
-- `POST /rat/voting/{item_id}/vote`
-  - Path: `item_id` (int, wajib)
-  - Body VoteRequest:
-    - `member_id` (uint, wajib; harus aktif)
-    - `selected_option` (string, wajib)
-  - Response 201: `{ "status": "voted" }`
+## Payload Utama
 
-- `GET /rat/voting/{item_id}/result`
-  - Path: `item_id` (int, wajib)
-  - Response 200: `VotingResult` berisi `item_id`, `counts` (pemetaan pilihan→jumlah), dan `total`.
+- CreateRATRequest:
+  - `year` (number), `date` (RFC3339), `agenda?` (string)
 
-- `GET /rat/history`
-  - Query: `limit` (wajib, int), `cursor` (opsional, string)
-  - Response 200: array `RAT` milik tenant + `meta.pagination`.
+- Notify body:
+  - `{ message: string }`
 
-## Contoh Payload & Response
+- UploadDocumentRequest:
+  - `type` (string), `data` (base64)
 
-- Create RAT
-```json
-POST /rat
-{ "year": 2025, "date": "2025-11-20T09:00:00Z", "agenda": "RAT Tahunan" }
-```
+- CreateVotingItemRequest:
+  - `question` (string), `type` (string), `options?` (array), `open_at` (RFC3339), `close_at` (RFC3339)
 
-- Notify RAT
-```json
-POST /rat/7/notify
-{ "message": "RAT dimulai 20 Nov 2025" }
-```
+- VoteRequest:
+  - `member_id` (number), `selected_option` (string)
 
-- Upload Dokumen
-```json
-POST /rat/7/documents
-{ "type": "notulen", "data": "<base64-encoded-bytes>" }
-```
+## Bentuk Response
 
-- Create Voting Item
-```json
-POST /rat/7/voting
-{
-  "question": "Setuju laporan keuangan?",
-  "type": "single_choice",
-  "options": ["Setuju", "Tidak"],
-  "open_at": "2025-11-20T09:00:00Z",
-  "close_at": "2025-11-20T12:00:00Z"
+- Semua endpoint memakai `APIResponse<T>`.
+- Endpoint list menyediakan `meta.pagination` bila mendukung cursor.
+
+## TypeScript Types (Request & Response)
+
+```ts
+// Common
+export type Rfc3339String = string;
+
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
-```
 
-- Vote
-```json
-POST /rat/voting/3/vote
-{ "member_id": 12, "selected_option": "Setuju" }
-```
-
-- Voting Result (response contoh)
-```json
-{
-  "item_id": 3,
-  "counts": { "Setuju": 40, "Tidak": 10 },
-  "total": 50
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
 }
-```
 
-- History (paginasi)
-```json
-GET /rat/history?limit=2
-{
-  "data": [
-    {"id": 7, "year": 2024}
-  ],
-  "meta": {
-    "pagination": {
-      "next_cursor": "8",
-      "prev_cursor": null
-    }
-  }
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
 }
+
+// Entities
+export interface RAT { id: number; tenant_id: number; year: number; date: Rfc3339String; agenda?: string; created_at: Rfc3339String }
+export interface RATDocument { id: number; rat_id: number; type: string; file_url: string }
+export interface VotingItem { id: number; rat_id: number; question: string; type: string; options?: string[]; open_at: Rfc3339String; close_at: Rfc3339String }
+export interface VotingResult { item_id: number; counts: Record<string, number>; total: number }
+
+// Requests
+export interface CreateRATRequest { year: number; date: Rfc3339String; agenda?: string }
+export interface NotifyRequest { message: string }
+export interface UploadDocumentRequest { type: string; data: string }
+export interface CreateVotingItemRequest { question: string; type: string; options?: string[]; open_at: Rfc3339String; close_at: Rfc3339String }
+export interface VoteRequest { member_id: number; selected_option: string }
+
+// Responses
+export type CreateRATResponse = APIResponse<RAT>;
+export type NotifyRATResponse = APIResponse<null>;
+export type UploadRATDocumentResponse = APIResponse<null>;
+export type CreateVotingItemResponse = APIResponse<VotingItem>;
+export type VoteResponse = APIResponse<{ status: string }>;
+export type GetVotingResultResponse = APIResponse<VotingResult>;
+export type RATHistoryResponse = APIResponse<RAT[]>;
 ```
 
-## Tautan Cepat
+## Paginasi (Cursor)
 
-- Notifications: [notification.md](notification.md)
-- Reporting: [reporting.md](reporting.md)
-- Dashboard: [dashboard.md](dashboard.md)
+- Endpoint `GET /rat/history` menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
+
+## Error Singkat yang Perlu Ditangani
+
+- 400: body/query tidak valid (tahun, tanggal, dll.).
+- 401/403: token salah/tenant tidak aktif.
+- 404: RAT/item/vote tidak ditemukan.
+
+## Checklist Integrasi FE
+
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Validasi periode voting (`open_at` ≤ now ≤ `close_at`) di UI untuk UX yang baik.
+- Tampilkan hasil voting secara periodik atau polling bila perlu.
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/rat/*.go` bila diperlukan detail lebih lanjut.

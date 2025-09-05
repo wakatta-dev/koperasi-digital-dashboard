@@ -1,188 +1,118 @@
-# Modul Savings
+# Savings API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Savings. Modul ini mengelola rekening simpanan anggota beserta transaksi setoran dan penarikan. Terintegrasi dengan modul Finance (pencatatan kas/ledger) dan Billing (biaya administrasi).
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/savings/entity.go`
-- `internal/modules/savings/dto.go`
-- `internal/modules/savings/repository.go`
-- `internal/modules/savings/service.go`
-- `internal/modules/savings/handler.go`
-- `internal/modules/savings/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- Vendor: memantau secara agregat (tidak melakukan operasi simpanan harian).
-- Koperasi/UMKM/BUMDes: mengelola simpanan anggota (pokok/wajib/sukarela), setoran dan penarikan.
-
-## Arsitektur & Komponen
-
-- Repository: operasi data akun simpanan dan transaksi (`GetOrCreateAccount`, `UpdateAccount`, `Create/Update/FindTransaction`, `ListTransactions`).
-- Service: logika bisnis (`Deposit`, `VerifyDeposit`, `RequestWithdrawal`, `ApproveWithdrawal`, `ListTransactions`, `GetProof`) termasuk integrasi Finance (`RecordDeposit/Withdrawal`) dan Billing (`ChargeFee`).
-- Handler (HTTP): parsing/validasi input, memanggil service, dan mengembalikan JSON.
-
-## Entitas & Skema Data
-
-- SavingsAccount
-  - `id`, `member_id`, `type` (umum: `pokok|wajib|sukarela`), `balance`, `created_at`, `updated_at`
-- SavingsTransaction
-  - `id`, `account_id`, `amount`, `method` (`manual` atau non-manual/digital), `status` (`pending|verified|approved`), `type` (`setoran|penarikan`), `proof_url`, `created_at`
-
-Catatan: jenis simpanan (`type`) tidak dibatasi di kode; konvensi domain biasanya `pokok|wajib|sukarela`.
-
-## Alur Deposit, Withdraw, dan Verifikasi
-
-### Setoran (Deposit)
-
-1. Klien memanggil `POST /savings/{member_id}/deposit` dengan data setoran.
-2. Service membuat `SavingsTransaction` berstatus `pending`.
-3. Jika `method != manual`:
-   - status langsung berubah `verified`, saldo akun bertambah, dan `proof_url` digenerate.
-   - transaksi kas masuk dicatat via Finance (`RecordDeposit`).
-   - bila `fee` diisi, modul Billing mencatat biaya administrasi (`ChargeFee`).
-4. Jika `method == manual`, transaksi tetap `pending` menunggu verifikasi; biaya administrasi tetap dapat dicatat bila ada.
-
-### Verifikasi Setoran Manual
-
-1. Supervisor memanggil `POST /savings/{transaction_id}/verify`.
-2. Service mengambil transaksi `pending` dan mengubah status menjadi `verified`.
-3. Saldo akun bertambah, `proof_url` dihasilkan, dan Finance mencatat kas masuk.
-
-### Penarikan (Withdrawal)
-
-1. Klien memanggil `POST /savings/{member_id}/withdraw`.
-2. Service memastikan saldo mencukupi lalu membuat `SavingsTransaction` berstatus `pending`.
-3. Jika `fee` diberikan, modul Billing mencatat biaya administrasi.
-
-### Persetujuan Penarikan
-
-1. Admin memanggil `POST /savings/{transaction_id}/approve`.
-2. Service mengurangi saldo akun dan mengubah status transaksi menjadi `approved`.
-3. `proof_url` dihasilkan dan Finance mencatat transaksi kas keluar (`RecordWithdrawal`).
-
-### Riwayat & Bukti
-
-- `ListTransactions(member_id)` menampilkan riwayat transaksi simpanan anggota.
-- `GetProof(transaction_id)` menampilkan `proof_url` untuk transaksi terkait.
-
-## Endpoint API
-
-Semua endpoint membutuhkan autentikasi `Bearer` dan konteks tenant via `X-Tenant-ID`.
-
-- `POST /savings/{member_id}/deposit` — buat transaksi setoran.
-- `POST /savings/{transaction_id}/verify` — verifikasi setoran manual.
-- `POST /savings/{member_id}/withdraw` — ajukan penarikan.
-- `POST /savings/{transaction_id}/approve` — setujui penarikan.
-- `GET /savings/{member_id}/transactions?limit={n}&cursor={c?}` — daftar transaksi simpanan anggota.
-- `GET /savings/{transaction_id}/proof` — dapatkan `proof_url` transaksi.
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant (atau domain)
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `POST /savings/{member_id}/deposit`
-  - Path: `member_id` (uint, wajib)
-  - Body DepositRequest:
-    - `type` (wajib; contoh: `pokok|wajib|sukarela`)
-    - `amount` (wajib, > 0)
-    - `method` (wajib; `manual` atau non-manual/digital)
-    - `fee` (opsional, number)
-  - Response 201: objek `SavingsTransaction` (status awal `pending` atau `verified` jika non-manual).
+## Ringkasan Endpoint
 
-- `POST /savings/{transaction_id}/verify`
-  - Path: `transaction_id` (uint, wajib; transaksi `setoran`)
-  - Response 200: `SavingsTransaction` (status `verified`).
+- POST `/savings/:member_id/deposit` — setoran → 201 `SavingsTransaction`
+- POST `/savings/:transaction_id/verify` — verifikasi setoran manual → 200 `SavingsTransaction`
+- POST `/savings/:member_id/withdraw` — ajukan penarikan → 201 `SavingsTransaction`
+- POST `/savings/:transaction_id/approve` — setujui penarikan → 200 `SavingsTransaction`
+- GET `/savings/:member_id/transactions?limit=..&cursor=..` — riwayat transaksi → 200 `APIResponse<SavingsTransaction[]>`
+- GET `/savings/:transaction_id/proof` — bukti transaksi → 200 `APIResponse<string>`
 
-- `POST /savings/{member_id}/withdraw`
-  - Path: `member_id` (uint, wajib)
-  - Body WithdrawalRequest:
-    - `type` (wajib)
-    - `amount` (wajib, > 0; harus <= saldo)
-    - `method` (wajib)
-    - `fee` (opsional)
-  - Response 201: `SavingsTransaction` (status `pending`).
+## Skema Data Ringkas
 
-- `POST /savings/{transaction_id}/approve`
-  - Path: `transaction_id` (uint, wajib; transaksi `penarikan`)
-  - Response 200: `SavingsTransaction` (status `approved`).
+- SavingsAccount: `id`, `member_id`, `type`, `balance`, `created_at`, `updated_at`
+- SavingsTransaction: `id`, `account_id`, `amount`, `method`, `status` (`pending|verified|approved`), `type`, `proof_url`, `created_at`
 
-- `GET /savings/{member_id}/transactions`
-  - Path: `member_id` (uint, wajib)
-  - Query: `limit` (wajib, int), `cursor` (opsional, string)
-  - Response 200: array `SavingsTransaction` + `meta.pagination`.
+## Payload Utama
 
-- `GET /savings/{transaction_id}/proof`
-  - Path: `transaction_id` (uint, wajib)
-  - Response 200: `{ "proof": "<proof_url>" }`.
+- DepositRequest:
+  - `type` (string), `amount` (number), `method` (string), `fee?` (number)
 
-## Contoh Payload
+- WithdrawalRequest:
+  - `type` (string), `amount` (number), `method` (string), `fee?` (number)
 
-- Deposit
-```json
-{ "type": "pokok", "amount": 100000, "method": "manual", "fee": 2000 }
-```
+## Bentuk Response
 
-- Withdraw
-```json
-{ "type": "pokok", "amount": 50000, "method": "transfer", "fee": 1000 }
-```
+- POST/GET di atas mengembalikan objek langsung untuk transaksi tunggal, sementara endpoint list dibungkus `APIResponse<T>` dengan `meta.pagination`.
 
-## Status & Transisi
+## TypeScript Types (Request & Response)
 
-- Setoran: `pending` → `verified` (manual via verifikasi, non-manual otomatis).
-- Penarikan: `pending` → `approved`.
+```ts
+// Common
+export type Rfc3339String = string;
 
-## Paginasi & Response
-
-- Listing transaksi menggunakan `limit` dan `cursor` string (id terakhir).
-- Response dibungkus `APIResponse` dengan `meta.pagination`.
-
-Contoh response:
-```json
-{
-  "data": [
-    {"id": 1, "amount": 100000}
-  ],
-  "meta": {
-    "pagination": {
-      "next_cursor": null,
-      "prev_cursor": null
-    }
-  }
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export interface SavingsAccount {
+  id: number;
+  member_id: number;
+  type: string;
+  balance: number;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+export interface SavingsTransaction {
+  id: number;
+  account_id: number;
+  amount: number;
+  method: string;
+  status: 'pending' | 'verified' | 'approved';
+  type: string; // setoran|penarikan (domain)
+  proof_url: string;
+  created_at: Rfc3339String;
+}
+
+// Requests
+export interface DepositRequest { type: string; amount: number; method: string; fee?: number }
+export interface WithdrawalRequest { type: string; amount: number; method: string; fee?: number }
+
+// Responses
+export type DepositResponse = SavingsTransaction;
+export type VerifyDepositResponse = SavingsTransaction;
+export type WithdrawResponse = SavingsTransaction;
+export type ApproveWithdrawalResponse = SavingsTransaction;
+export type ListSavingsTransactionsResponse = APIResponse<SavingsTransaction[]>;
+export type GetProofResponse = APIResponse<string>;
 ```
 
-## Integrasi & Dampak ke Modul Lain
+## Paginasi (Cursor)
 
-- Finance: mencatat transaksi kas masuk/keluar dan entri ledger (`RecordDeposit`, `RecordWithdrawal`).
-- Billing: mencatat biaya administrasi setoran/penarikan (`ChargeFee`).
+- Endpoint `GET /savings/:member_id/transactions` menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
-## Keamanan
+## Error Singkat yang Perlu Ditangani
 
-- Middleware memastikan autentikasi `Bearer` dan isolasi tenant melalui `X-Tenant-ID`.
+- 400: body/query tidak valid.
+- 401/403: token salah/tenant tidak aktif.
+- 404: transaksi tidak ditemukan pada verifikasi/approve/proof.
 
-## Catatan Implementasi
+## Checklist Integrasi FE
 
-- `proof_url` dihasilkan otomatis (placeholder) saat transaksi diverifikasi/disetujui.
-- Metode non-manual dianggap terverifikasi otomatis di service saat ini.
-- Tipe simpanan tidak dibatasi oleh skema; gunakan konvensi yang disepakati (`pokok|wajib|sukarela`).
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Tampilkan status transaksi dan saldo terkini pasca operasi.
+- Gunakan `proof_url` untuk menampilkan/unduh bukti transaksi.
 
-## Peran Modul Savings per Jenis Tenant (Rangkuman)
+Tautan teknis (opsional): implementasi ada di `internal/modules/savings/*.go` bila diperlukan detail lebih lanjut.
 
-- Koperasi/UMKM/BUMDes: operasional simpanan anggota.
-- Vendor: pengawasan agregat (opsional).
-
-## Skenario Penggunaan
-
-1. Teller mencatat setoran manual, lalu supervisor memverifikasi transaksi tersebut.
-2. Anggota mengajukan penarikan; bendahara menyetujui dan sistem mencatat kas keluar.
-
-## Tautan Cepat
-
-- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
-- Billing: [billing.md](billing.md)
-- Membership: [membership.md](membership.md)
-- Reporting: [reporting.md](reporting.md)
-- Dashboard: [dashboard.md](dashboard.md)

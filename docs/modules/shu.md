@@ -1,106 +1,116 @@
-# Modul SHU (Sisa Hasil Usaha)
+# SHU API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul SHU. Modul ini menangani input total SHU tahunan, simulasi distribusi, eksekusi distribusi, serta riwayat distribusi per tenant dan per anggota.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/shu/entity.go`
-- `internal/modules/shu/repository.go`
-- `internal/modules/shu/service.go`
-- `internal/modules/shu/handler.go`
-- `internal/modules/shu/routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- Koperasi/UMKM/BUMDes: input nilai SHU tahunan, simulasi distribusi, dan distribusi aktual ke anggota.
-- Vendor: tidak menggunakan endpoint ini secara langsung.
-
-## Arsitektur & Komponen
-
-- Repository: simpan nilai SHU tahunan dan riwayat distribusi.
-- Service: simulasi dan eksekusi distribusi (integrasi ke Finance untuk pencatatan kas keluar, dan ke Membership untuk dasar perhitungan bila diperlukan).
-- Handler (HTTP): endpoint input, simulasi, distribusi, dan riwayat.
-
-## Entitas & Skema Data (ringkas)
-
-- YearlySHU — `year`, `total_shu`, `tenant_id`, timestamps
-- SHUDistribution — `member_id`, `year`, `amount`, timestamps
-
-## Alur Bisnis Utama
-
-1) Input Total SHU Tahunan — menyimpan total SHU tahun berjalan.
-2) Simulasi Distribusi — menghitung alokasi ke anggota (tanpa mencatat transaksi).
-3) Distribusi — mengeksekusi pembagian, mencatat kas keluar (Finance) dan jejak distribusi.
-4) Riwayat — melihat riwayat per tahun dan per anggota.
-
-## Endpoint API
-
-Semua endpoint dilindungi `Bearer` + `X-Tenant-ID` dan menggunakan response standar `APIResponse`.
-
-| Method | Endpoint | Deskripsi |
-|--------|----------|-----------|
-| POST   | `/shu/yearly` | Input total SHU tahunan |
-| POST   | `/shu/yearly/{year}/simulate` | Simulasi distribusi untuk tahun tertentu |
-| POST   | `/shu/yearly/{year}/distribute` | Distribusi aktual SHU tahun tertentu |
-| GET    | `/shu/history` | Daftar nilai SHU tahunan yang pernah dicatat |
-| GET    | `/shu/member/{member_id}` | Riwayat SHU per anggota |
-| GET    | `/shu/export/{year}` | Ekspor laporan SHU untuk tahun tertentu |
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-- `POST /shu/yearly`
-  - Body YearlySHURequest:
-    - `year` (wajib, int)
-    - `total_shu` (wajib, number)
-  - Response 201: `data` YearlySHU
+## Ringkasan Endpoint
 
-- `POST /shu/yearly/{year}/simulate`
-  - Path: `year` (int, wajib)
-  - Response 200: `data` array `SHUDistribution`
+- POST `/shu/yearly` — input SHU tahunan → 201 `APIResponse<YearlySHU>`
+- POST `/shu/yearly/:year/simulate` — simulasi distribusi → 200 `APIResponse<SHUDistribution[]>`
+- POST `/shu/yearly/:year/distribute` — distribusi aktual → 200 `APIResponse<{ status: string }>`
+- GET `/shu/history` — riwayat SHU tahunan → 200 `APIResponse<YearlySHU[]>`
+- GET `/shu/member/:member_id` — riwayat SHU anggota → 200 `APIResponse<SHUDistribution[]>`
+- GET `/shu/export/:year` — ekspor laporan → 200 file
 
-- `POST /shu/yearly/{year}/distribute`
-  - Path: `year` (int, wajib)
-  - Body DistributionRequest: `{ "method": "transfer|cash|...", "description": "..." }`
-  - Response 200: `data` `{ "status": "ok" }`
+## Skema Data Ringkas
 
-- `GET /shu/history`
-  - Response 200: `data` array YearlySHU
+- YearlySHU: `id`, `tenant_id`, `year`, `total_shu`, `status`, `created_at`
+- SHUDistribution: `id`, `shu_year_id`, `member_id`, `contribution_savings`, `contribution_participation`, `distributed_amount`, `distributed_at?`
 
-- `GET /shu/member/{member_id}`
-  - Path: `member_id` (int, wajib)
-  - Response 200: `data` array SHUDistribution
+## Payload Utama
 
-- `GET /shu/export/{year}`
-  - Path: `year` (int, wajib)
-  - Response 200: `data` `{ "status": "exported", "year": "..." }`
+- YearlySHURequest:
+  - `year` (number), `total_shu` (number)
 
-## Status & Transisi
+- DistributionRequest:
+  - `method` (string), `description` (string)
 
-- Tidak ada status kompleks; fokus pada jejak input/simulasi/distribusi dan pencatatan transaksi kas.
+## Bentuk Response
 
-## Paginasi & Response
+- Semua endpoint di atas mengembalikan `APIResponse<T>` kecuali ekspor (file).
 
-- Tidak ada paginasi, seluruh response berbentuk array atau objek sesuai endpoint.
+## TypeScript Types (Request & Response)
 
-## Integrasi & Dampak ke Modul Lain
+```ts
+// Common
+export type Rfc3339String = string;
 
-- Finance: mencatat kas keluar saat distribusi melalui `CreateTransaction`.
-- Membership: sumber data anggota untuk distribusi (implisit di service).
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
+}
 
-## Keamanan
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
 
-- Middleware memastikan autentikasi `Bearer` dan isolasi tenant (`X-Tenant-ID`).
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
 
-## Skenario Penggunaan
+// Entities
+export interface YearlySHU {
+  id: number;
+  tenant_id: number;
+  year: number;
+  total_shu: number;
+  status: string;
+  created_at: Rfc3339String;
+}
 
-1. Input total SHU tahun berjalan, lalu jalankan simulasi untuk memeriksa alokasi.
-2. Lakukan distribusi; sistem mencatat kas keluar dan menyimpan detail alokasi per anggota.
+export interface SHUDistribution {
+  id: number;
+  shu_year_id: number;
+  member_id: number;
+  contribution_savings: number;
+  contribution_participation: number;
+  distributed_amount: number;
+  distributed_at?: Rfc3339String;
+}
 
-## Tautan Cepat
+// Requests
+export interface YearlySHURequest { year: number; total_shu: number }
+export interface DistributionRequest { method: string; description: string }
 
-- Finance/Transactions: [finance_transactions.md](finance_transactions.md)
-- Reporting: [reporting.md](reporting.md)
-- Membership: [membership.md](membership.md)
+// Responses
+export type InputYearlySHUResponse = APIResponse<YearlySHU>;
+export type SimulateSHUResponse = APIResponse<SHUDistribution[]>;
+export type DistributeSHUResponse = APIResponse<{ status: string }>;
+export type ListYearlySHUResponse = APIResponse<YearlySHU[]>;
+export type MemberSHUHistoryResponse = APIResponse<SHUDistribution[]>;
+// Export returns a file
+```
+
+## Paginasi (Cursor)
+
+- Tidak ada paginasi pada endpoint SHU saat ini.
+
+## Error Singkat yang Perlu Ditangani
+
+- 400: body/path tidak valid.
+- 401/403: token salah/tenant tidak aktif.
+- 404: data tahun/anggota tidak ditemukan.
+
+## Checklist Integrasi FE
+
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Jalankan simulasi sebelum distribusi untuk memvalidasi alokasi.
+- Tangani output file pada ekspor (unduhan).
+
+Tautan teknis (opsional): implementasi ada di `internal/modules/shu/*.go` bila diperlukan detail lebih lanjut.
+

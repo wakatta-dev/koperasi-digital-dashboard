@@ -1,181 +1,136 @@
-# Modul Users
+# Users API — Panduan Integrasi Frontend (Singkat)
 
-Dokumentasi ini menjelaskan peran, arsitektur, entitas data, endpoint API, dan alur bisnis dari modul Users. Modul ini menangani CRUD pengguna dalam konteks tenant yang terisolasi.
+Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
-Referensi implementasi utama terdapat pada:
-- `internal/modules/user/dto.go`
-- `internal/modules/user/repository.go`
-- `internal/modules/user/service.go`
-- `internal/modules/user/handler.go`
-- `internal/modules/user/routes.go`
-- `internal/modules/user/vendor_service.go`
-- `internal/modules/user/vendor_handler.go`
-- `internal/modules/user/vendor_routes.go`
+## Header Wajib
 
-## Ringkasan Peran per Tenant
-
-- Vendor: tidak menambah user langsung ke tenant selain untuk akun vendor; pengelolaan user tenant dilakukan oleh admin tenant.
-- Koperasi/UMKM/BUMDes: mengelola akun pengguna operasional (anggota, bendahara, kasir, dsb.).
-
-## Arsitektur & Komponen
-
-- Repository: akses data entitas `auth.User` (CRUD, listing per-tenant dengan cursor numerik).
-- Service: logika bisnis pembuatan user (bcrypt hash), pembaruan profil, pembaruan status, penghapusan, reset password.
-- Handler (HTTP): validasi input, parsing query/path, respon seragam.
-
-## Entitas & Skema Data
-
-- User (`auth.User`)
-  - `id`, `tenant_id`, `tenant_role_id`, `email` (unik), `password_hash`, `full_name`, `status`, timestamps
-
-## Alur Bisnis Utama
-
-1) Pembuatan User
-- Input email, password, nama lengkap, dan `tenant_role_id`.
-- Password di-hash dengan bcrypt; status default aktif (`true`).
-
-2) Listing User per Tenant
-- Menggunakan cursor numerik (berdasarkan `id`) dan `limit` agar efisien.
-
-3) Pembaruan & Penghapusan
-- Perbarui `tenant_role_id` dan/atau `full_name`. Ubah `status` aktif/nonaktif. Dapat melakukan delete.
-
-4) Reset Password
-- Cari user berdasarkan email, set `password_hash` baru menggunakan bcrypt.
-
-## Endpoint API
-
-Semua response menggunakan format `APIResponse`.
-
-### Client
-
-| Method | Path | Deskripsi |
-|--------|------|-----------|
-| POST | /users | Buat user baru pada tenant saat ini |
-| GET | /users | Daftar user untuk tenant saat ini (cursor numerik id terakhir) |
-| GET | /users/{id} | Detail user |
-| PUT | /users/{id} | Perbarui `tenant_role_id`/`full_name` |
-| PATCH | /users/{id}/status | Ubah `status` aktif/nonaktif |
-| DELETE | /users/{id} | Hapus user |
-| POST | /users/reset-password | Reset password berdasarkan email |
-
-### Vendor
-
-| Method | Path | Deskripsi |
-|--------|------|-----------|
-| POST | /users | Undang user vendor (email, nama, role) |
-| GET | /users | Daftar user vendor (cursor numerik) |
-| PATCH | /users/{id}/role | Ubah role user vendor |
-| DELETE | /users/{id} | Hapus user vendor |
-
-Keamanan: semua endpoint dilindungi `Bearer` token + `X-Tenant-ID`.
-
-## Rincian Endpoint (Params, Payload, Response)
-
-Header umum:
 - Authorization: `Bearer <token>`
-- `X-Tenant-ID`: ID tenant (atau domain)
+- `X-Tenant-ID`: `number` (atau otomatis via domain)
+- `Content-Type`: `application/json`
+- `Accept`: `application/json`
 
-### Client
+## Ringkasan Endpoint
 
-#### POST /users
-- Body CreateUserRequest:
-  - `tenant_role_id` (wajib, uint)
-  - `email` (wajib, email valid)
-  - `password` (wajib)
-  - `full_name` (wajib)
-- Response 201: `data` User (termasuk id, email, full_name, tenant_id, tenant_role_id, status, timestamps).
+- POST `/users` — buat user → 201 `APIResponse<User>`
+- GET `/users?limit=..&cursor=..` — daftar user → 200 `APIResponse<User[]>`
+- GET `/users/:id` — detail user → 200 `APIResponse<User>`
+- PUT `/users/:id` — ubah user → 200 `APIResponse<User>`
+- PATCH `/users/:id/status` — ubah status → 200 `APIResponse<{ status: boolean }>`
+- DELETE `/users/:id` — hapus user → 200 `APIResponse<{ id: number }>`
+- POST `/users/reset-password` — reset password → 200 `APIResponse<{ message: string }>`
 
-#### GET /users
-- Query: `limit` (wajib, int>0), `cursor` (opsional, string id terakhir)
-- Response 200: `data` array User + `meta.pagination`.
+## Skema Data Ringkas
 
-#### GET /users/{id}
-- Path: `id` (int, wajib)
-- Response 200: `data` User; 404 jika tidak ditemukan.
+- User: `id`, `tenant_id`, `tenant_role_id`, `email`, `full_name`, `status`, `created_at`, `updated_at`
 
-#### PUT /users/{id}
-- Path: `id` (int, wajib)
-- Body UpdateUserRequest (opsional): `tenant_role_id`, `full_name`
-- Response 200: `data` User terkini.
+## Payload Utama
 
-#### PATCH /users/{id}/status
-- Path: `id` (int, wajib)
-- Body UpdateStatusRequest: `{ "status": true|false }`
-- Response 200: `data` `{ "status": <bool> }`.
+- CreateUserRequest:
+  - `tenant_role_id` (number, wajib)
+  - `email` (string, wajib, email valid)
+  - `password` (string, wajib)
+  - `full_name` (string, wajib)
 
-#### DELETE /users/{id}
-- Path: `id` (int, wajib)
-- Response 200: `data` `{ "id": <int> }`.
+- UpdateUserRequest:
+  - `tenant_role_id` (number, opsional)
+  - `full_name` (string, opsional)
 
-#### POST /users/reset-password
-- Body ResetPasswordRequest:
-  - `email` (wajib)
-  - `new_password` (wajib)
-- Response 200: `data` `{ "message": "password reset" }`.
+- UpdateStatusRequest:
+  - `status` (boolean, wajib)
 
-### Vendor
+- ResetPasswordRequest:
+  - `email` (string, wajib)
+  - `new_password` (string, wajib)
 
-#### POST /users
-- Body:
-  - `email` (wajib, email valid)
-  - `full_name` (wajib)
-  - `role_id` (wajib, uint)
-- Response 201: `data` User
+## Bentuk Response
 
-#### GET /users
-- Query: `limit` (wajib), `cursor` (opsional, id terakhir)
-- Response 200: `data` array User + `meta.pagination`.
+- Semua endpoint memakai `APIResponse<T>`.
+- Endpoint list menyediakan `meta.pagination` bila mendukung cursor.
 
-#### PATCH /users/{id}/role
-- Path: `id` (int, wajib)
-- Body: `{ "role_id": <uint> }`
-- Response 200: `data` `{ "id": <int> }`.
+## TypeScript Types (Request & Response)
 
-#### DELETE /users/{id}
-- Path: `id` (int, wajib)
-- Response 200: `data` `{ "id": <int> }`.
+```ts
+// Common
+export type Rfc3339String = string;
 
-## Contoh Payload
-
-- Create User
-```json
-{
-  "tenant_role_id": 7,
-  "email": "kasir@toko.id",
-  "password": "rahasia",
-  "full_name": "Kasir Toko"
+export interface Pagination {
+  next_cursor?: string;
+  prev_cursor?: string;
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
 }
+
+export interface Meta {
+  request_id: string;
+  timestamp: Rfc3339String;
+  pagination?: Pagination;
+}
+
+export interface APIResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  meta: Meta;
+  errors: Record<string, string[]> | null;
+}
+
+// Entities
+export interface User {
+  id: number;
+  tenant_id: number;
+  tenant_role_id: number;
+  email: string;
+  full_name: string;
+  status: boolean;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+}
+
+// Requests
+export interface CreateUserRequest {
+  tenant_role_id: number;
+  email: string;
+  password: string;
+  full_name: string;
+}
+
+export interface UpdateUserRequest {
+  tenant_role_id?: number;
+  full_name?: string;
+}
+
+export interface UpdateStatusRequest { status: boolean; }
+export interface ResetPasswordRequest { email: string; new_password: string; }
+
+// Responses
+export type CreateUserResponse = APIResponse<User>;
+export type ListUsersResponse = APIResponse<User[]>;
+export type GetUserResponse = APIResponse<User>;
+export type UpdateUserResponse = APIResponse<User>;
+export type UpdateStatusResponse = APIResponse<{ status: boolean }>;
+export type DeleteUserResponse = APIResponse<{ id: number }>;
+export type ResetPasswordResponse = APIResponse<{ message: string }>;
 ```
 
-- Update User
-```json
-{ "tenant_role_id": 8, "full_name": "Kasir A" }
-```
+## Paginasi (Cursor)
 
-- Update Status
-```json
-{ "status": false }
-```
+- Endpoint list menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Baca `meta.pagination.next_cursor` untuk memuat halaman berikutnya bila `has_next = true`.
 
-- Reset Password
-```json
-{ "email": "kasir@toko.id", "new_password": "baru123" }
-```
+## Error Singkat yang Perlu Ditangani
 
-## Status & Transisi
+- 400: `APIResponse` dengan `errors` per field (`limit`, body invalid, dsb.).
+- 401/403: token salah/tenant tidak aktif.
+- 404: resource tidak ditemukan (misal user di detail/update).
 
-- User: `status` true/false untuk mengaktifkan/menonaktifkan akses.
+## Checklist Integrasi FE
 
-## Paginasi & Response
+- Selalu kirim `Authorization` dan `X-Tenant-ID`.
+- Siapkan handler paginasi (limit, cursor) untuk daftar user.
+- Setelah ubah status/hapus, sinkronkan state list/detail di UI.
 
-- Paginasi cursor numerik (id terakhir) dan `limit` wajib pada listing.
-- `meta.pagination` berisi `next_cursor`, `has_next`, `has_prev`, `limit`.
-
-## Integrasi & Dampak ke Modul Lain
-
-- Role: `tenant_role_id` menentukan peran akses lewat Casbin.
-- Auth: kredensial user digunakan untuk login dan generasi JWT.
+Tautan teknis (opsional): implementasi ada di `internal/modules/user/*.go` bila diperlukan detail lebih lanjut.
 
 ## Keamanan
 
