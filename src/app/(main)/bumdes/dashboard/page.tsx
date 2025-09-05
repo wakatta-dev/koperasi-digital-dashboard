@@ -1,5 +1,8 @@
 /** @format */
 
+"use client";
+
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -17,6 +20,13 @@ import {
   Users,
   MapPin,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const dashboardStats = [
   {
@@ -50,8 +60,34 @@ const dashboardStats = [
 ];
 
 export default function BUMDesDashboard() {
+  const [unit, setUnit] = useState<string>("all");
+  const units = [
+    { id: "all", name: "Semua Unit" },
+    { id: "UU001", name: "Warung Sembako Desa" },
+    { id: "UU002", name: "Rental Alat Pertanian" },
+  ];
   return (
     <div className="space-y-6">
+      {/* Global Filter */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Dashboard</h2>
+          <p className="text-muted-foreground">Ringkasan per unit usaha</p>
+        </div>
+        <div className="min-w-[220px]">
+          <Select value={unit} onValueChange={setUnit}>
+            <SelectTrigger>
+              <SelectValue placeholder="Pilih unit" />
+            </SelectTrigger>
+            <SelectContent>
+              {units.map((u) => (
+                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      {/* TODO integrate API: apply global unit filter to all widgets */}
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {dashboardStats.map((stat) => (
@@ -202,7 +238,7 @@ export default function BUMDesDashboard() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a
-              href="/unit-usaha"
+              href="/bumdes/units"
               className="p-4 border rounded-lg hover:bg-muted transition-colors"
             >
               <Building className="h-6 w-6 mb-2" />
@@ -212,7 +248,7 @@ export default function BUMDesDashboard() {
               </p>
             </a>
             <a
-              href="/aset-sewa"
+              href="/bumdes/aset"
               className="p-4 border rounded-lg hover:bg-muted transition-colors"
             >
               <MapPin className="h-6 w-6 mb-2" />
@@ -222,7 +258,7 @@ export default function BUMDesDashboard() {
               </p>
             </a>
             <a
-              href="/jadwal-sewa"
+              href="/bumdes/aset"
               className="p-4 border rounded-lg hover:bg-muted transition-colors"
             >
               <Calendar className="h-6 w-6 mb-2" />
@@ -232,7 +268,7 @@ export default function BUMDesDashboard() {
               </p>
             </a>
             <a
-              href="/laporan"
+              href="/bumdes/laporan"
               className="p-4 border rounded-lg hover:bg-muted transition-colors"
             >
               <FileText className="h-6 w-6 mb-2" />

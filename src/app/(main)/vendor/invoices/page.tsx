@@ -6,6 +6,7 @@ import { WebhookSimulator } from "@/components/feature/vendor/payments/webhook-s
 
 export const dynamic = "force-dynamic";
 
+// TODO integrate API: verify invoice listing and actions endpoints
 export default async function InvoicesPage() {
   const res = await listVendorInvoices({ limit: 10 }).catch(() => null);
   const invoices = res?.data ?? [];
@@ -22,3 +23,4 @@ export default async function InvoicesPage() {
     </div>
   );
 }
+

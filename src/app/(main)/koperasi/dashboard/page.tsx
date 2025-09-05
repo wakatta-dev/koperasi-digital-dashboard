@@ -108,22 +108,23 @@ export default async function KoperasiDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <a href="/keanggotaan" className="p-4 border rounded-lg hover:bg-muted transition-colors">
+              {/* TODO integrate routing states if needed */}
+              <a href="/koperasi/keanggotaan" className="p-4 border rounded-lg hover:bg-muted transition-colors">
                 <UserPlus className="h-6 w-6 mb-2" />
                 <p className="font-medium">Tambah Anggota</p>
                 <p className="text-sm text-muted-foreground">Daftarkan anggota baru</p>
               </a>
-              <a href="/simpanan" className="p-4 border rounded-lg hover:bg-muted transition-colors">
+              <a href="/koperasi/simpanan" className="p-4 border rounded-lg hover:bg-muted transition-colors">
                 <PiggyBank className="h-6 w-6 mb-2" />
                 <p className="font-medium">Setoran Simpanan</p>
                 <p className="text-sm text-muted-foreground">Catat setoran anggota</p>
               </a>
-              <a href="/pinjaman" className="p-4 border rounded-lg hover:bg-muted transition-colors">
+              <a href="/koperasi/pinjaman" className="p-4 border rounded-lg hover:bg-muted transition-colors">
                 <CreditCard className="h-6 w-6 mb-2" />
                 <p className="font-medium">Proses Pinjaman</p>
                 <p className="text-sm text-muted-foreground">Kelola pengajuan pinjaman</p>
               </a>
-              <a href="/laporan" className="p-4 border rounded-lg hover:bg-muted transition-colors">
+              <a href="/koperasi/laporan" className="p-4 border rounded-lg hover:bg-muted transition-colors">
                 <FileText className="h-6 w-6 mb-2" />
                 <p className="font-medium">Laporan</p>
                 <p className="text-sm text-muted-foreground">Lihat laporan keuangan</p>

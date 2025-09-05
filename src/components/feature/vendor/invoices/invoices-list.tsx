@@ -37,6 +37,7 @@ type Props = {
 };
 
 export function VendorInvoicesList({ initialData, initialCursor }: Props) {
+  const [preview, setPreview] = useState<Invoice | null>(null);
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [periode, setPeriode] = useState<string | undefined>(undefined);
   const params = useMemo(
@@ -243,16 +244,20 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                   </select>
 
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/vendor/invoices/${invoice.id}`}
-                      className="inline-flex"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      onClick={() => setPreview(invoice)}
                     >
-                      <Button variant="ghost" size="icon" type="button">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon">
                       <Download className="h-4 w-4" />
+                    </Button>
+                    {/* TODO integrate API: send invoice via email */}
+                    <Button variant="ghost" size="sm" type="button">
+                      Email
                     </Button>
                     <InvoiceUpsertDialog
                       invoice={invoice}
@@ -299,6 +304,51 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
           </div>
         </CardContent>
       </Card>
+      {/* Invoice Preview */}
+      <Sheet open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-xl">
+          <SheetHeader>
+            <SheetTitle>Invoice Preview</SheetTitle>
+            <SheetDescription>Detail ringkas invoice</SheetDescription>
+          </SheetHeader>
+          {preview && (
+            <div className="p-4 space-y-4 text-sm">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">{preview.number}</div>
+                <Badge
+                  variant={
+                    preview.status === "paid"
+                      ? "default"
+                      : preview.status === "pending"
+                      ? "secondary"
+                      : "destructive"
+                  }
+                >
+                  {preview.status}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>Issued: {preview.issued_at}</div>
+                <div>Due: {preview.due_date ?? '-'}</div>
+                <div>Tenant: #{preview.tenant_id}</div>
+                {preview.subscription_id && (
+                  <div>Subscription: #{preview.subscription_id}</div>
+                )}
+                <div className="col-span-2 font-medium">Total: Rp {preview.total}</div>
+              </div>
+              {/* TODO integrate API: fetch full invoice details/items for preview */}
+              <div className="flex items-center gap-2 pt-2">
+                <Button size="sm" type="button" variant="outline">
+                  Download PDF
+                </Button>
+                <Button size="sm" type="button" variant="default">
+                  Send Email
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

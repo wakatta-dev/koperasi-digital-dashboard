@@ -21,22 +21,13 @@ import {
 import { motion } from "framer-motion";
 import { useVendorDashboard } from "@/hooks/queries/vendor";
 import { useVendorSubscriptionsSummary } from "@/hooks/queries/billing";
-import {
-  Pie,
-  PieChart,
-  Cell,
-  Tooltip as RTooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { useNotifications } from "@/hooks/queries/notifications";
 import React from "react";
 
+// TODO integrate API: any missing endpoints should be wired here
 export default function VendorDashboard() {
   const { data: dashboard } = useVendorDashboard();
   const { data: sum } = useVendorSubscriptionsSummary();
-  // const { data: notifications = [] } = useNotifications();
 
-  // Format helpers
   const fmtNumber = (n: number) => new Intl.NumberFormat("id-ID").format(n);
   const fmtIDR = (n: number) =>
     new Intl.NumberFormat("id-ID", {
@@ -45,7 +36,6 @@ export default function VendorDashboard() {
       minimumFractionDigits: 0,
     }).format(n);
 
-  // Build stats with guaranteed correct fields
   const stats: Array<{
     title: string;
     value: string;
@@ -85,7 +75,6 @@ export default function VendorDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
           <motion.div
@@ -126,9 +115,7 @@ export default function VendorDashboard() {
         ))}
       </div>
 
-      {/* Recent Notifications */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        {/* Notifications */}
         <Card className="h-full">
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
@@ -183,7 +170,6 @@ export default function VendorDashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
         <Card className="h-full">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
@@ -234,7 +220,6 @@ export default function VendorDashboard() {
         </Card>
       </div>
 
-      {/* Recent Audits */}
       {Array.isArray((dashboard as any)?.recent_audits) && (
         <Card>
           <CardHeader>
@@ -288,3 +273,4 @@ export default function VendorDashboard() {
     </div>
   );
 }
+

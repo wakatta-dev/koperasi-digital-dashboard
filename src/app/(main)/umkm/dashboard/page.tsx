@@ -7,14 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+// Note: Chart placeholder to avoid client-only lib in server build
 import {
   Package,
   ShoppingCart,
   TrendingUp,
   DollarSign,
   AlertTriangle,
-  FileText,
-  Calculator,
 } from "lucide-react";
 
 const dashboardStats = [
@@ -49,6 +48,7 @@ const dashboardStats = [
 ];
 
 export default function UMKMDashboard() {
+  // TODO integrate API: KPIs, weekly sales chart, notifications, and top products
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
@@ -83,8 +83,22 @@ export default function UMKMDashboard() {
         ))}
       </div>
 
-      {/* Recent Activity */}
+      {/* Weekly Sales Chart + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Grafik Penjualan Mingguan</CardTitle>
+            <CardDescription>Ringkasan penjualan 7 hari terakhir</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-56 flex items-center justify-center bg-muted rounded-lg">
+              <div className="text-center">
+                {/* TODO integrate API: render weekly sales chart */}
+                <span className="text-muted-foreground text-sm">Grafik penjualan akan ditambahkan</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Transaksi Terbaru</CardTitle>
@@ -133,49 +147,15 @@ export default function UMKMDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Aksi Cepat</CardTitle>
-            <CardDescription>Fitur yang sering digunakan</CardDescription>
+            <CardTitle>Notifikasi</CardTitle>
+            <CardDescription>Update terbaru untuk Anda</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <a
-                href="/pos"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <ShoppingCart className="h-6 w-6 mb-2" />
-                <p className="font-medium">Buka POS</p>
-                <p className="text-sm text-muted-foreground">Mulai transaksi</p>
-              </a>
-              <a
-                href="/inventaris"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <Package className="h-6 w-6 mb-2" />
-                <p className="font-medium">Tambah Produk</p>
-                <p className="text-sm text-muted-foreground">
-                  Kelola inventaris
-                </p>
-              </a>
-              <a
-                href="/harga-bertingkat"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <Calculator className="h-6 w-6 mb-2" />
-                <p className="font-medium">Atur Harga</p>
-                <p className="text-sm text-muted-foreground">
-                  Harga bertingkat
-                </p>
-              </a>
-              <a
-                href="/laporan"
-                className="p-4 border rounded-lg hover:bg-muted transition-colors"
-              >
-                <FileText className="h-6 w-6 mb-2" />
-                <p className="font-medium">Laporan</p>
-                <p className="text-sm text-muted-foreground">
-                  Analisis penjualan
-                </p>
-              </a>
+            {/* TODO integrate API: fetch notifications */}
+            <div className="space-y-3">
+              {["Stok 'Es Teh Manis' menurun", "Invoice #INV-1002 jatuh tempo 3 hari lagi", "Fitur Marketplace tersedia untuk diaktifkan"].map((n, i) => (
+                <div key={i} className="p-3 border rounded-md text-sm">{n}</div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -229,6 +209,31 @@ export default function UMKMDashboard() {
                   <p className="text-sm text-muted-foreground">
                     Min: {item.minStock}
                   </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top products */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Produk Terlaris</CardTitle>
+          <CardDescription>Minggu ini</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* TODO integrate API: fetch top-selling products */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { name: "Kopi Arabica Premium", sold: 42 },
+              { name: "Roti Bakar Spesial", sold: 35 },
+              { name: "Nasi Gudeg", sold: 28 },
+            ].map((p) => (
+              <div key={p.name} className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium">{p.name}</p>
+                  <span className="text-sm text-muted-foreground">{p.sold} terjual</span>
                 </div>
               </div>
             ))}

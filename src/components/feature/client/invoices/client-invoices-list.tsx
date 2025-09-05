@@ -92,7 +92,7 @@ export function ClientInvoicesList({ initialData }: Props) {
                   </Badge>
 
                   <div className="flex items-center gap-2">
-                    <Link href={`/koperasi/tagihan/${invoice.id}`} className="text-sm text-muted-foreground hover:underline">
+                    <Link href={`/koperasi/billing`} className="text-sm text-muted-foreground hover:underline">
                       Detail
                     </Link>
                     {invoice.status !== "paid" && (

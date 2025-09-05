@@ -34,6 +34,7 @@ const cartItems = [
 ];
 
 export default function POSPage() {
+  // TODO integrate API: product list, cart state, submit payments (cash & non-cash)
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -177,6 +178,25 @@ export default function POSPage() {
               <Button variant="ghost" className="w-full">
                 Simpan sebagai Draft
               </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {cartItems.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Struk Digital</CardTitle>
+              <CardDescription>Kirim struk via email/WhatsApp</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {/* TODO integrate API: generate receipt and send */}
+              <div className="text-sm text-muted-foreground">
+                Struk akan berisi ringkasan transaksi dan QR code.
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1">Pratinjau</Button>
+                <Button className="flex-1">Kirim Struk</Button>
+              </div>
             </CardContent>
           </Card>
         )}

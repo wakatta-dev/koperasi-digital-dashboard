@@ -138,6 +138,7 @@ export default function InventarisPage() {
           <CardDescription>Kelola inventaris dan stok produk</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* TODO integrate API: list products, edit, and live stock sync */}
           <div className="space-y-4">
             {products.map((product) => (
               <div
@@ -206,6 +207,47 @@ export default function InventarisPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Realtime Stock & History */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Stok Realtime</CardTitle>
+            <CardDescription>Status sinkronisasi stok</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* TODO integrate API: websocket or SSE for live stock updates */}
+            <div className="flex items-center gap-2 text-sm">
+              <span className="size-2 rounded-full bg-green-500" />
+              <span>Tersambung ke kanal realtime</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Riwayat Stok</CardTitle>
+            <CardDescription>Masuk/keluar stok terakhir</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* TODO integrate API: stock ledger */}
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>+10 Kopi Arabica</span>
+                <span className="text-muted-foreground">Hari ini 09:12</span>
+              </div>
+              <div className="flex justify-between">
+                <span>-3 Roti Bakar</span>
+                <span className="text-muted-foreground">Kemarin 16:40</span>
+              </div>
+              <div className="flex justify-between">
+                <span>+20 Es Teh Manis</span>
+                <span className="text-muted-foreground">2 hari lalu 11:05</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

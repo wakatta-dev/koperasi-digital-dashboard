@@ -1,5 +1,7 @@
 /** @format */
 
+"use client";
+
 import {
   Card,
   CardContent,
@@ -10,15 +12,33 @@ import {
 import { Button } from "@/components/ui/button";
 import { BarChart3, Download } from "lucide-react";
 import { getFinanceReportAction, getBillingReportAction } from "@/actions/reporting";
+import { useEffect, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
-export default async function LaporanPage() {
-  const finance = await getFinanceReportAction().catch(() => null);
-  const billing = await getBillingReportAction().catch(() => null);
+export default function LaporanPage() {
+  // NOTE: Keep calling actions optional; these would normally be server-side
+  const [finance, setFinance] = useState<any>(null);
+  const [billing, setBilling] = useState<any>(null);
+  const [unit, setUnit] = useState<string>("all");
+  const [date, setDate] = useState<string>("");
+
+  useEffect(() => {
+    // TODO integrate API: GET /api/bumdes/reports?unit=...&date=...
+    getFinanceReportAction().then(setFinance).catch(() => setFinance(null));
+    getBillingReportAction().then(setBilling).catch(() => setBilling(null));
+  }, [unit, date]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">Laporan</h2>
           <p className="text-muted-foreground">Ringkasan BUMDes</p>
@@ -34,6 +54,30 @@ export default async function LaporanPage() {
           </Button>
         </div>
       </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Unit</span>
+              <Select value={unit} onValueChange={setUnit}>
+                <SelectTrigger className="min-w-[200px]"><SelectValue placeholder="Pilih unit" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Unit</SelectItem>
+                  <SelectItem value="UU001">Warung Sembako Desa</SelectItem>
+                  <SelectItem value="UU002">Rental Alat Pertanian</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Tanggal</span>
+              <Input type="month" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+          </div>
+          {/* TODO integrate API: apply unit/date filters */}
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -87,7 +131,7 @@ export default async function LaporanPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
-              {(billing?.overdue_invoices ?? []).slice(0, 5).map((inv) => (
+              {(billing?.overdue_invoices ?? []).slice(0, 5).map((inv: any) => (
                 <div key={inv.id} className="flex justify-between">
                   <span>#{inv.number}</span>
                   <span>Rp {inv.total}</span>

@@ -91,6 +91,7 @@ const productPricing = [
 ];
 
 export default function HargaBertingkatPage() {
+  // TODO integrate API: CRUD for tiers, assign product prices, assign customer tiers
   return (
     <div className="space-y-6">
       {/* Header */}

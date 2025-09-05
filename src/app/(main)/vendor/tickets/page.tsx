@@ -6,6 +6,7 @@ import { TicketSlaConfig } from "@/components/feature/vendor/tickets/sla-config"
 
 export const dynamic = "force-dynamic";
 
+// TODO integrate API: verify ticketing endpoints for list/update/reply
 export default async function TicketsPage() {
   const res = await listTickets({ limit: 10 }).catch(() => null);
   const initial = res?.data ?? undefined;
@@ -16,3 +17,4 @@ export default async function TicketsPage() {
     </div>
   );
 }
+

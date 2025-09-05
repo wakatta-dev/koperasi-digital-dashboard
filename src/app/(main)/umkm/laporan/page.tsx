@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart3, Download } from "lucide-react";
 import { getFinanceReportAction, getBillingReportAction } from "@/actions/reporting";
 
@@ -34,6 +35,36 @@ export default async function LaporanPage() {
           </Button>
         </div>
       </div>
+
+      {/* Filter Waktu */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Periode</p>
+              <Select defaultValue="30">
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih rentang" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 hari</SelectItem>
+                  <SelectItem value="30">30 hari</SelectItem>
+                  <SelectItem value="90">90 hari</SelectItem>
+                  <SelectItem value="365">1 tahun</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Mulai</p>
+              <input type="date" className="w-full border rounded-md h-9 px-3 text-sm" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Selesai</p>
+              <input type="date" className="w-full border rounded-md h-9 px-3 text-sm" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -119,6 +150,51 @@ export default async function LaporanPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Laporan Terperinci */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Laporan Penjualan</CardTitle>
+            <CardDescription>Total, rata-rata, dan tren</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* TODO integrate API: sales report */}
+            <div className="text-sm text-muted-foreground">Data penjualan akan ditampilkan di sini.</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Arus Kas</CardTitle>
+            <CardDescription>Penerimaan dan pengeluaran kas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* TODO integrate API: cash flow */}
+            <div className="text-sm text-muted-foreground">Ringkasan arus kas akan ditampilkan di sini.</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Neraca</CardTitle>
+            <CardDescription>Aset, kewajiban, dan ekuitas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* TODO integrate API: balance sheet */}
+            <div className="text-sm text-muted-foreground">Neraca akan ditampilkan di sini.</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Laba Rugi</CardTitle>
+          <CardDescription>Pendapatan, HPP, dan beban</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* TODO integrate API: profit & loss */}
+          <div className="text-sm text-muted-foreground">Laporan laba rugi akan ditampilkan di sini.</div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { NotificationRemindersPanel } from "@/components/feature/vendor/notifica
 
 export const dynamic = "force-dynamic";
 
+// TODO integrate API: ensure notifications endpoints wired for list/create/update
 export default async function NotificationsPage() {
   const res = await listNotificationsAction({ limit: 10 });
   return (
@@ -15,3 +16,4 @@ export default async function NotificationsPage() {
     </div>
   );
 }
+

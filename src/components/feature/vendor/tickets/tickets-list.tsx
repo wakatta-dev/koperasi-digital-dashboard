@@ -25,10 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { VendorTicketDetail } from "./ticket-detail";
 
 type Props = { initialData?: Ticket[]; limit?: number };
 
 export function VendorTicketsList({ initialData, limit = 10 }: Props) {
+  const [openId, setOpenId] = useState<string | null>(null);
   const [filters, setFilters] = useState<{
     status?: string;
     priority?: string;
@@ -154,11 +157,9 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
                   >
                     {t.status}
                   </Badge>
-                  <Link href={`/vendor/tickets/${t.id}`}>
-                    <Button variant="outline" size="sm">
-                      View
-                    </Button>
-                  </Link>
+                  <Button variant="outline" size="sm" onClick={() => setOpenId(String(t.id))}>
+                    View
+                  </Button>
                 </div>
               </div>
             ))}
@@ -170,6 +171,13 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
           </div>
         </CardContent>
       </Card>
+      <Sheet open={!!openId} onOpenChange={(o) => !o && setOpenId(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl p-4 overflow-y-auto">
+          {openId && (
+            <VendorTicketDetail id={openId} />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
