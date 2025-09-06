@@ -11,6 +11,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
+- GET `/members?limit={n}&cursor={id?}` — list anggota (koperasi only) → 200 `APIResponse<MemberListItem[]>`
 - POST `/members/register` — daftar anggota → 201 `Member`
 - POST `/members/:id/verify` — verifikasi/tolak → 200 (tanpa body)
 - GET `/members/:id` — profil → 200 `Profile`
@@ -21,6 +22,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 ## Skema Data Ringkas
 
 - Member: `id`, `tenant_id`, `user_id`, `no_anggota`, `status`, `join_date`, `qr_code`, `qr_expired_at`, `created_at`, `updated_at`, preload `user`, `documents[]`
+- MemberListItem: sama dengan `Member` namun tanpa `qr_*` dan `documents`, serta field `user` minimal { `full_name`, `email` }
 - MemberDocument: `id`, `member_id`, `type`, `file_url`, `created_at`
 - Profile: `member`, `savings`, `loans`, `shu`
 
@@ -64,6 +66,19 @@ export interface MemberDocument { id: number; member_id: number; type: string; f
 
 export interface Profile { member: Member; savings: number; loans: number; shu: number }
 
+export interface MemberUserShort { full_name: string; email: string }
+export interface MemberListItem {
+  id: number;
+  tenant_id: number;
+  user_id: number;
+  no_anggota: string;
+  status: string;
+  join_date: Rfc3339String;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+  user: MemberUserShort; // hanya nama & email
+}
+
 export interface RegisterMemberRequest {
   user_id: number;
   no_anggota: string;
@@ -81,11 +96,15 @@ export type GetMemberProfileResponse = Profile;
 export type UpdateMemberStatusResponse = void; // 200
 export type CreateMemberCardResponse = APIResponse<{ member_id: number; qr: string; issued_at: Rfc3339String }>;
 export type ValidateMemberCardResponse = APIResponse<Member>;
+export type ListMembersResponse = APIResponse<MemberListItem[]>;
 ```
 
 ## Paginasi (Cursor)
 
-- Tidak ada paginasi; endpoint profil/kartu bersifat individual.
+- List anggota menggunakan pagination berbasis cursor:
+  - Query: `limit` (wajib, >0), `cursor` (opsional, ID terakhir).
+  - Response: `meta.pagination` berisi `next_cursor`, `has_next`, `has_prev`, `limit`.
+  - Gunakan `next_cursor` untuk halaman berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 

@@ -9,17 +9,20 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, PiggyBank, CreditCard, TrendingUp, FileText, DollarSign, UserPlus, Calendar } from "lucide-react";
-import { getKoperasiDashboardSummary, getKoperasiDashboardNotifications } from "@/services/api";
+import { getKoperasiDashboardSummary, getKoperasiDashboardNotifications, getKoperasiDashboardTrend } from "@/services/api";
+import { TrendChart } from "@/components/feature/koperasi/dashboard/trend-chart";
 
 export const dynamic = "force-dynamic";
 
 export default async function KoperasiDashboard() {
-  const [summaryRes, notifRes] = await Promise.all([
+  const [summaryRes, notifRes, trendRes] = await Promise.all([
     getKoperasiDashboardSummary().catch(() => null),
     getKoperasiDashboardNotifications().catch(() => null),
+    getKoperasiDashboardTrend().catch(() => null),
   ]);
   const summary = summaryRes && summaryRes.success ? summaryRes.data : null;
   const notifications = notifRes && notifRes.success ? (notifRes.data as any[]) : [];
+  const trend = trendRes && trendRes.success ? (trendRes.data as any[]) : [];
 
   const dashboardStats = [
     {
@@ -74,8 +77,21 @@ export default async function KoperasiDashboard() {
         ))}
       </div>
 
-      {/* Recent Notifications */}
+      {/* Trend + Recent Notifications */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Tren Simpanan & Pinjaman</CardTitle>
+            <CardDescription>Periode terbaru</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {trend?.length ? (
+              <TrendChart data={trend as any} />
+            ) : (
+              <div className="text-sm text-muted-foreground italic">Tidak ada data tren</div>
+            )}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Notifikasi Terakhir</CardTitle>

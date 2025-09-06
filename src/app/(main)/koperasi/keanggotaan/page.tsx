@@ -7,20 +7,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Users, Search, Edit, Eye } from "lucide-react";
 import { MemberRegisterDialog } from "@/components/feature/koperasi/membership/member-register-dialog";
-import { getKoperasiDashboardSummary, listUsers } from "@/services/api";
+import { getKoperasiDashboardSummary, listMembers } from "@/services/api";
+import { MembersListClient } from "@/components/feature/koperasi/membership/members-list-client";
+import { MemberVerifyDialog } from "@/components/feature/koperasi/membership/member-verify-dialog";
 
 export default async function KeanggotaanPage() {
   const [summaryRes, usersRes] = await Promise.all([
     getKoperasiDashboardSummary().catch(() => null),
-    listUsers().catch(() => null),
+    listMembers({ limit: 20 }).catch(() => null),
   ]);
   const summary = summaryRes && summaryRes.success ? summaryRes.data : null;
   const members = usersRes && usersRes.success ? (usersRes.data as any[]) : [];
+  const nextCursor = (usersRes as any)?.meta?.pagination?.next_cursor as string | undefined;
 
   return (
     <div className="space-y-6">
@@ -64,15 +63,14 @@ export default async function KeanggotaanPage() {
         </Card>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Cari anggota..." className="pl-10" />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Actions */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">Gunakan tombol Verifikasi untuk menyetujui/menolak anggota dengan memasukkan ID.</div>
+        <div className="flex gap-2">
+          <MemberVerifyDialog />
+          <MemberRegisterDialog />
+        </div>
+      </div>
 
       {/* Members Table */}
       <Card>
@@ -81,40 +79,7 @@ export default async function KeanggotaanPage() {
           <CardDescription>Data lengkap anggota koperasi</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {members.map((member: any) => (
-              <div
-                key={String(member.id)}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{member.full_name ?? member.name ?? member.email}</h3>
-                    <p className="text-sm text-muted-foreground">ID: {member.id} • {member.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6">
-                  <Badge variant={member.status ? "default" : "secondary"}>{member.status ? "aktif" : "non-aktif"}</Badge>
-
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {!members?.length && (
-              <div className="text-sm text-muted-foreground italic">Belum ada anggota</div>
-            )}
-          </div>
+          <MembersListClient initialData={members} initialCursor={nextCursor} />
         </CardContent>
       </Card>
     </div>

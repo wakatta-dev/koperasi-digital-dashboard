@@ -123,6 +123,7 @@ export const API_ENDPOINTS = {
   },
   membership: {
     // Per endpoints_index: /api/koperasi/members*
+    list: "/koperasi/members",
     register: "/koperasi/members/register",
     verify: (id: string | number) => `/koperasi/members/${id}/verify`,
     detail: (id: string | number) => `/koperasi/members/${id}`,

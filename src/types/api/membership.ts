@@ -30,3 +30,18 @@ export type UpdateMemberStatusResponse = void;
 export type CreateMemberCardResponse = ApiResponse<{ member_id: number; qr: string; issued_at: Rfc3339String }>;
 export type ValidateMemberCardResponse = ApiResponse<Member>;
 
+// Extended list item per docs: includes short user info
+export interface MemberUserShort { full_name: string; email: string }
+export interface MemberListItem {
+  id: number;
+  tenant_id: number;
+  user_id: number;
+  no_anggota: string;
+  status: string;
+  join_date: Rfc3339String;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+  user?: MemberUserShort; // optional if backend omits
+}
+
+export type ListMembersResponse = ApiResponse<MemberListItem[]>;

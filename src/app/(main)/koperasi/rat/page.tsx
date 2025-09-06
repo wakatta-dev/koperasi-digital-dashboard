@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, MapPin, Clock, UserCheck } from "lucide-react";
 import { listRATHistory } from "@/services/api";
+import { RATActions } from "@/components/feature/koperasi/rat/rat-actions";
+import { RATVotingResult } from "@/components/feature/koperasi/rat/rat-voting-result";
 
 export const dynamic = "force-dynamic";
 
@@ -192,6 +194,12 @@ export default async function RATPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Actions */}
+      <RATActions />
+
+      {/* Voting Result */}
+      <RATVotingResult />
     </div>
   );
 }

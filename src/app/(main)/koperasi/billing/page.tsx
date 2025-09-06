@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { listClientInvoices } from "@/services/api";
+import { listClientInvoices, createPayment } from "@/services/api";
+import { InvoiceDetailDialog } from "@/components/feature/koperasi/billing/invoice-detail-dialog";
 
 export default function BillingPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -20,6 +21,16 @@ export default function BillingPage() {
       if (res && res.success) setInvoices(res.data || []);
     })();
   }, []);
+
+  async function pay(inv: any) {
+    const raw = prompt(`Masukkan jumlah pembayaran untuk invoice ${inv.number ?? inv.id}:`, String(inv.amount ?? inv.total ?? 0));
+    if (!raw) return;
+    const amount = Number(raw);
+    if (!amount || isNaN(amount)) return;
+    await createPayment(inv.id, { amount });
+    const res = await listClientInvoices({ limit: 100 }).catch(() => null);
+    if (res && res.success) setInvoices(res.data || []);
+  }
 
   return (
     <div className="space-y-6">
@@ -57,8 +68,8 @@ export default function BillingPage() {
                   <Badge variant={inv.status === 'paid' ? 'default' : 'secondary'} className="capitalize">{inv.status ?? 'unpaid'}</Badge>
                 </div>
                 <div className="flex items-center gap-2 justify-end">
-                  <Button variant="outline" size="sm">Lihat</Button>
-                  <Button size="sm">Bayar</Button>
+                  <InvoiceDetailDialog id={inv.id} />
+                  <Button size="sm" onClick={() => pay(inv)}>Bayar</Button>
                 </div>
               </div>
             ))}

@@ -34,6 +34,20 @@ export function updateNotificationStatus(
   );
 }
 
+// Tenant reminders (koperasi)
+export function listTenantReminders(): Promise<ApiResponse<any[]>> {
+  return api.get<any[]>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.reminders}`
+  );
+}
+
+export function upsertTenantReminders(payload: any[]): Promise<ApiResponse<null>> {
+  return api.put<null>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.reminders}`,
+    payload
+  );
+}
+
 export function vendorBroadcastNotification(payload: {
   message: string;
   targetType: "SINGLE" | "ALL" | "GROUP";

@@ -2,7 +2,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { listNotifications } from "@/services/api";
+import { listNotifications, updateNotificationStatus } from "@/services/api";
+import { NotificationRow } from "@/components/feature/koperasi/notifications/notification-row";
+import { RemindersTenantPanel } from "@/components/feature/koperasi/notifications/reminders-tenant-panel";
+import { NotificationsClient } from "@/components/feature/koperasi/notifications/notifications-client";
 
 export const dynamic = "force-dynamic";
 
@@ -23,22 +26,11 @@ export default async function NotifikasiPage() {
           <CardDescription>Notifikasi terbaru</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {notifications.map((n: any) => (
-              <div key={String(n.id ?? Math.random())} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <div className="font-medium">{n.title ?? n.message ?? 'Notifikasi'}</div>
-                  <div className="text-xs text-muted-foreground">{String(n.created_at ?? '')}</div>
-                </div>
-                <Badge variant="secondary">{n.type ?? 'info'}</Badge>
-              </div>
-            ))}
-            {!notifications.length && (
-              <div className="text-sm text-muted-foreground italic">Tidak ada notifikasi</div>
-            )}
-          </div>
+          <NotificationsClient />
         </CardContent>
       </Card>
+
+      <RemindersTenantPanel />
     </div>
   );
 }

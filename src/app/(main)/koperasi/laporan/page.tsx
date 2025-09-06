@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
+import { getReportHistory } from "@/services/api";
+import { ExportQuickClient } from "@/components/feature/koperasi/report/export-quick-client";
 
 export const dynamic = "force-dynamic";
 
-export default function LaporanIndexPage() {
+export default async function LaporanIndexPage() {
+  const res = await getReportHistory().catch(() => null);
+  const history = res && res.success ? (res.data as any[]) : [];
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -57,7 +61,34 @@ export default function LaporanIndexPage() {
           </Card>
         </Link>
       </div>
+
+      {/* Export gabungan */}
+      <ExportQuickClient />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Riwayat Export Laporan</CardTitle>
+          <CardDescription>File export yang pernah dibuat</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {history.map((h: any) => (
+              <div key={String(h.id)} className="flex items-center justify-between p-3 border rounded">
+                <div>
+                  <div className="font-medium">{h.report_type ?? h.type ?? 'report'}</div>
+                  <div className="text-xs text-muted-foreground">Periode: {h.period_start ?? '-'} s/d {h.period_end ?? '-'}</div>
+                </div>
+                {h.file_url && (
+                  <a href={h.file_url} target="_blank" rel="noreferrer" className="text-sm underline">Unduh</a>
+                )}
+              </div>
+            ))}
+            {!history.length && (
+              <div className="text-sm text-muted-foreground italic">Belum ada riwayat export</div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
