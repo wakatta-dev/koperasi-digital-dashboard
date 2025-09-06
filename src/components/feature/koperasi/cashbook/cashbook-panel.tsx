@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateTimeRangePicker } from "@/components/ui/date-time-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createManualCashEntry, exportCashSummaryRaw, getCashSummary } from "@/services/api";
 
@@ -59,18 +60,11 @@ export function CashbookPanel() {
       </CardHeader>
       <CardContent>
         {/* Summary controls */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-3">
-          <Input
-            type="datetime-local"
-            value={range.start ?? ""}
-            onChange={(e) => setRange((r) => ({ ...r, start: e.target.value }))}
-            placeholder="Start"
-          />
-          <Input
-            type="datetime-local"
-            value={range.end ?? ""}
-            onChange={(e) => setRange((r) => ({ ...r, end: e.target.value }))}
-            placeholder="End"
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+          <DateTimeRangePicker
+            value={{ start: range.start, end: range.end }}
+            onChange={(s, e) => setRange({ start: s, end: e })}
+            triggerClassName="w-full"
           />
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" onClick={loadSummary} disabled={loading}>Muat Ringkasan</Button>
@@ -115,4 +109,3 @@ export function CashbookPanel() {
     </Card>
   );
 }
-

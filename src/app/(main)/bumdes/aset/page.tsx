@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CalendarDays, Plus, DollarSign } from "lucide-react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 
 type Asset = {
   id: string;
@@ -198,15 +199,13 @@ export default function AsetPage() {
                   <label className="text-sm">Tenant</label>
                   <Input value={bookingForm.tenant || ""} onChange={(e) => setBookingForm((f) => ({ ...f, tenant: e.target.value }))} placeholder="Nama penyewa" />
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <label className="text-sm">Mulai</label>
-                    <Input type="date" value={bookingForm.start || ""} onChange={(e) => setBookingForm((f) => ({ ...f, start: e.target.value }))} />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-sm">Selesai</label>
-                    <Input type="date" value={bookingForm.end || ""} onChange={(e) => setBookingForm((f) => ({ ...f, end: e.target.value }))} />
-                  </div>
+                <div className="grid gap-2">
+                  <label className="text-sm">Rentang</label>
+                  <DateRangePicker
+                    value={{ start: bookingForm.start || undefined, end: bookingForm.end || undefined }}
+                    onChange={(s, e) => setBookingForm((f) => ({ ...f, start: s || "", end: e || "" }))}
+                    triggerClassName="w-full"
+                  />
                 </div>
                 <div className="flex items-center justify-between rounded-md border p-3 text-sm">
                   <span className="text-muted-foreground">Perkiraan Biaya</span>
@@ -291,4 +290,3 @@ export default function AsetPage() {
     </div>
   );
 }
-

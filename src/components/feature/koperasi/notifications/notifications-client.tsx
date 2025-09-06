@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NotificationRow } from "./notification-row";
 import { listNotifications, updateNotificationStatus } from "@/services/api";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 
 export function NotificationsClient() {
   const [items, setItems] = useState<any[]>([]);
@@ -47,7 +47,7 @@ export function NotificationsClient() {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
         <Select value={type} onValueChange={setType}>
           <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
           <SelectContent>
@@ -71,8 +71,12 @@ export function NotificationsClient() {
             <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
           </SelectContent>
         </Select>
-        <Input type="date" placeholder="From" value={from} onChange={(e) => setFrom(e.target.value)} />
-        <Input type="date" placeholder="To" value={to} onChange={(e) => setTo(e.target.value)} />
+        <DateRangePicker
+          placeholder="Rentang"
+          value={{ start: from || undefined, end: to || undefined }}
+          onChange={(s, e) => { setFrom(s || ""); setTo(e || ""); }}
+          triggerClassName="w-full"
+        />
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => { setCursor(undefined); loadMore(true); }} disabled={loading}>Filter</Button>
           <Button variant="ghost" onClick={() => { setType(""); setStatus(""); setFrom(""); setTo(""); setCursor(undefined); loadMore(true); }} disabled={loading}>Reset</Button>

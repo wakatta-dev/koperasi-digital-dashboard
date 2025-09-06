@@ -14,7 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Users, DollarSign, Calculator, Download } from "lucide-react";
-import { createYearlySHU, distributeSHU, exportSHURaw, listSHUByMember, listSHUHistory, simulateSHU } from "@/services/api";
+import {
+  createYearlySHU,
+  distributeSHU,
+  exportSHURaw,
+  listSHUByMember,
+  listSHUHistory,
+  simulateSHU,
+} from "@/services/api";
 
 export default function SHUPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -56,7 +63,10 @@ export default function SHUPage() {
 
   async function onDistribute() {
     if (!year) return;
-    await distributeSHU(year, { method: "transfer", description: `Distribusi SHU ${year}` });
+    await distributeSHU(year, {
+      method: "transfer",
+      description: `Distribusi SHU ${year}`,
+    });
     await loadHistory();
   }
 
@@ -84,7 +94,9 @@ export default function SHUPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Sisa Hasil Usaha (SHU)</h2>
-          <p className="text-muted-foreground">Kelola pembagian SHU kepada anggota</p>
+          <p className="text-muted-foreground">
+            Kelola pembagian SHU kepada anggota
+          </p>
         </div>
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onSimulate}>
@@ -100,21 +112,58 @@ export default function SHUPage() {
       <Card>
         <CardHeader>
           <CardTitle>Input & Aksi</CardTitle>
-          <CardDescription>Input total SHU tahunan, simulasi, dan distribusi</CardDescription>
+          <CardDescription>
+            Input total SHU tahunan, simulasi, dan distribusi
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
             <div>
               <div className="text-xs text-muted-foreground mb-1">Tahun</div>
-              <Input type="number" value={String(year)} onChange={(e) => setYear(e.target.value ? Number(e.target.value) : "")} />
+              <Input
+                type="number"
+                value={String(year)}
+                onChange={(e) =>
+                  setYear(e.target.value ? Number(e.target.value) : "")
+                }
+              />
             </div>
             <div>
-              <div className="text-xs text-muted-foreground mb-1">Total SHU</div>
-              <Input type="number" placeholder="50000000" value={String(total)} onChange={(e) => setTotal(e.target.value ? Number(e.target.value) : "")} />
+              <div className="text-xs text-muted-foreground mb-1">
+                Total SHU
+              </div>
+              <Input
+                type="number"
+                placeholder="50000000"
+                value={String(total)}
+                onChange={(e) =>
+                  setTotal(e.target.value ? Number(e.target.value) : "")
+                }
+              />
             </div>
-            <Button type="button" onClick={onCreateYearly} disabled={loading || !year || !total}>Simpan Total</Button>
-            <Button type="button" variant="outline" onClick={onSimulate} disabled={loading || !year}>Simulasi</Button>
-            <Button type="button" variant="secondary" onClick={onDistribute} disabled={loading || !year}>Distribusi</Button>
+            <Button
+              type="button"
+              onClick={onCreateYearly}
+              disabled={loading || !year || !total}
+            >
+              Simpan Total
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onSimulate}
+              disabled={loading || !year}
+            >
+              Simulasi
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onDistribute}
+              disabled={loading || !year}
+            >
+              Distribusi
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -123,7 +172,9 @@ export default function SHUPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Total SHU {latest?.year ?? "-"}</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total SHU {latest?.year ?? "-"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{latest?.total_shu ?? "-"}</div>
@@ -135,8 +186,12 @@ export default function SHUPage() {
             <CardTitle className="text-sm font-medium">Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold capitalize">{latest?.status ?? "-"}</div>
-            <p className="text-xs text-muted-foreground">Status tahun berjalan</p>
+            <div className="text-2xl font-bold capitalize">
+              {latest?.status ?? "-"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Status tahun berjalan
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -159,26 +214,35 @@ export default function SHUPage() {
         <CardContent>
           <div className="space-y-4">
             {history.map((shu) => (
-              <div key={String(shu.year)} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={String(shu.year)}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                     <DollarSign className="h-6 w-6" />
                   </div>
                   <div>
                     <h3 className="font-medium">SHU Tahun {shu.year}</h3>
-                    <p className="text-sm text-muted-foreground">Total: {shu.total_shu}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total: {shu.total_shu}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="text-sm font-medium">Status: {shu.status ?? "-"}</p>
+                    <p className="text-sm font-medium">
+                      Status: {shu.status ?? "-"}
+                    </p>
                   </div>
                   <Badge variant="default">{shu.status ?? "-"}</Badge>
                 </div>
               </div>
             ))}
             {!history.length && (
-              <div className="text-sm text-muted-foreground italic">Belum ada data</div>
+              <div className="text-sm text-muted-foreground italic">
+                Belum ada data
+              </div>
             )}
           </div>
         </CardContent>
@@ -194,13 +258,22 @@ export default function SHUPage() {
           <CardContent>
             <div className="space-y-3">
               {simulation.map((row: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between p-3 border rounded-md">
-                  <div className="font-medium">Anggota #{row.member_id ?? row.memberId ?? idx + 1}</div>
-                  <div className="text-sm">Jumlah: {row.amount ?? row.total ?? "-"}</div>
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3 border rounded-md"
+                >
+                  <div className="font-medium">
+                    Anggota #{row.member_id ?? row.memberId ?? idx + 1}
+                  </div>
+                  <div className="text-sm">
+                    Jumlah: {row.amount ?? row.total ?? "-"}
+                  </div>
                 </div>
               ))}
               {!simulation.length && (
-                <div className="text-sm text-muted-foreground italic">Tidak ada hasil simulasi</div>
+                <div className="text-sm text-muted-foreground italic">
+                  Tidak ada hasil simulasi
+                </div>
               )}
             </div>
           </CardContent>
@@ -211,35 +284,54 @@ export default function SHUPage() {
       <Card>
         <CardHeader>
           <CardTitle>Pembagian SHU per Anggota</CardTitle>
-          <CardDescription>Masukkan ID anggota untuk melihat riwayat</CardDescription>
+          <CardDescription>
+            Masukkan ID anggota untuk melihat riwayat
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end mb-4">
-            <Input placeholder="ID Anggota" value={memberId} onChange={(e) => setMemberId(e.target.value)} />
-            <Button type="button" onClick={loadMember} disabled={!memberId}>Muat Riwayat</Button>
+            <Input
+              placeholder="ID Anggota"
+              value={memberId}
+              onChange={(e) => setMemberId(e.target.value)}
+            />
+            <Button type="button" onClick={loadMember} disabled={!memberId}>
+              Muat Riwayat
+            </Button>
           </div>
           <div className="space-y-4">
             {(memberDist ?? []).map((row: any, idx: number) => (
-              <div key={idx} className="flex items-center justify-between p-4 border rounded-lg">
+              <div
+                key={idx}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
                     <Users className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Anggota #{row.member_id ?? memberId}</h3>
-                    <p className="text-sm text-muted-foreground">Tahun: {row.year ?? "-"}</p>
+                    <h3 className="font-medium">
+                      Anggota #{row.member_id ?? memberId}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Tahun: {row.year ?? "-"}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="text-sm font-medium">Total SHU: {row.amount ?? row.total ?? "-"}</p>
+                    <p className="text-sm font-medium">
+                      Total SHU: {row.amount ?? row.total ?? "-"}
+                    </p>
                   </div>
                   <Badge variant="secondary">Riwayat</Badge>
                 </div>
               </div>
             ))}
             {memberDist !== null && !(memberDist ?? []).length && (
-              <div className="text-sm text-muted-foreground italic">Tidak ada data</div>
+              <div className="text-sm text-muted-foreground italic">
+                Tidak ada data
+              </div>
             )}
           </div>
         </CardContent>

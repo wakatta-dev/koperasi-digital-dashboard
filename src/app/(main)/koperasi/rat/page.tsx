@@ -1,6 +1,12 @@
 /** @format */
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, MapPin, Clock, UserCheck } from "lucide-react";
@@ -35,9 +41,13 @@ export default async function RATPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg">RAT Mendatang</CardTitle>
-              <CardDescription>{ratHistory[0]?.title ?? "Rapat Anggota Tahunan"}</CardDescription>
+              <CardDescription>
+                {ratHistory[0]?.title ?? "Rapat Anggota Tahunan"}
+              </CardDescription>
             </div>
-            <Badge variant="default">{ratHistory[0]?.status ?? "terjadwal"}</Badge>
+            <Badge variant="default">
+              {ratHistory[0]?.status ?? "terjadwal"}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -46,7 +56,9 @@ export default async function RATPage() {
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="font-medium">{ratHistory[0]?.date ?? "-"}</p>
-                <p className="text-sm text-muted-foreground">{ratHistory[0]?.time ?? "-"}</p>
+                <p className="text-sm text-muted-foreground">
+                  {ratHistory[0]?.time ?? "-"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -59,7 +71,10 @@ export default async function RATPage() {
             <div className="flex items-center gap-3">
               <UserCheck className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="font-medium">{ratHistory[0]?.attendees ?? 0} / {ratHistory[0]?.totalMembers ?? 0} Anggota</p>
+                <p className="font-medium">
+                  {ratHistory[0]?.attendees ?? 0} /{" "}
+                  {ratHistory[0]?.totalMembers ?? 0} Anggota
+                </p>
                 <p className="text-sm text-muted-foreground">&nbsp;</p>
               </div>
             </div>
@@ -68,15 +83,17 @@ export default async function RATPage() {
           <div>
             <h4 className="font-medium mb-2">Agenda RAT 2024:</h4>
             <ul className="space-y-1">
-              {(ratHistory[0]?.agenda ?? []).map((item: any, index: number) => (
-                <li
-                  key={index}
-                  className="text-sm text-muted-foreground flex items-center gap-2"
-                >
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                  {item}
-                </li>
-              ))}
+              {(ratHistory[0]?.agenda ?? [])?.map?.(
+                (item: any, index: number) => (
+                  <li
+                    key={index}
+                    className="text-sm text-muted-foreground flex items-center gap-2"
+                  >
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                    {item}
+                  </li>
+                )
+              )}
             </ul>
           </div>
 

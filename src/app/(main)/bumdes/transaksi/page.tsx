@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Download, Filter } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type Tx = {
   id: string;
@@ -92,7 +93,7 @@ export default function TransaksiPage() {
               <SelectItem value="sewa">Sewa</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <DatePicker value={date || undefined} onChange={(v) => setDate(v || "")} />
           <Input placeholder="Cari ID/unit..." value={search} onChange={(e) => setSearch(e.target.value)} />
           <Button variant="outline"><Filter className="h-4 w-4 mr-2" /> Filter</Button>
           <Button variant="outline"><Download className="h-4 w-4 mr-2" /> Export</Button>
@@ -141,4 +142,3 @@ export default function TransaksiPage() {
     </div>
   );
 }
-

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   createAsset,
   deleteAsset,
@@ -55,7 +56,7 @@ export function AssetsPanel() {
             <Input placeholder="Kategori" value={form.category} onChange={(e) => setForm((s: any) => ({ ...s, category: e.target.value }))} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
-            <Input type="date" placeholder="Tgl Akuisisi" value={form.acquisition_date} onChange={(e) => setForm((s: any) => ({ ...s, acquisition_date: e.target.value }))} />
+            <DatePicker placeholder="Tgl Akuisisi" value={form.acquisition_date || undefined} onChange={(v) => setForm((s: any) => ({ ...s, acquisition_date: v || "" }))} triggerClassName="w-full" />
             <Input type="number" placeholder="Biaya Akuisisi" value={form.acquisition_cost} onChange={(e) => setForm((s: any) => ({ ...s, acquisition_cost: Number(e.target.value || 0) }))} />
             <Input placeholder="Metode Depresiasi" value={form.depreciation_method} onChange={(e) => setForm((s: any) => ({ ...s, depreciation_method: e.target.value }))} />
             <Input type="number" placeholder="Umur (bulan)" value={form.useful_life_months} onChange={(e) => setForm((s: any) => ({ ...s, useful_life_months: Number(e.target.value || 0) }))} />
@@ -112,4 +113,3 @@ export function AssetsPanel() {
     </div>
   );
 }
-

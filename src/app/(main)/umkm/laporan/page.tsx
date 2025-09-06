@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart3, Download } from "lucide-react";
 import { getFinanceReportAction, getBillingReportAction } from "@/actions/reporting";
@@ -54,13 +55,9 @@ export default async function LaporanPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Mulai</p>
-              <input type="date" className="w-full border rounded-md h-9 px-3 text-sm" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Selesai</p>
-              <input type="date" className="w-full border rounded-md h-9 px-3 text-sm" />
+            <div className="md:col-span-2">
+              <p className="text-sm text-muted-foreground mb-1">Rentang</p>
+              <DateRangePicker triggerClassName="w-full" />
             </div>
           </div>
         </CardContent>

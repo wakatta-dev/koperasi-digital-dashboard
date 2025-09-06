@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Form,
   FormControl,
@@ -158,7 +159,12 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
                   <FormItem>
                     <FormLabel>Tanggal Terbit</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <DatePicker
+                        placeholder="Pilih tanggal"
+                        value={field.value as any}
+                        onChange={(v) => field.onChange(v)}
+                        triggerClassName="w-full"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -171,7 +177,12 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
                   <FormItem>
                     <FormLabel>Jatuh Tempo</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <DatePicker
+                        placeholder="Pilih tanggal"
+                        value={field.value as any}
+                        onChange={(v) => field.onChange(v)}
+                        triggerClassName="w-full"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

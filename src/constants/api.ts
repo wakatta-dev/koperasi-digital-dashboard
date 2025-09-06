@@ -107,73 +107,66 @@ export const API_ENDPOINTS = {
     modules: "/modules",
   },
   cashbook: {
-    // Per endpoints_index: /api/koperasi/cash/*
-    manual: "/koperasi/cash/manual",
-    summary: "/koperasi/cash/summary",
-    export: "/koperasi/cash/export",
+    // Per endpoints_index: /api/cash/*
+    manual: "/cash/manual",
+    summary: "/cash/summary",
+    export: "/cash/export",
   },
   assets: {
-    // Per endpoints_index: /api/koperasi/assets*
-    list: "/koperasi/assets",
-    detail: (id: string | number) => `/koperasi/assets/${id}`,
-    depreciation: (id: string | number) =>
-      `/koperasi/assets/${id}/depreciation`,
-    status: (id: string | number) => `/koperasi/assets/${id}/status`,
-    export: "/koperasi/assets/export",
+    // Per endpoints_index: /api/assets*
+    list: "/assets",
+    detail: (id: string | number) => `/assets/${id}`,
+    depreciation: (id: string | number) => `/assets/${id}/depreciation`,
+    status: (id: string | number) => `/assets/${id}/status`,
+    export: "/assets/export",
   },
   membership: {
-    // Per endpoints_index: /api/koperasi/members*
-    list: "/koperasi/members",
-    register: "/koperasi/members/register",
-    verify: (id: string | number) => `/koperasi/members/${id}/verify`,
-    detail: (id: string | number) => `/koperasi/members/${id}`,
-    status: (id: string | number) => `/koperasi/members/${id}/status`,
-    card: (id: string | number) => `/koperasi/members/${id}/card`,
+    // Per endpoints_index: /api/members*
+    list: "/members",
+    register: "/members/register",
+    verify: (id: string | number) => `/members/${id}/verify`,
+    detail: (id: string | number) => `/members/${id}`,
+    status: (id: string | number) => `/members/${id}/status`,
+    card: (id: string | number) => `/members/${id}/card`,
     cardValidate: (qr: string) =>
-      `/koperasi/members/card/validate/${encodeURIComponent(qr)}`,
+      `/members/card/validate/${encodeURIComponent(qr)}`,
   },
   savings: {
     // Per docs/modules/endpoints_index.md → koperasi namespace
-    deposit: (memberId: string | number) =>
-      `/koperasi/savings/${memberId}/deposit`,
+    deposit: (memberId: string | number) => `/savings/${memberId}/deposit`,
     verify: (transactionId: string | number) =>
-      `/koperasi/savings/${transactionId}/verify`,
-    withdraw: (memberId: string | number) =>
-      `/koperasi/savings/${memberId}/withdraw`,
+      `/savings/${transactionId}/verify`,
+    withdraw: (memberId: string | number) => `/savings/${memberId}/withdraw`,
     approve: (transactionId: string | number) =>
-      `/koperasi/savings/${transactionId}/approve`,
+      `/savings/${transactionId}/approve`,
     transactions: (memberId: string | number) =>
-      `/koperasi/savings/${memberId}/transactions`,
+      `/savings/${memberId}/transactions`,
     proof: (transactionId: string | number) =>
-      `/koperasi/savings/${transactionId}/proof`,
+      `/savings/${transactionId}/proof`,
   },
   koperasiDashboard: {
-    // Per endpoints_index: /api/koperasi/dashboard/*
-    summary: "/koperasi/dashboard/summary",
-    trend: "/koperasi/dashboard/trend",
-    notifications: "/koperasi/dashboard/notifications",
+    // Per endpoints_index: /api/dashboard/*
+    summary: "/dashboard/summary",
+    trend: "/dashboard/trend",
+    notifications: "/dashboard/notifications",
   },
   shu: {
     // Koperasi SHU endpoints (per docs/modules/shu.md and koperasi group)
-    yearly: "/koperasi/shu/yearly",
-    simulate: (year: string | number) =>
-      `/koperasi/shu/yearly/${year}/simulate`,
-    distribute: (year: string | number) =>
-      `/koperasi/shu/yearly/${year}/distribute`,
-    history: "/koperasi/shu/history",
-    member: (memberId: string | number) => `/koperasi/shu/member/${memberId}`,
-    export: (year: string | number) => `/koperasi/shu/export/${year}`,
+    yearly: "/shu/yearly",
+    simulate: (year: string | number) => `/shu/yearly/${year}/simulate`,
+    distribute: (year: string | number) => `/shu/yearly/${year}/distribute`,
+    history: "/shu/history",
+    member: (memberId: string | number) => `/shu/member/${memberId}`,
+    export: (year: string | number) => `/shu/export/${year}`,
   },
   loans: {
     // Per docs/modules/endpoints_index.md → koperasi namespace
-    apply: "/koperasi/loans/apply",
-    approve: (id: string | number) => `/koperasi/loans/${id}/approve`,
-    disburse: (id: string | number) => `/koperasi/loans/${id}/disburse`,
-    installments: (id: string | number) => `/koperasi/loans/${id}/installments`,
-    payInstallment: (id: string | number) =>
-      `/koperasi/loans/installments/${id}/pay`,
-    releaseLetter: (id: string | number) =>
-      `/koperasi/loans/${id}/release-letter`,
+    apply: "/loans/apply",
+    approve: (id: string | number) => `/loans/${id}/approve`,
+    disburse: (id: string | number) => `/loans/${id}/disburse`,
+    installments: (id: string | number) => `/loans/${id}/installments`,
+    payInstallment: (id: string | number) => `/loans/installments/${id}/pay`,
+    releaseLetter: (id: string | number) => `/loans/${id}/release-letter`,
   },
   tickets: {
     list: "/tickets",
@@ -190,7 +183,7 @@ export const API_ENDPOINTS = {
     create: "/notifications",
     status: (id: string | number) => `/notifications/${id}`,
     // Tenant-level reminders live under koperasi namespace
-    reminders: "/koperasi/notifications/reminders",
+    reminders: "/notifications/reminders",
     vendor: {
       broadcast: "/vendor/notifications/broadcast",
       bulk: "/vendor/notifications/bulk",
@@ -198,14 +191,14 @@ export const API_ENDPOINTS = {
   },
   rat: {
     // Koperasi RAT endpoints
-    base: "/koperasi/rat",
-    create: "/koperasi/rat",
-    notify: (id: string | number) => `/koperasi/rat/${id}/notify`,
-    documents: (id: string | number) => `/koperasi/rat/${id}/documents`,
-    voting: (id: string | number) => `/koperasi/rat/${id}/voting`,
-    vote: (itemId: string | number) => `/koperasi/rat/voting/${itemId}/vote`,
-    result: (itemId: string | number) => `/koperasi/rat/voting/${itemId}/result`,
-    history: "/koperasi/rat/history",
+    base: "/rat",
+    create: "/rat",
+    notify: (id: string | number) => `/rat/${id}/notify`,
+    documents: (id: string | number) => `/rat/${id}/documents`,
+    voting: (id: string | number) => `/rat/${id}/voting`,
+    vote: (itemId: string | number) => `/rat/voting/${itemId}/vote`,
+    result: (itemId: string | number) => `/rat/voting/${itemId}/result`,
+    history: "/rat/history",
   },
 } as const;
 

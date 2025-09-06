@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateTimeRangePicker } from "@/components/ui/date-time-range-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { createRAT, notifyRAT, uploadRATDocument, createRATVotingItem, voteRAT } from "@/services/api";
 import { toast } from "sonner";
@@ -99,12 +100,15 @@ export function RATActions() {
           <CardDescription>Tambahkan item voting untuk RAT</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
             <Input placeholder="RAT ID" value={ratId} onChange={(e) => setRatId(e.target.value)} />
             <Input placeholder="Pertanyaan" value={voteQuestion} onChange={(e) => setVoteQuestion(e.target.value)} />
             <Input placeholder="Tipe (single/multiple)" value={voteType} onChange={(e) => setVoteType(e.target.value)} />
-            <Input type="datetime-local" placeholder="Mulai" value={openAt} onChange={(e) => setOpenAt(e.target.value)} />
-            <Input type="datetime-local" placeholder="Selesai" value={closeAt} onChange={(e) => setCloseAt(e.target.value)} />
+            <DateTimeRangePicker
+              value={{ start: openAt, end: closeAt }}
+              onChange={(s, e) => { setOpenAt(s || ""); setCloseAt(e || ""); }}
+              triggerClassName="w-full"
+            />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end mt-2">
             <Textarea placeholder="Opsi (satu per baris)" value={voteOptions} onChange={(e) => setVoteOptions(e.target.value)} />
@@ -150,4 +154,3 @@ export function RATActions() {
     </div>
   );
 }
-

@@ -5,8 +5,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { exportReportRaw } from "@/services/api";
 
 export function ExportQuickClient() {
@@ -51,8 +51,12 @@ export function ExportQuickClient() {
               <SelectItem value="billing">Billing</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="date" placeholder="Start" value={start} onChange={(e) => setStart(e.target.value)} />
-          <Input type="date" placeholder="End" value={end} onChange={(e) => setEnd(e.target.value)} />
+          <DateRangePicker
+            placeholder="Rentang"
+            value={{ start: start || undefined, end: end || undefined }}
+            onChange={(s, e) => { setStart(s || ""); setEnd(e || ""); }}
+            triggerClassName="w-full"
+          />
           <Select value={format} onValueChange={(v) => setFormat(v as "pdf" | "xlsx")}>
             <SelectTrigger>
               <SelectValue placeholder="Format" />
