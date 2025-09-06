@@ -17,6 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useConfirm } from "@/hooks/use-confirm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -95,15 +102,15 @@ export function PaymentVerifyDialog({ trigger }: Props) {
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <select
-              id="status"
-              className="border rounded px-2 py-1"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="verified">verified</option>
-              <option value="rejected">rejected</option>
-            </select>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-full max-w-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="verified">verified</SelectItem>
+                <SelectItem value="rejected">rejected</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

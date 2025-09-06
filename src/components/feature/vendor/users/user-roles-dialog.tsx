@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { useRoles } from "@/hooks/queries/roles";
 import { useUserRoles, useUserActions } from "@/hooks/queries/users";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = { userId: number; trigger: React.ReactNode };
 
@@ -29,12 +36,16 @@ export function UserRolesDialog({ userId, trigger }: Props) {
 
         <div className="space-y-3 p-4">
           <div className="flex items-center gap-2">
-            <select className="border rounded px-2 py-1 flex-1" value={roleId} onChange={(e) => setRoleId(e.target.value)}>
-              <option value="">Pilih role</option>
-              {roles.map((r: any) => (
-                <option key={r.id} value={String(r.id)}>{r.name}</option>
-              ))}
-            </select>
+            <Select value={roleId} onValueChange={setRoleId}>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Pilih role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((r: any) => (
+                  <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button type="button" onClick={async () => { if (!roleId) return; await assign.mutateAsync({ userId, roleId }); setRoleId(""); }}>Tambah</Button>
           </div>
 

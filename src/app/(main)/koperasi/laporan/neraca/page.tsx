@@ -2,19 +2,14 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function LaporanNeracaPage() {
   const [period, setPeriod] = useState<string>("");
-  const [data, setData] = useState<any | null>(null);
-
   // TODO integrate API: fetch balance sheet by period
-  useEffect(() => {
-    setData(null);
-  }, []);
 
   return (
     <div className="space-y-6">
@@ -73,4 +68,3 @@ export default function LaporanNeracaPage() {
     </div>
   );
 }
-

@@ -26,6 +26,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const schema = z.object({
   message: z.string().min(2, "Pesan wajib"),
@@ -46,8 +53,13 @@ export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode 
     },
   });
 
-  async function onSubmit(values: z.output<typeof schema>) {
-    await vendorBulk.mutateAsync(values as any);
+  async function onSubmit(values: z.input<typeof schema>) {
+    const payload = {
+      message: values.message,
+      targetType: values.targetType ?? "ALL",
+      segment: values.segment ?? "KOPERASI",
+    } as any;
+    await vendorBulk.mutateAsync(payload);
     setOpen(false);
   }
 
@@ -73,18 +85,19 @@ export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Segment</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="VENDOR">VENDOR</option>
-                        <option value="KOPERASI">KOPERASI</option>
-                        <option value="UMKM">UMKM</option>
-                        <option value="BUMDES">BUMDES</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih segment" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="VENDOR">VENDOR</SelectItem>
+                        <SelectItem value="KOPERASI">KOPERASI</SelectItem>
+                        <SelectItem value="UMKM">UMKM</SelectItem>
+                        <SelectItem value="BUMDES">BUMDES</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -95,17 +108,18 @@ export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Target</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="ALL">ALL</option>
-                        <option value="SINGLE">SINGLE</option>
-                        <option value="GROUP">GROUP</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih target" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ALL">ALL</SelectItem>
+                        <SelectItem value="SINGLE">SINGLE</SelectItem>
+                        <SelectItem value="GROUP">GROUP</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -15,6 +15,13 @@ import {
 } from "@/components/ui/tooltip";
 import { HistoryIcon, ArrowRightLeftIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = { initialData?: any[]; initialCursor?: string; limit?: number };
 
@@ -32,11 +39,16 @@ export function VendorAuditsList({ initialData, initialCursor, limit = 50 }: Pro
         </div>
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">Limit</span>
-          <select className="border rounded px-2 py-1" value={String(lim)} onChange={(e) => setLim(Number(e.target.value || 50))}>
-            {[20, 50, 100, 200].map((n) => (
-              <option key={n} value={n}>{n}</option>
-            ))}
-          </select>
+          <Select value={String(lim)} onValueChange={(v) => setLim(Number(v))}>
+            <SelectTrigger size="sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[20, 50, 100, 200].map((n) => (
+                <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <button className="border rounded px-2 py-1" onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetchingNextPage}>{isFetchingNextPage ? "Memuat..." : hasNextPage ? "Muat lagi" : "Tidak ada data lagi"}</button>
         </div>
       </CardHeader>

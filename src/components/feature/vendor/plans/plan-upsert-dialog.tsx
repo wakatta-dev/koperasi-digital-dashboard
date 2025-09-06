@@ -30,6 +30,13 @@ import {
 } from "@/components/ui/form";
 import { PlusIcon, Edit } from "lucide-react";
 import { listModules } from "@/services/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   plan?: Plan;
@@ -133,16 +140,17 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipe</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="package">package</option>
-                        <option value="addon">addon</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih tipe" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="package">package</SelectItem>
+                        <SelectItem value="addon">addon</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -154,24 +162,27 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Module</FormLabel>
-                    <FormControl>
-                      {modules.length ? (
-                        <select
-                          className="border rounded px-3 py-2 w-full"
-                          value={field.value ?? ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                        >
-                          <option value="">Pilih module</option>
+                    {modules.length ? (
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih module" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
                           {modules.map((m) => (
-                            <option key={m.id} value={m.code}>
+                            <SelectItem key={m.id} value={m.code}>
                               {m.name} ({m.code})
-                            </option>
+                            </SelectItem>
                           ))}
-                        </select>
-                      ) : (
-                        <Input placeholder="mis. BILLING" {...field} />
-                      )}
-                    </FormControl>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input placeholder="mis. BILLING" {...field} />
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

@@ -8,7 +8,7 @@ import type {
   VendorFinancialReport,
   VendorUsageReport,
 } from "@/types/api";
-import type { VendorDashboard } from "@/types/dashboard";
+import type { VendorDashboard } from "@/types/api";
 import { api, API_PREFIX, getTenantId } from "./base";
 import { getAccessToken } from "../auth";
 
@@ -130,4 +130,3 @@ export function postPaymentGatewayWebhook(
     payload
   );
 }
-

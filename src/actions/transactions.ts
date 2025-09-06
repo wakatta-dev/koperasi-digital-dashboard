@@ -4,8 +4,6 @@
 
 import { ensureSuccess } from "@/lib/api";
 import type {
-  Transaction,
-  TransactionHistory,
   CreateTransactionRequest,
   UpdateTransactionRequest,
   ListTransactionsQuery,

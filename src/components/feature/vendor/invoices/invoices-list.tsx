@@ -12,7 +12,6 @@ import {
   Trash2,
   SlidersHorizontal,
 } from "lucide-react";
-import Link from "next/link";
 import {
   useInfiniteVendorInvoices,
   useBillingActions,
@@ -44,6 +43,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { getVendorInvoice } from "@/services/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   initialData?: Invoice[];
@@ -176,18 +182,17 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
 
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <select
-                    id="status"
-                    className="border rounded px-2 py-2 text-sm w-full"
-                    value={status ?? ""}
-                    onChange={(e) => setStatus(e.target.value || undefined)}
-                  >
-                    <option value="">Semua</option>
-                    <option value="pending">pending</option>
-                    <option value="paid">paid</option>
-                    <option value="overdue">overdue</option>
-                    <option value="cancelled">cancelled</option>
-                  </select>
+                  <Select value={status} onValueChange={(v) => setStatus(v || undefined)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Semua" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">pending</SelectItem>
+                      <SelectItem value="paid">paid</SelectItem>
+                      <SelectItem value="overdue">overdue</SelectItem>
+                      <SelectItem value="cancelled">cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -270,11 +275,9 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                   >
                     {invoice.status}
                   </Badge>
-                  <select
+                  <Select
                     defaultValue={invoice.status}
-                    className="border rounded px-2 py-1 text-sm"
-                    onChange={async (e) => {
-                      const next = e.target.value;
+                    onValueChange={async (next) => {
                       const ok = await confirm({
                         variant: "edit",
                         title: "Ubah status invoice?",
@@ -288,11 +291,16 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                       });
                     }}
                   >
-                    <option value="pending">pending</option>
-                    <option value="paid">paid</option>
-                    <option value="overdue">overdue</option>
-                    <option value="cancelled">cancelled</option>
-                  </select>
+                    <SelectTrigger size="sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">pending</SelectItem>
+                      <SelectItem value="paid">paid</SelectItem>
+                      <SelectItem value="overdue">overdue</SelectItem>
+                      <SelectItem value="cancelled">cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                   <div className="flex items-center gap-2">
                     <Button

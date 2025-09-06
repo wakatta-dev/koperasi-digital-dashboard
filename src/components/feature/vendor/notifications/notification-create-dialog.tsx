@@ -30,6 +30,13 @@ import {
 } from "@/components/ui/form";
 import { PlusIcon } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -109,17 +116,18 @@ export function NotificationCreateDialog({ trigger }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Channel</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="IN_APP">IN_APP</option>
-                        <option value="EMAIL">EMAIL</option>
-                        <option value="PUSH">PUSH</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih channel" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="IN_APP">IN_APP</SelectItem>
+                        <SelectItem value="EMAIL">EMAIL</SelectItem>
+                        <SelectItem value="PUSH">PUSH</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -131,20 +139,21 @@ export function NotificationCreateDialog({ trigger }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="SYSTEM">SYSTEM</option>
-                        <option value="BILLING">BILLING</option>
-                        <option value="RAT">RAT</option>
-                        <option value="LOAN">LOAN</option>
-                        <option value="SAVINGS">SAVINGS</option>
-                        <option value="CUSTOM">CUSTOM</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="SYSTEM">SYSTEM</SelectItem>
+                        <SelectItem value="BILLING">BILLING</SelectItem>
+                        <SelectItem value="RAT">RAT</SelectItem>
+                        <SelectItem value="LOAN">LOAN</SelectItem>
+                        <SelectItem value="SAVINGS">SAVINGS</SelectItem>
+                        <SelectItem value="CUSTOM">CUSTOM</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -171,17 +180,18 @@ export function NotificationCreateDialog({ trigger }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Target</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="ALL">ALL</option>
-                        <option value="SINGLE">SINGLE</option>
-                        <option value="GROUP">GROUP</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih target" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ALL">ALL</SelectItem>
+                        <SelectItem value="SINGLE">SINGLE</SelectItem>
+                        <SelectItem value="GROUP">GROUP</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -208,16 +218,17 @@ export function NotificationCreateDialog({ trigger }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="DRAFT">DRAFT</option>
-                        <option value="PUBLISHED">PUBLISHED</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="DRAFT">DRAFT</SelectItem>
+                        <SelectItem value="PUBLISHED">PUBLISHED</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

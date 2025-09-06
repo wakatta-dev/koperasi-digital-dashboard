@@ -12,6 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { listVendorPlans, registerTenantVendor, verifyTenantRegistration } from "@/services/api";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const regSchema = z.object({
   name: z.string().min(2),
@@ -136,14 +143,21 @@ export function TenantSelfRegisterDialog() {
               <FormField name="primary_plan_id" control={form.control} render={({ field }) => (
                 <FormItem>
                   <FormLabel>Paket</FormLabel>
-                  <FormControl>
-                    <select className="border rounded px-3 py-2 w-full" value={(field.value as any) ?? ""} onChange={(e) => field.onChange(Number(e.target.value || 0))}>
-                      <option value="">Pilih paket</option>
+                  <Select
+                    value={typeof field.value === 'number' ? String(field.value) : (field.value as any)}
+                    onValueChange={(v) => field.onChange(Number(v))}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Pilih paket" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
                       {plans.map((p: any) => (
-                        <option key={p.id} value={p.id}>{p.name} — Rp {p.price}</option>
+                        <SelectItem key={p.id} value={String(p.id)}>{p.name} — Rp {p.price}</SelectItem>
                       ))}
-                    </select>
-                  </FormControl>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )} />

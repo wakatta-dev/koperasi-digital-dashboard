@@ -27,6 +27,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const schema = z.object({
   category: z.string().min(1, "Kategori wajib"),
@@ -49,7 +56,7 @@ export function NotificationBroadcastDialog({ trigger }: { trigger?: React.React
     },
   });
 
-  async function onSubmit(values: z.output<typeof schema>) {
+  async function onSubmit(values: z.input<typeof schema>) {
     const ids = (values.tenantIDs || "")
       .split(",")
       .map((s) => Number(s.trim()))
@@ -57,7 +64,7 @@ export function NotificationBroadcastDialog({ trigger }: { trigger?: React.React
     await vendorBroadcast.mutateAsync({
       category: values.category,
       message: values.message,
-      targetType: values.targetType,
+      targetType: values.targetType ?? "ALL",
       ...(ids.length ? { tenantIDs: ids } : {}),
     } as any);
     setOpen(false);
@@ -98,17 +105,18 @@ export function NotificationBroadcastDialog({ trigger }: { trigger?: React.React
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Target</FormLabel>
-                    <FormControl>
-                      <select
-                        className="border rounded px-3 py-2 w-full"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="ALL">ALL</option>
-                        <option value="SINGLE">SINGLE</option>
-                        <option value="GROUP">GROUP</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih target" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ALL">ALL</SelectItem>
+                        <SelectItem value="SINGLE">SINGLE</SelectItem>
+                        <SelectItem value="GROUP">GROUP</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -21,6 +21,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Row = {
   id: number | string;
@@ -170,12 +177,19 @@ function TenantDetail({ tenantId }: { tenantId: number | string }) {
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Role</div>
-                <select className="border rounded px-2 py-1 w-full text-sm" value={newUser.tenant_role_id} onChange={(e) => setNewUser((s) => ({ ...s, tenant_role_id: e.target.value }))}>
-                  <option value="">Pilih role</option>
-                  {(roles as any[]).map((r) => (
-                    <option key={r.id} value={String(r.id)}>{r.name}</option>
-                  ))}
-                </select>
+                <Select
+                  value={newUser.tenant_role_id}
+                  onValueChange={(v) => setNewUser((s) => ({ ...s, tenant_role_id: v }))}
+                >
+                  <SelectTrigger className="w-full text-sm">
+                    <SelectValue placeholder="Pilih role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(roles as any[]).map((r) => (
+                      <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex items-center gap-2">
                 <input className="border rounded px-2 py-1 w-full text-sm" type="password" placeholder="Password" value={newUser.password} onChange={(e) => setNewUser((s) => ({ ...s, password: e.target.value }))} />
@@ -206,17 +220,20 @@ function TenantDetail({ tenantId }: { tenantId: number | string }) {
               <div className="flex items-center gap-2">
                 <Badge variant={m.status === 'aktif' ? 'default' : 'secondary'}>{m.status}</Badge>
                 {isSuperAdmin && (
-                  <select
-                    className="border rounded px-2 py-1 text-xs"
+                  <Select
                     defaultValue={m.status === 'aktif' ? 'active' : 'inactive'}
-                    onChange={(e) => {
-                      const next = e.target.value as 'active' | 'inactive';
+                    onValueChange={(next: 'active' | 'inactive') => {
                       updateModule.mutate({ id: tenantId, module_id: Number(m.module_id), status: next });
                     }}
                   >
-                    <option value="active">active</option>
-                    <option value="inactive">inactive</option>
-                  </select>
+                    <SelectTrigger size="sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">active</SelectItem>
+                      <SelectItem value="inactive">inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
             </div>

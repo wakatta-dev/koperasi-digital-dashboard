@@ -21,6 +21,13 @@ import { useConfirm } from "@/hooks/use-confirm";
 
 import { motion } from "framer-motion";
 import { listModules } from "@/services/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   initialData?: Plan[];
@@ -95,27 +102,27 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
                 onChange={(e) => setQ(e.target.value)}
               />
             </div>
-            <select
-              className="border rounded px-3 py-2 text-sm"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-            >
-              <option value="">Type (all)</option>
-              <option value="package">package</option>
-              <option value="addon">addon</option>
-            </select>
-            <select
-              className="border rounded px-3 py-2 text-sm"
-              value={moduleFilter}
-              onChange={(e) => setModuleFilter(e.target.value)}
-            >
-              <option value="">Module (all)</option>
-              {modules.map((m) => (
-                <option key={m.id} value={m.code}>
-                  {m.name} ({m.code})
-                </option>
-              ))}
-            </select>
+            <Select value={typeFilter || undefined} onValueChange={setTypeFilter}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Type (all)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="package">package</SelectItem>
+                <SelectItem value="addon">addon</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={moduleFilter || undefined} onValueChange={setModuleFilter}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Module (all)" />
+              </SelectTrigger>
+              <SelectContent>
+                {modules.map((m) => (
+                  <SelectItem key={m.id} value={m.code}>
+                    {m.name} ({m.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="flex gap-2 justify-end">
               <Button
                 variant="outline"
@@ -175,11 +182,9 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
 
                   <div className="flex items-center gap-2">
                     {isSuperAdmin && (
-                      <select
+                      <Select
                         defaultValue={(plan as any).status ?? "active"}
-                        className="border rounded px-2 py-1 text-sm"
-                        onChange={async (e) => {
-                          const next = e.target.value;
+                        onValueChange={async (next) => {
                           const ok = await confirm({
                             variant: "edit",
                             title: "Ubah status plan?",
@@ -193,9 +198,14 @@ export function VendorPlansList({ initialData, limit = 20 }: Props) {
                           });
                         }}
                       >
-                        <option value="active">active</option>
-                        <option value="inactive">inactive</option>
-                      </select>
+                        <SelectTrigger size="sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">active</SelectItem>
+                          <SelectItem value="inactive">inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
                     {isSuperAdmin && (
                       <PlanUpsertDialog

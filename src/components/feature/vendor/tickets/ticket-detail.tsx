@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useConfirm } from "@/hooks/use-confirm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = { id: string; initialTicket?: Ticket };
 
@@ -39,16 +46,17 @@ export function VendorTicketDetail({ id, initialTicket }: Props) {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <select
-            className="border rounded px-2 py-1"
-            value={status ?? ticket.status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="open">open</option>
-            <option value="in_progress">in_progress</option>
-            <option value="resolved">resolved</option>
-            <option value="closed">closed</option>
-          </select>
+          <Select value={status ?? ticket.status} onValueChange={setStatus}>
+            <SelectTrigger size="sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">open</SelectItem>
+              <SelectItem value="in_progress">in_progress</SelectItem>
+              <SelectItem value="resolved">resolved</SelectItem>
+              <SelectItem value="closed">closed</SelectItem>
+            </SelectContent>
+          </Select>
           <Input
             placeholder="Agent ID (opsional)"
             value={agentId}

@@ -10,6 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useBillingActions } from "@/hooks/queries/billing";
 import { useConfirm } from "@/hooks/use-confirm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = { initialData?: Subscription[]; initialCursor?: string; limit?: number };
 
@@ -38,17 +45,17 @@ export function VendorSubscriptionsList({ initialData, initialCursor, limit = 20
         <div className="flex items-center justify-between">
           <CardTitle>Subscriptions</CardTitle>
           <div className="flex items-center gap-2">
-            <select
-              className="border rounded px-2 py-1 text-sm"
-              value={status ?? ""}
-              onChange={(e) => setStatus(e.target.value || undefined)}
-            >
-              <option value="">Status (All)</option>
-              <option value="active">active</option>
-              <option value="paused">paused</option>
-              <option value="terminated">terminated</option>
-              <option value="overdue">overdue</option>
-            </select>
+            <Select value={status} onValueChange={(v) => setStatus(v || undefined)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Status (All)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">active</SelectItem>
+                <SelectItem value="paused">paused</SelectItem>
+                <SelectItem value="terminated">terminated</SelectItem>
+                <SelectItem value="overdue">overdue</SelectItem>
+              </SelectContent>
+            </Select>
             <Button type="button" variant="outline" size="sm" onClick={() => { setStatus(undefined); }}>
               Reset
             </Button>
@@ -69,11 +76,9 @@ export function VendorSubscriptionsList({ initialData, initialCursor, limit = 20
               </div>
               <div className="flex items-center gap-3">
                 <Badge variant={s.status === "active" ? "default" : s.status === "overdue" ? "destructive" : "secondary"}>{s.status}</Badge>
-                <select
+                <Select
                   defaultValue={s.status}
-                  className="border rounded px-2 py-1 text-sm"
-                  onChange={async (e) => {
-                    const next = e.target.value;
+                  onValueChange={async (next) => {
                     const ok = await confirm({
                       variant: "edit",
                       title: "Ubah status subscription?",
@@ -84,11 +89,16 @@ export function VendorSubscriptionsList({ initialData, initialCursor, limit = 20
                     await updateSubscriptionStatus.mutateAsync({ id: s.id, status: next });
                   }}
                 >
-                  <option value="active">active</option>
-                  <option value="paused">paused</option>
-                  <option value="terminated">terminated</option>
-                  <option value="overdue">overdue</option>
-                </select>
+                  <SelectTrigger size="sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">active</SelectItem>
+                    <SelectItem value="paused">paused</SelectItem>
+                    <SelectItem value="terminated">terminated</SelectItem>
+                    <SelectItem value="overdue">overdue</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           ))}
