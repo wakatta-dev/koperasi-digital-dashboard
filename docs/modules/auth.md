@@ -118,4 +118,4 @@ export type HttpError = APIResponse<null>;
 - Tangani 401 dengan prompt login ulang bila refresh gagal.
 - Jangan kirim `Authorization` header ke endpoint login/refresh/logout.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/auth/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/auth/*.go` bila diperlukan detail lebih lanjut.

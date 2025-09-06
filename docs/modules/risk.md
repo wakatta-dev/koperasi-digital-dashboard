@@ -90,4 +90,4 @@ export type DeleteRiskRuleResponse = APIResponse<null>;
 - Tampilkan detail faktor pada UI untuk transparansi keputusan.
 - Pastikan hanya anggota aktif yang boleh di-score.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/risk/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/risk/*.go` bila diperlukan detail lebih lanjut.

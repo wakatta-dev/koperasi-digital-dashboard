@@ -160,4 +160,4 @@ export type DeleteUserRoleResponse = APIResponse<{ user_id: number; role_id: num
 - Pastikan domain policy Casbin mengacu ke `jenis_tenant` (di-backend diambil dari klaim JWT).
 - Sinkronkan UI setelah tambah/hapus permission atau user-role.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/authorization/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/authorization/*.go` bila diperlukan detail lebih lanjut.

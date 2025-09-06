@@ -165,7 +165,7 @@ export type VendorBulkResponse = APIResponse<null>;
 - Untuk list, gunakan filter sesuai kebutuhan dan konsumsi `meta.pagination`.
 - Pastikan status transisi UI saat `READ` dan `SENT` sesuai.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/notification/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/notification/*.go` bila diperlukan detail lebih lanjut.
 
 ## Contoh Payload
 

@@ -122,4 +122,4 @@ export type ShariaReleaseLetterResponse = APIResponse<{ message: string }>;
 - Tampilkan margin/akad pada UI agar pengguna paham struktur pembiayaan.
 - Sinkronkan status aplikasi/angsuran setelah aksi (approve, disburse, pay).
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/sharia/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/sharia/*.go` bila diperlukan detail lebih lanjut.

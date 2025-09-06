@@ -127,5 +127,5 @@ export type GetClientAnalyticsResponse = APIResponse<ClientAnalytics>;
 - Cache ringkasan secara singkat; invalidasi saat ada perubahan di modul terkait.
 - Terapkan pemilihan periode untuk tren dengan default wajar.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/dashboard/*.go` dan `internal/modules/dashboard/analytics/*` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/dashboard/*.go` dan `internal/modules/core/dashboard/analytics/*` bila diperlukan detail lebih lanjut.
 

@@ -174,4 +174,4 @@ export type HttpError =
 - Untuk list/histori, ambil `meta.pagination.next_cursor` dan `has_next` untuk tombol "Muat lebih banyak"/infinite scroll.
 - Simpan/mapping `status` (`active|inactive`) untuk kontrol tampilan.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/asset/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/asset/*.go` bila diperlukan detail lebih lanjut.

@@ -117,4 +117,4 @@ export type RATHistoryResponse = APIResponse<RAT[]>;
 - Validasi periode voting (`open_at` ≤ now ≤ `close_at`) di UI untuk UX yang baik.
 - Tampilkan hasil voting secara periodik atau polling bila perlu.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/rat/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/rat/*.go` bila diperlukan detail lebih lanjut.

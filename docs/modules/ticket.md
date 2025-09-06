@@ -159,7 +159,7 @@ export type ListSLAResponse = APIResponse<TicketCategorySLA[]>;
 - Implementasikan filter (status/priority/category/member_id) saat listing.
 - Tampilkan progres SLA (escalation_level) bila relevan.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/ticket/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/support/ticket/*.go` bila diperlukan detail lebih lanjut.
 
 ## Paginasi & Response
 

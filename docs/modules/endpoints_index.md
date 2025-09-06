@@ -2,7 +2,7 @@
 
 - Core: [Auth](auth.md) · [Tenant](tenant.md) · [Authorization](authorization.md) · [Users](user.md)
 - Finance & Billing: [Billing](billing.md) · [Finance/Transactions](finance_transactions.md) · [Cashbook](cashbook.md) · [Reporting](reporting.md) · [Asset](asset.md) · [SHU](shu.md)
-- Operasional Anggota: [Membership](membership.md) · [Savings](savings.md) · [Loan](loan.md) · [Sharia Financing](sharia.md) · [Risk](risk.md)
+- Operasional Anggota: [Membership](membership.md) · [Savings](savings.md) · [Sharia Savings](sharia_savings.md) · [Loan](loan.md) · [Sharia Financing](sharia.md) · [Risk](risk.md)
 - Governance & Support: [RAT](rat.md) · [Notifications](notification.md) · [Ticket](ticket.md) · [Livechat](livechat.md) · [Dashboard](dashboard.md)
 
 Catatan standar:

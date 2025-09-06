@@ -123,5 +123,5 @@ export type ReleaseLetterResponse = APIResponse<{ message: string }>;
 - Tampilkan denda (penalty) bila pembayaran melewati `due_date`.
 - Sinkronkan status aplikasi/angsuran setelah aksi (approve, disburse, pay).
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/loan/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/loan/*.go` bila diperlukan detail lebih lanjut.
 

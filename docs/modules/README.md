@@ -25,6 +25,7 @@ Dokumen ini merangkum seluruh modul dan menautkan ke detail masing-masing, semua
 - Operasional Anggota
   - [Membership](membership.md) - registrasi dan status anggota.
   - [Savings](savings.md) - transaksi simpanan anggota.
+  - [Sharia Savings](sharia_savings.md) - simpanan syariah dengan bagi hasil.
   - [Loan](loan.md) - pengajuan dan angsuran pinjaman.
   - [Sharia Financing](sharia.md) - pembiayaan syariah.
   - [Risk](risk.md) - penilaian risiko anggota.

@@ -112,5 +112,5 @@ export type MemberSHUHistoryResponse = APIResponse<SHUDistribution[]>;
 - Jalankan simulasi sebelum distribusi untuk memvalidasi alokasi.
 - Tangani output file pada ekspor (unduhan).
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/shu/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/shu/*.go` bila diperlukan detail lebih lanjut.
 

@@ -130,7 +130,7 @@ export type ResetPasswordResponse = APIResponse<{ message: string }>;
 - Siapkan handler paginasi (limit, cursor) untuk daftar user.
 - Setelah ubah status/hapus, sinkronkan state list/detail di UI.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/user/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/user/*.go` bila diperlukan detail lebih lanjut.
 
 ## Keamanan
 

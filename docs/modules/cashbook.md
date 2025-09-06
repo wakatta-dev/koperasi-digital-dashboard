@@ -80,4 +80,4 @@ export type GetCashSummaryResponse = CashSummary;
 - Tangani response file pada export (Blob/ArrayBuffer + unduhan).
 - Saat create manual entry, refresh ringkasan agar nilai up-to-date.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/finance/cashbook_*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/finance/cashbook_*.go` bila diperlukan detail lebih lanjut.

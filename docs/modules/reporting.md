@@ -127,5 +127,5 @@ export type ListVendorReportExportsResponse = APIResponse<ReportExport[]>;
 - Tampilkan filter periode dan group_by yang konsisten (day/week/month/year).
 - Tangani unduhan file dengan benar (pdf/xlsx).
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/reporting/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/reporting/*.go` bila diperlukan detail lebih lanjut.
 

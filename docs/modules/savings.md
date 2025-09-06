@@ -114,5 +114,5 @@ export type GetProofResponse = APIResponse<string>;
 - Tampilkan status transaksi dan saldo terkini pasca operasi.
 - Gunakan `proof_url` untuk menampilkan/unduh bukti transaksi.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/savings/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/savings/*.go` bila diperlukan detail lebih lanjut.
 

@@ -108,4 +108,4 @@ export type ListMessagesResponse = APIResponse<ChatMessage[]>;
 - Pastikan UI menangani status sesi (`OPEN|CLOSED`).
 - Sinkronkan notifikasi in-app saat agen mengirim balasan.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/livechat/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/support/livechat/*.go` bila diperlukan detail lebih lanjut.

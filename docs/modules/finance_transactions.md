@@ -22,7 +22,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 - Transaction: `id`, `tenant_id`, `transaction_date`, `type` (`CashIn|CashOut|Transfer`), `category`, `amount`, `payment_method`, `description`, `created_by`, `updated_by`, `created_at`, `updated_at`, `ledger_entries[]`
 - TransactionHistory: `id`, `transaction_id`, `changed_by`, `old_values`, `new_values`, `changed_at`
-- LedgerEntry: lihat `internal/modules/finance/ledger.go` (opsional untuk FE)
+- LedgerEntry: lihat `internal/modules/core/finance/ledger.go` (opsional untuk FE)
 
 ## Payload Utama
 
@@ -159,7 +159,7 @@ export type DeleteTransactionResponse = APIResponse<{ id: number }>;
 - Implementasi filter tanggal (YYYY-MM-DD) dan handle paginasi cursor.
 - Untuk ekspor, tangani `Content-Type` dan `Content-Disposition` untuk unduhan.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/finance/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/finance/*.go` bila diperlukan detail lebih lanjut.
 - `type` (string, enum: `CashIn`, `CashOut`, `Transfer`)
 - `category` (string)
 - `amount` (float64)

@@ -99,4 +99,4 @@ export type ValidateMemberCardResponse = APIResponse<Member>;
 - Validasi format QR saat pemindaian dan tangani kedaluwarsa (`qr_expired_at`).
 - Pastikan status keanggotaan tersinkron setelah verifikasi/perubahan status.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/membership/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/koperasi/membership/*.go` bila diperlukan detail lebih lanjut.

@@ -209,5 +209,5 @@ export type ListStatusAuditsResponse = APIResponse<StatusAudit[]>;
 - Tampilkan status invoice/subscription dan alur verifikasi pembayaran dengan jelas.
 - Saat verifikasi berhasil, sinkronkan fitur yang bergantung (modul tenant aktif kembali).
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/billing/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/billing/*.go` bila diperlukan detail lebih lanjut.
 

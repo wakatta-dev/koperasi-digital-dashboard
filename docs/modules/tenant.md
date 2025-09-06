@@ -181,7 +181,7 @@ export type VendorUpdateTenantStatusResponse = APIResponse<{ is_active: boolean 
 - Implementasikan paginasi cursor untuk list tenants/users/modules.
 - Sinkronkan UI status tenant dan status modul setelah perubahan.
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/tenant/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/tenant/*.go` bila diperlukan detail lebih lanjut.
 2. Admin Tenant menambahkan user internal ke tenant (`POST /tenants/{id}/users`).
 3. Admin Tenant mengaktifkan modul yang diperlukan (`PATCH /tenants/{id}/modules`).
 4. Sistem Billing otomatis menonaktifkan modul saat langganan `suspended` dan mengaktifkan kembali saat `paid`.
