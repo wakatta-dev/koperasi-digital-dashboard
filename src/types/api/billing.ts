@@ -1,35 +1,44 @@
 /** @format */
 
+import type { Rfc3339String } from './common';
+
 export interface Plan {
   id: number;
   name: string;
+  type: string;
   price: number;
+  status: string;
+  module_code: string;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+  // UI optional field retained
   duration_months?: number;
-  created_at: string;
-  updated_at: string;
 }
 
-export interface InvoiceItem {
+export interface TenantSubscription {
   id: number;
-  invoice_id: number;
-  description: string;
-  quantity: number;
-  price: number;
-  subscription_id?: number;
+  tenant_id: number;
+  plan_id: number;
+  start_date: Rfc3339String;
+  end_date?: Rfc3339String;
+  status: string;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+  plan?: Plan;
 }
+
+export interface InvoiceItem { id: number; invoice_id: number; description: string; quantity: number; price: number }
 
 export interface Invoice {
   id: number;
   tenant_id: number;
   number: string;
-  issued_at: string;
-  due_date?: string | null;
-  total: number;
-  status: string;
-  items: InvoiceItem[];
-  created_at: string;
-  updated_at: string;
+  issued_at: Rfc3339String;
+  due_date: Rfc3339String;
   subscription_id?: number;
+  total: number;
+  status: 'pending' | 'paid' | 'overdue';
+  items: InvoiceItem[];
 }
 
 export interface Payment {
@@ -37,34 +46,15 @@ export interface Payment {
   invoice_id: number;
   method: string;
   proof_url: string;
-  status: string;
+  amount?: number;
+  status: 'pending' | 'verified' | 'rejected';
   gateway?: string;
   external_id?: string;
-  created_at: string;
+  paid_at?: Rfc3339String;
+  created_at: Rfc3339String;
 }
 
-// Additional types to cover docs/modules/billing.md
-export interface SubscriptionSummary {
-  active: number;
-  suspended: number;
-  overdue: number;
-}
+export interface StatusAudit { id: number; entity_type: 'invoice' | 'subscription'; entity_id: number; old_status: string; new_status: string; changed_by: number; changed_at: Rfc3339String }
 
-export interface StatusAudit {
-  id: number;
-  entity: string; // e.g., "invoice" | "subscription"
-  entity_id: number;
-  old_status?: string | null;
-  new_status: string;
-  created_at: string;
-}
-
-export interface Subscription {
-  id: number;
-  tenant_id: number;
-  plan_id: number;
-  status: string;
-  start_date: string;
-  end_date?: string | null;
-  plan?: Plan;
-}
+export type Subscription = TenantSubscription; // alias for existing code
+export type SubscriptionSummary = { active: number; suspended: number; overdue: number };

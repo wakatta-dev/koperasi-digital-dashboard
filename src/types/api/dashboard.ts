@@ -1,9 +1,11 @@
-import type { APIResponse, Rfc3339String } from './index';
+/** @format */
+
+import type { ApiResponse, Rfc3339String } from './common';
 
 export interface DashboardSummary { active_members: number; total_savings: number; total_loans: number; running_shu: number }
 export interface TrendData { date: Rfc3339String; savings: number; loans: number }
 
-export interface Notification {
+export interface DashboardNotification {
   id: string;
   tenant_id: number;
   type: string;
@@ -32,9 +34,9 @@ export interface ClientAnalytics {
   growth: Array<{ period: string; total: number }>;
 }
 
-export type GetDashboardSummaryResponse = APIResponse<DashboardSummary>;
-export type GetTrendResponse = APIResponse<TrendData[]>;
-export type ListDashboardNotificationsResponse = APIResponse<Notification[]>;
-export type GetVendorDashboardResponse = APIResponse<VendorDashboard>;
-export type GetClientAnalyticsResponse = APIResponse<ClientAnalytics>;
+export type GetDashboardSummaryResponse = ApiResponse<DashboardSummary>;
+export type GetTrendResponse = ApiResponse<TrendData[]>;
+export type ListDashboardNotificationsResponse = ApiResponse<DashboardNotification[]>;
+export type GetVendorDashboardResponse = ApiResponse<VendorDashboard>;
+export type GetClientAnalyticsResponse = ApiResponse<ClientAnalytics>;
 

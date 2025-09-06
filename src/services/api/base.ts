@@ -84,7 +84,7 @@ async function request<T>(
         request_id: "",
         timestamp: new Date().toISOString(),
       } as any,
-      errors: err,
+      errors: null,
     };
   }
 }

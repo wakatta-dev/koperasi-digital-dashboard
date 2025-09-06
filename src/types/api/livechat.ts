@@ -1,4 +1,6 @@
-import type { APIResponse, Rfc3339String } from './index';
+/** @format */
+
+import type { ApiResponse, Rfc3339String } from './common';
 
 export type SessionStatus = 'OPEN' | 'CLOSED';
 
@@ -22,7 +24,7 @@ export interface ChatMessage {
 export interface StartSessionRequest { agent_id?: number }
 export interface SendMessageRequest { message: string }
 
-export type StartSessionResponse = APIResponse<ChatSession>;
-export type SendMessageResponse = APIResponse<ChatMessage>;
-export type ListMessagesResponse = APIResponse<ChatMessage[]>;
+export type StartSessionResponse = ApiResponse<ChatSession>;
+export type SendMessageResponse = ApiResponse<ChatMessage>;
+export type ListMessagesResponse = ApiResponse<ChatMessage[]>;
 

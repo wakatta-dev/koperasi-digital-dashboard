@@ -3,7 +3,13 @@
 "use server";
 
 import { ensureSuccess } from "@/lib/api";
-import type { Transaction } from "@/types/api";
+import type {
+  Transaction,
+  TransactionHistory,
+  CreateTransactionRequest,
+  UpdateTransactionRequest,
+  ListTransactionsQuery,
+} from "@/types/api";
 import {
   createTransaction as createTx,
   deleteTransaction as deleteTx,
@@ -12,9 +18,11 @@ import {
   updateTransaction as updateTx,
 } from "@/services/api";
 
-export async function listTransactionsAction(params?: Record<string, string | number>) {
+export async function listTransactionsAction(
+  params?: ListTransactionsQuery,
+) {
   try {
-    const res = await listTx(params);
+    const res = await listTx(params as any);
     return ensureSuccess(res);
   } catch {
     return [];
@@ -26,12 +34,7 @@ export type ListTransactionsActionResult = Awaited<
 >;
 
 export async function createTransactionAction(
-  payload: Partial<Transaction> & {
-    debit_account_code: string;
-    debit_account_name: string;
-    credit_account_code: string;
-    credit_account_name: string;
-  }
+  payload: CreateTransactionRequest,
 ) {
   try {
     const res = await createTx(payload as any);
@@ -41,7 +44,10 @@ export async function createTransactionAction(
   }
 }
 
-export async function updateTransactionAction(id: string | number, payload: Partial<Transaction>) {
+export async function updateTransactionAction(
+  id: string | number,
+  payload: UpdateTransactionRequest,
+) {
   try {
     const res = await updateTx(id, payload);
     return ensureSuccess(res);
@@ -59,7 +65,9 @@ export async function deleteTransactionAction(id: string | number) {
   }
 }
 
-export async function getTransactionHistoryAction(id: string | number) {
+export async function getTransactionHistoryAction(
+  id: string | number,
+) {
   try {
     const res = await getTxHistory(id);
     return ensureSuccess(res);

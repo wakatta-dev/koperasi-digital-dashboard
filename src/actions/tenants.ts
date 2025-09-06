@@ -2,7 +2,17 @@
 
 "use server";
 
-import type { ApiResponse, Tenant, User } from "@/types/api";
+import type {
+  ApiResponse,
+  Tenant,
+  User,
+  CreateTenantRequest,
+  UpdateTenantRequest,
+  UpdateStatusRequest,
+  AddUserRequest,
+  ListTenantModulesResponse,
+  UpdateTenantModuleResponse,
+} from "@/types/api";
 import { ensureSuccess } from "@/lib/api";
 import {
   listTenants as listTenantsService,
@@ -30,24 +40,22 @@ export async function getTenant(
   return getTenantService(id);
 }
 
-export async function createTenant(payload: {
-  name: string;
-  type: string;
-  domain: string;
-}): Promise<ApiResponse<Tenant>> {
+export async function createTenant(
+  payload: CreateTenantRequest,
+): Promise<ApiResponse<Tenant>> {
   return createTenantService(payload);
 }
 
 export async function updateTenant(
   id: string | number,
-  payload: { name?: string; type?: string; domain?: string },
+  payload: Partial<UpdateTenantRequest> & { domain?: string },
 ): Promise<ApiResponse<Tenant>> {
   return updateTenantService(id, payload);
 }
 
 export async function updateTenantStatus(
   id: string | number,
-  payload: { is_active: boolean },
+  payload: UpdateStatusRequest,
 ): Promise<ApiResponse<Tenant>> {
   return updateTenantStatusService(id, payload);
 }
@@ -61,12 +69,7 @@ export async function listTenantUsers(
 
 export async function addTenantUser(
   id: string | number,
-  payload: {
-    email: string;
-    password: string;
-    full_name: string;
-    tenant_role_id: number;
-  },
+  payload: AddUserRequest,
 ): Promise<ApiResponse<User>> {
   return addTenantUserService(id, payload);
 }
@@ -74,14 +77,14 @@ export async function addTenantUser(
 export async function listTenantModules(
   id: string | number,
   params?: { limit?: number; cursor?: string },
-): Promise<ApiResponse<any[]>> {
+): Promise<ListTenantModulesResponse> {
   return listTenantModulesService(id, params);
 }
 
 export async function updateTenantModule(
   id: string | number,
   payload: { module_id: number; status: string },
-): Promise<ApiResponse<any>> {
+): Promise<UpdateTenantModuleResponse> {
   return updateTenantModuleService(id, payload);
 }
 

@@ -3,6 +3,14 @@
 "use server";
 
 import { ensureSuccess } from "@/lib/api";
+import type {
+  Plan,
+  Invoice,
+  Payment,
+  Subscription,
+  SubscriptionSummary,
+  StatusAudit,
+} from "@/types/api";
 import {
   listVendorInvoices,
   createVendorInvoice,
@@ -23,7 +31,9 @@ import {
   listVendorAudits,
 } from "@/services/api";
 
-export async function listInvoicesAction(type: "vendor" | "client" = "client") {
+export async function listInvoicesAction(
+  type: "vendor" | "client" = "client",
+): Promise<Invoice[]> {
   try {
     const res =
       type === "vendor"
@@ -42,8 +52,8 @@ export type ListInvoicesActionResult = Awaited<
 
 export async function createPaymentAction(
   invoiceId: string | number,
-  payload: any
-) {
+  payload: Partial<Payment>,
+): Promise<Payment | null> {
   try {
     const res = await createPayment(invoiceId, payload);
     return ensureSuccess(res);
@@ -58,8 +68,8 @@ export type CreatePaymentActionResult = Awaited<
 
 export async function verifyVendorPaymentAction(
   id: string | number,
-  payload?: any
-) {
+  payload?: Partial<Payment> & { status?: string; gateway?: string; external_id?: string },
+): Promise<Payment | null> {
   try {
     const res = await verifyVendorPayment(id, payload);
     return ensureSuccess(res);
@@ -72,7 +82,9 @@ export type VerifyVendorPaymentActionResult = Awaited<
   ReturnType<typeof verifyVendorPaymentAction>
 >;
 
-export async function createVendorInvoiceAction(payload: any) {
+export async function createVendorInvoiceAction(
+  payload: Partial<Invoice>,
+): Promise<Invoice | null> {
   try {
     const res = await createVendorInvoice(payload);
     return ensureSuccess(res);
@@ -87,8 +99,8 @@ export type CreateVendorInvoiceActionResult = Awaited<
 
 export async function updateVendorInvoiceAction(
   id: string | number,
-  payload: any
-) {
+  payload: Partial<Invoice>,
+): Promise<Invoice | null> {
   try {
     const res = await updateVendorInvoice(id, payload);
     return ensureSuccess(res);
@@ -101,7 +113,9 @@ export type UpdateVendorInvoiceActionResult = Awaited<
   ReturnType<typeof updateVendorInvoiceAction>
 >;
 
-export async function deleteVendorInvoiceAction(id: string | number) {
+export async function deleteVendorInvoiceAction(
+  id: string | number,
+): Promise<{ id: number } | null> {
   try {
     const res = await deleteVendorInvoice(id);
     return ensureSuccess(res);
@@ -117,7 +131,7 @@ export type DeleteVendorInvoiceActionResult = Awaited<
 export async function listVendorPlansAction(params: {
   limit: number;
   cursor?: string;
-}) {
+}): Promise<Plan[]> {
   try {
     const res = await listVendorPlans(params);
     return ensureSuccess(res);
@@ -130,7 +144,9 @@ export type ListVendorPlansActionResult = Awaited<
   ReturnType<typeof listVendorPlansAction>
 >;
 
-export async function createVendorPlanAction(payload: any) {
+export async function createVendorPlanAction(
+  payload: Partial<Plan>,
+): Promise<Plan | null> {
   try {
     const res = await createVendorPlan(payload);
     return ensureSuccess(res);
@@ -143,7 +159,9 @@ export type CreateVendorPlanActionResult = Awaited<
   ReturnType<typeof createVendorPlanAction>
 >;
 
-export async function getVendorPlanAction(id: string | number) {
+export async function getVendorPlanAction(
+  id: string | number,
+): Promise<Plan | null> {
   try {
     const res = await getVendorPlan(id);
     return ensureSuccess(res);
@@ -158,8 +176,8 @@ export type GetVendorPlanActionResult = Awaited<
 
 export async function updateVendorPlanAction(
   id: string | number,
-  payload: any
-) {
+  payload: Partial<Plan>,
+): Promise<Plan | null> {
   try {
     const res = await updateVendorPlan(id, payload);
     return ensureSuccess(res);
@@ -172,7 +190,9 @@ export type UpdateVendorPlanActionResult = Awaited<
   ReturnType<typeof updateVendorPlanAction>
 >;
 
-export async function deleteVendorPlanAction(id: string | number) {
+export async function deleteVendorPlanAction(
+  id: string | number,
+): Promise<unknown | null> {
   try {
     const res = await deleteVendorPlan(id);
     return ensureSuccess(res);
@@ -185,7 +205,9 @@ export type DeleteVendorPlanActionResult = Awaited<
   ReturnType<typeof deleteVendorPlanAction>
 >;
 
-export async function getClientInvoiceAction(id: string | number) {
+export async function getClientInvoiceAction(
+  id: string | number,
+): Promise<Invoice | null> {
   try {
     const res = await getClientInvoice(id);
     return ensureSuccess(res);
@@ -196,8 +218,8 @@ export async function getClientInvoiceAction(id: string | number) {
 
 export async function listClientInvoiceAuditsAction(
   id: string | number,
-  params?: { limit?: number; cursor?: string }
-) {
+  params?: { limit?: number; cursor?: string },
+): Promise<StatusAudit[]> {
   try {
     const res = await listClientInvoiceAudits(id, params);
     return ensureSuccess(res);
@@ -206,7 +228,7 @@ export async function listClientInvoiceAuditsAction(
   }
 }
 
-export async function getClientSubscriptionAction() {
+export async function getClientSubscriptionAction(): Promise<Subscription | null> {
   try {
     const res = await getClientSubscription();
     return ensureSuccess(res);
@@ -215,7 +237,9 @@ export async function getClientSubscriptionAction() {
   }
 }
 
-export async function getVendorSubscriptionsSummaryAction() {
+export async function getVendorSubscriptionsSummaryAction(): Promise<
+  SubscriptionSummary | null
+> {
   try {
     const res = await getVendorSubscriptionsSummary();
     return ensureSuccess(res);
@@ -227,7 +251,7 @@ export async function getVendorSubscriptionsSummaryAction() {
 export async function listVendorAuditsAction(params?: {
   limit?: number;
   cursor?: string;
-}) {
+}): Promise<StatusAudit[]> {
   try {
     const res = await listVendorAudits(params);
     return ensureSuccess(res);

@@ -85,7 +85,7 @@ export async function apiRequest<T = any>(
         request_id: "",
         timestamp: new Date().toISOString(),
       } as any,
-      errors: err,
+      errors: null,
     };
   }
 }

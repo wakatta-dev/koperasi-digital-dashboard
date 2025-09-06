@@ -1,4 +1,6 @@
-import type { Rfc3339String, APIResponse } from './index';
+/** @format */
+
+import type { ApiResponse, Rfc3339String } from './common';
 
 export type DepreciationMethod = 'straight_line' | 'declining_balance';
 
@@ -49,7 +51,7 @@ export type UpdateAssetResponse = Asset;
 export type DeleteAssetResponse = void;
 export type UpdateAssetStatusRequest = StatusRequest;
 export type UpdateAssetStatusResponse = void;
-export type ListAssetsResponse = APIResponse<Asset[]>;
-export type DepreciationHistoryResponse = APIResponse<AssetDepreciation[]>;
+export type ListAssetsResponse = ApiResponse<Asset[]>;
+export type DepreciationHistoryResponse = ApiResponse<AssetDepreciation[]>;
 export interface ExportAssetsResponse { message: string }
 

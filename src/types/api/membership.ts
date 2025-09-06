@@ -1,4 +1,6 @@
-import type { APIResponse, Rfc3339String } from './index';
+/** @format */
+
+import type { ApiResponse, Rfc3339String } from './common';
 
 export interface Member {
   id: number;
@@ -25,6 +27,6 @@ export type RegisterMemberResponse = Member;
 export type VerifyMemberResponse = void;
 export type GetMemberProfileResponse = Profile;
 export type UpdateMemberStatusResponse = void;
-export type CreateMemberCardResponse = APIResponse<{ member_id: number; qr: string; issued_at: Rfc3339String }>;
-export type ValidateMemberCardResponse = APIResponse<Member>;
+export type CreateMemberCardResponse = ApiResponse<{ member_id: number; qr: string; issued_at: Rfc3339String }>;
+export type ValidateMemberCardResponse = ApiResponse<Member>;
 

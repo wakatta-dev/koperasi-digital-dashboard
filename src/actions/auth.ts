@@ -5,6 +5,12 @@
 import { apiFetch } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { ensureSuccess } from "@/lib/api";
+import type {
+  LoginRequest,
+  RefreshRequest,
+  LoginResponse,
+  RefreshResponse,
+} from "@/types/api";
 import {
   login as loginService,
   logout as logoutService,
@@ -12,28 +18,36 @@ import {
 } from "@/services/api";
 import { cookies } from "next/headers";
 
-export async function login(payload: { email: string; password: string }) {
-  return apiFetch(API_ENDPOINTS.auth.login, {
+export async function login(
+  payload: LoginRequest,
+): Promise<LoginResponse | null> {
+  return apiFetch<LoginResponse>(API_ENDPOINTS.auth.login, {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export async function refresh(payload: { refresh_token: string }) {
-  return apiFetch(API_ENDPOINTS.auth.refresh, {
+export async function refresh(
+  payload: RefreshRequest,
+): Promise<RefreshResponse | null> {
+  return apiFetch<RefreshResponse>(API_ENDPOINTS.auth.refresh, {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export async function logout(payload: { refresh_token: string }) {
-  return apiFetch(API_ENDPOINTS.auth.logout, {
+export async function logout(
+  payload: RefreshRequest,
+): Promise<{ message: string } | null> {
+  return apiFetch<{ message: string }>(API_ENDPOINTS.auth.logout, {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-export async function loginAction(payload: { email: string; password: string }) {
+export async function loginAction(
+  payload: LoginRequest,
+): Promise<LoginResponse | null> {
   try {
     const res = await loginService(payload);
     return ensureSuccess(res);
@@ -44,7 +58,9 @@ export async function loginAction(payload: { email: string; password: string }) 
 
 export type LoginActionResult = Awaited<ReturnType<typeof loginAction>>;
 
-export async function refreshTokenAction(payload: { refresh_token: string }) {
+export async function refreshTokenAction(
+  payload: RefreshRequest,
+): Promise<RefreshResponse | null> {
   try {
     const res = await refreshTokenService(payload);
     return ensureSuccess(res);
@@ -57,7 +73,7 @@ export type RefreshTokenActionResult = Awaited<
   ReturnType<typeof refreshTokenAction>
 >;
 
-export async function logoutAction() {
+export async function logoutAction(): Promise<{ message: string } | null> {
   let refreshToken: string | undefined;
   try {
     refreshToken = (await cookies()).get("refresh_token")?.value;

@@ -107,7 +107,7 @@ export default async function LaporanPage() {
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
-              Paid: {billing ? billing.total_paid : 0} • Pending: {billing ? billing.total_pending : 0}
+              Paid: {billing ? (billing as any).total_paid ?? billing.status_detail?.paid ?? 0 : 0} • Pending: {billing ? (billing as any).total_pending ?? billing.status_detail?.pending ?? 0 : 0}
             </div>
           </CardContent>
         </Card>

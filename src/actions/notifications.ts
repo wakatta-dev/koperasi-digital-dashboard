@@ -4,7 +4,12 @@
 
 import { apiRequest } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, Notification } from "@/types/api";
+import type {
+  ApiResponse,
+  Notification,
+  CreateNotificationRequest,
+  UpdateNotificationStatusRequest,
+} from "@/types/api";
 import { ensureSuccess } from "@/lib/api";
 import {
   listNotifications as listNotificationsService,
@@ -25,10 +30,9 @@ export async function listNotifications(params?: {
   return apiRequest<Notification[]>(endpoint);
 }
 
-export async function createNotification(payload: {
-  title: string;
-  message: string;
-}): Promise<ApiResponse<Notification>> {
+export async function createNotification(
+  payload: CreateNotificationRequest,
+): Promise<ApiResponse<Notification>> {
   return apiRequest<Notification>(API_ENDPOINTS.notifications.create, {
     method: "POST",
     body: JSON.stringify(payload),
@@ -37,7 +41,7 @@ export async function createNotification(payload: {
 
 export async function updateNotificationStatus(
   id: string | number,
-  payload: { status: string }
+  payload: UpdateNotificationStatusRequest,
 ): Promise<ApiResponse<Notification>> {
   return apiRequest<Notification>(API_ENDPOINTS.notifications.status(id), {
     method: "PATCH",
@@ -60,9 +64,11 @@ export type ListNotificationsActionResult = Awaited<
   ReturnType<typeof listNotificationsAction>
 >;
 
-export async function createNotificationAction(payload: Partial<Notification>) {
+export async function createNotificationAction(
+  payload: CreateNotificationRequest,
+) {
   try {
-    const res = await createNotificationService(payload);
+    const res = await createNotificationService(payload as any);
     return ensureSuccess(res);
   } catch {
     return null;
@@ -75,7 +81,7 @@ export type CreateNotificationActionResult = Awaited<
 
 export async function updateNotificationStatusAction(
   id: string | number,
-  payload: { status: string }
+  payload: UpdateNotificationStatusRequest,
 ) {
   try {
     const res = await updateNotificationStatusService(id, payload);
