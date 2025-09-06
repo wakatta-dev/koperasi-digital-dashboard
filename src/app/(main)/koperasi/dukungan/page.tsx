@@ -7,24 +7,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { addTicketReply, createTicket, listTicketReplies } from "@/services/api";
 
 export default function DukunganPage() {
   // TODO integrate API: ticket submit, chat websocket, chat history
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [ticketId, setTicketId] = useState<string>("");
   const [chatInput, setChatInput] = useState("");
   const [chats, setChats] = useState<{sender: 'you'|'agent'; text: string}[]>([]);
 
-  function submitTicket() {
-    // TODO submit ticket
-    setSubject("");
-    setMessage("");
+  async function submitTicket() {
+    const res = await createTicket({ title: subject || "Tanpa subjek", category: "other", priority: "low", description: message });
+    if (res.success) {
+      setSubject("");
+      setMessage("");
+      // Optionally set ticketId if API returns it
+      const id = (res.data as any)?.id;
+      if (id) setTicketId(String(id));
+    }
   }
 
-  function sendChat() {
-    if (!chatInput) return;
+  async function sendChat() {
+    if (!chatInput || !ticketId) return;
+    await addTicketReply(ticketId, { message: chatInput });
     setChats((s) => [...s, { sender: 'you', text: chatInput }]);
     setChatInput("");
+    await loadChat();
+  }
+
+  async function loadChat() {
+    if (!ticketId) return;
+    const res = await listTicketReplies(ticketId, { limit: 50 });
+    if (res.success) {
+      const items = (res.data ?? []).map((r: any) => ({ sender: (r.sender === 'agent' ? 'agent' : 'you') as 'agent' | 'you', text: String(r.message ?? '') }));
+      setChats(items);
+    }
   }
 
   return (
@@ -57,6 +75,10 @@ export default function DukunganPage() {
             <CardDescription>Terhubung dengan agen dukungan</CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="flex items-center gap-2 mb-2">
+              <Input placeholder="ID Tiket" value={ticketId} onChange={(e) => setTicketId(e.target.value)} />
+              <Button variant="outline" onClick={loadChat} disabled={!ticketId}>Muat Chat</Button>
+            </div>
             <div className="h-64 border rounded p-3 overflow-auto mb-3 space-y-2 bg-muted/30">
               {chats.map((c, i) => (
                 <div key={i} className={`text-sm ${c.sender === 'you' ? 'text-right' : 'text-left'}`}>
@@ -67,7 +89,7 @@ export default function DukunganPage() {
             </div>
             <div className="flex gap-2">
               <Input placeholder="Ketik pesan..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
-              <Button onClick={sendChat}>Kirim</Button>
+              <Button onClick={sendChat} disabled={!ticketId}>Kirim</Button>
             </div>
           </CardContent>
         </Card>
@@ -79,11 +101,22 @@ export default function DukunganPage() {
           <CardDescription>Daftar percakapan sebelumnya</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* TODO integrate API: list chats */}
-          <div className="text-sm text-muted-foreground italic">Belum ada riwayat chat</div>
+          {/* Riwayat chat untuk tiket terpilih */}
+          {!ticketId && (
+            <div className="text-sm text-muted-foreground italic">Masukkan ID tiket untuk melihat riwayat.</div>
+          )}
+          {!!ticketId && !chats.length && (
+            <div className="text-sm text-muted-foreground italic">Belum ada riwayat chat</div>
+          )}
+          {!!ticketId && !!chats.length && (
+            <div className="space-y-1 text-sm">
+              {chats.map((c, i) => (
+                <div key={i}>{c.sender === 'agent' ? 'Agen' : 'Anda'}: {c.text}</div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
-

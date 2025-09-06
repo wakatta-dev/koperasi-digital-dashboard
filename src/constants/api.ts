@@ -100,6 +100,8 @@ export const API_ENDPOINTS = {
     cashflow: "/reports/cashflow",
     profitLoss: "/reports/profit-loss",
     balanceSheet: "/reports/balance-sheet",
+    export: "/reports/export",
+    history: "/reports/history",
   },
   catalog: {
     modules: "/modules",
@@ -192,6 +194,17 @@ export const API_ENDPOINTS = {
       broadcast: "/vendor/notifications/broadcast",
       bulk: "/vendor/notifications/bulk",
     },
+  },
+  rat: {
+    // Koperasi RAT endpoints
+    base: "/koperasi/rat",
+    create: "/koperasi/rat",
+    notify: (id: string | number) => `/koperasi/rat/${id}/notify`,
+    documents: (id: string | number) => `/koperasi/rat/${id}/documents`,
+    voting: (id: string | number) => `/koperasi/rat/${id}/voting`,
+    vote: (itemId: string | number) => `/koperasi/rat/voting/${itemId}/vote`,
+    result: (itemId: string | number) => `/koperasi/rat/voting/${itemId}/result`,
+    history: "/koperasi/rat/history",
   },
 } as const;
 

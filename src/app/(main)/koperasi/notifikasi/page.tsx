@@ -2,12 +2,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { listNotifications } from "@/services/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotifikasiPage() {
-  // TODO integrate API: list notifications
-  const notifications: any[] = [];
+  const res = await listNotifications({ limit: 50 }).catch(() => null);
+  const notifications = res && res.success ? (res.data as any[]) : [];
 
   return (
     <div className="space-y-6">
@@ -23,8 +24,8 @@ export default async function NotifikasiPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {notifications.map((n, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 border rounded-lg">
+            {notifications.map((n: any) => (
+              <div key={String(n.id ?? Math.random())} className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <div className="font-medium">{n.title ?? n.message ?? 'Notifikasi'}</div>
                   <div className="text-xs text-muted-foreground">{String(n.created_at ?? '')}</div>
@@ -41,4 +42,3 @@ export default async function NotifikasiPage() {
     </div>
   );
 }
-

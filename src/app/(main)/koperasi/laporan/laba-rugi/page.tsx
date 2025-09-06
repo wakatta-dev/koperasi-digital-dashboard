@@ -6,10 +6,47 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { exportReportRaw, getProfitLossReport } from "@/services/api";
 
 export default function LaporanLabaRugiPage() {
   const [period, setPeriod] = useState<string>("");
-  // TODO integrate API: fetch P&L by period
+  const [data, setData] = useState<{ income?: number; expense?: number; net?: number; items?: any[] } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState<false | 'pdf' | 'xlsx'>(false);
+
+  async function onFilter() {
+    setLoading(true);
+    try {
+      const [year, month] = period.split("-");
+      const start = period ? `${year}-${month}-01` : undefined;
+      const res = await getProfitLossReport({ start });
+      if (res.success) {
+        const by = res.data?.data ?? [];
+        const income = by.reduce((acc: number, it: any) => acc + (it.profit ?? 0), 0);
+        const expense = by.reduce((acc: number, it: any) => acc + (it.loss ?? 0), 0);
+        setData({ income, expense, net: res.data?.net_profit ?? income - expense, items: by });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onExport(format: 'pdf' | 'xlsx') {
+    setExporting(format);
+    try {
+      const [year, month] = (period || '').split("-");
+      const start = period ? `${year}-${month}-01` : undefined;
+      const blob = await exportReportRaw({ type: 'profit-loss', start, format });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `laporan-laba-rugi${period ? `-${period}` : ''}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -20,8 +57,9 @@ export default function LaporanLabaRugiPage() {
         </div>
         <div className="flex items-center gap-2">
           <Input placeholder="Periode (YYYY-MM)" value={period} onChange={(e) => setPeriod(e.target.value)} className="w-40" />
-          <Button variant="outline">Filter</Button>
-          <Button>Export PDF</Button>
+          <Button variant="outline" onClick={onFilter} disabled={loading}>{loading ? "Memuat..." : "Filter"}</Button>
+          <Button onClick={() => onExport('pdf')} disabled={!!exporting}>{exporting === 'pdf' ? 'Mengekspor...' : 'Export PDF'}</Button>
+          <Button variant="secondary" onClick={() => onExport('xlsx')} disabled={!!exporting}>{exporting === 'xlsx' ? 'Mengekspor...' : 'Export Excel'}</Button>
         </div>
       </div>
 
@@ -33,9 +71,12 @@ export default function LaporanLabaRugiPage() {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-2">
-              <li>Jasa Pinjaman: -</li>
-              <li>Pendapatan Operasional: -</li>
-              <li>Lain-lain: -</li>
+              {(data?.items ?? []).map((it: any, idx: number) => (
+                <li key={idx}>{it.label ?? `Item ${idx + 1}`}: {it.profit ?? 0}</li>
+              ))}
+              {!data?.items?.length && (
+                <li className="text-muted-foreground italic">-</li>
+              )}
             </ul>
           </CardContent>
         </Card>
@@ -46,9 +87,12 @@ export default function LaporanLabaRugiPage() {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-2">
-              <li>Gaji & Tunjangan: -</li>
-              <li>Operasional: -</li>
-              <li>Penyusutan: -</li>
+              {(data?.items ?? []).map((it: any, idx: number) => (
+                <li key={idx}>{it.label ?? `Item ${idx + 1}`}: {it.loss ?? 0}</li>
+              ))}
+              {!data?.items?.length && (
+                <li className="text-muted-foreground italic">-</li>
+              )}
             </ul>
           </CardContent>
         </Card>
@@ -58,11 +102,10 @@ export default function LaporanLabaRugiPage() {
             <CardDescription>Pendapatan - Beban</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">-</div>
+            <div className="text-3xl font-bold">{typeof data?.net === 'number' ? data?.net : '-'}</div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-

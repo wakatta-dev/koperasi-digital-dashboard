@@ -7,14 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { listClientInvoices } from "@/services/api";
 
 export default function BillingPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [query, setQuery] = useState<string>("");
 
-  // TODO integrate API: fetch invoices + addons
+  // Integrate API: fetch invoices
   useEffect(() => {
-    setInvoices([]);
+    (async () => {
+      const res = await listClientInvoices({ limit: 100 }).catch(() => null);
+      if (res && res.success) setInvoices(res.data || []);
+    })();
   }, []);
 
   return (
@@ -42,7 +46,7 @@ export default function BillingPage() {
             <Button variant="secondary">Export Excel</Button>
           </div>
           <div className="space-y-3">
-            {invoices.map((inv: any) => (
+            {invoices.filter((inv: any) => !query || String(inv.number ?? inv.id).includes(query)).map((inv: any) => (
               <div key={String(inv.id)} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 border rounded-md items-center">
                 <div>
                   <div className="font-medium">{inv.number ?? inv.id}</div>
@@ -88,4 +92,3 @@ export default function BillingPage() {
     </div>
   );
 }
-

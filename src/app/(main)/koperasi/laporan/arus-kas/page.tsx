@@ -6,10 +6,42 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { exportReportRaw, getCashflowReport } from "@/services/api";
 
 export default function LaporanArusKasPage() {
   const [period, setPeriod] = useState<string>("");
-  // TODO integrate API: fetch cashflow by period
+  const [data, setData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState<false | 'pdf' | 'xlsx'>(false);
+
+  async function onFilter() {
+    setLoading(true);
+    try {
+      const [year, month] = period.split("-");
+      const start = period ? `${year}-${month}-01` : undefined;
+      const res = await getCashflowReport({ start });
+      if (res.success) setData(res.data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onExport(format: 'pdf' | 'xlsx') {
+    setExporting(format);
+    try {
+      const [year, month] = (period || '').split("-");
+      const start = period ? `${year}-${month}-01` : undefined;
+      const blob = await exportReportRaw({ type: 'cashflow', start, format });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `laporan-arus-kas${period ? `-${period}` : ''}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -20,8 +52,9 @@ export default function LaporanArusKasPage() {
         </div>
         <div className="flex items-center gap-2">
           <Input placeholder="Periode (YYYY-MM)" value={period} onChange={(e) => setPeriod(e.target.value)} className="w-40" />
-          <Button variant="outline">Filter</Button>
-          <Button>Export PDF</Button>
+          <Button variant="outline" onClick={onFilter} disabled={loading}>{loading ? "Memuat..." : "Filter"}</Button>
+          <Button onClick={() => onExport('pdf')} disabled={!!exporting}>{exporting === 'pdf' ? 'Mengekspor...' : 'Export PDF'}</Button>
+          <Button variant="secondary" onClick={() => onExport('xlsx')} disabled={!!exporting}>{exporting === 'xlsx' ? 'Mengekspor...' : 'Export Excel'}</Button>
         </div>
       </div>
 
@@ -33,8 +66,8 @@ export default function LaporanArusKasPage() {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-2">
-              <li>Penerimaan: -</li>
-              <li>Pengeluaran: -</li>
+              <li>Total Kas Masuk: {data?.total_cash_in ?? '-'}</li>
+              <li>Total Kas Keluar: {data?.total_cash_out ?? '-'}</li>
             </ul>
           </CardContent>
         </Card>
@@ -45,8 +78,9 @@ export default function LaporanArusKasPage() {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-2">
-              <li>Pembelian Aset: -</li>
-              <li>Penjualan Aset: -</li>
+              {(data?.data ?? []).slice(0, 2).map((d: any, idx: number) => (
+                <li key={idx}>{d.label ?? `Item ${idx + 1}`}: IN {d.cash_in ?? 0} / OUT {d.cash_out ?? 0}</li>
+              ))}
             </ul>
           </CardContent>
         </Card>
@@ -57,8 +91,9 @@ export default function LaporanArusKasPage() {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-2">
-              <li>Pinjaman Masuk: -</li>
-              <li>Pelunasan Pinjaman: -</li>
+              {(data?.data ?? []).slice(2, 4).map((d: any, idx: number) => (
+                <li key={idx}>{d.label ?? `Item ${idx + 1}`}: IN {d.cash_in ?? 0} / OUT {d.cash_out ?? 0}</li>
+              ))}
             </ul>
           </CardContent>
         </Card>
@@ -66,4 +101,3 @@ export default function LaporanArusKasPage() {
     </div>
   );
 }
-

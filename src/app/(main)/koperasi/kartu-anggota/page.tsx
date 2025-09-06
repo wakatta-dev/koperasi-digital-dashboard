@@ -2,18 +2,19 @@
 
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createMemberCard, getMember } from "@/services/api";
 
 export default function KartuAnggotaPage() {
   const [memberId, setMemberId] = useState<string>("");
   const [name, setName] = useState<string>("");
+  const [qr, setQr] = useState<string>("");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // TODO integrate API: fetch member profile + QR payload
-  const qrPayload = useMemo(() => (memberId ? `member:${memberId}` : ""), [memberId]);
+  const qrPayload = useMemo(() => qr || (memberId ? `member:${memberId}` : ""), [qr, memberId]);
 
   function drawPlaceholderQR() {
     const canvas = canvasRef.current;
@@ -28,8 +29,51 @@ export default function KartuAnggotaPage() {
     ctx.strokeRect(0, 0, w, h);
     ctx.fillStyle = "#111";
     ctx.font = "14px ui-sans-serif, system-ui";
-    ctx.fillText("QR Placeholder", 60, 130);
+    const text = qrPayload ? `QR: ${qrPayload.slice(0, 16)}...` : "QR Placeholder";
+    ctx.fillText(text, 20, 130);
   }
+
+  async function renderQR() {
+    const payload = qrPayload;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    if (!payload) {
+      drawPlaceholderQR();
+      return;
+    }
+    try {
+      const QR = await import('qrcode');
+      await QR.toCanvas(canvas, payload, { width: 260, margin: 1 });
+    } catch {
+      drawPlaceholderQR();
+    }
+  }
+
+  async function onGenerate() {
+    if (!memberId) return;
+    try {
+      const [profile, card] = await Promise.all([
+        getMember(memberId).catch(() => null),
+        createMemberCard(memberId).catch(() => null),
+      ]);
+      if (profile && profile.success) {
+        const m: any = profile.data?.member ?? profile.data;
+        if (m?.user?.name) setName(m.user.name);
+      }
+      if (card && card.success) {
+        const payload = (card.data as any)?.qr ?? "";
+        setQr(payload);
+      }
+    } finally {
+      renderQR();
+    }
+  }
+
+  // Auto render on payload change
+  useEffect(() => {
+    renderQR();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrPayload]);
 
   function onDownloadPNG() {
     const canvas = canvasRef.current;
@@ -67,7 +111,7 @@ export default function KartuAnggotaPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
             <Input placeholder="ID Anggota" value={memberId} onChange={(e) => setMemberId(e.target.value)} />
             <Input placeholder="Nama Lengkap" value={name} onChange={(e) => setName(e.target.value)} />
-            <Button type="button" variant="outline" onClick={drawPlaceholderQR}>Buat QR</Button>
+            <Button type="button" variant="outline" onClick={onGenerate}>Buat QR</Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -89,4 +133,3 @@ export default function KartuAnggotaPage() {
     </div>
   );
 }
-

@@ -1,47 +1,16 @@
 /** @format */
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, MapPin, Clock, UserCheck } from "lucide-react";
+import { listRATHistory } from "@/services/api";
 
-const ratHistory = [
-  {
-    id: "RAT2024",
-    title: "Rapat Anggota Tahunan 2024",
-    date: "2024-02-15",
-    time: "09:00 - 12:00 WIB",
-    location: "Aula Koperasi",
-    attendees: 1189,
-    totalMembers: 1247,
-    status: "terjadwal",
-    agenda: [
-      "Laporan Keuangan 2023",
-      "Pembagian SHU",
-      "Pemilihan Pengurus",
-      "Program Kerja 2024",
-    ],
-  },
-  {
-    id: "RAT2023",
-    title: "Rapat Anggota Tahunan 2023",
-    date: "2023-02-20",
-    time: "09:00 - 12:00 WIB",
-    location: "Aula Koperasi",
-    attendees: 1156,
-    totalMembers: 1224,
-    status: "selesai",
-    agenda: ["Laporan Keuangan 2022", "Pembagian SHU", "Evaluasi Program"],
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function RATPage() {
+export default async function RATPage() {
+  const res = await listRATHistory({ limit: 20 }).catch(() => null);
+  const ratHistory = res && res.success ? (res.data as any[]) : [];
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -64,9 +33,9 @@ export default function RATPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg">RAT Mendatang</CardTitle>
-              <CardDescription>Rapat Anggota Tahunan 2024</CardDescription>
+              <CardDescription>{ratHistory[0]?.title ?? "Rapat Anggota Tahunan"}</CardDescription>
             </div>
-            <Badge variant="default">Terjadwal</Badge>
+            <Badge variant="default">{ratHistory[0]?.status ?? "terjadwal"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -74,28 +43,22 @@ export default function RATPage() {
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="font-medium">15 Februari 2024</p>
-                <p className="text-sm text-muted-foreground">
-                  09:00 - 12:00 WIB
-                </p>
+                <p className="font-medium">{ratHistory[0]?.date ?? "-"}</p>
+                <p className="text-sm text-muted-foreground">{ratHistory[0]?.time ?? "-"}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <MapPin className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="font-medium">Aula Koperasi</p>
-                <p className="text-sm text-muted-foreground">
-                  Jl. Koperasi No. 123
-                </p>
+                <p className="font-medium">{ratHistory[0]?.location ?? "-"}</p>
+                <p className="text-sm text-muted-foreground">&nbsp;</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <UserCheck className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="font-medium">1,189 / 1,247 Anggota</p>
-                <p className="text-sm text-muted-foreground">
-                  95.3% konfirmasi kehadiran
-                </p>
+                <p className="font-medium">{ratHistory[0]?.attendees ?? 0} / {ratHistory[0]?.totalMembers ?? 0} Anggota</p>
+                <p className="text-sm text-muted-foreground">&nbsp;</p>
               </div>
             </div>
           </div>
@@ -103,7 +66,7 @@ export default function RATPage() {
           <div>
             <h4 className="font-medium mb-2">Agenda RAT 2024:</h4>
             <ul className="space-y-1">
-              {ratHistory[0].agenda.map((item, index) => (
+              {(ratHistory[0]?.agenda ?? []).map((item: any, index: number) => (
                 <li
                   key={index}
                   className="text-sm text-muted-foreground flex items-center gap-2"
@@ -175,7 +138,7 @@ export default function RATPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {ratHistory.map((rat) => (
+            {ratHistory.map((rat: any) => (
               <div
                 key={rat.id}
                 className="flex items-center justify-between p-4 border rounded-lg"
