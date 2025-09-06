@@ -26,7 +26,8 @@ export function useTickets(
     limit?: number;
     cursor?: string;
   } = { limit: 10 },
-  initialData?: Ticket[] | undefined
+  initialData?: Ticket[] | undefined,
+  options?: { refetchInterval?: number }
 ) {
   const final = {
     limit: typeof params.limit === "number" ? params.limit : 10,
@@ -36,6 +37,7 @@ export function useTickets(
     queryKey: QK.tickets.list(final),
     queryFn: async () => ensureSuccess(await listTickets(final)),
     ...(initialData ? { initialData } : {}),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
 }
 

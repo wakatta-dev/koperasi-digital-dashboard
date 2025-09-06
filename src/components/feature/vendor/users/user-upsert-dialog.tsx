@@ -10,14 +10,14 @@ import { useUserActions } from "@/hooks/queries/users";
 import { useRoles } from "@/hooks/queries/roles";
 import { createUserSchema, updateUserSchema } from "@/validators/user";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -122,20 +122,20 @@ export function UserUpsertDialog({ user, trigger }: Props) {
   }, [trigger, isEdit]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit User" : "Create User"}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{Trigger}</SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0">
+        <SheetHeader>
+          <SheetTitle>{isEdit ? "Edit User" : "Create User"}</SheetTitle>
+          <SheetDescription>
             {isEdit
               ? "Ubah data pengguna lalu simpan."
               : "Isi data untuk menambahkan pengguna baru."}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
             <FormField
               control={form.control}
               name={"full_name" as any}
@@ -226,15 +226,15 @@ export function UserUpsertDialog({ user, trigger }: Props) {
               )}
             />
 
-            <DialogFooter className="mt-4">
+            <SheetFooter className="mt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Batal
               </Button>
               <Button type="submit">{isEdit ? "Simpan" : "Buat"}</Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

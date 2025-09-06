@@ -74,18 +74,21 @@ export function useVendorInvoices(
     status?: string;
     periode?: string;
   },
-  initialData?: Invoice[] | undefined
+  initialData?: Invoice[] | undefined,
+  options?: { refetchInterval?: number }
 ) {
   return useQuery({
     queryKey: QK.billing.vendor.invoices(),
     queryFn: async () => ensureSuccess(await listVendorInvoices(params)),
     ...(initialData ? { initialData } : {}),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
 }
 
 export function useInfiniteVendorInvoices(
   params?: { limit?: number; status?: string; periode?: string },
-  initial?: { initialData?: Invoice[]; initialCursor?: string }
+  initial?: { initialData?: Invoice[]; initialCursor?: string },
+  options?: { refetchInterval?: number }
 ) {
   const baseParams = params ?? {};
   return useInfiniteQuery({
@@ -119,6 +122,7 @@ export function useInfiniteVendorInvoices(
     select(data) {
       return (data?.pages ?? []).flatMap((p) => p.items) ?? [];
     },
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
 }
 
@@ -168,12 +172,14 @@ export function useClientSubscription(initialData?: Subscription | undefined) {
 }
 
 export function useVendorSubscriptionsSummary(
-  initialData?: SubscriptionSummary | undefined
+  initialData?: SubscriptionSummary | undefined,
+  options?: { refetchInterval?: number }
 ) {
   return useQuery({
     queryKey: QK.billing.vendor.subscriptions.summary(),
     queryFn: async () => ensureSuccess(await getVendorSubscriptionsSummary()),
     ...(initialData ? { initialData } : {}),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
 }
 
@@ -385,6 +391,36 @@ export function useBillingActions() {
     },
   });
 
+  const sendInvoiceEmail = useMutation({
+    mutationFn: async (id: string | number) =>
+      ensureSuccess(await (await import("@/services/api")).sendVendorInvoiceEmail(id)),
+    onSuccess: () => {
+      toast.success("Invoice dikirim via email");
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Gagal mengirim email invoice");
+    },
+  });
+
+  const downloadInvoicePdf = useMutation({
+    mutationFn: async (id: string | number) =>
+      (await import("@/services/api")).downloadVendorInvoicePdf(id),
+    onSuccess: (blob, id) => {
+      try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `invoice-${id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("PDF diunduh");
+      } catch {
+        toast.message("PDF siap diunduh");
+      }
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengunduh PDF"),
+  });
+
   const createClientPayment = useMutation({
     mutationFn: async (vars: {
       invoiceId: string | number;
@@ -460,6 +496,8 @@ export function useBillingActions() {
     updateVendorInv,
     updateVendorInvStatus,
     deleteVendorInv,
+    sendInvoiceEmail,
+    downloadInvoicePdf,
     createClientPayment,
     verifyVendorPay,
     updateSubscriptionStatus,

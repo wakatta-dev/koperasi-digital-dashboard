@@ -20,3 +20,4 @@ export * from "./asset";
 export * from "./membership";
 export * from "./dashboard";
 export * from "./shu";
+export * from "./catalog";

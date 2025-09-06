@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -66,19 +66,19 @@ export function TenantSelfRegisterDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setStep("form"); setRegId(""); } }}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setStep("form"); setRegId(""); } }}>
+      <SheetTrigger asChild>
         <Button variant="outline">Self-Register (OTP)</Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Registrasi Tenant (OTP)</DialogTitle>
-          <DialogDescription>Daftarkan tenant baru, lalu verifikasi OTP.</DialogDescription>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-2xl p-0">
+        <SheetHeader>
+          <SheetTitle>Registrasi Tenant (OTP)</SheetTitle>
+          <SheetDescription>Daftarkan tenant baru, lalu verifikasi OTP.</SheetDescription>
+        </SheetHeader>
 
         {step === "form" && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 p-4">
               <FormField name="name" control={form.control} render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nama</FormLabel>
@@ -147,15 +147,15 @@ export function TenantSelfRegisterDialog() {
                   <FormMessage />
                 </FormItem>
               )} />
-              <DialogFooter>
+              <SheetFooter>
                 <Button type="submit">Daftarkan</Button>
-              </DialogFooter>
+              </SheetFooter>
             </form>
           </Form>
         )}
 
         {step === "verify" && (
-          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); const otp = (e.currentTarget.elements.namedItem("otp") as HTMLInputElement).value; onVerify({ otp }); }}>
+          <form className="space-y-3 p-4" onSubmit={(e) => { e.preventDefault(); const otp = (e.currentTarget.elements.namedItem("otp") as HTMLInputElement).value; onVerify({ otp }); }}>
             <div>
               <div className="text-sm text-muted-foreground">Registration ID</div>
               <div className="text-xs break-all">{regId}</div>
@@ -163,14 +163,13 @@ export function TenantSelfRegisterDialog() {
             <div>
               <Input name="otp" placeholder="Masukkan OTP" />
             </div>
-            <DialogFooter>
+            <SheetFooter>
               <Button type="button" variant="outline" onClick={() => setStep("form")}>Kembali</Button>
               <Button type="submit">Verifikasi</Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
-

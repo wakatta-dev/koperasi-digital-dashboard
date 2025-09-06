@@ -44,15 +44,18 @@ const iconMap = {
 
 export function VendorNotificationsList({ initialData, limit = 10 }: Props) {
   const params = useMemo(() => ({ limit }), [limit]);
-  const { data: notifs = [] } = useNotifications(params, initialData);
+  const { data: notifs = [] } = useNotifications(params, initialData, { refetchInterval: 300000 });
   const { updateStatus } = useNotificationActions();
   const confirm = useConfirm();
 
   const notifications: NotificationView[] = (notifs ?? []).map((n: any) => ({
     ...n,
-    read: n.status === "read",
+    // support both uppercase (docs) and lowercase statuses
+    read: n.status === "READ" || n.status === "read",
     time: new Date(n.created_at).toLocaleString(),
     type: n.type ?? "info",
+    // normalize message for UI display
+    message: n.message ?? n.body ?? "",
   }));
 
   const markAllAsRead = async () => {
@@ -66,7 +69,7 @@ export function VendorNotificationsList({ initialData, limit = 10 }: Props) {
     });
     if (!ok) return;
     await Promise.all(
-      unread.map((n) => updateStatus.mutateAsync({ id: n.id, status: "read" }))
+      unread.map((n) => updateStatus.mutateAsync({ id: n.id, status: "READ" }))
     );
   };
 

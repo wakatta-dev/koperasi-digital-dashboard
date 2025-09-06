@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Plan } from "@/types/api";
@@ -10,14 +10,14 @@ import { useBillingActions } from "@/hooks/queries/billing";
 import { upsertPlanSchema } from "@/validators/plan";
 import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,6 +29,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { PlusIcon, Edit } from "lucide-react";
+import { listModules } from "@/services/api";
 
 type Props = {
   plan?: Plan;
@@ -39,17 +40,33 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
   const isEdit = !!plan;
   const [open, setOpen] = useState(false);
   const { createPlan, updatePlan } = useBillingActions();
+  const [modules, setModules] = useState<Array<{ id: string; code: string; name: string }>>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await listModules().catch(() => null);
+        setModules(((res?.data as any[]) ?? []).map((m: any) => ({ id: String(m.id ?? m.code), code: m.code, name: m.name })));
+      } catch {
+        setModules([]);
+      }
+    })();
+  }, []);
 
   const form = useForm<z.input<typeof upsertPlanSchema>>({
     resolver: zodResolver(upsertPlanSchema),
     defaultValues: isEdit
       ? {
           name: plan!.name,
+          type: (plan as any).type ?? "package",
+          module_code: (plan as any).module_code ?? "",
           price: plan!.price,
           duration_months: plan!.duration_months,
         }
       : {
           name: "",
+          type: "package",
+          module_code: "",
           price: 0,
           duration_months: undefined,
         },
@@ -59,6 +76,8 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
     try {
       const payload = {
         name: values.name,
+        type: values.type,
+        module_code: values.module_code,
         price: Number(values.price),
         duration_months:
           values.duration_months === undefined ||
@@ -93,20 +112,71 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
   }, [trigger, isEdit]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Plan" : "Create Plan"}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{Trigger}</SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0">
+        <SheetHeader>
+          <SheetTitle>{isEdit ? "Edit Plan" : "Create Plan"}</SheetTitle>
+          <SheetDescription>
             {isEdit
               ? "Ubah data paket langganan."
               : "Isi data untuk menambahkan paket langganan."}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipe</FormLabel>
+                    <FormControl>
+                      <select
+                        className="border rounded px-3 py-2 w-full"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      >
+                        <option value="package">package</option>
+                        <option value="addon">addon</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="module_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Module</FormLabel>
+                    <FormControl>
+                      {modules.length ? (
+                        <select
+                          className="border rounded px-3 py-2 w-full"
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        >
+                          <option value="">Pilih module</option>
+                          {modules.map((m) => (
+                            <option key={m.id} value={m.code}>
+                              {m.name} ({m.code})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <Input placeholder="mis. BILLING" {...field} />
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="name"
@@ -154,7 +224,7 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
               )}
             />
 
-            <DialogFooter className="mt-4">
+            <SheetFooter className="mt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -163,10 +233,10 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
                 Batal
               </Button>
               <Button type="submit">{isEdit ? "Simpan" : "Buat"}</Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

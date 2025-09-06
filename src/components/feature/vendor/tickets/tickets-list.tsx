@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTickets } from "@/hooks/queries/ticketing";
 import type { Ticket } from "@/types/api";
 import {
@@ -15,9 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
 import { Search, Ticket as TicketIcon } from "lucide-react";
-import { TicketCreateDialog } from "./ticket-create-dialog";
 import {
   Select,
   SelectContent,
@@ -25,8 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { TicketSlaConfigSheet } from "@/components/feature/vendor/tickets/sla-config-sheet";
 import { VendorTicketDetail } from "./ticket-detail";
+import { useSearchParams } from "next/navigation";
 
 type Props = { initialData?: Ticket[]; limit?: number };
 
@@ -37,8 +37,21 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
     priority?: string;
     category?: string;
   }>({});
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const status = searchParams.get("status") || undefined;
+    const priority = searchParams.get("priority") || undefined;
+    const category = searchParams.get("category") || undefined;
+    setFilters((f) => ({
+      ...f,
+      ...(status ? { status } : {}),
+      ...(priority ? { priority } : {}),
+      ...(category ? { category } : {}),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const params = useMemo(() => ({ limit, ...filters }), [limit, filters]);
-  const { data: tickets = [] } = useTickets(params, initialData);
+  const { data: tickets = [] } = useTickets(params, initialData, { refetchInterval: 300000 });
 
   return (
     <div className="space-y-6">
@@ -49,7 +62,9 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
             Kelola dan pantau tiket dukungan
           </p>
         </div>
-        <TicketCreateDialog />
+        <div className="flex items-center gap-2">
+          <TicketSlaConfigSheet />
+        </div>
       </div>
 
       <Card>
@@ -157,7 +172,11 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
                   >
                     {t.status}
                   </Badge>
-                  <Button variant="outline" size="sm" onClick={() => setOpenId(String(t.id))}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setOpenId(String(t.id))}
+                  >
                     View
                   </Button>
                 </div>
@@ -172,10 +191,15 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
         </CardContent>
       </Card>
       <Sheet open={!!openId} onOpenChange={(o) => !o && setOpenId(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl p-4 overflow-y-auto">
-          {openId && (
-            <VendorTicketDetail id={openId} />
-          )}
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl p-4 overflow-y-auto"
+        >
+          {/* Accessibility: provide a title for screen readers */}
+          <SheetHeader className="sr-only">
+            <SheetTitle>Ticket Detail</SheetTitle>
+          </SheetHeader>
+          {openId && <VendorTicketDetail id={openId} />}
         </SheetContent>
       </Sheet>
     </div>

@@ -25,8 +25,8 @@ import React from "react";
 
 // TODO integrate API: any missing endpoints should be wired here
 export default function VendorDashboard() {
-  const { data: dashboard } = useVendorDashboard();
-  const { data: sum } = useVendorSubscriptionsSummary();
+  const { data: dashboard } = useVendorDashboard(undefined, { refetchInterval: 300000 });
+  const { data: sum } = useVendorSubscriptionsSummary(undefined, { refetchInterval: 300000 });
 
   const fmtNumber = (n: number) => new Intl.NumberFormat("id-ID").format(n);
   const fmtIDR = (n: number) =>
@@ -75,6 +75,26 @@ export default function VendorDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Tier segmentation per PRD: dashboard.packages */}
+      {Array.isArray((dashboard as any)?.packages) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Clients by Product Tier</CardTitle>
+            <CardDescription>Jumlah klien per paket</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {((dashboard as any)?.packages as Array<{ package: string; total: number }>).map((p, idx) => (
+              <div key={idx} className="flex items-center justify-between border rounded p-2 text-sm">
+                <div className="font-medium capitalize">{p.package}</div>
+                <div className="text-muted-foreground">{new Intl.NumberFormat("id-ID").format(Number(p.total ?? 0))}</div>
+              </div>
+            ))}
+            {!((dashboard as any)?.packages ?? []).length && (
+              <div className="text-xs text-muted-foreground italic">Tidak ada data paket</div>
+            )}
+          </CardContent>
+        </Card>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
           <motion.div
@@ -197,7 +217,7 @@ export default function VendorDashboard() {
                   desc: "Manage tenants",
                 },
                 {
-                  href: "/vendor/tickets",
+                  href: "/vendor/tickets?status=open",
                   icon: <Ticket className="h-6 w-6 mb-2" />,
                   title: "Support",
                   desc: "Support tickets",
@@ -273,4 +293,3 @@ export default function VendorDashboard() {
     </div>
   );
 }
-

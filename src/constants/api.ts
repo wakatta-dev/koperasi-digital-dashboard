@@ -49,6 +49,8 @@ export const API_ENDPOINTS = {
       invoices: (limit: number, cursor?: string) =>
         `/invoices?limit=${limit}${!!cursor ? `&cursor=${cursor}` : ""}`,
       invoice: (id: string | number) => `/invoices/${id}`,
+      invoiceSend: (id: string | number) => `/invoices/${id}/send`,
+      invoicePdf: (id: string | number) => `/invoices/${id}/pdf`,
       // Optional: vendor can also create manual payment on an invoice (per docs generic path)
       invoicePayments: (id: string | number) => `/invoices/${id}/payments`,
       invoiceStatus: (id: string | number) => `/invoices/${id}/status`,
@@ -98,6 +100,9 @@ export const API_ENDPOINTS = {
     cashflow: "/reports/cashflow",
     profitLoss: "/reports/profit-loss",
     balanceSheet: "/reports/balance-sheet",
+  },
+  catalog: {
+    modules: "/modules",
   },
   cashbook: {
     // Per endpoints_index: /api/koperasi/cash/*
@@ -183,6 +188,10 @@ export const API_ENDPOINTS = {
     status: (id: string | number) => `/notifications/${id}`,
     // Tenant-level reminders live under koperasi namespace
     reminders: "/koperasi/notifications/reminders",
+    vendor: {
+      broadcast: "/vendor/notifications/broadcast",
+      bulk: "/vendor/notifications/bulk",
+    },
   },
 } as const;
 

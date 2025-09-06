@@ -2,7 +2,6 @@
 
 import { listVendorInvoices } from "@/services/api";
 import { VendorInvoicesList } from "@/components/feature/vendor/invoices/invoices-list";
-import { WebhookSimulator } from "@/components/feature/vendor/payments/webhook-simulator";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +18,6 @@ export default async function InvoicesPage() {
         initialData={invoices ?? []}
         initialCursor={initialCursor}
       />
-      <WebhookSimulator />
     </div>
   );
 }
-

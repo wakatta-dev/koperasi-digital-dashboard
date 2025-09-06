@@ -4,8 +4,12 @@
 
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ensureSuccess } from "@/lib/api";
-import type { VendorFinancialReport, VendorUsageReport } from "@/types/api";
-import type { VendorDashboard } from "@/types/dashboard";
+import type {
+  VendorDashboard,
+  VendorFinancialReport,
+  VendorUsageReport,
+} from "@/types/api";
+
 import {
   getVendorDashboard,
   getVendorFinancialReport,
@@ -14,19 +18,28 @@ import {
   listVendorReportExports,
 } from "@/services/api/vendor";
 
-export function useVendorDashboard(initialData?: VendorDashboard | undefined) {
+export function useVendorDashboard(
+  initialData?: VendorDashboard | undefined,
+  options?: { refetchInterval?: number }
+) {
   return useQuery({
     queryKey: ["vendor", "dashboard"],
     queryFn: async () => ensureSuccess(await getVendorDashboard()),
     ...(initialData ? { initialData } : {}),
+    ...(options?.refetchInterval
+      ? { refetchInterval: options.refetchInterval }
+      : {}),
   });
 }
 
-export function useVendorFinancial(params?: {
-  start_date?: string;
-  end_date?: string;
-  group_by?: string;
-}, initialData?: VendorFinancialReport | undefined) {
+export function useVendorFinancial(
+  params?: {
+    start_date?: string;
+    end_date?: string;
+    group_by?: string;
+  },
+  initialData?: VendorFinancialReport | undefined
+) {
   return useQuery({
     queryKey: ["vendor", "reports", "financial", params ?? {}],
     queryFn: async () => ensureSuccess(await getVendorFinancialReport(params)),
@@ -55,10 +68,12 @@ export function useVendorReportExports(initialData?: any[] | undefined) {
 
 export function useVendorReportActions() {
   const exportReport = useMutation({
-    mutationFn: async (payload: { report_type: string; format: string; params?: any }) =>
-      await exportVendorReportRaw(payload),
+    mutationFn: async (payload: {
+      report_type: string;
+      format: string;
+      params?: any;
+    }) => await exportVendorReportRaw(payload),
   });
 
   return { exportReport } as const;
 }
-

@@ -33,3 +33,26 @@ export function updateNotificationStatus(
     payload
   );
 }
+
+export function vendorBroadcastNotification(payload: {
+  message: string;
+  targetType: "SINGLE" | "ALL" | "GROUP";
+  tenantIDs?: number[];
+  category: string;
+}): Promise<ApiResponse<any>> {
+  return api.post<any>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.vendor.broadcast}`,
+    payload
+  );
+}
+
+export function vendorBulkNotification(payload: {
+  message: string;
+  targetType: "SINGLE" | "ALL" | "GROUP";
+  segment: "VENDOR" | "KOPERASI" | "UMKM" | "BUMDES";
+}): Promise<ApiResponse<any>> {
+  return api.post<any>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.vendor.bulk}`,
+    payload
+  );
+}

@@ -10,18 +10,21 @@ import {
   updateNotificationStatus,
 } from "@/services/api";
 import { listNotificationReminders, upsertNotificationReminders } from "@/services/api/vendor";
+import { vendorBroadcastNotification, vendorBulkNotification } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 import { toast } from "sonner";
 
 export function useNotifications(
   params?: Record<string, string | number>,
-  initialData?: Notification[] | undefined
+  initialData?: Notification[] | undefined,
+  options?: { refetchInterval?: number }
 ) {
   return useQuery({
     queryKey: QK.notifications.list(params),
     queryFn: async () => ensureSuccess(await listNotifications(params)),
     ...(initialData ? { initialData } : {}),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
 }
 
@@ -50,7 +53,32 @@ export function useNotificationActions() {
     onError: (err: any) => toast.error(err?.message || "Gagal memperbarui notifikasi"),
   });
 
-  return { create, updateStatus } as const;
+  const vendorBroadcast = useMutation({
+    mutationFn: async (payload: {
+      message: string;
+      targetType: "SINGLE" | "ALL" | "GROUP";
+      tenantIDs?: number[];
+      category: string;
+    }) => ensureSuccess(await vendorBroadcastNotification(payload as any)),
+    onSuccess: () => {
+      toast.success("Broadcast dikirim");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal broadcast notifikasi"),
+  });
+
+  const vendorBulk = useMutation({
+    mutationFn: async (payload: {
+      message: string;
+      targetType: "SINGLE" | "ALL" | "GROUP";
+      segment: "VENDOR" | "KOPERASI" | "UMKM" | "BUMDES";
+    }) => ensureSuccess(await vendorBulkNotification(payload as any)),
+    onSuccess: () => {
+      toast.success("Bulk notifikasi dijadwalkan");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal membuat bulk notifikasi"),
+  });
+
+  return { create, updateStatus, vendorBroadcast, vendorBulk } as const;
 }
 
 export function useNotificationReminders(initialData?: any[] | undefined) {

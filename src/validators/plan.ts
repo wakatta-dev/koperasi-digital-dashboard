@@ -6,6 +6,12 @@ export const upsertPlanSchema = z.object({
   name: z
     .string({ error: "Nama paket wajib diisi" })
     .min(2, "Nama minimal 2 karakter"),
+  type: z
+    .enum(["package", "addon"]) // mirror common semantics (Paket/Add-on)
+    .default("package"),
+  module_code: z
+    .string()
+    .min(1, "Kode modul wajib diisi"),
   price: z
     .union([z.string(), z.number()])
     .transform((v) => Number(v))

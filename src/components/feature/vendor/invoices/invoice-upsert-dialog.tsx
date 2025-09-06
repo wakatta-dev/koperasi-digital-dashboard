@@ -9,14 +9,14 @@ import { createInvoiceSchema } from "@/validators/invoice";
 import { z } from "zod";
 import { useBillingActions } from "@/hooks/queries/billing";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -125,15 +125,15 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
   }, [trigger, isEdit]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Invoice" : "Create Invoice"}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{Trigger}</SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-2xl p-0">
+        <SheetHeader>
+          <SheetTitle>{isEdit ? "Edit Invoice" : "Create Invoice"}</SheetTitle>
+          <SheetDescription>
             {isEdit ? "Ubah data invoice." : "Isi data invoice dan item. Total dihitung otomatis."}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -281,15 +281,15 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
               <span className="font-semibold">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(total)}</span>
             </div>
 
-            <DialogFooter className="mt-4">
+            <SheetFooter className="mt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Batal
               </Button>
               <Button type="submit">Buat</Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

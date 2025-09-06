@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useRoles } from "@/hooks/queries/roles";
 import { useUserRoles, useUserActions } from "@/hooks/queries/users";
@@ -19,15 +19,15 @@ export function UserRolesDialog({ userId, trigger }: Props) {
   const [roleId, setRoleId] = useState<string>("");
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Manage Roles</DialogTitle>
-          <DialogDescription>Tambah atau hapus role pada user ini.</DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0">
+        <SheetHeader>
+          <SheetTitle>Manage Roles</SheetTitle>
+          <SheetDescription>Tambah atau hapus role pada user ini.</SheetDescription>
+        </SheetHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-3 p-4">
           <div className="flex items-center gap-2">
             <select className="border rounded px-2 py-1 flex-1" value={roleId} onChange={(e) => setRoleId(e.target.value)}>
               <option value="">Pilih role</option>
@@ -50,8 +50,7 @@ export function UserRolesDialog({ userId, trigger }: Props) {
             )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
-

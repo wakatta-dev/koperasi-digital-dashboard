@@ -4,6 +4,7 @@
 
 import { Users as UsersIcon, Search, Shield, Edit, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useUsers, useUserActions } from "@/hooks/queries/users";
 import type { User } from "@/types/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,9 +21,11 @@ type Props = {
 };
 
 export function VendorUsersList({ initialData, limit = 20 }: Props) {
+  const { data: session } = useSession();
+  const isSuperAdmin = ((session?.user as any)?.role?.name ?? "") === "Super Admin";
   const [q, setQ] = useState("");
   const params = useMemo(() => ({ limit, ...(q ? { q } : {}) }), [limit, q]);
-  const { data: users = [] } = useUsers(params, initialData);
+  const { data: users = [] } = useUsers(params, initialData, { refetchInterval: 300000 });
   const { remove } = useUserActions();
   const confirm = useConfirm();
 
@@ -98,10 +101,12 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
                   </Badge>
 
                   <div className="flex items-center gap-2">
-                    <UserRolesDialog
-                      userId={user.id}
-                      trigger={<Button variant="ghost" size="sm" type="button">Roles</Button>}
-                    />
+                    {isSuperAdmin && (
+                      <UserRolesDialog
+                        userId={user.id}
+                        trigger={<Button variant="ghost" size="sm" type="button">Roles</Button>}
+                      />
+                    )}
                     <UserUpsertDialog
                       user={user}
                       trigger={
@@ -110,23 +115,25 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
                         </Button>
                       }
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      type="button"
-                      onClick={async () => {
-                        const ok = await confirm({
-                          variant: "delete",
-                          title: "Hapus pengguna?",
-                          description: `Akun ${user.email} akan dihapus.`,
-                          confirmText: "Hapus",
-                        });
-                        if (!ok) return;
-                        remove.mutate(user.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {isSuperAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        onClick={async () => {
+                          const ok = await confirm({
+                            variant: "delete",
+                            title: "Hapus pengguna?",
+                            description: `Akun ${user.email} akan dihapus.`,
+                            confirmText: "Hapus",
+                          });
+                          if (!ok) return;
+                          remove.mutate(user.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

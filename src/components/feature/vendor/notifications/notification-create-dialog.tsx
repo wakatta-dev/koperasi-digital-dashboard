@@ -6,19 +6,17 @@ import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNotificationActions } from "@/hooks/queries/notifications";
-import {
-  createNotificationSchema,
-} from "@/validators/notification";
+import { createNotificationSchema } from "@/validators/notification";
 import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,9 +43,14 @@ export function NotificationCreateDialog({ trigger }: Props) {
   const form = useForm<z.input<typeof createNotificationSchema>>({
     resolver: zodResolver(createNotificationSchema),
     defaultValues: {
+      tenant_id: undefined,
+      channel: "IN_APP",
+      type: "SYSTEM",
+      category: "SYSTEM",
+      target_type: "ALL",
       title: "",
-      message: "",
-      status: "unread",
+      body: "",
+      status: "PUBLISHED",
     },
   });
 
@@ -56,11 +59,22 @@ export function NotificationCreateDialog({ trigger }: Props) {
       const ok = await confirm({
         variant: "create",
         title: "Buat notifikasi?",
-        description: `Notifikasi '${values.title}' akan dikirimkan.`,
+        description: `Notifikasi '${values.title}' akan dibuat/dikirimkan.`,
         confirmText: "Buat",
       });
       if (!ok) return;
-      await create.mutateAsync(values as any);
+      // Send both body and a legacy message field for UI compatibility
+      await create.mutateAsync({
+        tenant_id: values.tenant_id,
+        channel: values.channel,
+        type: values.type,
+        category: values.category,
+        target_type: values.target_type,
+        title: values.title,
+        body: values.body,
+        message: values.body,
+        status: values.status,
+      } as any);
       setOpen(false);
     } catch (_e) {}
   };
@@ -76,18 +90,139 @@ export function NotificationCreateDialog({ trigger }: Props) {
   }, [trigger]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create Notification</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{Trigger}</SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0">
+        <SheetHeader>
+          <SheetTitle>Create Notification</SheetTitle>
+          <SheetDescription>
             Isi data untuk menambahkan notifikasi baru.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="channel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Channel</FormLabel>
+                    <FormControl>
+                      <select
+                        className="border rounded px-3 py-2 w-full"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      >
+                        <option value="IN_APP">IN_APP</option>
+                        <option value="EMAIL">EMAIL</option>
+                        <option value="PUSH">PUSH</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <FormControl>
+                      <select
+                        className="border rounded px-3 py-2 w-full"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      >
+                        <option value="SYSTEM">SYSTEM</option>
+                        <option value="BILLING">BILLING</option>
+                        <option value="RAT">RAT</option>
+                        <option value="LOAN">LOAN</option>
+                        <option value="SAVINGS">SAVINGS</option>
+                        <option value="CUSTOM">CUSTOM</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Kategori</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Kategori notifikasi (mis. BILLING)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="target_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Target</FormLabel>
+                    <FormControl>
+                      <select
+                        className="border rounded px-3 py-2 w-full"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      >
+                        <option value="ALL">ALL</option>
+                        <option value="SINGLE">SINGLE</option>
+                        <option value="GROUP">GROUP</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="tenant_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tenant ID (opsional)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={1} placeholder="mis. 123" value={(field.value as any) ?? ""} onChange={(e) => field.onChange(e.target.value)} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <FormControl>
+                      <select
+                        className="border rounded px-3 py-2 w-full"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      >
+                        <option value="DRAFT">DRAFT</option>
+                        <option value="PUBLISHED">PUBLISHED</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="title"
@@ -104,10 +239,10 @@ export function NotificationCreateDialog({ trigger }: Props) {
 
             <FormField
               control={form.control}
-              name="message"
+              name="body"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pesan</FormLabel>
+                  <FormLabel>Isi Pesan</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Isi pesan" rows={4} {...field} />
                   </FormControl>
@@ -116,15 +251,15 @@ export function NotificationCreateDialog({ trigger }: Props) {
               )}
             />
 
-            <DialogFooter className="mt-4">
+            <SheetFooter className="mt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Batal
               </Button>
               <Button type="submit">Buat</Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

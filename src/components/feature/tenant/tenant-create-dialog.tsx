@@ -5,14 +5,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusIcon } from "lucide-react";
@@ -65,24 +65,24 @@ export function TenantCreateDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button>
           <PlusIcon className="w-4 h-4 mr-2" />
           Create Tenant
         </Button>
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create New Tenant</DialogTitle>
-          <DialogDescription>
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0">
+        <SheetHeader>
+          <SheetTitle>Create New Tenant</SheetTitle>
+          <SheetDescription>
             Fill in the details to create a new tenant.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
             <FormField
               control={form.control}
               name="name"
@@ -125,7 +125,7 @@ export function TenantCreateDialog() {
               )}
             />
 
-            <DialogFooter className="mt-4">
+            <SheetFooter className="mt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -134,10 +134,10 @@ export function TenantCreateDialog() {
                 Cancel
               </Button>
               <Button type="submit">Create</Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

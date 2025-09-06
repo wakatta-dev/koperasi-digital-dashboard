@@ -22,12 +22,14 @@ import { toast } from "sonner";
 
 export function useTenants(
   params?: Record<string, string | number>,
-  initialData?: Tenant[] | undefined
+  initialData?: Tenant[] | undefined,
+  options?: { refetchInterval?: number }
 ) {
   return useQuery({
     queryKey: QK.tenants.list(params),
     queryFn: async () => ensureSuccess(await listTenants(params)),
     ...(initialData ? { initialData } : {}),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
 }
 

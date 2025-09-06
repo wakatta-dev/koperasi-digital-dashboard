@@ -5,14 +5,14 @@
 import { useMemo, useState } from "react";
 import { useBillingActions } from "@/hooks/queries/billing";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,17 +71,17 @@ export function PaymentVerifyDialog({ trigger }: Props) {
   }, [trigger]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Verifikasi Pembayaran</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>{Trigger}</SheetTrigger>
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0">
+        <SheetHeader>
+          <SheetTitle>Verifikasi Pembayaran</SheetTitle>
+          <SheetDescription>
             Masukkan Payment ID dan tentukan status verifikasi.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4 p-4">
           <div className="space-y-2">
             <Label htmlFor="payment_id">Payment ID</Label>
             <Input
@@ -125,16 +125,16 @@ export function PaymentVerifyDialog({ trigger }: Props) {
             />
           </div>
 
-          <DialogFooter>
+          <SheetFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Batal
             </Button>
             <Button type="submit" disabled={submitting || !paymentId}>
               Simpan
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

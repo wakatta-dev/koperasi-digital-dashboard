@@ -3,9 +3,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileText, Search, Download, Eye, Edit, Trash2, SlidersHorizontal } from "lucide-react";
+import {
+  FileText,
+  Search,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  SlidersHorizontal,
+} from "lucide-react";
 import Link from "next/link";
-import { useInfiniteVendorInvoices } from "@/hooks/queries/billing";
+import {
+  useInfiniteVendorInvoices,
+  useBillingActions,
+} from "@/hooks/queries/billing";
 import type { Invoice } from "@/types/api";
 import {
   Card,
@@ -19,7 +30,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { InvoiceUpsertDialog } from "@/components/feature/vendor/invoices/invoice-upsert-dialog";
 import { PaymentVerifyDialog } from "@/components/feature/vendor/payments/payment-verify-dialog";
-import { useBillingActions } from "@/hooks/queries/billing";
+import { WebhookSimulatorSheet } from "@/components/feature/vendor/payments/webhook-simulator-sheet";
+import { useTenants } from "@/hooks/queries/tenants";
 import { useConfirm } from "@/hooks/use-confirm";
 import {
   Sheet,
@@ -30,6 +42,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
+import { useEffect } from "react";
+import { getVendorInvoice } from "@/services/api";
 
 type Props = {
   initialData?: Invoice[];
@@ -38,6 +52,7 @@ type Props = {
 
 export function VendorInvoicesList({ initialData, initialCursor }: Props) {
   const [preview, setPreview] = useState<Invoice | null>(null);
+  const [previewDetail, setPreviewDetail] = useState<Invoice | null>(null);
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [periode, setPeriode] = useState<string | undefined>(undefined);
   const params = useMemo(
@@ -53,9 +68,34 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteVendorInvoices(params, { initialData, initialCursor });
-  const { deleteVendorInv, updateVendorInvStatus } = useBillingActions();
+  } = useInfiniteVendorInvoices(params, { initialData, initialCursor }, { refetchInterval: 300000 });
+  const {
+    deleteVendorInv,
+    updateVendorInvStatus,
+    sendInvoiceEmail,
+    downloadInvoicePdf,
+  } = useBillingActions();
+  const { data: tenants = [] } = useTenants({ limit: 200 });
+  const tenantName = (id?: number) => {
+    const t = (tenants as any[]).find((x) => x.id === id);
+    return t?.name || `#${id}`;
+  };
   const confirm = useConfirm();
+
+  useEffect(() => {
+    (async () => {
+      if (!preview) {
+        setPreviewDetail(null);
+        return;
+      }
+      try {
+        const res = await getVendorInvoice(preview.id).catch(() => null);
+        setPreviewDetail(res?.data ?? null);
+      } catch {
+        setPreviewDetail(null);
+      }
+    })();
+  }, [preview]);
 
   function exportCsv() {
     const rows = [
@@ -95,6 +135,7 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
         <div className="flex items-center gap-2">
           <PaymentVerifyDialog />
           <InvoiceUpsertDialog />
+          <WebhookSimulatorSheet />
         </div>
       </div>
 
@@ -125,7 +166,11 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                   <Label htmlFor="search">Pencarian</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="search" placeholder="Cari nomor/tenant (opsional)" className="pl-10" />
+                    <Input
+                      id="search"
+                      placeholder="Cari nomor/tenant (opsional)"
+                      className="pl-10"
+                    />
                   </div>
                 </div>
 
@@ -195,6 +240,12 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                     <p className="text-sm text-muted-foreground">
                       {invoice.issued_at}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      Tenant: {tenantName(invoice.tenant_id)}
+                      {((invoice as any)?.subscription?.plan?.name || (invoice as any)?.plan?.name) && (
+                        <> • Plan: {((invoice as any)?.subscription?.plan?.name || (invoice as any)?.plan?.name) as string}</>
+                      )}
+                    </p>
                   </div>
                 </div>
 
@@ -252,11 +303,21 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      title="Download PDF"
+                      onClick={() => downloadInvoicePdf.mutate(invoice.id)}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
-                    {/* TODO integrate API: send invoice via email */}
-                    <Button variant="ghost" size="sm" type="button">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      type="button"
+                      onClick={() => sendInvoiceEmail.mutate(invoice.id)}
+                    >
                       Email
                     </Button>
                     <InvoiceUpsertDialog
@@ -329,19 +390,55 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>Issued: {preview.issued_at}</div>
-                <div>Due: {preview.due_date ?? '-'}</div>
-                <div>Tenant: #{preview.tenant_id}</div>
+                <div>Due: {preview.due_date ?? "-"}</div>
+                <div>Tenant: {tenantName(preview.tenant_id)}</div>
                 {preview.subscription_id && (
                   <div>Subscription: #{preview.subscription_id}</div>
                 )}
-                <div className="col-span-2 font-medium">Total: Rp {preview.total}</div>
+                <div className="col-span-2 font-medium">
+                  Total: Rp {preview.total}
+                </div>
               </div>
-              {/* TODO integrate API: fetch full invoice details/items for preview */}
+              {/* Items */}
+              <div className="space-y-2">
+                <div className="font-medium">Items</div>
+                {((previewDetail?.items ?? preview.items) || []).map((it) => (
+                  <div
+                    key={it.id}
+                    className="flex items-center justify-between border rounded p-2"
+                  >
+                    <div>{it.description}</div>
+                    <div className="text-muted-foreground">
+                      {it.quantity} ×{" "}
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0,
+                      }).format(it.price)}
+                    </div>
+                  </div>
+                ))}
+                {!((previewDetail?.items ?? preview.items) || []).length && (
+                  <div className="text-xs text-muted-foreground italic">
+                    Tidak ada item
+                  </div>
+                )}
+              </div>
               <div className="flex items-center gap-2 pt-2">
-                <Button size="sm" type="button" variant="outline">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() => downloadInvoicePdf.mutate(preview.id)}
+                >
                   Download PDF
                 </Button>
-                <Button size="sm" type="button" variant="default">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="default"
+                  onClick={() => sendInvoiceEmail.mutate(preview.id)}
+                >
                   Send Email
                 </Button>
               </div>

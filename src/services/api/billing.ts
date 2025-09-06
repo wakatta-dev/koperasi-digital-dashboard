@@ -125,6 +125,33 @@ export function updateVendorInvoiceStatus(
   );
 }
 
+export function sendVendorInvoiceEmail(
+  id: string | number
+): Promise<ApiResponse<any>> {
+  return api.post<any>(
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoiceSend(id)}`,
+    {}
+  );
+}
+
+// Download invoice PDF using raw fetch (returns Blob)
+export async function downloadVendorInvoicePdf(
+  id: string | number
+): Promise<Blob> {
+  const { getAccessToken } = await import("../auth");
+  const accessToken = await getAccessToken();
+  const tenantId = await (await import("./base")).getTenantId();
+  const headers: Record<string, string> = { Accept: "application/pdf" };
+  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+  if (tenantId) headers["X-Tenant-ID"] = tenantId;
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoicePdf(id)}`,
+    { method: "GET", headers }
+  );
+  if (!res.ok) throw new Error(res.statusText);
+  return await res.blob();
+}
+
 export function listClientInvoices(params?: {
   limit?: number;
   cursor?: string;
