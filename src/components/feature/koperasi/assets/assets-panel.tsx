@@ -15,8 +15,8 @@ import {
   updateAssetStatus,
 } from "@/services/api";
 
-export function AssetsPanel() {
-  const [items, setItems] = useState<any[]>([]);
+export function AssetsPanel({ initial = [] as any[] }: { initial?: any[] }) {
+  const [items, setItems] = useState<any[]>(initial || []);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<any>({
     code: "",
@@ -40,7 +40,10 @@ export function AssetsPanel() {
   }
 
   useEffect(() => {
-    load();
+    if (!items.length) {
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

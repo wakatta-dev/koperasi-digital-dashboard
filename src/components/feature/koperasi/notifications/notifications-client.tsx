@@ -9,10 +9,10 @@ import { listNotifications, updateNotificationStatus } from "@/services/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 
-export function NotificationsClient() {
-  const [items, setItems] = useState<any[]>([]);
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [hasNext, setHasNext] = useState<boolean>(false);
+export function NotificationsClient({ initialItems = [], initialCursor, initialHasNext }: { initialItems?: any[]; initialCursor?: string; initialHasNext?: boolean; }) {
+  const [items, setItems] = useState<any[]>(initialItems || []);
+  const [cursor, setCursor] = useState<string | undefined>(initialCursor);
+  const [hasNext, setHasNext] = useState<boolean>(!!initialHasNext);
   const [loading, setLoading] = useState<boolean>(false);
   const [type, setType] = useState<string>("");
   const [status, setStatus] = useState<string>("");
@@ -41,17 +41,22 @@ export function NotificationsClient() {
   }
 
   useEffect(() => {
-    loadMore(true);
+    if (!items.length) {
+      loadMore(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
-        <Select value={type} onValueChange={setType}>
+        <Select
+          value={type || "__ALL__"}
+          onValueChange={(v) => setType(v === "__ALL__" ? "" : v)}
+        >
           <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Semua</SelectItem>
+            <SelectItem value="__ALL__">Semua</SelectItem>
             <SelectItem value="BILLING">BILLING</SelectItem>
             <SelectItem value="RAT">RAT</SelectItem>
             <SelectItem value="LOAN">LOAN</SelectItem>
@@ -60,10 +65,13 @@ export function NotificationsClient() {
             <SelectItem value="CUSTOM">CUSTOM</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={status} onValueChange={setStatus}>
+        <Select
+          value={status || "__ALL__"}
+          onValueChange={(v) => setStatus(v === "__ALL__" ? "" : v)}
+        >
           <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Semua</SelectItem>
+            <SelectItem value="__ALL__">Semua</SelectItem>
             <SelectItem value="DRAFT">DRAFT</SelectItem>
             <SelectItem value="PUBLISHED">PUBLISHED</SelectItem>
             <SelectItem value="SENT">SENT</SelectItem>

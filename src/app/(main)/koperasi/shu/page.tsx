@@ -213,9 +213,9 @@ export default function SHUPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {history.map((shu) => (
+            {history.map((shu, idx) => (
               <div
-                key={String(shu.year)}
+                key={shu?.id ?? `${shu?.year ?? "unknown"}-${idx}`}
                 className="flex items-center justify-between p-4 border rounded-lg"
               >
                 <div className="flex items-center gap-4">

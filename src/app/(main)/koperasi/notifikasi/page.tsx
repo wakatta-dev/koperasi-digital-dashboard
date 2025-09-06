@@ -1,17 +1,17 @@
 /** @format */
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { listNotifications, updateNotificationStatus } from "@/services/api";
-import { NotificationRow } from "@/components/feature/koperasi/notifications/notification-row";
+import { listNotifications } from "@/services/api";
 import { RemindersTenantPanel } from "@/components/feature/koperasi/notifications/reminders-tenant-panel";
 import { NotificationsClient } from "@/components/feature/koperasi/notifications/notifications-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotifikasiPage() {
-  const res = await listNotifications({ limit: 50 }).catch(() => null);
+  const res = await listNotifications({ limit: 20 }).catch(() => null);
   const notifications = res && res.success ? (res.data as any[]) : [];
+  const next = (res as any)?.meta?.pagination?.next_cursor as string | undefined;
+  const hasNext = !!(res as any)?.meta?.pagination?.has_next;
 
   return (
     <div className="space-y-6">
@@ -26,7 +26,7 @@ export default async function NotifikasiPage() {
           <CardDescription>Notifikasi terbaru</CardDescription>
         </CardHeader>
         <CardContent>
-          <NotificationsClient />
+          <NotificationsClient initialItems={notifications} initialCursor={next} initialHasNext={hasNext} />
         </CardContent>
       </Card>
 
