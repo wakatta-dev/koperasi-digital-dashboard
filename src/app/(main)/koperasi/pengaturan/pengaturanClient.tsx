@@ -51,7 +51,9 @@ export default function PengaturanClient({
     initialPermissions || []
   );
   const [audit, setAudit] = useState<any[]>([]);
-  const [newRole, setNewRole] = useState<{ name: string; description: string }>({ name: "", description: "" });
+  const [newRole, setNewRole] = useState<{ name: string; description: string }>(
+    { name: "", description: "" }
+  );
   const [assign, setAssign] = useState<{ user?: string; role?: string }>({});
   const [permObj, setPermObj] = useState<string>("");
   const [permAct, setPermAct] = useState<string>("");
@@ -79,30 +81,39 @@ export default function PengaturanClient({
         <p className="text-muted-foreground">Role, permission, dan audit log</p>
       </div>
 
+      {/* role-permission */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Role</CardTitle>
             <CardDescription>Kelola peran pengguna</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-96 overflow-y-auto">
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <Input
                   placeholder="Nama role"
                   value={newRole.name}
-                  onChange={(e) => setNewRole((s) => ({ ...s, name: e.target.value }))}
+                  onChange={(e) =>
+                    setNewRole((s) => ({ ...s, name: e.target.value }))
+                  }
                 />
                 <Input
                   placeholder="Deskripsi role"
                   value={newRole.description}
-                  onChange={(e) => setNewRole((s) => ({ ...s, description: e.target.value }))}
+                  onChange={(e) =>
+                    setNewRole((s) => ({ ...s, description: e.target.value }))
+                  }
                 />
                 <Button
                   onClick={async () => {
-                    if (!newRole.name?.trim() || !newRole.description?.trim()) return;
+                    if (!newRole.name?.trim() || !newRole.description?.trim())
+                      return;
                     try {
-                      const res = await createRole({ name: newRole.name, description: newRole.description });
+                      const res = await createRole({
+                        name: newRole.name,
+                        description: newRole.description,
+                      });
                       if (res.success) {
                         toast.success("Role ditambahkan");
                         const list = await listRoles({ limit: 100 });
@@ -158,7 +169,7 @@ export default function PengaturanClient({
             <CardTitle>Permission</CardTitle>
             <CardDescription>Atur akses berdasarkan role</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-96 overflow-y-auto">
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <Input
@@ -240,7 +251,9 @@ export default function PengaturanClient({
                 getOptionValue={(u) => u.id}
                 getOptionLabel={(u) => u.full_name || u.email || String(u.id)}
                 queryKey={["users", "search-assign-role"]}
-                fetchPage={makePaginatedListFetcher<User>(listUsers, { limit: 10 })}
+                fetchPage={makePaginatedListFetcher<User>(listUsers, {
+                  limit: 10,
+                })}
                 placeholder="Cari pengguna (nama/email)"
                 emptyText="Tidak ada pengguna"
                 notReadyText="Ketik untuk mencari"

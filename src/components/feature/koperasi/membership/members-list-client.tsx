@@ -160,7 +160,7 @@ export function MembersListClient({
               </TableCell>
               <TableCell>{formatDateId(member.join_date)}</TableCell>
               <TableCell className="text-right space-x-1">
-                <MemberProfileDialog memberId={member.id} />
+                <MemberProfileDialog memberId={member.id} member={member} />
                 <MemberVerifyDialog defaultId={member.id} />
                 <MemberCardDialog memberId={member.id} />
                 {["active", "inactive", "nonaktif"].includes(
