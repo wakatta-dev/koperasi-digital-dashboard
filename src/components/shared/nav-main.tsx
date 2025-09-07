@@ -12,6 +12,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,6 +26,11 @@ export function NavMain({
     title: string;
     url: string;
     icon?: ReactNode;
+    items?: {
+      title: string;
+      url: string;
+      icon?: ReactNode;
+    }[];
   }[];
 }) {
   const pathname = usePathname();
@@ -49,19 +57,52 @@ export function NavMain({
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {items.map((item) => (
-            <Link key={item.title} href={item.url}>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  isActive={pathname === item.url || pathname.startsWith(item.url + "/")}
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
+          {items.map((item) => {
+            const hasChildren = Array.isArray(item.items) && item.items.length > 0;
+            const isParentActive =
+              pathname === item.url ||
+              pathname.startsWith(item.url + "/") ||
+              (hasChildren && item.items!.some((child) => pathname === child.url || pathname.startsWith(child.url + "/")));
+
+            if (!hasChildren) {
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title} isActive={isParentActive}>
+                    <Link href={item.url}>
+                      {item.icon}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            }
+
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild tooltip={item.title} isActive={isParentActive}>
+                  <Link href={item.url}>
+                    {item.icon}
+                    <span>{item.title}</span>
+                  </Link>
                 </SidebarMenuButton>
+                <SidebarMenuSub>
+                  {item.items!.map((child) => {
+                    const isChildActive = pathname === child.url || pathname.startsWith(child.url + "/");
+                    return (
+                      <SidebarMenuSubItem key={child.title}>
+                        <SidebarMenuSubButton asChild isActive={isChildActive}>
+                          <Link href={child.url}>
+                            {child.icon}
+                            <span>{child.title}</span>
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    );
+                  })}
+                </SidebarMenuSub>
               </SidebarMenuItem>
-            </Link>
-          ))}
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

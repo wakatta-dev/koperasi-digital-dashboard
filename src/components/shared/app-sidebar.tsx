@@ -5,9 +5,7 @@
 import * as React from "react";
 import { IconInnerShadowTop } from "@tabler/icons-react";
 
-import { NavDocuments } from "./nav-documents";
 import { NavMain } from "./nav-main";
-import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 import {
   Sidebar,
@@ -29,6 +27,11 @@ interface SidebarData {
     title: string;
     url: string;
     icon?: React.ReactNode;
+    items?: {
+      title: string;
+      url: string;
+      icon?: React.ReactNode;
+    }[];
   }[];
   navSecondary: {
     title: string;
@@ -66,8 +69,8 @@ export function AppSidebar({ data, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavDocuments items={data.documents} /> */}
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

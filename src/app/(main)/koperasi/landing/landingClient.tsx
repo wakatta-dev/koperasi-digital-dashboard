@@ -1,23 +1,52 @@
 /** @format */
 
-'use client';
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { getLandingContent, updateLandingContent } from "@/services/api";
+import { toast } from "sonner";
 
 export default function LandingClient() {
-  // TODO integrate API: load/save public landing content
   const [heroTitle, setHeroTitle] = useState("Solusi Digital untuk Koperasi Anda");
   const [heroSubtitle, setHeroSubtitle] = useState("Kelola anggota, simpanan, pinjaman, dan laporan secara terpadu.");
   const [services, setServices] = useState<string>("Keanggotaan\nSimpanan\nPinjaman\nLaporan");
   const [testimonials, setTestimonials] = useState<string>("Bagus sekali! - Ketua Koperasi");
   const [contact, setContact] = useState<string>("Jl. Contoh No. 123\n(021) 123-456\ninfo@koperasi.id");
+  const [saving, setSaving] = useState(false);
 
-  function save() {
-    // TODO: persist content
+  useEffect(() => {
+    (async () => {
+      const res = await getLandingContent().catch(() => null);
+      if (res && res.success && res.data) {
+        if (res.data.hero_title) setHeroTitle(res.data.hero_title);
+        if (res.data.hero_subtitle) setHeroSubtitle(res.data.hero_subtitle);
+        if (Array.isArray(res.data.services)) setServices(res.data.services.join("\n"));
+        if (res.data.testimonials) setTestimonials(res.data.testimonials);
+        if (res.data.contact) setContact(res.data.contact);
+      }
+    })();
+  }, []);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await updateLandingContent({
+        hero_title: heroTitle,
+        hero_subtitle: heroSubtitle,
+        services: services.split("\n").filter(Boolean),
+        testimonials,
+        contact,
+      });
+      toast.success("Konten landing tersimpan");
+    } catch (e: any) {
+      toast.error(e?.message || "Gagal menyimpan konten");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -71,9 +100,8 @@ export default function LandingClient() {
       </div>
 
       <div>
-        <Button onClick={save}>Simpan</Button>
+        <Button onClick={save} disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</Button>
       </div>
     </div>
   );
 }
-

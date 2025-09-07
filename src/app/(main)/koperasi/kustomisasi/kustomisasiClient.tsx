@@ -1,18 +1,49 @@
 /** @format */
 
-'use client';
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getUISettings, updateUISettings } from "@/services/api";
+import { toast } from "sonner";
 
 export default function KustomisasiClient() {
-  // TODO integrate API: save theme + layout settings
   const [primary, setPrimary] = useState<string>("#2563eb");
   const [accent, setAccent] = useState<string>("#16a34a");
   const [layout, setLayout] = useState<string>("default");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const res = await getUISettings().catch(() => null);
+      if (res && res.success && res.data) {
+        if (res.data.theme_color) setPrimary(res.data.theme_color);
+        if (res.data.accent_color) setAccent(res.data.accent_color);
+        if (res.data.layout) setLayout(res.data.layout);
+      }
+    })();
+  }, []);
+
+  async function onSave() {
+    setLoading(true);
+    try {
+      await updateUISettings({ theme_color: primary, accent_color: accent, layout });
+      toast.success("Pengaturan UI tersimpan");
+    } catch (e: any) {
+      toast.error(e?.message || "Gagal menyimpan pengaturan");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function onReset() {
+    setPrimary("#2563eb");
+    setAccent("#16a34a");
+    setLayout("default");
+  }
 
   return (
     <div className="space-y-6">
@@ -38,8 +69,8 @@ export default function KustomisasiClient() {
                 <Input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} />
               </div>
               <div className="md:col-span-2 flex gap-2">
-                <Button>Simpan</Button>
-                <Button variant="outline">Reset</Button>
+                <Button onClick={onSave} disabled={loading}>{loading ? "Menyimpan..." : "Simpan"}</Button>
+                <Button variant="outline" onClick={onReset} disabled={loading}>Reset</Button>
               </div>
             </div>
           </CardContent>
@@ -70,4 +101,3 @@ export default function KustomisasiClient() {
     </div>
   );
 }
-

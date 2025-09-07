@@ -1,4 +1,5 @@
 /** @format */
+/** @format */
 
 import {
   Card,
@@ -85,111 +86,107 @@ export default async function KoperasiDashboard() {
       {/* Ringkasan */}
       <SummaryCards initial={summary} />
 
-      {/* Konten utama dalam 2 kolom untuk tata letak lebih rapi */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Kolom kiri: trend + aksi cepat */}
-        <div className="space-y-6 xl:col-span-2">
-          <TrendPanel initial={trend as any} />
+      <div className="grid grid-cols-2 gap-x-6">
+        <TrendPanel initial={trend as any} />
 
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <CardTitle>Aksi Cepat</CardTitle>
-                  <CardDescription>Fitur yang sering digunakan</CardDescription>
-                </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle>Notifikasi Terakhir</CardTitle>
+                <CardDescription>Aktivitas sistem terbaru</CardDescription>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {quickActions.map(({ href, title, description, Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    aria-label={title}
-                    className="group flex items-start gap-3 rounded-xl border p-4 transition-colors hover:bg-accent"
-                  >
-                    <span className="mt-0.5 rounded-md bg-primary/10 p-2 text-primary">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span>
-                      <p className="font-medium leading-6">{title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {description}
-                      </p>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Kolom kanan: notifikasi + agenda */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <CardTitle>Notifikasi Terakhir</CardTitle>
-                  <CardDescription>Aktivitas sistem terbaru</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/notifikasi">Lihat semua</Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {(notifications || []).slice(0, 6).map((n, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start justify-between gap-3 rounded-lg border p-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">
-                        {(n as any).title ?? (n as any).message ?? "Notifikasi"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDateTime((n as any).created_at)}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="shrink-0 text-xs">
-                      {(n as any).status ?? "INFO"}
-                    </Badge>
-                  </div>
-                ))}
-                {!notifications?.length && (
-                  <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
-                    Tidak ada notifikasi
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Agenda</CardTitle>
-              <CardDescription>
-                Kegiatan dan rapat yang akan datang
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="font-medium">Rapat Anggota Tahunan (RAT)</p>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/notifikasi">Lihat semua</Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {(notifications || []).slice(0, 6).map((n, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-start justify-between gap-3 rounded-lg border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">
+                      {(n as any).title ?? (n as any).message ?? "Notifikasi"}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      15 Februari • 09:00 WIB
+                      {formatDateTime((n as any).created_at)}
                     </p>
                   </div>
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <Badge variant="secondary" className="shrink-0 text-xs">
+                    {(n as any).status ?? "INFO"}
+                  </Badge>
                 </div>
+              ))}
+              {!notifications?.length && (
+                <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
+                  Tidak ada notifikasi
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Konten utama dalam 2 kolom untuk tata letak lebih rapi */}
+      <div className="grid grid-cols-2 gap-x-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle>Aksi Cepat</CardTitle>
+                <CardDescription>Fitur yang sering digunakan</CardDescription>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {quickActions.map(({ href, title, description, Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-label={title}
+                  className="group flex items-start gap-3 rounded-xl border p-4 transition-colors hover:bg-accent"
+                >
+                  <span className="mt-0.5 rounded-md bg-primary/10 p-2 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <p className="font-medium leading-6">{title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {description}
+                    </p>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Agenda</CardTitle>
+            <CardDescription>
+              Kegiatan dan rapat yang akan datang
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium">Rapat Anggota Tahunan (RAT)</p>
+                  <p className="text-sm text-muted-foreground">
+                    15 Februari • 09:00 WIB
+                  </p>
+                </div>
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

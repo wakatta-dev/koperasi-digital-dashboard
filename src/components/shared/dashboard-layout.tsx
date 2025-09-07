@@ -24,6 +24,11 @@ interface DashboardLayoutProps {
     name: string;
     href: string;
     icon?: ReactNode;
+    items?: Array<{
+      name: string;
+      href: string;
+      icon?: ReactNode;
+    }>;
   }>;
 }
 
@@ -43,6 +48,11 @@ export function DashboardLayout({
       title: item.name,
       url: item.href,
       icon: item.icon,
+      items: item.items?.map((child) => ({
+        title: child.name,
+        url: child.href,
+        icon: child.icon,
+      })),
     })),
     navSecondary: [
       { title: "Settings", url: "#", icon: <IconSettings /> },

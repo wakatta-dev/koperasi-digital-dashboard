@@ -200,6 +200,11 @@ export const API_ENDPOINTS = {
     result: (itemId: string | number) => `/rat/voting/${itemId}/result`,
     history: "/rat/history",
   },
+  settings: {
+    // Tenant UI & Landing settings (tenant-scoped)
+    ui: "/settings/ui",
+    landing: "/settings/landing",
+  },
 } as const;
 
 export type ApiEndpoint = typeof API_ENDPOINTS;

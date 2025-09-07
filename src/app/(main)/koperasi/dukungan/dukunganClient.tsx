@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { addTicketReply, createTicket, listTicketReplies } from "@/services/api";
 
 export default function DukunganClient() {
-  // TODO integrate API: ticket submit, chat websocket, chat history
+  // TODO: optional websocket for realtime chat updates
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [ticketId, setTicketId] = useState<string>("");
@@ -118,4 +118,3 @@ export default function DukunganClient() {
     </div>
   );
 }
-

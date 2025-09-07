@@ -22,3 +22,4 @@ export * from "./dashboard";
 export * from "./shu";
 export * from "./catalog";
 export * from "./rat";
+export * from "./settings";

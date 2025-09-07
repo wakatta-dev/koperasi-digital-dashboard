@@ -33,7 +33,16 @@ const navigation = [
   { name: 'RAT', href: '/koperasi/rat', icon: <Calendar className="h-4 w-4" /> },
   { name: 'Aset & Penyusutan', href: '/koperasi/aset', icon: <Building className="h-4 w-4" /> },
   { name: 'Transaksi', href: '/koperasi/transaksi', icon: <Receipt className="h-4 w-4" /> },
-  { name: 'Laporan', href: '/koperasi/laporan', icon: <FileText className="h-4 w-4" /> },
+  {
+    name: 'Laporan',
+    href: '/koperasi/laporan',
+    icon: <FileText className="h-4 w-4" />,
+    items: [
+      { name: 'Neraca', href: '/koperasi/laporan/neraca' },
+      { name: 'Laba Rugi', href: '/koperasi/laporan/laba-rugi' },
+      { name: 'Arus Kas', href: '/koperasi/laporan/arus-kas' },
+    ],
+  },
   { name: 'Kartu Anggota', href: '/koperasi/kartu-anggota', icon: <IdCard className="h-4 w-4" /> },
   { name: 'Tagihan & Add-Ons', href: '/koperasi/billing', icon: <Receipt className="h-4 w-4" /> },
   { name: 'Dukungan', href: '/koperasi/dukungan', icon: <LifeBuoy className="h-4 w-4" /> },
@@ -74,4 +83,3 @@ export default function KoperasiLayoutClient({ children }: { children: ReactNode
     </ProtectedRoute>
   );
 }
-
