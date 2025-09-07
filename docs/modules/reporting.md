@@ -16,7 +16,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - GET `/reports/profit-loss?tenant_id=..&start=..&end=..` → 200 `APIResponse<ProfitLossReportResponse>`
 - GET `/reports/balance-sheet?tenant_id=..&start=..&end=..` → 200 `APIResponse<BalanceSheetReportResponse>`
 - GET `/reports/export?tenant_id=..&type=..&start=..&end=..&format=pdf|xlsx` → 200 file
-- GET `/reports/history?tenant_id=..` → 200 `APIResponse<ReportArchive[]>`
+- GET `/reports/history?tenant_id=..&cursor=..&limit=..&term=..&start_date=..&end_date=..` (limit default 10) → 200 `APIResponse<ReportArchive[]>`
 - GET `/reports/financial?start_date=..&end_date=..&group_by=..` (vendor) → 200 `APIResponse<FinancialReport>`
 - GET `/reports/usage?tenant=..&module=..` (vendor) → 200 `APIResponse<UsageReport>`
 - POST `/reports/export` (vendor) → 200 file
@@ -39,6 +39,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - Query umum tenant: `tenant_id` (number), `start?` (`YYYY-MM-DD`), `end?` (`YYYY-MM-DD`), `group_by?` (`day|week|month|year`), `category?` (string)
 - Vendor export: body `{ report_type: string, format?: 'pdf'|'xlsx', params: object }`
 - Vendor export list: query `cursor?`, `limit?` (default 10), `term?`, `report_type?`, `start_date?` (`YYYY-MM-DD`), `end_date?` (`YYYY-MM-DD`)
+- History list: query `tenant_id`, `cursor?`, `limit?` (default 10), `term?`, `start_date?` (`YYYY-MM-DD`), `end_date?` (`YYYY-MM-DD`)
 
 ## Bentuk Response
 
@@ -113,7 +114,7 @@ export type ListVendorReportExportsResponse = APIResponse<ReportExport[]>;
 
 ## Paginasi (Cursor)
 
-- Endpoint history/exports menggunakan cursor (`id`) dan `limit` wajib.
+- Endpoint history/exports menggunakan cursor (`id`) dan `limit` (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

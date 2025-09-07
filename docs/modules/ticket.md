@@ -17,9 +17,9 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/tickets/:id/replies` — tambah balasan → 201 `APIResponse<TicketReply>`
 - PATCH `/tickets/:id` — ubah status/penugasan → 200 `APIResponse<Ticket>`
 - GET `/tickets/:id/activities?term=&limit=&cursor=` — aktivitas tiket → 200 `APIResponse<TicketActivityLog[]>`
-- GET `/vendor/tickets/:id/replies?limit=..&cursor=..` — vendor: list balasan → 200 `APIResponse<TicketReply[]>`
+- GET `/vendor/tickets/:id/replies?term=&sender_id=&limit=&cursor=` — vendor: list balasan → 200 `APIResponse<TicketReply[]>`
 - POST `/vendor/tickets/sla` — vendor: set SLA → 200 `APIResponse<null>`
-- GET `/vendor/tickets/sla` — vendor: list SLA → 200 `APIResponse<TicketCategorySLA[]>`
+- GET `/vendor/tickets/sla?term=&category=&limit=&cursor=` — vendor: list SLA → 200 `APIResponse<TicketCategorySLA[]>`
 
 ## Skema Data Ringkas
 
@@ -144,7 +144,7 @@ export type ListSLAResponse = APIResponse<TicketCategorySLA[]>;
 
 ## Paginasi (Cursor)
 
-- Endpoint list (`GET /tickets`, `GET /tickets/:id/activities`, `GET /vendor/tickets/:id/replies`) menggunakan cursor dengan `limit` opsional (default 10).
+- Endpoint list (`GET /tickets`, `GET /tickets/:id/activities`, `GET /vendor/tickets/:id/replies`, `GET /vendor/tickets/sla`) menggunakan cursor dengan `limit` opsional (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani
@@ -156,7 +156,7 @@ export type ListSLAResponse = APIResponse<TicketCategorySLA[]>;
 ## Checklist Integrasi FE
 
 - Selalu kirim `Authorization` dan `X-Tenant-ID`.
-- Implementasikan filter (term/status/priority/category/member_id) saat listing.
+- Implementasikan filter (term/status/priority/category/member_id) saat listing tiket; gunakan `term`/`sender_id` untuk balasan dan `term`/`category` pada listing SLA.
 - Tampilkan progres SLA (escalation_level) bila relevan.
 
 Tautan teknis (opsional): implementasi ada di `internal/modules/support/ticket/*.go` bila diperlukan detail lebih lanjut.

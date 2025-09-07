@@ -17,7 +17,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/rat/:id/voting` — buat item voting → 201 `APIResponse<VotingItem>`
 - POST `/rat/voting/:item_id/vote` — pemungutan suara → 201 `APIResponse<{ status: string }>`
 - GET `/rat/voting/:item_id/result` — hasil voting → 200 `APIResponse<VotingResult>`
-- GET `/rat/history?limit=..&cursor=..` — riwayat RAT → 200 `APIResponse<RAT[]>`
+- GET `/rat/history?limit=?&cursor=?&term=?&start_date=?&end_date=?` — riwayat RAT → 200 `APIResponse<RAT[]>`
 
 ## Skema Data Ringkas
 
@@ -100,9 +100,13 @@ export type GetVotingResultResponse = APIResponse<VotingResult>;
 export type RATHistoryResponse = APIResponse<RAT[]>;
 ```
 
-## Paginasi (Cursor)
+## Paginasi & Filter
 
-- Endpoint `GET /rat/history` menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Endpoint `GET /rat/history` menerima beberapa query:
+  - `limit` (opsional, default `10`)
+  - `cursor` (opsional) untuk paginasi berikutnya
+  - `term` (opsional) untuk mencari pada agenda/judul
+  - `start_date` & `end_date` (opsional, RFC3339) untuk rentang tanggal
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

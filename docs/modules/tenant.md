@@ -17,8 +17,8 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - PATCH `/tenants/:id` — vendor: ubah `name`/`type` → 200 `APIResponse<Tenant>`
 - PATCH `/tenants/:id/status` — ubah `is_active` → 200 `APIResponse<{ is_active: boolean }>`
 - POST `/tenants/:id/users` — client: tambah user → 201 `APIResponse<{ user_id: number }>`
-- GET `/tenants/:id/users?limit=..&cursor=..` — client: daftar user → 200 `APIResponse<UserTenantAccess[]>`
-- GET `/tenants/:id/modules?limit=..&cursor=..` — client: daftar modul → 200 `APIResponse<TenantModule[]>`
+- GET `/tenants/:id/users?term=&role=&status=&limit=&cursor=` — client: daftar user → 200 `APIResponse<UserTenantAccess[]>`
+- GET `/tenants/:id/modules?term=&enabled=&limit=&cursor=` — client: daftar modul → 200 `APIResponse<TenantModule[]>`
 - PATCH `/tenants/:id/modules` — client: ubah status modul → 200 `APIResponse<{ module_id: string; status: string }>`
 - GET `/tenant/by-domain?domain=..` — publik lookup domain → 200 `APIResponse<{ tenant_id: number; nama: string; type: string; is_active: boolean }>`
 - POST `/vendor/tenants` — registrasi tenant (publik) → 201 `APIResponse<{ registration_id: string }>`
@@ -30,6 +30,21 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - `term` (string, opsional): cari berdasarkan `name` atau `domain`.
 - `type` (string, opsional): filter tipe tenant.
 - `status` (string, opsional): filter status tenant.
+- `limit` (number, opsional, default 10): jumlah maksimum item.
+- `cursor` (string, opsional): cursor paginasi berikutnya.
+
+### Query Params — `GET /tenants/:id/users`
+
+- `term` (string, opsional): cari berdasarkan `name` atau `email` user.
+- `role` (number, opsional): filter `tenant_role_id`.
+- `status` (boolean, opsional): filter status user.
+- `limit` (number, opsional, default 10): jumlah maksimum item.
+- `cursor` (string, opsional): cursor paginasi berikutnya.
+
+### Query Params — `GET /tenants/:id/modules`
+
+- `term` (string, opsional): cari berdasarkan `name` atau `code` modul.
+- `enabled` (boolean, opsional): filter status modul (`true` aktif).
 - `limit` (number, opsional, default 10): jumlah maksimum item.
 - `cursor` (string, opsional): cursor paginasi berikutnya.
 

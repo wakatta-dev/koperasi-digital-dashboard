@@ -14,7 +14,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/notifications` — buat notifikasi → 201 `APIResponse<Notification>`
 - GET `/notifications?tenant_id=..&user_id=..&type=..&status=..&category=..&send_status=..&from=..&to=..&term=..&limit=..&cursor=..` — daftar → 200 `APIResponse<Notification[]>`
 - PATCH `/notifications/:id` — ubah status → 200 `APIResponse<{ id: string; status: string }>`
-- GET `/notifications/reminders` — daftar reminder tenant → 200 `APIResponse<NotificationReminder[]>`
+- GET `/notifications/reminders?term=..&type=..&status=..&limit=..&cursor=..` — daftar reminder tenant (limit default 10) → 200 `APIResponse<NotificationReminder[]>`
 - PUT `/notifications/reminders` — upsert reminder (batch) → 200 `APIResponse<null>`
 - POST `/notifications/device-tokens` — daftar token perangkat → 201 `APIResponse<{ token: string }>`
 - DELETE `/notifications/device-tokens` — hapus token perangkat → 200 `APIResponse<{ token: string }>`
@@ -150,7 +150,7 @@ export type VendorBulkResponse = APIResponse<null>;
 
 ## Paginasi (Cursor)
 
-- Endpoint list (`GET /notifications`, vendor list) menggunakan cursor string (`id` uuid) dan `limit` opsional (default 10).
+ - Endpoint list (`GET /notifications`, `GET /notifications/reminders`, vendor list) menggunakan cursor string (`id` uuid) dan `limit` opsional (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani
