@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getRATVotingResult } from "@/services/api";
 import { Switch } from "@/components/ui/switch";
+import type { VotingResult } from "@/types/api";
 
 export function RATVotingResult() {
   const [itemId, setItemId] = useState<string>("");
-  const [data, setData] = useState<any | null>(null);
+  const [data, setData] = useState<VotingResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [auto, setAuto] = useState(false);
   const timer = useRef<any>(null);
@@ -21,7 +22,7 @@ export function RATVotingResult() {
     setLoading(true);
     try {
       const res = await getRATVotingResult(itemId);
-      if (res.success) setData(res.data);
+      if (res.success) setData(res.data as VotingResult);
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,7 @@ export function RATVotingResult() {
   }, [data]);
 
   return (
-    <Card>
+    <Card id="hasil-voting">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -62,11 +63,19 @@ export function RATVotingResult() {
           <Input placeholder="ID Item Voting" value={itemId} onChange={(e) => setItemId(e.target.value)} />
           <Button onClick={load} disabled={!itemId || loading}>{loading ? 'Memuat...' : 'Muat'}</Button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3">
+          {data && (
+            <div className="text-sm text-muted-foreground">Total suara: {data.total}</div>
+          )}
           {entries.map((e, i) => (
-            <div key={i} className="flex items-center justify-between p-2 border rounded">
-              <div className="text-sm">{e.option}</div>
-              <div className="text-sm">{e.count} ({e.percent}%)</div>
+            <div key={i} className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <div className="font-medium">{e.option}</div>
+                <div className="text-muted-foreground">{e.count} ({e.percent}%)</div>
+              </div>
+              <div className="h-2 w-full rounded bg-muted overflow-hidden">
+                <div className="h-full bg-primary" style={{ width: `${e.percent}%` }} />
+              </div>
             </div>
           ))}
           {!entries.length && (
@@ -77,4 +86,3 @@ export function RATVotingResult() {
     </Card>
   );
 }
-
