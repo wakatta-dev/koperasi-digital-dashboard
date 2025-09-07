@@ -58,6 +58,9 @@ export function RATActionsSheet() {
       if (nextOpen) {
         setOpen(true);
         if (nextSection) setTab(nextSection);
+      } else {
+        // Hash cleared or switched away from rat-actions: close sheet without navigation/scroll
+        setOpen(false);
       }
     }
     window.addEventListener("hashchange", onHashChange);
@@ -76,7 +79,17 @@ export function RATActionsSheet() {
   };
 
   return (
-    <Sheet open={open} onOpenChange={(v) => setOpen(v)}>
+    <Sheet
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        // When closing the sheet, reset URL to base without hash
+        if (typeof window !== "undefined" && !v) {
+          const { pathname, search } = window.location;
+          window.history.replaceState(null, "", `${pathname}${search}`);
+        }
+      }}
+    >
       <SheetTrigger asChild>
         <Button>
           <Plus className="h-4 w-4 mr-2" />

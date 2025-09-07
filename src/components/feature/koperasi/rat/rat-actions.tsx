@@ -82,14 +82,23 @@ export function RATActions({ only }: { only?: RATSectionKey }) {
     try {
       const d = value ? new Date(value) : null;
       if (!d || isNaN(d.getTime())) return "-";
-      return d.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+      return d.toLocaleString("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
     } catch {
       return "-";
     }
   }
 
   return (
-    <div className={only ? "grid grid-cols-1 gap-6 w-full" : "grid grid-cols-1 lg:grid-cols-2 gap-6 w-full"}>
+    <div
+      className={
+        only
+          ? "grid grid-cols-1 gap-6 w-full"
+          : "grid grid-cols-1 lg:grid-cols-2 gap-6 w-full"
+      }
+    >
       {(!only || only === "jadwalkan-rat") && (
         <>
           <Card id={only === "jadwalkan-rat" ? "jadwalkan-rat" : undefined}>
@@ -189,14 +198,21 @@ export function RATActions({ only }: { only?: RATSectionKey }) {
                       value={ratId ? Number(ratId) : null}
                       onChange={(val) => setRatId(val ? String(val) : "")}
                       getOptionValue={(r) => r.id}
-                      getOptionLabel={(r) => `RAT ${r.year} — ${formatDateTime(r.date)}`}
+                      getOptionLabel={(r) =>
+                        `RAT ${r.year} — ${formatDateTime(r.date)}`
+                      }
                       queryKey={["rat", "history-select"]}
                       fetchPage={async ({ pageParam }) => {
-                        const params: Record<string, string | number> = { limit: 10 };
+                        const params: Record<string, string | number> = {
+                          limit: 10,
+                        };
                         if (pageParam) params.cursor = pageParam;
-                        const res = await listRATHistory(params as any).catch(() => null);
+                        const res = await listRATHistory(params as any).catch(
+                          () => null
+                        );
                         const items = (res?.data ?? []) as unknown as RAT[];
-                        const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                        const nextPage = (res?.meta as any)?.pagination
+                          ?.next_cursor as string | undefined;
                         return { items, nextPage };
                       }}
                       placeholder="Pilih RAT"
@@ -206,10 +222,14 @@ export function RATActions({ only }: { only?: RATSectionKey }) {
                       renderOption={(r) => (
                         <div className="flex flex-col">
                           <span className="font-medium">RAT {r.year}</span>
-                          <span className="text-xs text-muted-foreground">{formatDateTime(r.date)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDateTime(r.date)}
+                          </span>
                         </div>
                       )}
-                      renderValue={(val) => <span>{val ? `RAT #${val}` : ""}</span>}
+                      renderValue={(val) => (
+                        <span>{val ? `RAT #${val}` : ""}</span>
+                      )}
                     />
                   </div>
                   <div className="space-y-1 md:col-span-2">
@@ -270,14 +290,21 @@ export function RATActions({ only }: { only?: RATSectionKey }) {
                       value={ratId ? Number(ratId) : null}
                       onChange={(val) => setRatId(val ? String(val) : "")}
                       getOptionValue={(r) => r.id}
-                      getOptionLabel={(r) => `RAT ${r.year} — ${formatDateTime(r.date)}`}
+                      getOptionLabel={(r) =>
+                        `RAT ${r.year} — ${formatDateTime(r.date)}`
+                      }
                       queryKey={["rat", "history-select-doc"]}
                       fetchPage={async ({ pageParam }) => {
-                        const params: Record<string, string | number> = { limit: 10 };
+                        const params: Record<string, string | number> = {
+                          limit: 10,
+                        };
                         if (pageParam) params.cursor = pageParam;
-                        const res = await listRATHistory(params as any).catch(() => null);
+                        const res = await listRATHistory(params as any).catch(
+                          () => null
+                        );
                         const items = (res?.data ?? []) as unknown as RAT[];
-                        const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                        const nextPage = (res?.meta as any)?.pagination
+                          ?.next_cursor as string | undefined;
                         return { items, nextPage };
                       }}
                       placeholder="Pilih RAT"
@@ -287,10 +314,14 @@ export function RATActions({ only }: { only?: RATSectionKey }) {
                       renderOption={(r) => (
                         <div className="flex flex-col">
                           <span className="font-medium">RAT {r.year}</span>
-                          <span className="text-xs text-muted-foreground">{formatDateTime(r.date)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDateTime(r.date)}
+                          </span>
                         </div>
                       )}
-                      renderValue={(val) => <span>{val ? `RAT #${val}` : ""}</span>}
+                      renderValue={(val) => (
+                        <span>{val ? `RAT #${val}` : ""}</span>
+                      )}
                     />
                   </div>
                   <div className="space-y-1">
@@ -388,14 +419,21 @@ export function RATActions({ only }: { only?: RATSectionKey }) {
                       value={ratId ? Number(ratId) : null}
                       onChange={(val) => setRatId(val ? String(val) : "")}
                       getOptionValue={(r) => r.id}
-                      getOptionLabel={(r) => `RAT ${r.year} — ${formatDateTime(r.date)}`}
+                      getOptionLabel={(r) =>
+                        `RAT ${r.year} — ${formatDateTime(r.date)}`
+                      }
                       queryKey={["rat", "history-select-vote"]}
                       fetchPage={async ({ pageParam }) => {
-                        const params: Record<string, string | number> = { limit: 10 };
+                        const params: Record<string, string | number> = {
+                          limit: 10,
+                        };
                         if (pageParam) params.cursor = pageParam;
-                        const res = await listRATHistory(params as any).catch(() => null);
+                        const res = await listRATHistory(params as any).catch(
+                          () => null
+                        );
                         const items = (res?.data ?? []) as unknown as RAT[];
-                        const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                        const nextPage = (res?.meta as any)?.pagination
+                          ?.next_cursor as string | undefined;
                         return { items, nextPage };
                       }}
                       placeholder="Pilih RAT"
@@ -405,10 +443,14 @@ export function RATActions({ only }: { only?: RATSectionKey }) {
                       renderOption={(r) => (
                         <div className="flex flex-col">
                           <span className="font-medium">RAT {r.year}</span>
-                          <span className="text-xs text-muted-foreground">{formatDateTime(r.date)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDateTime(r.date)}
+                          </span>
                         </div>
                       )}
-                      renderValue={(val) => <span>{val ? `RAT #${val}` : ""}</span>}
+                      renderValue={(val) => (
+                        <span>{val ? `RAT #${val}` : ""}</span>
+                      )}
                     />
                   </div>
                   <div className="space-y-1">

@@ -142,7 +142,20 @@ export function RATHistoryClient({ initialData = [], initialCursor, limit = 10 }
                     {docsLoading ? "Memuat..." : "Refresh"}
                   </Button>
                   <Button size="sm" variant="outline" asChild>
-                    <a href="#rat-actions/upload-dokumen-rat">Upload Dokumen</a>
+                    <a
+                      href="#rat-actions/upload-dokumen-rat"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (typeof window !== "undefined") {
+                          const url = new URL(window.location.href);
+                          url.hash = `#rat-actions/upload-dokumen-rat`;
+                          window.history.replaceState(null, "", url.toString());
+                          window.dispatchEvent(new HashChangeEvent("hashchange"));
+                        }
+                      }}
+                    >
+                      Upload Dokumen
+                    </a>
                   </Button>
                 </div>
                 {!docsLoading && (!docs || docs.length === 0) && (
