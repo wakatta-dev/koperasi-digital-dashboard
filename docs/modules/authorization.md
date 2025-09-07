@@ -11,15 +11,15 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/roles?limit=..&cursor=..` — daftar role pada tenant saat ini → 200 `APIResponse<Role[]>`
+- GET `/roles?cursor=..&term=..&permission=..` — daftar role pada tenant saat ini (default `limit=10`) → 200 `APIResponse<Role[]>`
 - POST `/roles` — buat role → 201 `APIResponse<Role>`
 - PUT `/roles/:id` — ubah role → 200 `APIResponse<Role>`
 - DELETE `/roles/:id` — hapus/lepaskan role dari tenant → 200 `APIResponse<{ id: number }>`
 - POST `/roles/tenants` — vendor: kaitkan role ke tenant → 201 `APIResponse<TenantRole>`
-- GET `/roles/:id/permissions?limit=..&cursor=..` — daftar policy → 200 `APIResponse<CasbinRule[]>`
+- GET `/roles/:id/permissions?cursor=..&term=..&permission=..` — daftar policy (default `limit=10`) → 200 `APIResponse<CasbinRule[]>`
 - POST `/roles/:id/permissions` — tambah policy → 201 `APIResponse<{ obj: string; act: string }>`
 - DELETE `/roles/:id/permissions/:pid` — hapus policy → 200 `APIResponse<{ id: number }>`
-- GET `/users/:id/roles?limit=..&cursor=..` — daftar role user → 200 `APIResponse<RoleUser[]>`
+- GET `/users/:id/roles?cursor=..&term=..&role=..&permission=..` — daftar role user (default `limit=10`) → 200 `APIResponse<RoleUser[]>`
 - POST `/users/:id/roles` — assign role ke user → 201 `APIResponse<{ user_id: number; role_id: number }>`
 - DELETE `/users/:id/roles/:rid` — hapus role user → 200 `APIResponse<{ user_id: number; role_id: number }>`
 
@@ -144,7 +144,7 @@ export type DeleteUserRoleResponse = APIResponse<{ user_id: number; role_id: num
 
 ## Paginasi (Cursor)
 
-- Endpoint list menggunakan cursor numerik (berbasis `id`) dengan `limit` wajib.
+- Endpoint list menggunakan cursor numerik (berbasis `id`) dengan `limit` opsional (default 10).
 - Gunakan `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani
@@ -156,7 +156,7 @@ export type DeleteUserRoleResponse = APIResponse<{ user_id: number; role_id: num
 ## Checklist Integrasi FE
 
 - Selalu kirim `Authorization` dan `X-Tenant-ID`.
-- Untuk list, siapkan handler `limit` dan `cursor` serta konsumsi `meta.pagination`.
+- Untuk list, siapkan handler `cursor`, `term`, serta opsional `limit` dan filter (`role`/`permission`); konsumsi `meta.pagination`.
 - Pastikan domain policy Casbin mengacu ke `jenis_tenant` (di-backend diambil dari klaim JWT).
 - Sinkronkan UI setelah tambah/hapus permission atau user-role.
 

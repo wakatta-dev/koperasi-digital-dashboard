@@ -13,7 +13,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 - POST `/risk/score` — hitung skor → 200 `RiskResult`
 - GET `/risk/result/:member_id` — hasil skor terbaru → 200 `RiskResult`
-- GET `/risk/config?limit=..&cursor=..` — list rules → 200 `APIResponse<RiskRule[]>`
+- GET `/risk/config?term=&factor=&threshold=&limit=&cursor=` — list rules → 200 `APIResponse<RiskRule[]>`
 - POST `/risk/config` — simpan rule → 201 `APIResponse<RiskRule>`
 - DELETE `/risk/config/:id` — hapus rule → 200 `APIResponse<null>`
 
@@ -67,6 +67,14 @@ export interface RiskResult { id: number; tenant_id: number; member_id: number; 
 export interface ScoreRequest { member_id: number }
 export interface RuleRequest { factor: string; weight: number; threshold: number }
 
+export interface ListRiskRulesQuery {
+  term?: string;
+  factor?: string;
+  threshold?: number;
+  limit?: number; // default 10
+  cursor?: string;
+}
+
 // Responses
 export type ListRiskRulesResponse = APIResponse<RiskRule[]>;
 export type CreateRiskRuleResponse = APIResponse<RiskRule>;
@@ -75,7 +83,7 @@ export type DeleteRiskRuleResponse = APIResponse<null>;
 
 ## Paginasi (Cursor)
 
-- Endpoint list rules menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Endpoint list rules menggunakan cursor numerik (`id`). Parameter `limit` opsional (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

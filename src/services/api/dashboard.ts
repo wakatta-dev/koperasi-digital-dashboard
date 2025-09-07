@@ -1,12 +1,19 @@
 /** @format */
 
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, DashboardSummary, TrendData, DashboardNotification } from "@/types/api";
+import type {
+  ApiResponse,
+  DashboardSummary,
+  TrendData,
+  DashboardNotification,
+} from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
 // Koperasi dashboard endpoints (per docs/modules/dashboard.md)
 
-export function getKoperasiDashboardSummary(params?: { tenant_id?: string | number }): Promise<ApiResponse<DashboardSummary>> {
+export function getKoperasiDashboardSummary(params?: {
+  tenant_id?: string | number;
+}): Promise<ApiResponse<DashboardSummary>> {
   const search = new URLSearchParams();
   if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
   const q = search.toString();
@@ -30,9 +37,13 @@ export function getKoperasiDashboardTrend(params?: {
 
 export function getKoperasiDashboardNotifications(params?: {
   tenant_id?: string | number;
+  limit?: string | number;
+  cursor?: string;
 }): Promise<ApiResponse<DashboardNotification[]>> {
   const search = new URLSearchParams();
   if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.cursor) search.set("cursor", params.cursor);
   const q = search.toString();
   const path = `${API_PREFIX}${API_ENDPOINTS.koperasiDashboard.notifications}`;
   return api.get<DashboardNotification[]>(q ? `${path}?${q}` : path);

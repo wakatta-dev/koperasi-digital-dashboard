@@ -50,8 +50,14 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
       ? {
           number: invoice!.number,
           issued_at: (invoice!.issued_at || "").slice(0, 10),
-          due_date: invoice!.due_date ? invoice!.due_date.slice(0, 10) : undefined,
-          items: (invoice!.items ?? []).map((it) => ({ description: it.description, quantity: it.quantity as any, price: it.price as any })),
+          due_date: invoice!.due_date
+            ? invoice!.due_date.slice(0, 10)
+            : undefined,
+          items: (invoice!.items ?? []).map((it) => ({
+            description: it.description,
+            quantity: it.quantity as any,
+            price: it.price as any,
+          })),
           tenant_id: (invoice as any).tenant_id as any,
           subscription_id: (invoice as any).subscription_id as any,
         }
@@ -59,13 +65,14 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
           number: "",
           issued_at: new Date().toISOString().slice(0, 10),
           due_date: undefined,
-          items: [
-            { description: "Langganan", quantity: 1, price: 0 },
-          ],
+          items: [{ description: "Langganan", quantity: 1, price: 0 }],
         },
   });
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: "items" });
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
 
   const total = (form.watch("items") || []).reduce((acc, it) => {
     const qty = Number(it.quantity || 0);
@@ -101,7 +108,13 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
         const ok = await confirm({
           variant: "create",
           title: "Buat invoice?",
-          description: `Invoice ${values.number || "baru"} akan dibuat dengan total ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(total)}.`,
+          description: `Invoice ${
+            values.number || "baru"
+          } akan dibuat dengan total ${new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+          }).format(total)}.`,
           confirmText: "Buat",
         });
         if (!ok) return;
@@ -128,11 +141,13 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{Trigger}</SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-2xl p-0">
+      <SheetContent side="right" className="w-full sm:max-w-2xl px-4">
         <SheetHeader>
           <SheetTitle>{isEdit ? "Edit Invoice" : "Create Invoice"}</SheetTitle>
           <SheetDescription>
-            {isEdit ? "Ubah data invoice." : "Isi data invoice dan item. Total dihitung otomatis."}
+            {isEdit
+              ? "Ubah data invoice."
+              : "Isi data invoice dan item. Total dihitung otomatis."}
           </SheetDescription>
         </SheetHeader>
 
@@ -198,7 +213,12 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
                   <FormItem>
                     <FormLabel>Tenant ID (opsional)</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} placeholder="mis. 123" {...field} />
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="mis. 123"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -211,7 +231,12 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
                   <FormItem>
                     <FormLabel>Subscription ID (opsional)</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} placeholder="mis. 456" {...field} />
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="mis. 456"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -225,14 +250,23 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => append({ description: "", quantity: 1 as any, price: 0 as any })}
+                  onClick={() =>
+                    append({
+                      description: "",
+                      quantity: 1 as any,
+                      price: 0 as any,
+                    })
+                  }
                 >
                   <PlusIcon className="h-4 w-4 mr-2" /> Tambah Item
                 </Button>
               </div>
 
               {fields.map((field, index) => (
-                <div key={field.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div
+                  key={field.id}
+                  className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+                >
                   <div className="md:col-span-6">
                     <FormField
                       control={form.control}
@@ -271,7 +305,12 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
                         <FormItem>
                           <FormLabel>Harga</FormLabel>
                           <FormControl>
-                            <Input type="number" min={0} step={1000} {...field} />
+                            <Input
+                              type="number"
+                              min={0}
+                              step={1000}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -279,7 +318,12 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
                     />
                   </div>
                   <div className="md:col-span-1 flex md:justify-end">
-                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(index)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -289,11 +333,21 @@ export function InvoiceUpsertDialog({ trigger, invoice }: Props) {
 
             <div className="flex items-center justify-between border-t pt-3">
               <span className="text-sm text-muted-foreground">Total</span>
-              <span className="font-semibold">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(total)}</span>
+              <span className="font-semibold">
+                {new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                  minimumFractionDigits: 0,
+                }).format(total)}
+              </span>
             </div>
 
             <SheetFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
                 Batal
               </Button>
               <Button type="submit">Buat</Button>

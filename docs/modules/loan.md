@@ -14,7 +14,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/loans/apply` — ajukan pinjaman → 201 `LoanApplication`
 - POST `/loans/:id/approve` — setujui → 200 `LoanApplication`
 - POST `/loans/:id/disburse` — cairkan → 204 (tanpa body)
-- GET `/loans/:id/installments?limit=..&cursor=..` — daftar angsuran → 200 `APIResponse<LoanInstallment[]>`
+- GET `/loans/:id/installments?term=&status=&due_date=&limit=&cursor=` — daftar angsuran → 200 `APIResponse<LoanInstallment[]>`
 - POST `/loans/installments/:id/pay` — bayar angsuran → 200 `LoanInstallment`
 - GET `/loans/:id/release-letter` — surat lunas → 200 `APIResponse<{ message: string }>`
 
@@ -108,7 +108,8 @@ export type ReleaseLetterResponse = APIResponse<{ message: string }>;
 
 ## Paginasi (Cursor)
 
-- Endpoint angsuran menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Endpoint angsuran menggunakan cursor numerik (`id`); `limit` opsional (default 10).
+- Parameter tambahan: `term` (cari nomor/status), `status`, `due_date` (YYYY-MM-DD).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

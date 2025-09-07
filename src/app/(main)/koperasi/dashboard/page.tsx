@@ -31,7 +31,7 @@ export const dynamic = "force-dynamic";
 export default async function KoperasiDashboard() {
   const [summaryRes, notifRes, trendRes] = await Promise.all([
     getKoperasiDashboardSummary().catch(() => null),
-    getKoperasiDashboardNotifications().catch(() => null),
+    getKoperasiDashboardNotifications({ limit: 10 }).catch(() => null),
     getKoperasiDashboardTrend().catch(() => null),
   ]);
 
@@ -101,7 +101,7 @@ export default async function KoperasiDashboard() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="max-h-96 overflow-y-scroll">
             <div className="space-y-4">
               {(notifications || []).slice(0, 6).map((n, idx) => (
                 <div

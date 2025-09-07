@@ -15,7 +15,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/savings/:transaction_id/verify` — verifikasi setoran manual → 200 `SavingsTransaction`
 - POST `/savings/:member_id/withdraw` — ajukan penarikan → 201 `SavingsTransaction`
 - POST `/savings/:transaction_id/approve` — setujui penarikan → 200 `SavingsTransaction`
-- GET `/savings/:member_id/transactions?limit=..&cursor=..` — riwayat transaksi → 200 `APIResponse<SavingsTransaction[]>`
+- GET `/savings/:member_id/transactions?limit=..&cursor=..&term=..&type=..&start=..&end=..` — riwayat transaksi → 200 `APIResponse<SavingsTransaction[]>`
 - GET `/savings/:transaction_id/proof` — bukti transaksi → 200 `APIResponse<string>`
 
 ## Skema Data Ringkas
@@ -99,7 +99,7 @@ export type GetProofResponse = APIResponse<string>;
 
 ## Paginasi (Cursor)
 
-- Endpoint `GET /savings/:member_id/transactions` menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Endpoint `GET /savings/:member_id/transactions` menggunakan cursor numerik (`id`) dengan `limit` default 10 serta opsi `term`, `type`, `start`, `end` untuk pencarian.
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

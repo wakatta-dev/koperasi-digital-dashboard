@@ -14,8 +14,8 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/shu/yearly` — input SHU tahunan → 201 `APIResponse<YearlySHU>`
 - POST `/shu/yearly/:year/simulate` — simulasi distribusi → 200 `APIResponse<SHUDistribution[]>`
 - POST `/shu/yearly/:year/distribute` — distribusi aktual → 200 `APIResponse<{ status: string }>`
-- GET `/shu/history` — riwayat SHU tahunan → 200 `APIResponse<YearlySHU[]>`
-- GET `/shu/member/:member_id` — riwayat SHU anggota → 200 `APIResponse<SHUDistribution[]>`
+- GET `/shu/history` — riwayat SHU tahunan → 200 `APIResponse<YearlySHU[]>` (query: `term?`, `year?`, `limit?`, `cursor?`)
+- GET `/shu/member/:member_id` — riwayat SHU anggota → 200 `APIResponse<SHUDistribution[]>` (query: `term?`, `year?`, `limit?`, `cursor?`)
 - GET `/shu/export/:year` — ekspor laporan → 200 file
 
 ## Skema Data Ringkas
@@ -98,7 +98,10 @@ export type MemberSHUHistoryResponse = APIResponse<SHUDistribution[]>;
 
 ## Paginasi (Cursor)
 
-- Tidak ada paginasi pada endpoint SHU saat ini.
+Endpoint `/shu/history` dan `/shu/member/:member_id` mendukung paginasi berbasis cursor.
+
+- Query: `limit` (default 10), `cursor` (ID terakhir), `term` (pencarian tahun), `year` (filter tahun)
+- Response `meta.pagination` berisi `next_cursor`, `has_next`, `has_prev`, dan `limit`.
 
 ## Error Singkat yang Perlu Ditangani
 

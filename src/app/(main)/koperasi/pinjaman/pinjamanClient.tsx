@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreditCard, Search, CheckCircle } from "lucide-react";
 import { applyLoan, approveLoan, disburseLoan, listLoanInstallments, payLoanInstallment } from "@/services/api";
+import AsyncCombobox from "@/components/ui/async-combobox";
+import { listMembers } from "@/services/api";
+import type { MemberListItem } from "@/types/api";
 
 export default function PinjamanClient() {
   const [applyPayload, setApplyPayload] = useState<any>({ member_id: "", amount: 0, purpose: "", term_months: 12 });
@@ -73,7 +76,33 @@ export default function PinjamanClient() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <Input placeholder="ID Anggota" value={applyPayload.member_id} onChange={(e) => setApplyPayload((s: any) => ({ ...s, member_id: e.target.value }))} />
+            <AsyncCombobox<MemberListItem, number>
+              value={applyPayload.member_id ? Number(applyPayload.member_id) : null}
+              onChange={(val) => setApplyPayload((s: any) => ({ ...s, member_id: val ?? "" }))}
+              getOptionValue={(m) => m.id}
+              getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+              queryKey={["members", "search-loan-apply"]}
+              fetchPage={async ({ search, pageParam }) => {
+                const params: Record<string, string | number> = { limit: 10 };
+                if (pageParam) params.cursor = pageParam;
+                if (search) params.q = search;
+                const res = await listMembers(params);
+                const items = (res?.data ?? []) as unknown as MemberListItem[];
+                const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                return { items, nextPage };
+              }}
+              placeholder="Cari anggota (nama/email/no. anggota)"
+              emptyText="Tidak ada anggota"
+              notReadyText="Ketik untuk mencari"
+              minChars={1}
+              renderOption={(m) => (
+                <div className="flex flex-col">
+                  <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
+                  <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                </div>
+              )}
+              renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
+            />
             <Input type="number" placeholder="Jumlah" value={applyPayload.amount} onChange={(e) => setApplyPayload((s: any) => ({ ...s, amount: Number(e.target.value || 0) }))} />
             <Input placeholder="Keperluan" value={applyPayload.purpose} onChange={(e) => setApplyPayload((s: any) => ({ ...s, purpose: e.target.value }))} />
             <Input type="number" placeholder="Tenor (bulan)" value={applyPayload.term_months} onChange={(e) => setApplyPayload((s: any) => ({ ...s, term_months: Number(e.target.value || 0) }))} />
@@ -137,4 +166,3 @@ export default function PinjamanClient() {
     </div>
   );
 }
-

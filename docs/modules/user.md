@@ -12,7 +12,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 ## Ringkasan Endpoint
 
 - POST `/users` — buat user → 201 `APIResponse<User>`
-- GET `/users?limit=..&cursor=..` — daftar user → 200 `APIResponse<User[]>`
+- GET `/users?term=&status=&role_id=&limit=&cursor=` — daftar user → 200 `APIResponse<User[]>`
 - GET `/users/:id` — detail user → 200 `APIResponse<User>`
 - PUT `/users/:id` — ubah user → 200 `APIResponse<User>`
 - PATCH `/users/:id/status` — ubah status → 200 `APIResponse<{ status: boolean }>`
@@ -113,9 +113,10 @@ export type DeleteUserResponse = APIResponse<{ id: number }>;
 export type ResetPasswordResponse = APIResponse<{ message: string }>;
 ```
 
-## Paginasi (Cursor)
+## Paginasi & Filter
 
-- Endpoint list menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Endpoint list menggunakan cursor numerik (`id`) dengan `limit` opsional (default `10`).
+- Dukung pencarian `term` (nama/email) serta filter `status` dan `role_id`.
 - Baca `meta.pagination.next_cursor` untuk memuat halaman berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

@@ -22,6 +22,9 @@ import {
   listSHUHistory,
   simulateSHU,
 } from "@/services/api";
+import AsyncCombobox from "@/components/ui/async-combobox";
+import { listMembers } from "@/services/api";
+import type { MemberListItem } from "@/types/api";
 
 export default function SHUPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -285,15 +288,37 @@ export default function SHUPage() {
         <CardHeader>
           <CardTitle>Pembagian SHU per Anggota</CardTitle>
           <CardDescription>
-            Masukkan ID anggota untuk melihat riwayat
+            Pilih anggota untuk melihat riwayat
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end mb-4">
-            <Input
-              placeholder="ID Anggota"
-              value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
+            <AsyncCombobox<MemberListItem, number>
+              value={memberId ? Number(memberId) : null}
+              onChange={(val) => setMemberId(val ? String(val) : "")}
+              getOptionValue={(m) => m.id}
+              getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+              queryKey={["members", "search-shu-member"]}
+              fetchPage={async ({ search, pageParam }) => {
+                const params: Record<string, string | number> = { limit: 10 };
+                if (pageParam) params.cursor = pageParam;
+                if (search) params.q = search;
+                const res = await listMembers(params);
+                const items = (res?.data ?? []) as unknown as MemberListItem[];
+                const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                return { items, nextPage };
+              }}
+              placeholder="Cari anggota (nama/email/no. anggota)"
+              emptyText="Tidak ada anggota"
+              notReadyText="Ketik untuk mencari"
+              minChars={1}
+              renderOption={(m) => (
+                <div className="flex flex-col">
+                  <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
+                  <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                </div>
+              )}
+              renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
             />
             <Button type="button" onClick={loadMember} disabled={!memberId}>
               Muat Riwayat

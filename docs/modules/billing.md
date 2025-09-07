@@ -11,13 +11,15 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/plans?limit=..&cursor=..` — daftar plan → 200 `APIResponse<Plan[]>`
+Semua endpoint daftar mendukung query `term` untuk pencarian parsial, filter opsional seperti `status`, `year`, atau `tenant`, serta `limit` opsional (default `10`).
+
+- GET `/plans?term=&status=&limit=&cursor=` — daftar plan → 200 `APIResponse<Plan[]>`
 - POST `/plans` — buat plan → 201 `APIResponse<Plan>`
 - GET `/plans/:id` — detail plan → 200 `APIResponse<Plan>`
 - PUT `/plans/:id` — ubah plan → 200 `APIResponse<Plan>`
 - PATCH `/plans/:id/status` — ubah status plan → 200 `APIResponse<Plan>`
 - DELETE `/plans/:id` — hapus plan → 200 `APIResponse<{ id: number }>`
-- GET `/invoices?limit=..&cursor=..` — vendor: daftar invoice → 200 `APIResponse<Invoice[]>`
+- GET `/invoices?tenant=&year=&status=&term=&limit=&cursor=` — vendor: daftar invoice → 200 `APIResponse<Invoice[]>`
 - POST `/invoices` — vendor: buat invoice → 201 `APIResponse<Invoice>`
 - GET `/invoices/:id` — vendor: detail invoice → 200 `APIResponse<Invoice>`
 - PUT `/invoices/:id` — vendor: ubah invoice → 200 `APIResponse<Invoice>`
@@ -26,14 +28,14 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/invoices/:id/payments` — vendor: terima pembayaran manual → 201 `APIResponse<Payment>`
 - POST `/payments/:id/verify` — vendor: verifikasi pembayaran → 200 `APIResponse<Payment>`
 - POST `/payment-gateways/:gateway/webhook` — webhook gateway → 200 `APIResponse<null>`
-- GET `/client/invoices?limit=..&cursor=..` — client: daftar invoice → 200 `APIResponse<Invoice[]>`
+- GET `/client/invoices?year=&status=&term=&limit=&cursor=` — client: daftar invoice → 200 `APIResponse<Invoice[]>`
 - GET `/client/invoices/:id` — client: detail invoice → 200 `APIResponse<Invoice>`
 - GET `/client/invoices/:id/audits` — client: audit invoice → 200 `APIResponse<StatusAudit[]>`
 - GET `/client/subscription` — client: status subscription → 200 `APIResponse<TenantSubscription>`
-- GET `/subscriptions?limit=..&cursor=..` — vendor: daftar subscription → 200 `APIResponse<TenantSubscription[]>`
+- GET `/subscriptions?status=&tenant=&term=&limit=&cursor=` — vendor: daftar subscription → 200 `APIResponse<TenantSubscription[]>`
 - PATCH `/subscriptions/:id/status` — vendor: ubah status → 200 `APIResponse<TenantSubscription>`
 - GET `/subscriptions/summary` — vendor: ringkasan → 200 `APIResponse<{ active: number; suspended: number; overdue: number }>`
-- GET `/audits?limit=..&cursor=..` — vendor: daftar audit → 200 `APIResponse<StatusAudit[]>`
+- GET `/audits?entity=&status=&term=&limit=&cursor=` — vendor: daftar audit → 200 `APIResponse<StatusAudit[]>`
 
 ## Skema Data Ringkas
 

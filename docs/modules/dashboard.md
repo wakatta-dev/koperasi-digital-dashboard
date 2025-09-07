@@ -12,7 +12,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 - GET `/dashboard/summary?tenant_id=..` — ringkasan metrik tenant → 200 `APIResponse<DashboardSummary>`
 - GET `/dashboard/trend?tenant_id=..&start=..&end=..` — tren simpanan/pinjaman → 200 `APIResponse<TrendData[]>`
-- GET `/dashboard/notifications?tenant_id=..&limit=..&cursor=..` — notifikasi tenant → 200 `APIResponse<Notification[]>`
+- GET `/dashboard/notifications?tenant_id=..&term=..&type=..&start=..&end=..&limit=..&cursor=..` — notifikasi tenant → 200 `APIResponse<Notification[]>`
 - GET `/vendor/dashboard` — vendor dashboard → 200 `APIResponse<VendorDashboard>`
 - GET `/analytics/clients` — vendor: analitik klien → 200 `APIResponse<ClientAnalytics>`
 
@@ -28,7 +28,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 - Summary: query `tenant_id` (number)
 - Trend: query `tenant_id` (number), `start?` (RFC3339), `end?` (RFC3339)
-- Notifications: query `tenant_id` (number), `limit` (number), `cursor?` (string)
+- Notifications: query `tenant_id` (number), `term?` (string), `type?` (string), `start?` (RFC3339), `end?` (RFC3339), `limit?` (number, default 10), `cursor?` (string)
 - Vendor analytics: query `start?` (`YYYY-MM-DD`), `end?` (`YYYY-MM-DD`)
 
 ## Bentuk Response
@@ -113,7 +113,7 @@ export type GetClientAnalyticsResponse = APIResponse<ClientAnalytics>;
 
 ## Paginasi (Cursor)
 
-- Endpoint list notifikasi dashboard menggunakan cursor string (`id`) dan `limit` wajib.
+- Endpoint list notifikasi dashboard menggunakan cursor string (`id`) dan `limit` opsional (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

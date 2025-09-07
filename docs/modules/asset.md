@@ -14,8 +14,8 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/assets` — buat aset baru → 201 `Asset` (objek langsung, tanpa wrapper)
 - PUT `/assets/:id` — ubah aset → 200 `Asset` (objek langsung)
 - DELETE `/assets/:id` — hapus aset → 204 (tanpa body)
-- GET `/assets?limit=..&cursor=..` — daftar aset → 200 `APIResponse{ data=[Asset], meta.pagination }`
-- GET `/assets/:id/depreciation?limit=..&cursor=..` — histori depresiasi → 200 `APIResponse{ data=[AssetDepreciation], meta.pagination }`
+- GET `/assets?term=&category=&status=&start_date=&end_date=&limit=&cursor=` — daftar aset → 200 `APIResponse{ data=[Asset], meta.pagination }`
+- GET `/assets/:id/depreciation?term=&start_date=&end_date=&limit=&cursor=` — histori depresiasi → 200 `APIResponse{ data=[AssetDepreciation], meta.pagination }`
 - PATCH `/assets/:id/status` — ubah status `active|inactive` → 204 (tanpa body)
 - GET `/assets/export` — placeholder `{ "message": "export not implemented" }`
 
@@ -130,13 +130,21 @@ export type UpdateAssetResponse = Asset; // 200
 export type DeleteAssetResponse = void; // 204
 
 export interface ListAssetsQuery { // GET /assets
-  limit: number;
+  term?: string;
+  category?: string;
+  status?: string;
+  start_date?: Rfc3339String;
+  end_date?: Rfc3339String;
+  limit?: number; // default 10
   cursor?: string;
 }
 export type ListAssetsResponse = APIResponse<Asset[]>; // 200
 
 export interface GetDepreciationQuery { // GET /assets/:id/depreciation
-  limit: number;
+  term?: string;
+  start_date?: Rfc3339String;
+  end_date?: Rfc3339String;
+  limit?: number; // default 10
   cursor?: string;
 }
 export type DepreciationHistoryResponse = APIResponse<AssetDepreciation[]>; // 200
@@ -156,12 +164,12 @@ export type HttpError =
 
 ## Paginasi (Cursor)
 
-- Kirim `limit` (wajib, int) dan opsional `cursor` (string angka id terakhir).
+- Opsional `limit` (default 10) dan opsional `cursor` (string angka id terakhir).
 - Baca `meta.pagination.next_cursor`; jika ada dan `has_next=true`, gunakan nilainya untuk request berikutnya (`cursor=<next_cursor>`).
 
 ## Error Singkat yang Perlu Ditangani
 
-- 400 (validasi, untuk list/histori): `APIResponse` dengan `errors` per field, contoh: `{ "errors": { "limit": ["limit is required"] } }`
+- 400 (validasi, untuk list/histori): `APIResponse` dengan `errors` per field, contoh: `{ "errors": { "limit": ["limit must be a positive integer"] } }`
 - 400 (POST/PUT body tidak valid): error JSON standar Fiber dengan pesan singkat.
 - 401/403: token salah/tenant tidak aktif.
 - 404: resource tidak ditemukan.

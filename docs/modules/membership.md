@@ -11,7 +11,10 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/members?limit={n}&cursor={id?}` — list anggota (koperasi only) → 200 `APIResponse<MemberListItem[]>`
+- GET `/members?term={?}&status={?}&start_date={YYYY-MM-DD?}&end_date={YYYY-MM-DD?}&limit={n?}&cursor={id?}` — list anggota (koperasi only) → 200 `APIResponse<MemberListItem[]>`
+  - `term`: pencarian nama atau nomor anggota (opsional)
+  - `status`, `start_date`, `end_date`: filter opsional
+  - `limit` default 10; gunakan `cursor` untuk paginasi berikutnya
 - POST `/members/register` — daftar anggota → 201 `Member`
 - POST `/members/:id/verify` — verifikasi/tolak → 200 (tanpa body)
 - GET `/members/:id` — profil → 200 `Profile`
@@ -101,8 +104,8 @@ export type ListMembersResponse = APIResponse<MemberListItem[]>;
 
 ## Paginasi (Cursor)
 
-- List anggota menggunakan pagination berbasis cursor:
-  - Query: `limit` (wajib, >0), `cursor` (opsional, ID terakhir).
+ - List anggota menggunakan pagination berbasis cursor dan pencarian:
+  - Query: `term?`, `status?`, `start_date?`, `end_date?`, `limit` (default 10), `cursor?` (ID terakhir).
   - Response: `meta.pagination` berisi `next_cursor`, `has_next`, `has_prev`, `limit`.
   - Gunakan `next_cursor` untuk halaman berikutnya.
 

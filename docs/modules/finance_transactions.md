@@ -12,8 +12,8 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 ## Ringkasan Endpoint
 
 - POST `/transactions` — buat transaksi → 201 `APIResponse<Transaction>`
-- GET `/transactions?start=..&end=..&type=..&category=..&min_amount=..&max_amount=..&limit=..&cursor=..` — daftar → 200 `APIResponse<Transaction[]>`
-- GET `/transactions/:id/history?limit=..&cursor=..` — histori → 200 `APIResponse<TransactionHistory[]>`
+- GET `/transactions?start=..&end=..&type=..&category=..&min_amount=..&max_amount=..&term=..&account_code=..&limit?=..&cursor=..` — daftar → 200 `APIResponse<Transaction[]>`
+- GET `/transactions/:id/history?limit?=..&cursor=..` — histori → 200 `APIResponse<TransactionHistory[]>`
 - PATCH `/transactions/:id` — ubah transaksi → 200 `APIResponse<Transaction>`
 - DELETE `/transactions/:id` — hapus → 200 `APIResponse<{ id: number }>`
 - GET `/transactions/export?start=..&end=..&type=..&category=..&format=csv|xlsx` — ekspor → 200 file
@@ -34,7 +34,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
   - Bidang sama seperti create, semuanya opsional.
 
 - Filter query (list/export):
-  - `start` (YYYY-MM-DD), `end` (YYYY-MM-DD), `type?`, `category?`, `min_amount?`, `max_amount?`, serta `limit`+`cursor` untuk list.
+  - `start` (YYYY-MM-DD), `end` (YYYY-MM-DD), `type?`, `category?`, `min_amount?`, `max_amount?`, `term?`, `account_code?`, serta `limit?` (default 10) + `cursor` untuk list.
 
 ## Bentuk Response
 
@@ -129,7 +129,9 @@ export interface ListTransactionsQuery {
   category?: string;
   min_amount?: number;
   max_amount?: number;
-  limit: number;
+  term?: string;
+  account_code?: string;
+  limit?: number; // default 10
   cursor?: string;
 }
 
@@ -144,7 +146,7 @@ export type DeleteTransactionResponse = APIResponse<{ id: number }>;
 
 ## Paginasi (Cursor)
 
-- Endpoint list/histori menggunakan cursor numerik (`id`) dan `limit` wajib.
+- Endpoint list/histori menggunakan cursor numerik (`id`). `limit` opsional (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani
@@ -225,8 +227,8 @@ Modul ini menyediakan endpoint dasar untuk mengelola transaksi serta ekspor data
 ```
 
 - `POST /transactions` — tambah transaksi.
-- `GET /transactions?limit={n}&cursor={c?}` — daftar transaksi.
-- `GET /transactions/{id}/history?limit={n}&cursor={c?}` — riwayat perubahan.
+- `GET /transactions?limit?={n}&cursor={c?}` — daftar transaksi.
+- `GET /transactions/{id}/history?limit?={n}&cursor={c?}` — riwayat perubahan.
 - `PATCH /transactions/{id}` — perbarui transaksi.
 - `DELETE /transactions/{id}` — hapus transaksi.
 - `GET /transactions/export` — ekspor data transaksi (format `csv|xlsx`).
@@ -249,19 +251,20 @@ Header umum:
     - `credit_account_code`, `credit_account_name` (wajib)
   - Response 201: `data` Transaction lengkap beserta `ledger_entries` debit/kredit.
 
-- `GET /transactions`
-  - Query filter (opsional):
-    - `start` (YYYY-MM-DD), `end` (YYYY-MM-DD)
-    - `type` (`CashIn|CashOut|Transfer`)
-    - `category` (lihat kategori di atas)
-    - `min_amount` (number), `max_amount` (number)
-  - `limit` (wajib, int), `cursor` (opsional, string)
+  - `GET /transactions`
+    - Query filter (opsional):
+      - `start` (YYYY-MM-DD), `end` (YYYY-MM-DD)
+      - `type` (`CashIn|CashOut|Transfer`)
+      - `category` (lihat kategori di atas)
+      - `min_amount` (number), `max_amount` (number)
+      - `term` (string), `account_code` (string)
+    - `limit` (opsional, int, default 10), `cursor` (opsional, string)
   - Response 200: `data` array Transaction + `meta.pagination`.
 
-- `GET /transactions/{id}/history`
-  - Path: `id` (int, wajib)
-  - Query: `limit` (wajib, int), `cursor` (opsional, string)
-  - Response 200: `data` array TransactionHistory + `meta.pagination`; 404 jika transaksi tidak ditemukan pada tenant yang sama.
+  - `GET /transactions/{id}/history`
+    - Path: `id` (int, wajib)
+    - Query: `limit` (opsional, int, default 10), `cursor` (opsional, string)
+    - Response 200: `data` array TransactionHistory + `meta.pagination`; 404 jika transaksi tidak ditemukan pada tenant yang sama.
 
 - `PATCH /transactions/{id}`
   - Path: `id` (int, wajib)

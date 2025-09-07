@@ -14,7 +14,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/sharia-financings/apply` — ajukan pembiayaan → 201 `ShariaFinancing`
 - POST `/sharia-financings/:id/approve` — setujui → 200 `ShariaFinancing`
 - POST `/sharia-financings/:id/disburse` — cairkan → 204 (tanpa body)
-- GET `/sharia-financings/:id/installments?limit=..&cursor=..` — daftar angsuran → 200 `APIResponse<ShariaInstallment[]>`
+- GET `/sharia-financings/:id/installments?term=..&status=..&due_date=..&limit=..&cursor=..` — daftar angsuran (limit default 10) → 200 `APIResponse<ShariaInstallment[]>`
 - POST `/sharia-financings/installments/:id/pay` — bayar angsuran → 200 `ShariaInstallment`
 - GET `/sharia-financings/:id/release-letter` — surat lunas → 200 `APIResponse<{ message: string }>`
 

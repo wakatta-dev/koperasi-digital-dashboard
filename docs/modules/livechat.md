@@ -14,7 +14,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 - POST `/livechat/sessions` — mulai sesi → 201 `APIResponse<ChatSession>`
 - POST `/livechat/sessions/:id/messages` — kirim pesan → 201 `APIResponse<ChatMessage>`
-- GET `/livechat/sessions/:id/messages?limit=..&cursor=..` — list pesan → 200 `APIResponse<ChatMessage[]>`
+- GET `/livechat/sessions/:id/messages?term=&sender_id=&start_date=&end_date=&limit=&cursor=` — list pesan → 200 `APIResponse<ChatMessage[]>`
 
 ## Skema Data Ringkas
 
@@ -85,6 +85,14 @@ export interface ChatMessage {
 // Requests
 export interface StartSessionRequest { agent_id?: number }
 export interface SendMessageRequest { message: string }
+export interface ListMessagesQuery {
+  term?: string;
+  sender_id?: number;
+  start_date?: Rfc3339String;
+  end_date?: Rfc3339String;
+  limit?: number; // default 10
+  cursor?: string;
+}
 
 // Responses
 export type StartSessionResponse = APIResponse<ChatSession>;
@@ -94,7 +102,7 @@ export type ListMessagesResponse = APIResponse<ChatMessage[]>;
 
 ## Paginasi (Cursor)
 
-- Endpoint list pesan menggunakan cursor string (`id`) dan `limit` wajib.
+- Endpoint list pesan menggunakan cursor string (`id`). `limit` opsional (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

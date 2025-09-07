@@ -11,7 +11,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/tenants?limit=..&cursor=..` — vendor: daftar tenant → 200 `APIResponse<Tenant[]>`
+- GET `/tenants?term=..&type=..&status=..&limit=..&cursor=..` — vendor: daftar tenant → 200 `APIResponse<Tenant[]>`
 - POST `/tenants` — vendor: buat tenant → 201 `APIResponse<Tenant>`
 - GET `/tenants/:id` — vendor: detail tenant → 200 `APIResponse<Tenant>`
 - PATCH `/tenants/:id` — vendor: ubah `name`/`type` → 200 `APIResponse<Tenant>`
@@ -24,6 +24,14 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - POST `/vendor/tenants` — registrasi tenant (publik) → 201 `APIResponse<{ registration_id: string }>`
 - POST `/vendor/tenants/verify` — verifikasi OTP → 200 `APIResponse<null>`
 - PATCH `/vendor/tenants/:id/status` — admin vendor: ubah status → 200 `APIResponse<{ is_active: boolean }>`
+
+### Query Params — `GET /tenants`
+
+- `term` (string, opsional): cari berdasarkan `name` atau `domain`.
+- `type` (string, opsional): filter tipe tenant.
+- `status` (string, opsional): filter status tenant.
+- `limit` (number, opsional, default 10): jumlah maksimum item.
+- `cursor` (string, opsional): cursor paginasi berikutnya.
 
 ## Skema Data Ringkas
 

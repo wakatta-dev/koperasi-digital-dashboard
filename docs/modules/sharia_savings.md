@@ -14,7 +14,7 @@ Dokumen ringkas untuk integrasi UI terkait simpanan syariah. Strukturnya mengiku
 - POST `/sharia_savings/:member_id/withdraw` — ajukan penarikan → 201 `Transaction`
 - POST `/sharia_savings/:transaction_id/approve` — setujui penarikan → 200 `Transaction`
 - POST `/sharia_savings/:member_id/profit` — distribusi bagi hasil → 201 `Transaction`
-- GET `/sharia_savings/:member_id/transactions?limit=..&cursor=..` — riwayat transaksi → 200 `APIResponse<Transaction[]>`
+- GET `/sharia_savings/:member_id/transactions?term=..&type=..&start=..&end=..&limit=..&cursor=..` — riwayat transaksi → 200 `APIResponse<Transaction[]>`
 - GET `/sharia_savings/:transaction_id/proof` — bukti transaksi → 200 `APIResponse<string>`
 
 ## Skema Data Ringkas
@@ -33,8 +33,9 @@ Dokumen ringkas untuk integrasi UI terkait simpanan syariah. Strukturnya mengiku
 ## TypeScript Types (Request & Response)
 Lihat `docs/types/sharia_savings.d.ts`.
 
-## Paginasi
-- Menggunakan cursor numerik (`id`) dan `limit` wajib.
+## Paginasi & Filter
+- Menggunakan cursor numerik (`id`) dan `limit` opsional (default 10).
+- Query opsional: `term` (pencarian), `type` (jenis transaksi), `start`/`end` (rentang tanggal `YYYY-MM-DD`).
 
 ## Error Singkat yang Perlu Ditangani
 - 400: body/query tidak valid.

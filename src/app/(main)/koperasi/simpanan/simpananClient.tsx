@@ -13,11 +13,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { listSavingsTransactions, verifySavingsDeposit, approveSavingsWithdrawal } from "@/services/api";
 import { SavingsDepositDialog } from "@/components/feature/koperasi/savings/savings-deposit-dialog";
 import { SavingsWithdrawDialog } from "@/components/feature/koperasi/savings/savings-withdraw-dialog";
 import { toast } from "sonner";
+import AsyncCombobox from "@/components/ui/async-combobox";
+import { listMembers } from "@/services/api";
+import type { MemberListItem } from "@/types/api";
 
 export default function SimpananClient() {
   const [memberId, setMemberId] = useState<string>("");
@@ -109,9 +112,34 @@ export default function SimpananClient() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Masukkan ID anggota..." className="pl-10" value={memberId} onChange={(e) => setMemberId(e.target.value)} />
+            <div className="flex-1">
+              <AsyncCombobox<MemberListItem, number>
+                value={memberId ? Number(memberId) : null}
+                onChange={(val) => setMemberId(val ? String(val) : "")}
+                getOptionValue={(m) => m.id}
+                getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+                queryKey={["members", "search-savings-list"]}
+                fetchPage={async ({ search, pageParam }) => {
+                  const params: Record<string, string | number> = { limit: 10 };
+                  if (pageParam) params.cursor = pageParam;
+                  if (search) params.q = search;
+                  const res = await listMembers(params);
+                  const items = (res?.data ?? []) as unknown as MemberListItem[];
+                  const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                  return { items, nextPage };
+                }}
+                placeholder="Cari anggota (nama/email/no. anggota)"
+                emptyText="Tidak ada anggota"
+                notReadyText="Ketik untuk mencari"
+                minChars={1}
+                renderOption={(m) => (
+                  <div className="flex flex-col">
+                    <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
+                    <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                  </div>
+                )}
+                renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
+              />
             </div>
             <Button variant="outline" onClick={load} disabled={!memberId || loading}>{loading ? "Memuat..." : "Muat"}</Button>
           </div>
@@ -180,7 +208,7 @@ export default function SimpananClient() {
               </div>
             ))}
             {!rows.length && (
-              <div className="text-sm text-muted-foreground italic">Masukkan ID anggota untuk melihat riwayat.</div>
+              <div className="text-sm text-muted-foreground italic">Pilih anggota untuk melihat riwayat.</div>
             )}
           </div>
         </CardContent>
@@ -188,4 +216,3 @@ export default function SimpananClient() {
     </div>
   );
 }
-

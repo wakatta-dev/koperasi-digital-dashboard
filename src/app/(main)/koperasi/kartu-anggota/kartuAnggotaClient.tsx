@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createMemberCard, getMember } from "@/services/api";
+import AsyncCombobox from "@/components/ui/async-combobox";
+import { listMembers } from "@/services/api";
+import type { MemberListItem } from "@/types/api";
 
 export default function KartuAnggotaClient() {
   const [memberId, setMemberId] = useState<string>("");
@@ -107,7 +110,33 @@ export default function KartuAnggotaClient() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-            <Input placeholder="ID Anggota" value={memberId} onChange={(e) => setMemberId(e.target.value)} />
+            <AsyncCombobox<MemberListItem, number>
+              value={memberId ? Number(memberId) : null}
+              onChange={(val, item) => { setMemberId(val ? String(val) : ""); if (item && (item as any).user?.full_name) setName((item as any).user.full_name); }}
+              getOptionValue={(m) => m.id}
+              getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+              queryKey={["members", "search-member-card"]}
+              fetchPage={async ({ search, pageParam }) => {
+                const params: Record<string, string | number> = { limit: 10 };
+                if (pageParam) params.cursor = pageParam;
+                if (search) params.q = search;
+                const res = await listMembers(params);
+                const items = (res?.data ?? []) as unknown as MemberListItem[];
+                const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                return { items, nextPage };
+              }}
+              placeholder="Cari anggota (nama/email/no. anggota)"
+              emptyText="Tidak ada anggota"
+              notReadyText="Ketik untuk mencari"
+              minChars={1}
+              renderOption={(m) => (
+                <div className="flex flex-col">
+                  <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
+                  <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                </div>
+              )}
+              renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
+            />
             <Input placeholder="Nama Lengkap" value={name} onChange={(e) => setName(e.target.value)} />
             <Button type="button" variant="outline" onClick={onGenerate}>Buat QR</Button>
           </div>
@@ -131,4 +160,3 @@ export default function KartuAnggotaClient() {
     </div>
   );
 }
-

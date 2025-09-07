@@ -20,7 +20,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - GET `/reports/financial?start_date=..&end_date=..&group_by=..` (vendor) → 200 `APIResponse<FinancialReport>`
 - GET `/reports/usage?tenant=..&module=..` (vendor) → 200 `APIResponse<UsageReport>`
 - POST `/reports/export` (vendor) → 200 file
-- GET `/reports/exports?limit=..&cursor=..` (vendor) → 200 `APIResponse<ReportExport[]>`
+- GET `/reports/exports?cursor=..&limit=..&term=..&report_type=..&start_date=..&end_date=..` (vendor, limit default 10) → 200 `APIResponse<ReportExport[]>`
 
 ## Skema Data Ringkas
 
@@ -38,6 +38,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 - Query umum tenant: `tenant_id` (number), `start?` (`YYYY-MM-DD`), `end?` (`YYYY-MM-DD`), `group_by?` (`day|week|month|year`), `category?` (string)
 - Vendor export: body `{ report_type: string, format?: 'pdf'|'xlsx', params: object }`
+- Vendor export list: query `cursor?`, `limit?` (default 10), `term?`, `report_type?`, `start_date?` (`YYYY-MM-DD`), `end_date?` (`YYYY-MM-DD`)
 
 ## Bentuk Response
 

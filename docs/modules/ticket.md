@@ -12,11 +12,11 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 ## Ringkasan Endpoint
 
 - POST `/tickets` — buat tiket → 201 `APIResponse<Ticket>`
-- GET `/tickets?limit=..&cursor=..` — daftar tiket → 200 `APIResponse<Ticket[]>`
+- GET `/tickets?term=&status=&priority=&category=&member_id=&limit=&cursor=` — daftar tiket → 200 `APIResponse<Ticket[]>`
 - GET `/tickets/:id` — detail tiket → 200 `APIResponse<Ticket>`
 - POST `/tickets/:id/replies` — tambah balasan → 201 `APIResponse<TicketReply>`
 - PATCH `/tickets/:id` — ubah status/penugasan → 200 `APIResponse<Ticket>`
-- GET `/tickets/:id/activities` — aktivitas tiket → 200 `APIResponse<TicketActivityLog[]>`
+- GET `/tickets/:id/activities?term=&limit=&cursor=` — aktivitas tiket → 200 `APIResponse<TicketActivityLog[]>`
 - GET `/vendor/tickets/:id/replies?limit=..&cursor=..` — vendor: list balasan → 200 `APIResponse<TicketReply[]>`
 - POST `/vendor/tickets/sla` — vendor: set SLA → 200 `APIResponse<null>`
 - GET `/vendor/tickets/sla` — vendor: list SLA → 200 `APIResponse<TicketCategorySLA[]>`
@@ -144,7 +144,7 @@ export type ListSLAResponse = APIResponse<TicketCategorySLA[]>;
 
 ## Paginasi (Cursor)
 
-- Endpoint list (`GET /tickets`, `GET /vendor/tickets/:id/replies`) menggunakan cursor dengan `limit` wajib.
+- Endpoint list (`GET /tickets`, `GET /tickets/:id/activities`, `GET /vendor/tickets/:id/replies`) menggunakan cursor dengan `limit` opsional (default 10).
 - Baca `meta.pagination.next_cursor` untuk memuat data berikutnya bila `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani
@@ -156,7 +156,7 @@ export type ListSLAResponse = APIResponse<TicketCategorySLA[]>;
 ## Checklist Integrasi FE
 
 - Selalu kirim `Authorization` dan `X-Tenant-ID`.
-- Implementasikan filter (status/priority/category/member_id) saat listing.
+- Implementasikan filter (term/status/priority/category/member_id) saat listing.
 - Tampilkan progres SLA (escalation_level) bila relevan.
 
 Tautan teknis (opsional): implementasi ada di `internal/modules/support/ticket/*.go` bila diperlukan detail lebih lanjut.

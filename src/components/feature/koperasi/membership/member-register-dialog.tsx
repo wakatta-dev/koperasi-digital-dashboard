@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { registerMember } from "@/services/api";
+import AsyncCombobox from "@/components/ui/async-combobox";
+import type { User } from "@/types/api";
+import { listUsers } from "@/services/api";
 
 const schema = z.object({
   user_id: z.coerce.number().int().positive(),
@@ -25,7 +28,7 @@ export function MemberRegisterDialog() {
   const [open, setOpen] = useState(false);
   const form = useForm<FormInput, any, FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { user_id: 0, no_anggota: "", initial_deposit: undefined } as Partial<FormInput>,
+    defaultValues: { user_id: undefined as any, no_anggota: "", initial_deposit: undefined } as Partial<FormInput>,
   });
 
   async function onSubmit(values: FormValues) {
@@ -57,9 +60,44 @@ export function MemberRegisterDialog() {
               name="user_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User ID</FormLabel>
+                  <FormLabel>Pengguna</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="User ID" {...field} value={field.value as any} />
+                    <AsyncCombobox<User, number>
+                      value={(field.value as any) ?? null}
+                      onChange={(val) => field.onChange(val as any)}
+                      getOptionValue={(u) => u.id}
+                      getOptionLabel={(u) => u.full_name || u.email || String(u.id)}
+                      queryKey={["users", "search-membership"]}
+                      fetchPage={async ({ search, pageParam }) => {
+                        const params: Record<string, string | number> = { limit: 10 };
+                        if (pageParam) params.cursor = pageParam;
+                        if (search) params.q = search;
+                        const res = await listUsers(params);
+                        const items = (res?.data ?? []) as unknown as User[];
+                        const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
+                        return { items, nextPage };
+                      }}
+                      placeholder="Cari pengguna (nama/email)"
+                      emptyText="Tidak ada pengguna"
+                      notReadyText="Ketik untuk mencari"
+                      minChars={1}
+                      renderOption={(u) => (
+                        <div className="flex flex-col">
+                          <span className="font-medium">{u.full_name || "(tanpa nama)"}</span>
+                          <span className="text-xs text-muted-foreground">{u.email}</span>
+                        </div>
+                      )}
+                      renderValue={(val) => (
+                        <span>
+                          {(() => {
+                            const v = Number(val);
+                            if (!v) return "";
+                            // Best-effort fallback when label cache is empty
+                            return `User #${v}`;
+                          })()}
+                        </span>
+                      )}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
