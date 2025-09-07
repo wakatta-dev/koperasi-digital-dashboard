@@ -106,7 +106,7 @@ export function SavingsDepositDialog({ memberId, onSuccess }: Props) {
                         fetchPage={async ({ search, pageParam }) => {
                           const params: Record<string, string | number> = { limit: 10 };
                           if (pageParam) params.cursor = pageParam;
-                          if (search) params.q = search;
+                          if (search) params.term = search;
                           const res = await listMembers(params);
                           const items = (res?.data ?? []) as unknown as MemberListItem[];
                           const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;

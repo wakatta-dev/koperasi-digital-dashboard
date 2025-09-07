@@ -49,6 +49,8 @@ export type AsyncComboboxProps<TItem, TValue> = {
   renderOption?: (item: TItem, selected: boolean) => React.ReactNode;
   renderValue?: (value: TValue | null) => React.ReactNode; // fallback render if label unknown
   noBorder?: boolean; // useful if embedding into other inputs
+  // Dev tracing
+  trace?: boolean | string; // true to enable; string to label
 };
 
 export function AsyncCombobox<TItem, TValue extends string | number>(
@@ -74,6 +76,7 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
     renderOption,
     renderValue,
     noBorder,
+    trace,
   } = props;
 
   const [open, setOpen] = React.useState(false);
@@ -84,6 +87,26 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
 
   // Keep a small cache of known labels for selected value rendering
   const labelMapRef = React.useRef(new Map<TValue, string>());
+
+  // Tracing helper
+  const traceLabel = React.useMemo(() => {
+    const base =
+      typeof trace === "string"
+        ? trace
+        : Array.isArray(queryKey)
+        ? queryKey.join(":")
+        : "";
+    const isDev =
+      typeof window !== "undefined" && process.env.NODE_ENV !== "production";
+    return trace ?? isDev ? `[AsyncCombobox${base ? `:${base}` : ""}]` : null;
+  }, [trace, queryKey]);
+  const tlog = React.useCallback(
+    (...args: any[]) => {
+      if (!traceLabel) return;
+      console.debug(traceLabel, ...args);
+    },
+    [traceLabel]
+  );
 
   const query = useInfiniteQuery<
     FetchPageResult<TItem>, // TQueryFnData
@@ -96,15 +119,25 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
     enabled,
     initialPageParam: undefined as string | undefined,
     queryFn: async ({ pageParam, signal }) => {
-      const res = await fetchPage({ search: debounced, pageParam, signal });
-      // Update known labels cache
-      for (const it of res.items) {
-        const v = getOptionValue(it);
-        if (!labelMapRef.current.has(v)) {
-          labelMapRef.current.set(v, getOptionLabel(it));
+      try {
+        tlog("fetch:start", { search: debounced, pageParam });
+        const res = await fetchPage({ search: debounced, pageParam, signal });
+        // Update known labels cache
+        for (const it of res.items) {
+          const v = getOptionValue(it);
+          if (!labelMapRef.current.has(v)) {
+            labelMapRef.current.set(v, getOptionLabel(it));
+          }
         }
+        tlog("fetch:success", {
+          count: res.items.length,
+          next: res.nextPage ?? null,
+        });
+        return res;
+      } catch (e) {
+        tlog("fetch:error", e);
+        throw e;
       }
-      return res;
     },
     getNextPageParam: (lastPage) => {
       if (getNextPageParam) return getNextPageParam(lastPage) ?? undefined;
@@ -126,12 +159,13 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
         query.hasNextPage &&
         !query.isFetchingNextPage
       ) {
+        tlog("infinite:next-page");
         query.fetchNextPage();
       }
     });
     io.observe(el);
     return () => io.disconnect();
-  }, [open, query]);
+  }, [open, query, tlog]);
 
   const items = React.useMemo<TItem[]>(() => {
     return query.data?.pages.flatMap((p) => p.items as TItem[]) ?? [];
@@ -146,6 +180,16 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
     if (found) return getOptionLabel(found);
     return "";
   }, [value, items, getOptionLabel, getOptionValue]);
+
+  // Trace input/open changes
+  React.useEffect(() => {
+    tlog("state:open", open);
+  }, [open, tlog]);
+  React.useEffect(() => {
+    if (!open) return;
+    tlog("state:input", input, "debounced:", debounced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input, debounced, open]);
 
   // Keyboard nav
   const [highlightIndex, setHighlightIndex] = React.useState<number>(-1);
@@ -168,15 +212,17 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
     (item: TItem | null) => {
       if (!item) {
         onChange(null, null);
+        tlog("select:clear");
         return;
       }
       const v = getOptionValue(item);
       const lbl = getOptionLabel(item);
       labelMapRef.current.set(v, lbl);
       onChange(v, item);
+      tlog("select:item", { value: v, label: lbl });
       setOpen(false);
     },
-    [getOptionLabel, getOptionValue, onChange]
+    [getOptionLabel, getOptionValue, onChange, tlog]
   );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
