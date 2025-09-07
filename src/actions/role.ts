@@ -43,7 +43,7 @@ export type AssignRoleActionResult = Awaited<
 >;
 
 export async function createRoleAction(
-  payload: Partial<Role>,
+  payload: { name: string; description: string },
 ): Promise<Role | null> {
   try {
     const res = await createRole(payload);
@@ -106,7 +106,7 @@ export type ListRolePermissionsActionResult = Awaited<
 export async function addRolePermissionAction(
   id: string | number,
   payload: { obj: string; act: string },
-): Promise<Permission | null> {
+): Promise<{ obj: string; act: string } | null> {
   try {
     const res = await addRolePermission(id, payload);
     return ensureSuccess(res);

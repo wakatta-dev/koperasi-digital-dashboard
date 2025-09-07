@@ -16,7 +16,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - PUT `/roles/:id` — ubah role → 200 `APIResponse<Role>`
 - DELETE `/roles/:id` — hapus/lepaskan role dari tenant → 200 `APIResponse<{ id: number }>`
 - POST `/roles/tenants` — vendor: kaitkan role ke tenant → 201 `APIResponse<TenantRole>`
-- GET `/roles/:id/permissions?cursor=..&term=..&permission=..` — daftar policy (default `limit=10`) → 200 `APIResponse<CasbinRule[]>`
+- GET `/roles/:id/permissions?cursor=..&term=..&permission=..` — daftar policy (default `limit=10`) → 200 `APIResponse<Permission[]>`
 - POST `/roles/:id/permissions` — tambah policy → 201 `APIResponse<{ obj: string; act: string }>`
 - DELETE `/roles/:id/permissions/:pid` — hapus policy → 200 `APIResponse<{ id: number }>`
 - GET `/users/:id/roles?cursor=..&term=..&role=..&permission=..` — daftar role user (default `limit=10`) → 200 `APIResponse<RoleUser[]>`
@@ -28,7 +28,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - Role: `id`, `name`, `jenis_tenant`, `description`, `created_at`, `updated_at`
 - TenantRole: `id`, `tenant_id`, `role_id`, preload `role`
 - RoleUser: `id`, `user_id`, `role_id`, `tenant_id`, preload `role`
-- CasbinRule: `id`, `p_type`, `v0..v5`
+- Permission: `id`, `role`, `domain`, `object`, `action`, `permission`, `label`
 
 ## Payload Utama
 
@@ -110,15 +110,14 @@ export interface RoleUser {
   role?: Role;
 }
 
-export interface CasbinRule {
+export interface Permission {
   id: number;
-  p_type: string;
-  v0?: string;
-  v1?: string;
-  v2?: string;
-  v3?: string;
-  v4?: string;
-  v5?: string;
+  role: string;      // role name (v0)
+  domain: string;    // tenant_type (v1)
+  object: string;    // resource (v2)
+  action: string;    // verb (v3)
+  permission: string; // "object:action" convenience
+  label: string;     // human-friendly summary
 }
 
 // Requests
@@ -134,7 +133,7 @@ export type CreateRoleResponse = APIResponse<Role>;
 export type UpdateRoleResponse = APIResponse<Role>;
 export type DeleteRoleResponse = APIResponse<{ id: number }>;
 export type AssignRoleToTenantResponse = APIResponse<TenantRole>;
-export type ListPermissionsResponse = APIResponse<CasbinRule[]>;
+export type ListPermissionsResponse = APIResponse<Permission[]>;
 export type AddPermissionResponse = APIResponse<{ obj: string; act: string }>;
 export type DeletePermissionResponse = APIResponse<{ id: number }>;
 export type ListUserRolesResponse = APIResponse<RoleUser[]>;

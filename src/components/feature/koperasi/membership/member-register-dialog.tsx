@@ -14,6 +14,7 @@ import { registerMember } from "@/services/api";
 import AsyncCombobox from "@/components/ui/async-combobox";
 import type { User } from "@/types/api";
 import { listUsers } from "@/services/api";
+import { makePaginatedListFetcher } from "@/lib/async-fetchers";
 
 const schema = z.object({
   user_id: z.coerce.number().int().positive(),
@@ -68,15 +69,7 @@ export function MemberRegisterDialog() {
                       getOptionValue={(u) => u.id}
                       getOptionLabel={(u) => u.full_name || u.email || String(u.id)}
                       queryKey={["users", "search-membership"]}
-                      fetchPage={async ({ search, pageParam }) => {
-                        const params: Record<string, string | number> = { limit: 10 };
-                        if (pageParam) params.cursor = pageParam;
-                        if (search) params.term = search;
-                        const res = await listUsers(params);
-                        const items = (res?.data ?? []) as unknown as User[];
-                        const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
-                        return { items, nextPage };
-                      }}
+                      fetchPage={makePaginatedListFetcher<User>(listUsers, { limit: 10 })}
                       placeholder="Cari pengguna (nama/email)"
                       emptyText="Tidak ada pengguna"
                       notReadyText="Ketik untuk mencari"

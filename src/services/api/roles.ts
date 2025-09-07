@@ -7,8 +7,11 @@ import type {
   Role,
   UserRole,
   TenantRole,
+  CreateRoleRequest,
+  UpdateRoleRequest,
+  AddPermissionResponse,
 } from "@/types/api";
-import { api, API_PREFIX } from "./base";
+import { api, API_PREFIX, getTenantId } from "./base";
 
 export function listRoles(
   params?: { limit: number; cursor?: string },
@@ -23,7 +26,7 @@ export function listRoles(
 }
 
 export function createRole(
-  payload: Partial<Role>,
+  payload: CreateRoleRequest,
 ): Promise<ApiResponse<Role>> {
   return api.post<Role>(
     `${API_PREFIX}${API_ENDPOINTS.roles.list}`,
@@ -49,7 +52,7 @@ export function deleteRole(
   );
 }
 
-export function listRolePermissions(
+export async function listRolePermissions(
   id: string | number,
   params?: { limit: number; cursor?: string },
 ): Promise<ApiResponse<Permission[]>> {
@@ -63,16 +66,40 @@ export function listRolePermissions(
     if (final.cursor) search.set("cursor", final.cursor);
     query = `?${search.toString()}`;
   }
-  return api.get<Permission[]>(
+  const res = await api.get<any>(
     `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}${query}`,
   );
+  // Normalize permission shape according to docs while preserving obj/act
+  if (res?.success && Array.isArray(res.data)) {
+    const mapped: Permission[] = (res.data as any[]).map((p: any) => {
+      const obj = p.object ?? p.obj ?? p.v2 ?? "";
+      const act = p.action ?? p.act ?? p.v3 ?? "";
+      const role = p.role ?? p.v0;
+      const domain = p.domain ?? p.v1;
+      const permission = p.permission ?? (obj && act ? `${obj}:${act}` : "");
+      const label = p.label ?? (permission || "");
+      return {
+        id: Number(p.id ?? 0),
+        role,
+        domain,
+        object: obj,
+        action: act,
+        permission,
+        label,
+        obj,
+        act,
+      } as Permission;
+    });
+    return { ...res, data: mapped } as ApiResponse<Permission[]>;
+  }
+  return res as ApiResponse<Permission[]>;
 }
 
 export function addRolePermission(
   id: string | number,
   payload: { obj: string; act: string },
-): Promise<ApiResponse<Permission>> {
-  return api.post<Permission>(
+): Promise<AddPermissionResponse> {
+  return api.post<{ obj: string; act: string }>(
     `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}`,
     payload,
   );
@@ -87,13 +114,19 @@ export function deleteRolePermission(
   );
 }
 
-export function assignRole(
+export async function assignRole(
   userId: string | number,
   payload: { role_id: string | number; tenant_id?: string | number },
 ): Promise<ApiResponse<{ user_id: number; role_id: number }>> {
+  // Ensure tenant_id is sent per docs
+  let final = { ...payload } as { role_id: string | number; tenant_id?: string | number };
+  if (typeof final.tenant_id === "undefined") {
+    const tenantId = await getTenantId();
+    if (tenantId) final.tenant_id = tenantId as any;
+  }
   return api.post<{ user_id: number; role_id: number }>(
     `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
-    payload,
+    final,
   );
 }
 

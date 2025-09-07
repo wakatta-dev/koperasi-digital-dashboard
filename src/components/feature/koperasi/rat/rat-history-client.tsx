@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { RATDocument } from "@/types/api";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
+import { makePaginatedListFetcher, type FetchPageResult } from "@/lib/async-fetchers";
 
 type Props = {
   initialData?: RAT[];
@@ -27,30 +29,36 @@ function formatDateTime(value?: string) {
 }
 
 export function RATHistoryClient({ initialData = [], initialCursor, limit = 10 }: Props) {
-  const [items, setItems] = useState<RAT[]>(initialData);
-  const [cursor, setCursor] = useState<string | undefined>(initialCursor);
-  const [loading, setLoading] = useState(false);
+  const fetchPage = useMemo(
+    () => makePaginatedListFetcher<RAT>(listRATHistory, { limit, searchKey: null }),
+    [limit]
+  );
+  const query = useInfiniteQuery<
+    FetchPageResult<RAT>,
+    Error,
+    InfiniteData<FetchPageResult<RAT>, string | undefined>,
+    any,
+    string | undefined
+  >({
+    queryKey: ["rat", "history", { limit }],
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam, signal }) => fetchPage({ search: "", pageParam, signal }),
+    getNextPageParam: (last) => last?.nextPage ?? undefined,
+    ...(initialData?.length
+      ? {
+          initialData: {
+            pages: [{ items: initialData, nextPage: initialCursor ?? null }],
+            pageParams: [undefined as string | undefined],
+          },
+        }
+      : {}),
+    staleTime: 30_000,
+  });
   const [active, setActive] = useState<RAT | null>(null);
   const [docs, setDocs] = useState<RATDocument[] | null>(null);
   const [docsLoading, setDocsLoading] = useState(false);
 
-  const hasMore = useMemo(() => !!cursor, [cursor]);
-
-  async function loadMore() {
-    if (!cursor) return;
-    setLoading(true);
-    try {
-      const res = await listRATHistory({ limit, cursor }).catch(() => null);
-      if (res && res.success) {
-        const nextItems = (res.data as RAT[]) ?? [];
-        setItems((prev) => [...prev, ...nextItems]);
-        const nextCursor = (res as any)?.meta?.pagination?.next_cursor as string | undefined;
-        setCursor(nextCursor);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+  const items = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
 
   useEffect(() => {
     async function fetchDocs() {
@@ -98,8 +106,8 @@ export function RATHistoryClient({ initialData = [], initialCursor, limit = 10 }
       )}
 
       <div className="flex items-center gap-2 mt-2">
-        <Button type="button" variant="outline" disabled={!hasMore || loading} onClick={loadMore}>
-          {loading ? "Memuat..." : hasMore ? "Muat lagi" : "Tidak ada data lagi"}
+        <Button type="button" variant="outline" disabled={!query.hasNextPage || query.isFetchingNextPage} onClick={() => query.fetchNextPage()}>
+          {query.isFetchingNextPage ? "Memuat..." : query.hasNextPage ? "Muat lagi" : "Tidak ada data lagi"}
         </Button>
       </div>
 

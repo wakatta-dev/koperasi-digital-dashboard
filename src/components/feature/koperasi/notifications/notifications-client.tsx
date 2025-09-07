@@ -2,50 +2,59 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NotificationRow } from "./notification-row";
 import { listNotifications, updateNotificationStatus } from "@/services/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { useInfiniteQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { makePaginatedListFetcher, type FetchPageResult } from "@/lib/async-fetchers";
 
 export function NotificationsClient({ initialItems = [], initialCursor, initialHasNext }: { initialItems?: any[]; initialCursor?: string; initialHasNext?: boolean; }) {
-  const [items, setItems] = useState<any[]>(initialItems || []);
-  const [cursor, setCursor] = useState<string | undefined>(initialCursor);
-  const [hasNext, setHasNext] = useState<boolean>(!!initialHasNext);
-  const [loading, setLoading] = useState<boolean>(false);
   const [type, setType] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
 
-  async function loadMore(initial = false) {
-    setLoading(true);
-    try {
-      const params: Record<string, any> = { limit: 20 };
-      if (!initial && cursor) params.cursor = cursor;
-      if (type) params.type = type;
-      if (status) params.status = status;
-      if (from) params.from = from;
-      if (to) params.to = to;
-      const res = await listNotifications(params);
-      if (res.success) {
-        const next = res.meta?.pagination?.next_cursor;
-        setCursor(next);
-        setHasNext(!!res.meta?.pagination?.has_next);
-        setItems((s) => (initial ? (res.data as any[]) : [...s, ...(res.data as any[])]));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Apply filters only when clicking Filter/Reset
+  const [applied, setApplied] = useState<{ type?: string; status?: string; from?: string; to?: string }>({});
 
-  useEffect(() => {
-    if (!items.length) {
-      loadMore(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const baseParams = useMemo(() => {
+    const p: Record<string, string> = {};
+    if (applied.type) p.type = applied.type;
+    if (applied.status) p.status = applied.status;
+    if (applied.from) p.from = applied.from;
+    if (applied.to) p.to = applied.to;
+    return p;
+  }, [applied]);
+
+  const fetchPage = useMemo(
+    () => makePaginatedListFetcher<any>(listNotifications, { limit: 20, baseParams, searchKey: null }),
+    [baseParams]
+  );
+
+  const query = useInfiniteQuery<
+    FetchPageResult<any>,
+    Error,
+    InfiniteData<FetchPageResult<any>, string | undefined>,
+    any,
+    string | undefined
+  >({
+    queryKey: ["koperasi", "notifications", baseParams],
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam, signal }) => fetchPage({ search: "", pageParam, signal }),
+    getNextPageParam: (last) => last?.nextPage ?? undefined,
+    ...(initialItems?.length
+      ? {
+          initialData: {
+            pages: [{ items: initialItems, nextPage: initialCursor ?? null }],
+            pageParams: [undefined as string | undefined],
+          },
+        }
+      : {}),
+    staleTime: 30_000,
+  });
 
   return (
     <div className="space-y-3">
@@ -86,11 +95,11 @@ export function NotificationsClient({ initialItems = [], initialCursor, initialH
           triggerClassName="w-full"
         />
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => { setCursor(undefined); loadMore(true); }} disabled={loading}>Filter</Button>
-          <Button variant="ghost" onClick={() => { setType(""); setStatus(""); setFrom(""); setTo(""); setCursor(undefined); loadMore(true); }} disabled={loading}>Reset</Button>
+          <Button variant="outline" onClick={() => setApplied({ type: type || undefined, status: status || undefined, from: from || undefined, to: to || undefined })} disabled={query.isFetching}>Filter</Button>
+          <Button variant="ghost" onClick={() => { setType(""); setStatus(""); setFrom(""); setTo(""); setApplied({}); }} disabled={query.isFetching}>Reset</Button>
         </div>
       </div>
-      {items.map((n) => (
+      {(query.data?.pages.flatMap((p) => p.items) ?? []).map((n) => (
         <NotificationRow
           key={String(n.id ?? Math.random())}
           item={n}
@@ -100,8 +109,8 @@ export function NotificationsClient({ initialItems = [], initialCursor, initialH
         />
       ))}
       <div className="flex justify-center pt-2">
-        <Button variant="outline" onClick={() => loadMore(false)} disabled={loading || !hasNext}>
-          {loading ? "Memuat..." : hasNext ? "Muat Lagi" : "Tidak ada data lagi"}
+        <Button variant="outline" onClick={() => query.fetchNextPage()} disabled={query.isFetchingNextPage || !query.hasNextPage}>
+          {query.isFetchingNextPage ? "Memuat..." : query.hasNextPage ? "Muat Lagi" : "Tidak ada data lagi"}
         </Button>
       </div>
     </div>

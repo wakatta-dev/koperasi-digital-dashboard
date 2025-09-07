@@ -79,6 +79,12 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
     trace,
   } = props;
 
+  // Keep fetchPage latest in a ref to avoid stale closures
+  const fetchPageRef = React.useRef(props.fetchPage);
+  React.useEffect(() => {
+    fetchPageRef.current = props.fetchPage;
+  }, [props.fetchPage]);
+
   const [open, setOpen] = React.useState(false);
   const [input, setInput] = React.useState("");
   const debounced = useDebouncedValue(input, debounceMs);
@@ -121,7 +127,9 @@ export function AsyncCombobox<TItem, TValue extends string | number>(
     queryFn: async ({ pageParam, signal }) => {
       try {
         tlog("fetch:start", { search: debounced, pageParam });
-        const res = await fetchPage({ search: debounced, pageParam, signal });
+        // Use ref to avoid re-creating function identity issues
+        const fetchRef = (fetchPageRef.current ?? fetchPage) as typeof fetchPage;
+        const res = await fetchRef({ search: debounced, pageParam, signal });
         // Update known labels cache
         for (const it of res.items) {
           const v = getOptionValue(it);

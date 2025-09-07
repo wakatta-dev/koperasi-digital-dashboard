@@ -44,7 +44,11 @@ export function validateMemberCard(qr: string): Promise<ApiResponse<any>> {
 
 export function listMembers(
   params?: Record<string, string | number>,
+  opts?: { signal?: AbortSignal },
 ): Promise<ApiResponse<MemberListItem[]>> {
   const query = params ? `?${new URLSearchParams(params as any).toString()}` : "";
-  return api.get<MemberListItem[]>(`${API_PREFIX}${API_ENDPOINTS.membership.list}${query}`);
+  return api.get<MemberListItem[]>(
+    `${API_PREFIX}${API_ENDPOINTS.membership.list}${query}`,
+    { signal: opts?.signal },
+  );
 }

@@ -50,6 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useDebouncedValue } from "@/hooks/use-debounce";
 
 type Props = {
   initialData?: Invoice[];
@@ -61,13 +62,16 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
   const [previewDetail, setPreviewDetail] = useState<Invoice | null>(null);
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [periode, setPeriode] = useState<string | undefined>(undefined);
+  const [search, setSearch] = useState<string>("");
+  const debounced = useDebouncedValue(search, 300);
   const params = useMemo(
     () => ({
       limit: 10,
       ...(status ? { status } : {}),
       ...(periode ? { periode } : {}),
+      ...(debounced ? { term: debounced } : {}),
     }),
-    [status, periode]
+    [status, periode, debounced]
   );
   const {
     data: invoices,
@@ -176,6 +180,8 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                       id="search"
                       placeholder="Cari nomor/tenant (opsional)"
                       className="pl-10"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
                 </div>

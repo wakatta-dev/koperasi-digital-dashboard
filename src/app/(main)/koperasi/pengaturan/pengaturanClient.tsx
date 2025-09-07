@@ -31,6 +31,7 @@ import {
 import AsyncCombobox from "@/components/ui/async-combobox";
 import type { User } from "@/types/api";
 import { listUsers } from "@/services/api";
+import { makePaginatedListFetcher } from "@/lib/async-fetchers";
 import { toast } from "sonner";
 
 export default function PengaturanClient({
@@ -50,7 +51,7 @@ export default function PengaturanClient({
     initialPermissions || []
   );
   const [audit, setAudit] = useState<any[]>([]);
-  const [newRole, setNewRole] = useState<string>("");
+  const [newRole, setNewRole] = useState<{ name: string; description: string }>({ name: "", description: "" });
   const [assign, setAssign] = useState<{ user?: string; role?: string }>({});
   const [permObj, setPermObj] = useState<string>("");
   const [permAct, setPermAct] = useState<string>("");
@@ -86,17 +87,22 @@ export default function PengaturanClient({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <Input
                   placeholder="Nama role"
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
+                  value={newRole.name}
+                  onChange={(e) => setNewRole((s) => ({ ...s, name: e.target.value }))}
+                />
+                <Input
+                  placeholder="Deskripsi role"
+                  value={newRole.description}
+                  onChange={(e) => setNewRole((s) => ({ ...s, description: e.target.value }))}
                 />
                 <Button
                   onClick={async () => {
-                    if (!newRole) return;
+                    if (!newRole.name?.trim() || !newRole.description?.trim()) return;
                     try {
-                      const res = await createRole({ name: newRole });
+                      const res = await createRole({ name: newRole.name, description: newRole.description });
                       if (res.success) {
                         toast.success("Role ditambahkan");
                         const list = await listRoles({ limit: 100 });
@@ -107,7 +113,7 @@ export default function PengaturanClient({
                         }
                       }
                     } finally {
-                      setNewRole("");
+                      setNewRole({ name: "", description: "" });
                     }
                   }}
                 >
@@ -234,16 +240,7 @@ export default function PengaturanClient({
                 getOptionValue={(u) => u.id}
                 getOptionLabel={(u) => u.full_name || u.email || String(u.id)}
                 queryKey={["users", "search-assign-role"]}
-                fetchPage={async ({ search, pageParam }) => {
-                  const params: Record<string, string | number> = { limit: 10 };
-                  if (pageParam) params.cursor = pageParam;
-                  if (search) params.term = search;
-                  const res = await listUsers(params);
-                  const items = (res?.data ?? []) as unknown as User[];
-                  const nextPage = (res?.meta as any)?.pagination
-                    ?.next_cursor as string | undefined;
-                  return { items, nextPage };
-                }}
+                fetchPage={makePaginatedListFetcher<User>(listUsers, { limit: 10 })}
                 placeholder="Cari pengguna (nama/email)"
                 emptyText="Tidak ada pengguna"
                 notReadyText="Ketik untuk mencari"

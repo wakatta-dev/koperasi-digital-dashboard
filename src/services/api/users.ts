@@ -6,12 +6,14 @@ import { api, API_PREFIX } from "./base";
 
 export function listUsers(
   params?: Record<string, string | number>,
+  opts?: { signal?: AbortSignal },
 ): Promise<ApiResponse<User[]>> {
   const query = params
     ? `?${new URLSearchParams(params as any).toString()}`
     : "";
   return api.get<User[]>(
     `${API_PREFIX}${API_ENDPOINTS.users.list}${query}`,
+    { signal: opts?.signal },
   );
 }
 

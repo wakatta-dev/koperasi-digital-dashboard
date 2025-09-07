@@ -71,14 +71,17 @@ export function getRATVotingResult(
   return api.get<VotingResult>(`${API_PREFIX}${API_ENDPOINTS.rat.result(itemId)}`);
 }
 
-export function listRATHistory(params?: {
-  limit?: number;
-  cursor?: string;
-}): Promise<RATHistoryResponse> {
+export function listRATHistory(
+  params?: {
+    limit?: number;
+    cursor?: string;
+  },
+  opts?: { signal?: AbortSignal },
+): Promise<RATHistoryResponse> {
   const search = new URLSearchParams();
   if (params?.limit) search.set("limit", String(params.limit));
   if (params?.cursor) search.set("cursor", params.cursor);
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.rat.history}`;
-  return api.get<RAT[]>(q ? `${base}?${q}` : base);
+  return api.get<RAT[]>(q ? `${base}?${q}` : base, { signal: opts?.signal });
 }

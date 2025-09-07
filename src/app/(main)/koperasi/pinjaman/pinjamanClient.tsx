@@ -16,6 +16,7 @@ import { CreditCard, Search, CheckCircle } from "lucide-react";
 import { applyLoan, approveLoan, disburseLoan, listLoanInstallments, payLoanInstallment } from "@/services/api";
 import AsyncCombobox from "@/components/ui/async-combobox";
 import { listMembers } from "@/services/api";
+import { makePaginatedListFetcher } from "@/lib/async-fetchers";
 import type { MemberListItem } from "@/types/api";
 
 export default function PinjamanClient() {
@@ -82,15 +83,7 @@ export default function PinjamanClient() {
               getOptionValue={(m) => m.id}
               getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
               queryKey={["members", "search-loan-apply"]}
-              fetchPage={async ({ search, pageParam }) => {
-                const params: Record<string, string | number> = { limit: 10 };
-                if (pageParam) params.cursor = pageParam;
-                if (search) params.term = search;
-                const res = await listMembers(params);
-                const items = (res?.data ?? []) as unknown as MemberListItem[];
-                const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
-                return { items, nextPage };
-              }}
+              fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 })}
               placeholder="Cari anggota (nama/email/no. anggota)"
               emptyText="Tidak ada anggota"
               notReadyText="Ketik untuk mencari"

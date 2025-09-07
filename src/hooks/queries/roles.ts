@@ -47,7 +47,7 @@ export function useRoleActions() {
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: async (payload: Partial<Role>) => ensureSuccess(await createRole(payload)),
+    mutationFn: async (payload: { name: string; description: string }) => ensureSuccess(await createRole(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.roles.all });
       toast.success("Role dibuat");

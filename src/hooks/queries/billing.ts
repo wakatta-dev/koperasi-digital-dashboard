@@ -42,6 +42,7 @@ import {
   listVendorAudits,
 } from "@/services/api";
 import { toast } from "sonner";
+import { makePaginatedListFetcher } from "@/lib/async-fetchers";
 
 export function useVendorPlans(
   params: { limit: number; cursor?: string },
@@ -86,24 +87,25 @@ export function useVendorInvoices(
 }
 
 export function useInfiniteVendorInvoices(
-  params?: { limit?: number; status?: string; periode?: string },
+  params?: { limit?: number; status?: string; periode?: string; term?: string },
   initial?: { initialData?: Invoice[]; initialCursor?: string },
   options?: { refetchInterval?: number }
 ) {
   const baseParams = params ?? {};
+  const fetchPage = makePaginatedListFetcher<Invoice>(listVendorInvoices, {
+    limit: baseParams.limit ?? 10,
+    baseParams: {
+      ...(baseParams.status ? { status: baseParams.status } : {}),
+      ...(baseParams.periode ? { periode: baseParams.periode } : {}),
+    },
+    searchKey: "term",
+  });
   return useInfiniteQuery({
     queryKey: QK.billing.vendor.invoicesInfinite(baseParams),
     initialPageParam: undefined as string | undefined,
-    queryFn: async ({ pageParam }) => {
-      const res = await listVendorInvoices({
-        ...baseParams,
-        cursor: pageParam,
-      });
-      const items = ensureSuccess(res);
-      const nextCursor = res.meta?.pagination?.next_cursor as
-        | string
-        | undefined;
-      return { items, nextCursor } as { items: Invoice[]; nextCursor?: string };
+    queryFn: async ({ pageParam, signal }) => {
+      const page = await fetchPage({ search: baseParams.term ?? "", pageParam, signal });
+      return { items: page.items, nextCursor: page.nextPage ?? undefined } as { items: Invoice[]; nextCursor?: string };
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     ...(initial?.initialData
@@ -129,7 +131,7 @@ export function useInfiniteVendorInvoices(
 export function useClientInvoices(initialData?: Invoice[] | undefined) {
   return useQuery({
     queryKey: QK.billing.client.invoices(),
-    queryFn: async () => ensureSuccess(await listClientInvoices()),
+    queryFn: async ({ signal }) => ensureSuccess(await listClientInvoices(undefined, { signal })),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -155,9 +157,9 @@ export function useClientInvoiceAudits(
   return useQuery({
     queryKey: QK.billing.client.invoiceAudits(id ?? "", params),
     enabled: !!id,
-    queryFn: async () =>
+    queryFn: async ({ signal }) =>
       ensureSuccess(
-        await listClientInvoiceAudits(id as string | number, params)
+        await listClientInvoiceAudits(id as string | number, params, { signal })
       ),
     ...(initialData ? { initialData } : {}),
   });
@@ -190,7 +192,7 @@ export function useVendorAudits(
   const final = { limit: params?.limit ?? 50, cursor: params?.cursor };
   return useQuery({
     queryKey: QK.billing.vendor.audits(final),
-    queryFn: async () => ensureSuccess(await listVendorAudits(final)),
+    queryFn: async ({ signal }) => ensureSuccess(await listVendorAudits(final, { signal })),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -203,11 +205,11 @@ export function useInfiniteVendorAudits(
   return useInfiniteQuery({
     queryKey: QK.billing.vendor.auditsInfinite(final),
     initialPageParam: undefined as string | undefined,
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam, signal }) => {
       const res = await listVendorAudits({
         limit: final.limit,
         cursor: pageParam,
-      });
+      }, { signal });
       const items = ensureSuccess(res);
       const nextCursor = res.meta?.pagination?.next_cursor as
         | string
@@ -240,7 +242,7 @@ export function useVendorSubscriptions(
 ) {
   return useQuery({
     queryKey: QK.billing.vendor.subscriptions.list(params ?? {}),
-    queryFn: async () => ensureSuccess(await listVendorSubscriptions(params)),
+    queryFn: async ({ signal }) => ensureSuccess(await listVendorSubscriptions(params, { signal })),
     ...(initialData ? { initialData } : {}),
   });
 }

@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,8 @@ import { MemberProfileDialog } from "./member-profile-dialog";
 import { MemberVerifyDialog } from "./member-verify-dialog";
 import type { MemberListItem } from "@/types/api";
 import { MemberCardDialog } from "./member-card-dialog";
+import { makePaginatedListFetcher, type FetchPageResult } from "@/lib/async-fetchers";
+import { useDebouncedValue } from "@/hooks/use-debounce";
 
 export function MembersListClient({
   initialData,
@@ -35,63 +37,54 @@ export function MembersListClient({
   initialData: MemberListItem[];
   initialCursor?: string;
 }) {
-  const [rows, setRows] = useState<MemberListItem[]>(initialData || []);
-  const [cursor, setCursor] = useState<string | undefined>(initialCursor);
-  const [hasNext, setHasNext] = useState<boolean>(!!initialCursor);
-  const [loading, setLoading] = useState(false);
   const [q, setQ] = useState<string>("");
   const [status, setStatus] = useState<string>("all");
+  const debounced = useDebouncedValue(q, 300);
 
-  // React Query: prepare manual fetch for next page based on current cursor
-  const { refetch: fetchNext } = useQuery({
-    queryKey: ["koperasi", "members", { cursor }],
-    enabled: false, // manual fetch when clicking "Muat Lagi"
-    queryFn: async () => listMembers({ limit: 20, cursor: cursor as string }),
-    // keepPreviousData: true, // not needed since we fetch manually
+  const baseParams = useMemo(() => {
+    const p: Record<string, string> = {};
+    if (status && status !== "all") p.status = status;
+    return p;
+  }, [status]);
+
+  const fetchPage = useMemo(
+    () => makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 20, baseParams }),
+    [baseParams]
+  );
+
+  const qc = useQueryClient();
+
+  const query = useInfiniteQuery<
+    FetchPageResult<MemberListItem>,
+    Error,
+    InfiniteData<FetchPageResult<MemberListItem>, string | undefined>,
+    any,
+    string | undefined
+  >({
+    queryKey: ["koperasi", "members", { q: debounced, status }],
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam, signal }) =>
+      fetchPage({ search: debounced, pageParam, signal }),
+    getNextPageParam: (last) => last?.nextPage ?? undefined,
+    // Seed with initial SSR data for default query (q:"", status:"all")
+    ...(initialData
+      ? {
+          initialData: {
+            pages: [
+              { items: (initialData as MemberListItem[]) ?? [], nextPage: initialCursor ?? null },
+            ],
+            pageParams: [undefined as string | undefined],
+          },
+        }
+      : {}),
+    staleTime: 30_000,
+    enabled: true,
   });
 
-  async function loadMore() {
-    if (!cursor) return;
-    setLoading(true);
-    try {
-      const res = await fetchNext();
-      const payload = res.data ?? null;
-      if (payload && payload.success) {
-        setRows((s) => [...s, ...(payload.data as any[])]);
-        const next = (payload.meta as any)?.pagination?.next_cursor;
-        setCursor(next);
-        setHasNext(!!(payload.meta as any)?.pagination?.has_next);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    if (!term) return rows;
-    const byQuery = rows.filter(
-      (m) =>
-        String(m.no_anggota || "")
-          .toLowerCase()
-          .includes(term) ||
-        String(m.id || "").includes(term) ||
-        String(m.user_id || "").includes(term) ||
-        String(m.status || "")
-          .toLowerCase()
-          .includes(term) ||
-        String(m.user?.full_name || "")
-          .toLowerCase()
-          .includes(term) ||
-        String(m.user?.email || "")
-          .toLowerCase()
-          .includes(term)
-    );
-    if (status === "all") return byQuery;
-    return byQuery.filter(
-      (m) => String(m.status || "").toLowerCase() === status
-    );
-  }, [rows, q, status]);
+  const items = useMemo(
+    () => query.data?.pages.flatMap((p) => p.items) ?? [],
+    [query.data]
+  );
 
   const formatDateId = (iso?: string) => {
     if (!iso) return "-";
@@ -128,7 +121,7 @@ export function MembersListClient({
             </SelectContent>
           </Select>
           <div className="text-sm text-muted-foreground">
-            Total: {filtered.length}
+            Total: {items.length}
           </div>
         </div>
       </div>
@@ -145,7 +138,7 @@ export function MembersListClient({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filtered.map((member) => (
+          {items.map((member) => (
             <TableRow key={String(member.id)}>
               <TableCell className="font-medium">
                 {member.no_anggota || `AGG-${member.id}`}
@@ -180,11 +173,28 @@ export function MembersListClient({
                       const current = String(member.status || "").toLowerCase();
                       const next = current === "active" ? "nonaktif" : "active";
                       await updateMemberStatus(member.id, { status: next });
-                      setRows((s) =>
-                        s.map((m) =>
-                          m.id === member.id ? { ...m, status: next } : m
-                        )
-                      );
+                      // Optimistic UI: update cached pages in-place
+                      qc.setQueryData<
+                        InfiniteData<FetchPageResult<MemberListItem>, string | undefined>
+                      >([
+                        "koperasi",
+                        "members",
+                        { q: debounced, status },
+                      ], (old) => {
+                        if (!old) return old as any;
+                        return {
+                          pageParams: old.pageParams,
+                          pages: old.pages.map((pg) => ({
+                            ...pg,
+                            items: pg.items.map((m) =>
+                              m.id === member.id ? { ...m, status: next } : m
+                            ),
+                          })),
+                        } as InfiniteData<
+                          FetchPageResult<MemberListItem>,
+                          string | undefined
+                        >;
+                      });
                     }}
                   >
                     Toggle
@@ -199,12 +209,12 @@ export function MembersListClient({
       <div className="flex justify-center">
         <Button
           variant="outline"
-          onClick={loadMore}
-          disabled={!hasNext || loading}
+          onClick={() => query.fetchNextPage()}
+          disabled={!query.hasNextPage || query.isFetchingNextPage}
         >
-          {loading
+          {query.isFetchingNextPage
             ? "Memuat..."
-            : hasNext
+            : query.hasNextPage
             ? "Muat Lagi"
             : "Tidak ada data lagi"}
         </Button>

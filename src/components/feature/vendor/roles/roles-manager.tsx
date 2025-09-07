@@ -27,9 +27,9 @@ export function RolesManager() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             <Input placeholder="Nama role" value={newRole.name} onChange={(e) => setNewRole((s) => ({ ...s, name: e.target.value }))} />
-            <Input placeholder="Deskripsi (opsional)" value={newRole.description} onChange={(e) => setNewRole((s) => ({ ...s, description: e.target.value }))} />
+            <Input placeholder="Deskripsi" value={newRole.description} onChange={(e) => setNewRole((s) => ({ ...s, description: e.target.value }))} />
             <div />
-            <Button type="button" onClick={async () => { if (!newRole.name.trim()) return; await create.mutateAsync({ name: newRole.name, description: newRole.description }); setNewRole({ name: "", description: "" }); }}>Simpan</Button>
+            <Button type="button" onClick={async () => { if (!newRole.name.trim() || !newRole.description.trim()) return; await create.mutateAsync({ name: newRole.name, description: newRole.description }); setNewRole({ name: "", description: "" }); }}>Simpan</Button>
           </div>
         </CardContent>
       </Card>

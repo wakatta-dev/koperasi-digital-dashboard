@@ -37,6 +37,10 @@ async function request<T>(
   if (tenantId) {
     headers.set("X-Tenant-ID", tenantId);
   }
+  // Ensure content negotiation per docs
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json");
+  }
 
   let body = options.body;
   if (body && typeof body !== "string" && !(body instanceof FormData)) {

@@ -15,11 +15,12 @@ import { api, API_PREFIX } from "./base";
 export function listVendorPlans(params: {
   limit: number;
   cursor?: string;
-}): Promise<ApiResponse<Plan[]>> {
+}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<Plan[]>> {
   const search = new URLSearchParams({ limit: String(params.limit) });
   if (params.cursor) search.set("cursor", params.cursor);
   return api.get<Plan[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}?${search.toString()}`
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}?${search.toString()}`,
+    { signal: opts?.signal }
   );
 }
 
@@ -69,15 +70,17 @@ export function listVendorInvoices(params?: {
   cursor?: string;
   status?: string;
   periode?: string; // YYYY-MM
-}): Promise<ApiResponse<Invoice[]>> {
+  term?: string;
+}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<Invoice[]>> {
   const search = new URLSearchParams();
   search.set("limit", String(params?.limit ?? 100));
   if (params?.cursor) search.set("cursor", params.cursor);
   if (params?.status) search.set("status", params.status);
   if (params?.periode) search.set("periode", params.periode);
+  if (params?.term) search.set("term", params.term);
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoicesBase}`;
-  return api.get<Invoice[]>(q ? `${base}?${q}` : base);
+  return api.get<Invoice[]>(q ? `${base}?${q}` : base, { signal: opts?.signal });
 }
 
 export function createVendorInvoice(
@@ -155,13 +158,13 @@ export async function downloadVendorInvoicePdf(
 export function listClientInvoices(params?: {
   limit?: number;
   cursor?: string;
-}): Promise<ApiResponse<Invoice[]>> {
+}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<Invoice[]>> {
   const search = new URLSearchParams();
   search.set("limit", String(params?.limit ?? 100));
   if (params?.cursor) search.set("cursor", params.cursor);
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.billing.client.invoicesBase}`;
-  return api.get<Invoice[]>(q ? `${base}?${q}` : base);
+  return api.get<Invoice[]>(q ? `${base}?${q}` : base, { signal: opts?.signal });
 }
 
 export function createPayment(
@@ -202,14 +205,14 @@ export function listVendorSubscriptions(params?: {
   status?: string;
   limit?: number;
   cursor?: string;
-}): Promise<ApiResponse<Subscription[]>> {
+}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<Subscription[]>> {
   const search = new URLSearchParams();
   if (params?.status) search.set("status", params.status);
   if (params?.limit) search.set("limit", String(params.limit));
   if (params?.cursor) search.set("cursor", params.cursor);
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.billing.vendor.subscriptions.list}`;
-  return api.get<Subscription[]>(q ? `${base}?${q}` : base);
+  return api.get<Subscription[]>(q ? `${base}?${q}` : base, { signal: opts?.signal });
 }
 
 export function updateVendorSubscriptionStatus(
@@ -225,7 +228,7 @@ export function updateVendorSubscriptionStatus(
 export function listVendorAudits(params?: {
   limit?: number;
   cursor?: string;
-}): Promise<ApiResponse<StatusAudit[]>> {
+}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<StatusAudit[]>> {
   const final = { limit: params?.limit ?? 100, cursor: params?.cursor } as {
     limit: number;
     cursor?: string;
@@ -236,7 +239,8 @@ export function listVendorAudits(params?: {
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.audits(
       final.limit,
       final.cursor
-    )}`
+    )}`,
+    { signal: opts?.signal }
   );
 }
 
@@ -250,14 +254,15 @@ export function getClientInvoice(
 
 export function listClientInvoiceAudits(
   id: string | number,
-  params?: { limit?: number; cursor?: string }
+  params?: { limit?: number; cursor?: string },
+  opts?: { signal?: AbortSignal }
 ): Promise<ApiResponse<StatusAudit[]>> {
   const search = new URLSearchParams();
   if (params?.limit) search.set("limit", String(params.limit));
   if (params?.cursor) search.set("cursor", params.cursor);
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(id).audits}`;
-  return api.get<StatusAudit[]>(q ? `${base}?${q}` : base);
+  return api.get<StatusAudit[]>(q ? `${base}?${q}` : base, { signal: opts?.signal });
 }
 
 export function getClientSubscription(): Promise<ApiResponse<Subscription>> {

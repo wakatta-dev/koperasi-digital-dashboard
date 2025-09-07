@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { getMember } from "@/services/api";
 import AsyncCombobox from "@/components/ui/async-combobox";
 import { listMembers } from "@/services/api";
+import { makePaginatedListFetcher } from "@/lib/async-fetchers";
 import type { MemberListItem } from "@/types/api";
 
 export function MemberProfileDialog({ memberId }: { memberId?: string | number }) {
@@ -57,15 +58,7 @@ export function MemberProfileDialog({ memberId }: { memberId?: string | number }
               getOptionValue={(m) => m.id}
               getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
               queryKey={["members", "search-member-profile"]}
-              fetchPage={async ({ search, pageParam }) => {
-                const params: Record<string, string | number> = { limit: 10 };
-                if (pageParam) params.cursor = pageParam;
-                if (search) params.term = search;
-                const res = await listMembers(params);
-                const items = (res?.data ?? []) as unknown as MemberListItem[];
-                const nextPage = (res?.meta as any)?.pagination?.next_cursor as string | undefined;
-                return { items, nextPage };
-              }}
+              fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 })}
               placeholder="Cari anggota (nama/email/no. anggota)"
               emptyText="Tidak ada anggota"
               notReadyText="Ketik untuk mencari"

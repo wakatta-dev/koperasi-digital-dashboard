@@ -26,6 +26,9 @@ export interface ApiResponse<T> {
   errors: Record<string, string[]> | null;
 }
 
+// Alias to match docs naming
+export type APIResponse<T> = ApiResponse<T>;
+
 export type HttpError<T = null> = ApiResponse<T> | { error: string };
 
 export type Cursor = string;
