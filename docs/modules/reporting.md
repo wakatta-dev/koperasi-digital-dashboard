@@ -11,7 +11,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 ## Ringkasan Endpoint
 
 - GET `/reports/finance?tenant_id=..&start=..&end=..&group_by=..&category=..` → 200 `APIResponse<FinanceReportResponse>`
-- GET `/reports/billing?tenant_id=..&start=..&end=..` → 200 `APIResponse<BillingReportResponse>`
+- GET `/reports/billing?tenant_id=..&start=..&end=..` → 200 `APIResponse<BillingReportResponse>` – ringkasan invoice dan status pembayaran
 - GET `/reports/cashflow?tenant_id=..&start=..&end=..` → 200 `APIResponse<CashflowReportResponse>`
 - GET `/reports/profit-loss?tenant_id=..&start=..&end=..` → 200 `APIResponse<ProfitLossReportResponse>`
 - GET `/reports/balance-sheet?tenant_id=..&start=..&end=..` → 200 `APIResponse<BalanceSheetReportResponse>`

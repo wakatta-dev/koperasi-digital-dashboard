@@ -1,5 +1,7 @@
 # Billing API — Panduan Integrasi Frontend (Singkat)
 
+Modul Billing menangani manajemen plan langganan, pembuatan tagihan, dan pencatatan pembayaran untuk setiap tenant.
+
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data. Struktur mengikuti template Asset dan tanpa contoh cepat.
 
 ## Header Wajib
@@ -211,5 +213,5 @@ export type ListStatusAuditsResponse = APIResponse<StatusAudit[]>;
 - Tampilkan status invoice/subscription dan alur verifikasi pembayaran dengan jelas.
 - Saat verifikasi berhasil, sinkronkan fitur yang bergantung (modul tenant aktif kembali).
 
-Tautan teknis (opsional): implementasi ada di `internal/modules/core/billing/*.go` bila diperlukan detail lebih lanjut.
+Tautan teknis (opsional): implementasi ada di `internal/modules/core/billing/{plan,invoice,payment,subscription}` bila diperlukan detail lebih lanjut.
 

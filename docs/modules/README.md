@@ -14,8 +14,14 @@ Dokumen ini merangkum seluruh modul dan menautkan ke detail masing-masing, semua
   - [Roles & Permissions](authorization.md) - konfigurasi peran serta hak akses.
   - [Users](user.md) - manajemen pengguna dalam tenant.
 
+- UMKM (Small Business)
+  - [Inventory](inventory.md) — produk, varian, stok, dan pergerakan stok.
+  - [Pricing](pricing.md) — level harga dan harga per varian.
+  - [POS](pos.md) — transaksi kasir, pembayaran, pembatalan dengan audit dan retur stok.
+  - [Marketplace](marketplace.md) — pesanan dari marketplace, konfirmasi pembayaran, pengiriman.
+
 - Finance & Billing
-  - [Billing](billing.md) - penagihan paket dan pembayaran.
+  - [Billing](billing.md) - penagihan paket, langganan, dan pembayaran.
   - [Finance/Transactions](finance_transactions.md) - pencatatan transaksi keuangan.
   - [Cashbook](cashbook.md) - pencatatan kas manual.
   - [Reporting](reporting.md) - ringkasan laporan keuangan dan billing.
@@ -49,6 +55,11 @@ Dokumen ini merangkum seluruh modul dan menautkan ke detail masing-masing, semua
   - String: `cursor` berbasis UUID/string (umumnya untuk ID bertipe UUID)
 - Response
   - `APIResponse` dengan bidang `data`, `meta.pagination` (bila ada), dan `errors` (bila ada)
+  - Khusus modul UMKM: dok sudah diselaraskan untuk memakai `APIResponse<T>`. Beberapa handler historis bisa mengembalikan objek langsung — rujuk dok modul untuk detail.
+
+- Penamaan Field (UMKM)
+  - Entity pada Inventory/Pricing terekspos camelCase (sesuai Swagger). Payload request tetap snake_case (sesuai DTO).
+  - Modul POS/Marketplace sudah konsisten snake_case pada payload dan response utama, dengan pengecualian yang disebut di dok modul.
 
 ## TypeScript Types Umum
 
