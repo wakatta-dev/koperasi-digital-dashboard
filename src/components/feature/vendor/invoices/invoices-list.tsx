@@ -92,6 +92,18 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
     const t = (tenants as any[]).find((x) => x.id === id);
     return t?.name || `#${id}`;
   };
+  const getInvoiceBadgeVariant = (status: Invoice["status"]) => {
+    switch (status) {
+      case "paid":
+        return "default" as const;
+      case "overdue":
+        return "destructive" as const;
+      case "draft":
+        return "outline" as const;
+      default:
+        return "secondary" as const;
+    }
+  };
   const confirm = useConfirm();
 
   useEffect(() => {
@@ -279,17 +291,7 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                     )}
                   </div>
 
-                  <Badge
-                    variant={
-                      invoice.status === "paid"
-                        ? "default"
-                        : invoice.status === "issued"
-                        ? "secondary"
-                        : invoice.status === "overdue"
-                        ? "destructive"
-                        : "outline"
-                    }
-                  >
+                  <Badge variant={getInvoiceBadgeVariant(invoice.status)}>
                     {invoice.status}
                   </Badge>
                   <Select
@@ -400,15 +402,7 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
             <div className="p-4 space-y-4 text-sm">
               <div className="flex items-center justify-between">
                 <div className="font-medium">{preview.number}</div>
-                <Badge
-                  variant={
-                    preview.status === "paid"
-                      ? "default"
-                      : preview.status === "pending"
-                      ? "secondary"
-                      : "destructive"
-                  }
-                >
+                <Badge variant={getInvoiceBadgeVariant(preview.status)}>
                   {preview.status}
                 </Badge>
               </div>

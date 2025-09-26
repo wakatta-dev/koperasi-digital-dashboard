@@ -3,7 +3,7 @@
 import { API_ENDPOINTS } from "@/constants/api";
 import type {
   ApiResponse,
-  DashboardSummary,
+  KoperasiDashboardSummary,
   KoperasiTrendPoint,
   Notification,
 } from "@/types/api";
@@ -13,12 +13,12 @@ import { api, API_PREFIX } from "./base";
 
 export function getKoperasiDashboardSummary(params?: {
   tenant_id?: string | number;
-}): Promise<ApiResponse<DashboardSummary>> {
+}): Promise<ApiResponse<KoperasiDashboardSummary>> {
   const search = new URLSearchParams();
   if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
   const q = search.toString();
   const path = `${API_PREFIX}${API_ENDPOINTS.koperasiDashboard.summary}`;
-  return api.get<DashboardSummary>(q ? `${path}?${q}` : path);
+  return api.get<KoperasiDashboardSummary>(q ? `${path}?${q}` : path);
 }
 
 export function getKoperasiDashboardTrend(params?: {

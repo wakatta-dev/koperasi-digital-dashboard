@@ -39,6 +39,13 @@ export type RATReport = {
   documents: string[];
 };
 
+export type RATDocument = {
+  id: number;
+  rat_id: number;
+  type: string;
+  file_url: string;
+};
+
 export type CreateRATRequest = {
   year: number;
   date: Rfc3339String;
@@ -59,7 +66,7 @@ export type UploadDocumentRequest = {
 export type CreateVotingItemRequest = {
   question: string;
   type: string;
-  options?: Record<string, unknown>;
+  options?: Record<string, unknown> | string[];
   open_at: Rfc3339String;
   close_at: Rfc3339String;
 };
@@ -72,6 +79,7 @@ export type VoteRequest = {
 export type RATResponse = ApiResponse<RAT>;
 export type RATStatusResponse = ApiResponse<{ status: string }>;
 export type RATDocumentResponse = ApiResponse<{ status: string }>;
+export type RATDocumentListResponse = ApiResponse<RATDocument[]>;
 export type VotingItemResponse = ApiResponse<VotingItem>;
 export type VotingResultResponse = ApiResponse<VotingResult>;
 export type RATReportResponse = ApiResponse<RATReport>;

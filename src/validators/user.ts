@@ -9,7 +9,7 @@ export const createUserSchema = z.object({
   email: z
     .string({ error: "Email wajib diisi" })
     .email("Email tidak valid"),
-  role_id: z
+  tenant_role_id: z
     .union([z.string(), z.number()])
     .transform((v) => Number(v))
     .refine((v) => !Number.isNaN(v), "Role wajib dipilih"),
@@ -28,7 +28,7 @@ export const updateUserSchema = z.object({
   email: z
     .string({ error: "Email wajib diisi" })
     .email("Email tidak valid"),
-  role_id: z
+  tenant_role_id: z
     .union([z.string(), z.number()])
     .transform((v) => Number(v))
     .refine((v) => !Number.isNaN(v), "Role wajib dipilih"),

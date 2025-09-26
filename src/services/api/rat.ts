@@ -10,12 +10,16 @@ import type {
   RATReport,
   RATReportResponse,
   RATResponse,
+  RATStatusResponse,
+  RATDocumentResponse,
   UploadDocumentRequest,
   VoteRequest,
   VotingItem,
   VotingItemResponse,
   VotingResult,
   VotingResultResponse,
+  RATDocument,
+  RATDocumentListResponse,
 } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
@@ -26,7 +30,7 @@ export function createRAT(payload: CreateRATRequest): Promise<RATResponse> {
 export function notifyRAT(
   id: string | number,
   payload: NotifyRATRequest
-): Promise<RATResponse> {
+): Promise<RATStatusResponse> {
   return api.post<{ status: string }>(
     `${API_PREFIX}${API_ENDPOINTS.rat.notify(id)}`,
     payload
@@ -36,7 +40,7 @@ export function notifyRAT(
 export function uploadRATDocument(
   id: string | number,
   payload: UploadDocumentRequest
-): Promise<RATResponse> {
+): Promise<RATDocumentResponse> {
   return api.post<{ status: string }>(
     `${API_PREFIX}${API_ENDPOINTS.rat.documents(id)}`,
     payload
@@ -56,7 +60,7 @@ export function createRATVotingItem(
 export function voteRAT(
   itemId: string | number,
   payload: VoteRequest
-): Promise<RATResponse> {
+): Promise<RATStatusResponse> {
   return api.post<{ status: string }>(
     `${API_PREFIX}${API_ENDPOINTS.rat.vote(itemId)}`,
     payload
@@ -98,6 +102,16 @@ export function listRATHistory(
   const q = search.toString();
   return api.get<RAT[]>(
     `${API_PREFIX}${API_ENDPOINTS.rat.history}${q ? `?${q}` : ""}`,
+    { signal: opts?.signal }
+  );
+}
+
+export function listRATDocuments(
+  id: string | number,
+  opts?: { signal?: AbortSignal }
+): Promise<RATDocumentListResponse> {
+  return api.get<RATDocument[]>(
+    `${API_PREFIX}${API_ENDPOINTS.rat.documents(id)}`,
     { signal: opts?.signal }
   );
 }

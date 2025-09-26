@@ -54,15 +54,22 @@ export function InvoiceDetailDialog({ id }: { id: string | number }) {
           <div>
             <div className="font-medium mb-1">Audit Status</div>
             <div className="space-y-1 max-h-40 overflow-auto">
-              {audits.map((a, i) => (
-                <div key={i} className="p-2 border rounded">
-                  <div className="flex items-center justify-between">
-                    <div>{a.new_status ?? a.to_status ?? '-'}</div>
-                    <div className="text-xs text-muted-foreground">{a.created_at ?? '-'}</div>
+              {audits.map((a, i) => {
+                const fromStatus = a.from_status ?? (a as any)?.old_status ?? null;
+                const toStatus = a.to_status ?? (a as any)?.new_status ?? null;
+                const statusText = fromStatus && toStatus
+                  ? `${fromStatus} → ${toStatus}`
+                  : toStatus ?? fromStatus ?? '-';
+                return (
+                  <div key={i} className="p-2 border rounded">
+                    <div className="flex items-center justify-between">
+                      <div>{statusText}</div>
+                      <div className="text-xs text-muted-foreground">{a.created_at ?? '-'}</div>
+                    </div>
+                    {a.note && <div className="text-xs text-muted-foreground">{a.note}</div>}
                   </div>
-                  {a.note && <div className="text-xs text-muted-foreground">{a.note}</div>}
-                </div>
-              ))}
+                );
+              })}
               {!audits.length && (
                 <div className="text-xs text-muted-foreground italic">Belum ada audit</div>
               )}

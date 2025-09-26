@@ -28,7 +28,7 @@ import { TrendPanel } from "@/components/feature/koperasi/dashboard/trend-panel"
 import type {
   KoperasiDashboardSummary,
   KoperasiTrendPoint,
-  Notification as DashboardNotification,
+  DashboardNotification,
 } from "@/types/api";
 
 export const dynamic = "force-dynamic";

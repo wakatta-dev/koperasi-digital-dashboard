@@ -21,3 +21,4 @@ export * from "./livechat";
 export * from "./cashbook";
 export * from "./rat";
 export * from "./dashboard";
+export * from "./catalog";

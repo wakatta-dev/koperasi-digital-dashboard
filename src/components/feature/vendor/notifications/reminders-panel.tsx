@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useNotificationReminders, useNotificationReminderActions } from "@/hooks/queries/notifications";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { NotificationReminder } from "@/types/api";
+import type { NotificationReminder, ReminderRequest } from "@/types/api";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
@@ -16,16 +16,31 @@ export function NotificationRemindersPanel() {
   const { data: reminders } = useNotificationReminders();
   const { upsert } = useNotificationReminderActions();
 
-  const [rows, setRows] = useState<NotificationReminder[]>([]);
+  const [rows, setRows] = useState<ReminderRequest[]>([]);
 
   useEffect(() => {
     if (reminders !== undefined) {
-      setRows(reminders as any);
+      const mapped = (reminders as NotificationReminder[]).map<ReminderRequest>((r) => ({
+        id: r.id,
+        event_type: r.event_type,
+        schedule_offset: r.schedule_offset,
+        schedule_unit: r.schedule_unit,
+        active: r.active,
+      }));
+      setRows(mapped);
     }
   }, [reminders]);
 
   const addRow = () => {
-    setRows((r) => [...r, { event_type: "BILLING_DUE", schedule_offset: 3, active: true }]);
+    setRows((r) => [
+      ...r,
+      {
+        event_type: "BILLING_DUE",
+        schedule_offset: 3,
+        schedule_unit: "DAY",
+        active: true,
+      },
+    ]);
   };
 
   const save = async () => {

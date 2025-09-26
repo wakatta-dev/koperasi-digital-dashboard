@@ -51,7 +51,7 @@ export type PaymentRequest = {
   method: string;
 };
 
-export type LoanApplicationResponse = LoanApplication;
+export type LoanApplicationResponse = ApiResponse<LoanApplication>;
 export type LoanInstallmentListResponse = ApiResponse<LoanInstallment[]>;
 export type LoanInstallmentResponse = ApiResponse<LoanInstallment>;
 export type LoanReleaseLetterResponse = ApiResponse<LoanReleaseLetter>;

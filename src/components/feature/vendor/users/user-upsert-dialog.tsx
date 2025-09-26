@@ -51,13 +51,13 @@ export function UserUpsertDialog({ user, trigger }: Props) {
       ? {
           full_name: user!.full_name,
           email: user!.email,
-          role_id: user!.role_id as any,
+          tenant_role_id: user!.tenant_role_id,
           status: !!user!.status,
         }
       : {
           full_name: "",
           email: "",
-          role_id: undefined as any,
+          tenant_role_id: undefined as any,
           password: "",
           status: true,
         },
@@ -80,7 +80,7 @@ export function UserUpsertDialog({ user, trigger }: Props) {
           payload: {
             full_name: values.full_name,
             email: values.email,
-            tenant_role_id: Number(values.role_id),
+            tenant_role_id: Number(values.tenant_role_id),
           },
         });
         // Patch status separately to match docs (PATCH /users/{id}/status)
@@ -91,7 +91,7 @@ export function UserUpsertDialog({ user, trigger }: Props) {
         const payload: any = {
           full_name: values.full_name,
           email: values.email,
-          tenant_role_id: Number(values.role_id),
+          tenant_role_id: Number(values.tenant_role_id),
           // server expects `password`; cast to any to satisfy typing
           password: values.password,
         };
@@ -182,13 +182,13 @@ export function UserUpsertDialog({ user, trigger }: Props) {
 
             <FormField
               control={form.control}
-              name={"role_id" as any}
+              name={"tenant_role_id" as any}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
                   <Select
                     value={String(field.value ?? "")}
-                    onValueChange={(v) => field.onChange(v)}
+                    onValueChange={(v) => field.onChange(Number(v))}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">

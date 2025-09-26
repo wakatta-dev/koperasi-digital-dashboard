@@ -67,7 +67,7 @@ export type DeviceToken = {
 };
 
 export type CreateNotificationRequest = {
-  tenant_id: number;
+  tenant_id?: number;
   user_id?: number;
   channel: Channel;
   type: string;
@@ -76,6 +76,7 @@ export type CreateNotificationRequest = {
   body: string;
   target_type?: TargetType;
   status?: NotificationStatus;
+  message?: string;
 };
 
 export type UpdateNotificationStatusRequest = {

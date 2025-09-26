@@ -11,7 +11,6 @@ export default async function NotifikasiPage() {
   const res = await listNotifications({ limit: 20 }).catch(() => null);
   const notifications = res && res.success ? (res.data as any[]) : [];
   const next = (res as any)?.meta?.pagination?.next_cursor as string | undefined;
-  const hasNext = !!(res as any)?.meta?.pagination?.has_next;
 
   return (
     <div className="space-y-6">
@@ -26,7 +25,7 @@ export default async function NotifikasiPage() {
           <CardDescription>Notifikasi terbaru</CardDescription>
         </CardHeader>
         <CardContent>
-          <NotificationsClient initialItems={notifications} initialCursor={next} initialHasNext={hasNext} />
+          <NotificationsClient initialItems={notifications} initialCursor={next} />
         </CardContent>
       </Card>
 

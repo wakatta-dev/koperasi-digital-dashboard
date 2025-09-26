@@ -37,7 +37,7 @@ import {
 const schema = z.object({
   message: z.string().min(2, "Pesan wajib"),
   targetType: z.enum(["SINGLE", "ALL", "GROUP"]).default("ALL"),
-  segment: z.enum(["vendor", "koperasi", "umkm", "bumdes"]).default("koperasi"),
+  segment: z.enum(["VENDOR", "KOPERASI", "UMKM", "BUMDES"]).default("KOPERASI"),
 });
 
 export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode }) {
@@ -49,7 +49,7 @@ export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode 
     defaultValues: {
       message: "",
       targetType: "ALL",
-      segment: "koperasi",
+      segment: "KOPERASI",
     },
   });
 
@@ -57,7 +57,7 @@ export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode 
     const payload = {
       message: values.message,
       targetType: values.targetType ?? "ALL",
-      segment: values.segment ?? "koperasi",
+      segment: values.segment ?? "KOPERASI",
     };
     await vendorBulk.mutateAsync(payload);
     setOpen(false);
@@ -92,10 +92,10 @@ export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="vendor">VENDOR</SelectItem>
-                        <SelectItem value="koperasi">KOPERASI</SelectItem>
-                        <SelectItem value="umkm">UMKM</SelectItem>
-                        <SelectItem value="bumdes">BUMDES</SelectItem>
+                        <SelectItem value="VENDOR">VENDOR</SelectItem>
+                        <SelectItem value="KOPERASI">KOPERASI</SelectItem>
+                        <SelectItem value="UMKM">UMKM</SelectItem>
+                        <SelectItem value="BUMDES">BUMDES</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

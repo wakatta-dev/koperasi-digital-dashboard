@@ -14,7 +14,7 @@ import type {
   UpdateAssetRequest,
 } from "@/types/api";
 import { api, API_PREFIX, getTenantId } from "./base";
-import { getAccessToken } from "./auth";
+import { getAccessToken } from "../auth";
 
 export function listAssets(
   params?: {

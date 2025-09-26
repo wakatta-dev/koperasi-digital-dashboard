@@ -31,7 +31,7 @@ export default function LaporanArusKasPage() {
     try {
       const [year, month] = (period || '').split("-");
       const start = period ? `${year}-${month}-01` : undefined;
-      const blob = await exportReportRaw({ type: 'cashflow', start, format });
+      const blob = await exportReportRaw({ type: 'cash-flow', start, format });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `laporan-arus-kas${period ? `-${period}` : ''}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;

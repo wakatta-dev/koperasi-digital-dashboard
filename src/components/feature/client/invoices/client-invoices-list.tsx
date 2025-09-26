@@ -21,6 +21,12 @@ type Props = {
   initialData?: Invoice[];
 };
 
+function getStatusBadgeVariant(status: Invoice["status"]) {
+  if (status === "paid") return "default" as const;
+  if (status === "draft" || status === "issued") return "secondary" as const;
+  return "destructive" as const;
+}
+
 export function ClientInvoicesList({ initialData }: Props) {
   const { data: invoices = [] } = useClientInvoices(initialData);
 
@@ -79,15 +85,7 @@ export function ClientInvoicesList({ initialData }: Props) {
                     )}
                   </div>
 
-                  <Badge
-                    variant={
-                      invoice.status === "paid"
-                        ? "default"
-                        : invoice.status === "pending"
-                        ? "secondary"
-                        : "destructive"
-                    }
-                  >
+                  <Badge variant={getStatusBadgeVariant(invoice.status)}>
                     {invoice.status}
                   </Badge>
 

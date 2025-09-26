@@ -32,13 +32,14 @@ export type CreateUserRequest = {
 export type UpdateUserRequest = {
   tenant_role_id?: number;
   full_name?: string;
+  email?: string;
 };
 
 export type UpdateStatusRequest = {
   status: boolean;
 };
 
-export type UpdateRoleRequest = {
+export type UpdateUserRoleRequest = {
   role_id: number;
 };
 

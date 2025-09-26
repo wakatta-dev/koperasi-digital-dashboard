@@ -2,7 +2,7 @@
 
 import type { ApiResponse, Rfc3339String } from "./common";
 
-export type Notification = {
+export type DashboardNotification = {
   id: string;
   title: string;
   type: string;
@@ -49,22 +49,22 @@ export type KoperasiDashboardSummary = {
   running_shu: number;
   graph_data: number[];
   shortcuts: ShortcutItem[];
-  installment_notifications: Notification[];
-  application_notifications: Notification[];
+  installment_notifications: DashboardNotification[];
+  application_notifications: DashboardNotification[];
 };
 
 export type BumdesDashboardSummary = {
   revenue_per_unit: number[];
   consolidated_revenue: number;
-  booking_notifications: Notification[];
-  rental_notifications: Notification[];
+  booking_notifications: DashboardNotification[];
+  rental_notifications: DashboardNotification[];
 };
 
 export type UmkmDashboardSummary = {
   daily_sales: number;
   daily_orders: number;
   top_products: string[];
-  low_stock_notifications: Notification[];
+  low_stock_notifications: DashboardNotification[];
 };
 
 export type DashboardSummary =

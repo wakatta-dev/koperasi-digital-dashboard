@@ -28,7 +28,7 @@ export function VendorTicketDetail({ id, initialTicket }: Props) {
 
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState("");
-  const [status, setStatus] = useState<string | undefined>(ticket?.status);
+  const [status, setStatus] = useState<Ticket["status"] | undefined>(ticket?.status);
   const [agentId, setAgentId] = useState<string>("");
 
   // Hooks must be called unconditionally; fetch activities regardless of ticket presence
@@ -46,14 +46,17 @@ export function VendorTicketDetail({ id, initialTicket }: Props) {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={status ?? ticket.status} onValueChange={setStatus}>
+          <Select
+            value={status ?? ticket.status}
+            onValueChange={(value) => setStatus(value as Ticket["status"])}
+          >
             <SelectTrigger size="sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="open">open</SelectItem>
               <SelectItem value="in_progress">in_progress</SelectItem>
-              <SelectItem value="resolved">resolved</SelectItem>
+              <SelectItem value="pending">pending</SelectItem>
               <SelectItem value="closed">closed</SelectItem>
             </SelectContent>
           </Select>

@@ -23,6 +23,7 @@ export type Ticket = {
   description: string;
   attachment_url?: string;
   attachment?: FileMetadata;
+  replies?: TicketReply[];
   first_response_at?: Rfc3339String;
   pending_at?: Rfc3339String;
   resolved_at?: Rfc3339String;

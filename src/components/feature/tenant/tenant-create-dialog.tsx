@@ -15,6 +15,13 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +49,7 @@ export function TenantCreateDialog() {
     resolver: zodResolver(createTenantSchema),
     defaultValues: {
       name: "",
-      type: "",
+      type: "koperasi",
       domain: "",
     },
   });
@@ -103,9 +110,18 @@ export function TenantCreateDialog() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. vendor, client" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih tipe tenant" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="koperasi">Koperasi</SelectItem>
+                      <SelectItem value="umkm">UMKM</SelectItem>
+                      <SelectItem value="bumdes">BUMDes</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

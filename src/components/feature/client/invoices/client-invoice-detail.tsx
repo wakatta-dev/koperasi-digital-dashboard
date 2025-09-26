@@ -16,6 +16,13 @@ export function ClientInvoiceDetail({ id, initialInvoice, initialAudits }: Props
 
   if (!invoice) return <div className="text-sm text-muted-foreground">Loading...</div>;
 
+  const badgeVariant =
+    invoice.status === "paid"
+      ? "default"
+      : invoice.status === "draft" || invoice.status === "issued"
+        ? "secondary"
+        : "destructive";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -24,7 +31,7 @@ export function ClientInvoiceDetail({ id, initialInvoice, initialAudits }: Props
           <p className="text-muted-foreground">{invoice.issued_at}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={invoice.status === "paid" ? "default" : invoice.status === "pending" ? "secondary" : "destructive"}>
+          <Badge variant={badgeVariant}>
             {invoice.status}
           </Badge>
           {invoice.status !== "paid" && <UploadPaymentDialog invoiceId={invoice.id} />}
@@ -68,4 +75,3 @@ export function ClientInvoiceDetail({ id, initialInvoice, initialAudits }: Props
     </div>
   );
 }
-

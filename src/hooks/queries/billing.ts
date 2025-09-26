@@ -384,7 +384,7 @@ export function useBillingActions() {
   const updateVendorInvStatus = useMutation({
     mutationFn: async (vars: {
       id: string | number;
-      status: string;
+      status: "issued" | "paid" | "overdue";
       note?: string;
     }) =>
       ensureSuccess(

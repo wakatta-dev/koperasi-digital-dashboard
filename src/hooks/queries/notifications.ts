@@ -3,7 +3,11 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Notification } from "@/types/api";
+import type {
+  CreateNotificationRequest,
+  Notification,
+  NotificationStatus,
+} from "@/types/api";
 import {
   listNotifications,
   createNotification,
@@ -40,7 +44,7 @@ export function useNotificationActions() {
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: async (payload: Partial<Notification>) =>
+    mutationFn: async (payload: CreateNotificationRequest) =>
       ensureSuccess(await createNotification(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.notifications.all });
@@ -50,7 +54,7 @@ export function useNotificationActions() {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async (vars: { id: string | number; status: string }) =>
+    mutationFn: async (vars: { id: string | number; status: NotificationStatus }) =>
       ensureSuccess(
         await updateNotificationStatus(vars.id, { status: vars.status })
       ),

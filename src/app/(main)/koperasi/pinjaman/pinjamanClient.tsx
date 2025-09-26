@@ -75,7 +75,10 @@ export default function PinjamanClient() {
 
   async function onDisburse() {
     if (!loanId) return;
-    await disburseLoan(loanId);
+    const method =
+      prompt("Metode pencairan", "transfer")?.trim() ?? "";
+    if (!method) return;
+    await disburseLoan(loanId, { method });
     await loadInstallments();
   }
 
@@ -100,7 +103,9 @@ export default function PinjamanClient() {
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
             <AsyncCombobox<MemberListItem, number>
               value={applyPayload.member_id ? Number(applyPayload.member_id) : null}
-              onChange={(val) => setApplyPayload((s) => ({ ...s, member_id: val ?? "" }))}
+              onChange={(val) =>
+                setApplyPayload((s) => ({ ...s, member_id: val != null ? String(val) : "" }))
+              }
               getOptionValue={(m) => m.id}
               getOptionLabel={(m) => m.full_name || m.no_anggota || String(m.id)}
               queryKey={["members", "search-loan-apply"]}

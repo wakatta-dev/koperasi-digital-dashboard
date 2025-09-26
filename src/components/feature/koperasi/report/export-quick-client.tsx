@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { exportReportRaw } from "@/services/api";
 
+type ReportType = "balance-sheet" | "profit-loss" | "cash-flow";
+
 export function ExportQuickClient() {
-  const [type, setType] = useState<string>("profit-loss");
+  const [type, setType] = useState<ReportType>("profit-loss");
   const [start, setStart] = useState<string>("");
   const [end, setEnd] = useState<string>("");
   const [format, setFormat] = useState<"pdf" | "xlsx">("pdf");
@@ -39,16 +41,14 @@ export function ExportQuickClient() {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
-          <Select value={type} onValueChange={setType}>
+          <Select value={type} onValueChange={(val) => setType(val as ReportType)}>
             <SelectTrigger>
               <SelectValue placeholder="Tipe" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="profit-loss">Profit Loss</SelectItem>
               <SelectItem value="balance-sheet">Balance Sheet</SelectItem>
-              <SelectItem value="cashflow">Cashflow</SelectItem>
-              <SelectItem value="finance">Finance</SelectItem>
-              <SelectItem value="billing">Billing</SelectItem>
+              <SelectItem value="cash-flow">Cashflow</SelectItem>
             </SelectContent>
           </Select>
           <DateRangePicker

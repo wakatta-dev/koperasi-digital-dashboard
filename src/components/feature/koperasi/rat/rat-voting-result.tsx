@@ -39,9 +39,20 @@ export function RATVotingResult() {
   }, [auto, itemId]);
 
   const entries = useMemo(() => {
-    const counts = (data?.counts ?? {}) as Record<string, number>;
-    const total = Number(data?.total ?? 0) || Object.values(counts).reduce((a, b) => a + b, 0);
-    return Object.entries(counts).map(([opt, c]) => ({ option: opt, count: c, percent: total ? Math.round((c / total) * 100) : 0 }));
+    const summary = data?.summary ?? [];
+    return summary.map((item) => {
+      const total = typeof data?.total_votes === "number" ? data.total_votes : 0;
+      const percent = typeof item.percentage === "number"
+        ? Math.round(item.percentage)
+        : total
+          ? Math.round((item.count / total) * 100)
+          : 0;
+      return {
+        option: item.option,
+        count: item.count,
+        percent,
+      };
+    });
   }, [data]);
 
   return (
@@ -65,7 +76,7 @@ export function RATVotingResult() {
         </div>
         <div className="space-y-3">
           {data && (
-            <div className="text-sm text-muted-foreground">Total suara: {data.total}</div>
+            <div className="text-sm text-muted-foreground">Total suara: {data.total_votes}</div>
           )}
           {entries.map((e, i) => (
             <div key={i} className="space-y-1">

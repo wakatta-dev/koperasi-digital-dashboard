@@ -8,9 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { exportReportRaw, getProfitLossReport } from "@/services/api";
 
+type ProfitLossItem = {
+  label: string;
+  profit: number;
+  loss: number;
+};
+
+type ProfitLossViewState = {
+  income: number;
+  expense: number;
+  net: number;
+  items: ProfitLossItem[];
+};
+
 export default function LaporanLabaRugiPage() {
   const [period, setPeriod] = useState<string>("");
-  const [data, setData] = useState<{ income?: number; expense?: number; net?: number; items?: any[] } | null>(null);
+  const [data, setData] = useState<ProfitLossViewState | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState<false | 'pdf' | 'xlsx'>(false);
 
@@ -21,10 +34,21 @@ export default function LaporanLabaRugiPage() {
       const start = period ? `${year}-${month}-01` : undefined;
       const res = await getProfitLossReport({ start });
       if (res.success) {
-        const by = res.data?.data ?? [];
-        const income = by.reduce((acc: number, it: any) => acc + (it.profit ?? 0), 0);
-        const expense = by.reduce((acc: number, it: any) => acc + (it.loss ?? 0), 0);
-        setData({ income, expense, net: res.data?.net_profit ?? income - expense, items: by });
+        const report = res.data;
+        const breakdown = report?.breakdown ?? [];
+        const items: ProfitLossItem[] = breakdown.map((entry) => ({
+          label: entry.account,
+          profit: entry.amount > 0 ? entry.amount : 0,
+          loss: entry.amount < 0 ? Math.abs(entry.amount) : 0,
+        }));
+        const income = typeof report?.revenue === "number"
+          ? report.revenue
+          : items.reduce((acc, it) => acc + it.profit, 0);
+        const expense = typeof report?.expense === "number"
+          ? report.expense
+          : items.reduce((acc, it) => acc + it.loss, 0);
+        const net = typeof report?.net_income === "number" ? report.net_income : income - expense;
+        setData({ income, expense, net, items });
       }
     } finally {
       setLoading(false);
@@ -71,8 +95,8 @@ export default function LaporanLabaRugiPage() {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-2">
-              {(data?.items ?? []).map((it: any, idx: number) => (
-                <li key={idx}>{it.label ?? `Item ${idx + 1}`}: {it.profit ?? 0}</li>
+              {(data?.items ?? []).map((it, idx: number) => (
+                <li key={idx}>{it.label}: {it.profit ?? 0}</li>
               ))}
               {!data?.items?.length && (
                 <li className="text-muted-foreground italic">-</li>
@@ -87,8 +111,8 @@ export default function LaporanLabaRugiPage() {
           </CardHeader>
           <CardContent>
             <ul className="text-sm space-y-2">
-              {(data?.items ?? []).map((it: any, idx: number) => (
-                <li key={idx}>{it.label ?? `Item ${idx + 1}`}: {it.loss ?? 0}</li>
+              {(data?.items ?? []).map((it, idx: number) => (
+                <li key={idx}>{it.label}: {it.loss ?? 0}</li>
               ))}
               {!data?.items?.length && (
                 <li className="text-muted-foreground italic">-</li>
@@ -102,7 +126,7 @@ export default function LaporanLabaRugiPage() {
             <CardDescription>Pendapatan - Beban</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{typeof data?.net === 'number' ? data?.net : '-'}</div>
+            <div className="text-3xl font-bold">{typeof data?.net === 'number' ? data.net : '-'}</div>
           </CardContent>
         </Card>
       </div>
