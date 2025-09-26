@@ -12,14 +12,23 @@ import type {
 } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
-export function listVendorPlans(params: {
-  limit: number;
-  cursor?: string;
-}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<Plan[]>> {
-  const search = new URLSearchParams({ limit: String(params.limit) });
-  if (params.cursor) search.set("cursor", params.cursor);
+export function listVendorPlans(
+  params?: {
+    term?: string;
+    status?: "active" | "inactive";
+    limit?: number;
+    cursor?: string;
+  },
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<Plan[]>> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params?.limit ?? 10));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.term) search.set("term", params.term);
+  if (params?.status) search.set("status", params.status);
+  const q = search.toString();
   return api.get<Plan[]>(
-    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}?${search.toString()}`,
+    `${API_PREFIX}${API_ENDPOINTS.billing.vendor.plans}${q ? `?${q}` : ""}`,
     { signal: opts?.signal }
   );
 }
@@ -65,18 +74,26 @@ export function deleteVendorPlan(
   );
 }
 
-export function listVendorInvoices(params?: {
-  limit?: number;
-  cursor?: string;
-  status?: string;
-  periode?: string; // YYYY-MM
-  term?: string;
-}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<Invoice[]>> {
+export function listVendorInvoices(
+  params?: {
+    tenant?: string | number;
+    business_unit_id?: string | number;
+    year?: string;
+    status?: "draft" | "issued" | "paid" | "overdue";
+    term?: string;
+    limit?: number;
+    cursor?: string;
+  },
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<Invoice[]>> {
   const search = new URLSearchParams();
-  search.set("limit", String(params?.limit ?? 100));
+  search.set("limit", String(params?.limit ?? 10));
   if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.tenant) search.set("tenant", String(params.tenant));
+  if (params?.business_unit_id)
+    search.set("business_unit_id", String(params.business_unit_id));
+  if (params?.year) search.set("year", params.year);
   if (params?.status) search.set("status", params.status);
-  if (params?.periode) search.set("periode", params.periode);
   if (params?.term) search.set("term", params.term);
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoicesBase}`;
@@ -120,7 +137,7 @@ export function deleteVendorInvoice(
 
 export function updateVendorInvoiceStatus(
   id: string | number,
-  payload: { status: string; note?: string }
+  payload: { status: "issued" | "paid" | "overdue"; note?: string }
 ): Promise<ApiResponse<Invoice>> {
   return api.patch<Invoice>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoiceStatus(id)}`,
@@ -130,8 +147,8 @@ export function updateVendorInvoiceStatus(
 
 export function sendVendorInvoiceEmail(
   id: string | number
-): Promise<ApiResponse<any>> {
-  return api.post<any>(
+): Promise<ApiResponse<{ message: string }>> {
+  return api.post<{ message: string }>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.invoiceSend(id)}`,
     {}
   );
@@ -180,8 +197,8 @@ export function createPayment(
 export function verifyVendorPayment(
   id: string | number,
   payload?: Partial<Payment> & {
-    status?: string;
-    gateway?: string;
+    status?: "pending" | "verified" | "rejected";
+    gateway?: "midtrans";
     external_id?: string;
   }
 ): Promise<ApiResponse<Payment>> {

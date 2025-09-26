@@ -45,13 +45,20 @@ import { toast } from "sonner";
 import { makePaginatedListFetcher } from "@/lib/async-fetchers";
 
 export function useVendorPlans(
-  params: { limit: number; cursor?: string },
-  initialData?: Plan[] | undefined
+  params?: {
+    term?: string;
+    status?: "active" | "inactive";
+    limit?: number;
+    cursor?: string;
+  },
+  initialData?: Plan[] | undefined,
+  options?: { refetchInterval?: number }
 ) {
   return useQuery({
-    queryKey: QK.billing.vendor.plans(params),
+    queryKey: QK.billing.vendor.plans(params ?? {}),
     queryFn: async () => ensureSuccess(await listVendorPlans(params)),
     ...(initialData ? { initialData } : {}),
+    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
 }
 
@@ -70,10 +77,13 @@ export function useVendorPlan(
 
 export function useVendorInvoices(
   params?: {
+    tenant?: string | number;
+    business_unit_id?: string | number;
+    year?: string;
+    status?: "draft" | "issued" | "paid" | "overdue";
+    term?: string;
     limit?: number;
     cursor?: string;
-    status?: string;
-    periode?: string;
   },
   initialData?: Invoice[] | undefined,
   options?: { refetchInterval?: number }
@@ -87,7 +97,14 @@ export function useVendorInvoices(
 }
 
 export function useInfiniteVendorInvoices(
-  params?: { limit?: number; status?: string; periode?: string; term?: string },
+  params?: {
+    tenant?: string | number;
+    business_unit_id?: string | number;
+    year?: string;
+    status?: "draft" | "issued" | "paid" | "overdue";
+    term?: string;
+    limit?: number;
+  },
   initial?: { initialData?: Invoice[]; initialCursor?: string },
   options?: { refetchInterval?: number }
 ) {
@@ -96,7 +113,11 @@ export function useInfiniteVendorInvoices(
     limit: baseParams.limit ?? 10,
     baseParams: {
       ...(baseParams.status ? { status: baseParams.status } : {}),
-      ...(baseParams.periode ? { periode: baseParams.periode } : {}),
+      ...(baseParams.year ? { year: baseParams.year } : {}),
+      ...(baseParams.tenant ? { tenant: baseParams.tenant } : {}),
+      ...(baseParams.business_unit_id
+        ? { business_unit_id: baseParams.business_unit_id }
+        : {}),
     },
     searchKey: "term",
   });

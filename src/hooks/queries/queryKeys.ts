@@ -35,7 +35,7 @@ export const QK = {
   },
   billing: {
     vendor: {
-      plans: (params: { limit: number; cursor?: string }) => ["billing", "vendor", "plans", params] as const,
+      plans: (params?: Record<string, any>) => ["billing", "vendor", "plans", params ?? {}] as const,
       plan: (id: string | number) => ["billing", "vendor", "plan", String(id)] as const,
       invoices: () => ["billing", "vendor", "invoices"] as const,
       invoicesInfinite: (params?: Record<string, any>) => ["billing", "vendor", "invoices", "infinite", params ?? {}] as const,

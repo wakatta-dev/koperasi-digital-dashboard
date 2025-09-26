@@ -2,7 +2,13 @@
 "use client";
 
 import { useState } from "react";
-import { useTenant, useTenantModules, useTenantUsers, useTenantActions, useTenants } from "@/hooks/queries/tenants";
+import {
+  useTenant,
+  useTenantModules,
+  useTenantUsers,
+  useTenantActions,
+  useTenants,
+} from "@/hooks/queries/tenants";
 import { useRoles } from "@/hooks/queries/roles";
 import { useSession } from "next-auth/react";
 import {
@@ -29,19 +35,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type Row = {
-  id: number | string;
-  name: string;
-  type?: string;
-  domain?: string;
-  is_active?: boolean;
-};
+import type { TenantDetail, TenantModule, TenantUser } from "@/types/api";
+
+type Row = Pick<
+  TenantDetail,
+  "id" | "name" | "type" | "domain" | "status" | "is_active"
+>;
 
 export function ClientsListClient({ rows }: { rows: Row[] }) {
   const [selected, setSelected] = useState<Row | null>(null);
   const [q, setQ] = useState("");
-  const { data: live = [] } = useTenants({ limit: rows?.length || 10 }, undefined, { refetchInterval: 300000 });
-  const list: Row[] = (live as any[])?.length ? (live as any) : rows;
+  const { data: live = [] } = useTenants(
+    { limit: rows?.length || 10 },
+    rows as TenantDetail[] | undefined,
+    { refetchInterval: 300000 }
+  );
+  const list: Row[] = live.length ? live : rows;
   const filtered = list.filter((t) => {
     const query = q.trim().toLowerCase();
     if (!query) return true;
@@ -79,8 +88,8 @@ export function ClientsListClient({ rows }: { rows: Row[] }) {
               <TableCell className="capitalize">{t.type}</TableCell>
               <TableCell>{t.domain}</TableCell>
               <TableCell>
-                <Badge variant={t.is_active ? "default" : "secondary"}>
-                  {t.is_active ? "Active" : "Inactive"}
+                <Badge variant={t.status === "active" ? "default" : "secondary"}>
+                  {t.status}
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
@@ -135,16 +144,20 @@ function TenantDetail({ tenantId }: { tenantId: number | string }) {
           <div className="font-medium">{tenant?.domain ?? '-'}</div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={tenant?.is_active ? 'default' : 'secondary'}>
-            {tenant?.is_active ? 'Active' : 'Inactive'}
+          <Badge variant={tenant?.status === 'active' ? 'default' : 'secondary'}>
+            {tenant?.status ?? '-'}
           </Badge>
           {isSuperAdmin && (
           <Button
             size="sm"
             variant="outline"
-            onClick={() => updateStatus.mutate({ id: tenantId, is_active: !tenant?.is_active })}
+            onClick={() => {
+              const nextStatus: "active" | "inactive" =
+                tenant?.status === "active" ? "inactive" : "active";
+              updateStatus.mutate({ id: tenantId, status: nextStatus });
+            }}
           >
-            {tenant?.is_active ? 'Deactivate' : 'Activate'}
+            {tenant?.status === 'active' ? 'Deactivate' : 'Activate'}
           </Button>
           )}
         </div>
@@ -153,7 +166,7 @@ function TenantDetail({ tenantId }: { tenantId: number | string }) {
       <div className="space-y-2">
         <div className="font-medium">Users</div>
         <div className="space-y-1">
-          {(users as any[]).map((u) => (
+          {(users as TenantUser[]).map((u) => (
             <div key={u.id} className="flex items-center justify-between border rounded p-2">
               <div>
                 <div className="font-medium">{u.full_name}</div>
@@ -212,7 +225,7 @@ function TenantDetail({ tenantId }: { tenantId: number | string }) {
       <div className="space-y-2">
         <div className="font-medium">Modules</div>
         <div className="space-y-1">
-          {(modules as any[]).map((m) => (
+          {(modules as TenantModule[]).map((m) => (
             <div key={m.id} className="flex items-center justify-between border rounded p-2 gap-2">
               <div className="font-medium">
                 {m.name} <span className="text-muted-foreground">({m.code})</span>
@@ -221,17 +234,21 @@ function TenantDetail({ tenantId }: { tenantId: number | string }) {
                 <Badge variant={m.status === 'aktif' ? 'default' : 'secondary'}>{m.status}</Badge>
                 {isSuperAdmin && (
                   <Select
-                    defaultValue={m.status === 'aktif' ? 'active' : 'inactive'}
-                    onValueChange={(next: 'active' | 'inactive') => {
-                      updateModule.mutate({ id: tenantId, module_id: Number(m.module_id), status: next });
+                    defaultValue={m.status}
+                    onValueChange={(next: 'aktif' | 'nonaktif') => {
+                      updateModule.mutate({
+                        id: tenantId,
+                        module_id: m.module_id,
+                        status: next,
+                      });
                     }}
                   >
                     <SelectTrigger size="sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">active</SelectItem>
-                      <SelectItem value="inactive">inactive</SelectItem>
+                      <SelectItem value="aktif">aktif</SelectItem>
+                      <SelectItem value="nonaktif">nonaktif</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

@@ -8,9 +8,11 @@ import {
   listNotifications,
   createNotification,
   updateNotificationStatus,
+  listVendorNotifications,
+  vendorBroadcastNotification,
+  vendorBulkNotification,
 } from "@/services/api";
 import { listNotificationReminders, upsertNotificationReminders } from "@/services/api/vendor";
-import { vendorBroadcastNotification, vendorBulkNotification } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 import { toast } from "sonner";
@@ -18,11 +20,17 @@ import { toast } from "sonner";
 export function useNotifications(
   params?: Record<string, string | number>,
   initialData?: Notification[] | undefined,
-  options?: { refetchInterval?: number }
+  options?: { refetchInterval?: number; scope?: "tenant" | "vendor" }
 ) {
+  const scope = options?.scope ?? "tenant";
   return useQuery({
-    queryKey: QK.notifications.list(params),
-    queryFn: async () => ensureSuccess(await listNotifications(params)),
+    queryKey: QK.notifications.list({ ...(params ?? {}), scope }),
+    queryFn: async () =>
+      ensureSuccess(
+        scope === "vendor"
+          ? await listVendorNotifications(params)
+          : await listNotifications(params)
+      ),
     ...(initialData ? { initialData } : {}),
     ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });

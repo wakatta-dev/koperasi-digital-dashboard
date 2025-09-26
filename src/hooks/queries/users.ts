@@ -3,7 +3,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { User, UserRole } from "@/types/api";
+import type {
+  User,
+  UserRole,
+  CreateUserRequest,
+  UpdateUserRequest,
+  UpdateStatusRequest,
+} from "@/types/api";
 import {
   listUsers,
   getUser,
@@ -21,7 +27,13 @@ import { QK } from "./queryKeys";
 import { toast } from "sonner";
 
 export function useUsers(
-  params?: Record<string, string | number>,
+  params?: {
+    term?: string;
+    status?: string;
+    role_id?: string | number;
+    limit?: number;
+    cursor?: string;
+  },
   initialData?: User[] | undefined,
   options?: { refetchInterval?: number }
 ) {
@@ -61,7 +73,7 @@ export function useUserActions() {
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: async (payload: Partial<User>) =>
+    mutationFn: async (payload: CreateUserRequest) =>
       ensureSuccess(await createUser(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.users.lists() });
@@ -71,7 +83,7 @@ export function useUserActions() {
   });
 
   const update = useMutation({
-    mutationFn: async (vars: { id: string | number; payload: Partial<User> & { tenant_role_id?: number } }) =>
+    mutationFn: async (vars: { id: string | number; payload: UpdateUserRequest }) =>
       ensureSuccess(await updateUser(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.users.detail(vars.id) });
@@ -83,7 +95,9 @@ export function useUserActions() {
 
   const patchStatus = useMutation({
     mutationFn: async (vars: { id: string | number; status: boolean }) =>
-      ensureSuccess(await patchUserStatus(vars.id, { status: vars.status })),
+      ensureSuccess(
+        await patchUserStatus(vars.id, { status: vars.status } as UpdateStatusRequest)
+      ),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.users.detail(vars.id) });
       qc.invalidateQueries({ queryKey: QK.users.lists() });

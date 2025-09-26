@@ -1,26 +1,56 @@
 /** @format */
 
-import type { Rfc3339String } from './common';
-import type { Role } from './role';
-import type { Tenant } from './tenant';
+import type { ApiResponse, Rfc3339String } from "./common";
+import type { TenantRole } from "./role";
 
-export interface UserBase {
+export type User = {
   id: number;
   tenant_id: number;
   tenant_role_id: number;
   email: string;
   full_name: string;
   status: boolean;
+  last_login?: Rfc3339String;
   created_at: Rfc3339String;
   updated_at: Rfc3339String;
-}
-
-// Extend with optional fields actually used by UI (compatible superset)
-export type User = UserBase & {
-  role?: Role;
-  tenant?: Tenant;
-  last_login?: string | null;
-  // Backward-compat for older payloads
-  role_id?: number;
-  password_hash?: string;
+  tenant_role: TenantRole;
 };
+
+export type InviteVendorUserRequest = {
+  email: string;
+  full_name: string;
+  role_id: number;
+};
+
+export type CreateUserRequest = {
+  tenant_role_id: number;
+  email: string;
+  password: string;
+  full_name: string;
+};
+
+export type UpdateUserRequest = {
+  tenant_role_id?: number;
+  full_name?: string;
+};
+
+export type UpdateStatusRequest = {
+  status: boolean;
+};
+
+export type UpdateRoleRequest = {
+  role_id: number;
+};
+
+export type ResetPasswordRequest = {
+  email: string;
+  new_password: string;
+};
+
+export type UserListResponse = ApiResponse<User[]>;
+export type UserDetailResponse = ApiResponse<User>;
+export type UserMutationResponse = ApiResponse<User>;
+export type UserStatusResponse = ApiResponse<{ status: boolean }>;
+export type UserDeleteResponse = ApiResponse<{ id: number }>;
+export type UserRoleUpdateResponse = ApiResponse<{ id: number }>;
+export type ResetPasswordResponse = ApiResponse<{ message: string }>;

@@ -44,7 +44,10 @@ const iconMap = {
 
 export function VendorNotificationsList({ initialData, limit = 10 }: Props) {
   const params = useMemo(() => ({ limit }), [limit]);
-  const { data: notifs = [] } = useNotifications(params, initialData, { refetchInterval: 300000 });
+  const { data: notifs = [] } = useNotifications(params, initialData, {
+    refetchInterval: 300000,
+    scope: "vendor",
+  });
   const { updateStatus } = useNotificationActions();
   const confirm = useConfirm();
 
@@ -94,8 +97,20 @@ export function VendorNotificationsList({ initialData, limit = 10 }: Props) {
       {/* Notifications List */}
       <div className="space-y-4">
         {notifications.map((notification) => {
-          const { bg, icon } =
-            (iconMap as any)[notification.type as "success"] || iconMap.info;
+          const intent = (() => {
+            const normalized = (notification.type || "").toLowerCase();
+            if (["success", "warning", "info"].includes(normalized)) {
+              return normalized as keyof typeof iconMap;
+            }
+            if (normalized === "billing" || normalized === "promotion") {
+              return "success";
+            }
+            if (normalized === "system" || normalized === "custom") {
+              return "info";
+            }
+            return "info";
+          })();
+          const { bg, icon } = iconMap[intent as keyof typeof iconMap];
           return (
             <Card
               key={notification.id}

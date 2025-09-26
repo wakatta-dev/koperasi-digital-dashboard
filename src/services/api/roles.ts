@@ -119,7 +119,10 @@ export async function assignRole(
   payload: { role_id: string | number; tenant_id?: string | number },
 ): Promise<ApiResponse<{ user_id: number; role_id: number }>> {
   // Ensure tenant_id is sent per docs
-  let final = { ...payload } as { role_id: string | number; tenant_id?: string | number };
+  const final = { ...payload } as {
+    role_id: string | number;
+    tenant_id?: string | number;
+  };
   if (typeof final.tenant_id === "undefined") {
     const tenantId = await getTenantId();
     if (tenantId) final.tenant_id = tenantId as any;

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TenantCreateDialog } from "@/components/feature/tenant/tenant-create-dialog";
 import { TenantSelfRegisterDialog } from "@/components/feature/vendor/clients/tenant-self-register-dialog";
 import { ClientsListClient } from "./clients-list-client";
+import type { TenantDetail } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export default async function ClientsPage() {
         </CardHeader>
         <CardContent>
           {tenants?.data?.length ? (
-            <ClientsListClient rows={tenants.data as any[]} />
+            <ClientsListClient rows={tenants.data as TenantDetail[]} />
           ) : (
             <div className="text-muted-foreground text-sm italic py-4">
               No clients found.

@@ -24,13 +24,26 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
   const { data: session } = useSession();
   const isSuperAdmin = ((session?.user as any)?.role?.name ?? "") === "Super Admin";
   const [q, setQ] = useState("");
-  const params = useMemo(() => ({ limit, ...(q ? { q } : {}) }), [limit, q]);
+  const params = useMemo(
+    () => ({ limit, ...(q ? { term: q } : {}) }),
+    [limit, q]
+  );
   const { data: users = [] } = useUsers(params, initialData, { refetchInterval: 300000 });
   const { remove } = useUserActions();
   const confirm = useConfirm();
 
   function exportCsv() {
-    const rows = [["id","email","full_name","role","status","last_login"], ...users.map((u) => [u.id,u.email,u.full_name,u.role?.name ?? "",u.status ? "active" : "inactive",u.last_login ?? ""])];
+    const rows = [
+      ["id", "email", "full_name", "role", "status", "last_login"],
+      ...users.map((u) => [
+        u.id,
+        u.email,
+        u.full_name,
+        u.tenant_role?.role?.name ?? "",
+        u.status ? "active" : "inactive",
+        u.last_login ?? "",
+      ]),
+    ];
     const csv = rows.map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
@@ -89,7 +102,9 @@ export function VendorUsersList({ initialData, limit = 20 }: Props) {
                   <div className="text-right">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{user.role?.name}</span>
+                      <span className="font-medium">
+                        {user.tenant_role?.role?.name ?? "-"}
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Last login: {user.last_login ?? "-"}

@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from "@/constants/api";
 import type {
   ApiResponse,
   NotificationReminder,
+  ReminderRequest,
   ReportExportMeta,
   VendorFinancialReport,
   VendorUsageReport,
@@ -112,9 +113,9 @@ export function listNotificationReminders(): Promise<
 }
 
 export function upsertNotificationReminders(
-  payload: NotificationReminder[]
-): Promise<ApiResponse<any>> {
-  return api.put<any>(
+  payload: ReminderRequest[]
+): Promise<ApiResponse<null>> {
+  return api.put<null>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.reminders}`,
     payload
   );

@@ -3,7 +3,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Ticket, TicketReply } from "@/types/api";
+import type {
+  Ticket,
+  TicketReply,
+  CreateTicketRequest,
+  AddReplyRequest,
+  UpdateTicketRequest,
+  TicketActivityLog,
+  TicketCategorySLA,
+  SLARequest,
+} from "@/types/api";
 import {
   createTicket,
   listTickets,
@@ -54,16 +63,16 @@ export function useTicketActions() {
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: async (payload: Partial<Ticket>) =>
-      ensureSuccess(await createTicket(payload as any)),
+    mutationFn: async (payload: CreateTicketRequest) =>
+      ensureSuccess(await createTicket(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.tickets.lists() });
     },
   });
 
   const addReply = useMutation({
-    mutationFn: async (vars: { id: string; payload: Partial<TicketReply> }) =>
-      ensureSuccess(await addTicketReply(vars.id, vars.payload as any)),
+    mutationFn: async (vars: { id: string; payload: AddReplyRequest }) =>
+      ensureSuccess(await addTicketReply(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tickets.detail(vars.id) });
     },
@@ -72,7 +81,7 @@ export function useTicketActions() {
   const update = useMutation({
     mutationFn: async (vars: {
       id: string;
-      payload: { status?: string; agent_id?: number };
+      payload: UpdateTicketRequest;
     }) => ensureSuccess(await updateTicket(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tickets.detail(vars.id) });
@@ -100,7 +109,7 @@ export function useTicketReplies(
 export function useTicketActivities(
   id?: string,
   params?: { limit?: number; cursor?: string },
-  initialData?: any[] | undefined
+  initialData?: TicketActivityLog[] | undefined
 ) {
   return useQuery({
     queryKey: QK.tickets.activities(id ?? "", params ?? {}),
@@ -111,14 +120,10 @@ export function useTicketActivities(
   });
 }
 
-export function useTicketSLA(initialData?: any[] | undefined) {
+export function useTicketSLA(initialData?: TicketCategorySLA[] | undefined) {
   return useQuery({
     queryKey: QK.tickets.sla(),
-    queryFn: async () => {
-      const res = await listTicketSLA();
-      console.log(res);
-      return ensureSuccess(res);
-    },
+    queryFn: async () => ensureSuccess(await listTicketSLA()),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -126,11 +131,7 @@ export function useTicketSLA(initialData?: any[] | undefined) {
 export function useTicketSlaActions() {
   const qc = useQueryClient();
   const upsert = useMutation({
-    mutationFn: async (payload: {
-      category: string;
-      sla_response_minutes: number;
-      sla_resolution_minutes: number;
-    }) => ensureSuccess(await upsertTicketSLA(payload)),
+    mutationFn: async (payload: SLARequest) => ensureSuccess(await upsertTicketSLA(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.tickets.sla() });
     },

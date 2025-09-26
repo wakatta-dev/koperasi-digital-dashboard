@@ -60,18 +60,20 @@ type Props = {
 export function VendorInvoicesList({ initialData, initialCursor }: Props) {
   const [preview, setPreview] = useState<Invoice | null>(null);
   const [previewDetail, setPreviewDetail] = useState<Invoice | null>(null);
-  const [status, setStatus] = useState<string | undefined>(undefined);
-  const [periode, setPeriode] = useState<string | undefined>(undefined);
+  const [status, setStatus] = useState<"draft" | "issued" | "paid" | "overdue" | undefined>(
+    undefined
+  );
+  const [year, setYear] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState<string>("");
   const debounced = useDebouncedValue(search, 300);
   const params = useMemo(
     () => ({
       limit: 10,
       ...(status ? { status } : {}),
-      ...(periode ? { periode } : {}),
+      ...(year ? { year } : {}),
       ...(debounced ? { term: debounced } : {}),
     }),
-    [status, periode, debounced]
+    [status, year, debounced]
   );
   const {
     data: invoices,
@@ -188,26 +190,33 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
 
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <Select value={status} onValueChange={(v) => setStatus(v || undefined)}>
+                  <Select
+                    value={status}
+                    onValueChange={(v) =>
+                      setStatus((v as typeof status) || undefined)
+                    }
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Semua" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">pending</SelectItem>
+                      <SelectItem value="draft">draft</SelectItem>
+                      <SelectItem value="issued">issued</SelectItem>
                       <SelectItem value="paid">paid</SelectItem>
                       <SelectItem value="overdue">overdue</SelectItem>
-                      <SelectItem value="cancelled">cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="periode">Periode</Label>
+                  <Label htmlFor="year">Tahun</Label>
                   <Input
-                    id="periode"
-                    type="month"
-                    value={periode ?? ""}
-                    onChange={(e) => setPeriode(e.target.value || undefined)}
+                    id="year"
+                    type="number"
+                    min={2000}
+                    max={9999}
+                    value={year ?? ""}
+                    onChange={(e) => setYear(e.target.value || undefined)}
                   />
                 </div>
 
@@ -217,7 +226,7 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                     type="button"
                     onClick={() => {
                       setStatus(undefined);
-                      setPeriode(undefined);
+                      setYear(undefined);
                     }}
                   >
                     Reset
@@ -274,9 +283,11 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                     variant={
                       invoice.status === "paid"
                         ? "default"
-                        : invoice.status === "pending"
+                        : invoice.status === "issued"
                         ? "secondary"
-                        : "destructive"
+                        : invoice.status === "overdue"
+                        ? "destructive"
+                        : "outline"
                     }
                   >
                     {invoice.status}
@@ -293,7 +304,7 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                       if (!ok) return;
                       await updateVendorInvStatus.mutateAsync({
                         id: invoice.id,
-                        status: next,
+                        status: next as "issued" | "paid" | "overdue",
                       });
                     }}
                   >
@@ -301,10 +312,9 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">pending</SelectItem>
+                      <SelectItem value="issued">issued</SelectItem>
                       <SelectItem value="paid">paid</SelectItem>
                       <SelectItem value="overdue">overdue</SelectItem>
-                      <SelectItem value="cancelled">cancelled</SelectItem>
                     </SelectContent>
                   </Select>
 

@@ -1,7 +1,16 @@
 /** @format */
 
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, Notification } from "@/types/api";
+import type {
+  ApiResponse,
+  Notification,
+  CreateNotificationRequest,
+  UpdateNotificationStatusRequest,
+  NotificationReminder,
+  ReminderRequest,
+  VendorBroadcastRequest,
+  VendorBulkRequest,
+} from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
 export function listNotifications(
@@ -18,7 +27,7 @@ export function listNotifications(
 }
 
 export function createNotification(
-  payload: Partial<Notification>
+  payload: CreateNotificationRequest
 ): Promise<ApiResponse<Notification>> {
   return api.post<Notification>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.create}`,
@@ -28,7 +37,7 @@ export function createNotification(
 
 export function updateNotificationStatus(
   id: string | number,
-  payload: { status: string }
+  payload: UpdateNotificationStatusRequest
 ): Promise<ApiResponse<Notification>> {
   return api.patch<Notification>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.status(id)}`,
@@ -37,37 +46,66 @@ export function updateNotificationStatus(
 }
 
 // Tenant reminders (koperasi)
-export function listTenantReminders(): Promise<ApiResponse<any[]>> {
-  return api.get<any[]>(
+export function listTenantReminders(): Promise<ApiResponse<NotificationReminder[]>> {
+  return api.get<NotificationReminder[]>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.reminders}`
   );
 }
 
-export function upsertTenantReminders(payload: any[]): Promise<ApiResponse<null>> {
+export function upsertTenantReminders(
+  payload: ReminderRequest[]
+): Promise<ApiResponse<null>> {
   return api.put<null>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.reminders}`,
     payload
   );
 }
 
-export function vendorBroadcastNotification(payload: {
-  message: string;
-  targetType: "SINGLE" | "ALL" | "GROUP";
-  tenantIDs?: number[];
-  category: string;
-}): Promise<ApiResponse<any>> {
-  return api.post<any>(
+export function listVendorNotifications(
+  params?: Record<string, string | number>,
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<Notification[]>> {
+  const query = params
+    ? `?${new URLSearchParams(params as any).toString()}`
+    : "";
+  return api.get<Notification[]>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.vendor.list}${query}`,
+    { signal: opts?.signal }
+  );
+}
+
+export function publishVendorNotification(
+  id: string | number,
+  payload?: FormData | BodyInit
+): Promise<ApiResponse<Notification>> {
+  return api.put<Notification>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.vendor.publish(id)}`,
+    payload ?? {}
+  );
+}
+
+export function unpublishVendorNotification(
+  id: string | number
+): Promise<ApiResponse<Notification>> {
+  return api.put<Notification>(
+    `${API_PREFIX}${API_ENDPOINTS.notifications.vendor.unpublish(id)}`,
+    {}
+  );
+}
+
+export function vendorBroadcastNotification(
+  payload: VendorBroadcastRequest
+): Promise<ApiResponse<null>> {
+  return api.post<null>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.vendor.broadcast}`,
     payload
   );
 }
 
-export function vendorBulkNotification(payload: {
-  message: string;
-  targetType: "SINGLE" | "ALL" | "GROUP";
-  segment: "VENDOR" | "KOPERASI" | "UMKM" | "BUMDES";
-}): Promise<ApiResponse<any>> {
-  return api.post<any>(
+export function vendorBulkNotification(
+  payload: VendorBulkRequest
+): Promise<ApiResponse<null>> {
+  return api.post<null>(
     `${API_PREFIX}${API_ENDPOINTS.notifications.vendor.bulk}`,
     payload
   );

@@ -86,7 +86,7 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
               <SelectContent>
                 <SelectItem value="open">open</SelectItem>
                 <SelectItem value="in_progress">in_progress</SelectItem>
-                <SelectItem value="resolved">resolved</SelectItem>
+                <SelectItem value="pending">pending</SelectItem>
                 <SelectItem value="closed">closed</SelectItem>
               </SelectContent>
             </Select>
@@ -119,7 +119,6 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
               <SelectContent>
                 <SelectItem value="billing">billing</SelectItem>
                 <SelectItem value="technical">technical</SelectItem>
-                <SelectItem value="access">access</SelectItem>
                 <SelectItem value="other">other</SelectItem>
               </SelectContent>
             </Select>
@@ -167,7 +166,9 @@ export function VendorTicketsList({ initialData, limit = 10 }: Props) {
                         ? "destructive"
                         : t.status === "in_progress"
                         ? "default"
-                        : "secondary"
+                        : t.status === "pending"
+                        ? "secondary"
+                        : "outline"
                     }
                   >
                     {t.status}

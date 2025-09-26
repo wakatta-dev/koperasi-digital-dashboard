@@ -4,7 +4,14 @@
 
 import { apiRequest } from "./api";
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, User, UserRole } from "@/types/api";
+import type {
+  ApiResponse,
+  User,
+  UserRole,
+  CreateUserRequest,
+  UpdateUserRequest,
+  UpdateStatusRequest,
+} from "@/types/api";
 import { ensureSuccess } from "@/lib/api";
 import {
   listUsers as listUsersService,
@@ -35,7 +42,7 @@ export async function getUser(id: string | number): Promise<ApiResponse<User>> {
   return apiRequest<User>(API_ENDPOINTS.users.detail(id));
 }
 
-export async function createUser(payload: Partial<User>): Promise<ApiResponse<User>> {
+export async function createUser(payload: CreateUserRequest): Promise<ApiResponse<User>> {
   return apiRequest<User>(API_ENDPOINTS.users.list, {
     method: "POST",
     body: JSON.stringify(payload),
@@ -44,7 +51,7 @@ export async function createUser(payload: Partial<User>): Promise<ApiResponse<Us
 
 export async function updateUser(
   id: string | number,
-  payload: Partial<User>,
+  payload: UpdateUserRequest,
 ): Promise<ApiResponse<User>> {
   return apiRequest<User>(API_ENDPOINTS.users.detail(id), {
     method: "PUT",
@@ -54,7 +61,7 @@ export async function updateUser(
 
 export async function patchUserStatus(
   id: string | number,
-  payload: { status: boolean },
+  payload: UpdateStatusRequest,
 ): Promise<ApiResponse<User>> {
   return apiRequest<User>(API_ENDPOINTS.users.status(id), {
     method: "PATCH",
@@ -119,7 +126,7 @@ export type GetUserActionResult = Awaited<
   ReturnType<typeof getUserAction>
 >;
 
-export async function createUserAction(payload: Partial<User>) {
+export async function createUserAction(payload: CreateUserRequest) {
   try {
     const res = await createUserService(payload);
     return ensureSuccess(res);
@@ -134,7 +141,7 @@ export type CreateUserActionResult = Awaited<
 
 export async function updateUserAction(
   id: string | number,
-  payload: Partial<User>,
+  payload: UpdateUserRequest,
 ) {
   try {
     const res = await updateUserService(id, payload);
@@ -150,7 +157,7 @@ export type UpdateUserActionResult = Awaited<
 
 export async function patchUserStatusAction(
   id: string | number,
-  payload: { status: boolean },
+  payload: UpdateStatusRequest,
 ) {
   try {
     const res = await patchUserStatusService(id, payload);

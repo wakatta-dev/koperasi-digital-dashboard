@@ -4,14 +4,16 @@
 
 import type {
   ApiResponse,
-  Tenant,
-  User,
+  TenantDetail,
+  TenantListResponse,
+  TenantDetailResponse,
+  TenantUser,
   CreateTenantRequest,
   UpdateTenantRequest,
-  UpdateStatusRequest,
-  AddUserRequest,
-  ListTenantModulesResponse,
-  UpdateTenantModuleResponse,
+  UpdateTenantStatusRequest,
+  AddTenantUserRequest,
+  TenantModuleListResponse,
+  TenantModuleUpdateResponse,
 } from "@/types/api";
 import { ensureSuccess } from "@/lib/api";
 import {
@@ -28,63 +30,66 @@ import {
 } from "@/services/api";
 
 export async function listTenants(params?: {
+  term?: string;
+  type?: string;
+  status?: string;
   limit?: number;
   cursor?: string;
-}): Promise<ApiResponse<Tenant[]>> {
+}): Promise<TenantListResponse> {
   return listTenantsService(params);
 }
 
 export async function getTenant(
   id: string | number,
-): Promise<ApiResponse<Tenant>> {
+): Promise<TenantDetailResponse> {
   return getTenantService(id);
 }
 
 export async function createTenant(
   payload: CreateTenantRequest,
-): Promise<ApiResponse<Tenant>> {
+): Promise<TenantDetailResponse> {
   return createTenantService(payload);
 }
 
 export async function updateTenant(
   id: string | number,
   payload: Partial<UpdateTenantRequest> & { domain?: string },
-): Promise<ApiResponse<Tenant>> {
+): Promise<TenantDetailResponse> {
   return updateTenantService(id, payload);
 }
 
 export async function updateTenantStatus(
   id: string | number,
-  payload: UpdateStatusRequest,
-): Promise<ApiResponse<Tenant>> {
+  payload: UpdateTenantStatusRequest,
+): Promise<TenantDetailResponse> {
   return updateTenantStatusService(id, payload);
 }
 
 export async function listTenantUsers(
   id: string | number,
   params?: { limit?: number; cursor?: string },
-): Promise<ApiResponse<User[]>> {
+): Promise<ApiResponse<TenantUser[]>> {
   return listTenantUsersService(id, params);
 }
 
 export async function addTenantUser(
   id: string | number,
-  payload: AddUserRequest,
-): Promise<ApiResponse<User>> {
+  payload: AddTenantUserRequest,
+): Promise<ApiResponse<TenantUser>> {
   return addTenantUserService(id, payload);
 }
 
 export async function listTenantModules(
   id: string | number,
   params?: { limit?: number; cursor?: string },
-): Promise<ListTenantModulesResponse> {
+): Promise<TenantModuleListResponse> {
   return listTenantModulesService(id, params);
 }
 
 export async function updateTenantModule(
   id: string | number,
-  payload: { module_id: number; status: string },
-): Promise<UpdateTenantModuleResponse> {
+  payload: { module_id: string | number; status: "aktif" | "nonaktif" },
+): Promise<TenantModuleUpdateResponse> {
   return updateTenantModuleService(id, payload);
 }
 

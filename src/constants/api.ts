@@ -178,15 +178,16 @@ export const API_ENDPOINTS = {
     sla: "/vendor/tickets/sla",
   },
   notifications: {
-    // Vendor-level notifications (per docs/modules/notification.md → Vendor Routes)
     list: "/notifications",
     create: "/notifications",
     status: (id: string | number) => `/notifications/${id}`,
-    // Tenant-level reminders live under koperasi namespace
     reminders: "/notifications/reminders",
     vendor: {
-      broadcast: "/vendor/notifications/broadcast",
-      bulk: "/vendor/notifications/bulk",
+      list: "/notifications/vendor",
+      broadcast: "/notifications/broadcast",
+      bulk: "/notifications/bulk",
+      publish: (id: string | number) => `/notifications/${id}/publish`,
+      unpublish: (id: string | number) => `/notifications/${id}/unpublish`,
     },
   },
   rat: {

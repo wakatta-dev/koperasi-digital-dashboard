@@ -1,17 +1,44 @@
 /** @format */
 
 import { API_ENDPOINTS } from "@/constants/api";
-import type { ApiResponse, Tenant, User } from "@/types/api";
+import type {
+  ApiResponse,
+  Tenant,
+  TenantDetail,
+  TenantListResponse,
+  TenantDetailResponse,
+  TenantUser,
+  TenantUserListResponse,
+  TenantModule,
+  TenantModuleListResponse,
+  CreateTenantRequest,
+  UpdateTenantRequest,
+  UpdateTenantStatusRequest,
+  AddTenantUserRequest,
+  UpdateTenantModuleRequest,
+} from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
 export function listTenants(
-  params?: Record<string, string | number>,
-): Promise<ApiResponse<Tenant[]>> {
-  const query = params
-    ? `?${new URLSearchParams(params as any).toString()}`
-    : "";
-  return api.get<Tenant[]>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.list}${query}`,
+  params?: {
+    term?: string;
+    type?: string;
+    status?: string;
+    limit?: number;
+    cursor?: string;
+  },
+  opts?: { signal?: AbortSignal }
+): Promise<TenantListResponse> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params?.limit ?? 10));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.term) search.set("term", params.term);
+  if (params?.type) search.set("type", params.type);
+  if (params?.status) search.set("status", params.status);
+  const q = search.toString();
+  return api.get<TenantDetail[]>(
+    `${API_PREFIX}${API_ENDPOINTS.tenant.list}${q ? `?${q}` : ""}`,
+    { signal: opts?.signal }
   );
 }
 
@@ -23,16 +50,20 @@ export function getTenantByDomain(domain: string): Promise<ApiResponse<Tenant>> 
   );
 }
 
-export function getTenant(id: string | number): Promise<ApiResponse<Tenant>> {
-  return api.get<Tenant>(
+export function getTenant(
+  id: string | number,
+  opts?: { signal?: AbortSignal }
+): Promise<TenantDetailResponse> {
+  return api.get<TenantDetail>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.detail(id)}`,
+    { signal: opts?.signal }
   );
 }
 
 export function createTenant(
-  payload: Partial<Tenant>,
-): Promise<ApiResponse<Tenant>> {
-  return api.post<Tenant>(
+  payload: CreateTenantRequest,
+): Promise<TenantDetailResponse> {
+  return api.post<TenantDetail>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.list}`,
     payload,
   );
@@ -40,9 +71,9 @@ export function createTenant(
 
 export function updateTenant(
   id: string | number,
-  payload: Partial<Tenant>,
-): Promise<ApiResponse<Tenant>> {
-  return api.patch<Tenant>(
+  payload: Partial<UpdateTenantRequest>,
+): Promise<TenantDetailResponse> {
+  return api.patch<TenantDetail>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.detail(id)}`,
     payload,
   );
@@ -50,9 +81,9 @@ export function updateTenant(
 
 export function updateTenantStatus(
   id: string | number,
-  payload: { is_active: boolean },
-): Promise<ApiResponse<Tenant>> {
-  return api.patch<Tenant>(
+  payload: UpdateTenantStatusRequest,
+): Promise<TenantDetailResponse> {
+  return api.patch<TenantDetail>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.status(id)}`,
     payload,
   );
@@ -60,21 +91,33 @@ export function updateTenantStatus(
 
 export function listTenantUsers(
   id: string | number,
-  params?: Record<string, string | number>,
-): Promise<ApiResponse<User[]>> {
-  const query = params
-    ? `?${new URLSearchParams(params as any).toString()}`
-    : "";
-  return api.get<User[]>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.users(id)}${query}`,
+  params?: {
+    term?: string;
+    role?: string | number;
+    status?: string;
+    limit?: number;
+    cursor?: string;
+  },
+  opts?: { signal?: AbortSignal }
+): Promise<TenantUserListResponse> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params?.limit ?? 10));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.term) search.set("term", params.term);
+  if (params?.role) search.set("role", String(params.role));
+  if (params?.status) search.set("status", params.status);
+  const q = search.toString();
+  return api.get<TenantUser[]>(
+    `${API_PREFIX}${API_ENDPOINTS.tenant.users(id)}${q ? `?${q}` : ""}`,
+    { signal: opts?.signal }
   );
 }
 
 export function addTenantUser(
   id: string | number,
-  payload: Partial<User> & { tenant_role_id?: number; password?: string },
-): Promise<ApiResponse<User>> {
-  return api.post<User>(
+  payload: AddTenantUserRequest,
+): Promise<ApiResponse<TenantUser>> {
+  return api.post<TenantUser>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.users(id)}`,
     payload,
   );
@@ -82,31 +125,35 @@ export function addTenantUser(
 
 export function listTenantModules(
   id: string | number,
-  params?: Record<string, string | number>,
-): Promise<ApiResponse<any[]>> {
-  const query = params
-    ? `?${new URLSearchParams(params as any).toString()}`
-    : "";
-  return api.get<any[]>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.modules(id)}${query}`,
+  params?: {
+    term?: string;
+    enabled?: string;
+    limit?: number;
+    cursor?: string;
+  },
+  opts?: { signal?: AbortSignal }
+): Promise<TenantModuleListResponse> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params?.limit ?? 10));
+  if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.term) search.set("term", params.term);
+  if (params?.enabled) search.set("enabled", params.enabled);
+  const q = search.toString();
+  return api.get<TenantModule[]>(
+    `${API_PREFIX}${API_ENDPOINTS.tenant.modules(id)}${q ? `?${q}` : ""}`,
+    { signal: opts?.signal }
   );
 }
 
 export function updateTenantModule(
   id: string | number,
-  payload: { module_id: number; status: string },
-): Promise<ApiResponse<any>> {
-  // Map UI values (active/inactive) to backend enum (aktif/nonaktif) per docs
-  const mapped = {
-    module_id: payload.module_id,
-    status:
-      payload.status === "active"
-        ? "aktif"
-        : payload.status === "inactive"
-        ? "nonaktif"
-        : payload.status,
+  payload: { module_id: string | number; status: "aktif" | "nonaktif" }
+): Promise<ApiResponse<TenantModule>> {
+  const mapped: UpdateTenantModuleRequest = {
+    module_id: String(payload.module_id),
+    status: payload.status,
   };
-  return api.patch<any>(
+  return api.patch<TenantModule>(
     `${API_PREFIX}${API_ENDPOINTS.tenant.modules(id)}`,
     mapped,
   );
