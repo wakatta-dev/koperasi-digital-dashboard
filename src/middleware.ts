@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
       );
       if (res.ok) {
         const { data } = await res.json();
-        tenantId = data?.tenant_id ? String(data.tenant_id) : undefined;
+        tenantId = data?.id ? String(data.id) : undefined;
       }
     } catch (err: any) {
       console.error("Tenant lookup failed:", err?.message);
