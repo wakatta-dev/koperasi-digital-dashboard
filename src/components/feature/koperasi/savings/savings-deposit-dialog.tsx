@@ -71,6 +71,13 @@ export function SavingsDepositDialog({ memberId, onSuccess }: Props) {
         fee: values.fee,
       });
       toast.success("Setoran berhasil dibuat");
+      form.reset({
+        member_id: memberId ? Number(memberId) : undefined,
+        type: values.type,
+        amount: 0,
+        method: values.method,
+        fee: undefined,
+      } as Partial<FormInput>);
       setOpen(false);
       onSuccess?.();
     } catch (e: any) {
@@ -102,7 +109,7 @@ export function SavingsDepositDialog({ memberId, onSuccess }: Props) {
                         value={(field.value as any) ?? null}
                         onChange={(val) => field.onChange(val as any)}
                         getOptionValue={(m) => m.id}
-                        getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+                        getOptionLabel={(m) => m.full_name || m.no_anggota || String(m.id)}
                         queryKey={["members", "search-savings-deposit"]}
                         fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 })}
                         placeholder="Cari anggota (nama/email/no. anggota)"
@@ -111,8 +118,8 @@ export function SavingsDepositDialog({ memberId, onSuccess }: Props) {
                         minChars={1}
                         renderOption={(m) => (
                           <div className="flex flex-col">
-                            <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
-                            <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                            <span className="font-medium">{m.full_name || `Anggota #${m.id}`}</span>
+                            <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.email || '-'}</span>
                           </div>
                         )}
                         renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}

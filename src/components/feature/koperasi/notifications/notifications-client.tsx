@@ -8,10 +8,10 @@ import { NotificationRow } from "./notification-row";
 import { listNotifications, updateNotificationStatus } from "@/services/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { useInfiniteQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import { makePaginatedListFetcher, type FetchPageResult } from "@/lib/async-fetchers";
 
-export function NotificationsClient({ initialItems = [], initialCursor, initialHasNext }: { initialItems?: any[]; initialCursor?: string; initialHasNext?: boolean; }) {
+export function NotificationsClient({ initialItems = [], initialCursor }: { initialItems?: any[]; initialCursor?: string; }) {
   const [type, setType] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [from, setFrom] = useState<string>("");

@@ -17,12 +17,32 @@ import { applyLoan, approveLoan, disburseLoan, listLoanInstallments, payLoanInst
 import AsyncCombobox from "@/components/ui/async-combobox";
 import { listMembers } from "@/services/api";
 import { makePaginatedListFetcher } from "@/lib/async-fetchers";
-import type { MemberListItem } from "@/types/api";
+import type { LoanInstallment, MemberListItem } from "@/types/api";
+
+const idr = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+});
+
+type ApplyFormState = {
+  member_id: string;
+  amount: number;
+  purpose: string;
+  tenor: number;
+  rate: number;
+};
 
 export default function PinjamanClient() {
-  const [applyPayload, setApplyPayload] = useState<any>({ member_id: "", amount: 0, purpose: "", term_months: 12 });
+  const [applyPayload, setApplyPayload] = useState<ApplyFormState>({
+    member_id: "",
+    amount: 0,
+    purpose: "",
+    tenor: 12,
+    rate: 12,
+  });
   const [loanId, setLoanId] = useState<string>("");
-  const [installments, setInstallments] = useState<any[]>([]);
+  const [installments, setInstallments] = useState<LoanInstallment[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function onApply() {
@@ -32,9 +52,10 @@ export default function PinjamanClient() {
         member_id: Number(applyPayload.member_id),
         amount: Number(applyPayload.amount),
         purpose: String(applyPayload.purpose || ""),
-        term_months: Number(applyPayload.term_months || 12),
+        tenor: Number(applyPayload.tenor || 12),
+        rate: Number(applyPayload.rate || 0),
       });
-      setApplyPayload({ member_id: "", amount: 0, purpose: "", term_months: 12 });
+      setApplyPayload({ member_id: "", amount: 0, purpose: "", tenor: 12, rate: 12 });
     } finally {
       setLoading(false);
     }
@@ -43,7 +64,7 @@ export default function PinjamanClient() {
   async function loadInstallments() {
     if (!loanId) return;
     const res = await listLoanInstallments(loanId);
-    if (res.success) setInstallments(res.data || []);
+    if (res.success) setInstallments((res.data as LoanInstallment[]) ?? []);
   }
 
   async function onApprove() {
@@ -76,12 +97,12 @@ export default function PinjamanClient() {
           <CardDescription>Ajukan pinjaman untuk anggota</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
             <AsyncCombobox<MemberListItem, number>
               value={applyPayload.member_id ? Number(applyPayload.member_id) : null}
-              onChange={(val) => setApplyPayload((s: any) => ({ ...s, member_id: val ?? "" }))}
+              onChange={(val) => setApplyPayload((s) => ({ ...s, member_id: val ?? "" }))}
               getOptionValue={(m) => m.id}
-              getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+              getOptionLabel={(m) => m.full_name || m.no_anggota || String(m.id)}
               queryKey={["members", "search-loan-apply"]}
               fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 })}
               placeholder="Cari anggota (nama/email/no. anggota)"
@@ -90,16 +111,38 @@ export default function PinjamanClient() {
               minChars={1}
               renderOption={(m) => (
                 <div className="flex flex-col">
-                  <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
-                  <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                  <span className="font-medium">{m.full_name || `Anggota #${m.id}`}</span>
+                  <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.email || '-'}</span>
                 </div>
               )}
               renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
             />
-            <Input type="number" placeholder="Jumlah" value={applyPayload.amount} onChange={(e) => setApplyPayload((s: any) => ({ ...s, amount: Number(e.target.value || 0) }))} />
-            <Input placeholder="Keperluan" value={applyPayload.purpose} onChange={(e) => setApplyPayload((s: any) => ({ ...s, purpose: e.target.value }))} />
-            <Input type="number" placeholder="Tenor (bulan)" value={applyPayload.term_months} onChange={(e) => setApplyPayload((s: any) => ({ ...s, term_months: Number(e.target.value || 0) }))} />
-            <Button onClick={onApply} disabled={loading || !applyPayload.member_id || !applyPayload.amount}>Ajukan</Button>
+            <Input
+              type="number"
+              placeholder="Jumlah"
+              value={applyPayload.amount}
+              onChange={(e) => setApplyPayload((s) => ({ ...s, amount: Number(e.target.value || 0) }))}
+            />
+            <Input
+              placeholder="Keperluan"
+              value={applyPayload.purpose}
+              onChange={(e) => setApplyPayload((s) => ({ ...s, purpose: e.target.value }))}
+            />
+            <Input
+              type="number"
+              placeholder="Tenor (bulan)"
+              value={applyPayload.tenor}
+              onChange={(e) => setApplyPayload((s) => ({ ...s, tenor: Number(e.target.value || 0) }))}
+            />
+            <Input
+              type="number"
+              placeholder="Rate (%)"
+              value={applyPayload.rate}
+              onChange={(e) => setApplyPayload((s) => ({ ...s, rate: Number(e.target.value || 0) }))}
+            />
+            <Button onClick={onApply} disabled={loading || !applyPayload.member_id || !applyPayload.amount}>
+              Ajukan
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -131,19 +174,35 @@ export default function PinjamanClient() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {installments.map((ins: any) => (
+            {installments.map((ins) => (
               <div key={String(ins.id)} className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <div className="font-medium">Angsuran #{ins.sequence ?? ins.id}</div>
+                  <div className="font-medium">Angsuran #{ins.id}</div>
                   <div className="text-sm text-muted-foreground">Jatuh tempo: {ins.due_date ?? "-"}</div>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <p className="font-medium">Jumlah: {ins.amount}</p>
-                    <p className="text-sm text-muted-foreground">Status: {ins.status}</p>
+                    <p className="font-medium">Jumlah: {idr.format(ins.amount)}</p>
+                    <p className="text-sm text-muted-foreground">Dibayar: {idr.format(ins.paid_amount)}</p>
+                    <p className="text-xs text-muted-foreground">Status: {ins.status}</p>
                   </div>
                   {ins.status !== "paid" && (
-                    <Button variant="ghost" size="sm" onClick={async () => { await payLoanInstallment(ins.id); await loadInstallments(); }}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        const amount = Number(
+                          prompt("Nominal bayar", String(Math.max(0, ins.amount - ins.paid_amount))) || 0
+                        );
+                        if (!amount) return;
+                        await payLoanInstallment(ins.id, {
+                          amount,
+                          date: new Date().toISOString(),
+                          method: "manual",
+                        });
+                        await loadInstallments();
+                      }}
+                    >
                       <CheckCircle className="h-4 w-4 mr-2" /> Bayar
                     </Button>
                   )}

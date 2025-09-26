@@ -2,32 +2,54 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, PiggyBank, CreditCard, DollarSign, RefreshCcw } from "lucide-react";
 import { getKoperasiDashboardSummary } from "@/services/api";
+import type { KoperasiDashboardSummary } from "@/types/api";
 
-export function SummaryCards({ initial }: { initial: any | null }) {
-  const [data, setData] = useState<any | null>(initial);
+const numberFormatter = new Intl.NumberFormat("id-ID");
+
+export function SummaryCards({ initial }: { initial: KoperasiDashboardSummary | null }) {
+  const [data, setData] = useState<KoperasiDashboardSummary | null>(initial);
   const [loading, setLoading] = useState(false);
 
   async function refresh() {
     setLoading(true);
     try {
       const res = await getKoperasiDashboardSummary();
-      if (res.success) setData(res.data);
+      if (res.success) setData(res.data as KoperasiDashboardSummary);
     } finally {
       setLoading(false);
     }
   }
 
-  const dashboardStats = [
-    { title: "Total Anggota", value: data?.active_members ?? "-", icon: <Users className="h-4 w-4" /> },
-    { title: "Total Simpanan", value: data?.total_savings ?? "-", icon: <PiggyBank className="h-4 w-4" /> },
-    { title: "Total Pinjaman", value: data?.total_loans ?? "-", icon: <CreditCard className="h-4 w-4" /> },
-    { title: "SHU Berjalan", value: data?.running_shu ?? "-", icon: <DollarSign className="h-4 w-4" /> },
-  ];
+  const stats = useMemo(
+    () => [
+      {
+        title: "Total Anggota",
+        value: typeof data?.active_members === "number" ? numberFormatter.format(data.active_members) : "-",
+        icon: <Users className="h-4 w-4" />,
+      },
+      {
+        title: "Total Simpanan",
+        value: typeof data?.total_savings === "number" ? numberFormatter.format(data.total_savings) : "-",
+        icon: <PiggyBank className="h-4 w-4" />,
+      },
+      {
+        title: "Total Pinjaman",
+        value: typeof data?.total_loans === "number" ? numberFormatter.format(data.total_loans) : "-",
+        icon: <CreditCard className="h-4 w-4" />,
+      },
+      {
+        title: "SHU Berjalan",
+        value: typeof data?.running_shu === "number" ? numberFormatter.format(data.running_shu) : "-",
+        icon: <DollarSign className="h-4 w-4" />,
+      },
+    ],
+    [data]
+  );
 
   return (
     <div className="space-y-2">
@@ -37,7 +59,7 @@ export function SummaryCards({ initial }: { initial: any | null }) {
         </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {dashboardStats.map((stat) => (
+        {stats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
@@ -52,4 +74,3 @@ export function SummaryCards({ initial }: { initial: any | null }) {
     </div>
   );
 }
-

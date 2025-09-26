@@ -2,34 +2,131 @@
 
 import type { ApiResponse, Rfc3339String } from './common';
 
-export interface FinanceByPeriod { period: string; income: number; expense: number }
-export interface FinanceReportResponse { total_income: number; total_expense: number; ending_balance: number; by_period: FinanceByPeriod[] }
+// Koperasi financial reports (balance sheet, profit & loss, cash flow)
+export type BalanceSheetReport = {
+  assets: {
+    current: number;
+    fixed: number;
+    total: number;
+  };
+  liabilities: {
+    short_term: number;
+    long_term: number;
+    total: number;
+  };
+  equity: number;
+  data: Record<string, number>;
+};
 
-export interface OverdueInvoiceResponse { id: number; number: string; tenant_id: number; total: number; due_date: Rfc3339String }
-export interface BillingStatusDetail { paid: number; pending: number; overdue: number }
-export interface BillingRevenueDetail { outstanding: number; subscription: number }
-export interface BillingReportResponse { total_invoices: number; status_detail: BillingStatusDetail; revenue: BillingRevenueDetail; overdue_invoices: OverdueInvoiceResponse[] }
+export type ProfitLossReport = {
+  revenue: number;
+  expense: number;
+  net_income: number;
+  breakdown: Array<{ account: string; amount: number }>;
+};
 
-export interface CashflowChartData { label: string; cash_in: number; cash_out: number }
-export interface CashflowReportResponse { total_cash_in: number; total_cash_out: number; data: CashflowChartData[] }
+export type CashflowReport = {
+  operating: number;
+  investing: number;
+  financing: number;
+  closing_balance: number;
+  lines: Array<{ account: string; amount: number }>;
+};
 
-export interface ProfitLossChartData { label: string; profit: number; loss: number }
-export interface ProfitLossReportResponse { net_profit: number; data: ProfitLossChartData[] }
+export type BalanceSheetReportResponse = ApiResponse<BalanceSheetReport>;
+export type ProfitLossReportResponse = ApiResponse<ProfitLossReport>;
+export type CashflowReportResponse = ApiResponse<CashflowReport>;
 
-export interface BalanceSheetBreakdown { account: string; amount: number }
-export interface BalanceSheetReportResponse { total_assets: number; total_liabilities: number; total_equity: number; breakdown: BalanceSheetBreakdown[] }
+// Legacy/vendor report types retained for compatibility
+export type FinanceByPeriod = {
+  period: string;
+  income: number;
+  expense: number;
+};
 
-export interface ReportArchive { id: number; tenant_id: number; type: string; period_start: Rfc3339String; period_end: Rfc3339String; file_url: string; created_at: Rfc3339String }
-export interface ReportExportMeta { id: number; report_type: string; params: string; file_url: string; created_at: Rfc3339String }
+export type FinanceReportResponse = {
+  total_income: number;
+  total_expense: number;
+  ending_balance: number;
+  by_period: FinanceByPeriod[];
+};
 
-export interface VendorFinancialReport { [k: string]: unknown }
-export interface VendorUsageReport { [k: string]: unknown }
+export type OverdueInvoiceResponse = {
+  id: number;
+  number: string;
+  tenant_id: number;
+  total: number;
+  due_date: Rfc3339String;
+};
+
+export type BillingStatusDetail = {
+  paid: number;
+  pending: number;
+  overdue: number;
+};
+
+export type BillingRevenueDetail = {
+  outstanding: number;
+  subscription: number;
+};
+
+export type BillingReportResponse = {
+  total_invoices: number;
+  status_detail: BillingStatusDetail;
+  revenue: BillingRevenueDetail;
+  overdue_invoices: OverdueInvoiceResponse[];
+};
+
+export type CashflowChartData = {
+  label: string;
+  cash_in: number;
+  cash_out: number;
+};
+
+export type ProfitLossChartData = {
+  label: string;
+  profit: number;
+  loss: number;
+};
+
+export type BalanceSheetBreakdown = {
+  account: string;
+  amount: number;
+};
+
+export type LegacyBalanceSheetReportResponse = {
+  total_assets: number;
+  total_liabilities: number;
+  total_equity: number;
+  breakdown: BalanceSheetBreakdown[];
+};
+
+export type ReportArchive = {
+  id: number;
+  tenant_id: number;
+  type: string;
+  period_start: Rfc3339String;
+  period_end: Rfc3339String;
+  file_url: string;
+  created_at: Rfc3339String;
+};
+
+export type ReportExportMeta = {
+  id: number;
+  report_type: string;
+  params: string;
+  file_url: string;
+  created_at: Rfc3339String;
+};
+
+export type VendorFinancialReport = Record<string, unknown>;
+export type VendorUsageReport = Record<string, unknown>;
 
 export type GetFinanceReportResponse = ApiResponse<FinanceReportResponse>;
 export type GetBillingReportResponse = ApiResponse<BillingReportResponse>;
-export type GetCashflowReportResponse = ApiResponse<CashflowReportResponse>;
-export type GetProfitLossReportResponse = ApiResponse<ProfitLossReportResponse>;
-export type GetBalanceSheetReportResponse = ApiResponse<BalanceSheetReportResponse>;
+export type GetLegacyCashflowReportResponse = ApiResponse<{ total_cash_in: number; total_cash_out: number; data: CashflowChartData[] }>;
+export type GetLegacyProfitLossReportResponse = ApiResponse<{ net_profit: number; data: ProfitLossChartData[] }>;
+export type GetLegacyBalanceSheetReportResponse = ApiResponse<LegacyBalanceSheetReportResponse>;
 export type GetReportHistoryResponse = ApiResponse<ReportArchive[]>;
 export type GetFinancialReportResponse = ApiResponse<VendorFinancialReport>;
 export type GetUsageReportResponse = ApiResponse<VendorUsageReport>;

@@ -2,22 +2,77 @@
 
 import type { ApiResponse, Rfc3339String } from './common';
 
-export interface RAT { id: number; tenant_id: number; year: number; date: Rfc3339String; agenda?: string; created_at: Rfc3339String }
-export interface RATDocument { id: number; rat_id: number; type: string; file_url: string }
-export interface VotingItem { id: number; rat_id: number; question: string; type: string; options?: string[]; open_at: Rfc3339String; close_at: Rfc3339String }
-export interface VotingResult { item_id: number; counts: Record<string, number>; total: number }
+export type RAT = {
+  id: number;
+  tenant_id: number;
+  year: number;
+  date: Rfc3339String;
+  agenda: string;
+  status: 'scheduled' | 'completed';
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
+};
 
-export interface CreateRATRequest { year: number; date: Rfc3339String; agenda?: string }
-export interface NotifyRequest { message: string }
-export interface UploadDocumentRequest { type: string; data: string }
-export interface CreateVotingItemRequest { question: string; type: string; options?: string[]; open_at: Rfc3339String; close_at: Rfc3339String }
-export interface VoteRequest { member_id: number; selected_option: string }
+export type VotingItem = {
+  id: number;
+  rat_id: number;
+  question: string;
+  type: string;
+  options?: Record<string, unknown>;
+  open_at: Rfc3339String;
+  close_at: Rfc3339String;
+};
 
-export type CreateRATResponse = ApiResponse<RAT>;
-export type NotifyRATResponse = ApiResponse<null>;
-export type UploadRATDocumentResponse = ApiResponse<null>;
-export type CreateVotingItemResponse = ApiResponse<VotingItem>;
-export type VoteResponse = ApiResponse<{ status: string }>;
-export type GetVotingResultResponse = ApiResponse<VotingResult>;
+export type VotingResult = {
+  item_id: number;
+  total_votes: number;
+  summary: Array<{ option: string; count: number; percentage: number }>;
+};
+
+export type RATReport = {
+  rat: RAT;
+  attendance: {
+    total_invited: number;
+    attended: number;
+  };
+  votes: VotingResult[];
+  documents: string[];
+};
+
+export type CreateRATRequest = {
+  year: number;
+  date: Rfc3339String;
+  agenda?: string;
+};
+
+export type NotifyRATRequest = {
+  message: string;
+  channels?: string[];
+  email_recipients?: string[];
+};
+
+export type UploadDocumentRequest = {
+  type: string;
+  data: string;
+};
+
+export type CreateVotingItemRequest = {
+  question: string;
+  type: string;
+  options?: Record<string, unknown>;
+  open_at: Rfc3339String;
+  close_at: Rfc3339String;
+};
+
+export type VoteRequest = {
+  member_id: number;
+  selected_option: string;
+};
+
+export type RATResponse = ApiResponse<RAT>;
+export type RATStatusResponse = ApiResponse<{ status: string }>;
+export type RATDocumentResponse = ApiResponse<{ status: string }>;
+export type VotingItemResponse = ApiResponse<VotingItem>;
+export type VotingResultResponse = ApiResponse<VotingResult>;
+export type RATReportResponse = ApiResponse<RATReport>;
 export type RATHistoryResponse = ApiResponse<RAT[]>;
-

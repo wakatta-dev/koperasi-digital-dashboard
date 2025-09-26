@@ -11,20 +11,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { getMember, getUser } from "@/services/api";
+import { getMember, listMembers } from "@/services/api";
 import AsyncCombobox from "@/components/ui/async-combobox";
-import { listMembers } from "@/services/api";
 import { makePaginatedListFetcher } from "@/lib/async-fetchers";
-import type { MemberListItem, User } from "@/types/api";
+import type { MemberListItem, MemberProfile } from "@/types/api";
 
 type Props = { memberId?: string | number; member?: MemberListItem };
 
 export function MemberProfileDialog({ memberId, member }: Props) {
   const [open, setOpen] = useState(false);
   const [id, setId] = useState<string | number | undefined>(memberId);
-  const [data, setData] = useState<any | null>(null);
+  const [data, setData] = useState<MemberProfile | null>(null);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     setId(memberId);
@@ -35,17 +33,7 @@ export function MemberProfileDialog({ memberId, member }: Props) {
     setLoading(true);
     try {
       const res = await getMember(id);
-      setData(res.success ? res.data : null);
-      const uid =
-        (res as any)?.data?.member?.user_id ?? (res as any)?.data?.user_id;
-      if (uid) {
-        const ures = await getUser(uid).catch(() => null);
-        setUser(
-          ures && (ures as any).success ? ((ures as any).data as User) : null
-        );
-      } else {
-        setUser(null);
-      }
+      setData(res.success ? (res.data as MemberProfile) : null);
     } finally {
       setLoading(false);
     }
@@ -85,7 +73,7 @@ export function MemberProfileDialog({ memberId, member }: Props) {
               onChange={(val) => setId(val ?? "")}
               getOptionValue={(m) => m.id}
               getOptionLabel={(m) =>
-                m.user?.full_name || m.no_anggota || String(m.id)
+                m.full_name || m.no_anggota || String(m.id)
               }
               queryKey={["members", "search-member-profile"]}
               fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, {
@@ -98,22 +86,16 @@ export function MemberProfileDialog({ memberId, member }: Props) {
               minChars={1}
               renderOption={(m) => (
                 <div className="flex flex-col">
-                  <span className="font-medium">
-                    {m.user?.full_name || `Anggota #${m.id}`}
-                  </span>
+                  <span className="font-medium">{m.full_name || `Anggota #${m.id}`}</span>
                   <span className="text-xs text-muted-foreground">
-                    {m.no_anggota} • {m.user?.email || "-"}
+                    {m.no_anggota} • {m.email || "-"}
                   </span>
                 </div>
               )}
               renderValue={(val) => (
                 <span>
                   {val
-                    ? `${
-                        member?.user?.full_name
-                          ? member.user.full_name + " • "
-                          : ""
-                      }Anggota #${val}`
+                    ? `${member?.full_name ? member.full_name + ' • ' : ''}Anggota #${val}`
                     : ""}
                 </span>
               )}
@@ -125,21 +107,34 @@ export function MemberProfileDialog({ memberId, member }: Props) {
           {data ? (
             <div className="grid grid-cols-2 gap-2">
               <div className="text-muted-foreground">Nama Lengkap</div>
-              <div>{user?.full_name ?? member?.user?.full_name ?? "-"}</div>
+              <div>{data.member.full_name}</div>
               <div className="text-muted-foreground">Email</div>
-              <div>{user?.email ?? member?.user?.email ?? "-"}</div>
+              <div>{data.member.email}</div>
               <div className="text-muted-foreground">ID Anggota</div>
-              <div>{data?.member?.id ?? data?.id ?? "-"}</div>
+              <div>{data.member.id}</div>
               <div className="text-muted-foreground">No. Anggota</div>
-              <div>{data?.member?.no_anggota ?? "-"}</div>
+              <div>{data.member.no_anggota}</div>
               <div className="text-muted-foreground">Status</div>
-              <div>{data?.member?.status ?? "-"}</div>
+              <div className="capitalize">{data.member.status}</div>
               <div className="text-muted-foreground">Saldo Simpanan</div>
-              <div>{data?.savings ?? "-"}</div>
-              <div className="text-muted-foreground">Pinjaman Berjalan</div>
-              <div>{data?.loans ?? "-"}</div>
-              <div className="text-muted-foreground">SHU</div>
-              <div>{data?.shu ?? "-"}</div>
+              <div>{data.savings_summary.balance}</div>
+              <div className="text-muted-foreground">Total Setoran</div>
+              <div>{data.savings_summary.total_deposit}</div>
+              <div className="text-muted-foreground">Total Penarikan</div>
+              <div>{data.savings_summary.total_withdrawal}</div>
+              <div className="text-muted-foreground">Pinjaman Aktif</div>
+              <div>{data.loan_summary.active_loans}</div>
+              <div className="text-muted-foreground">Outstanding</div>
+              <div>{data.loan_summary.outstanding}</div>
+              <div className="text-muted-foreground">Kehadiran RAT</div>
+              <div>
+                {data.attendance.rat_attended} kali
+                {data.attendance.last_attended && (
+                  <span className="block text-xs text-muted-foreground">
+                    Terakhir: {new Date(data.attendance.last_attended).toLocaleDateString('id-ID')}
+                  </span>
+                )}
+              </div>
             </div>
           ) : (
             <div className="text-sm text-muted-foreground italic">

@@ -2,11 +2,12 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { createMemberCard } from "@/services/api";
 import { toast } from "sonner";
+import Image from "next/image";
 
 // Lazy import qrcode to avoid SSR issues
 let QRCode: any = null as any;
@@ -30,16 +31,20 @@ export function MemberCardDialog({ memberId }: Props) {
     setLoading(true);
     try {
       const res = await createMemberCard(memberId);
-      if (!res?.success) throw new Error(res?.message || "Gagal membuat kartu");
-      const value = (res.data as any)?.qr ?? (res as any)?.data?.qr ?? "";
+      if (!res?.success || !res.data) throw new Error(res?.message || "Gagal membuat kartu");
+      const value = res.data.qr_code ?? "";
       if (!value) throw new Error("QR kosong dari server");
       setQr(value);
-      try {
-        const QR = await ensureQRCode();
-        const dataUrl = await QR.toDataURL(value, { margin: 1, width: 240 });
-        setQrDataUrl(dataUrl);
-      } catch {
-        setQrDataUrl(null);
+      if (res.data.qr_url) {
+        setQrDataUrl(res.data.qr_url);
+      } else {
+        try {
+          const QR = await ensureQRCode();
+          const dataUrl = await QR.toDataURL(value, { margin: 1, width: 240 });
+          setQrDataUrl(dataUrl);
+        } catch {
+          setQrDataUrl(null);
+        }
       }
       toast.success("Kartu anggota dibuat");
     } catch (e: any) {
@@ -69,7 +74,14 @@ export function MemberCardDialog({ memberId }: Props) {
         </DialogHeader>
         <div className="flex flex-col items-center gap-3 py-2">
           {qrDataUrl ? (
-            <img src={qrDataUrl} alt="QR Kartu Anggota" className="w-60 h-60" />
+            <Image
+              src={qrDataUrl}
+              alt="QR Kartu Anggota"
+              width={240}
+              height={240}
+              className="rounded"
+              unoptimized
+            />
           ) : qr ? (
             <div className="text-xs p-2 rounded bg-muted w-full break-all">{qr}</div>
           ) : (
@@ -83,4 +95,3 @@ export function MemberCardDialog({ memberId }: Props) {
     </Dialog>
   );
 }
-

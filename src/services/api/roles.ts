@@ -8,7 +8,6 @@ import type {
   UserRole,
   TenantRole,
   CreateRoleRequest,
-  UpdateRoleRequest,
   AddPermissionResponse,
 } from "@/types/api";
 import { api, API_PREFIX, getTenantId } from "./base";

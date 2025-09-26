@@ -63,11 +63,6 @@ export function RATDashboard() {
   const participation = voting?.participation ?? summary?.stats.votingParticipation ?? 0;
   const isOnline = summary?.nextSchedule?.isOnline;
 
-  const chartConfig = {
-    Voted: { label: "Sudah", color: "hsl(var(--chart-1))" },
-    NotYet: { label: "Belum", color: "hsl(var(--chart-2))" },
-  } as const;
-
   const chartData = [
     { name: "Sudah", value: participation },
     { name: "Belum", value: Math.max(0, 100 - participation) },

@@ -4,7 +4,6 @@
 
 import type {
   ApiResponse,
-  TenantDetail,
   TenantListResponse,
   TenantDetailResponse,
   TenantUser,

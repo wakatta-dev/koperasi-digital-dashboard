@@ -19,7 +19,7 @@ import type { MemberListItem } from "@/types/api";
 
 const schema = z.object({
   member_id: z.coerce.number().int().positive().optional(),
-  type: z.string().min(1),
+  type: z.literal('simpanan_sukarela'),
   amount: z.coerce.number().positive(),
   method: z.string().min(1),
   fee: z.coerce.number().nonnegative().optional(),
@@ -34,15 +34,33 @@ export function SavingsWithdrawDialog({ memberId, onSuccess }: Props) {
   const [open, setOpen] = useState(false);
   const form = useForm<FormInput, any, FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { member_id: memberId ? Number(memberId) : undefined, type: "sukarela", amount: 0, method: "transfer", fee: undefined } as Partial<FormInput>,
+    defaultValues: {
+      member_id: memberId ? Number(memberId) : undefined,
+      type: 'simpanan_sukarela',
+      amount: 0,
+      method: 'transfer',
+      fee: undefined,
+    } as Partial<FormInput>,
   });
 
   async function onSubmit(values: FormValues) {
     try {
       const targetMemberId = memberId ? Number(memberId) : Number(values.member_id);
       if (!targetMemberId) throw new Error("member_id kosong");
-      await withdrawSavings(targetMemberId, { type: values.type, amount: values.amount, method: values.method, fee: values.fee });
+      await withdrawSavings(targetMemberId, {
+        type: 'simpanan_sukarela',
+        amount: values.amount,
+        method: values.method,
+        fee: values.fee,
+      });
       toast.success("Penarikan diajukan (pending)");
+      form.reset({
+        member_id: memberId ? Number(memberId) : undefined,
+        type: 'simpanan_sukarela',
+        amount: 0,
+        method: values.method,
+        fee: undefined,
+      } as Partial<FormInput>);
       setOpen(false);
       onSuccess?.();
     } catch (e: any) {
@@ -73,7 +91,7 @@ export function SavingsWithdrawDialog({ memberId, onSuccess }: Props) {
                       value={(field.value as any) ?? null}
                       onChange={(val) => field.onChange(val as any)}
                       getOptionValue={(m) => m.id}
-                      getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+                      getOptionLabel={(m) => m.full_name || m.no_anggota || String(m.id)}
                       queryKey={["members", "search-savings-withdraw"]}
                       fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 })}
                       placeholder="Cari anggota (nama/email/no. anggota)"
@@ -82,8 +100,8 @@ export function SavingsWithdrawDialog({ memberId, onSuccess }: Props) {
                       minChars={1}
                       renderOption={(m) => (
                         <div className="flex flex-col">
-                          <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
-                          <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                          <span className="font-medium">{m.full_name || `Anggota #${m.id}`}</span>
+                          <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.email || '-'}</span>
                         </div>
                       )}
                       renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
@@ -97,7 +115,7 @@ export function SavingsWithdrawDialog({ memberId, onSuccess }: Props) {
               <FormItem>
                 <FormLabel>Jenis Simpanan</FormLabel>
                 <FormControl>
-                  <Input placeholder="pokok|wajib|sukarela" {...field} />
+                  <Input {...field} readOnly disabled />
                 </FormControl>
                 <FormMessage />
               </FormItem>

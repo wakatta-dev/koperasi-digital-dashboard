@@ -115,9 +115,10 @@ export function MembersListClient({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="nonaktif">Nonaktif</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="keluar">Keluar</SelectItem>
             </SelectContent>
           </Select>
           <div className="text-sm text-muted-foreground">
@@ -143,9 +144,9 @@ export function MembersListClient({
               <TableCell className="font-medium">
                 {member.no_anggota || `AGG-${member.id}`}
               </TableCell>
-              <TableCell>{member.user?.full_name || "-"}</TableCell>
+              <TableCell>{member.full_name || "-"}</TableCell>
               <TableCell className="text-muted-foreground">
-                {member.user?.email || "-"}
+                {member.email || "-"}
               </TableCell>
               <TableCell>
                 <Badge
@@ -163,7 +164,7 @@ export function MembersListClient({
                 <MemberProfileDialog memberId={member.id} member={member} />
                 <MemberVerifyDialog defaultId={member.id} />
                 <MemberCardDialog memberId={member.id} />
-                {["active", "inactive", "nonaktif"].includes(
+                {["active", "nonaktif"].includes(
                   String(member.status || "").toLowerCase()
                 ) && (
                   <Button

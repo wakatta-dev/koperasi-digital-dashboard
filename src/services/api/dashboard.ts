@@ -4,8 +4,8 @@ import { API_ENDPOINTS } from "@/constants/api";
 import type {
   ApiResponse,
   DashboardSummary,
-  TrendData,
-  DashboardNotification,
+  KoperasiTrendPoint,
+  Notification,
 } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
@@ -25,26 +25,26 @@ export function getKoperasiDashboardTrend(params?: {
   tenant_id?: string | number;
   start?: string;
   end?: string;
-}): Promise<ApiResponse<TrendData[]>> {
+}): Promise<ApiResponse<KoperasiTrendPoint[]>> {
   const search = new URLSearchParams();
   if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
   if (params?.start) search.set("start", params.start);
   if (params?.end) search.set("end", params.end);
   const q = search.toString();
   const path = `${API_PREFIX}${API_ENDPOINTS.koperasiDashboard.trend}`;
-  return api.get<TrendData[]>(q ? `${path}?${q}` : path);
+  return api.get<KoperasiTrendPoint[]>(q ? `${path}?${q}` : path);
 }
 
 export function getKoperasiDashboardNotifications(params?: {
   tenant_id?: string | number;
   limit?: string | number;
   cursor?: string;
-}): Promise<ApiResponse<DashboardNotification[]>> {
+}): Promise<ApiResponse<Notification[]>> {
   const search = new URLSearchParams();
   if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
   if (params?.limit) search.set("limit", String(params.limit));
   if (params?.cursor) search.set("cursor", params.cursor);
   const q = search.toString();
   const path = `${API_PREFIX}${API_ENDPOINTS.koperasiDashboard.notifications}`;
-  return api.get<DashboardNotification[]>(q ? `${path}?${q}` : path);
+  return api.get<Notification[]>(q ? `${path}?${q}` : path);
 }

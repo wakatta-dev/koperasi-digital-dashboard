@@ -5,8 +5,11 @@ import type {
   ApiResponse,
   FinanceReportResponse,
   BillingReportResponse,
+  CashflowReport,
   CashflowReportResponse,
+  ProfitLossReport,
   ProfitLossReportResponse,
+  BalanceSheetReport,
   BalanceSheetReportResponse,
   ReportArchive,
 } from "@/types/api";
@@ -41,74 +44,66 @@ export function getBillingReport(params?: {
 }
 
 export function getCashflowReport(params?: {
-  tenant_id?: string | number;
-  start?: string; // YYYY-MM-DD
-  end?: string; // YYYY-MM-DD
-}): Promise<ApiResponse<CashflowReportResponse>> {
+  start?: string;
+  end?: string;
+}): Promise<CashflowReportResponse> {
   const search = new URLSearchParams();
-  if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
   if (params?.start) search.set("start", params.start);
   if (params?.end) search.set("end", params.end);
   const q = search.toString();
-  const path = `${API_PREFIX}${API_ENDPOINTS.reports.cashflow}`;
-  return api.get<CashflowReportResponse>(q ? `${path}?${q}` : path);
+  const path = `${API_PREFIX}${API_ENDPOINTS.koperasiReports.cashflow}`;
+  return api.get<CashflowReport>(q ? `${path}?${q}` : path);
 }
 
 export function getProfitLossReport(params?: {
-  tenant_id?: string | number;
-  start?: string; // YYYY-MM-DD
-  end?: string; // YYYY-MM-DD
-}): Promise<ApiResponse<ProfitLossReportResponse>> {
+  start?: string;
+  end?: string;
+}): Promise<ProfitLossReportResponse> {
   const search = new URLSearchParams();
-  if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
   if (params?.start) search.set("start", params.start);
   if (params?.end) search.set("end", params.end);
   const q = search.toString();
-  const path = `${API_PREFIX}${API_ENDPOINTS.reports.profitLoss}`;
-  return api.get<ProfitLossReportResponse>(q ? `${path}?${q}` : path);
+  const path = `${API_PREFIX}${API_ENDPOINTS.koperasiReports.profitLoss}`;
+  return api.get<ProfitLossReport>(q ? `${path}?${q}` : path);
 }
 
 export function getBalanceSheetReport(params?: {
-  tenant_id?: string | number;
-  start?: string; // YYYY-MM-DD
-  end?: string; // YYYY-MM-DD
-}): Promise<ApiResponse<BalanceSheetReportResponse>> {
+  start?: string;
+  end?: string;
+}): Promise<BalanceSheetReportResponse> {
   const search = new URLSearchParams();
-  if (params?.tenant_id) search.set("tenant_id", String(params.tenant_id));
   if (params?.start) search.set("start", params.start);
   if (params?.end) search.set("end", params.end);
   const q = search.toString();
-  const path = `${API_PREFIX}${API_ENDPOINTS.reports.balanceSheet}`;
-  return api.get<BalanceSheetReportResponse>(q ? `${path}?${q}` : path);
+  const path = `${API_PREFIX}${API_ENDPOINTS.koperasiReports.balanceSheet}`;
+  return api.get<BalanceSheetReport>(q ? `${path}?${q}` : path);
 }
 
 // Tenant report export (binary)
 export async function exportReportRaw(params: {
-  tenant_id?: string | number;
-  type: string; // profit-loss | balance-sheet | cashflow | finance | billing
+  type: 'balance-sheet' | 'profit-loss' | 'cash-flow';
   start?: string;
   end?: string;
-  format?: "pdf" | "xlsx";
+  format?: 'pdf' | 'xlsx';
 }): Promise<Blob> {
-  const [tidModule, { getAccessToken }] = await Promise.all([
-    params.tenant_id ? Promise.resolve(params.tenant_id) : getTenantId(),
+  const [tenantId, { getAccessToken }] = await Promise.all([
+    getTenantId(),
     import("../auth"),
   ]);
   const accessToken = await getAccessToken();
 
   const search = new URLSearchParams();
-  if (tidModule) search.set("tenant_id", String(tidModule));
-  if (params.type) search.set("type", params.type);
+  search.set("type", params.type);
   if (params.start) search.set("start", params.start);
   if (params.end) search.set("end", params.end);
   if (params.format) search.set("format", params.format);
 
   const headers: Record<string, string> = {};
-  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
-  if (tidModule) headers["X-Tenant-ID"] = String(tidModule);
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+  if (tenantId) headers['X-Tenant-ID'] = tenantId;
 
-  const url = `${process.env.NEXT_PUBLIC_API_URL}${API_PREFIX}${API_ENDPOINTS.reports.export}?${search.toString()}`;
-  const res = await fetch(url, { method: "GET", headers });
+  const url = `${process.env.NEXT_PUBLIC_API_URL}${API_PREFIX}${API_ENDPOINTS.koperasiReports.export}?${search.toString()}`;
+  const res = await fetch(url, { method: 'GET', headers });
   if (!res.ok) throw new Error(res.statusText);
   return await res.blob();
 }

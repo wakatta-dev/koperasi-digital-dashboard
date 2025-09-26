@@ -25,6 +25,11 @@ import {
 } from "@/services/api";
 import { SummaryCards } from "@/components/feature/koperasi/dashboard/summary-cards";
 import { TrendPanel } from "@/components/feature/koperasi/dashboard/trend-panel";
+import type {
+  KoperasiDashboardSummary,
+  KoperasiTrendPoint,
+  Notification as DashboardNotification,
+} from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
@@ -35,10 +40,18 @@ export default async function KoperasiDashboard() {
     getKoperasiDashboardTrend().catch(() => null),
   ]);
 
-  const summary = summaryRes && summaryRes.success ? summaryRes.data : null;
+  const summary =
+    summaryRes && summaryRes.success
+      ? (summaryRes.data as KoperasiDashboardSummary)
+      : null;
   const notifications =
-    notifRes && notifRes.success ? (notifRes.data as any[]) : [];
-  const trend = trendRes && trendRes.success ? (trendRes.data as any[]) : [];
+    notifRes && notifRes.success
+      ? ((notifRes.data as DashboardNotification[]) ?? [])
+      : [];
+  const trend =
+    trendRes && trendRes.success
+      ? ((trendRes.data as KoperasiTrendPoint[]) ?? [])
+      : [];
 
   // Quick actions config for cleaner rendering
   const quickActions = [
@@ -103,25 +116,25 @@ export default async function KoperasiDashboard() {
           </CardHeader>
           <CardContent className="max-h-96 overflow-y-scroll">
             <div className="space-y-4">
-              {(notifications || []).slice(0, 6).map((n, idx) => (
+              {notifications.slice(0, 6).map((n) => (
                 <div
-                  key={idx}
+                  key={n.id}
                   className="flex items-start justify-between gap-3 rounded-lg border p-3"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">
-                      {(n as any).title ?? (n as any).message ?? "Notifikasi"}
+                      {n.title ?? "Notifikasi"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {formatDateTime((n as any).created_at)}
+                      {formatDateTime(n.created_at)}
                     </p>
                   </div>
                   <Badge variant="secondary" className="shrink-0 text-xs">
-                    {(n as any).status ?? "INFO"}
+                    {n.type ?? "INFO"}
                   </Badge>
                 </div>
               ))}
-              {!notifications?.length && (
+              {!notifications.length && (
                 <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
                   Tidak ada notifikasi
                 </div>

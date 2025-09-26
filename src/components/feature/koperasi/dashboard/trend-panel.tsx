@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -14,11 +14,12 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { getKoperasiDashboardTrend } from "@/services/api";
 import { TrendChart } from "./trend-chart";
+import type { KoperasiTrendPoint } from "@/types/api";
 
-export function TrendPanel({ initial }: { initial: any[] }) {
+export function TrendPanel({ initial }: { initial: KoperasiTrendPoint[] }) {
   const [start, setStart] = useState<string>("");
   const [end, setEnd] = useState<string>("");
-  const [data, setData] = useState<any[]>(initial || []);
+  const [data, setData] = useState<KoperasiTrendPoint[]>(initial || []);
   const [loading, setLoading] = useState(false);
 
   async function load() {
@@ -28,16 +29,11 @@ export function TrendPanel({ initial }: { initial: any[] }) {
         start: start || undefined,
         end: end || undefined,
       });
-      if (res.success) setData((res.data as any[]) || []);
+      if (res.success) setData((res.data as KoperasiTrendPoint[]) || []);
     } finally {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    // Auto-load default last 30 days can be handled by backend when no start/end provided
-    // Keep initial from SSR for faster paint
-  }, []);
 
   return (
     <Card>
@@ -73,7 +69,7 @@ export function TrendPanel({ initial }: { initial: any[] }) {
           </div>
         </div>
         {data?.length ? (
-          <TrendChart data={data as any} />
+          <TrendChart data={data} />
         ) : (
           <div className="text-sm text-muted-foreground italic">
             Tidak ada data tren

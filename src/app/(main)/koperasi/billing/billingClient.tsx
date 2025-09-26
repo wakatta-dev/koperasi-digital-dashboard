@@ -16,8 +16,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { createPayment, listClientInvoices } from "@/services/api";
 import { InvoiceDetailDialog } from "@/components/feature/koperasi/billing/invoice-detail-dialog";
+import type { Invoice } from "@/types/api";
 
-type Props = { initialInvoices: any[] };
+const idr = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+});
+
+type Props = { initialInvoices: Invoice[] };
 
 export default function BillingClient({ initialInvoices }: Props) {
   const qc = useQueryClient();
@@ -27,7 +34,7 @@ export default function BillingClient({ initialInvoices }: Props) {
     queryKey: ["client-invoices"],
     queryFn: async () => {
       const res = await listClientInvoices({ limit: 10 });
-      return res.success ? (res.data as any[]) : [];
+      return res.success ? ((res.data as Invoice[]) ?? []) : [];
     },
     initialData: initialInvoices,
     staleTime: 60_000,
@@ -35,17 +42,17 @@ export default function BillingClient({ initialInvoices }: Props) {
 
   const filtered = useMemo(
     () =>
-      invoices.filter(
-        (inv: any) => !query || String(inv.number ?? inv.id).includes(query)
+      invoices.filter((inv) =>
+        !query ? true : String(inv.number ?? inv.id).toLowerCase().includes(query.toLowerCase())
       ),
     [invoices, query]
   );
 
   const payMutation = useMutation({
-    mutationFn: async (inv: any) => {
+    mutationFn: async (inv: Invoice) => {
       const raw = prompt(
         `Masukkan jumlah pembayaran untuk invoice ${inv.number ?? inv.id}:`,
-        String(inv.amount ?? inv.total ?? 0)
+        String(inv.total ?? 0)
       );
       if (!raw) return;
       const amount = Number(raw);
@@ -90,7 +97,7 @@ export default function BillingClient({ initialInvoices }: Props) {
             <Button variant="secondary">Export Excel</Button>
           </div>
           <div className="space-y-3">
-            {filtered.map((inv: any) => (
+            {filtered.map((inv) => (
               <div
                 key={String(inv.id)}
                 className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 border rounded-md items-center"
@@ -101,10 +108,18 @@ export default function BillingClient({ initialInvoices }: Props) {
                     Jatuh tempo: {inv.due_date ?? "-"}
                   </div>
                 </div>
-                <div className="text-sm">Jumlah: {inv.amount ?? "-"}</div>
+                <div className="text-sm">Jumlah: {idr.format(inv.total ?? 0)}</div>
                 <div>
                   <Badge
-                    variant={inv.status === "paid" ? "default" : "secondary"}
+                    variant={
+                      inv.status === 'paid'
+                        ? 'default'
+                        : inv.status === 'issued'
+                        ? 'secondary'
+                        : inv.status === 'overdue'
+                        ? 'destructive'
+                        : 'outline'
+                    }
                     className="capitalize"
                   >
                     {inv.status ?? "unpaid"}

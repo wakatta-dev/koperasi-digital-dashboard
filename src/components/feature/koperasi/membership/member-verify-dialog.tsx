@@ -5,7 +5,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { verifyMember } from "@/services/api";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -26,6 +25,7 @@ export function MemberVerifyDialog({ defaultId }: { defaultId?: string | number 
     try {
       await verifyMember(id, { approve, ...(approve ? {} : { reason }) });
       toast.success(approve ? "Anggota disetujui" : "Anggota ditolak");
+      setReason("");
       setOpen(false);
     } catch (e: any) {
       toast.error(e?.message || "Gagal memproses verifikasi");
@@ -49,7 +49,7 @@ export function MemberVerifyDialog({ defaultId }: { defaultId?: string | number 
             value={id ? Number(id) : null}
             onChange={(val) => setId(val ? String(val) : "")}
             getOptionValue={(m) => m.id}
-            getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+            getOptionLabel={(m) => m.full_name || m.no_anggota || String(m.id)}
             queryKey={["members", "search-member-verify"]}
             fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 })}
             placeholder="Cari anggota (nama/email/no. anggota)"
@@ -58,8 +58,8 @@ export function MemberVerifyDialog({ defaultId }: { defaultId?: string | number 
             minChars={1}
             renderOption={(m) => (
               <div className="flex flex-col">
-                <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
-                <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                <span className="font-medium">{m.full_name || `Anggota #${m.id}`}</span>
+                <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.email || '-'}</span>
               </div>
             )}
             renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
@@ -67,8 +67,16 @@ export function MemberVerifyDialog({ defaultId }: { defaultId?: string | number 
           <Textarea placeholder="Alasan penolakan (opsional)" value={reason} onChange={(e) => setReason(e.target.value)} />
         </div>
         <DialogFooter className="gap-2">
-          <Button variant="secondary" onClick={() => act(false)} disabled={!id || loading}>Tolak</Button>
-          <Button onClick={() => act(true)} disabled={!id || loading}>{loading ? 'Memproses...' : 'Setujui'}</Button>
+          <Button
+            variant="secondary"
+            onClick={() => act(false)}
+            disabled={!id || loading}
+          >
+            Tolak
+          </Button>
+          <Button onClick={() => act(true)} disabled={!id || loading}>
+            {loading ? "Memproses..." : "Setujui"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

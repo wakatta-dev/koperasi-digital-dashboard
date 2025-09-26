@@ -5,13 +5,19 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { downloadVendorInvoicePdf, getClientInvoice, listClientInvoiceAudits } from "@/services/api";
-import { toast } from "sonner";
+import { getClientInvoice, listClientInvoiceAudits } from "@/services/api";
+import type { Invoice, StatusAudit } from "@/types/api";
+
+const idr = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+});
 
 export function InvoiceDetailDialog({ id }: { id: string | number }) {
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState<any | null>(null);
-  const [audits, setAudits] = useState<any[]>([]);
+  const [data, setData] = useState<Invoice | null>(null);
+  const [audits, setAudits] = useState<StatusAudit[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -20,8 +26,8 @@ export function InvoiceDetailDialog({ id }: { id: string | number }) {
         getClientInvoice(id).catch(() => null),
         listClientInvoiceAudits(id, { limit: 50 }).catch(() => null),
       ]);
-      if (detail && detail.success) setData(detail.data);
-      if (logs && logs.success) setAudits(logs.data || []);
+      if (detail && detail.success) setData(detail.data as Invoice);
+      if (logs && logs.success) setAudits((logs.data as StatusAudit[]) || []);
     })();
   }, [open, id]);
 
@@ -41,29 +47,9 @@ export function InvoiceDetailDialog({ id }: { id: string | number }) {
             <div className="text-muted-foreground">Status</div>
             <div className="capitalize">{data?.status ?? '-'}</div>
             <div className="text-muted-foreground">Jumlah</div>
-            <div>{data?.amount ?? data?.total ?? '-'}</div>
+            <div>{data ? idr.format(data.total) : '-'}</div>
             <div className="text-muted-foreground">Jatuh Tempo</div>
             <div>{data?.due_date ?? '-'}</div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="secondary"
-              onClick={async () => {
-                try {
-                  const blob = await downloadVendorInvoicePdf(id);
-                  const a = document.createElement('a');
-                  a.href = URL.createObjectURL(blob);
-                  a.download = `invoice-${String(id)}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                } catch (e: any) {
-                  toast.error(e?.message || 'Gagal unduh PDF (izin/vendor)');
-                }
-              }}
-            >
-              Unduh PDF
-            </Button>
           </div>
           <div>
             <div className="font-medium mb-1">Audit Status</div>
@@ -71,7 +57,7 @@ export function InvoiceDetailDialog({ id }: { id: string | number }) {
               {audits.map((a, i) => (
                 <div key={i} className="p-2 border rounded">
                   <div className="flex items-center justify-between">
-                    <div>{a.status ?? a.action ?? '-'}</div>
+                    <div>{a.new_status ?? a.to_status ?? '-'}</div>
                     <div className="text-xs text-muted-foreground">{a.created_at ?? '-'}</div>
                   </div>
                   {a.note && <div className="text-xs text-muted-foreground">{a.note}</div>}
