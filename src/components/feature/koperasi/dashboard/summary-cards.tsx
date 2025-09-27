@@ -6,10 +6,15 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, PiggyBank, CreditCard, DollarSign, RefreshCcw } from "lucide-react";
-import { getKoperasiDashboardSummary } from "@/services/api";
+import { getKoperasiDashboard } from "@/services/api";
 import type { KoperasiDashboardSummary } from "@/types/api";
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
+const currencyFormatter = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+});
 
 export function SummaryCards({ initial }: { initial: KoperasiDashboardSummary | null }) {
   const [data, setData] = useState<KoperasiDashboardSummary | null>(initial);
@@ -18,7 +23,7 @@ export function SummaryCards({ initial }: { initial: KoperasiDashboardSummary | 
   async function refresh() {
     setLoading(true);
     try {
-      const res = await getKoperasiDashboardSummary();
+      const res = await getKoperasiDashboard();
       if (res.success) setData(res.data as KoperasiDashboardSummary);
     } finally {
       setLoading(false);
@@ -34,17 +39,17 @@ export function SummaryCards({ initial }: { initial: KoperasiDashboardSummary | 
       },
       {
         title: "Total Simpanan",
-        value: typeof data?.total_savings === "number" ? numberFormatter.format(data.total_savings) : "-",
+        value: typeof data?.total_savings === "number" ? currencyFormatter.format(data.total_savings) : "-",
         icon: <PiggyBank className="h-4 w-4" />,
       },
       {
         title: "Total Pinjaman",
-        value: typeof data?.total_loans === "number" ? numberFormatter.format(data.total_loans) : "-",
+        value: typeof data?.total_loans === "number" ? currencyFormatter.format(data.total_loans) : "-",
         icon: <CreditCard className="h-4 w-4" />,
       },
       {
         title: "SHU Berjalan",
-        value: typeof data?.running_shu === "number" ? numberFormatter.format(data.running_shu) : "-",
+        value: typeof data?.running_shu === "number" ? currencyFormatter.format(data.running_shu) : "-",
         icon: <DollarSign className="h-4 w-4" />,
       },
     ],

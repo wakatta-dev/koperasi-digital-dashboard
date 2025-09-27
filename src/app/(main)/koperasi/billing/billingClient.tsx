@@ -14,6 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createPayment, listClientInvoices } from "@/services/api";
 import { InvoiceDetailDialog } from "@/components/feature/koperasi/billing/invoice-detail-dialog";
 import type { Invoice } from "@/types/api";
@@ -29,11 +36,18 @@ type Props = { initialInvoices: Invoice[] };
 export default function BillingClient({ initialInvoices }: Props) {
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<
+    "all" | "draft" | "issued" | "paid" | "overdue"
+  >("all");
 
   const { data: invoices = [], isFetching } = useQuery({
-    queryKey: ["client-invoices"],
+    queryKey: ["client-invoices", { query, status }],
     queryFn: async () => {
-      const res = await listClientInvoices({ limit: 10 });
+      const res = await listClientInvoices({
+        limit: 10,
+        term: query || undefined,
+        status: status === "all" ? undefined : status,
+      });
       return res.success ? ((res.data as Invoice[]) ?? []) : [];
     },
     initialData: initialInvoices,
@@ -57,7 +71,7 @@ export default function BillingClient({ initialInvoices }: Props) {
       if (!raw) return;
       const amount = Number(raw);
       if (!amount || isNaN(amount)) return;
-      await createPayment(inv.id, { amount });
+      await createPayment(inv.id, { amount, method: "manual" });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-invoices"] });
@@ -85,14 +99,33 @@ export default function BillingClient({ initialInvoices }: Props) {
           <CardDescription>Status pembayaran & jatuh tempo</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3 mb-4">
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
             <Input
               placeholder="Cari invoice..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <Button variant="outline" disabled={isFetching}>
-              {isFetching ? "Memuat..." : "Filter"}
+            <Select
+              value={status}
+              onValueChange={(val) => setStatus(val as typeof status)}
+            >
+              <SelectTrigger className="md:w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="issued">Diterbitkan</SelectItem>
+                <SelectItem value="paid">Lunas</SelectItem>
+                <SelectItem value="overdue">Terlambat</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              disabled={isFetching}
+              onClick={() => qc.invalidateQueries({ queryKey: ["client-invoices"] })}
+            >
+              {isFetching ? "Memuat..." : "Refresh"}
             </Button>
             <Button variant="secondary">Export Excel</Button>
           </div>
@@ -105,7 +138,7 @@ export default function BillingClient({ initialInvoices }: Props) {
                 <div>
                   <div className="font-medium">{inv.number ?? inv.id}</div>
                   <div className="text-xs text-muted-foreground">
-                    Jatuh tempo: {inv.due_date ?? "-"}
+                    Jatuh tempo: {formatDate(inv.due_date)}
                   </div>
                 </div>
                 <div className="text-sm">Jumlah: {idr.format(inv.total ?? 0)}</div>
@@ -181,4 +214,15 @@ export default function BillingClient({ initialInvoices }: Props) {
       </Card>
     </>
   );
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "-";
+  try {
+    return new Intl.DateTimeFormat("id-ID", {
+      dateStyle: "medium",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
 }

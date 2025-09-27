@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { createMemberCard } from "@/services/api";
+import { getMemberCard, refreshMemberCard, downloadMemberCard } from "@/services/api";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -24,13 +24,37 @@ type Props = { memberId: number | string };
 export function MemberCardDialog({ memberId }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  async function load() {
+    try {
+      const res = await getMemberCard(memberId);
+      if (res.success && res.data) {
+        const value = res.data.qr_code ?? "";
+        setQr(value);
+        if (res.data.qr_url) {
+          setQrDataUrl(res.data.qr_url);
+        } else if (value) {
+          const QR = await ensureQRCode();
+          const dataUrl = await QR.toDataURL(value, { margin: 1, width: 240 });
+          setQrDataUrl(dataUrl);
+        }
+      } else {
+        setQr(null);
+        setQrDataUrl(null);
+      }
+    } catch {
+      setQr(null);
+      setQrDataUrl(null);
+    }
+  }
 
   async function generate() {
     setLoading(true);
     try {
-      const res = await createMemberCard(memberId);
+      const res = await refreshMemberCard(memberId);
       if (!res?.success || !res.data) throw new Error(res?.message || "Gagal membuat kartu");
       const value = res.data.qr_code ?? "";
       if (!value) throw new Error("QR kosong dari server");
@@ -38,15 +62,11 @@ export function MemberCardDialog({ memberId }: Props) {
       if (res.data.qr_url) {
         setQrDataUrl(res.data.qr_url);
       } else {
-        try {
-          const QR = await ensureQRCode();
-          const dataUrl = await QR.toDataURL(value, { margin: 1, width: 240 });
-          setQrDataUrl(dataUrl);
-        } catch {
-          setQrDataUrl(null);
-        }
+        const QR = await ensureQRCode();
+        const dataUrl = await QR.toDataURL(value, { margin: 1, width: 240 });
+        setQrDataUrl(dataUrl);
       }
-      toast.success("Kartu anggota dibuat");
+      toast.success("Kartu anggota diperbarui");
     } catch (e: any) {
       toast.error(e?.message || "Gagal membuat kartu");
     } finally {
@@ -54,11 +74,26 @@ export function MemberCardDialog({ memberId }: Props) {
     }
   }
 
+  async function download() {
+    setDownloading(true);
+    try {
+      const blob = await downloadMemberCard(memberId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `kartu-anggota-${memberId}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      toast.error(e?.message || "Gagal mengunduh kartu");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   useEffect(() => {
     if (open) {
-      // reset when opened
-      setQr(null);
-      setQrDataUrl(null);
+      void load();
     }
   }, [open]);
 
@@ -88,8 +123,13 @@ export function MemberCardDialog({ memberId }: Props) {
             <div className="text-sm text-muted-foreground">Belum ada QR. Klik Generate.</div>
           )}
         </div>
-        <DialogFooter>
-          <Button onClick={generate} disabled={loading}>{loading ? 'Memproses...' : (qr ? 'Regenerate' : 'Generate')}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={download} disabled={downloading}>
+            {downloading ? "Mengunduh..." : "Download"}
+          </Button>
+          <Button onClick={generate} disabled={loading}>
+            {loading ? "Memproses..." : qr ? "Regenerate" : "Generate"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

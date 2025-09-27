@@ -35,6 +35,10 @@ export default function SHUPage() {
   const [simulation, setSimulation] = useState<any[] | null>(null);
   const [memberId, setMemberId] = useState<string>("");
   const [memberDist, setMemberDist] = useState<any[] | null>(null);
+  const [allocationSavings, setAllocationSavings] = useState<number | "">("");
+  const [allocationParticipation, setAllocationParticipation] = useState<
+    number | ""
+  >("");
 
   async function loadHistory() {
     setLoading(true);
@@ -54,8 +58,19 @@ export default function SHUPage() {
 
   async function onCreateYearly() {
     if (!year || !total) return;
-    await createYearlySHU({ year: Number(year), total_shu: Number(total) });
+      await createYearlySHU({
+        year: Number(year),
+        total_shu: Number(total),
+        allocation_savings:
+          allocationSavings === "" ? undefined : Number(allocationSavings),
+        allocation_participation:
+          allocationParticipation === ""
+            ? undefined
+            : Number(allocationParticipation),
+      });
     setTotal("");
+    setAllocationSavings("");
+    setAllocationParticipation("");
     await loadHistory();
   }
 
@@ -121,7 +136,7 @@ export default function SHUPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
             <div>
               <div className="text-xs text-muted-foreground mb-1">Tahun</div>
               <Input
@@ -142,6 +157,36 @@ export default function SHUPage() {
                 value={String(total)}
                 onChange={(e) =>
                   setTotal(e.target.value ? Number(e.target.value) : "")
+                }
+              />
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">
+                % Simpanan
+              </div>
+              <Input
+                type="number"
+                placeholder="60"
+                value={String(allocationSavings)}
+                onChange={(e) =>
+                  setAllocationSavings(
+                    e.target.value ? Number(e.target.value) : ""
+                  )
+                }
+              />
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">
+                % Partisipasi
+              </div>
+              <Input
+                type="number"
+                placeholder="40"
+                value={String(allocationParticipation)}
+                onChange={(e) =>
+                  setAllocationParticipation(
+                    e.target.value ? Number(e.target.value) : ""
+                  )
                 }
               />
             </div>
@@ -173,7 +218,7 @@ export default function SHUPage() {
       </Card>
 
       {/* SHU Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">
@@ -205,6 +250,36 @@ export default function SHUPage() {
           <CardContent>
             <div className="text-2xl font-bold">{latest?.year ?? "-"}</div>
             <p className="text-xs text-muted-foreground">Tahun data terbaru</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Alokasi Simpanan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {latest?.allocation_savings ?? "-"}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Persentase untuk simpanan
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Alokasi Partisipasi
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {latest?.allocation_participation ?? "-"}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Persentase untuk partisipasi
+            </p>
           </CardContent>
         </Card>
       </div>

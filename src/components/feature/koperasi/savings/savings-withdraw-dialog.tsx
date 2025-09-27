@@ -9,6 +9,13 @@ import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { withdrawSavings } from "@/services/api";
 import { toast } from "sonner";
@@ -129,15 +136,28 @@ export function SavingsWithdrawDialog({ memberId, onSuccess }: Props) {
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField name="method" control={form.control} render={({ field }) => (
-              <FormItem>
-                <FormLabel>Metode</FormLabel>
-                <FormControl>
-                  <Input placeholder="transfer|cash|gateway" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+            <FormField
+              name="method"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Metode</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih metode" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="transfer">Transfer</SelectItem>
+                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="virtual_account">Virtual Account</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField name="fee" control={form.control} render={({ field }) => (
               <FormItem>
                 <FormLabel>Biaya (opsional)</FormLabel>

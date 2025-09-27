@@ -136,6 +136,16 @@ export const API_ENDPOINTS = {
     cardValidate: (qr: string) =>
       `/koperasi/members/card/validate/${encodeURIComponent(qr)}`,
   },
+  koperasiCard: {
+    preview: (memberId: string | number) =>
+      `/koperasi/card/members/${memberId}/preview`,
+    refresh: (memberId: string | number) =>
+      `/koperasi/card/members/${memberId}/refresh`,
+    download: (memberId: string | number) =>
+      `/koperasi/card/members/${memberId}/download`,
+    validate: (qr: string) =>
+      `/koperasi/card/validate/${encodeURIComponent(qr)}`,
+  },
   savings: {
     deposit: (memberId: string | number) => `/koperasi/savings/${memberId}/deposit`,
     verify: (transactionId: string | number) =>
@@ -148,11 +158,7 @@ export const API_ENDPOINTS = {
     proof: (transactionId: string | number) =>
       `/koperasi/savings/${transactionId}/proof`,
   },
-  koperasiDashboard: {
-    summary: "/koperasi/dashboard/summary",
-    trend: "/koperasi/dashboard/trend",
-    notifications: "/koperasi/dashboard/notifications",
-  },
+  koperasiDashboard: "/koperasi/dashboard",
   shu: {
     yearly: "/koperasi/shu/yearly",
     simulate: (year: string | number) => `/koperasi/shu/yearly/${year}/simulate`,
@@ -208,6 +214,11 @@ export const API_ENDPOINTS = {
     // Tenant UI & Landing settings (tenant-scoped)
     ui: "/settings/ui",
     landing: "/settings/landing",
+  },
+  branding: {
+    base: "/branding",
+    units: "/branding/units",
+    unit: (id: string | number) => `/branding/units/${id}`,
   },
 } as const;
 

@@ -20,7 +20,7 @@ export default function KustomisasiClient() {
     (async () => {
       const res = await getUISettings().catch(() => null);
       if (res && res.success && res.data) {
-        if (res.data.theme_color) setPrimary(res.data.theme_color);
+        if (res.data.primary_color) setPrimary(res.data.primary_color);
         if (res.data.accent_color) setAccent(res.data.accent_color);
         if (res.data.layout) setLayout(res.data.layout);
       }
@@ -30,7 +30,11 @@ export default function KustomisasiClient() {
   async function onSave() {
     setLoading(true);
     try {
-      await updateUISettings({ theme_color: primary, accent_color: accent, layout });
+      await updateUISettings({
+        primary_color: primary,
+        accent_color: accent,
+        layout,
+      });
       toast.success("Pengaturan UI tersimpan");
     } catch (e: any) {
       toast.error(e?.message || "Gagal menyimpan pengaturan");

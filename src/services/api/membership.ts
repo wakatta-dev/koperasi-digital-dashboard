@@ -67,21 +67,44 @@ export function updateMemberStatus(
   );
 }
 
-export function createMemberCard(
+export function refreshMemberCard(
   id: string | number
 ): Promise<MemberCardResponse> {
   return api.post<MemberCard>(
-    `${API_PREFIX}${API_ENDPOINTS.membership.card(id)}`,
+    `${API_PREFIX}${API_ENDPOINTS.koperasiCard.refresh(id)}`,
     {}
   );
 }
+
+export const createMemberCard = refreshMemberCard;
 
 export function getMemberCard(
   id: string | number
 ): Promise<MemberCardResponse> {
   return api.get<MemberCard>(
-    `${API_PREFIX}${API_ENDPOINTS.membership.card(id)}`
+    `${API_PREFIX}${API_ENDPOINTS.koperasiCard.preview(id)}`
   );
+}
+
+export async function downloadMemberCard(
+  id: string | number
+): Promise<Blob> {
+  const { getAccessToken } = await import("../auth");
+  const accessToken = await getAccessToken();
+  const tenantId = await (await import("./base")).getTenantId();
+  const headers: Record<string, string> = { Accept: "image/png" };
+  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+  if (tenantId) headers["X-Tenant-ID"] = tenantId;
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}${API_PREFIX}${API_ENDPOINTS.koperasiCard.download(id)}`,
+    {
+      method: "GET",
+      headers,
+    }
+  );
+  if (!res.ok) throw new Error(res.statusText);
+  return await res.blob();
 }
 
 export function validateMemberCard(
@@ -90,10 +113,8 @@ export function validateMemberCard(
 ): Promise<ApiResponse<Member>> {
   const search = new URLSearchParams();
   if (params?.rat_id) search.set("rat_id", String(params.rat_id));
-  const path = `${API_PREFIX}${API_ENDPOINTS.membership.cardValidate(qr)}`;
-  return api.get<Member>(
-    search.size ? `${path}?${search.toString()}` : path
-  );
+  const path = `${API_PREFIX}${API_ENDPOINTS.koperasiCard.validate(qr)}`;
+  return api.get<Member>(search.size ? `${path}?${search.toString()}` : path);
 }
 
 export function listMembers(

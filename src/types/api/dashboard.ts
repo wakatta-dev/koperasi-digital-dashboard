@@ -16,12 +16,6 @@ export type ShortcutItem = {
   icon?: string;
 };
 
-export type KoperasiTrendPoint = {
-  date: Rfc3339String;
-  savings: number;
-  loans: number;
-};
-
 export type VendorActivity = {
   type: string;
   reference_id: string;

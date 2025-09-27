@@ -18,6 +18,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Form,
   FormControl,
   FormField,
@@ -51,7 +58,7 @@ export function SavingsDepositDialog({ memberId, onSuccess }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       member_id: memberId ? Number(memberId) : undefined,
-      type: "pokok",
+      type: "simpanan_pokok",
       amount: 0,
       method: "manual",
       fee: undefined,
@@ -136,9 +143,18 @@ export function SavingsDepositDialog({ memberId, onSuccess }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Jenis Simpanan</FormLabel>
-                  <FormControl>
-                    <Input placeholder="pokok|wajib|sukarela" {...field} />
-                  </FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih jenis simpanan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="simpanan_pokok">Simpanan Pokok</SelectItem>
+                      <SelectItem value="simpanan_wajib">Simpanan Wajib</SelectItem>
+                      <SelectItem value="simpanan_sukarela">Simpanan Sukarela</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -162,9 +178,18 @@ export function SavingsDepositDialog({ memberId, onSuccess }: Props) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Metode</FormLabel>
-                  <FormControl>
-                    <Input placeholder="manual|transfer|gateway" {...field} />
-                  </FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih metode" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="transfer">Transfer</SelectItem>
+                      <SelectItem value="virtual_account">Virtual Account</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

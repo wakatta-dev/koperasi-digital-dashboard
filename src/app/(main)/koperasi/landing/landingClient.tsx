@@ -22,11 +22,46 @@ export default function LandingClient() {
     (async () => {
       const res = await getLandingContent().catch(() => null);
       if (res && res.success && res.data) {
-        if (res.data.hero_title) setHeroTitle(res.data.hero_title);
-        if (res.data.hero_subtitle) setHeroSubtitle(res.data.hero_subtitle);
-        if (Array.isArray(res.data.services)) setServices(res.data.services.join("\n"));
-        if (res.data.testimonials) setTestimonials(res.data.testimonials);
-        if (res.data.contact) setContact(res.data.contact);
+        const sections = Array.isArray(res.data.landing_sections)
+          ? res.data.landing_sections
+          : [];
+        const hero = sections.find((s: any) => s.id === "hero");
+        const servicesSection = sections.find((s: any) => s.id === "services");
+        const testimonialsSection = sections.find(
+          (s: any) => s.id === "testimonials"
+        );
+        const contactSection = sections.find((s: any) => s.id === "contact");
+
+        if (hero) {
+          if (hero.title) setHeroTitle(hero.title);
+          if (hero.content) setHeroSubtitle(hero.content);
+        } else {
+          if (res.data.hero_title) setHeroTitle(res.data.hero_title);
+          if (res.data.hero_subtitle) setHeroSubtitle(res.data.hero_subtitle);
+        }
+
+        if (servicesSection?.content) {
+          try {
+            const parsed = JSON.parse(servicesSection.content);
+            if (Array.isArray(parsed)) setServices(parsed.join("\n"));
+          } catch {
+            setServices(servicesSection.content);
+          }
+        } else if (Array.isArray(res.data.services)) {
+          setServices(res.data.services.join("\n"));
+        }
+
+        if (testimonialsSection?.content) {
+          setTestimonials(testimonialsSection.content);
+        } else if (res.data.testimonials) {
+          setTestimonials(res.data.testimonials);
+        }
+
+        if (contactSection?.content) {
+          setContact(contactSection.content);
+        } else if (res.data.contact) {
+          setContact(res.data.contact);
+        }
       }
     })();
   }, []);
@@ -34,12 +69,37 @@ export default function LandingClient() {
   async function save() {
     setSaving(true);
     try {
+      const serviceList = services
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
       await updateLandingContent({
-        hero_title: heroTitle,
-        hero_subtitle: heroSubtitle,
-        services: services.split("\n").filter(Boolean),
-        testimonials,
-        contact,
+        landing_sections: [
+          {
+            id: "hero",
+            title: heroTitle,
+            type: "hero",
+            content: heroSubtitle,
+          },
+          {
+            id: "services",
+            title: "Layanan",
+            type: "list",
+            content: JSON.stringify(serviceList),
+          },
+          {
+            id: "testimonials",
+            title: "Testimoni",
+            type: "text",
+            content: testimonials,
+          },
+          {
+            id: "contact",
+            title: "Kontak",
+            type: "text",
+            content: contact,
+          },
+        ],
       });
       toast.success("Konten landing tersimpan");
     } catch (e: any) {

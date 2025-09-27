@@ -5,40 +5,19 @@ import type { ApiResponse } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
 // UI Settings (theme/layout)
-export function getUISettings(): Promise<ApiResponse<{
-  theme_color?: string;
-  accent_color?: string;
-  layout?: string;
-}>> {
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.settings.ui}`);
+export function getUISettings(): Promise<ApiResponse<any>> {
+  return api.get(`${API_PREFIX}${API_ENDPOINTS.branding.base}`);
 }
 
-export function updateUISettings(payload: {
-  theme_color?: string;
-  accent_color?: string;
-  layout?: string;
-}): Promise<ApiResponse<{ success: boolean }>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.settings.ui}`, payload);
+export function updateUISettings(payload: Record<string, unknown>): Promise<ApiResponse<any>> {
+  return api.put(`${API_PREFIX}${API_ENDPOINTS.branding.base}`, payload);
 }
 
-// Public Landing Content
-export function getLandingContent(): Promise<ApiResponse<{
-  hero_title?: string;
-  hero_subtitle?: string;
-  services?: string[];
-  testimonials?: string;
-  contact?: string;
-}>> {
-  return api.get(`${API_PREFIX}${API_ENDPOINTS.settings.landing}`);
+// Landing content leverages branding sections
+export function getLandingContent(): Promise<ApiResponse<any>> {
+  return getUISettings();
 }
 
-export function updateLandingContent(payload: {
-  hero_title?: string;
-  hero_subtitle?: string;
-  services?: string[];
-  testimonials?: string;
-  contact?: string;
-}): Promise<ApiResponse<{ success: boolean }>> {
-  return api.post(`${API_PREFIX}${API_ENDPOINTS.settings.landing}`, payload);
+export function updateLandingContent(payload: Record<string, unknown>): Promise<ApiResponse<any>> {
+  return updateUISettings(payload);
 }
-
