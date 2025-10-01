@@ -1,5 +1,4 @@
 /** @format */
-/** @format */
 
 import {
   Card,
@@ -12,21 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import {
-  PiggyBank,
-  CreditCard,
-  FileText,
-  UserPlus,
-  Calendar,
-  ArrowRight,
-} from "lucide-react";
+import { Calendar, ArrowRight, AlertCircle } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { getKoperasiDashboard } from "@/services/api";
 import { SummaryCards } from "@/components/feature/koperasi/dashboard/summary-cards";
 import { TrendPanel } from "@/components/feature/koperasi/dashboard/trend-panel";
 import type {
   KoperasiDashboardSummary,
   DashboardNotification,
+  ShortcutItem,
 } from "@/types/api";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const dynamic = "force-dynamic";
 
@@ -42,39 +37,54 @@ export default async function KoperasiDashboard() {
   const installmentNotifications = summary?.installment_notifications ?? [];
   const applicationNotifications = summary?.application_notifications ?? [];
 
-  const fallbackShortcuts: ShortcutRenderItem[] = [
+  const fallbackShortcuts: QuickActionItem[] = [
     {
       id: "membership",
       label: "Tambah Anggota",
       path: "/koperasi/keanggotaan",
       description: "Daftarkan anggota baru",
-      Icon: UserPlus,
+      icon: "UserPlus",
     },
     {
       id: "savings",
       label: "Setoran Simpanan",
       path: "/koperasi/simpanan",
       description: "Catat setoran anggota",
-      Icon: PiggyBank,
+      icon: "PiggyBank",
     },
     {
       id: "loans",
       label: "Proses Pinjaman",
       path: "/koperasi/pinjaman",
       description: "Kelola pengajuan pinjaman",
-      Icon: CreditCard,
+      icon: "CreditCard",
     },
     {
       id: "reports",
       label: "Laporan",
       path: "/koperasi/laporan",
       description: "Lihat laporan keuangan",
-      Icon: FileText,
+      icon: "FileText",
     },
   ];
 
+  const shortcuts: QuickActionItem[] = summary?.shortcuts?.length
+    ? summary.shortcuts.map((shortcut) => ({ ...shortcut }))
+    : fallbackShortcuts;
+
   return (
     <div className="space-y-6">
+      {!summary && (
+        <Alert className="border-yellow-200 bg-yellow-50 text-yellow-900">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Ringkasan tidak tersedia</AlertTitle>
+          <AlertDescription>
+            Data dashboard koperasi belum tersedia atau backend mengirimkan
+            nilai `null`.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Ringkasan */}
       <SummaryCards initial={summary ?? null} />
 
@@ -90,7 +100,7 @@ export default async function KoperasiDashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <QuickActions shortcuts={fallbackShortcuts} />
+        <QuickActions shortcuts={shortcuts} />
 
         <NotificationsCard
           title="Notifikasi Pengajuan"
@@ -123,12 +133,8 @@ export default async function KoperasiDashboard() {
   );
 }
 
-type ShortcutRenderItem = {
-  id: string;
-  label: string;
-  path: string;
+type QuickActionItem = ShortcutItem & {
   description?: string;
-  Icon?: LucideIcon;
 };
 
 function formatDateTime(value: string | Date | number | undefined) {
@@ -141,7 +147,7 @@ function formatDateTime(value: string | Date | number | undefined) {
   });
 }
 
-function QuickActions({ shortcuts }: { shortcuts: ShortcutRenderItem[] }) {
+function QuickActions({ shortcuts }: { shortcuts: QuickActionItem[] }) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -154,32 +160,63 @@ function QuickActions({ shortcuts }: { shortcuts: ShortcutRenderItem[] }) {
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 sm:grid-cols-2">
-          {shortcuts.map(({ id, label, path, description, Icon }) => (
-            <Link
-              key={id ?? path}
-              href={path}
-              aria-label={label}
-              className="group flex items-start gap-3 rounded-xl border p-4 transition-colors hover:bg-accent"
-            >
-              <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-                {Icon ? (
-                  <Icon className="h-5 w-5" />
-                ) : (
-                  <ArrowRight className="h-5 w-5" />
-                )}
-              </span>
-              <span>
-                <p className="font-medium leading-6">{label}</p>
-                {description ? (
-                  <p className="text-sm text-muted-foreground">{description}</p>
-                ) : null}
-              </span>
-            </Link>
-          ))}
+          {shortcuts.map(({ id, label, path, description, icon }) => {
+            const Icon = resolveShortcutIcon(icon);
+            const href = path || "#";
+            return (
+              <Link
+                key={id ?? path}
+                href={href}
+                aria-label={label}
+                className="group flex items-start gap-3 rounded-xl border p-4 transition-colors hover:bg-accent"
+              >
+                <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  {Icon ? (
+                    <Icon className="h-5 w-5" />
+                  ) : (
+                    <ArrowRight className="h-5 w-5" />
+                  )}
+                </span>
+                <span>
+                  <p className="font-medium leading-6">{label}</p>
+                  {description ? (
+                    <p className="text-sm text-muted-foreground">
+                      {description}
+                    </p>
+                  ) : null}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
   );
+}
+
+const iconLibrary = LucideIcons as unknown as Record<string, LucideIcon>;
+
+function resolveShortcutIcon(name?: string): LucideIcon | null {
+  if (!name) return null;
+  const candidates = [name, pascalCase(name), pascalCase(name.toLowerCase())];
+  for (const candidate of candidates) {
+    if (iconLibrary[candidate]) {
+      return iconLibrary[candidate];
+    }
+    const capitalized = candidate.charAt(0).toUpperCase() + candidate.slice(1);
+    if (iconLibrary[capitalized]) {
+      return iconLibrary[capitalized];
+    }
+  }
+  return null;
+}
+
+function pascalCase(value: string) {
+  return value
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
 }
 
 function NotificationsCard({

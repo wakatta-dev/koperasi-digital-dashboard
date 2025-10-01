@@ -1,8 +1,5 @@
 /** @format */
 
-"use client";
-
-import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,302 +9,265 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Building,
-  Calendar,
-  FileText,
-  TrendingUp,
-  DollarSign,
-  Users,
-  MapPin,
-} from "lucide-react";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  AlertCircle,
+  ArrowUpRight,
+  Building,
+  DollarSign,
+  TrendingUp,
+} from "lucide-react";
+import { getBumdesDashboard } from "@/services/api";
+import type {
+  BumdesDashboardSummary,
+  DashboardNotification,
+} from "@/types/api";
 
-const dashboardStats = [
-  {
-    title: "Total Pendapatan",
-    value: "Rp 125M",
-    change: "+18.2%",
-    trend: "up" as const,
-    icon: <DollarSign className="h-4 w-4" />,
-  },
-  {
-    title: "Unit Usaha Aktif",
-    value: "12",
-    change: "+2",
-    trend: "up" as const,
-    icon: <Building className="h-4 w-4" />,
-  },
-  {
-    title: "Aset Tersewa",
-    value: "8/15",
-    change: "+1",
-    trend: "up" as const,
-    icon: <MapPin className="h-4 w-4" />,
-  },
-  {
-    title: "Warga Terlibat",
-    value: "245",
-    change: "+23",
-    trend: "up" as const,
-    icon: <Users className="h-4 w-4" />,
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function BUMDesDashboard() {
-  const [unit, setUnit] = useState<string>("all");
-  const units = [
-    { id: "all", name: "Semua Unit" },
-    { id: "UU001", name: "Warung Sembako Desa" },
-    { id: "UU002", name: "Rental Alat Pertanian" },
-  ];
+const currencyFormatter = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+});
+const numberFormatter = new Intl.NumberFormat("id-ID");
+
+function formatCurrency(value?: number | null) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "-";
+  return currencyFormatter.format(value);
+}
+
+function formatNumber(value?: number | null) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "-";
+  return numberFormatter.format(value);
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+export default async function BumdesDashboard() {
+  const response = await getBumdesDashboard().catch(() => null);
+  const summary =
+    response && response.success
+      ? (response.data as BumdesDashboardSummary | null)
+      : null;
+
+  const revenuePerUnit = summary?.revenue_per_unit ?? [];
+  const bookingNotifications = summary?.booking_notifications ?? [];
+  const rentalNotifications = summary?.rental_notifications ?? [];
+  const hasSummary = Boolean(summary);
+
+  const unitCount = revenuePerUnit.length;
+  const highestRevenue = unitCount
+    ? Math.max(...revenuePerUnit)
+    : null;
+  const averageRevenue = unitCount
+    ? revenuePerUnit.reduce((acc, value) => acc + value, 0) / unitCount
+    : null;
+  const consolidatedRevenue =
+    typeof summary?.consolidated_revenue === "number"
+      ? summary.consolidated_revenue
+      : null;
+
   return (
     <div className="space-y-6">
-      {/* Global Filter */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Dashboard</h2>
-          <p className="text-muted-foreground">Ringkasan per unit usaha</p>
-        </div>
-        <div className="min-w-[220px]">
-          <Select value={unit} onValueChange={setUnit}>
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {units.map((u) => (
-                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      {/* TODO integrate API: apply global unit filter to all widgets */}
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {dashboardStats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp
-                  className={`h-3 w-3 ${
-                    stat.trend === "up" ? "text-green-500" : "text-red-500"
-                  }`}
-                />
-                <span
-                  className={
-                    stat.trend === "up" ? "text-green-500" : "text-red-500"
-                  }
-                >
-                  {stat.change}
-                </span>
-                <span>dari bulan lalu</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {!summary && (
+        <Alert className="border-yellow-200 bg-yellow-50 text-yellow-900">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Ringkasan tidak tersedia</AlertTitle>
+          <AlertDescription>
+            Data dashboard BUMDes belum tersedia atau sedang diproses oleh
+            sistem.
+          </AlertDescription>
+        </Alert>
+      )}
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Unit Usaha Terbaru</CardTitle>
-            <CardDescription>Perkembangan unit usaha BUMDes</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pendapatan Konsolidasi
+            </CardTitle>
+            <DollarSign className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                {
-                  name: "Warung Sembako Desa",
-                  type: "Perdagangan",
-                  revenue: "Rp 15,500,000",
-                  status: "aktif",
-                },
-                {
-                  name: "Rental Alat Pertanian",
-                  type: "Jasa",
-                  revenue: "Rp 8,200,000",
-                  status: "aktif",
-                },
-                {
-                  name: "Pengolahan Hasil Tani",
-                  type: "Produksi",
-                  revenue: "Rp 12,800,000",
-                  status: "berkembang",
-                },
-              ].map((unit, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{unit.name}</p>
-                    <p className="text-sm text-muted-foreground">{unit.type}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{unit.revenue}</p>
-                    <Badge
-                      variant={
-                        unit.status === "aktif"
-                          ? "default"
-                          : unit.status === "berkembang"
-                          ? "secondary"
-                          : "outline"
-                      }
-                    >
-                      {unit.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+            <div className="text-2xl font-bold">
+              {formatCurrency(consolidatedRevenue)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Total gabungan seluruh unit usaha
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader>
-            <CardTitle>Jadwal Sewa Hari Ini</CardTitle>
-            <CardDescription>Aset yang disewa hari ini</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Jumlah Unit Usaha
+            </CardTitle>
+            <Building className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                {
-                  asset: "Aula Desa",
-                  renter: "Karang Taruna",
-                  time: "08:00 - 12:00",
-                  status: "berlangsung",
-                },
-                {
-                  asset: "Lapangan Futsal",
-                  renter: "Tim Sepakbola Lokal",
-                  time: "15:00 - 17:00",
-                  status: "terjadwal",
-                },
-                {
-                  asset: "Sound System",
-                  renter: "Acara Pernikahan",
-                  time: "18:00 - 23:00",
-                  status: "terjadwal",
-                },
-              ].map((schedule, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{schedule.asset}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {schedule.renter}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{schedule.time}</p>
-                    <Badge
-                      variant={
-                        schedule.status === "berlangsung"
-                          ? "default"
-                          : schedule.status === "terjadwal"
-                          ? "secondary"
-                          : "outline"
-                      }
-                    >
-                      {schedule.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+            <div className="text-2xl font-bold">
+              {hasSummary ? formatNumber(unitCount) : "-"}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Berdasarkan data pendapatan per unit
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pendapatan Rata-rata
+            </CardTitle>
+            <TrendingUp className="h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(averageRevenue)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Perkiraan rata-rata per unit usaha
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pendapatan Tertinggi
+            </CardTitle>
+            <ArrowUpRight className="h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(highestRevenue)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Unit dengan kontribusi terbesar
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Aksi Cepat</CardTitle>
-          <CardDescription>Fitur yang sering digunakan</CardDescription>
+          <CardTitle>Pendapatan per Unit Usaha</CardTitle>
+          <CardDescription>
+            Data agregat dari `revenue_per_unit` pada ringkasan dashboard
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a
-              href="/bumdes/units"
-              className="p-4 border rounded-lg hover:bg-muted transition-colors"
-            >
-              <Building className="h-6 w-6 mb-2" />
-              <p className="font-medium">Kelola Unit Usaha</p>
-              <p className="text-sm text-muted-foreground">
-                Tambah atau edit unit usaha
-              </p>
-            </a>
-            <a
-              href="/bumdes/aset"
-              className="p-4 border rounded-lg hover:bg-muted transition-colors"
-            >
-              <MapPin className="h-6 w-6 mb-2" />
-              <p className="font-medium">Tambah Aset</p>
-              <p className="text-sm text-muted-foreground">
-                Daftarkan aset baru
-              </p>
-            </a>
-            <a
-              href="/bumdes/aset"
-              className="p-4 border rounded-lg hover:bg-muted transition-colors"
-            >
-              <Calendar className="h-6 w-6 mb-2" />
-              <p className="font-medium">Jadwal Sewa</p>
-              <p className="text-sm text-muted-foreground">
-                Kelola booking aset
-              </p>
-            </a>
-            <a
-              href="/bumdes/laporan"
-              className="p-4 border rounded-lg hover:bg-muted transition-colors"
-            >
-              <FileText className="h-6 w-6 mb-2" />
-              <p className="font-medium">Laporan</p>
-              <p className="text-sm text-muted-foreground">
-                Lihat performa BUMDes
-              </p>
-            </a>
-          </div>
+          <RevenueDistribution data={revenuePerUnit} />
         </CardContent>
       </Card>
 
-      {/* Community Impact */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Dampak Komunitas</CardTitle>
-          <CardDescription>Kontribusi BUMDes untuk desa</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">245</div>
-              <p className="text-sm text-muted-foreground">Warga Terlibat</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">Rp 25M</div>
-              <p className="text-sm text-muted-foreground">
-                Dana Desa Terkumpul
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">15</div>
-              <p className="text-sm text-muted-foreground">
-                Program Pemberdayaan
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <NotificationsCard
+          title="Notifikasi Booking"
+          description="Informasi terbaru mengenai pemesanan aset"
+          items={bookingNotifications}
+          emptyMessage="Belum ada notifikasi booking"
+        />
+        <NotificationsCard
+          title="Notifikasi Penyewaan"
+          description="Status sewa aset BUMDes"
+          items={rentalNotifications}
+          emptyMessage="Belum ada notifikasi penyewaan"
+        />
+      </div>
     </div>
+  );
+}
+
+function RevenueDistribution({ data }: { data: number[] }) {
+  if (!data.length) {
+    return (
+      <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+        Data pendapatan per unit belum tersedia.
+      </div>
+    );
+  }
+
+  const maxValue = Math.max(...data, 0);
+
+  return (
+    <div className="space-y-4">
+      {data.map((value, index) => {
+        const percentage = maxValue > 0 ? Math.round((value / maxValue) * 100) : 0;
+        return (
+          <div key={index} className="space-y-2 rounded-lg border p-3">
+            <div className="flex items-center justify-between text-sm font-medium">
+              <span>Unit {index + 1}</span>
+              <span>{formatCurrency(value)}</span>
+            </div>
+            <div className="h-2 rounded-full bg-muted">
+              <div
+                className="h-2 rounded-full bg-primary transition-all"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Kontribusi sekitar {percentage}% dari unit dengan pendapatan tertinggi
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function NotificationsCard({
+  title,
+  description,
+  items,
+  emptyMessage,
+}: {
+  title: string;
+  description: string;
+  items: DashboardNotification[];
+  emptyMessage: string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {items.slice(0, 8).map((item) => (
+            <div
+              key={item.id}
+              className="flex items-start justify-between gap-3 rounded-lg border p-3"
+            >
+              <div className="min-w-0 space-y-1 text-sm">
+                <p className="font-medium">{item.title || "Notifikasi"}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatDateTime(item.created_at)}
+                </p>
+              </div>
+              <Badge variant="secondary" className="shrink-0 text-xs uppercase">
+                {item.type || "INFO"}
+              </Badge>
+            </div>
+          ))}
+          {!items.length && (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              {emptyMessage}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -128,7 +128,10 @@ export const authOptions: AuthOptions = {
       if (user) return { ...token, ...user };
 
       // Jika access token masih valid, return existing token
-      if ((token as any)?.accessTokenExpires && Date.now() < (token as any).accessTokenExpires)
+      if (
+        (token as any)?.accessTokenExpires &&
+        Date.now() < (token as any).accessTokenExpires
+      )
         return token;
 
       // Kalau sudah expired, refresh

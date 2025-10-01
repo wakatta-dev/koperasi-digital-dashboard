@@ -26,6 +26,13 @@ export type VendorActivity = {
   timestamp: Rfc3339String;
 };
 
+type VendorOverdueInvoice = {
+  id: number;
+  number: string;
+  total: number;
+  due_date: Rfc3339String;
+};
+
 export type VendorDashboardSummary = {
   active_clients: number;
   inactive_clients: number;
@@ -34,6 +41,7 @@ export type VendorDashboardSummary = {
   monthly_revenue: number;
   open_tickets: number;
   activity: VendorActivity[];
+  overdue_invoices: VendorOverdueInvoice[];
 };
 
 export type KoperasiDashboardSummary = {
@@ -69,6 +77,17 @@ export type DashboardSummary =
 
 export type DashboardResponse = ApiResponse<DashboardSummary>;
 export type GetVendorDashboardResponse = ApiResponse<VendorDashboardSummary>;
+
+export type TenantDashboardSummaryMap = {
+  vendor: VendorDashboardSummary;
+  koperasi: KoperasiDashboardSummary;
+  bumdes: BumdesDashboardSummary;
+  umkm: UmkmDashboardSummary;
+};
+
+export type TenantType = keyof TenantDashboardSummaryMap;
+export type DashboardSummaryFor<T extends TenantType> =
+  TenantDashboardSummaryMap[T];
 
 // Backward-compatible aliases used across the app
 export type VendorDashboard = VendorDashboardSummary;
