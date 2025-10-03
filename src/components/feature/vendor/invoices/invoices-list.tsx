@@ -16,7 +16,7 @@ import {
   useInfiniteVendorInvoices,
   useBillingActions,
 } from "@/hooks/queries/billing";
-import type { Invoice } from "@/types/api";
+import type { Client, Invoice } from "@/types/api";
 import {
   Card,
   CardContent,
@@ -30,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { InvoiceUpsertDialog } from "@/components/feature/vendor/invoices/invoice-upsert-dialog";
 import { PaymentVerifyDialog } from "@/components/feature/vendor/payments/payment-verify-dialog";
 import { WebhookSimulatorSheet } from "@/components/feature/vendor/payments/webhook-simulator-sheet";
-import { useTenants } from "@/hooks/queries/tenants";
+import { useClients } from "@/hooks/queries/clients";
 import { useConfirm } from "@/hooks/use-confirm";
 import {
   Sheet,
@@ -60,9 +60,9 @@ type Props = {
 export function VendorInvoicesList({ initialData, initialCursor }: Props) {
   const [preview, setPreview] = useState<Invoice | null>(null);
   const [previewDetail, setPreviewDetail] = useState<Invoice | null>(null);
-  const [status, setStatus] = useState<"draft" | "issued" | "paid" | "overdue" | undefined>(
-    undefined
-  );
+  const [status, setStatus] = useState<
+    "draft" | "issued" | "paid" | "overdue" | undefined
+  >(undefined);
   const [year, setYear] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState<string>("");
   const debounced = useDebouncedValue(search, 300);
@@ -80,17 +80,21 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteVendorInvoices(params, { initialData, initialCursor }, { refetchInterval: 300000 });
+  } = useInfiniteVendorInvoices(
+    params,
+    { initialData, initialCursor },
+    { refetchInterval: 300000 }
+  );
   const {
     deleteVendorInv,
     updateVendorInvStatus,
     sendInvoiceEmail,
     downloadInvoicePdf,
   } = useBillingActions();
-  const { data: tenants = [] } = useTenants({ limit: 200 });
-  const tenantName = (id?: number) => {
-    const t = (tenants as any[]).find((x) => x.id === id);
-    return t?.name || `#${id}`;
+  const { data: clients = [] } = useClients({ limit: 200 });
+  const clientName = (id?: number) => {
+    const match = (clients as Client[]).find((client) => client.id === id);
+    return match?.name || `#${id}`;
   };
   const getInvoiceBadgeVariant = (status: Invoice["status"]) => {
     switch (status) {
@@ -259,120 +263,133 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
         <CardContent>
           <div className="space-y-4">
             {(invoices ?? []).map((invoice) => (
-              <div
+              <Card
                 key={invoice.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="rounded-lg border hover:shadow-sm transition"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                    <FileText className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{invoice.number}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {invoice.issued_at}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Tenant: {tenantName(invoice.tenant_id)}
-                      {((invoice as any)?.subscription?.plan?.name || (invoice as any)?.plan?.name) && (
-                        <> • Plan: {((invoice as any)?.subscription?.plan?.name || (invoice as any)?.plan?.name) as string}</>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="font-medium">Rp {invoice.total}</p>
-                    {invoice.due_date && (
-                      <p className="text-sm text-muted-foreground">
-                        Due: {invoice.due_date}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4">
+                  {/* Left: Invoice Info */}
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">
+                        {invoice.number}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {invoice.issued_at}
                       </p>
-                    )}
+                      <p className="text-xs text-muted-foreground">
+                        Tenant: {clientName(invoice.tenant_id)}
+                        {((invoice as any)?.subscription?.plan?.name ||
+                          (invoice as any)?.plan?.name) && (
+                          <>
+                            {" "}
+                            • Plan:{" "}
+                            {
+                              ((invoice as any)?.subscription?.plan?.name ||
+                                (invoice as any)?.plan?.name) as string
+                            }
+                          </>
+                        )}
+                      </p>
+                    </div>
                   </div>
 
-                  <Badge variant={getInvoiceBadgeVariant(invoice.status)}>
-                    {invoice.status}
-                  </Badge>
-                  <Select
-                    defaultValue={invoice.status}
-                    onValueChange={async (next) => {
-                      const ok = await confirm({
-                        variant: "edit",
-                        title: "Ubah status invoice?",
-                        description: `Status akan menjadi ${next}.`,
-                        confirmText: "Simpan",
-                      });
-                      if (!ok) return;
-                      await updateVendorInvStatus.mutateAsync({
-                        id: invoice.id,
-                        status: next as "issued" | "paid" | "overdue",
-                      });
-                    }}
-                  >
-                    <SelectTrigger size="sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="issued">issued</SelectItem>
-                      <SelectItem value="paid">paid</SelectItem>
-                      <SelectItem value="overdue">overdue</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {/* Right: Amount + Status + Actions */}
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-bold text-base">Rp {invoice.total}</p>
+                      {invoice.due_date && (
+                        <p className="text-xs text-muted-foreground">
+                          Due: {invoice.due_date}
+                        </p>
+                      )}
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      type="button"
-                      onClick={() => setPreview(invoice)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      type="button"
-                      title="Download PDF"
-                      onClick={() => downloadInvoicePdf.mutate(invoice.id)}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      type="button"
-                      onClick={() => sendInvoiceEmail.mutate(invoice.id)}
-                    >
-                      Email
-                    </Button>
-                    <InvoiceUpsertDialog
-                      invoice={invoice}
-                      trigger={
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      }
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={async () => {
-                        const ok = await confirm({
-                          variant: "delete",
-                          title: "Hapus invoice?",
-                          description: `Invoice ${invoice.number} akan dihapus.`,
-                          confirmText: "Hapus",
-                        });
-                        if (!ok) return;
-                        deleteVendorInv.mutate(invoice.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getInvoiceBadgeVariant(invoice.status)}>
+                        {invoice.status}
+                      </Badge>
+                      <Select
+                        defaultValue={invoice.status}
+                        onValueChange={async (next) => {
+                          const ok = await confirm({
+                            variant: "edit",
+                            title: "Ubah status invoice?",
+                            description: `Status akan menjadi ${next}.`,
+                            confirmText: "Simpan",
+                          });
+                          if (!ok) return;
+                          await updateVendorInvStatus.mutateAsync({
+                            id: invoice.id,
+                            status: next as "issued" | "paid" | "overdue",
+                          });
+                        }}
+                      >
+                        <SelectTrigger size="sm" className="w-[100px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="issued">Issued</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="overdue">Overdue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setPreview(invoice)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => downloadInvoicePdf.mutate(invoice.id)}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => sendInvoiceEmail.mutate(invoice.id)}
+                      >
+                        Email
+                      </Button>
+                      <InvoiceUpsertDialog
+                        invoice={invoice}
+                        trigger={
+                          <Button variant="ghost" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={async () => {
+                          const ok = await confirm({
+                            variant: "delete",
+                            title: "Hapus invoice?",
+                            description: `Invoice ${invoice.number} akan dihapus.`,
+                            confirmText: "Hapus",
+                          });
+                          if (!ok) return;
+                          deleteVendorInv.mutate(invoice.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
           <div className="flex items-center gap-2 mt-4">
@@ -409,7 +426,7 @@ export function VendorInvoicesList({ initialData, initialCursor }: Props) {
               <div className="grid grid-cols-2 gap-2">
                 <div>Issued: {preview.issued_at}</div>
                 <div>Due: {preview.due_date ?? "-"}</div>
-                <div>Tenant: {tenantName(preview.tenant_id)}</div>
+                <div>Tenant: {clientName(preview.tenant_id)}</div>
                 {preview.subscription_id && (
                   <div>Subscription: #{preview.subscription_id}</div>
                 )}

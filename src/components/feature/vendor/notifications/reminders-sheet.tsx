@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useNotificationReminders, useNotificationReminderActions } from "@/hooks/queries/notifications";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function NotificationRemindersSheet({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { data: reminders } = useNotificationReminders();
   const { upsert } = useNotificationReminderActions();
   const [rows, setRows] = useState<any[]>([]);
+  const confirm = useConfirm();
 
   useEffect(() => {
     if (reminders !== undefined) {
@@ -26,6 +28,13 @@ export function NotificationRemindersSheet({ trigger }: { trigger?: React.ReactN
   };
 
   const save = async () => {
+    const ok = await confirm({
+      variant: "edit",
+      title: "Simpan pengingat?",
+      description: `${rows.length} konfigurasi pengingat akan diterapkan.`,
+      confirmText: "Simpan",
+    });
+    if (!ok) return;
     await upsert.mutateAsync(rows as any);
     setOpen(false);
   };

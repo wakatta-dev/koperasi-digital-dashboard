@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import type { NotificationReminder, ReminderRequest } from "@/types/api";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function NotificationRemindersPanel() {
   // Avoid defaulting to [] here, which creates a new array each render
@@ -17,6 +18,7 @@ export function NotificationRemindersPanel() {
   const { upsert } = useNotificationReminderActions();
 
   const [rows, setRows] = useState<ReminderRequest[]>([]);
+  const confirm = useConfirm();
 
   useEffect(() => {
     if (reminders !== undefined) {
@@ -44,6 +46,13 @@ export function NotificationRemindersPanel() {
   };
 
   const save = async () => {
+    const ok = await confirm({
+      variant: "edit",
+      title: "Simpan pengingat?",
+      description: `${rows.length} konfigurasi pengingat akan diterapkan.`,
+      confirmText: "Simpan",
+    });
+    if (!ok) return;
     await upsert.mutateAsync(rows);
   };
 

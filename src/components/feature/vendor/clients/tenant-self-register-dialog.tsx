@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const regSchema = z.object({
   name: z.string().min(2),
@@ -38,6 +39,7 @@ export function TenantSelfRegisterDialog() {
   const [step, setStep] = useState<"form" | "verify">("form");
   const [regId, setRegId] = useState<string>("");
   const [plans, setPlans] = useState<any[]>([]);
+  const confirm = useConfirm();
   const form = useForm<RegInput, any, RegValues>({
     resolver: zodResolver(regSchema),
     defaultValues: { name: "", domain: "", type: "koperasi", full_name: "", email: "", password: "", primary_plan_id: undefined } as Partial<RegInput>,
@@ -52,6 +54,13 @@ export function TenantSelfRegisterDialog() {
 
   async function onSubmit(values: RegValues) {
     try {
+      const ok = await confirm({
+        variant: "create",
+        title: "Daftarkan tenant baru?",
+        description: `Tenant ${values.name} akan dibuat dengan domain ${values.domain}.`,
+        confirmText: "Daftarkan",
+      });
+      if (!ok) return;
       const res = await registerTenantVendor(values as any);
       if (!res.success) throw new Error(res.message);
       setRegId((res.data as any)?.registration_id || "");
@@ -63,6 +72,13 @@ export function TenantSelfRegisterDialog() {
 
   async function onVerify(data: { otp: string }) {
     try {
+      const ok = await confirm({
+        variant: "edit",
+        title: "Verifikasi registrasi?",
+        description: `OTP ${data.otp} akan digunakan untuk memverifikasi registrasi.`,
+        confirmText: "Verifikasi",
+      });
+      if (!ok) return;
       const res = await verifyTenantRegistration({ registration_id: regId, otp: data.otp });
       if (!res.success) throw new Error(res.message);
       toast.success("Tenant terverifikasi");

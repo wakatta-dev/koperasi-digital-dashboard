@@ -1,17 +1,17 @@
 /** @format */
 
-import { listTenants } from "@/actions/tenants";
+import { listClients } from "@/actions/clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TenantCreateDialog } from "@/components/feature/tenant/tenant-create-dialog";
 import { TenantSelfRegisterDialog } from "@/components/feature/vendor/clients/tenant-self-register-dialog";
 import { ClientsListClient } from "./clients-list-client";
-import type { TenantDetail } from "@/types/api";
+import type { Client } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
 // TODO integrate API: extend detail modal with full client details via API
 export default async function ClientsPage() {
-  const tenants = await listTenants({ limit: 10 });
+  const clients = await listClients({ limit: 10 });
 
   return (
     <div className="space-y-6">
@@ -28,8 +28,8 @@ export default async function ClientsPage() {
           <CardTitle className="text-lg">Client List</CardTitle>
         </CardHeader>
         <CardContent>
-          {tenants?.data?.length ? (
-            <ClientsListClient rows={tenants.data as TenantDetail[]} />
+          {clients?.data?.length ? (
+            <ClientsListClient rows={clients.data as Client[]} />
           ) : (
             <div className="text-muted-foreground text-sm italic py-4">
               No clients found.

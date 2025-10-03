@@ -5,6 +5,7 @@ export { default } from "./base";
 
 export * from "./auth";
 export * from "./tenants";
+export * from "./clients";
 export * from "./users";
 export * from "./roles";
 export * from "./notifications";

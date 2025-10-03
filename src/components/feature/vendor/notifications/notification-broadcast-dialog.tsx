@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const schema = z.object({
   category: z.string().min(1, "Kategori wajib"),
@@ -45,6 +46,7 @@ const schema = z.object({
 export function NotificationBroadcastDialog({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { vendorBroadcast } = useNotificationActions();
+  const confirm = useConfirm();
 
   const form = useForm<z.input<typeof schema>>({
     resolver: zodResolver(schema),
@@ -61,6 +63,18 @@ export function NotificationBroadcastDialog({ trigger }: { trigger?: React.React
       .split(",")
       .map((s) => Number(s.trim()))
       .filter((n) => !Number.isNaN(n) && n > 0);
+    const targetText = ids.length
+      ? `${ids.length} tenant terpilih`
+      : values.targetType === "ALL"
+      ? "semua tenant"
+      : "target yang dipilih";
+    const ok = await confirm({
+      variant: "create",
+      title: "Kirim broadcast notifikasi?",
+      description: `Pesan kategori ${values.category} akan dikirim ke ${targetText}.`,
+      confirmText: "Kirim",
+    });
+    if (!ok) return;
     await vendorBroadcast.mutateAsync({
       category: values.category,
       message: values.message,

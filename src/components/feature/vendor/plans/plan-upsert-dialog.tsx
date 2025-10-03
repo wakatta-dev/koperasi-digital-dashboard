@@ -37,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = {
   plan?: Plan;
@@ -48,6 +49,7 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
   const [open, setOpen] = useState(false);
   const { createPlan, updatePlan } = useBillingActions();
   const [modules, setModules] = useState<Array<{ id: string; code: string; name: string }>>([]);
+  const confirm = useConfirm();
 
   useEffect(() => {
     (async () => {
@@ -94,8 +96,22 @@ export function PlanUpsertDialog({ plan, trigger }: Props) {
             : Number(values.duration_months),
       } as Partial<Plan>;
       if (isEdit) {
+        const ok = await confirm({
+          variant: "edit",
+          title: "Simpan perubahan plan?",
+          description: `Plan ${plan!.name} akan diperbarui.`,
+          confirmText: "Simpan",
+        });
+        if (!ok) return;
         await updatePlan.mutateAsync({ id: plan!.id, payload });
       } else {
+        const ok = await confirm({
+          variant: "create",
+          title: "Buat plan baru?",
+          description: `Plan ${values.name || "baru"} akan dibuat.`,
+          confirmText: "Buat",
+        });
+        if (!ok) return;
         await createPlan.mutateAsync(payload);
       }
       setOpen(false);

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getMemberCard, refreshMemberCard, downloadMemberCard } from "@/services/api";
@@ -28,7 +28,7 @@ export function MemberCardDialog({ memberId }: Props) {
   const [qr, setQr] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       const res = await getMemberCard(memberId);
       if (res.success && res.data) {
@@ -49,7 +49,7 @@ export function MemberCardDialog({ memberId }: Props) {
       setQr(null);
       setQrDataUrl(null);
     }
-  }
+  }, [memberId]);
 
   async function generate() {
     setLoading(true);
@@ -95,7 +95,7 @@ export function MemberCardDialog({ memberId }: Props) {
     if (open) {
       void load();
     }
-  }, [open]);
+  }, [open, load]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

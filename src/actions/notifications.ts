@@ -15,6 +15,7 @@ import {
   listNotifications as listNotificationsService,
   createNotification as createNotificationService,
   updateNotificationStatus as updateNotificationStatusService,
+  listVendorNotifications as listVendorNotificationsService,
 } from "@/services/api";
 
 export async function listNotifications(params?: {
@@ -63,6 +64,27 @@ export async function listNotificationsAction(
 export type ListNotificationsActionResult = Awaited<
   ReturnType<typeof listNotificationsAction>
 >;
+
+export async function listVendorNotificationsPage(
+  params?: Record<string, string | number>
+): Promise<{
+  data: Notification[];
+  meta: ApiResponse<Notification[]>["meta"];
+}> {
+  try {
+    const res = await listVendorNotificationsService(params);
+    const data = ensureSuccess(res);
+    return { data, meta: res.meta };
+  } catch {
+    return {
+      data: [],
+      meta: {
+        request_id: "",
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+}
 
 export async function createNotificationAction(
   payload: CreateNotificationRequest,

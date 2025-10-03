@@ -9,6 +9,12 @@ export const API_ENDPOINTS = {
     users: (id: string | number) => `/tenants/${id}/users`,
     modules: (id: string | number) => `/tenants/${id}/modules`,
   },
+  clients: {
+    list: "/clients",
+    plan: (id: string | number) => `/clients/${id}/plan`,
+    status: (id: string | number) => `/clients/${id}/status`,
+    activity: (id: string | number) => `/clients/${id}/activity`,
+  },
   transactions: {
     list: "/transactions",
     detail: (id: string | number) => `/transactions/${id}`,

@@ -16,32 +16,28 @@ export type ShortcutItem = {
   icon?: string;
 };
 
-export type VendorActivity = {
-  type: string;
-  reference_id: string;
-  title: string;
-  status?: string;
-  amount?: number;
-  due_date?: Rfc3339String;
-  timestamp: Rfc3339String;
+export type VendorProductTierSummary = {
+  tier: string;
+  active_clients: number;
 };
 
-type VendorOverdueInvoice = {
-  id: number;
-  number: string;
-  total: number;
-  due_date: Rfc3339String;
+export type VendorClientInsight = {
+  client_id: number;
+  name: string;
+  ticket_count: number;
+};
+
+export type VendorProductInsight = {
+  product_id: number;
+  name: string;
+  ticket_count: number;
 };
 
 export type VendorDashboardSummary = {
-  active_clients: number;
-  inactive_clients: number;
-  suspended_clients: number;
-  total_revenue: number;
-  monthly_revenue: number;
+  client_totals_by_tier: VendorProductTierSummary[];
   open_tickets: number;
-  activity: VendorActivity[];
-  overdue_invoices: VendorOverdueInvoice[];
+  most_active_client?: VendorClientInsight;
+  product_with_most_tickets?: VendorProductInsight;
 };
 
 export type KoperasiDashboardSummary = {

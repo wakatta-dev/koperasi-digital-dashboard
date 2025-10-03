@@ -3,6 +3,7 @@
 export * from "./common";
 export * from "./auth";
 export * from "./billing";
+export * from "./client";
 export * from "./tenant";
 export * from "./role";
 export * from "./user";

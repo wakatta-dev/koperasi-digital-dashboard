@@ -18,7 +18,6 @@ import {
   deleteAsset,
   listAssets,
   exportAssets,
-  updateAsset,
   updateAssetStatus,
   getAssetDepreciation,
   listAssetUsages,

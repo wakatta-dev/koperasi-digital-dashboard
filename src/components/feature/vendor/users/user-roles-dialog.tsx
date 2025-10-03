@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/hooks/use-confirm";
 
 type Props = { userId: number; trigger: React.ReactNode };
 
@@ -24,6 +25,7 @@ export function UserRolesDialog({ userId, trigger }: Props) {
   const { data: userRoles = [] } = useUserRoles(userId);
   const { assign, removeRole } = useUserActions();
   const [roleId, setRoleId] = useState<string>("");
+  const confirm = useConfirm();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -46,14 +48,18 @@ export function UserRolesDialog({ userId, trigger }: Props) {
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button" onClick={async () => { if (!roleId) return; await assign.mutateAsync({ userId, roleId }); setRoleId(""); }}>Tambah</Button>
+            <Button type="button" onClick={async () => { if (!roleId) return; const ok = await confirm({ variant: "create", title: "Tambah role ke user?", description: `Role ${roles.find((r: any) => String(r.id) === roleId)?.name ?? roleId} akan diberikan.`, confirmText: "Tambah" }); if (!ok) return; await assign.mutateAsync({ userId, roleId }); setRoleId(""); }}>Tambah</Button>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {(userRoles ?? []).map((ur: any) => (
               <Badge key={ur.id} variant="outline" className="flex items-center gap-2">
                 <span>{ur.role?.name ?? ur.name ?? ur.id}</span>
-                <button className="text-red-600 text-xs" onClick={() => removeRole.mutate({ userId, roleId: ur.id })}>hapus</button>
+                <button className="text-red-600 text-xs" onClick={async () => {
+                  const ok = await confirm({ variant: "delete", title: "Hapus role dari user?", description: `${ur.role?.name ?? ur.name ?? ur.id} akan dicabut.`, confirmText: "Hapus" });
+                  if (!ok) return;
+                  await removeRole.mutateAsync({ userId, roleId: ur.id });
+                }}>hapus</button>
               </Badge>
             ))}
             {!userRoles?.length && (

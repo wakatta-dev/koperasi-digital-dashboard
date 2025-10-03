@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTicketSLA, useTicketSlaActions } from "@/hooks/queries/ticketing";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function TicketSlaConfigSheet({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -17,6 +18,7 @@ export function TicketSlaConfigSheet({ trigger }: { trigger?: React.ReactNode })
     sla_response_minutes: 60,
     sla_resolution_minutes: 1440,
   });
+  const confirm = useConfirm();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -59,7 +61,17 @@ export function TicketSlaConfigSheet({ trigger }: { trigger?: React.ReactNode })
                 }))
               }
             />
-            <Button type="button" onClick={() => upsert.mutate(form)}>
+            <Button type="button" onClick={async () => {
+              if (!form.category.trim()) return;
+              const ok = await confirm({
+                variant: "edit",
+                title: "Simpan konfigurasi SLA?",
+                description: `Kategori ${form.category} akan diperbarui.`,
+                confirmText: "Simpan",
+              });
+              if (!ok) return;
+              await upsert.mutateAsync(form);
+            }}>
               Simpan
             </Button>
           </div>
@@ -89,4 +101,3 @@ export function TicketSlaConfigSheet({ trigger }: { trigger?: React.ReactNode })
     </Sheet>
   );
 }
-

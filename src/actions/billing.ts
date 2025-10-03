@@ -4,6 +4,7 @@
 
 import { ensureSuccess } from "@/lib/api";
 import type {
+  ApiResponse,
   Plan,
   Invoice,
   Payment,
@@ -30,6 +31,35 @@ import {
   getVendorSubscriptionsSummary,
   listVendorAudits,
 } from "@/services/api";
+
+export async function listVendorInvoicesPage(
+  params?: {
+    tenant?: string | number;
+    business_unit_id?: string | number;
+    year?: string;
+    status?: "draft" | "issued" | "paid" | "overdue";
+    term?: string;
+    limit?: number;
+    cursor?: string;
+  },
+): Promise<{
+  data: Invoice[];
+  meta: ApiResponse<Invoice[]>["meta"];
+}> {
+  try {
+    const res = await listVendorInvoices(params);
+    const data = ensureSuccess(res);
+    return { data, meta: res.meta };
+  } catch {
+    return {
+      data: [],
+      meta: {
+        request_id: "",
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+}
 
 export async function listInvoicesAction(
   type: "vendor" | "client" = "client",
@@ -143,6 +173,32 @@ export async function listVendorPlansAction(params: {
 export type ListVendorPlansActionResult = Awaited<
   ReturnType<typeof listVendorPlansAction>
 >;
+
+export async function listVendorPlansPage(
+  params: {
+    limit: number;
+    cursor?: string;
+    term?: string;
+    status?: "active" | "inactive";
+  }
+): Promise<{
+  data: Plan[];
+  meta: ApiResponse<Plan[]>["meta"];
+}> {
+  try {
+    const res = await listVendorPlans(params);
+    const data = ensureSuccess(res);
+    return { data, meta: res.meta };
+  } catch {
+    return {
+      data: [],
+      meta: {
+        request_id: "",
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+}
 
 export async function createVendorPlanAction(
   payload: Partial<Plan>,

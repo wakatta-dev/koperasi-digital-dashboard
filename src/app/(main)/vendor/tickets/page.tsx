@@ -1,7 +1,8 @@
 /** @format */
 
-import { listTickets } from "@/services/api";
+import { listVendorTicketsPage } from "@/actions/tickets";
 import { VendorTicketsList } from "@/components/feature/vendor/tickets/tickets-list";
+import type { Ticket } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
@@ -9,8 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function TicketsPage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = (await searchParams) ?? undefined;
   const status = typeof sp?.status === 'string' ? sp.status : undefined;
-  const res = await listTickets({ limit: 10, ...(status ? { status } : {}) }).catch(() => null);
-  const initial = res?.data ?? undefined;
+  const { data } = await listVendorTicketsPage({ limit: 10, ...(status ? { status } : {}) });
+  const initial = (data ?? []) as Ticket[] | undefined;
   return (
     <div className="space-y-6">
       <VendorTicketsList initialData={initial} limit={10} />

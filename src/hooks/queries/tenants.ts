@@ -44,7 +44,9 @@ export function useTenants(
     queryKey: QK.tenants.list(params),
     queryFn: async () => ensureSuccess(await listTenants(params)),
     ...(initialData ? { initialData } : {}),
-    ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
+    ...(options?.refetchInterval
+      ? { refetchInterval: options.refetchInterval }
+      : {}),
   });
 }
 
@@ -55,8 +57,7 @@ export function useTenant(
   return useQuery({
     queryKey: QK.tenants.detail(id ?? ""),
     enabled: !!id,
-    queryFn: async ({ signal }) =>
-      ensureSuccess(await getTenant(id as string | number, { signal })),
+    queryFn: async () => ensureSuccess(await getTenant(id as string | number)),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -88,8 +89,8 @@ export function useTenantUsers(
   return useQuery({
     queryKey: QK.tenants.users(id ?? "", params),
     enabled: !!id,
-    queryFn: async ({ signal }) =>
-      ensureSuccess(await listTenantUsers(id as string | number, params, { signal })),
+    queryFn: async () =>
+      ensureSuccess(await listTenantUsers(id as string | number, params)),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -107,8 +108,8 @@ export function useTenantModules(
   return useQuery({
     queryKey: QK.tenants.modules(id ?? "", params),
     enabled: !!id,
-    queryFn: async ({ signal }) =>
-      ensureSuccess(await listTenantModules(id as string | number, params, { signal })),
+    queryFn: async () =>
+      ensureSuccess(await listTenantModules(id as string | number, params)),
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -136,18 +137,23 @@ export function useTenantActions() {
       qc.invalidateQueries({ queryKey: QK.tenants.lists() });
       toast.success("Tenant diperbarui");
     },
-    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui tenant"),
+    onError: (err: any) =>
+      toast.error(err?.message || "Gagal memperbarui tenant"),
   });
 
   const updateStatus = useMutation({
-    mutationFn: async (vars: { id: string | number; status: UpdateTenantStatusRequest["status"] }) =>
+    mutationFn: async (vars: {
+      id: string | number;
+      status: UpdateTenantStatusRequest["status"];
+    }) =>
       ensureSuccess(await updateTenantStatus(vars.id, { status: vars.status })),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.tenants.detail(vars.id) });
       qc.invalidateQueries({ queryKey: QK.tenants.lists() });
       toast.success("Status tenant diperbarui");
     },
-    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui status"),
+    onError: (err: any) =>
+      toast.error(err?.message || "Gagal memperbarui status"),
   });
 
   const addUser = useMutation({
@@ -172,7 +178,8 @@ export function useTenantActions() {
       qc.invalidateQueries({ queryKey: QK.tenants.modules(vars.id) });
       toast.success("Status modul diperbarui");
     },
-    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui modul"),
+    onError: (err: any) =>
+      toast.error(err?.message || "Gagal memperbarui modul"),
   });
 
   return { create, update, updateStatus, addUser, updateModule } as const;

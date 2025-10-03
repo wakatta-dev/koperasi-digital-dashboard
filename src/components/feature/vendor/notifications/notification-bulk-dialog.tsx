@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const schema = z.object({
   message: z.string().min(2, "Pesan wajib"),
@@ -43,6 +44,7 @@ const schema = z.object({
 export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { vendorBulk } = useNotificationActions();
+  const confirm = useConfirm();
 
   const form = useForm<z.input<typeof schema>>({
     resolver: zodResolver(schema),
@@ -59,6 +61,13 @@ export function NotificationBulkDialog({ trigger }: { trigger?: React.ReactNode 
       targetType: values.targetType ?? "ALL",
       segment: values.segment ?? "KOPERASI",
     };
+    const ok = await confirm({
+      variant: "create",
+      title: "Jadwalkan notifikasi bulk?",
+      description: `Pesan untuk segmen ${payload.segment} akan dikirim dengan target ${payload.targetType}.`,
+      confirmText: "Jadwalkan",
+    });
+    if (!ok) return;
     await vendorBulk.mutateAsync(payload);
     setOpen(false);
   }

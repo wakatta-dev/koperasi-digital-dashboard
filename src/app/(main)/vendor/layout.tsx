@@ -13,6 +13,7 @@ import {
   FileText,
   Bell,
   Ticket,
+  Shield,
 } from 'lucide-react';
 
 // Sidebar navigation for Vendor section (PRD-aligned)
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Clients', href: '/vendor/clients', icon: <Users className="h-4 w-4" /> },
   { name: 'Invoices', href: '/vendor/invoices', icon: <FileText className="h-4 w-4" /> },
   { name: 'User Management', href: '/vendor/users', icon: <Users className="h-4 w-4" /> },
+  { name: 'Role Management', href: '/vendor/roles', icon: <Shield className="h-4 w-4" /> },
   { name: 'Notifications', href: '/vendor/notifications', icon: <Bell className="h-4 w-4" /> },
   { name: 'Trouble Tickets', href: '/vendor/tickets', icon: <Ticket className="h-4 w-4" /> },
 ];
@@ -32,6 +34,7 @@ const titleMap: Record<string, string> = {
   '/vendor/clients': 'Clients Management',
   '/vendor/invoices': 'Invoices Management',
   '/vendor/users': 'User Management',
+  '/vendor/roles': 'Role Management',
   '/vendor/notifications': 'Notifications',
   '/vendor/tickets': 'Trouble Tickets',
 };
@@ -48,4 +51,3 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     </ProtectedRoute>
   );
 }
-

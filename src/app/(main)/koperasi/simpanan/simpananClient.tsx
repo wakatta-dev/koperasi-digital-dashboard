@@ -49,7 +49,7 @@ export default function SimpananClient() {
   const [approvingId, setApprovingId] = useState<string | number | null>(null);
   const [proofId, setProofId] = useState<string | number | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "setoran" | "penarikan">(
-    "all",
+    "all"
   );
   const [range, setRange] = useState<{ start?: string; end?: string }>({});
 
@@ -57,15 +57,12 @@ export default function SimpananClient() {
     if (!memberId) return;
     setLoading(true);
     try {
-      const res = await listSavingsTransactions(
-        memberId,
-        {
-          type: typeFilter === "all" ? undefined : typeFilter,
-          start: range.start,
-          end: range.end,
-          limit: 20,
-        },
-      );
+      const res = await listSavingsTransactions(memberId, {
+        type: typeFilter === "all" ? undefined : typeFilter,
+        start: range.start,
+        end: range.end,
+        limit: 20,
+      });
       if (res.success) setRows(res.data || []);
     } finally {
       setLoading(false);
@@ -85,9 +82,9 @@ export default function SimpananClient() {
           if (tx.status === "pending") acc.pending += 1;
           return acc;
         },
-        { deposit: 0, withdraw: 0, pending: 0 },
+        { deposit: 0, withdraw: 0, pending: 0 }
       ),
-    [rows],
+    [rows]
   );
 
   return (
@@ -229,15 +226,20 @@ export default function SimpananClient() {
                       }`}
                     >
                       {transaction.type === "setoran" ? "+" : "-"}{" "}
-                      {currencyFormatter.format(Number(transaction.amount ?? 0))}
+                      {currencyFormatter.format(
+                        Number(transaction.amount ?? 0)
+                      )}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Metode: {transaction.method ?? transaction.payment_method ?? "-"}
+                      Metode:{" "}
+                      {transaction.method ?? transaction.payment_method ?? "-"}
                     </p>
                   </div>
 
                   <Badge
-                    variant={transaction.type === "setoran" ? "default" : "secondary"}
+                    variant={
+                      transaction.type === "setoran" ? "default" : "secondary"
+                    }
                     className="capitalize"
                   >
                     {transaction.type}
@@ -290,7 +292,7 @@ export default function SimpananClient() {
                               await load();
                             } catch (e: any) {
                               toast.error(
-                                e?.message || "Gagal memverifikasi setoran",
+                                e?.message || "Gagal memverifikasi setoran"
                               );
                             } finally {
                               setVerifyingId(null);
@@ -316,7 +318,7 @@ export default function SimpananClient() {
                               await load();
                             } catch (e: any) {
                               toast.error(
-                                e?.message || "Gagal menyetujui penarikan",
+                                e?.message || "Gagal menyetujui penarikan"
                               );
                             } finally {
                               setApprovingId(null);
@@ -334,7 +336,7 @@ export default function SimpananClient() {
             ))}
             {!rows.length && (
               <div className="text-sm text-muted-foreground italic">
-                Pilih anggota lalu klik "Muat Riwayat" untuk melihat transaksi.
+                {`Pilih anggota lalu klik "Muat Riwayat" untuk melihat transaksi.`}
               </div>
             )}
           </div>
@@ -361,9 +363,7 @@ function SavingsSummary({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {hasSelection
-              ? currencyFormatter.format(summary.deposit)
-              : "-"}
+            {hasSelection ? currencyFormatter.format(summary.deposit) : "-"}
           </div>
           <p className="text-xs text-muted-foreground">
             Total setoran untuk anggota dipilih
@@ -376,9 +376,7 @@ function SavingsSummary({
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {hasSelection
-              ? currencyFormatter.format(summary.withdraw)
-              : "-"}
+            {hasSelection ? currencyFormatter.format(summary.withdraw) : "-"}
           </div>
           <p className="text-xs text-muted-foreground">
             Jumlah penarikan tercatat
@@ -400,7 +398,9 @@ function SavingsSummary({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Transaksi Pending</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Transaksi Pending
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">

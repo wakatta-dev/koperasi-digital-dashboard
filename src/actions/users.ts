@@ -113,6 +113,27 @@ export type ListUsersActionResult = Awaited<
   ReturnType<typeof listUsersAction>
 >;
 
+export async function listVendorUsersPage(
+  params?: Record<string, string | number>
+): Promise<{
+  data: User[];
+  meta: ApiResponse<User[]>["meta"];
+}> {
+  try {
+    const res = await listUsersService(params);
+    const data = ensureSuccess(res);
+    return { data, meta: res.meta };
+  } catch {
+    return {
+      data: [],
+      meta: {
+        request_id: "",
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+}
+
 export async function getUserAction(id: string | number) {
   try {
     const res = await getUserService(id);

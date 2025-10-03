@@ -12,12 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  CreditCard,
-  Search,
-  CheckCircle,
-  FileText,
-} from "lucide-react";
+import { CreditCard, Search, CheckCircle, FileText } from "lucide-react";
 import {
   applyLoan,
   approveLoan,
@@ -64,9 +59,9 @@ export default function PinjamanClient() {
   const [loanId, setLoanId] = useState<string>("");
   const [installments, setInstallments] = useState<LoanInstallment[]>([]);
   const [loading, setLoading] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<"all" | "unpaid" | "paid" | "overdue">(
-    "all",
-  );
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "unpaid" | "paid" | "overdue"
+  >("all");
   const [dueDate, setDueDate] = useState<string>("");
   const [releaseLoading, setReleaseLoading] = useState(false);
 
@@ -81,7 +76,13 @@ export default function PinjamanClient() {
         rate: applyPayload.rate,
       });
       toast.success("Pengajuan pinjaman terkirim");
-      setApplyPayload({ member_id: "", amount: 0, purpose: "", tenor: 12, rate: 12 });
+      setApplyPayload({
+        member_id: "",
+        amount: 0,
+        purpose: "",
+        tenor: 12,
+        rate: 12,
+      });
     } catch (e: any) {
       toast.error(e?.message || "Gagal mengajukan pinjaman");
     } finally {
@@ -156,7 +157,7 @@ export default function PinjamanClient() {
         if (ins.status === "overdue") acc.overdue += 1;
         return acc;
       },
-      { total: 0, paid: 0, overdue: 0 },
+      { total: 0, paid: 0, overdue: 0 }
     );
   }, [installments]);
 
@@ -174,12 +175,16 @@ export default function PinjamanClient() {
       <Card>
         <CardHeader>
           <CardTitle>Pengajuan Baru</CardTitle>
-          <CardDescription>Ajukan pinjaman sesuai dokumen anggota</CardDescription>
+          <CardDescription>
+            Ajukan pinjaman sesuai dokumen anggota
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-6">
             <AsyncCombobox<MemberListItem, number>
-              value={applyPayload.member_id ? Number(applyPayload.member_id) : null}
+              value={
+                applyPayload.member_id ? Number(applyPayload.member_id) : null
+              }
               onChange={(val) =>
                 setApplyPayload((s) => ({
                   ...s,
@@ -187,7 +192,9 @@ export default function PinjamanClient() {
                 }))
               }
               getOptionValue={(m) => m.id}
-              getOptionLabel={(m) => m.full_name || m.no_anggota || String(m.id)}
+              getOptionLabel={(m) =>
+                m.full_name || m.no_anggota || String(m.id)
+              }
               queryKey={["members", "search-loan-apply"]}
               fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, {
                 limit: 10,
@@ -270,7 +277,9 @@ export default function PinjamanClient() {
       <Card>
         <CardHeader>
           <CardTitle>Operasi Pinjaman</CardTitle>
-          <CardDescription>Setujui, cairkan, dan filter angsuran</CardDescription>
+          <CardDescription>
+            Setujui, cairkan, dan filter angsuran
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid items-end gap-3 md:grid-cols-5">
@@ -304,16 +313,16 @@ export default function PinjamanClient() {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
             />
-            <Button variant="outline" onClick={loadInstallments} disabled={!loanId}>
+            <Button
+              variant="outline"
+              onClick={loadInstallments}
+              disabled={!loanId}
+            >
               Muat Angsuran
             </Button>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={onApprove}
-              disabled={!loanId}
-            >
+            <Button variant="secondary" onClick={onApprove} disabled={!loanId}>
               <CheckCircle className="mr-2 h-4 w-4" /> Setujui
             </Button>
             <Button onClick={onDisburse} disabled={!loanId}>
@@ -335,9 +344,8 @@ export default function PinjamanClient() {
         <CardHeader>
           <CardTitle>Ringkasan Angsuran</CardTitle>
           <CardDescription>
-            Total {installments.length} angsuran, dibayar {currencyFormatter.format(
-              totals.paid,
-            )}
+            Total {installments.length} angsuran, dibayar{" "}
+            {currencyFormatter.format(totals.paid)}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -375,8 +383,8 @@ export default function PinjamanClient() {
                       const nominal = Number(
                         prompt(
                           "Nominal bayar",
-                          String(Math.max(0, ins.amount - ins.paid_amount)),
-                        ) || 0,
+                          String(Math.max(0, ins.amount - ins.paid_amount))
+                        ) || 0
                       );
                       if (!nominal) return;
                       try {
@@ -400,7 +408,7 @@ export default function PinjamanClient() {
           ))}
           {!installments.length && (
             <div className="text-sm text-muted-foreground italic">
-              Masukkan ID pinjaman dan klik "Muat Angsuran" untuk melihat jadwal.
+              {`Masukkan ID pinjaman dan klik "Muat Angsuran" untuk melihat jadwal.`}
             </div>
           )}
         </CardContent>

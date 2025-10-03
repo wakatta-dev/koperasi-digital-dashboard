@@ -29,6 +29,13 @@ export const QK = {
     modules: (id: string | number, params?: Record<string, any>) =>
       ["tenants", String(id), "modules", params ?? {}] as const,
   },
+  clients: {
+    all: ["clients"] as const,
+    lists: () => ["clients", "list"] as const,
+    list: (params?: Record<string, any>) => ["clients", "list", params ?? {}] as const,
+    activity: (id: string | number, params?: Record<string, any>) =>
+      ["clients", String(id), "activity", params ?? {}] as const,
+  },
   notifications: {
     all: ["notifications"] as const,
     list: (params?: Record<string, any>) => ["notifications", "list", params ?? {}] as const,
@@ -112,6 +119,8 @@ export type QueryKey = ReturnType<
   | typeof QK.tenants.byDomain
   | typeof QK.tenants.users
   | typeof QK.tenants.modules
+  | typeof QK.clients.list
+  | typeof QK.clients.activity
   | typeof QK.notifications.list
   | typeof QK.billing.vendor.plans
   | typeof QK.billing.vendor.plan
