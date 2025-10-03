@@ -1,6 +1,6 @@
 # Financial Reports API — Panduan Integrasi Frontend (Singkat)
 
-Modul laporan keuangan koperasi menyediakan laporan neraca, laba rugi, dan arus kas dengan memanfaatkan service laporan inti. Endpoint berada di prefix `/koperasi/financial-reports` dan hanya dapat diakses role keuangan koperasi.
+Modul laporan keuangan koperasi menyediakan laporan neraca, laba rugi, dan arus kas dengan memanfaatkan service laporan inti. Endpoint berada di prefix `/api/koperasi/financial-reports` dan hanya dapat diakses role keuangan koperasi.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,9 +14,9 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/koperasi/financial-reports/balance-sheet?start=&end=` — laporan neraca → 200 `APIResponse<BalanceSheetReport>`
-- GET `/koperasi/financial-reports/profit-loss?start=&end=` — laporan laba rugi → 200 `APIResponse<ProfitLossReport>`
-- GET `/koperasi/financial-reports/cash-flow?start=&end=` — laporan arus kas → 200 `APIResponse<CashflowReport>`
+- GET `/api/koperasi/financial-reports/balance-sheet?start=&end=` — laporan neraca → 200 `APIResponse<BalanceSheetReport>`
+- GET `/api/koperasi/financial-reports/profit-loss?start=&end=` — laporan laba rugi → 200 `APIResponse<ProfitLossReport>`
+- GET `/api/koperasi/financial-reports/cash-flow?start=&end=` — laporan arus kas → 200 `APIResponse<CashflowReport>`
 
 > Parameter `start` dan `end` opsional (`YYYY-MM-DD`). Jika tidak diisi, backend menggunakan rentang default (tahun berjalan).
 

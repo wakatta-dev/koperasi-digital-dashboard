@@ -14,17 +14,17 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Seluruh endpoint berada di prefix `/bumdes/business-units` dan memerlukan role `SuperAdmin|Manajer|Admin BUMDes|Admin Unit|Kasir Unit`.
+Seluruh endpoint berada di prefix `/api/bumdes/business-units` dan memerlukan role `SuperAdmin|Manajer|Admin BUMDes|Admin Unit|Kasir Unit`.
 
-- GET `/bumdes/business-units` — `pengelola unit`: daftar unit usaha → 200 `APIResponse<ListBusinessUnitResponse>`
-- POST `/bumdes/business-units` — `pengelola unit`: buat unit usaha → 201 `APIResponse<BusinessUnit>`
-- GET `/bumdes/business-units/:id` — `pengelola unit`: detail unit → 200 `APIResponse<BusinessUnit>`
-- PUT `/bumdes/business-units/:id` — `pengelola unit`: ubah profil unit → 200 `APIResponse<BusinessUnit>`
-- POST `/bumdes/business-units/:id/transactions` — `pengelola unit`: catat transaksi kas → 201 `APIResponse<BusinessTransaction>`
-- GET `/bumdes/business-units/:id/transactions` — `pengelola unit`: riwayat transaksi (`start_date`, `end_date`) → 200 `APIResponse<ListTransactionsResponse>`
-- GET `/bumdes/business-units/:id/performance` — `pengelola unit`: ringkasan omzet vs biaya per bulan (`month=YYYY-MM`) → 200 `APIResponse<PerformanceSummary>`
-- GET `/bumdes/business-units/report/comparison` — `manajemen`: perbandingan multi-unit (`start`, `end`, `unit_ids=1,2`) → 200 `APIResponse<UnitComparisonResponse>`
-- POST `/bumdes/business-units/low-stock-alerts/trigger` — `manajemen`: jalankan notifikasi stok minim (`unit_id?`) → 200 `APIResponse<{ notifications: number }>`
+- GET `/api/bumdes/business-units` — `pengelola unit`: daftar unit usaha → 200 `APIResponse<ListBusinessUnitResponse>`
+- POST `/api/bumdes/business-units` — `pengelola unit`: buat unit usaha → 201 `APIResponse<BusinessUnit>`
+- GET `/api/bumdes/business-units/:id` — `pengelola unit`: detail unit → 200 `APIResponse<BusinessUnit>`
+- PUT `/api/bumdes/business-units/:id` — `pengelola unit`: ubah profil unit → 200 `APIResponse<BusinessUnit>`
+- POST `/api/bumdes/business-units/:id/transactions` — `pengelola unit`: catat transaksi kas → 201 `APIResponse<BusinessTransaction>`
+- GET `/api/bumdes/business-units/:id/transactions` — `pengelola unit`: riwayat transaksi (`start_date`, `end_date`) → 200 `APIResponse<ListTransactionsResponse>`
+- GET `/api/bumdes/business-units/:id/performance` — `pengelola unit`: ringkasan omzet vs biaya per bulan (`month=YYYY-MM`) → 200 `APIResponse<PerformanceSummary>`
+- GET `/api/bumdes/business-units/report/comparison` — `manajemen`: perbandingan multi-unit (`start`, `end`, `unit_ids=1,2`) → 200 `APIResponse<UnitComparisonResponse>`
+- POST `/api/bumdes/business-units/low-stock-alerts/trigger` — `manajemen`: jalankan notifikasi stok minim (`unit_id?`) → 200 `APIResponse<{ notifications: number }>`
 
 > Parameter tanggal memakai format `YYYY-MM-DD`; validasi gagal mengembalikan 400 dengan penjelasan field.
 

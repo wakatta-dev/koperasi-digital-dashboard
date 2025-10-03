@@ -14,11 +14,11 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Endpoint berada di bawah prefix `/bumdes/assets` dengan pembagian role: update status hanya untuk pengelola aset, laporan untuk viewer keuangan.
+Endpoint berada di bawah prefix `/api/bumdes/assets` dengan pembagian role: update status hanya untuk pengelola aset, laporan untuk viewer keuangan.
 
-- PUT `/bumdes/assets/:id/status` — `pengelola aset`: ubah status aset → 204 (tanpa body)
-- GET `/bumdes/assets/report` — `viewer keuangan`: ringkasan aset (`status`, `type`) → 200 `APIResponse<Summary>`
-- GET `/bumdes/assets/report/export` — `viewer keuangan`: unduh laporan (`status`, `type`, `format=pdf|xlsx`) → 200 file stream
+- PUT `/api/bumdes/assets/:id/status` — `pengelola aset`: ubah status aset → 204 (tanpa body)
+- GET `/api/bumdes/assets/report` — `viewer keuangan`: ringkasan aset (`status`, `type`) → 200 `APIResponse<Summary>`
+- GET `/api/bumdes/assets/report/export` — `viewer keuangan`: unduh laporan (`status`, `type`, `format=pdf|xlsx`) → 200 file stream
 
 > Query `status` menerima `active`/`inactive`; `type` menyaring berdasarkan tipe aset; `format` default `xlsx`.
 

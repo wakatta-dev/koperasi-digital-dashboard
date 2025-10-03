@@ -14,16 +14,16 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Prefix utama `/pos` dengan guard yang memblokir tenant vendor.
+Prefix utama `/api/pos` dengan guard yang memblokir tenant vendor.
 
-- POST `/pos/sales` — `cashier`: buat transaksi POS → 201 `APIResponse<POSale>`
-- GET `/pos/sales?status=&cashier_id=&shift_code=&shift_id=&start_date=&end_date=&limit=&cursor=` — `cashier manager`: daftar transaksi → 200 `APIResponse<POSale[]>`
-- GET `/pos/sales/:id` — `cashier`: detail transaksi → 200 `APIResponse<POSale>`
-- POST `/pos/sales/:id/payments` — `cashier`: tambah pembayaran → 201 `APIResponse<POSPayment>`
-- POST `/pos/sales/:id/cancel` — `cashier manager`: batalkan transaksi → 200 `APIResponse<POSale>`
-- GET `/pos/products?q=&limit=&business_unit_id=` — `cashier`: pencarian cepat produk → 200 `APIResponse<ProductSearchResponse>`
-- POST `/pos/shifts` — `cashier`: buka shift kasir → 201 `APIResponse<POSShift>`
-- POST `/pos/shifts/:id/close` — `cashier`: tutup shift kasir → 200 `APIResponse<POSShift>`
+- POST `/api/pos/sales` — `cashier`: buat transaksi POS → 201 `APIResponse<POSale>`
+- GET `/api/pos/sales?status=&cashier_id=&shift_code=&shift_id=&start_date=&end_date=&limit=&cursor=` — `cashier manager`: daftar transaksi → 200 `APIResponse<POSale[]>`
+- GET `/api/pos/sales/:id` — `cashier`: detail transaksi → 200 `APIResponse<POSale>`
+- POST `/api/pos/sales/:id/payments` — `cashier`: tambah pembayaran → 201 `APIResponse<POSPayment>`
+- POST `/api/pos/sales/:id/cancel` — `cashier manager`: batalkan transaksi → 200 `APIResponse<POSale>`
+- GET `/api/pos/products?q=&limit=&business_unit_id=` — `cashier`: pencarian cepat produk → 200 `APIResponse<ProductSearchResponse>`
+- POST `/api/pos/shifts` — `cashier`: buka shift kasir → 201 `APIResponse<POSShift>`
+- POST `/api/pos/shifts/:id/close` — `cashier`: tutup shift kasir → 200 `APIResponse<POSShift>`
 
 > Tenant BUMDes wajib menyertakan `business_unit_id` saat mencatat penjualan/pencarian stok bila multi-unit. Guard peran di service memastikan hanya kasir/administrator yang dapat mengakses aksi tertentu.
 

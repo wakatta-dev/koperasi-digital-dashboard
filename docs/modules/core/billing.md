@@ -14,36 +14,36 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- Vendor GET `/plans?term=&status=&limit=&cursor=` — daftar plan → 200 `APIResponse<Plan[]>`
-- Vendor POST `/plans` — buat plan baru (`type` = `package|addon`) → 201 `APIResponse<Plan>`
-- Vendor GET `/plans/:id` — detail plan → 200 `APIResponse<Plan>`
-- Vendor PUT `/plans/:id` — perbarui plan → 200 `APIResponse<Plan>`
-- Vendor PATCH `/plans/:id/status` — ubah status plan (`active|inactive`) → 200 `APIResponse<Plan>`
-- Vendor DELETE `/plans/:id` — hapus plan → 200 `APIResponse<{ id: number }>`
-- Vendor GET `/invoices?tenant=&business_unit_id=&year=&status=&term=&limit=&cursor=` — daftar invoice → 200 `APIResponse<Invoice[]>`
-- Vendor POST `/invoices` — buat invoice → 201 `APIResponse<Invoice>`
-- Vendor GET `/invoices/:id` — detail invoice → 200 `APIResponse<Invoice>`
-- Vendor PUT `/invoices/:id` — perbarui invoice (items, due date, note) → 200 `APIResponse<Invoice>`
-- Vendor PATCH `/invoices/:id/status` — transisi status (`issued|paid|overdue`) → 200 `APIResponse<Invoice>`
-- Vendor POST `/invoices/:id/send` — kirim invoice (email/download) → 200 `APIResponse<{ message: string }>`
-- Vendor DELETE `/invoices/:id` — hapus invoice → 200 `APIResponse<{ id: number }>`
-- Vendor GET `/invoices/:id/payments?status=&limit=&cursor=` — histori payment invoice → 200 `APIResponse<Payment[]>`
-- Vendor POST `/invoices/:id/payments` — catat manual payment (`method=manual`) → 201 `APIResponse<Payment>`
-- Vendor GET `/payments?tenant=&invoice=&status=&limit=&cursor=` — histori payment tenant → 200 `APIResponse<Payment[]>`
-- Vendor GET `/payments/:id` — detail payment → 200 `APIResponse<Payment>`
-- Vendor POST `/payments/:id/verify` — verifikasi payment (`status=pending|verified|rejected`) → 200 `APIResponse<Payment>`
-- Vendor GET `/subscriptions?status=&tenant=&business_unit_id=&term=&limit=&cursor=` — daftar subscription → 200 `APIResponse<TenantSubscription[]>`
-- Vendor GET `/subscriptions/:id` — detail subscription → 200 `APIResponse<TenantSubscription>`
-- Vendor GET `/subscriptions/summary` — ringkasan status subscription → 200 `APIResponse<Record<string, number>>`
-- Vendor PATCH `/subscriptions/:id/status` — ubah status (`active|paused|terminated`) → 200 `APIResponse<TenantSubscription>`
-- Vendor GET `/audits?entity=&status=&role=&user=&date=&term=&limit=&cursor=` — log status plan/invoice/addon → 200 `APIResponse<StatusAudit[]>`
-- Client GET `/client/invoices?status=&term=&year=&business_unit_id=&limit=&cursor=` — daftar invoice tenant → 200 `APIResponse<Invoice[]>`
-- Client GET `/client/invoices/:id` — detail invoice tenant → 200 `APIResponse<Invoice>`
-- Client GET `/client/invoices/:id/audits?limit=&cursor=` — audit status invoice → 200 `APIResponse<StatusAudit[]>`
-- Client POST `/client/addons` — beli addon plan → 201 `APIResponse<{ invoice: Invoice; subscriptions: TenantSubscription[] }>`
-- Client DELETE `/client/addons/:id` — batalkan addon → 200 `APIResponse<{ id: number }>`
-- Client GET `/client/subscription` — status berlangganan saat ini → 200 `APIResponse<Record<string, string>>`
-- Gateway POST `/payment-gateways/:gateway/webhook` — terima webhook gateway → 200 `APIResponse<void>`
+- Vendor GET `/api/plans?term=&status=&limit=&cursor=` — daftar plan → 200 `APIResponse<Plan[]>`
+- Vendor POST `/api/plans` — buat plan baru (`type` = `package|addon`) → 201 `APIResponse<Plan>`
+- Vendor GET `/api/plans/:id` — detail plan → 200 `APIResponse<Plan>`
+- Vendor PUT `/api/plans/:id` — perbarui plan → 200 `APIResponse<Plan>`
+- Vendor PATCH `/api/plans/:id/status` — ubah status plan (`active|inactive`) → 200 `APIResponse<Plan>`
+- Vendor DELETE `/api/plans/:id` — hapus plan → 200 `APIResponse<{ id: number }>`
+- Vendor GET `/api/invoices?tenant=&business_unit_id=&year=&status=&term=&limit=&cursor=` — daftar invoice → 200 `APIResponse<Invoice[]>`
+- Vendor POST `/api/invoices` — buat invoice → 201 `APIResponse<Invoice>`
+- Vendor GET `/api/invoices/:id` — detail invoice → 200 `APIResponse<Invoice>`
+- Vendor PUT `/api/invoices/:id` — perbarui invoice (items, due date, note) → 200 `APIResponse<Invoice>`
+- Vendor PATCH `/api/invoices/:id/status` — transisi status (`issued|paid|overdue`) → 200 `APIResponse<Invoice>`
+- Vendor POST `/api/invoices/:id/send` — kirim invoice (email/download) → 200 `APIResponse<{ message: string }>`
+- Vendor DELETE `/api/invoices/:id` — hapus invoice → 200 `APIResponse<{ id: number }>`
+- Vendor GET `/api/invoices/:id/payments?status=&limit=&cursor=` — histori payment invoice → 200 `APIResponse<Payment[]>`
+- Vendor POST `/api/invoices/:id/payments` — catat manual payment (`method=manual`) → 201 `APIResponse<Payment>`
+- Vendor GET `/api/payments?tenant=&invoice=&status=&limit=&cursor=` — histori payment tenant → 200 `APIResponse<Payment[]>`
+- Vendor GET `/api/payments/:id` — detail payment → 200 `APIResponse<Payment>`
+- Vendor POST `/api/payments/:id/verify` — verifikasi payment (`status=pending|verified|rejected`) → 200 `APIResponse<Payment>`
+- Vendor GET `/api/subscriptions?status=&tenant=&business_unit_id=&term=&limit=&cursor=` — daftar subscription → 200 `APIResponse<TenantSubscription[]>`
+- Vendor GET `/api/subscriptions/:id` — detail subscription → 200 `APIResponse<TenantSubscription>`
+- Vendor GET `/api/subscriptions/summary` — ringkasan status subscription → 200 `APIResponse<Record<string, number>>`
+- Vendor PATCH `/api/subscriptions/:id/status` — ubah status (`active|paused|terminated`) → 200 `APIResponse<TenantSubscription>`
+- Vendor GET `/api/audits?entity=&status=&role=&user=&date=&term=&limit=&cursor=` — log status plan/invoice/addon → 200 `APIResponse<StatusAudit[]>`
+- Client GET `/api/client/invoices?status=&term=&year=&business_unit_id=&limit=&cursor=` — daftar invoice tenant → 200 `APIResponse<Invoice[]>`
+- Client GET `/api/client/invoices/:id` — detail invoice tenant → 200 `APIResponse<Invoice>`
+- Client GET `/api/client/invoices/:id/audits?limit=&cursor=` — audit status invoice → 200 `APIResponse<StatusAudit[]>`
+- Client POST `/api/client/addons` — beli addon plan → 201 `APIResponse<{ invoice: Invoice; subscriptions: TenantSubscription[] }>`
+- Client DELETE `/api/client/addons/:id` — batalkan addon → 200 `APIResponse<{ id: number }>`
+- Client GET `/api/client/subscription` — status berlangganan saat ini → 200 `APIResponse<Record<string, string>>`
+- Gateway POST `/api/payment-gateways/:gateway/webhook` — terima webhook gateway → 200 `APIResponse<void>`
 
 > Query `limit` default 10 (minimal 1). `cursor` berupa `id` terakhir bertipe string angka. Filter `status` mengikuti enum masing-masing entity, sedangkan `term` melakukan pencarian fuzzy.
 
@@ -266,7 +266,7 @@ type AuditListResponse = APIResponse<StatusAudit[]>;
 ## Paginasi (Cursor)
 
 - Seluruh endpoint daftar menggunakan cursor numerik (`id`) dengan `limit` default 10; beberapa menerima filter tambahan (`status`, `tenant`, `business_unit_id`, `term`).
-- Endpoint `/audits` menambahkan filter `entity`, `role`, `user`, dan `date`. Seluruh parameter bersifat opsional, namun `business_unit_id` wajib bagi tenant tipe `BUMDes` pada audit invoice.
+- Endpoint `/api/audits` menambahkan filter `entity`, `role`, `user`, dan `date`. Seluruh parameter bersifat opsional, namun `business_unit_id` wajib bagi tenant tipe `BUMDes` pada audit invoice.
 - Baca `meta.pagination.next_cursor`; kirim sebagai `cursor` pada permintaan berikutnya selama `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani
@@ -284,7 +284,7 @@ type AuditListResponse = APIResponse<StatusAudit[]>;
 - Tangani transisi invoice & subscription dengan optimistik update setelah respons sukses.
 - Saat membeli addon, de-duplikasi pilihan `plan_ids` dan minta `business_unit_id` untuk tenant tipe BUMDes.
 - Sinkronkan histori payment setelah upload bukti, kemudian panggil verifikasi bila dibutuhkan.
-- Manfaatkan filter `/audits` untuk investigasi perubahan status; tampilkan pencarian berdasarkan `entity` atau `role` agar audit trail mudah diinspeksi.
+- Manfaatkan filter `/api/audits` untuk investigasi perubahan status; tampilkan pencarian berdasarkan `entity` atau `role` agar audit trail mudah diinspeksi.
 
 ## Tautan Teknis (Opsional)
 

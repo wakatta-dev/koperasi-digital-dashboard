@@ -14,17 +14,17 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Semua endpoint berada di bawah prefix `/transactions` dan `/cash` bagi tenant finance.
+Semua endpoint berada di bawah prefix `/api/transactions` dan `/api/cash` bagi tenant finance.
 
-- POST `/transactions` — `finance officer`: catat transaksi kas → 201 `APIResponse<Transaction>`
-- GET `/transactions?start=&end=&type=&category=&payment_method=&savings_type=&account_code=&business_unit_id=&min_amount=&max_amount=&term=&limit=&cursor=` — `finance officer`: daftar transaksi → 200 `APIResponse<Transaction[]>`
-- GET `/transactions/export?start=&end=&type=&category=&payment_method=&format=` — `finance officer`: ekspor transaksi ke CSV/XLSX → 200 `file`
-- GET `/transactions/:id/history?limit=&cursor=` — `finance officer`: histori perubahan transaksi → 200 `APIResponse<TransactionHistory[]>`
-- PATCH `/transactions/:id` — `finance officer`: ubah transaksi → 200 `APIResponse<Transaction>`
-- DELETE `/transactions/:id` — `finance officer`: hapus transaksi → 200 `APIResponse<{ id: number }>`
-- POST `/cash/manual` — `finance officer`: catat pemasukan/pengeluaran manual (kompatibilitas cashbook) → 201 `CashEntry`
-- GET `/cash/summary?start=&end=` — `finance officer`: ringkasan kas masuk/keluar → 200 `CashSummary`
-- POST `/cash/export` — `finance officer`: ekspor ringkasan kas ke laporan → 200 `file`
+- POST `/api/transactions` — `finance officer`: catat transaksi kas → 201 `APIResponse<Transaction>`
+- GET `/api/transactions?start=&end=&type=&category=&payment_method=&savings_type=&account_code=&business_unit_id=&min_amount=&max_amount=&term=&limit=&cursor=` — `finance officer`: daftar transaksi → 200 `APIResponse<Transaction[]>`
+- GET `/api/transactions/export?start=&end=&type=&category=&payment_method=&format=` — `finance officer`: ekspor transaksi ke CSV/XLSX → 200 `file`
+- GET `/api/transactions/:id/history?limit=&cursor=` — `finance officer`: histori perubahan transaksi → 200 `APIResponse<TransactionHistory[]>`
+- PATCH `/api/transactions/:id` — `finance officer`: ubah transaksi → 200 `APIResponse<Transaction>`
+- DELETE `/api/transactions/:id` — `finance officer`: hapus transaksi → 200 `APIResponse<{ id: number }>`
+- POST `/api/cash/manual` — `finance officer`: catat pemasukan/pengeluaran manual (kompatibilitas cashbook) → 201 `CashEntry`
+- GET `/api/cash/summary?start=&end=` — `finance officer`: ringkasan kas masuk/keluar → 200 `CashSummary`
+- POST `/api/cash/export` — `finance officer`: ekspor ringkasan kas ke laporan → 200 `file`
 
 > Tenant tipe tertentu (mis. `BUMDes`) mewajibkan `business_unit_id`. Service akan mengembalikan 400 bila konteks unit tidak dipenuhi. Gunakan query `format=csv` untuk ekspor CSV; default `xlsx`.
 
@@ -60,7 +60,7 @@ Semua endpoint berada di bawah prefix `/transactions` dan `/cash` bagi tenant fi
 ## Bentuk Response
 
 - Endpoint transaksi mengembalikan `APIResponse<T>` dengan `meta.pagination` untuk daftar/histori.
-- Endpoint cashbook (`/cash/...`) memakai respons langsung (bukan `APIResponse`) demi kompatibilitas legacy.
+- Endpoint cashbook (`/api/cash/...`) memakai respons langsung (bukan `APIResponse`) demi kompatibilitas legacy.
 - Ekspor mengirim file biner dengan `Content-Type` `text/csv` atau `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
 
 ## TypeScript Types (Request & Response)
@@ -200,7 +200,7 @@ type CashSummaryResponse = CashSummary;
 
 ## Paginasi (Cursor)
 
-- `GET /transactions` dan `/transactions/:id/history` memakai cursor numerik (`id`) dengan `limit` default 10.
+- `GET /api/transactions` dan `/api/transactions/:id/history` memakai cursor numerik (`id`) dengan `limit` default 10.
 - `meta.pagination.next_cursor` dikirim saat masih ada data lanjutan; gunakan nilai tersebut sebagai query `cursor` berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
@@ -216,7 +216,7 @@ type CashSummaryResponse = CashSummary;
 - Gunakan filter tanggal (`start`, `end`) dalam format `YYYY-MM-DD` agar backend tidak mengembalikan error.
 - Saat menampilkan histori perubahan, parse `old_values`/`new_values` ke objek untuk diff detail.
 - Setelah membuat atau mengubah transaksi, refresh daftar agar saldo kas/book keeping tetap sinkron.
-- Pastikan modul cashbook legacy diarahkan ke endpoint baru `/cash/...` untuk data terintegrasi.
+- Pastikan modul cashbook legacy diarahkan ke endpoint baru `/api/cash/...` untuk data terintegrasi.
 
 ## Tautan Teknis (Opsional)
 

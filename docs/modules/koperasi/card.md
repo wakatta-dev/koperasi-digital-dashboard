@@ -1,6 +1,6 @@
 # Digital Card API — Panduan Integrasi Frontend (Singkat)
 
-Modul kartu digital koperasi menyediakan preview, regenerasi QR, unduhan kartu, dan validasi QR untuk anggota. Endpoint berada di prefix `/koperasi/card` dan memanfaatkan data anggota dari modul membership.
+Modul kartu digital koperasi menyediakan preview, regenerasi QR, unduhan kartu, dan validasi QR untuk anggota. Endpoint berada di prefix `/api/koperasi/card` dan memanfaatkan data anggota dari modul membership.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -13,10 +13,10 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/koperasi/card/members/:id/preview` — `admin/anggota`: lihat snapshot kartu (generate otomatis jika belum ada) → 200 `APIResponse<MemberCard>`
-- POST `/koperasi/card/members/:id/refresh` — `admin kartu`: regenerasi QR dan kartu → 200 `APIResponse<MemberCard>`
-- GET `/koperasi/card/members/:id/download` — `admin/anggota`: unduh kartu PNG → 200 file
-- GET `/koperasi/card/validate/:qr` — `admin/anggota`: validasi QR dan ambil info anggota → 200 `APIResponse<Member>`
+- GET `/api/koperasi/card/members/:id/preview` — `admin/anggota`: lihat snapshot kartu (generate otomatis jika belum ada) → 200 `APIResponse<MemberCard>`
+- POST `/api/koperasi/card/members/:id/refresh` — `admin kartu`: regenerasi QR dan kartu → 200 `APIResponse<MemberCard>`
+- GET `/api/koperasi/card/members/:id/download` — `admin/anggota`: unduh kartu PNG → 200 file
+- GET `/api/koperasi/card/validate/:qr` — `admin/anggota`: validasi QR dan ambil info anggota → 200 `APIResponse<Member>`
 
 > Anggota (`role=Anggota`) hanya dapat mengakses kartu miliknya sendiri. Petugas harus berada dalam tenant yang sama dengan anggota.
 

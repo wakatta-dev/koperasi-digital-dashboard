@@ -1,6 +1,6 @@
 # Branding API — Panduan Integrasi Frontend (Singkat)
 
-Modul branding mengelola konfigurasi tampilan tenant (warna, logo, layout landing page) sekaligus daftar unit bisnis yang ditampilkan di landing page. Semua operasi berjalan di bawah prefix `/branding` dan berlaku untuk tenant non-vendor yang memiliki fitur branding aktif.
+Modul branding mengelola konfigurasi tampilan tenant (warna, logo, layout landing page) sekaligus daftar unit bisnis yang ditampilkan di landing page. Seluruh operasi berjalan di bawah prefix `/api/branding` sebagaimana registrasi router di `internal/modules/registry.go` dan `internal/modules/support/branding/routes.go`, dan berlaku untuk tenant non-vendor yang memiliki fitur branding aktif.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar.
 
@@ -14,13 +14,13 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/branding` — `tenant admin`: ambil konfigurasi branding → 200 `APIResponse<Branding>`
-- PUT `/branding` — `tenant admin`: buat/perbarui branding → 200 `APIResponse<Branding>`
-- DELETE `/branding` — `tenant admin`: hapus branding → 200 `APIResponse<{ tenant_id: number }>`
-- GET `/branding/units` — `tenant admin`: daftar landing unit → 200 `APIResponse<LandingUnit[]>`
-- POST `/branding/units` — `tenant admin`: tambah landing unit → 201 `APIResponse<LandingUnit>`
-- PUT `/branding/units/:id` — `tenant admin`: perbarui landing unit → 200 `APIResponse<LandingUnit>`
-- DELETE `/branding/units/:id` — `tenant admin`: hapus landing unit → 200 `APIResponse<{ id: number }>`
+- GET `/api/branding` — `tenant admin`: ambil konfigurasi branding → 200 `APIResponse<Branding>`
+- PUT `/api/branding` — `tenant admin`: buat/perbarui branding → 200 `APIResponse<Branding>`
+- DELETE `/api/branding` — `tenant admin`: hapus branding → 200 `APIResponse<{ tenant_id: number }>`
+- GET `/api/branding/units` — `tenant admin`: daftar landing unit → 200 `APIResponse<LandingUnit[]>`
+- POST `/api/branding/units` — `tenant admin`: tambah landing unit → 201 `APIResponse<LandingUnit>`
+- PUT `/api/branding/units/:id` — `tenant admin`: perbarui landing unit → 200 `APIResponse<LandingUnit>`
+- DELETE `/api/branding/units/:id` — `tenant admin`: hapus landing unit → 200 `APIResponse<{ id: number }>`
 
 > Endpoint landing unit tidak memakai paginasi; respons selalu mengembalikan seluruh unit milik tenant. Operasi landing section pada payload branding mendukung `add`, `update`, `reorder`, dan `delete` dalam satu request.
 
@@ -36,18 +36,18 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Payload Utama
 
-- BrandingRequest (PUT `/branding`):
+- BrandingRequest (PUT `/api/branding`):
   - `template_id?: number`, `primary_color?: string`, `secondary_color?: string`, `accent_color?: string`, `logo_url?: string`, `banner_url?: string`, `store_tagline?: string`, `layout?: string`, `landing_sections?: { add?: LandingSectionAdd[], update?: LandingSectionUpdate[], reorder?: LandingSectionReorder[], delete?: string[] }`
   - LandingSectionAdd: `{ title: string, type: string, content: string, media?: LandingMedia, cta?: LandingCTA, position?: number }`
   - LandingSectionUpdate: `{ id: string, title?: string, type?: string, content?: string, media?: LandingMedia, cta?: LandingCTA }`
   - LandingSectionReorder: `{ id: string, position: number }`
 
-- LandingUnitRequest (POST/PUT `/branding/units`):
+- LandingUnitRequest (POST/PUT `/api/branding/units`):
   - `{ business_unit_id: number, description?: string, media?: LandingMedia, link_url?: string }`
 
 ## Bentuk Response
 
-- Seluruh endpoint mengembalikan `APIResponse<T>`; GET `/branding` mengirim `data = {}` jika tenant belum memiliki konfigurasi.
+- Seluruh endpoint mengembalikan `APIResponse<T>`; GET `/api/branding` mengirim `data = {}` jika tenant belum memiliki konfigurasi.
 - Operasi hapus/mutasi menampilkan payload ringkas (`{ tenant_id }` atau `{ id }`) sebagai konfirmasi.
 
 ## TypeScript Types (Request & Response)
@@ -180,6 +180,10 @@ type LandingUnitListResponse = APIResponse<LandingUnit[]>;
 - Saat mengatur `landing_sections`, refleksikan hasil reorder secara lokal agar urutan UI konsisten dengan payload `reorder`.
 - Filter pilihan `business_unit_id` sesuai akses user agar validasi backend tidak gagal.
 - Setelah update branding berhasil, refresh cache front-end/landing agar perubahan langsung terlihat.
+
+## Catatan QA
+
+- Payload dan respons telah divalidasi ulang setelah pembaruan path `/api/branding`. Mohon tim QA melakukan verifikasi dokumentasi.
 
 ## Tautan Teknis (Opsional)
 

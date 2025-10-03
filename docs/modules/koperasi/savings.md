@@ -1,6 +1,6 @@
 # Savings API — Panduan Integrasi Frontend (Singkat)
 
-Modul simpanan koperasi menangani setoran, verifikasi setoran manual, penarikan, persetujuan penarikan, riwayat transaksi, serta bukti transaksi. Endpoint berada di prefix `/koperasi/savings` dan semua operasi dilakukan pada konteks anggota tertentu.
+Modul simpanan koperasi menangani setoran, verifikasi setoran manual, penarikan, persetujuan penarikan, riwayat transaksi, serta bukti transaksi. Endpoint berada di prefix `/api/koperasi/savings` dan semua operasi dilakukan pada konteks anggota tertentu.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,12 +14,12 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/savings/:member_id/deposit` — `petugas simpanan`: catat setoran (`method`) → 201 `APIResponse<SavingsTransaction>`
-- POST `/koperasi/savings/:transaction_id/verify` — `bendahara`: verifikasi setoran manual → 200 `APIResponse<SavingsTransaction>`
-- POST `/koperasi/savings/:member_id/withdraw` — `anggota/petugas`: ajukan penarikan sukarela → 201 `APIResponse<SavingsTransaction>`
-- POST `/koperasi/savings/:transaction_id/approve` — `bendahara`: setujui penarikan → 200 `APIResponse<SavingsTransaction>`
-- GET `/koperasi/savings/:member_id/transactions?term=&type=&start=&end=&limit=&cursor=` — `petugas simpanan`: riwayat transaksi → 200 `APIResponse<SavingsTransaction[]>`
-- GET `/koperasi/savings/:transaction_id/proof` — `anggota/petugas`: bukti transaksi → 200 `APIResponse<{ proof: string }>`
+- POST `/api/koperasi/savings/:member_id/deposit` — `petugas simpanan`: catat setoran (`method`) → 201 `APIResponse<SavingsTransaction>`
+- POST `/api/koperasi/savings/:transaction_id/verify` — `bendahara`: verifikasi setoran manual → 200 `APIResponse<SavingsTransaction>`
+- POST `/api/koperasi/savings/:member_id/withdraw` — `anggota/petugas`: ajukan penarikan sukarela → 201 `APIResponse<SavingsTransaction>`
+- POST `/api/koperasi/savings/:transaction_id/approve` — `bendahara`: setujui penarikan → 200 `APIResponse<SavingsTransaction>`
+- GET `/api/koperasi/savings/:member_id/transactions?term=&type=&start=&end=&limit=&cursor=` — `petugas simpanan`: riwayat transaksi → 200 `APIResponse<SavingsTransaction[]>`
+- GET `/api/koperasi/savings/:transaction_id/proof` — `anggota/petugas`: bukti transaksi → 200 `APIResponse<{ proof: string }>`
 
 > Penarikan hanya berlaku untuk `simpanan_sukarela`. Setoran selain `manual` diverifikasi otomatis dan langsung menambah saldo serta membuat transaksi keuangan.
 
@@ -108,7 +108,7 @@ type SavingsProofResponse = APIResponse<{ proof: string }>;
 
 ## Paginasi (Cursor)
 
-- `GET /koperasi/savings/:member_id/transactions` memakai cursor numerik (`id`) dengan `limit` default 10. Gunakan `meta.pagination.next_cursor` untuk memuat halaman berikutnya.
+- `GET /api/koperasi/savings/:member_id/transactions` memakai cursor numerik (`id`) dengan `limit` default 10. Gunakan `meta.pagination.next_cursor` untuk memuat halaman berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 

@@ -1,6 +1,6 @@
 # Membership API — Panduan Integrasi Frontend (Singkat)
 
-Modul membership koperasi mengelola registrasi anggota, verifikasi, pemutakhiran profil, status keanggotaan, serta kartu anggota berbasis QR yang dapat dipakai untuk absensi RAT. Endpoint tersedia di prefix `/koperasi/members` dan hanya dapat diakses tenant bertipe koperasi.
+Modul membership koperasi mengelola registrasi anggota, verifikasi, pemutakhiran profil, status keanggotaan, serta kartu anggota berbasis QR yang dapat dipakai untuk absensi RAT. Endpoint tersedia di prefix `/api/koperasi/members` dan hanya dapat diakses tenant bertipe koperasi.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,15 +14,16 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/koperasi/members?term=&status=&start_date=&end_date=&limit=&cursor=` — `petugas keanggotaan`: daftar anggota → 200 `APIResponse<MemberListItem[]>`
-- POST `/koperasi/members/register` — `petugas keanggotaan`: registrasi anggota baru → 201 `Member`
-- POST `/koperasi/members/:id/verify` — `komite koperasi`: verifikasi/tolak registrasi → 200 (tanpa body)
-- GET `/koperasi/members/:id` — `petugas keanggotaan`: profil anggota → 200 `Profile`
-- PUT `/koperasi/members/:id` — `petugas keanggotaan`: ubah profil → 200 `APIResponse<Member>`
-- PATCH `/koperasi/members/:id/status` — `petugas keanggotaan`: ubah status (`active|nonaktif|keluar`) → 200 (tanpa body)
-- POST `/koperasi/members/:id/card` — `petugas keanggotaan`: generate kartu QR → 200 `MemberCard`
-- GET `/koperasi/members/:id/card` — `anggota/petugas`: ambil kartu terbaru → 200 `MemberCard`
-- GET `/koperasi/members/card/validate/:qr?rat_id=` — `petugas RAT`: validasi QR dan catat absensi → 200 `Member`
+- GET `/api/koperasi/members?term=&status=&start_date=&end_date=&limit=&cursor=` — `petugas keanggotaan`: daftar anggota → 200 `APIResponse<MemberListItem[]>`
+- POST `/api/koperasi/members/register` — `petugas keanggotaan`: registrasi anggota baru → 201 `Member`
+- POST `/api/koperasi/members/:id/verify` — `komite koperasi`: verifikasi/tolak registrasi → 200 (tanpa body)
+- GET `/api/koperasi/members/:id` — `petugas keanggotaan`: profil anggota → 200 `Profile`
+- PUT `/api/koperasi/members/:id` — `petugas keanggotaan`: ubah profil → 200 `APIResponse<Member>`
+- PATCH `/api/koperasi/members/:id` — `petugas keanggotaan`: ubah sebagian profil → 200 `APIResponse<Member>`
+- PATCH `/api/koperasi/members/:id/status` — `petugas keanggotaan`: ubah status (`active|nonaktif|keluar`) → 200 (tanpa body)
+- POST `/api/koperasi/members/:id/card` — `petugas keanggotaan`: generate kartu QR → 200 `MemberCard`
+- GET `/api/koperasi/members/:id/card` — `anggota/petugas`: ambil kartu terbaru → 200 `MemberCard`
+- GET `/api/koperasi/members/card/validate/:qr?rat_id=` — `petugas RAT`: validasi QR dan catat absensi → 200 `Member`
 
 > Endpoint card akan menolak jika user bukan bagian dari tenant atau tidak memiliki peran pengelola kartu (`SuperAdmin`, `AdminKeanggotaan`, `AdminKeuangan`, `Bendahara`). Tambahkan `rat_id` saat memindai untuk mencatat kehadiran RAT.
 
@@ -43,7 +44,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - VerifyMemberRequest:
   - `{ approve: boolean }`
 
-- UpdateProfileRequest (PUT/PATCH `/members/:id`):
+- UpdateProfileRequest (PUT/PATCH `/api/koperasi/members/:id`):
   - seluruh field optional seperti `full_name?`, `email?`, `phone?`, `address?`, `city?`, `province?`, `postal_code?`, `occupation?`, `family_name?`, `family_relationship?`, `family_phone?`
 
 - UpdateMemberStatusRequest:
@@ -184,7 +185,7 @@ type MemberCardResponse = APIResponse<MemberCard>;
 
 ## Paginasi (Cursor)
 
-- `GET /koperasi/members` memakai cursor numerik (`id`) dengan `limit` default 10.
+- `GET /api/koperasi/members` memakai cursor numerik (`id`) dengan `limit` default 10.
 - Simpan `meta.pagination.next_cursor` dan kirim kembali ketika memuat halaman berikutnya.
 
 ## Error Singkat yang Perlu Ditangani

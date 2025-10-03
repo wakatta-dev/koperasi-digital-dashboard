@@ -14,11 +14,11 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Endpoint berada di prefix `/bumdes/assets/:id/rentals` dan mengambil ID aset pada path.
+Endpoint berada di prefix `/api/bumdes/assets/:id/rentals` dan mengambil ID aset pada path.
 
-- GET `/bumdes/assets/:id/rentals` — `viewer keuangan`: daftar sewa untuk aset → 200 `APIResponse<Rental[]>`
-- POST `/bumdes/assets/:id/rentals` — `pengelola aset`: buat sewa baru → 201 `APIResponse<Rental>`
-- PUT `/bumdes/assets/:id/rentals/:rental_id/status` — `pengelola aset`: perbarui status pembayaran → 200 `APIResponse<Rental>`
+- GET `/api/bumdes/assets/:id/rentals` — `viewer keuangan`: daftar sewa untuk aset → 200 `APIResponse<Rental[]>`
+- POST `/api/bumdes/assets/:id/rentals` — `pengelola aset`: buat sewa baru → 201 `APIResponse<Rental>`
+- PUT `/api/bumdes/assets/:id/rentals/:rental_id/status` — `pengelola aset`: perbarui status pembayaran → 200 `APIResponse<Rental>`
 
 > Validasi backend mencegah periode sewa saling tumpang tindih dan perubahan status dari `paid` kembali ke `unpaid`.
 

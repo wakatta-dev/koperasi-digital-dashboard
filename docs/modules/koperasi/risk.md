@@ -1,6 +1,6 @@
 # Risk Engine API — Panduan Integrasi Frontend (Singkat)
 
-Modul risk koperasi mengatur perhitungan skor risiko anggota, penyimpanan hasil skor, statistik monitoring, serta konfigurasi aturan penilaian. Endpoint tersedia di prefix `/koperasi/risk`.
+Modul risk koperasi mengatur perhitungan skor risiko anggota, penyimpanan hasil skor, statistik monitoring, serta konfigurasi aturan penilaian. Endpoint tersedia di prefix `/api/koperasi/risk`.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,12 +14,12 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/risk/score` — `petugas pembiayaan`: hitung skor risiko anggota → 200 `RiskResult`
-- GET `/koperasi/risk/result/:member_id` — `petugas pembiayaan`: ambil hasil skor terakhir → 200 `RiskResult`
-- GET `/koperasi/risk/monitor` — `manajer risiko`: statistik keputusan (`approve|manual_review|auto_reject`) → 200 `map<string, number>`
-- GET `/koperasi/risk/config?term=&factor=&threshold=&limit=&cursor=` — `manajer risiko`: daftar aturan → 200 `APIResponse<RiskRule[]>`
-- POST `/koperasi/risk/config` — `manajer risiko`: tambah/update aturan → 201/200 `RiskRule`
-- DELETE `/koperasi/risk/config/:id` — `manajer risiko`: hapus aturan → 200
+- POST `/api/koperasi/risk/score` — `petugas pembiayaan`: hitung skor risiko anggota → 200 `RiskResult`
+- GET `/api/koperasi/risk/result/:member_id` — `petugas pembiayaan`: ambil hasil skor terakhir → 200 `RiskResult`
+- GET `/api/koperasi/risk/monitor` — `manajer risiko`: statistik keputusan (`approve|manual_review|auto_reject`) → 200 `map<string, number>`
+- GET `/api/koperasi/risk/config?term=&factor=&threshold=&limit=&cursor=` — `manajer risiko`: daftar aturan → 200 `APIResponse<RiskRule[]>`
+- POST `/api/koperasi/risk/config` — `manajer risiko`: tambah/update aturan → 201/200 `RiskRule`
+- DELETE `/api/koperasi/risk/config/:id` — `manajer risiko`: hapus aturan → 200
 
 > Parameter `factor`, `weight`, `threshold`, dan `risk_category` menentukan bagaimana skor risiko dihitung. `auto_action` dapat diisi `approve`, `manual_review`, atau `reject` untuk otomatisasi keputusan pinjaman.
 
@@ -35,7 +35,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - ScoreRequest:
   - `{ member_id: number }`
 
-- RuleRequest (POST `/config`):
+- RuleRequest (POST `/api/koperasi/risk/config`):
   - `{ id?: number, factor: string, weight: number, threshold: number, risk_category: string, auto_action: 'approve'|'manual_review'|'reject', action_payload?: Record<string, unknown> }`
 
 - Filter daftar aturan: `term` (pencarian factor), `factor`, `threshold` (angka), `limit` (default 10), `cursor` (ID aturan).
@@ -43,7 +43,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 ## Bentuk Response
 
 - `Score` dan `GetResult` mengembalikan objek `RiskResult` langsung (legacy). Endpoint configurasi memakai `APIResponse<T>` dengan `meta.pagination`.
-- Statistik monitoring (`/monitor`) mengembalikan map sederhana `{ decision: total }`.
+- Statistik monitoring (`/api/koperasi/risk/monitor`) mengembalikan map sederhana `{ decision: total }`.
 
 ## TypeScript Types (Request & Response)
 
@@ -114,7 +114,7 @@ type RiskRuleListResponse = APIResponse<RiskRule[]>;
 
 ## Paginasi (Cursor)
 
-- `GET /koperasi/risk/config` memakai cursor numerik (`id`) dengan `limit` default 10. Gunakan `meta.pagination.next_cursor` untuk memuat halaman berikutnya.
+- `GET /api/koperasi/risk/config` memakai cursor numerik (`id`) dengan `limit` default 10. Gunakan `meta.pagination.next_cursor` untuk memuat halaman berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 

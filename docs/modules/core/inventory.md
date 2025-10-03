@@ -15,14 +15,16 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Seluruh route berada di prefix `/products`, `/stocks`, dan `/stock-movements`.
+Seluruh route berada di prefix `/api/products`, `/api/stocks`, dan `/api/stock-movements`.
 
-- POST `/products` — `inventory manager`: buat produk beserta varian → 201 `APIResponse<Product>`
-- GET `/products?q=&limit=&cursor=` — `inventory staff`: daftar produk tenant → 200 `APIResponse<ListProductsResponse>`
-- PATCH `/products/:id` — `inventory manager`: perbarui produk → 200 `APIResponse<Product>`
-- DELETE `/products/:id` — `inventory manager`: hapus produk → 204 (body kosong)
-- GET `/stocks/:variant_id` — `inventory staff`: stok terkini varian → 200 `APIResponse<StockLevel>`
-- POST `/stock-movements` — `inventory staff`: catat pergerakan stok (`operation=in|out`) → 201 `APIResponse<AdjustStockResponse>`
+- POST `/api/products` — `inventory manager`: buat produk beserta varian → 201 `APIResponse<Product>`
+- POST `/api/products/:id/media` — `inventory manager`: unggah media produk → 200 `APIResponse<Product>`
+- GET `/api/products?q=&limit=&cursor=` — `inventory staff`: daftar produk tenant → 200 `APIResponse<ListProductsResponse>`
+- PATCH `/api/products/:id` — `inventory manager`: perbarui produk → 200 `APIResponse<Product>`
+- DELETE `/api/products/:id` — `inventory manager`: hapus produk → 204 (body kosong)
+- GET `/api/stocks/:variant_id` — `inventory staff`: stok terkini varian → 200 `APIResponse<StockLevel>`
+- GET `/api/stock-movements?variant_id=&type=&limit=&cursor=` — `inventory staff`: histori pergerakan stok → 200 `APIResponse<StockMovement[]>`
+- POST `/api/stock-movements` — `inventory staff`: catat pergerakan stok (`operation=in|out`) → 201 `APIResponse<AdjustStockResponse>`
 
 > Middleware membatasi akses per peran (`super_admin_umkm`, `admin_umkm`, `pemilik_toko`, `staff_gudang`, `kasir`, dsb). Tenant koperasi harus diwhitelist (`IsKoperasiInventoryEnabled`).
 
@@ -44,6 +46,9 @@ Seluruh route berada di prefix `/products`, `/stocks`, dan `/stock-movements`.
 - CreateProductRequest / UpdateProductRequest:
   - `category_id` (number), `sku` (string), `name` (string), `description?` (string), `base_unit` (string), `attributes?` (Record), `media?` (`{ url:string, type?:string, metadata?:Record }[]`), `variants` (`VariantRequest[]`)
   - VariantRequest: `{ sku:string, name:string, attributes?:Record, prices?:{ level_id:number, price:number }[] }`
+
+- UploadProductMedia:
+  - Multipart `form-data` dengan field `file` (MIME gambar, ≤2 MB). Response membawa produk terbaru beserta media.
 
 - AdjustStockRequest:
   - `{ variant_id: number, business_unit_id?: number, qty: number (>0), operation: 'in'|'out', type: string, reference: string, note?: string }`

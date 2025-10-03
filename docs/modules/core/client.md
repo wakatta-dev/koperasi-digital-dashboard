@@ -14,10 +14,10 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/clients?term=&type=&status=&limit=&cursor=` — `vendor admin`: daftar tenant → 200 `APIResponse<Client[]>`
-- PUT `/clients/:id/plan` — `vendor admin`: ganti primary plan tenant → 200 `APIResponse<ActivePlan>`
-- PATCH `/clients/:id/status` — `vendor admin`: ubah status tenant (`active|inactive|suspended`) → 200 `APIResponse<{ id: number; status: string; is_active: boolean }>`
-- GET `/clients/:id/activity?limit=&cursor=` — `vendor admin`: timeline aktivitas tenant → 200 `APIResponse<ActivityEntry[]>`
+- GET `/api/clients?term=&type=&status=&limit=&cursor=` — `vendor admin`: daftar tenant → 200 `APIResponse<Client[]>`
+- PUT `/api/clients/:id/plan` — `vendor admin`: ganti primary plan tenant → 200 `APIResponse<ActivePlan>`
+- PATCH `/api/clients/:id/status` — `vendor admin`: ubah status tenant (`active|inactive|suspended`) → 200 `APIResponse<{ id: number; status: string; is_active: boolean }>`
+- GET `/api/clients/:id/activity?limit=&cursor=` — `vendor admin`: timeline aktivitas tenant → 200 `APIResponse<ActivityEntry[]>`
 
 > Query `limit` default 10 (minimal 1). `cursor` memakai `id` terakhir (GET list) atau token timeline (activity) yang diberikan pada `meta.pagination.next_cursor`.
 
@@ -41,7 +41,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Bentuk Response
 
-- Semua endpoint menggunakan `APIResponse<T>`; daftar (`/clients`, `/clients/:id/activity`) menyertakan `meta.pagination` bila data berkelanjutan.
+- Semua endpoint menggunakan `APIResponse<T>`; daftar (`/api/clients`, `/api/clients/:id/activity`) menyertakan `meta.pagination` bila data berkelanjutan.
 - Update status mengembalikan payload ringkas yang mencantumkan `is_active` hasil evaluasi server.
 
 ## TypeScript Types (Request & Response)
@@ -149,4 +149,4 @@ type ClientActivityResponse = APIResponse<ActivityEntry[]>;
 
 - `internal/modules/core/client/handler.go` — implementasi endpoint & validasi.
 - `internal/modules/core/client/service.go` — agregasi data tenant, plan, dan aktivitas.
-- `internal/modules/core/client/routes.go` — daftar route `/clients`.
+- `internal/modules/core/client/routes.go` — daftar route `/api/clients`.

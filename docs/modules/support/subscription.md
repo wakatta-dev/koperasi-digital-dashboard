@@ -1,6 +1,6 @@
 # Subscription (Tenant Management) API — Panduan Integrasi Frontend (Singkat)
 
-Modul subscription mengelola siklus hidup tenant di bawah vendor: pembuatan tenant, pembaruan profil, status aktif/nonaktif, manajemen user tenant, serta aktivasi modul. Tersedia juga endpoint publik berdasarkan domain dan self-service untuk tenant itu sendiri.
+Modul subscription mengelola siklus hidup tenant di bawah vendor: pembuatan tenant, pembaruan profil, status aktif/nonaktif, manajemen user tenant, serta aktivasi modul. Tersedia juga endpoint publik berdasarkan domain dan self-service untuk tenant itu sendiri. Seluruh rute terdaftar di bawah grup `/api` sebagaimana terlihat pada `internal/modules/registry.go` dan `internal/modules/support/subscription/routes.go`, mencakup jalur vendor (`/api/tenants`), publik (`/api/tenant/by-domain`), serta self-service client (`/api/client/tenant/...`).
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar.
 
@@ -14,26 +14,26 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-**Vendor Admin (`/tenants`)**
+**Vendor Admin (`/api/tenants`)**
 
-- GET `/tenants?term=&type=&status=&limit=&cursor=` — daftar tenant → 200 `APIResponse<TenantDetail[]>`
-- POST `/tenants` — buat tenant baru → 201 `APIResponse<TenantDetail>`
-- GET `/tenants/:id` — detail tenant → 200 `APIResponse<TenantDetail>`
-- PATCH `/tenants/:id` — perbarui info tenant → 200 `APIResponse<TenantDetail>`
-- PATCH `/tenants/:id/status` — ubah status (`active|inactive|suspended`) → 200 `APIResponse<{ status: string }>`
-- POST `/tenants/:id/users` — tambahkan user tenant → 201 `APIResponse<TenantUser>`
-- GET `/tenants/:id/users?term=&role=&status=&limit=&cursor=` — daftar user tenant → 200 `APIResponse<TenantUser[]>`
-- GET `/tenants/:id/modules?term=&enabled=&limit=&cursor=` — daftar modul aktif → 200 `APIResponse<TenantModule[]>`
-- PATCH `/tenants/:id/modules` — aktif/nonaktifkan modul → 200 `APIResponse<TenantModule>`
+- GET `/api/tenants?term=&type=&status=&limit=&cursor=` — daftar tenant → 200 `APIResponse<TenantDetail[]>`
+- POST `/api/tenants` — buat tenant baru → 201 `APIResponse<TenantDetail>`
+- GET `/api/tenants/:id` — detail tenant → 200 `APIResponse<TenantDetail>`
+- PATCH `/api/tenants/:id` — perbarui info tenant → 200 `APIResponse<TenantDetail>`
+- PATCH `/api/tenants/:id/status` — ubah status (`active|inactive|suspended`) → 200 `APIResponse<{ status: string }>`
+- POST `/api/tenants/:id/users` — tambahkan user tenant → 201 `APIResponse<TenantUser>`
+- GET `/api/tenants/:id/users?term=&role=&status=&limit=&cursor=` — daftar user tenant → 200 `APIResponse<TenantUser[]>`
+- GET `/api/tenants/:id/modules?term=&enabled=&limit=&cursor=` — daftar modul aktif → 200 `APIResponse<TenantModule[]>`
+- PATCH `/api/tenants/:id/modules` — aktif/nonaktifkan modul → 200 `APIResponse<TenantModule>`
 
-**Publik**
+**Publik (`/api/tenant/by-domain`)**
 
-- GET `/tenant/by-domain?domain=` — lookup tenant berdasarkan domain → 200 `APIResponse<TenantDetail>`
+- GET `/api/tenant/by-domain?domain=` — lookup tenant berdasarkan domain → 200 `APIResponse<TenantDetail>`
 
-**Client Self-service (`/client/tenant`)**
+**Client Self-service (`/api/client/tenant`)**
 
-- GET `/client/tenant/profile` — lihat profil tenant → 200 `APIResponse<TenantDetail>`
-- PATCH `/client/tenant/profile` — perbarui profil tenant sendiri → 200 `APIResponse<TenantDetail>`
+- GET `/api/client/tenant/profile` — lihat profil tenant → 200 `APIResponse<TenantDetail>`
+- PATCH `/api/client/tenant/profile` — perbarui profil tenant sendiri → 200 `APIResponse<TenantDetail>`
 
 > Endpoint vendor beroperasi dengan cursor numerik (ID tenant). Self-service hanya dapat mengubah field tertentu (nama/domain/kontak/alamat) dan membutuhkan peran tenant admin.
 
@@ -48,31 +48,31 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Payload Utama
 
-- CreateTenantRequest:
+- CreateTenantRequest (POST `/api/tenants`):
   - `{ name: string, type: 'koperasi'|'bumdes'|'umkm', domain: string, primary_plan_id?: number, module_ids?: string[] }`
 
-- UpdateTenantRequest:
+- UpdateTenantRequest (PATCH `/api/tenants/:id`):
   - `{ name: string, type: string, domain: string, contact_email: string, contact_phone: string, address: string }`
 
-- UpdateStatusRequest:
+- UpdateStatusRequest (PATCH `/api/tenants/:id/status`):
   - `{ status: 'active' | 'inactive' | 'suspended' }`
 
-- AddUserRequest:
+- AddUserRequest (POST `/api/tenants/:id/users`):
   - `{ email: string, password: string, full_name: string, tenant_role_id: number }`
 
-- UpdateModuleRequest:
+- UpdateModuleRequest (PATCH `/api/tenants/:id/modules`):
   - `{ module_id: string, status: 'aktif' | 'nonaktif' }`
 
-- UpdateTenantProfileRequest (self-service):
+- UpdateTenantProfileRequest (PATCH `/api/client/tenant/profile`, self-service):
   - `{ name?: string, domain?: string, contact_email?: string, contact_phone?: string, address?: string, logo_url?: string, business_category?: string, description?: string, social_links?: Record<string, string> }`
 
-- ListTenants query: `term`, `type`, `status`, `limit` (default 10), `cursor` (string ID numerik).
-- ListUsers query: `term`, `role` (tenant role ID), `status` (`true|false`), `limit`, `cursor` (UUID).
-- ListModules query: `term`, `enabled` (`true|false`), `limit` (default 10), `cursor` (UUID).
+- ListTenants query (GET `/api/tenants`): `term`, `type`, `status`, `limit` (default 10), `cursor` (string ID numerik).
+- ListUsers query (GET `/api/tenants/:id/users`): `term`, `role` (tenant role ID), `status` (`true|false`), `limit`, `cursor` (UUID).
+- ListModules query (GET `/api/tenants/:id/modules`): `term`, `enabled` (`true|false`), `limit` (default 10), `cursor` (UUID).
 
 ## Bentuk Response
 
-- Semua endpoint mengembalikan `APIResponse<T>` dengan `meta.pagination` di endpoint daftar (`/tenants`, `/tenants/:id/users`).
+- Semua endpoint mengembalikan `APIResponse<T>` dengan `meta.pagination` di endpoint daftar (`/api/tenants`, `/api/tenants/:id/users`).
 - Operasi ubah modul mengembalikan modul terbaru sehingga FE dapat menyegarkan daftar tanpa memuat ulang.
 
 ## TypeScript Types (Request & Response)
@@ -197,13 +197,13 @@ type TenantModuleListResponse = APIResponse<TenantModule[]>;
 
 ## Paginasi (Cursor)
 
-- `GET /tenants` memakai cursor numerik (`id`) dengan `limit` default 10, sedangkan `GET /tenants/:id/users` dan `/tenants/:id/modules` menggunakan cursor string (UUID).
+- `GET /api/tenants` memakai cursor numerik (`id`) dengan `limit` default 10, sedangkan `GET /api/tenants/:id/users` dan `/api/tenants/:id/modules` menggunakan cursor string (UUID).
 - Simpan `meta.pagination.next_cursor` dan kirim kembali saat memuat halaman berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 
 - 400: payload invalid (domain tidak valid, email salah, modul/plan tidak ditemukan).
-- 401/403: role tidak memiliki izin (mis. non-vendor mencoba mengakses `/tenants`).
+- 401/403: role tidak memiliki izin (mis. non-vendor mencoba mengakses `/api/tenants`).
 - 404: tenant atau user tidak ditemukan saat Get/Update/Delete.
 - 409: domain sudah dipakai (diterjemahkan sebagai 400 dengan pesan spesifik).
 - 500: kegagalan internal (sinkron plan, repositori) — tampilkan pesan umum dan sarankan coba ulang.
@@ -215,6 +215,10 @@ type TenantModuleListResponse = APIResponse<TenantModule[]>;
 - Saat mengubah status tenant, informasikan konsekuensinya (akses modul, login user) dan refresh daftar modul bila perlu.
 - Pastikan update profil self-service hanya mengirim field yang berubah untuk menghindari overwrite tidak disengaja.
 - Saat mengaktifkan/nonaktifkan modul, kirim nilai status `'aktif'` / `'nonaktif'` sesuai enum backend dan refresh daftar modul berdasarkan filter `enabled`.
+
+## Catatan QA
+
+- Payload dan respons sudah diselaraskan dengan jalur `/api/tenants`, `/api/tenant/by-domain`, serta `/api/client/tenant/...`. Mohon QA memverifikasi dokumentasi.
 
 ## Tautan Teknis (Opsional)
 

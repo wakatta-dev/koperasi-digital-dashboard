@@ -14,10 +14,10 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Endpoint menggunakan prefix `/bumdes/assets/:id/schedules` dan menerima ID aset di path.
+Endpoint menggunakan prefix `/api/bumdes/assets/:id/schedules` dan menerima ID aset di path.
 
-- GET `/bumdes/assets/:id/schedules` — `viewer keuangan`: daftar jadwal aset → 200 `APIResponse<RentalSchedule[]>`
-- POST `/bumdes/assets/:id/schedules` — `pengelola aset`: buat jadwal → 201 `APIResponse<RentalSchedule>`
+- GET `/api/bumdes/assets/:id/schedules` — `viewer keuangan`: daftar jadwal aset → 200 `APIResponse<RentalSchedule[]>`
+- POST `/api/bumdes/assets/:id/schedules` — `pengelola aset`: buat jadwal → 201 `APIResponse<RentalSchedule>`
 
 > Middleware `AssetManagerOnly` membatasi endpoint POST, sedangkan GET dapat diakses role viewer keuangan.
 

@@ -14,10 +14,10 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Endpoint berbagi prefix `/bumdes/assets` bersama sub-modul aset.
+Endpoint berbagi prefix `/api/bumdes/assets` bersama sub-modul aset.
 
-- POST `/bumdes/assets/depreciations/process` — `pengelola aset`: jalankan perhitungan penyusutan (`period`) → 202 `APIResponse<null>`
-- GET `/bumdes/assets/:id/depreciations` — `viewer keuangan`: histori penyusutan per aset (`start_date`, `end_date`) → 200 `APIResponse<VillageAssetDepreciation[]>`
+- POST `/api/bumdes/assets/depreciations/process` — `pengelola aset`: jalankan perhitungan penyusutan (`period`) → 202 `APIResponse<null>`
+- GET `/api/bumdes/assets/:id/depreciations` — `viewer keuangan`: histori penyusutan per aset (`start_date`, `end_date`) → 200 `APIResponse<VillageAssetDepreciation[]>`
 
 > `period` direkomendasikan berupa awal bulan (`YYYY-MM-01T00:00:00Z`); service akan menormalkan ke hari pertama.
 

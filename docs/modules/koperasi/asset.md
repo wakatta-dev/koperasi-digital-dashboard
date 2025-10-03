@@ -1,6 +1,6 @@
 # Asset API — Panduan Integrasi Frontend (Singkat)
 
-Modul aset koperasi menangani pendataan aset tetap, riwayat penyusutan, pencatatan penggunaan, perubahan status, dan ekspor laporan aset. Endpoint berada di bawah prefix `/koperasi/assets`.
+Modul aset koperasi menangani pendataan aset tetap, riwayat penyusutan, pencatatan penggunaan, perubahan status, dan ekspor laporan aset. Endpoint berada di bawah prefix `/api/koperasi/assets`.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,15 +14,15 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/assets` — `manajer aset`: tambah aset → 201 `Asset`
-- PUT `/koperasi/assets/:id` — `manajer aset`: ubah aset → 200 `Asset`
-- DELETE `/koperasi/assets/:id` — `manajer aset`: hapus aset → 204
-- GET `/koperasi/assets?term=&category=&status=&start_date=&end_date=&limit=&cursor=` — `viewer keuangan`: daftar aset → 200 `APIResponse<Asset[]>`
-- GET `/koperasi/assets/:id/depreciation?term=&start_date=&end_date=&limit=&cursor=` — `viewer keuangan`: riwayat penyusutan → 200 `APIResponse<AssetDepreciation[]>`
-- POST `/koperasi/assets/:id/usages` — `manajer aset`: catat penggunaan → 201 `AssetUsage`
-- GET `/koperasi/assets/:id/usages?term=&start_date=&end_date=&limit=&cursor=` — `viewer keuangan`: riwayat penggunaan → 200 `APIResponse<AssetUsage[]>`
-- PATCH `/koperasi/assets/:id/status` — `manajer aset`: ubah status aset → 204
-- GET `/koperasi/assets/export?type=&format=&term=&category=&status=&start_date=&end_date=` — `viewer keuangan`: ekspor aset/depresiasi (PDF/XLSX) → 200 file
+- POST `/api/koperasi/assets` — `manajer aset`: tambah aset → 201 `Asset`
+- PUT `/api/koperasi/assets/:id` — `manajer aset`: ubah aset → 200 `Asset`
+- DELETE `/api/koperasi/assets/:id` — `manajer aset`: hapus aset → 204
+- GET `/api/koperasi/assets?term=&category=&status=&start_date=&end_date=&limit=&cursor=` — `viewer keuangan`: daftar aset → 200 `APIResponse<Asset[]>`
+- GET `/api/koperasi/assets/:id/depreciation?term=&start_date=&end_date=&limit=&cursor=` — `viewer keuangan`: riwayat penyusutan → 200 `APIResponse<AssetDepreciation[]>`
+- POST `/api/koperasi/assets/:id/usages` — `manajer aset`: catat penggunaan → 201 `AssetUsage`
+- GET `/api/koperasi/assets/:id/usages?term=&start_date=&end_date=&limit=&cursor=` — `viewer keuangan`: riwayat penggunaan → 200 `APIResponse<AssetUsage[]>`
+- PATCH `/api/koperasi/assets/:id/status` — `manajer aset`: ubah status aset → 204
+- GET `/api/koperasi/assets/export?type=&format=&term=&category=&status=&start_date=&end_date=` — `viewer keuangan`: ekspor aset/depresiasi (PDF/XLSX) → 200 file
 
 > Endpoint ekspor menghasilkan berkas biner dengan nama `assets_{timestamp}.pdf/xlsx` atau `depreciations_{timestamp}` sesuai parameter `type`.
 
@@ -142,7 +142,8 @@ type AssetUsageResponse = APIResponse<AssetUsage[]>;
 
 ## Paginasi (Cursor)
 
-- `GET /koperasi/assets`, `/:id/depreciation`, dan `/:id/usages` memakai cursor numerik (`id`) dengan `limit` default 10. Gunakan `meta.pagination.next_cursor` untuk permintaan berikutnya.
+- `GET /api/koperasi/assets`, `/api/koperasi/assets/:id/depreciation`, dan `/api/koperasi/assets/:id/usages` memakai cursor numerik (`id`) dengan `limit` default 10. Gunakan `meta.pagination.next_cursor` untuk permintaan berikutnya.
+
 
 ## Error Singkat yang Perlu Ditangani
 

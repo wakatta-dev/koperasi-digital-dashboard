@@ -14,19 +14,19 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Semua route berada di prefix `/roles` dan `/users/:id/roles` bagi admin tenant.
+Semua route berada di prefix `/api/roles` dan `/api/users/:id/roles` bagi admin tenant.
 
-- GET `/roles?term=&permission=&limit=&cursor=` — `tenant admin`: daftar role tenant → 200 `APIResponse<Role[]>`
-- POST `/roles` — `tenant admin`: buat role baru → 201 `APIResponse<Role>`
-- PUT `/roles/:id` — `tenant admin`: ubah nama/deskripsi role → 200 `APIResponse<Role>`
-- DELETE `/roles/:id` — `tenant admin`: hapus role tenant → 200 `APIResponse<{ id: number }>`
-- POST `/roles/tenants` — `tenant admin`: hubungkan role ke tenant → 201 `APIResponse<TenantRole>`
-- GET `/roles/:id/permissions?term=&permission=&limit=&cursor=` — `tenant admin`: daftar permission role → 200 `APIResponse<PermissionView[]>`
-- POST `/roles/:id/permissions` — `tenant admin`: tambah permission baru → 201 `APIResponse<{ obj: string; act: string }>`
-- DELETE `/roles/:id/permissions/:pid` — `tenant admin`: cabut permission → 200 `APIResponse<{ id: number }>`
-- GET `/users/:id/roles?term=&role=&permission=&limit=&cursor=` — `tenant admin`: daftar role milik user → 200 `APIResponse<RoleUser[]>`
-- POST `/users/:id/roles` — `tenant admin`: assign role ke user tenant → 201 `APIResponse<{ user_id: number; role_id: number }>`
-- DELETE `/users/:id/roles/:rid` — `tenant admin`: cabut role dari user → 200 `APIResponse<{ user_id: number; role_id: number }>`
+- GET `/api/roles?term=&permission=&limit=&cursor=` — `tenant admin`: daftar role tenant → 200 `APIResponse<Role[]>`
+- POST `/api/roles` — `tenant admin`: buat role baru → 201 `APIResponse<Role>`
+- PUT `/api/roles/:id` — `tenant admin`: ubah nama/deskripsi role → 200 `APIResponse<Role>`
+- DELETE `/api/roles/:id` — `tenant admin`: hapus role tenant → 200 `APIResponse<{ id: number }>`
+- POST `/api/roles/tenants` — `tenant admin`: hubungkan role ke tenant → 201 `APIResponse<TenantRole>`
+- GET `/api/roles/:id/permissions?term=&permission=&limit=&cursor=` — `tenant admin`: daftar permission role → 200 `APIResponse<PermissionView[]>`
+- POST `/api/roles/:id/permissions` — `tenant admin`: tambah permission baru → 201 `APIResponse<{ obj: string; act: string }>`
+- DELETE `/api/roles/:id/permissions/:pid` — `tenant admin`: cabut permission → 200 `APIResponse<{ id: number }>`
+- GET `/api/users/:id/roles?term=&role=&permission=&limit=&cursor=` — `tenant admin`: daftar role milik user → 200 `APIResponse<RoleUser[]>`
+- POST `/api/users/:id/roles` — `tenant admin`: assign role ke user tenant → 201 `APIResponse<{ user_id: number; role_id: number }>`
+- DELETE `/api/users/:id/roles/:rid` — `tenant admin`: cabut role dari user → 200 `APIResponse<{ user_id: number; role_id: number }>``
 
 > Query `limit` default 10 (minimal 1). `cursor` memakai ID terakhir sebagai angka string. `term` melakukan pencarian fuzzy pada nama/label, sementara `permission` dan `role` memfilter object:action atau nama role.
 
@@ -163,7 +163,7 @@ type UserRoleMutationResponse = APIResponse<{ user_id: number; role_id: number }
 
 ## Paginasi (Cursor)
 
-- Endpoint daftar (`GET /roles`, `/roles/:id/permissions`, `/users/:id/roles`) memakai cursor numerik berdasarkan `id` dengan `limit` default 10.
+- Endpoint daftar (`GET /api/roles`, `/api/roles/:id/permissions`, `/api/users/:id/roles`) memakai cursor numerik berdasarkan `id` dengan `limit` default 10.
 - Baca `meta.pagination.next_cursor` dan kirim kembali lewat query `cursor` untuk memuat halaman berikutnya saat `has_next = true`.
 
 ## Error Singkat yang Perlu Ditangani

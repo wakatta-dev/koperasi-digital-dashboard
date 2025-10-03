@@ -14,12 +14,12 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Endpoint tersedia di prefix `/bumdes/assets`.
+Endpoint tersedia di prefix `/api/bumdes/assets`.
 
-- GET `/bumdes/assets` — `viewer keuangan`: daftar aset → 200 `APIResponse<VillageAsset[]>`
-- POST `/bumdes/assets` — `pengelola aset`: buat aset → 201 `APIResponse<VillageAsset>`
-- GET `/bumdes/assets/:id` — `viewer keuangan`: detail aset → 200 `APIResponse<VillageAsset>`
-- PUT `/bumdes/assets/:id` — `pengelola aset`: ubah aset → 200 `APIResponse<VillageAsset>`
+- GET `/api/bumdes/assets` — `viewer keuangan`: daftar aset → 200 `APIResponse<VillageAsset[]>`
+- POST `/api/bumdes/assets` — `pengelola aset`: buat aset → 201 `APIResponse<VillageAsset>`
+- GET `/api/bumdes/assets/:id` — `viewer keuangan`: detail aset → 200 `APIResponse<VillageAsset>`
+- PUT `/api/bumdes/assets/:id` — `pengelola aset`: ubah aset → 200 `APIResponse<VillageAsset>`
 
 > Middleware `AssetManagerOnly` membatasi POST/PUT pada role pengelola aset, sedangkan GET dapat diakses role keuangan.
 

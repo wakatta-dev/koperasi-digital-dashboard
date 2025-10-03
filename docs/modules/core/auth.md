@@ -14,22 +14,35 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Semua endpoint berada di bawah prefix `/auth` untuk seluruh tenant.
+Seluruh endpoint berada di bawah prefix `/api/auth` untuk seluruh tenant.
 
-- POST `/auth/login` — `internal user`: login dan menerima pasangan token → 200 `APIResponse<LoginResponse>`
-- POST `/auth/refresh` — `internal user`: perbarui access token menggunakan refresh token → 200 `APIResponse<RefreshResponse>`
-- POST `/auth/logout` — `internal user`: cabut refresh token aktif → 200 `APIResponse<{ message: string }>`
+- POST `/api/auth/register` — `tenant admin`: buat user baru dalam tenant aktif → 201 `APIResponse<RegisterResponse>`
+- POST `/api/auth/forgot-password` — `tenant user`: minta token reset password via email → 200 `APIResponse<{ message: string }>`
+- POST `/api/auth/reset-password` — `tenant user`: setel ulang password memakai token → 200 `APIResponse<{ message: string }>`
+- POST `/api/auth/login` — `internal user`: login dan menerima pasangan token → 200 `APIResponse<LoginResponse>`
+- POST `/api/auth/refresh` — `internal user`: perbarui access token menggunakan refresh token → 200 `APIResponse<RefreshResponse>`
+- POST `/api/auth/logout` — `internal user`: cabut refresh token aktif → 200 `APIResponse<{ message: string }>`
 
 > Login menerima header `X-Tenant-ID` agar akun diarahkan ke tenant yang tepat meskipun Authorization belum tersedia.
 
 ## Skema Data Ringkas
 
+- RegisterResponse: `id:number`, `email:string`, `full_name:string`, `tenant_role_id:number`
 - LoginResponse: `id:number`, `nama:string`, `role:string`, `jenis_tenant:string`, `email:string`, `access_token:string`, `refresh_token:string`, `expires_at:number`
 - RefreshResponse: `access_token:string`
 
 > Field `expires_at` merupakan epoch detik; gunakan untuk menjadwalkan refresh sebelum token kedaluwarsa.
 
 ## Payload Utama
+
+- RegisterRequest (register user):
+  - `{ tenant_role_id: number, email: string, password: string, full_name: string }`
+
+- ForgotPasswordRequest:
+  - `{ email: string }`
+
+- ResetPasswordRequest:
+  - `{ token: string, new_password: string }`
 
 - LoginRequest (login):
   - `email` (string, format email); `password` (string)
@@ -76,6 +89,13 @@ type APIResponse<T> = {
 };
 
 // Entities
+type RegisterResponse = {
+  id: number;
+  email: string;
+  full_name: string;
+  tenant_role_id: number;
+};
+
 type LoginResponse = {
   id: number;
   nama: string;
@@ -92,6 +112,22 @@ type RefreshResponse = {
 };
 
 // Requests
+type RegisterRequest = {
+  tenant_role_id: number;
+  email: string;
+  password: string;
+  full_name: string;
+};
+
+type ForgotPasswordRequest = {
+  email: string;
+};
+
+type ResetPasswordRequest = {
+  token: string;
+  new_password: string;
+};
+
 type LoginRequest = {
   email: string;
   password: string;
@@ -104,6 +140,9 @@ type RefreshRequest = {
 type LogoutRequest = RefreshRequest;
 
 // Responses
+type RegisterAPIResponse = APIResponse<RegisterResponse>;
+type ForgotPasswordAPIResponse = APIResponse<{ message: string }>;
+type ResetPasswordAPIResponse = APIResponse<{ message: string }>;
 type LoginAPIResponse = APIResponse<LoginResponse>;
 type RefreshAPIResponse = APIResponse<RefreshResponse>;
 type LogoutAPIResponse = APIResponse<{ message: string }>;

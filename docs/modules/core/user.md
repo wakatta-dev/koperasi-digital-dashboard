@@ -14,17 +14,17 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/users` — `tenant admin`: buat user baru → 201 `APIResponse<User>`
-- POST `/users/invite` — `vendor admin`: kirim undangan user vendor → 201 `APIResponse<User>`
-- GET `/users?term=&status=&role_id=&limit=&cursor=` — `tenant admin`: daftar user → 200 `APIResponse<User[]>`
-- GET `/users/:id` — `tenant admin`: detail user → 200 `APIResponse<User>`
-- PUT `/users/:id` — `tenant admin`: perbarui nama/role → 200 `APIResponse<User>`
-- PATCH `/users/:id/role` — `vendor admin`: ubah role user → 200 `APIResponse<{ id: number }>`
-- PATCH `/users/:id/status` — `tenant admin`: aktif/nonaktif user → 200 `APIResponse<{ status: boolean }>`
-- DELETE `/users/:id` — `tenant admin`: hapus user → 200 `APIResponse<{ id: number }>`
-- POST `/users/reset-password` — `tenant admin`: reset password user → 200 `APIResponse<{ message: string }>`
+- POST `/api/users` — `tenant admin`: buat user baru → 201 `APIResponse<User>`
+- POST `/api/users/invite` — `vendor admin`: kirim undangan user vendor → 201 `APIResponse<User>`
+- GET `/api/users?term=&status=&role_id=&limit=&cursor=` — `tenant admin`: daftar user → 200 `APIResponse<User[]>`
+- GET `/api/users/:id` — `tenant admin`: detail user → 200 `APIResponse<User>`
+- PUT `/api/users/:id` — `tenant admin`: perbarui nama/role → 200 `APIResponse<User>`
+- PATCH `/api/users/:id/role` — `vendor admin`: ubah role user → 200 `APIResponse<{ id: number }>`
+- PATCH `/api/users/:id/status` — `tenant admin`: aktif/nonaktif user → 200 `APIResponse<{ status: boolean }>`
+- DELETE `/api/users/:id` — `tenant admin`: hapus user → 200 `APIResponse<{ id: number }>`
+- POST `/api/users/reset-password` — `tenant admin`: reset password user → 200 `APIResponse<{ message: string }>`
 
-> Pembuatan user baru membutuhkan `tenant_role_id`. Endpoint undangan (`/invite`) mengirim OTP/email sesuai flow vendor agar user menyetel password sendiri.
+> Pembuatan user baru membutuhkan `tenant_role_id`. Endpoint undangan (`/api/users/invite`) mengirim OTP/email sesuai flow vendor agar user menyetel password sendiri.
 
 ## Skema Data Ringkas
 

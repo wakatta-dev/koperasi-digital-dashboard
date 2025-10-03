@@ -2,6 +2,8 @@
 
 Modul livechat menyediakan kanal percakapan real-time antara tenant dan agen support. Endpoint mengatur pembukaan sesi, pengiriman pesan, serta riwayat pesan dengan dukungan cursor pagination.
 
+Seluruh rute berada di bawah prefix `/api/livechat` sesuai registrasi di `internal/modules/registry.go` dan `internal/modules/support/livechat/routes.go`. Router juga membuat alias vendor melalui `RegisterRoutes(r.Group("/vendor"), ...)` sehingga tersedia jalur ekuivalen `/api/vendor/livechat/...` untuk integrasi portal vendor.
+
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar.
 
 ## Header Wajib
@@ -14,9 +16,11 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/livechat/sessions` — `tenant user / support agent`: buka sesi baru → 201 `APIResponse<ChatSession>`
-- POST `/livechat/sessions/:id/messages` — `tenant user / support agent`: kirim pesan → 201 `APIResponse<ChatMessage>`
-- GET `/livechat/sessions/:id/messages?term=&sender_id=&start_date=&end_date=&limit=&cursor=` — `tenant user / support agent`: daftar pesan → 200 `APIResponse<ChatMessage[]>`
+- POST `/api/livechat/sessions` — `tenant user / support agent`: buka sesi baru → 201 `APIResponse<ChatSession>`
+- POST `/api/livechat/sessions/:id/messages` — `tenant user / support agent`: kirim pesan → 201 `APIResponse<ChatMessage>`
+- GET `/api/livechat/sessions/:id/messages?term=&sender_id=&start_date=&end_date=&limit=&cursor=` — `tenant user / support agent`: daftar pesan → 200 `APIResponse<ChatMessage[]>`
+
+> Alias vendor menyediakan jalur identik di `/api/vendor/livechat/...` dengan payload dan respons yang sama, cukup mengganti prefiks URL.
 
 > Support agent dapat membuka sesi untuk tenant lain dengan mengirim `agent_id`; user biasa cukup memanggil endpoint tanpa payload tambahan.
 
@@ -29,17 +33,17 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Payload Utama
 
-- StartSessionRequest:
+- StartSessionRequest (POST `/api/livechat/sessions`):
   - `{ agent_id?: number }` — hanya digunakan oleh role `support_agent` untuk menetapkan agen lain.
 
-- SendMessageRequest:
+- SendMessageRequest (POST `/api/livechat/sessions/:id/messages`):
   - `{ message: string }`
 
-- ListMessages filter (query): `term` (string, cari di pesan), `sender_id` (number), `start_date`/`end_date` (RFC3339), `limit` (default 10), `cursor` (string UUID pesan terakhir).
+- ListMessages filter (GET `/api/livechat/sessions/:id/messages` query): `term` (string, cari di pesan), `sender_id` (number), `start_date`/`end_date` (RFC3339), `limit` (default 10), `cursor` (string UUID pesan terakhir).
 
 ## Bentuk Response
 
-- Semua endpoint menggunakan `APIResponse<T>` dengan `meta.pagination` hadir pada `GET /livechat/sessions/:id/messages` (`next_cursor`, `has_next`).
+- Semua endpoint menggunakan `APIResponse<T>` dengan `meta.pagination` hadir pada `GET /api/livechat/sessions/:id/messages` (`next_cursor`, `has_next`).
 - Pesan baru dikembalikan lengkap sehingga FE dapat menambahkannya langsung ke timeline tanpa melakukan fetch ulang.
 
 ## TypeScript Types (Request & Response)
@@ -103,7 +107,7 @@ type ChatMessageListResponse = APIResponse<ChatMessage[]>;
 
 ## Paginasi (Cursor)
 
-- `GET /livechat/sessions/:id/messages` memakai cursor string (`id` pesan terakhir). Kirim kembali `meta.pagination.next_cursor` untuk memuat pesan sebelumnya.
+- `GET /api/livechat/sessions/:id/messages` memakai cursor string (`id` pesan terakhir). Kirim kembali `meta.pagination.next_cursor` untuk memuat pesan sebelumnya.
 
 ## Error Singkat yang Perlu Ditangani
 
@@ -118,6 +122,10 @@ type ChatMessageListResponse = APIResponse<ChatMessage[]>;
 - Lakukan polling atau WebSocket (bila tersedia) untuk memuat pesan baru; fallback ke refresh manual dengan `cursor`.
 - Tampilkan indikator saat pesan dikirim (optimistic update) dan sesuaikan bila API gagal.
 - Beri opsi agen untuk menutup sesi; pantau status `OPEN/CLOSED` untuk mengunci input pesan.
+
+## Catatan QA
+
+- Payload dan respons sudah ditinjau ulang menyesuaikan jalur `/api/livechat` serta alias `/api/vendor/livechat`. Mohon QA memverifikasi dokumentasi terbaru.
 
 ## Tautan Teknis (Opsional)
 

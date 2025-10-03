@@ -1,6 +1,6 @@
 # Sharia Financing API — Panduan Integrasi Frontend (Singkat)
 
-Modul pembiayaan syariah koperasi mengatur pengajuan, persetujuan, pencairan, pencatatan akad, cicilan, pembayaran cicilan, dan surat pelunasan untuk akad murabahah/ijarah/mudharabah/musyarakah/qardhul hasan. Endpoint berada di prefix `/koperasi/sharia-financings`.
+Modul pembiayaan syariah koperasi mengatur pengajuan, persetujuan, pencairan, pencatatan akad, cicilan, pembayaran cicilan, dan surat pelunasan untuk akad murabahah/ijarah/mudharabah/musyarakah/qardhul hasan. Endpoint berada di prefix `/api/koperasi/sharia-financings`.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,14 +14,14 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/sharia-financings/apply` — `petugas pembiayaan`: ajukan pembiayaan syariah → 201 `ShariaFinancing`
-- POST `/koperasi/sharia-financings/:id/approve` — `komite syariah`: setujui pengajuan → 200 `ShariaFinancing`
-- POST `/koperasi/sharia-financings/:id/disburse` — `bendahara`: cairkan pembiayaan (`method`) → 204
-- POST `/koperasi/sharia-financings/:id/akad` — `petugas pembiayaan`: simpan metadata akad (URL & tanggal tanda tangan) → 200 `ShariaDocument`
-- GET `/koperasi/sharia-financings/:id/installments?term=&status=&due_date=&limit=&cursor=` — `petugas pembiayaan`: daftar angsuran → 200 `APIResponse<ShariaInstallment[]>`
-- POST `/koperasi/sharia-financings/installments/:id/pay` — `bendahara`: catat pembayaran angsuran → 200 `ShariaInstallment`
-- GET `/koperasi/sharia-financings/:id/release-letter` — `petugas pembiayaan`: surat pelunasan terakhir → 200 `map`
-- GET `/koperasi/sharia-financings/:id/release-letter/history` — `petugas pembiayaan`: riwayat surat pelunasan → 200 `APIResponse<ShariaReleaseLetter[]>`
+- POST `/api/koperasi/sharia-financings/apply` — `petugas pembiayaan`: ajukan pembiayaan syariah → 201 `ShariaFinancing`
+- POST `/api/koperasi/sharia-financings/:id/approve` — `komite syariah`: setujui pengajuan → 200 `ShariaFinancing`
+- POST `/api/koperasi/sharia-financings/:id/disburse` — `bendahara`: cairkan pembiayaan (`method`) → 204
+- POST `/api/koperasi/sharia-financings/:id/akad` — `petugas pembiayaan`: simpan metadata akad (URL & tanggal tanda tangan) → 200 `ShariaDocument`
+- GET `/api/koperasi/sharia-financings/:id/installments?term=&status=&due_date=&limit=&cursor=` — `petugas pembiayaan`: daftar angsuran → 200 `APIResponse<ShariaInstallment[]>`
+- POST `/api/koperasi/sharia-financings/installments/:id/pay` — `bendahara`: catat pembayaran angsuran → 200 `ShariaInstallment`
+- GET `/api/koperasi/sharia-financings/:id/release-letter` — `petugas pembiayaan`: surat pelunasan terakhir → 200 `map`
+- GET `/api/koperasi/sharia-financings/:id/release-letter/history` — `petugas pembiayaan`: riwayat surat pelunasan → 200 `APIResponse<ShariaReleaseLetter[]>`
 
 > Pencairan hanya dapat dilakukan setelah dokumen akad bertipe `akad` memiliki `file_url` dan `signed_at`. Status berubah menjadi `disbursed` setelah pencairan sukses.
 
@@ -42,7 +42,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - Disbursement payload:
   - `{ method: string }`
 
-- AkadDocumentRequest (POST `/akad`):
+- AkadDocumentRequest (POST `/api/koperasi/sharia-financings/:id/akad`):
   - `{ file_url: string, signed_at?: Rfc3339String }`
 
 - PaymentRequest:
@@ -149,7 +149,7 @@ type ReleaseLetterHistoryResponse = APIResponse<ShariaReleaseLetter[]>;
 
 ## Paginasi (Cursor)
 
-- `GET /:id/installments` dan `/release-letter/history` memakai cursor numerik (`id`). Gunakan `meta.pagination.next_cursor` untuk memuat halaman berikutnya.
+- `GET /api/koperasi/sharia-financings/:id/installments` dan `/api/koperasi/sharia-financings/:id/release-letter/history` memakai cursor numerik (`id`). Gunakan `meta.pagination.next_cursor` untuk memuat halaman berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 

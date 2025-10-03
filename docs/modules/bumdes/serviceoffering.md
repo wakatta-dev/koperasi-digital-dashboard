@@ -15,13 +15,13 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Endpoint tersedia di prefix `/bumdes/service-offerings`. Role pengelola (`SuperAdmin|Manajer|Admin BUMDes|Admin Unit`) dapat membuat/mengubah/hapus; role kasir hanya dapat membaca.
+Endpoint tersedia di prefix `/api/bumdes/service-offerings`. Role pengelola (`SuperAdmin|Manajer|Admin BUMDes|Admin Unit`) dapat membuat/mengubah/hapus; role kasir hanya dapat membaca.
 
-- GET `/bumdes/service-offerings` — `pengguna unit`: daftar layanan (`limit`, `cursor`, `q`, `only_active`) → 200 `APIResponse<ListResponse>`
-- POST `/bumdes/service-offerings` — `pengelola unit`: buat layanan baru → 201 `APIResponse<ServiceOffering>`
-- GET `/bumdes/service-offerings/:id` — `pengguna unit`: detail layanan → 200 `APIResponse<ServiceOffering>`
-- PATCH `/bumdes/service-offerings/:id` — `pengelola unit`: ubah layanan → 200 `APIResponse<ServiceOffering>`
-- DELETE `/bumdes/service-offerings/:id` — `pengelola unit`: hapus layanan → 204 (tanpa body)
+- GET `/api/bumdes/service-offerings` — `pengguna unit`: daftar layanan (`limit`, `cursor`, `q`, `only_active`) → 200 `APIResponse<ListResponse>`
+- POST `/api/bumdes/service-offerings` — `pengelola unit`: buat layanan baru → 201 `APIResponse<ServiceOffering>`
+- GET `/api/bumdes/service-offerings/:id` — `pengguna unit`: detail layanan → 200 `APIResponse<ServiceOffering>`
+- PATCH `/api/bumdes/service-offerings/:id` — `pengelola unit`: ubah layanan → 200 `APIResponse<ServiceOffering>`
+- DELETE `/api/bumdes/service-offerings/:id` — `pengelola unit`: hapus layanan → 204 (tanpa body)
 
 > Header `X-Business-Unit-ID` menentukan konteks unit. Backend menolak jika request body memakai unit berbeda.
 

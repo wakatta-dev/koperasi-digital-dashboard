@@ -1,7 +1,6 @@
 # Pricing API — Panduan Integrasi Frontend (Singkat)
 
-Modul pricing UMKM menyediakan pengelolaan level harga, penetapan harga per varian produk, serta preferensi harga per kontak. Semua endpoint berada di prefix `/umkm/pricing` (secara internal diregistrasi di modul `internal/modules/umkm/pricing`).
-
+Modul pricing UMKM menyediakan pengelolaan level harga, penetapan harga per varian produk, serta preferensi harga per kontak. Router utama menempelkan modul ini pada grup `/api/umkm`, kemudian `routes.go` menambahkan segmen spesifik seperti `price-levels` dan `product-prices`.
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
 ## Header Wajib
@@ -14,13 +13,13 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/umkm/pricing/price-levels` — `admin UMKM`: buat level harga → 201 `PriceLevel`
-- GET `/umkm/pricing/price-levels?limit=&cursor=` — `admin UMKM`: daftar level harga → 200 `APIResponse<PriceLevel[]>`
-- PATCH `/umkm/pricing/price-levels/:id` — `admin UMKM`: ubah level harga → 200 `PriceLevel`
-- DELETE `/umkm/pricing/price-levels/:id` — `admin UMKM`: hapus level harga → 204
-- POST `/umkm/pricing/price-levels/contact-levels` — `admin UMKM`: tetapkan level harga default untuk kontak → 200 `ContactPricePreference`
-- POST `/umkm/pricing/product-prices` — `admin UMKM`: tetapkan harga untuk varian produk di level tertentu → 201 `ProductPrice`
-- GET `/umkm/pricing/product-prices/:variant_id/:level_id` — `admin UMKM`: ambil harga varian pada level tertentu → 200 `ProductPrice`
+- POST `/api/umkm/price-levels` — `admin UMKM`: buat level harga → 201 `PriceLevel`
+- GET `/api/umkm/price-levels?limit=&cursor=` — `admin UMKM`: daftar level harga → 200 `APIResponse<PriceLevel[]>`
+- PATCH `/api/umkm/price-levels/:id` — `admin UMKM`: ubah level harga → 200 `PriceLevel`
+- DELETE `/api/umkm/price-levels/:id` — `admin UMKM`: hapus level harga → 204
+- POST `/api/umkm/price-levels/contact-levels` — `admin UMKM`: tetapkan level harga default untuk kontak → 200 `ContactPricePreference`
+- POST `/api/umkm/product-prices` — `admin UMKM`: tetapkan harga untuk varian produk di level tertentu → 201 `ProductPrice`
+- GET `/api/umkm/product-prices/:variant_id/:level_id` — `admin UMKM`: ambil harga varian pada level tertentu → 200 `ProductPrice`
 
 > Level harga dapat ditandai `is_default` untuk fallback ketika kontak belum punya preferensi khusus.
 
@@ -126,7 +125,7 @@ type ProductPriceResponse = APIResponse<ProductPrice>;
 
 ## Paginasi (Cursor)
 
-- `GET /umkm/pricing/price-levels` memakai cursor numerik (`id`) dengan `limit` default 10.
+- `GET /api/umkm/price-levels` memakai cursor numerik (`id`) dengan `limit` default 10.
 
 ## Error Singkat yang Perlu Ditangani
 

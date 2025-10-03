@@ -20,18 +20,22 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 **Private (tenant internal)**
 
-- POST `/marketplace/orders` — `tenant sales`: buat order marketplace → 201 `MarketplaceOrder`
-- GET `/marketplace/orders?status=&business_unit_id=&limit=&cursor=` — `tenant sales`: daftar order → 200 `APIResponse<MarketplaceOrder[]>`
-- GET `/marketplace/orders/:id` — `tenant sales`: detail order → 200 `MarketplaceOrder`
-- POST `/marketplace/orders/:id/payments` — `tenant finance`: konfirmasi pembayaran → 200 `APIResponse<MarketplaceOrder>`
-- POST `/marketplace/orders/:id/ship` — `tenant sales`: tandai terkirim + data pengiriman → 200 `APIResponse<MarketplaceOrder>`
-- PATCH `/marketplace/orders/:id/status` — `tenant sales`: ubah status (`shipped`|`completed`) → 200 `APIResponse<MarketplaceOrder>`
+- POST `/api/marketplace/orders` — `tenant sales`: buat order marketplace → 201 `MarketplaceOrder`
+- GET `/api/marketplace/orders?status=&business_unit_id=&limit=&cursor=` — `tenant sales`: daftar order → 200 `APIResponse<MarketplaceOrder[]>`
+- GET `/api/marketplace/orders/:id` — `tenant sales`: detail order → 200 `MarketplaceOrder`
+- POST `/api/marketplace/orders/:id/payments` — `tenant finance`: konfirmasi pembayaran → 200 `APIResponse<MarketplaceOrder>`
+- POST `/api/marketplace/orders/:id/ship` — `tenant sales`: tandai terkirim + data pengiriman → 200 `APIResponse<MarketplaceOrder>`
+- PATCH `/api/marketplace/orders/:id/status` — `tenant sales`: ubah status (`shipped`|`completed`) → 200 `APIResponse<MarketplaceOrder>`
 
 **Publik (tanpa auth)**
 
-- GET `/marketplace/catalog?q=&limit=&cursor=&domain=` — pelanggan: daftar produk publik → 200 `APIResponse<CatalogListResponse>`
-- GET `/marketplace/catalog/:id?domain=` — pelanggan: detail produk → 200 `APIResponse<CatalogProduct>`
-- GET `/marketplace/orders/:id/status?domain=&customer_id=` — pelanggan: lacak status order → 200 `APIResponse<OrderStatusResponse>`
+- GET `/api/marketplace/catalog?q=&limit=&cursor=&domain=` — pelanggan: daftar produk publik → 200 `APIResponse<CatalogListResponse>`
+- GET `/api/marketplace/catalog/:id?domain=` — pelanggan: detail produk → 200 `APIResponse<CatalogProduct>`
+- GET `/api/marketplace/cart/items?domain=&customer_id=` — pelanggan: lihat isi keranjang → 200 `APIResponse<CartItem[]>`
+- POST `/api/marketplace/cart/items?domain=` — pelanggan: tambah item ke keranjang → 201 `APIResponse<CartItem>`
+- DELETE `/api/marketplace/cart/items/:variant_id?domain=&customer_id=` — pelanggan: hapus item keranjang → 200 `APIResponse<{ removed: boolean }>`
+- POST `/api/marketplace/cart/checkout?domain=` — pelanggan: checkout keranjang → 201 `MarketplaceOrder`
+- GET `/api/marketplace/orders/:id/status?domain=&customer_id=` — pelanggan: lacak status order → 200 `APIResponse<OrderStatusResponse>`
 
 > Tenant vendor tidak boleh mengakses marketplace (403). Tenant koperasi perlu diaktifkan via konfigurasi (`IsMarketplaceEnabled`). Tenant BUMDes wajib menyertakan `business_unit_id` saat membuat/melihat order.
 
@@ -52,6 +56,12 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 - PlaceOrderRequest:
   - `business_unit_id?` (number), `customer_id?` (number), `items` (`{ product_id: number, qty: number, unit_price: number }[]`), `shipping` (`{ address, city, postal_code, receiver_name, phone }`), `booking?` (`{ start_date?: Rfc3339, end_date?: Rfc3339, status?: string }`), `payment_method?` (`'cash'|'transfer'|'qris'|'cod'`)
+
+- CartItemRequest (public cart):
+  - `{ customer_id: number, product_variant_id: number, qty: number, unit_price: number, business_unit_id?: number }` dengan query `domain=<tenant_domain>`.
+
+- CartCheckoutRequest:
+  - `{ customer_id: number, business_unit_id?: number, payment_method?: 'cash'|'transfer'|'qris'|'cod', shipping: ShippingRequest }` dengan query `domain=<tenant_domain>`.
 
 - PaymentRequest:
   - `{ amount: number, method: 'cash'|'transfer'|'qris'|'cod', provider?: string, reference?: string, proof_url?: string }`
@@ -156,6 +166,21 @@ type PlaceOrderRequest = {
   payment_method?: 'cash' | 'transfer' | 'qris' | 'cod';
 };
 
+type CartItemRequest = {
+  customer_id: number;
+  product_variant_id: number;
+  qty: number;
+  unit_price: number;
+  business_unit_id?: number;
+};
+
+type CartCheckoutRequest = {
+  customer_id: number;
+  business_unit_id?: number;
+  payment_method?: 'cash' | 'transfer' | 'qris' | 'cod';
+  shipping: ShippingAddress;
+};
+
 type PaymentRequest = {
   amount: number;
   method: 'cash' | 'transfer' | 'qris' | 'cod';
@@ -169,6 +194,24 @@ type ShippingRequest = ShippingAddress;
 type UpdateOrderStatusRequest = {
   status: 'shipped' | 'completed';
   shipping?: ShippingRequest;
+};
+
+type CartItem = {
+  id: number;
+  tenant_id: number;
+  customer_id: number;
+  business_unit_id?: number;
+  product_id: number;
+  product_variant_id: number;
+  qty: number;
+  unit_price: number;
+  subtotal: number;
+  product_name?: string;
+  variant_name?: string;
+  media_url?: string;
+  stock: number;
+  created_at: Rfc3339String;
+  updated_at: Rfc3339String;
 };
 
 type CatalogMedia = {

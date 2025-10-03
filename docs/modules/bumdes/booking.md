@@ -14,9 +14,9 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Endpoint berada di prefix `/bumdes/bookings` dengan akses role `SuperAdmin|Manajer|Admin BUMDes|Admin Unit|Kasir Unit`.
+Endpoint berada di prefix `/api/bumdes/bookings` dengan akses role `SuperAdmin|Manajer|Admin BUMDes|Admin Unit|Kasir Unit`.
 
-- GET `/bumdes/bookings/calendar` — `pengelola unit`: kalender pemakaian (`view=weekly|monthly`, `start`, `end`, `unit_id`) → 200 `APIResponse<CalendarView>`
+- GET `/api/bumdes/bookings/calendar` — `pengelola unit`: kalender pemakaian (`view=weekly|monthly`, `start`, `end`, `unit_id`) → 200 `APIResponse<CalendarView>`
 
 > Parameter `start` dan `end` opsional; bila kosong service menghitung periode sesuai `view`. `unit_id` menyaring booking per unit usaha.
 

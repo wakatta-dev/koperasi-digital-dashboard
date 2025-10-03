@@ -14,23 +14,25 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-Semua tenant mengakses jalur dinamis `/:tenantType/dashboard` berdasarkan tipe mereka.
+Semua tenant mengakses jalur dinamis `/api/:tenantType/dashboard` berdasarkan tipe mereka.
 
-- GET `/:tenantType/dashboard` — `tenant user`: ringkasan metrik dashboard → 200 `APIResponse<DashboardSummary>`
+- GET `/api/:tenantType/dashboard` — `tenant user`: ringkasan metrik dashboard → 200 `APIResponse<DashboardSummary>`
 
 > Parameter path `tenantType` harus sama dengan klaim `tenant_type` pada token (`vendor`, `koperasi`, `bumdes`, `umkm`). Backend menolak (403) bila terjadi mismatch untuk mencegah akses silang.
 
 ## Skema Data Ringkas
 
-- DashboardSummary (vendor): `active_clients:number`, `inactive_clients:number`, `suspended_clients:number`, `total_revenue:number`, `monthly_revenue:number`, `open_tickets:number`, `activity:VendorActivity[]`
-- VendorActivity: `type:string`, `reference_id:string`, `title:string`, `status?:string`, `amount?:number`, `due_date?:Rfc3339`, `timestamp:Rfc3339`
+- DashboardSummary (vendor): `client_totals_by_tier:VendorProductTierSummary[]`, `open_tickets:number`, `most_active_client?:VendorClientInsight`, `product_with_most_tickets?:VendorProductInsight`
+- VendorProductTierSummary: `tier:string`, `active_clients:number`
+- VendorClientInsight: `client_id:number`, `name:string`, `ticket_count:number`
+- VendorProductInsight: `product_id:number`, `name:string`, `ticket_count:number`
 - DashboardSummary (koperasi): `active_members:number`, `total_savings:number`, `total_loans:number`, `running_shu:number`, `graph_data:number[]`, `shortcuts:ShortcutItem[]`, `installment_notifications:Notification[]`, `application_notifications:Notification[]`
 - ShortcutItem: `id:string`, `label:string`, `path:string`, `icon?:string`
 - DashboardSummary (bumdes): `revenue_per_unit:number[]`, `consolidated_revenue:number`, `booking_notifications:Notification[]`, `rental_notifications:Notification[]`
 - DashboardSummary (umkm): `daily_sales:number`, `daily_orders:number`, `top_products:string[]`, `low_stock_notifications:Notification[]`
 - Notification: `id:string`, `title:string`, `type:string`, `created_at:Rfc3339`
 
-> FE perlu melakukan narrowing berdasarkan klaim `tenant_type` untuk memetakan struktur summary yang diterima dan menampilkan komponen yang sesuai.
+> FE perlu melakukan narrowing berdasarkan klaim `tenant_type` untuk memetakan struktur summary yang diterima dan menampilkan komponen yang sesuai. Untuk vendor, gunakan `client_totals_by_tier` untuk mengisi kartu Total Clients per produk (Standard/Bronze/Silver/Gold) dan tampilkan insight `most_active_client` & `product_with_most_tickets` bila tersedia. Backend selalu mengembalikan empat entri tier tersebut dengan jumlah klien aktif (0 jika tidak ada) hasil agregasi tenant aktif/non-suspend.
 
 ## Payload Utama
 
@@ -74,24 +76,28 @@ type ShortcutItem = {
   icon?: string;
 };
 
-type VendorActivity = {
-  type: string;
-  reference_id: string;
-  title: string;
-  status?: string;
-  amount?: number;
-  due_date?: Rfc3339String;
-  timestamp: Rfc3339String;
+type VendorDashboardSummary = {
+  client_totals_by_tier: VendorProductTierSummary[];
+  open_tickets: number;
+  most_active_client?: VendorClientInsight;
+  product_with_most_tickets?: VendorProductInsight;
 };
 
-type VendorDashboardSummary = {
+type VendorProductTierSummary = {
+  tier: string;
   active_clients: number;
-  inactive_clients: number;
-  suspended_clients: number;
-  total_revenue: number;
-  monthly_revenue: number;
-  open_tickets: number;
-  activity: VendorActivity[];
+};
+
+type VendorClientInsight = {
+  client_id: number;
+  name: string;
+  ticket_count: number;
+};
+
+type VendorProductInsight = {
+  product_id: number;
+  name: string;
+  ticket_count: number;
 };
 
 type KoperasiDashboardSummary = {
@@ -142,7 +148,7 @@ type DashboardResponse = APIResponse<DashboardSummary>;
 
 ## Checklist Integrasi FE
 
-- Pastikan path sesuai tipe tenant yang sedang login (`/vendor/dashboard`, `/koperasi/dashboard`, dll).
+- Pastikan path sesuai tipe tenant yang sedang login (`/api/vendor/dashboard`, `/api/koperasi/dashboard`, dll).
 - Tampilkan fallback UI ketika response `data = null` atau terjadi error agregasi.
 - Lakukan formatting currency, persentase, dan jumlah sesuai locale masing-masing tenant.
 - Gunakan data aktivitas/notifikasi untuk shortcut ke modul terkait (billing, ticketing, dsb).

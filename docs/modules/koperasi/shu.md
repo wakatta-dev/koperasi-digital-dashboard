@@ -1,6 +1,6 @@
 # SHU API — Panduan Integrasi Frontend (Singkat)
 
-Modul SHU (Sisa Hasil Usaha) koperasi mengelola input total SHU tahunan, simulasi distribusi kepada anggota, eksekusi distribusi, histori tahunan, histori per anggota, dan ekspor laporan. Endpoint berada di prefix `/koperasi/shu`.
+Modul SHU (Sisa Hasil Usaha) koperasi mengelola input total SHU tahunan, simulasi distribusi kepada anggota, eksekusi distribusi, histori tahunan, histori per anggota, dan ekspor laporan. Endpoint berada di prefix `/api/koperasi/shu`.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,12 +14,12 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/shu/yearly` — `bendahara`: input total SHU tahun berjalan → 201 `APIResponse<YearlySHU>`
-- POST `/koperasi/shu/yearly/:year/simulate` — `manajemen` : simulasi distribusi SHU per anggota → 200 `APIResponse<SHUDistribution[]>`
-- POST `/koperasi/shu/yearly/:year/distribute` — `bendahara`: eksekusi distribusi (`method`, `description`) → 200 `APIResponse<{ status: string }>`
-- GET `/koperasi/shu/history?term=&year=&limit=&cursor=` — `bendahara`: histori input SHU tahunan → 200 `APIResponse<YearlySHU[]>`
-- GET `/koperasi/shu/member/:member_id?term=&year=&limit=&cursor=` — `anggota/pengurus`: histori SHU per anggota → 200 `APIResponse<SHUDistribution[]>`
-- GET `/koperasi/shu/export/:year?format=` — `bendahara`: ekspor laporan SHU (PDF/XLSX) → 200 file
+- POST `/api/koperasi/shu/yearly` — `bendahara`: input total SHU tahun berjalan → 201 `APIResponse<YearlySHU>`
+- POST `/api/koperasi/shu/yearly/:year/simulate` — `manajemen` : simulasi distribusi SHU per anggota → 200 `APIResponse<SHUDistribution[]>`
+- POST `/api/koperasi/shu/yearly/:year/distribute` — `bendahara`: eksekusi distribusi (`method`, `description`) → 200 `APIResponse<{ status: string }>`
+- GET `/api/koperasi/shu/history?term=&year=&limit=&cursor=` — `bendahara`: histori input SHU tahunan → 200 `APIResponse<YearlySHU[]>`
+- GET `/api/koperasi/shu/member/:member_id?term=&year=&limit=&cursor=` — `anggota/pengurus`: histori SHU per anggota → 200 `APIResponse<SHUDistribution[]>`
+- GET `/api/koperasi/shu/export/:year?format=` — `bendahara`: ekspor laporan SHU (PDF/XLSX) → 200 file
 
 > Distribusi hanya dapat dilakukan setelah input total SHU tahun tersebut tersedia. Simulasi menggunakan data transaksi partisipasi & simpanan anggota.
 
@@ -120,7 +120,7 @@ type SHUMemberHistoryResponse = APIResponse<SHUDistribution[]>;
 
 ## Paginasi (Cursor)
 
-- `GET /history` dan `/member/:member_id` memakai cursor numerik (`id`). Simpan `meta.pagination.next_cursor` untuk request berikutnya.
+- `GET /api/koperasi/shu/history` dan `/api/koperasi/shu/member/:member_id` memakai cursor numerik (`id`). Simpan `meta.pagination.next_cursor` untuk request berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 

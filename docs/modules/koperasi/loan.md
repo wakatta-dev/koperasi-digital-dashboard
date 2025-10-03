@@ -1,6 +1,6 @@
 # Loan API — Panduan Integrasi Frontend (Singkat)
 
-Modul pinjaman koperasi menyediakan alur pengajuan, persetujuan, pencairan, penjadwalan cicilan, pembayaran cicilan, hingga penerbitan surat pelunasan. Seluruh endpoint berada di bawah prefix `/koperasi/loans` dan mensyaratkan tenant bertipe `koperasi`.
+Modul pinjaman koperasi menyediakan alur pengajuan, persetujuan, pencairan, penjadwalan cicilan, pembayaran cicilan, hingga penerbitan surat pelunasan. Seluruh endpoint berada di bawah prefix `/api/koperasi/loans` dan mensyaratkan tenant bertipe `koperasi`.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,13 +14,13 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/loans/apply` — `petugas pinjaman`: ajukan pinjaman anggota → 201 `LoanApplication`
-- POST `/koperasi/loans/:id/approve` — `komite pinjaman`: setujui pengajuan → 200 `LoanApplication`
-- POST `/koperasi/loans/:id/disburse` — `bendahara`: cairkan pinjaman (`method`) → 204
-- GET `/koperasi/loans/:id/installments?term=&status=&due_date=&limit=&cursor=` — `petugas pinjaman`: daftar angsuran → 200 `APIResponse<LoanInstallment[]>`
-- POST `/koperasi/loans/installments/:id/pay` — `bendahara`: catat pembayaran angsuran → 201 `APIResponse<LoanInstallment>`
-- GET `/koperasi/loans/:id/release-letter` — `petugas pinjaman`: unduh surat pelunasan terbaru → 200 `APIResponse<LoanReleaseLetter>`
-- GET `/koperasi/loans/:id/release-letter/history` — `petugas pinjaman`: riwayat surat pelunasan → 200 `APIResponse<LoanReleaseLetter[]>`
+- POST `/api/koperasi/loans/apply` — `petugas pinjaman`: ajukan pinjaman anggota → 201 `LoanApplication`
+- POST `/api/koperasi/loans/:id/approve` — `komite pinjaman`: setujui pengajuan → 200 `LoanApplication`
+- POST `/api/koperasi/loans/:id/disburse` — `bendahara`: cairkan pinjaman (`method`) → 204
+- GET `/api/koperasi/loans/:id/installments?term=&status=&due_date=&limit=&cursor=` — `petugas pinjaman`: daftar angsuran → 200 `APIResponse<LoanInstallment[]>`
+- POST `/api/koperasi/loans/installments/:id/pay` — `bendahara`: catat pembayaran angsuran → 201 `APIResponse<LoanInstallment>`
+- GET `/api/koperasi/loans/:id/release-letter` — `petugas pinjaman`: unduh surat pelunasan terbaru → 200 `APIResponse<LoanReleaseLetter>`
+- GET `/api/koperasi/loans/:id/release-letter/history` — `petugas pinjaman`: riwayat surat pelunasan → 200 `APIResponse<LoanReleaseLetter[]>`
 
 > Endpoint memakai ID numerik. Pencairan akan otomatis membuat transaksi keuangan dan memperbarui status menjadi `disbursed` bila modul finance aktif.
 
@@ -43,7 +43,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - PaymentRequest:
   - `{ amount: number, date: Rfc3339String, method: string }`
 
-- Filter angsuran (`GET /:id/installments`): `term` (ID/status), `status`, `due_date` (`YYYY-MM-DD`), `limit` (default 10), `cursor` (ID angsuran).
+- Filter angsuran (`GET /api/koperasi/loans/:id/installments`): `term` (ID/status), `status`, `due_date` (`YYYY-MM-DD`), `limit` (default 10), `cursor` (ID angsuran).
 
 ## Bentuk Response
 
@@ -136,7 +136,7 @@ type ReleaseLetterHistoryResponse = APIResponse<LoanReleaseLetter[]>;
 
 ## Paginasi (Cursor)
 
-- `GET /:id/installments` dan `/release-letter/history` memakai cursor numerik (`id`). Simpan `meta.pagination.next_cursor` untuk permintaan berikutnya.
+- `GET /api/koperasi/loans/:id/installments` dan `/api/koperasi/loans/:id/release-letter/history` memakai cursor numerik (`id`). Simpan `meta.pagination.next_cursor` untuk permintaan berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 

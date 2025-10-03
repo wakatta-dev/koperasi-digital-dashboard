@@ -1,6 +1,6 @@
 # System Settings API — Panduan Integrasi Frontend (Singkat)
 
-Modul system settings menampung konfigurasi global platform (domain default, brand, SLA, dan mode maintenance). Endpoint tunggal berada di bawah prefix `/system-settings` dan biasanya hanya diakses oleh vendor super admin.
+Modul system settings menampung konfigurasi global platform (domain default, brand, SLA, dan mode maintenance). Endpoint tunggal berada di bawah prefix `/api/system-settings` sebagaimana registrasi router di `internal/modules/registry.go` dan `internal/modules/support/system/routes.go`, dan biasanya hanya diakses oleh vendor super admin.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar.
 
@@ -14,10 +14,10 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/system-settings` — `vendor super admin`: baca konfigurasi → 200 `APIResponse<Settings>`
-- PUT `/system-settings` — `vendor super admin`: ubah konfigurasi → 200 `APIResponse<Settings>`
+- GET `/api/system-settings` — `vendor super admin`: baca konfigurasi → 200 `APIResponse<Settings>`
+- PUT `/api/system-settings` — `vendor super admin`: ubah konfigurasi → 200 `APIResponse<Settings>`
 
-> Endpoint mengembalikan `{}` jika belum ada konfigurasi tersimpan. Alias lama `/vendor/system-settings` telah digantikan oleh path baru ini.
+> Endpoint mengembalikan `{}` jika belum ada konfigurasi tersimpan. Alias lama `/api/vendor/system-settings` telah digantikan oleh path baru ini.
 
 ## Skema Data Ringkas
 
@@ -27,7 +27,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Payload Utama
 
-- SettingsRequest (PUT `/system-settings`):
+- SettingsRequest (PUT `/api/system-settings`):
   - `{ default_domain?: string, default_brand_name?: string, default_brand_logo_url?: string, sla_response_hours?: number, support_email?: string, maintenance_mode?: boolean, maintenance_message?: string }`
 
 ## Bentuk Response
@@ -87,6 +87,10 @@ type SystemSettingsResponse = APIResponse<SystemSettings>;
 - Validasi domain & email sebelum submit untuk menghindari error 400.
 - Gunakan toggle maintenance di UI untuk menyesuaikan tampilan portal publik bila `maintenance_mode=true`.
 - Tampilkan fallback brand default jika respons `data` kosong.
+
+## Catatan QA
+
+- Payload serta respons telah disesuaikan dengan jalur `/api/system-settings`. Mohon QA memverifikasi dokumentasi ini.
 
 ## Tautan Teknis (Opsional)
 

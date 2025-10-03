@@ -1,6 +1,6 @@
 # RAT API — Panduan Integrasi Frontend (Singkat)
 
-Modul RAT (Rapat Anggota Tahunan) koperasi mengatur penjadwalan RAT, pengiriman notifikasi, unggah dokumen, pemungutan suara, laporan, serta histori RAT. Seluruh endpoint berada di bawah prefix `/koperasi/rat`.
+Modul RAT (Rapat Anggota Tahunan) koperasi mengatur penjadwalan RAT, pengiriman notifikasi, unggah dokumen, pemungutan suara, laporan, serta histori RAT. Seluruh endpoint berada di bawah prefix `/api/koperasi/rat`.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,14 +14,14 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/rat` — `panitia RAT`: jadwalkan RAT → 201 `APIResponse<RAT>`
-- POST `/koperasi/rat/:id/notify` — `panitia RAT`: kirim notifikasi RAT → 200 `APIResponse<{ status: string }>`
-- POST `/koperasi/rat/:id/documents` — `panitia RAT`: unggah dokumen RAT → 201 `APIResponse<{ status: string }>`
-- POST `/koperasi/rat/:id/voting` — `panitia RAT`: buat item voting → 201 `APIResponse<VotingItem>`
-- POST `/koperasi/rat/voting/:item_id/vote` — `anggota`: kirim suara → 201 `APIResponse<{ status: string }>`
-- GET `/koperasi/rat/voting/:item_id/result` — `panitia/anggota`: hasil voting → 200 `APIResponse<VotingResult>`
-- GET `/koperasi/rat/:id/report` — `panitia RAT`: laporan RAT → 200 `APIResponse<RATReport>`
-- GET `/koperasi/rat/history?term=&start_date=&end_date=&limit=&cursor=` — `panitia RAT`: histori RAT → 200 `APIResponse<RAT[]>`
+- POST `/api/koperasi/rat` — `panitia RAT`: jadwalkan RAT → 201 `APIResponse<RAT>`
+- POST `/api/koperasi/rat/:id/notify` — `panitia RAT`: kirim notifikasi RAT → 200 `APIResponse<{ status: string }>`
+- POST `/api/koperasi/rat/:id/documents` — `panitia RAT`: unggah dokumen RAT → 201 `APIResponse<{ status: string }>`
+- POST `/api/koperasi/rat/:id/voting` — `panitia RAT`: buat item voting → 201 `APIResponse<VotingItem>`
+- POST `/api/koperasi/rat/voting/:item_id/vote` — `anggota`: kirim suara → 201 `APIResponse<{ status: string }>`
+- GET `/api/koperasi/rat/voting/:item_id/result` — `panitia/anggota`: hasil voting → 200 `APIResponse<VotingResult>`
+- GET `/api/koperasi/rat/:id/report` — `panitia RAT`: laporan RAT → 200 `APIResponse<RATReport>`
+- GET `/api/koperasi/rat/history?term=&start_date=&end_date=&limit=&cursor=` — `panitia RAT`: histori RAT → 200 `APIResponse<RAT[]>`
 
 > Endpoint voting membutuhkan item yang valid dan periode `open_at`/`close_at`; backend menolak suara di luar rentang tersebut.
 
@@ -163,7 +163,7 @@ type RATReportResponse = APIResponse<RATReport>;
 
 ## Paginasi (Cursor)
 
-- `GET /koperasi/rat/history` memakai cursor numerik (`id`) dengan `limit` default 10.
+- `GET /api/koperasi/rat/history` memakai cursor numerik (`id`) dengan `limit` default 10.
 - Simpan `meta.pagination.next_cursor` dan kirimkan pada permintaan berikutnya.
 
 ## Error Singkat yang Perlu Ditangani

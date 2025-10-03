@@ -6,8 +6,8 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Header Wajib
 
-- Public endpoint (`POST /tenants`, `POST /tenants/verify`): tanpa Authorization, tetap kirim `Content-Type`/`Accept`.
-- Secured endpoint (`PATCH /tenants/:id/status`):
+- Public endpoint (`POST /api/tenants`, `POST /api/tenants/verify`): tanpa Authorization, tetap kirim `Content-Type`/`Accept`.
+- Secured endpoint (`PATCH /api/tenants/:id/status`):
   - Authorization: `Bearer <token>` (role `admin_vendor`)
   - `X-Tenant-ID`: `number`
   - `Content-Type`: `application/json`
@@ -16,15 +16,15 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/tenants` — `public`: daftar tenant baru, kirim data lengkap → 201 `APIResponse<{ registration_id: string }>`
-- POST `/tenants/verify` — `public`: verifikasi OTP registrasi → 200 `APIResponse<void>`
-- PATCH `/tenants/:id/status` — `vendor admin`: ubah status tenant (`active|inactive|suspended`) → 200 `APIResponse<{ status: string; is_active: boolean }>`
+- POST `/api/tenants` — `public`: daftar tenant baru, kirim data lengkap → 201 `APIResponse<{ registration_id: string }>`
+- POST `/api/tenants/verify` — `public`: verifikasi OTP registrasi → 200 `APIResponse<void>`
+- PATCH `/api/tenants/:id/status` — `vendor admin`: ubah status tenant (`active|inactive|suspended`) → 200 `APIResponse<{ status: string; is_active: boolean }>`
 
 > Registrasi menghasilkan `registration_id` yang berlaku selama OTP belum diverifikasi. Request status memerlukan role `admin_vendor`, ditolak jika tidak sesuai (`forbidden`).
 
 ## Skema Data Ringkas
 
-- TenantRegistration (transien): `id:string`, `name`, `legal_entity`, `address`, `domain`, `type`, `pic_name`, `pic_phone`, `pic_email`, `full_name`, `email`, `primary_plan_id`, `addon_plan_ids:number[]`, `otp:string`, `created_at:Rfc3339`
+- TenantRegistration (transien): `id:string`, `name`, `legal_entity`, `address`, `domain`, `type`, `pic_name`, `pic_phone`, `pic_email`, `full_name`, `email`, `primary_plan_id`, `addon_plan_ids:number[]`, `otp:string`, `email_otp:string`, `whatsapp_otp:string`, `created_at:Rfc3339`
 - UpdateStatus payload: `status:'active'|'inactive'|'suspended'`
 
 > Field `legacy` (`legalitas`, `alamat`) masih diterima untuk kompatibilitas form lama; backend mengkonversi ke field modern.
@@ -36,7 +36,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
   - Opsional: `legalitas`, `alamat` sebagai alias lama untuk `legal_entity`/`address`
 
 - VerifyRequest:
-  - `{ registration_id: string, otp: string }`
+  - `{ registration_id: string, otp: string }` — nilai `otp` boleh berasal dari email maupun WhatsApp (keduanya 6 digit).
 
 - UpdateStatusRequest:
   - `{ status: 'active' | 'inactive' | 'suspended' }`
@@ -44,6 +44,7 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 ## Bentuk Response
 
 - Registrasi mengembalikan `{ registration_id }` di dalam `data`; gunakan untuk langkah OTP.
+- OTP dikirim melalui email (`email_otp`) dan WhatsApp (`whatsapp_otp`, bila `pic_phone` terisi). Keduanya valid untuk verifikasi.
 - Verifikasi sukses mengembalikan `data = null` dengan `success = true`.
 - Update status mengembalikan `{ status, is_active }` agar UI langsung menyesuaikan toggle.
 
@@ -114,7 +115,7 @@ type UpdateTenantStatusResponse = APIResponse<{ status: string; is_active: boole
 ## Checklist Integrasi FE
 
 - Validasi keunikan domain/email di sisi UI bila memungkinkan sebelum submit; tetap tangani pesan error backend.
-- Setelah registrasi sukses, simpan `registration_id` untuk form OTP sekaligus dukung resend OTP (menggunakan endpoint notifikasi bila tersedia).
+- Setelah registrasi sukses, simpan `registration_id` untuk form OTP sekaligus dukung resend OTP (menggunakan endpoint notifikasi bila tersedia). Beri opsi pengguna memilih kode dari email atau WhatsApp.
 - Masking OTP input dan sediakan countdown sebelum resend.
 - Panel admin vendor tampilkan status terbaru (badge `active/inactive/suspended`) dan sinkronkan setelah PATCH berhasil.
 

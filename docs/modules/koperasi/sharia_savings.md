@@ -1,6 +1,6 @@
 # Sharia Savings API — Panduan Integrasi Frontend (Singkat)
 
-Modul simpanan syariah koperasi mengelola setoran berdasarkan kontrak (wadiah/mudharabah dsb.), verifikasi setoran manual, penarikan, persetujuan penarikan, distribusi bagi hasil, dan riwayat transaksi. Endpoint berada di prefix `/koperasi/sharia_savings`.
+Modul simpanan syariah koperasi mengelola setoran berdasarkan kontrak (wadiah/mudharabah dsb.), verifikasi setoran manual, penarikan, persetujuan penarikan, distribusi bagi hasil, dan riwayat transaksi. Endpoint berada di prefix `/api/koperasi/sharia_savings`.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar tanpa contoh cepat.
 
@@ -14,13 +14,13 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- POST `/koperasi/sharia_savings/:member_id/deposit` — `petugas simpanan`: catat setoran (`contract_type`, `method`) → 201 `APIResponse<Transaction>`
-- POST `/koperasi/sharia_savings/:transaction_id/verify` — `bendahara`: verifikasi setoran manual → 200 `APIResponse<Transaction>`
-- POST `/koperasi/sharia_savings/:member_id/withdraw` — `anggota/petugas`: ajukan penarikan kontrak → 201 `APIResponse<Transaction>`
-- POST `/koperasi/sharia_savings/:transaction_id/approve` — `bendahara`: setujui penarikan → 200 `APIResponse<Transaction>`
-- POST `/koperasi/sharia_savings/:member_id/profit` — `bendahara`: distribusi bagi hasil → 201 `APIResponse<Transaction>`
-- GET `/koperasi/sharia_savings/:member_id/transactions?term=&type=&start=&end=&limit=&cursor=` — `petugas simpanan`: riwayat transaksi → 200 `APIResponse<Transaction[]>`
-- GET `/koperasi/sharia_savings/:transaction_id/proof` — `anggota/petugas`: bukti transaksi → 200 `APIResponse<{ proof: string }>`
+- POST `/api/koperasi/sharia_savings/:member_id/deposit` — `petugas simpanan`: catat setoran (`contract_type`, `method`) → 201 `APIResponse<Transaction>`
+- POST `/api/koperasi/sharia_savings/:transaction_id/verify` — `bendahara`: verifikasi setoran manual → 200 `APIResponse<Transaction>`
+- POST `/api/koperasi/sharia_savings/:member_id/withdraw` — `anggota/petugas`: ajukan penarikan kontrak → 201 `APIResponse<Transaction>`
+- POST `/api/koperasi/sharia_savings/:transaction_id/approve` — `bendahara`: setujui penarikan → 200 `APIResponse<Transaction>`
+- POST `/api/koperasi/sharia_savings/:member_id/profit` — `bendahara`: distribusi bagi hasil → 201 `APIResponse<Transaction>`
+- GET `/api/koperasi/sharia_savings/:member_id/transactions?term=&type=&start=&end=&limit=&cursor=` — `petugas simpanan`: riwayat transaksi → 200 `APIResponse<Transaction[]>`
+- GET `/api/koperasi/sharia_savings/:transaction_id/proof` — `anggota/petugas`: bukti transaksi → 200 `APIResponse<{ proof: string }>`
 
 > `contract_type` digunakan untuk memisahkan jenis akad (mis. `mudharabah`, `wadiah`). Distribusi bagi hasil akan membuat transaksi cash-out di modul finance jika tersedia.
 
@@ -123,7 +123,7 @@ type ProofResponse = APIResponse<{ proof: string }>;
 
 ## Paginasi (Cursor)
 
-- `GET /:member_id/transactions` memakai cursor numerik (`id`). Gunakan `meta.pagination.next_cursor` untuk halaman berikutnya.
+- `GET /:member_id/api/transactions` memakai cursor numerik (`id`). Gunakan `meta.pagination.next_cursor` untuk halaman berikutnya.
 
 ## Error Singkat yang Perlu Ditangani
 

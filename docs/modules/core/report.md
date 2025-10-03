@@ -14,22 +14,24 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-**Tenant (internal)**
+-**Tenant (internal)**
 
-- GET `/reports/finance?tenant_id=&start=&end=&group_by=&category=` — `tenant finance`: ringkasan transaksi → 200 `APIResponse<FinanceReportResponse>`
-- GET `/reports/billing?tenant_id=&start=&end=` — `tenant finance`: metrik penagihan → 200 `APIResponse<BillingReportResponse>`
-- GET `/reports/cashflow?tenant_id=&start=&end=` — `tenant finance`: arus kas masuk/keluar → 200 `APIResponse<CashflowReportResponse>`
-- GET `/reports/profit-loss?tenant_id=&start=&end=` — `tenant finance`: laba rugi → 200 `APIResponse<ProfitLossReportResponse>`
-- GET `/reports/balance-sheet?tenant_id=&start=&end=` — `tenant finance`: neraca → 200 `APIResponse<BalanceSheetReportResponse>`
-- GET `/reports/export?tenant_id=&type=&start=&end=&format=` — `tenant finance`: ekspor laporan (PDF/XLSX) → 200 `file`
-- GET `/reports/history?tenant_id=&term=&start_date=&end_date=&limit=&cursor=` — `tenant finance`: daftar arsip laporan → 200 `APIResponse<ReportArchive[]>`
-- GET `/reports/tenant/:tenantType` — `tenant admin`: laporan khusus tipe tenant (`vendor|koperasi|bumdes|umkm`) → 200 `APIResponse<any>`
+- GET `/api/reports/finance?tenant_id=&start=&end=&group_by=&category=` — `tenant finance`: ringkasan transaksi → 200 `APIResponse<FinanceReportResponse>`
+- GET `/api/reports/billing?tenant_id=&start=&end=` — `tenant finance`: metrik penagihan → 200 `APIResponse<BillingReportResponse>`
+- GET `/api/reports/cashflow?tenant_id=&start=&end=` — `tenant finance`: arus kas masuk/keluar → 200 `APIResponse<CashflowReportResponse>`
+- GET `/api/reports/profit-loss?tenant_id=&start=&end=` — `tenant finance`: laba rugi → 200 `APIResponse<ProfitLossReportResponse>`
+- GET `/api/reports/balance-sheet?tenant_id=&start=&end=` — `tenant finance`: neraca → 200 `APIResponse<BalanceSheetReportResponse>`
+- GET `/api/reports/savings?tenant_id=&start=&end=&member_id=` — `tenant finance`: ringkasan simpanan → 200 `APIResponse<any>`
+- GET `/api/reports/stock?tenant_id=&start=&end=&business_unit_id=` — `tenant finance`: ringkasan stok → 200 `APIResponse<any>`
+- GET `/api/reports/export?tenant_id=&type=&start=&end=&format=` — `tenant finance`: ekspor laporan (PDF/XLSX) → 200 `file`
+- GET `/api/reports/history?tenant_id=&term=&start_date=&end_date=&limit=&cursor=` — `tenant finance`: daftar arsip laporan → 200 `APIResponse<ReportArchive[]>`
+- GET `/api/reports/tenant/:tenantType` — `tenant admin`: laporan khusus tipe tenant (`vendor|koperasi|bumdes|umkm`) → 200 `APIResponse<any>`
 
 **Vendor khusus**
 
-- GET `/vendor/reports/financial?start_date=&end_date=&group_by=` — `vendor admin`: laporan agregat tenant → 200 `APIResponse<FinancialReport>`
-- POST `/vendor/reports/export` — `vendor admin`: ekspor laporan custom (`report_type`, `format`, `params`) → 200 `file`
-- GET `/vendor/reports/exports?report_type=&term=&start_date=&end_date=&limit=&cursor=` — `vendor admin`: daftar ekspor → 200 `APIResponse<ReportExport[]>`
+- GET `/api/vendor/reports/financial?start_date=&end_date=&group_by=` — `vendor admin`: laporan agregat tenant → 200 `APIResponse<FinancialReport>`
+- POST `/api/vendor/reports/export` — `vendor admin`: ekspor laporan custom (`report_type`, `format`, `params`) → 200 `file`
+- GET `/api/vendor/reports/exports?report_type=&term=&start_date=&end_date=&limit=&cursor=` — `vendor admin`: daftar ekspor → 200 `APIResponse<ReportExport[]>`
 
 > Query tanggal pada laporan utama memakai format `YYYY-MM-DD`. Parameter `group_by` pada finance (`day|week|month|year`) dan vendor (`month|quarter|year`) menentukan agregasi periode. Endpoint tenant memerlukan `tenant_id` kecuali pengguna adalah vendor role (laporan lintas tenant).
 
@@ -45,6 +47,8 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 - ProfitLossChartData: `label:string`, `profit:number`, `loss:number`
 - BalanceSheetReportResponse: `total_assets:number`, `total_liabilities:number`, `total_equity:number`, `breakdown:BalanceSheetBreakdown[]`
 - BalanceSheetBreakdown: `account:string`, `amount:number`
+- SavingsReportResponse: `summary:{ deposits:number, withdrawals:number, net:number }`, `periods:Array<{ period:string, totals:{ deposits:number, withdrawals:number, net:number }, members:Array<{ member_id:number, member_name:string, savings_type:string, deposits:number, withdrawals:number, balance:number }> }>`
+- StockReportResponse: `summary:Array<{ period:string, incoming:number, outgoing:number, net:number }>`, `movements:Array<{ movement_id:number, product_id:number, product_variant_id:number, product_name:string, variant_name:string, qty_change:number, type:string, reference?:string, note?:string, business_unit_id?:number, created_by?:number, created_at:Rfc3339 }>`
 - ReportArchive: `id:number`, `tenant_id:number`, `type:string`, `period_start:Rfc3339`, `period_end:Rfc3339`, `file_url:string`, `created_at:Rfc3339`
 - ReportExport: `id:number`, `report_type:string`, `params:string(JSON)`, `file_url:string`, `created_at:Rfc3339`
 - FinancialReport (vendor): struktur agregasi khusus vendor (total revenue per tenant, dst) sesuai service.
@@ -53,9 +57,9 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Payload Utama
 
-- Ekspor tenant (`GET /reports/export`): gunakan query `type` (`finance|billing|cashflow|profit-loss|balance-sheet`), `start`, `end`, `format` (`pdf|xlsx`).
+- Ekspor tenant (`GET /api/reports/export`): gunakan query `type` (`finance|billing|cashflow|profit-loss|balance-sheet`), `start`, `end`, `format` (`pdf|xlsx`).
 
-- Vendor ekspor (`POST /vendor/reports/export`):
+- Vendor ekspor (`POST /api/vendor/reports/export`):
   ```json
   {
     "report_type": "finance",
@@ -63,6 +67,9 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
     "params": { "tenant_id": 1, "start_date": "2024-01-01", "end_date": "2024-01-31" }
   }
   ```
+
+- Savings report (`GET /api/reports/savings`): query `member_id?`, `start`, `end`, `group_by` (`day|week|month|year`).
+- Stock report (`GET /api/reports/stock`): query `business_unit_id?`, `variant_id?`, `start`, `end`, `group_by` (`day|week|month|year`).
 
 - Filter sejarah laporan mendukung `term` (search), `start_date`, `end_date`, `cursor`, `limit`.
 
@@ -174,6 +181,59 @@ type BalanceSheetReportResponse = {
   breakdown: BalanceSheetBreakdown[];
 };
 
+type SavingsReportTotals = {
+  deposits: number;
+  withdrawals: number;
+  net: number;
+};
+
+type SavingsMemberReport = {
+  member_id: number;
+  member_name: string;
+  savings_type: string;
+  deposits: number;
+  withdrawals: number;
+  balance: number;
+};
+
+type SavingsPeriodReport = {
+  period: string;
+  totals: SavingsReportTotals;
+  members: SavingsMemberReport[];
+};
+
+type SavingsReportResponse = {
+  summary: SavingsReportTotals;
+  periods: SavingsPeriodReport[];
+};
+
+type StockPeriodSummary = {
+  period: string;
+  incoming: number;
+  outgoing: number;
+  net: number;
+};
+
+type StockMovementDetail = {
+  movement_id: number;
+  product_id: number;
+  product_variant_id: number;
+  product_name: string;
+  variant_name: string;
+  qty_change: number;
+  type: string;
+  reference?: string;
+  note?: string;
+  business_unit_id?: number;
+  created_by?: number;
+  created_at: Rfc3339String;
+};
+
+type StockReportResponse = {
+  summary: StockPeriodSummary[];
+  movements: StockMovementDetail[];
+};
+
 type ReportArchive = {
   id: number;
   tenant_id: number;
@@ -203,13 +263,15 @@ type BalanceSheetReportAPIResponse = APIResponse<BalanceSheetReportResponse>;
 type ReportHistoryResponse = APIResponse<ReportArchive[]>;
 type VendorFinancialReportResponse = APIResponse<VendorFinancialReport>;
 type ReportExportListResponse = APIResponse<ReportExport[]>;
+type SavingsReportAPIResponse = APIResponse<SavingsReportResponse>;
+type StockReportAPIResponse = APIResponse<StockReportResponse>;
 ```
 
 > Untuk vendor financial report, definisi tipe dapat disesuaikan dengan struktur data yang dikonsumsi FE (misal total per tenant, top revenue, dsb.).
 
 ## Paginasi (Cursor)
 
-- `GET /reports/history` dan `GET /vendor/reports/exports` memakai cursor numerik (`id`) dengan `limit` default 10.
+- `GET /api/reports/history` dan `GET /api/vendor/reports/exports` memakai cursor numerik (`id`) dengan `limit` default 10.
 - Gunakan `meta.pagination.next_cursor` dari respons sebagai query `cursor` berikutnya.
 
 ## Error Singkat yang Perlu Ditangani

@@ -1,6 +1,6 @@
 # Theme Templates API — Panduan Integrasi Frontend (Singkat)
 
-Modul theme menyediakan katalog template landing/branding yang dapat dipakai tenant dan memungkinkan vendor untuk membuat serta mengunggah aset template. Endpoint berada di prefix `/theme-templates` dengan guard vendor untuk operasi mutasi.
+Modul theme menyediakan katalog template landing/branding yang dapat dipakai tenant dan memungkinkan vendor untuk membuat serta mengunggah aset template. Endpoint berada di prefix `/api/theme-templates` sebagaimana registrasi router di `internal/modules/registry.go` dan `internal/modules/support/theme/routes.go`, dengan guard vendor untuk operasi mutasi.
 
 Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, response, paginasi, dan keselarasan tipe data sesuai template standar.
 
@@ -14,13 +14,13 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Ringkasan Endpoint
 
-- GET `/theme-templates` — `tenant/vendor`: daftar template → 200 `APIResponse<Template[]>`
-- GET `/theme-templates/:id` — `tenant/Vendor`: detail template → 200 `APIResponse<Template>`
-- POST `/theme-templates` — `vendor admin`: buat template → 201 `APIResponse<Template>`
-- PUT `/theme-templates/:id` — `vendor admin`: perbarui template → 200 `APIResponse<Template>`
-- DELETE `/theme-templates/:id` — `vendor admin`: hapus template → 200 `APIResponse<{ id: number }>`
-- POST `/theme-templates/:id/logo` — `vendor admin`: upload logo (≤2 MB, JPG/JPEG/PNG/SVG/WEBP) → 200 `APIResponse<Template>`
-- POST `/theme-templates/:id/banner` — `vendor admin`: upload banner (≤2 MB, JPG/JPEG/PNG/SVG/WEBP) → 200 `APIResponse<Template>`
+- GET `/api/theme-templates` — `tenant/vendor`: daftar template → 200 `APIResponse<Template[]>`
+- GET `/api/theme-templates/:id` — `tenant/Vendor`: detail template → 200 `APIResponse<Template>`
+- POST `/api/theme-templates` — `vendor admin`: buat template → 201 `APIResponse<Template>`
+- PUT `/api/theme-templates/:id` — `vendor admin`: perbarui template → 200 `APIResponse<Template>`
+- DELETE `/api/theme-templates/:id` — `vendor admin`: hapus template → 200 `APIResponse<{ id: number }>`
+- POST `/api/theme-templates/:id/logo` — `vendor admin`: upload logo (≤2 MB, JPG/JPEG/PNG/SVG/WEBP) → 200 `APIResponse<Template>`
+- POST `/api/theme-templates/:id/banner` — `vendor admin`: upload banner (≤2 MB, JPG/JPEG/PNG/SVG/WEBP) → 200 `APIResponse<Template>`
 
 > Endpoint daftar tidak menggunakan paginasi; seluruh template dikembalikan sekaligus. Mutasi module menyertakan field `modules` agar FE bisa memperbarui tampilan tanpa fetch ulang.
 
@@ -33,10 +33,10 @@ Dokumen ringkas untuk kebutuhan integrasi UI. Fokus pada header, payload, respon
 
 ## Payload Utama
 
-- TemplateRequest (POST/PUT):
+- TemplateRequest (POST/PUT `/api/theme-templates`):
   - `{ name: string, code: string, description?: string, primary_color?: string, secondary_color?: string, layout?: string, landing_content?: string, logo_url?: string, banner_url?: string, modules?: { module: string, allowed_fields?: string[] }[] }`
 
-- UploadLogo / UploadBanner (multipart): field form `file` yang berisi gambar ≤2 MB dengan MIME `image/png` | `image/jpeg` | `image/jpg` | `image/svg+xml` | `image/webp`.
+- UploadLogo / UploadBanner (POST `/api/theme-templates/:id/logo` dan `/api/theme-templates/:id/banner`, multipart): field form `file` yang berisi gambar ≤2 MB dengan MIME `image/png` | `image/jpeg` | `image/jpg` | `image/svg+xml` | `image/webp`.
 
 ## Bentuk Response
 
@@ -122,6 +122,10 @@ type TemplateDetailResponse = APIResponse<Template>;
 - Pastikan file upload tidak melebihi 2 MB dan tipe MIME sesuai sebelum mengirim.
 - Tampilkan peringatan bahwa menghapus template akan menghapus modul terkait (OnDelete cascade).
 - Setelah membuat template, redirect ke halaman detail dan izinkan upload logo/banner secara terpisah.
+
+## Catatan QA
+
+- Payload dan respons telah diselaraskan dengan jalur `/api/theme-templates`. Mohon QA memverifikasi dokumentasi ini.
 
 ## Tautan Teknis (Opsional)
 
