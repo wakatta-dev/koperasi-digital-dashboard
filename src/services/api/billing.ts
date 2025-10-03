@@ -172,13 +172,20 @@ export async function downloadVendorInvoicePdf(
   return await res.blob();
 }
 
-export function listClientInvoices(params?: {
-  limit?: number;
-  cursor?: string;
-}, opts?: { signal?: AbortSignal }): Promise<ApiResponse<Invoice[]>> {
+export function listClientInvoices(
+  params?: {
+    limit?: number;
+    cursor?: string;
+    term?: string;
+    status?: Invoice["status"];
+  },
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<Invoice[]>> {
   const search = new URLSearchParams();
   search.set("limit", String(params?.limit ?? 100));
   if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.term) search.set("term", params.term);
+  if (params?.status) search.set("status", params.status);
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.billing.client.invoicesBase}`;
   return api.get<Invoice[]>(q ? `${base}?${q}` : base, { signal: opts?.signal });

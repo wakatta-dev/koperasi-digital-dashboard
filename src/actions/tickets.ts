@@ -39,7 +39,11 @@ export async function listVendorTicketsPage(
   meta: ApiResponse<Ticket[]>["meta"];
 }> {
   try {
-    const res = await listTickets(params);
+    const finalParams: Parameters<typeof listTickets>[0] = {
+      ...(params ?? {}),
+      limit: typeof params?.limit === "number" ? params.limit : 10,
+    };
+    const res = await listTickets(finalParams);
     const data = ensureSuccess(res);
     return { data, meta: res.meta };
   } catch {
