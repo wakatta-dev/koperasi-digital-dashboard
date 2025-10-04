@@ -8,6 +8,7 @@ import useSWR from "swr";
 import { format as formatDate } from "date-fns";
 
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import { API_PREFIX, api } from "@/services/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import type {
@@ -81,6 +82,7 @@ export function VendorDashboardDataProvider({
       ["vendor-dashboard", queryKey],
       async ([, query]) => fetchVendorDashboard(query as string),
       {
+        ...swrRateLimitOptions,
         keepPreviousData: true,
         revalidateOnFocus: false,
       }

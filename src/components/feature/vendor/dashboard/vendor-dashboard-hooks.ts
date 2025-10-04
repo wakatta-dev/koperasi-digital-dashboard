@@ -7,6 +7,7 @@ import useSWR from "swr";
 import { format as formatDate } from "date-fns";
 
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import { getBillingReport } from "@/services/api";
 import type { BillingReportResponse } from "@/types/api";
 
@@ -37,6 +38,7 @@ export function useVendorBillingReport() {
     ["vendor-dashboard", "billing-report", paramsKey],
     async () => ensureSuccess(await getBillingReport({ start, end })),
     {
+      ...swrRateLimitOptions,
       keepPreviousData: true,
       revalidateOnFocus: false,
     },
@@ -44,4 +46,3 @@ export function useVendorBillingReport() {
 
   return swr;
 }
-

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { format, differenceInCalendarDays } from "date-fns";
 
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import { getVendorInvoice } from "@/services/api";
 import type { Invoice } from "@/types/api";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,7 @@ export function VendorDashboardInvoiceWatchlist() {
       return responses;
     },
     {
+      ...swrRateLimitOptions,
       revalidateOnFocus: false,
     },
   );
@@ -232,4 +234,3 @@ export function VendorDashboardInvoiceWatchlist() {
     </Card>
   );
 }
-

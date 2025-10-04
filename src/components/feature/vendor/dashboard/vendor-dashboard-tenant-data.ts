@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import useSWR, { type SWRResponse } from "swr";
 
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import {
   listClients,
   listVendorSubscriptions,
@@ -48,6 +49,7 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
     ["vendor-dashboard", "clients", clientParams],
     async ([, , params]) => ensureSuccess(await listClients(params)),
     {
+      ...swrRateLimitOptions,
       keepPreviousData: true,
       revalidateOnFocus: false,
     },
@@ -57,6 +59,7 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
     ["vendor-dashboard", "subscriptions", "summary"],
     async () => ensureSuccess(await getVendorSubscriptionsSummary()),
     {
+      ...swrRateLimitOptions,
       revalidateOnFocus: false,
     },
   );
@@ -73,6 +76,7 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
     ["vendor-dashboard", "subscriptions", subscriptionParams],
     async ([, , params]) => ensureSuccess(await listVendorSubscriptions(params)),
     {
+      ...swrRateLimitOptions,
       keepPreviousData: true,
       revalidateOnFocus: false,
     },

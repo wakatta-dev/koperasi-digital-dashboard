@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import { listUsers } from "@/services/api";
 import type { Client, User } from "@/types/api";
 
@@ -94,6 +95,7 @@ export function VendorDashboardLoginLeaderboard() {
         ranges: resolvedRanges,
       }),
     {
+      ...swrRateLimitOptions,
       revalidateOnFocus: false,
       keepPreviousData: true,
     },

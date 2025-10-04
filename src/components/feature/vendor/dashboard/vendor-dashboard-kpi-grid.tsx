@@ -4,7 +4,14 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Users, Ticket, Building2, UserCheck, UserX, Sparkles } from "lucide-react";
+import {
+  Users,
+  Ticket,
+  Building2,
+  UserCheck,
+  UserX,
+  Sparkles,
+} from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,8 +45,11 @@ const numberFormatter = new Intl.NumberFormat("id-ID");
 const dateFormatter = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" });
 
 export function VendorDashboardKpiGrid() {
-  const { totalActiveClients, openTickets, isLoading: dashboardLoading } =
-    useVendorDashboardData();
+  const {
+    totalActiveClients,
+    openTickets,
+    isLoading: dashboardLoading,
+  } = useVendorDashboardData();
   const { filters } = useVendorDashboardFilters();
   const {
     clientsState,
@@ -58,17 +68,19 @@ export function VendorDashboardKpiGrid() {
     subscriptionSummaryState;
 
   const totalTenants = filteredClients.length;
-  const activeTenants = filteredClients.filter((client) => client.status === "active").length;
+  const activeTenants = filteredClients.filter(
+    (client) => client.status === "active"
+  ).length;
   const inactiveTenants = filteredClients.filter(
-    (client) => client.status === "inactive" || client.status === "suspended",
+    (client) => client.status === "inactive" || client.status === "suspended"
   ).length;
   const newTenantCandidates = filteredClients.filter((client) =>
-    ["inactive", "suspended"].includes(client.status),
+    ["inactive", "suspended"].includes(client.status)
   );
   const newTenantCount = newTenantCandidates.length;
 
   const pendingTrialCount = filteredSubscriptions.filter(
-    (subscription) => subscription.status === "pending",
+    (subscription) => subscription.status === "pending"
   ).length;
 
   const displayTrialCount =
@@ -107,8 +119,10 @@ export function VendorDashboardKpiGrid() {
     () =>
       selectedTenantId == null
         ? null
-        : newTenantCandidates.find((tenant) => tenant.id === selectedTenantId) ?? null,
-    [newTenantCandidates, selectedTenantId],
+        : newTenantCandidates.find(
+            (tenant) => tenant.id === selectedTenantId
+          ) ?? null,
+    [newTenantCandidates, selectedTenantId]
   );
 
   async function handleVerifyTenant() {
@@ -135,7 +149,9 @@ export function VendorDashboardKpiGrid() {
           description={
             filters.subscriptionStatus === "all"
               ? "Semua tenant sesuai filter tipe"
-              : `Difilter berdasarkan status ${translateSubscriptionFilter(filters.subscriptionStatus)}`
+              : `Difilter berdasarkan status ${translateSubscriptionFilter(
+                  filters.subscriptionStatus
+                )}`
           }
         />
 
@@ -166,7 +182,9 @@ export function VendorDashboardKpiGrid() {
             {tenantDataLoading ? (
               <Skeleton className="h-8 w-24" />
             ) : tenantDataError ? (
-              <p className="text-sm text-destructive">Gagal memuat tenant baru.</p>
+              <p className="text-sm text-destructive">
+                Gagal memuat tenant baru.
+              </p>
             ) : (
               <>
                 <div className="flex items-baseline gap-2">
@@ -193,20 +211,28 @@ export function VendorDashboardKpiGrid() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Langganan Trial</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Langganan Trial
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
             {tenantDataLoading ? (
               <Skeleton className="h-8 w-24" />
             ) : subscriptionsError ? (
-              <p className="text-sm text-destructive">Gagal memuat data langganan.</p>
+              <p className="text-sm text-destructive">
+                Gagal memuat data langganan.
+              </p>
             ) : (
               <>
-                <div className="text-2xl font-semibold">{formatNumber(displayTrialCount)}</div>
+                <div className="text-2xl font-semibold">
+                  {formatNumber(displayTrialCount)}
+                </div>
                 <p className="text-sm text-muted-foreground">
                   {nextBillingDate
-                    ? `Tagihan berikutnya: ${dateFormatter.format(nextBillingDate)}`
+                    ? `Tagihan berikutnya: ${dateFormatter.format(
+                        nextBillingDate
+                      )}`
                     : "Belum ada jadwal tagihan"}
                 </p>
                 <Button size="sm" variant="outline" asChild>
@@ -221,7 +247,9 @@ export function VendorDashboardKpiGrid() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Klien Aktif</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Klien Aktif
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -244,7 +272,9 @@ export function VendorDashboardKpiGrid() {
             {dashboardLoading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-2xl font-semibold">{formatNumber(openTickets)}</div>
+              <div className="text-2xl font-semibold">
+                {formatNumber(openTickets)}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -278,7 +308,14 @@ type KpiCardProps = {
   error?: unknown;
 };
 
-function KpiCard({ title, icon, value, description, loading, error }: KpiCardProps) {
+function KpiCard({
+  title,
+  icon,
+  value,
+  description,
+  loading,
+  error,
+}: KpiCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -322,7 +359,8 @@ function ManageTenantDialog({
   onActivate,
   isActivating,
 }: ManageTenantDialogProps) {
-  const selectedTenant = tenants.find((tenant) => tenant.id === selectedId) ?? null;
+  const selectedTenant =
+    tenants.find((tenant) => tenant.id === selectedId) ?? null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -375,7 +413,10 @@ function ManageTenantDialog({
               <Button variant="outline" asChild>
                 <Link href="/vendor/clients">Buka Daftar Tenant</Link>
               </Button>
-              <Button onClick={onActivate} disabled={isActivating || !selectedTenant}>
+              <Button
+                onClick={onActivate}
+                disabled={isActivating || !selectedTenant}
+              >
                 {isActivating ? "Memverifikasi..." : "Verifikasi & Aktifkan"}
               </Button>
             </DialogFooter>

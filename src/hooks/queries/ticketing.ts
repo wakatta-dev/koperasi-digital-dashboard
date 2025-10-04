@@ -27,6 +27,9 @@ import {
 } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
+
+const shouldRetryQuery = buildReactQueryRetry(1);
 
 export function useTickets(
   params: {
@@ -46,6 +49,7 @@ export function useTickets(
   return useQuery({
     queryKey: QK.tickets.list(final),
     queryFn: async () => ensureSuccess(await listTickets(final)),
+    retry: shouldRetryQuery,
     ...(initialData ? { initialData } : {}),
     ...(options?.refetchInterval ? { refetchInterval: options.refetchInterval } : {}),
   });
@@ -56,6 +60,7 @@ export function useTicket(id?: string, initialData?: Ticket | undefined) {
     queryKey: QK.tickets.detail(id ?? ""),
     enabled: !!id,
     queryFn: async () => ensureSuccess(await getTicket(id as string)),
+    retry: shouldRetryQuery,
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -65,6 +70,7 @@ export function useVendorTicket(id?: string, initialData?: Ticket | undefined) {
     queryKey: QK.tickets.vendorView(id ?? ""),
     enabled: !!id,
     queryFn: async () => ensureSuccess(await getTicketVendorView(id as string)),
+    retry: shouldRetryQuery,
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -112,6 +118,7 @@ export function useTicketReplies(
     enabled: !!id,
     queryFn: async () =>
       ensureSuccess(await listTicketReplies(id as string, params)),
+    retry: shouldRetryQuery,
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -126,6 +133,7 @@ export function useTicketActivities(
     enabled: !!id,
     queryFn: async () =>
       ensureSuccess(await listTicketActivities(id as string, params)),
+    retry: shouldRetryQuery,
     ...(initialData ? { initialData } : {}),
   });
 }
@@ -134,6 +142,7 @@ export function useTicketSLA(initialData?: TicketCategorySLA[] | undefined) {
   return useQuery({
     queryKey: QK.tickets.sla(),
     queryFn: async () => ensureSuccess(await listTicketSLA()),
+    retry: shouldRetryQuery,
     ...(initialData ? { initialData } : {}),
   });
 }

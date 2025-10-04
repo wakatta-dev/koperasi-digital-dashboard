@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import {
   listVendorNotifications,
   publishVendorNotification,
@@ -81,7 +82,7 @@ export function VendorDashboardAlertCenter() {
   } = useSWR<Notification[]>(
     ["vendor-dashboard", "broadcasts"],
     async () => ensureSuccess(await listVendorNotifications({ limit: 5 })),
-    { revalidateOnFocus: false },
+    { ...swrRateLimitOptions, revalidateOnFocus: false },
   );
 
   const {
@@ -91,7 +92,7 @@ export function VendorDashboardAlertCenter() {
   } = useSWR<TenantDetail[]>(
     ["vendor-dashboard", "tenants", "inactive"],
     async () => ensureSuccess(await listTenants({ status: "inactive", limit: 10 })),
-    { revalidateOnFocus: false },
+    { ...swrRateLimitOptions, revalidateOnFocus: false },
   );
 
   const {
@@ -104,7 +105,7 @@ export function VendorDashboardAlertCenter() {
       ensureSuccess(
         await listVendorSubscriptions({ status: "pending", limit: 50 }),
       ),
-    { revalidateOnFocus: false },
+    { ...swrRateLimitOptions, revalidateOnFocus: false },
   );
 
   const {
@@ -121,7 +122,7 @@ export function VendorDashboardAlertCenter() {
           limit: 10,
         }),
       ),
-    { revalidateOnFocus: false },
+    { ...swrRateLimitOptions, revalidateOnFocus: false },
   );
 
   const {
@@ -487,4 +488,3 @@ function AlertIcon({ type }: { type: DashboardAlert["type"] }) {
       return <Megaphone className={className} />;
   }
 }
-

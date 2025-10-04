@@ -13,6 +13,7 @@ import {
 } from "recharts";
 
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import { getVendorFinancialReport } from "@/services/api";
 import type { VendorFinancialReport } from "@/types/api";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,7 @@ export function VendorDashboardRecurringRevenue() {
         }),
       ),
     {
+      ...swrRateLimitOptions,
       keepPreviousData: true,
       revalidateOnFocus: false,
     },
@@ -202,4 +204,3 @@ export function VendorDashboardRecurringRevenue() {
     </Card>
   );
 }
-

@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ensureSuccess } from "@/lib/api";
+import { swrRateLimitOptions } from "@/lib/rate-limit";
 import { listTenantModules } from "@/services/api";
 import type { Client, TenantModule } from "@/types/api";
 
@@ -93,6 +94,7 @@ export function VendorDashboardModuleAdoption() {
         ranges: resolvedRanges,
       }),
     {
+      ...swrRateLimitOptions,
       revalidateOnFocus: false,
       keepPreviousData: true,
     },
