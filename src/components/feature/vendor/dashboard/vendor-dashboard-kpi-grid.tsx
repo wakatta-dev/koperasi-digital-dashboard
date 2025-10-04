@@ -393,18 +393,3 @@ function ManageTenantDialog({
 function formatNumber(value: number) {
   return numberFormatter.format(value);
 }
-
-function translateSubscriptionFilter(filter: ReturnType<typeof useVendorDashboardFilters>["filters"]["subscriptionStatus"]) {
-  switch (filter) {
-    case "active":
-      return "aktif";
-    case "trial":
-      return "trial";
-    case "cancelled":
-      return "dibatalkan";
-    case "expired":
-      return "kedaluwarsa";
-    default:
-      return "semua status";
-  }
-}

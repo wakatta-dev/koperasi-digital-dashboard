@@ -2,6 +2,83 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+type ClientSessionCache = {
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresAt: number | null;
+};
+
+let clientSessionCache: ClientSessionCache | null = null;
+let clientSessionPromise: Promise<ClientSessionCache | null> | null = null;
+
+function parseExpiry(value: unknown): number | null {
+  if (!value) return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  const numeric = Date.parse(String(value));
+  return Number.isNaN(numeric) ? null : numeric;
+}
+
+function setClientSessionCache(session: any): ClientSessionCache | null {
+  if (!session) {
+    clientSessionCache = null;
+    return null;
+  }
+
+  const expiresAt = parseExpiry(session.expires);
+
+  clientSessionCache = {
+    accessToken: session?.accessToken ?? session?.access_token ?? null,
+    refreshToken: session?.refreshToken ?? session?.refresh_token ?? null,
+    expiresAt,
+  };
+
+  return clientSessionCache;
+}
+
+function resetClientSessionCache() {
+  clientSessionCache = null;
+  clientSessionPromise = null;
+}
+
+function getValidClientSessionCache(): ClientSessionCache | null {
+  if (!clientSessionCache) return null;
+  const { expiresAt, accessToken } = clientSessionCache;
+  if (!accessToken) return null;
+  if (!expiresAt) return clientSessionCache;
+  const CLOCK_SKEW = 30_000; // refresh slightly before expiry
+  if (expiresAt - CLOCK_SKEW > Date.now()) {
+    return clientSessionCache;
+  }
+  return null;
+}
+
+async function loadClientSession(): Promise<ClientSessionCache | null> {
+  const { getSession } = await import("next-auth/react");
+  const session = await getSession();
+  return setClientSessionCache(session);
+}
+
+async function ensureClientSession(): Promise<ClientSessionCache | null> {
+  const cached = getValidClientSessionCache();
+  if (cached) {
+    return cached;
+  }
+
+  if (!clientSessionPromise) {
+    clientSessionPromise = (async () => {
+      try {
+        return await loadClientSession();
+      } finally {
+        clientSessionPromise = null;
+      }
+    })();
+  }
+
+  return clientSessionPromise;
+}
+
 export async function login(email: string, password: string) {
   const { signIn } = await import("next-auth/react");
   const res = await signIn("credentials", {
@@ -36,6 +113,7 @@ export async function logout() {
     body: JSON.stringify(rt ? { refresh_token: rt } : {}),
     credentials: "include",
   }).catch(() => null);
+  resetClientSessionCache();
   if (typeof window !== "undefined") {
     document.cookie =
       "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -47,9 +125,8 @@ export async function logout() {
 export async function getAccessToken(): Promise<string | null> {
   try {
     if (typeof window !== "undefined") {
-      const { getSession } = await import("next-auth/react");
-      const session: any = await getSession();
-      return session?.accessToken ?? null;
+      const sessionCache = await ensureClientSession();
+      return sessionCache?.accessToken ?? null;
     }
     const { getServerSession } = await import("next-auth");
     const { authOptions } = await import("@/lib/authOptions");
@@ -77,9 +154,8 @@ export async function refreshToken(): Promise<string | null> {
 
     if (!rt) {
       if (typeof window !== "undefined") {
-        const { getSession } = await import("next-auth/react");
-        const session: any = await getSession();
-        rt = session?.refreshToken ?? null;
+        const sessionCache = await ensureClientSession();
+        rt = sessionCache?.refreshToken ?? null;
       } else {
         const { getServerSession } = await import("next-auth");
         const { authOptions } = await import("@/lib/authOptions");
@@ -114,6 +190,15 @@ export async function refreshToken(): Promise<string | null> {
           /* noop */
         }
       }
+    }
+
+    if (typeof window !== "undefined") {
+      const expiresAt = clientSessionCache?.expiresAt ?? (Date.now() + 5 * 60_000);
+      clientSessionCache = {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token ?? clientSessionCache?.refreshToken ?? null,
+        expiresAt,
+      };
     }
 
     return data.access_token as string;

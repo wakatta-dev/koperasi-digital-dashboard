@@ -21,7 +21,9 @@ import {
   type VendorDashboardFilterState,
 } from "./vendor-dashboard-filter-context";
 
-function buildDashboardQuery(filters: VendorDashboardFilterState): string | null {
+function buildDashboardQuery(
+  filters: VendorDashboardFilterState
+): string | null {
   const params = new URLSearchParams();
   const { dateRange, tenantType, subscriptionStatus } = filters;
   if (dateRange?.from) {
@@ -40,7 +42,9 @@ function buildDashboardQuery(filters: VendorDashboardFilterState): string | null
   return query.length ? query : null;
 }
 
-async function fetchVendorDashboard(query?: string | null): Promise<VendorDashboard> {
+async function fetchVendorDashboard(
+  query?: string | null
+): Promise<VendorDashboard> {
   const basePath = `${API_PREFIX}${API_ENDPOINTS.vendor.dashboard}`;
   const path = query ? `${basePath}?${query}` : basePath;
   const response = await api.get<VendorDashboard>(path);
@@ -72,26 +76,22 @@ export function VendorDashboardDataProvider({
   const { filters } = useVendorDashboardFilters();
   const queryKey = useMemo(() => buildDashboardQuery(filters), [filters]);
 
-  const {
-    data,
-    error,
-    isLoading,
-    isValidating,
-    mutate,
-  } = useSWR<VendorDashboard>(
-    ["vendor-dashboard", queryKey],
-    async ([, query]) => fetchVendorDashboard(query),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+  const { data, error, isLoading, isValidating, mutate } =
+    useSWR<VendorDashboard>(
+      ["vendor-dashboard", queryKey],
+      async ([, query]) => fetchVendorDashboard(query as string),
+      {
+        keepPreviousData: true,
+        revalidateOnFocus: false,
+      }
+    );
 
   const value = useMemo<VendorDashboardDataContextValue>(() => {
-    const tiers = (data?.client_totals_by_tier ?? []) as VendorProductTierSummary[];
+    const tiers = (data?.client_totals_by_tier ??
+      []) as VendorProductTierSummary[];
     const totalActiveClients = tiers.reduce(
       (total, tier) => total + (tier?.active_clients ?? 0),
-      0,
+      0
     );
 
     return {
@@ -103,7 +103,12 @@ export function VendorDashboardDataProvider({
       productWithMostTickets: data?.product_with_most_tickets ?? null,
       isLoading,
       isError: Boolean(error),
-      error: error instanceof Error ? error : error ? new Error(String(error)) : null,
+      error:
+        error instanceof Error
+          ? error
+          : error
+          ? new Error(String(error))
+          : null,
       refresh: () => mutate(),
       isValidating,
     };
@@ -120,7 +125,7 @@ export function useVendorDashboardData() {
   const ctx = useContext(VendorDashboardDataContext);
   if (!ctx) {
     throw new Error(
-      "useVendorDashboardData must be used within VendorDashboardDataProvider",
+      "useVendorDashboardData must be used within VendorDashboardDataProvider"
     );
   }
   return ctx;
