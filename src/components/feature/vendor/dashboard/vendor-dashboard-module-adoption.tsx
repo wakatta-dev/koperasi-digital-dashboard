@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import { BarChart3, Users, PowerOff } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ensureSuccess } from "@/lib/api";
-import { swrRateLimitOptions } from "@/lib/rate-limit";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import { listTenantModules } from "@/services/api";
 import type { Client, TenantModule } from "@/types/api";
 
@@ -85,20 +85,21 @@ export function VendorDashboardModuleAdoption() {
       : null;
   }, [tenantIds, resolvedRanges]);
 
-  const { data, error, isLoading } = useSWR<ModuleAdoptionResult>(
-    cacheKey,
-    async () =>
+  const queryKey = cacheKey ?? ["vendor-dashboard", "module-adoption", "empty"];
+
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
+    queryKey,
+    queryFn: async () =>
       fetchModuleAdoption({
         tenantIds,
         tenantLookup,
         ranges: resolvedRanges,
       }),
-    {
-      ...swrRateLimitOptions,
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-    },
-  );
+    enabled: Boolean(cacheKey),
+    keepPreviousData: true,
+    staleTime: 10 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const selectedModule = useMemo(() => {
     if (!data?.entries.length || !selectedModuleId) return null;
@@ -123,6 +124,9 @@ export function VendorDashboardModuleAdoption() {
           </Badge>
         </CardHeader>
         <CardContent className="space-y-4">
+          {isFetching ? (
+            <p className="text-xs text-muted-foreground">Memperbarui data…</p>
+          ) : null}
           {isLoading ? (
             <ModuleAdoptionSkeleton />
           ) : error ? (
@@ -134,16 +138,26 @@ export function VendorDashboardModuleAdoption() {
               Belum ada modul aktif yang cocok dengan filter saat ini.
             </div>
           ) : (
-            <div className="space-y-4">
-              {data.entries.map((entry) => (
+            <div className="max-h-96 space-y-4 overflow-y-auto pr-1">
+              {data.entries.slice(0, 12).map((entry) => (
                 <ModuleAdoptionRow
                   key={entry.moduleId}
                   entry={entry}
                   onViewTenants={() => setSelectedModuleId(entry.moduleId)}
                 />
               ))}
+              {data.entries.length > 12 ? (
+                <div className="rounded-md border border-dashed p-3 text-center text-xs text-muted-foreground">
+                  Menampilkan 12 modul teratas dari {data.entries.length} total modul.
+                </div>
+              ) : null}
             </div>
           )}
+          <div className="flex justify-end">
+            <Button size="sm" variant="outline" onClick={() => void refetch()}>
+              Segarkan Data
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -264,7 +278,7 @@ function TenantList({
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="max-h-64 space-y-2 overflow-y-auto pr-1">
       {tenantIds.map((tenantId) => {
         const meta = tenantLookup.get(tenantId);
         if (!meta) return null;

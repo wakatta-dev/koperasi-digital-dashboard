@@ -2,13 +2,14 @@
 
 "use client";
 
-import { useMemo, type ReactNode } from "react";
-import useSWR from "swr";
+import { useMemo, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow, isWithinInterval, parseISO } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Activity, Clock, LifeBuoy, MessageCircle } from "lucide-react";
 
 import { ensureSuccess } from "@/lib/api";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import { listTicketReplies, listTicketSLA, listTickets } from "@/services/api";
 import type { Ticket, TicketCategorySLA, TicketReply } from "@/types/api";
 import { Button } from "@/components/ui/button";
@@ -49,41 +50,47 @@ export default function VendorSupportHealthPage() {
   const { filteredClientIds } = useVendorDashboardTenantUniverse();
 
   const tenantFilterKey = useMemo(() => Array.from(filteredClientIds).join("-"), [filteredClientIds]);
+  const rangeStartIso = ranges.current.start.toISOString();
+  const rangeEndIso = ranges.current.end.toISOString();
+
+  const ticketsQueryKey = useMemo(
+    () => [
+      "vendor-dashboard",
+      "support-health",
+      "tickets",
+      tenantFilterKey,
+      rangeStartIso,
+      rangeEndIso,
+    ] as const,
+    [tenantFilterKey, rangeStartIso, rangeEndIso]
+  );
 
   const {
     data: tickets,
     error: ticketsError,
     isLoading: ticketsLoading,
-    isValidating: ticketsValidating,
-    mutate: refreshTickets,
-  } = useSWR<Ticket[]>(
-    [
-      "vendor-dashboard",
-      "support-health",
-      "tickets",
-      tenantFilterKey,
-      ranges.current.start.toISOString(),
-      ranges.current.end.toISOString(),
-    ],
-    async () => ensureSuccess(await listTickets({ limit: 200 })),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+    isFetching: ticketsFetching,
+    refetch: refetchTickets,
+  } = useQuery({
+    queryKey: ticketsQueryKey,
+    queryFn: async () => ensureSuccess<Ticket[]>(await listTickets({ limit: 120 })),
+    keepPreviousData: true,
+    staleTime: 2 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const {
     data: sla,
     error: slaError,
     isLoading: slaLoading,
-    mutate: refreshSla,
-  } = useSWR<TicketCategorySLA[]>(
-    ["vendor-dashboard", "support-health", "sla"],
-    async () => ensureSuccess(await listTicketSLA()),
-    {
-      revalidateOnFocus: false,
-    },
-  );
+    isFetching: slaFetching,
+    refetch: refetchSla,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "support-health", "sla"],
+    queryFn: async () => ensureSuccess<TicketCategorySLA[]>(await listTicketSLA()),
+    staleTime: 10 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const filteredTickets = useMemo(
     () => filterTicketsByScope(tickets ?? [], filteredClientIds, ranges),
@@ -139,7 +146,7 @@ export default function VendorSupportHealthPage() {
                 ? ticketsError.message
                 : "Terjadi kesalahan saat mengambil daftar tiket."}
             </span>
-            <Button size="sm" variant="outline" onClick={() => refreshTickets()}>
+            <Button size="sm" variant="outline" onClick={() => void refetchTickets()}>
               Coba lagi
             </Button>
           </AlertDescription>
@@ -155,7 +162,7 @@ export default function VendorSupportHealthPage() {
                 ? slaError.message
                 : "Terjadi kesalahan saat mengambil konfigurasi SLA tiket."}
             </span>
-            <Button size="sm" variant="outline" onClick={() => refreshSla()}>
+            <Button size="sm" variant="outline" onClick={() => void refetchSla()}>
               Muat ulang SLA
             </Button>
           </AlertDescription>
@@ -206,7 +213,7 @@ export default function VendorSupportHealthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {ticketsValidating ? (
+            {ticketsFetching ? (
               <span className="text-xs text-muted-foreground">Memperbarui data tiket…</span>
             ) : null}
             {loadingState ? (
@@ -228,6 +235,9 @@ export default function VendorSupportHealthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {slaFetching && sla?.length ? (
+              <span className="text-xs text-muted-foreground">Memperbarui data SLA…</span>
+            ) : null}
             {slaLoading && !sla ? (
               <Skeleton className="h-[180px] w-full" />
             ) : sla && sla.length ? (
@@ -239,9 +249,12 @@ export default function VendorSupportHealthPage() {
                     <TableHead className="text-right">Resolusi</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="block max-h-64 overflow-y-auto">
                   {sla.map((item) => (
-                    <TableRow key={item.category}>
+                    <TableRow
+                      key={item.category}
+                      className="grid grid-cols-[1.5fr_1fr_1fr] items-center gap-3 md:table-row md:gap-0"
+                    >
                       <TableCell className="capitalize">{item.category}</TableCell>
                       <TableCell className="text-right">
                         {formatMinutes(item.sla_response_minutes)}
@@ -281,9 +294,12 @@ export default function VendorSupportHealthPage() {
                     <TableHead className="text-right">Resolusi rata-rata</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="block max-h-72 overflow-y-auto">
                   {agentMetrics.map((agent) => (
-                    <TableRow key={agent.agentId}>
+                    <TableRow
+                      key={agent.agentId}
+                      className="grid grid-cols-[1.6fr_1fr_1fr_1fr] items-center gap-3 md:table-row md:gap-0"
+                    >
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium">Agen #{agent.agentId}</span>
@@ -383,24 +399,31 @@ function BacklogList({ title, items }: { title: string; items: BacklogItem[] }) 
 }
 
 function TicketRepliesPreview({ ticket }: { ticket: Ticket }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const {
     data: replies,
     error,
     isLoading,
-    mutate,
-  } = useSWR<TicketReply[]>(
-    ["vendor-dashboard", "support-health", "replies", ticket.id],
-    async ([, , , id]) => ensureSuccess(await listTicketReplies(id as string, { limit: 5 })),
-    {
-      revalidateOnFocus: false,
-    },
-  );
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "support-health", "replies", ticket.id],
+    queryFn: async ({ queryKey: [, , , id] }) =>
+      ensureSuccess<TicketReply[]>(await listTicketReplies(id as string, { limit: 5 })),
+    enabled: Boolean(ticket.id) && isExpanded,
+    staleTime: 2 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+    refetchOnWindowFocus: false,
+  });
 
   const latestReply = replies && replies.length ? replies[replies.length - 1] : null;
+  const showLoading =
+    isExpanded && ((isLoading && !replies) || (isFetching && !replies));
 
   return (
-    <div className="rounded-lg border p-4">
-      <div className="flex items-start justify-between gap-3">
+    <div className="space-y-3 rounded-lg border p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <MessageCircle className="h-4 w-4 text-primary" />
@@ -410,30 +433,52 @@ function TicketRepliesPreview({ ticket }: { ticket: Ticket }) {
             Status {formatTicketStatus(ticket.status)} • Prioritas {formatTicketPriority(ticket.priority)}
           </p>
         </div>
-        <Button size="sm" variant="outline" onClick={() => mutate()}>
-          Segarkan
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {isExpanded ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void refetch()}
+              disabled={isFetching}
+            >
+              {isFetching ? "Memuat…" : "Segarkan"}
+            </Button>
+          ) : null}
+          <Button
+            size="sm"
+            variant={isExpanded ? "secondary" : "outline"}
+            onClick={() => setIsExpanded((prev) => !prev)}
+          >
+            {isExpanded ? "Sembunyikan" : "Lihat percakapan"}
+          </Button>
+        </div>
       </div>
-      <div className="mt-3 text-sm text-muted-foreground">
-        {error ? (
-          <span>
-            {error instanceof Error
-              ? error.message
-              : "Gagal memuat balasan vendor."}
-          </span>
-        ) : isLoading && !replies ? (
-          <Skeleton className="h-16 w-full" />
-        ) : latestReply ? (
-          <>
-            <p className="font-medium text-foreground">{latestReply.message}</p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {formatReplyTimestamp(latestReply.created_at)} oleh agen #{latestReply.user_id}
-            </p>
-          </>
-        ) : (
-          <span>Belum ada balasan vendor untuk tiket ini.</span>
-        )}
-      </div>
+      {isExpanded ? (
+        <div className="text-sm text-muted-foreground">
+          {error ? (
+            <span>
+              {error instanceof Error
+                ? error.message
+                : "Gagal memuat balasan vendor."}
+            </span>
+          ) : showLoading ? (
+            <Skeleton className="h-16 w-full" />
+          ) : latestReply ? (
+            <>
+              <p className="font-medium text-foreground">{latestReply.message}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {formatReplyTimestamp(latestReply.created_at)} oleh agen #{latestReply.user_id}
+              </p>
+            </>
+          ) : (
+            <span>Belum ada balasan vendor untuk tiket ini.</span>
+          )}
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          Buka percakapan untuk memuat balasan vendor terbaru.
+        </p>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import {
   Area,
   AreaChart,
@@ -19,11 +19,8 @@ import { FileDown, LineChart } from "lucide-react";
 import { toast } from "sonner";
 
 import { ensureSuccess } from "@/lib/api";
-import {
-  exportVendorReportRaw,
-  getBillingReport,
-  getVendorFinancialReport,
-} from "@/services/api";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
+import { exportVendorReportRaw, getVendorFinancialReport } from "@/services/api";
 import type {
   BillingReportResponse,
   OverdueInvoiceResponse,
@@ -117,52 +114,51 @@ export default function VendorRevenueTrendPage() {
   const [exportFormat, setExportFormat] = useState<ExportFormatValue>("xlsx");
   const [exporting, setExporting] = useState(false);
 
-  const financialKey = useMemo(
-    () => JSON.stringify({ start, end, groupBy }),
+  const financialParams = useMemo(
+    () => ({ start, end, groupBy }),
     [start, end, groupBy],
-  );
-
-  const billingKey = useMemo(
-    () => JSON.stringify({ start, end }),
-    [start, end],
   );
 
   const {
     data: financialData,
     error: financialError,
     isLoading: financialLoading,
-    isValidating: financialValidating,
-    mutate: refreshFinancial,
-  } = useSWR<VendorFinancialReport>(
-    ["vendor-dashboard", "revenue-trend", "financial", financialKey],
-    async () =>
-      ensureSuccess(
+    isFetching: financialFetching,
+    refetch: refetchFinancial,
+  } = useQuery({
+    queryKey: [
+      "vendor-dashboard",
+      "revenue-trend",
+      "financial",
+      financialParams,
+    ],
+    queryFn: async ({ queryKey }) => {
+      const [, , , params] = queryKey as [
+        string,
+        string,
+        string,
+        { start?: string; end?: string; groupBy: GroupByValue },
+      ];
+      return ensureSuccess<VendorFinancialReport>(
         await getVendorFinancialReport({
-          start_date: start,
-          end_date: end,
-          group_by: groupBy,
+          start_date: params.start,
+          end_date: params.end,
+          group_by: params.groupBy,
         }),
-      ),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
+      );
     },
-  );
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const {
     data: billingData,
     error: billingError,
     isLoading: billingLoading,
-    isValidating: billingValidating,
-    mutate: refreshBilling,
-  } = useSWR<BillingReportResponse>(
-    ["vendor-dashboard", "revenue-trend", "billing", billingKey],
-    async () => ensureSuccess(await getBillingReport({ start, end })),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+    isFetching: billingFetching,
+    refetch: refetchBilling,
+  } = useVendorBillingReport();
 
   const financialSeries = financialData?.series ?? [];
   const revenueTotals = financialData?.totals ?? { mrr: 0, arr: 0 };
@@ -175,7 +171,15 @@ export default function VendorRevenueTrendPage() {
     subscription: 0,
     outstanding: 0,
   };
-  const overdueInvoices = billingData?.overdue_invoices ?? [];
+  const overdueInvoices = useMemo(
+    () => billingData?.overdue_invoices ?? [],
+    [billingData?.overdue_invoices]
+  );
+  const limitedOverdueInvoices = useMemo(
+    () => overdueInvoices.slice(0, 15),
+    [overdueInvoices]
+  );
+  const showOverdueNote = overdueInvoices.length > limitedOverdueInvoices.length;
   const totalInvoices = billingData?.total_invoices ?? 0;
 
   const statusData = buildStatusChartData(billingStatus);
@@ -304,10 +308,10 @@ export default function VendorRevenueTrendPage() {
                   : "Terjadi kesalahan saat mengambil data finansial."}
             </span>
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" onClick={() => refreshFinancial()}>
+              <Button size="sm" variant="outline" onClick={() => void refetchFinancial()}>
                 Segarkan data finansial
               </Button>
-              <Button size="sm" variant="outline" onClick={() => refreshBilling()}>
+              <Button size="sm" variant="outline" onClick={() => void refetchBilling()}>
                 Segarkan data billing
               </Button>
             </div>
@@ -324,7 +328,7 @@ export default function VendorRevenueTrendPage() {
                 Lacak pertumbuhan pendapatan berdasarkan periode {groupByLabel(groupBy)}.
               </CardDescription>
             </div>
-            {financialValidating ? (
+            {financialFetching ? (
               <span className="text-xs text-muted-foreground">Memperbarui data…</span>
             ) : null}
           </CardHeader>
@@ -385,7 +389,7 @@ export default function VendorRevenueTrendPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {billingValidating ? (
+            {billingFetching ? (
               <span className="text-xs text-muted-foreground">Memperbarui data billing…</span>
             ) : null}
             {loadingBillingCards ? (
@@ -455,32 +459,41 @@ export default function VendorRevenueTrendPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {overdueInvoices.length ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nomor Invoice</TableHead>
-                  <TableHead>Tenant</TableHead>
-                  <TableHead className="text-right">Nilai</TableHead>
-                  <TableHead>Jatuh Tempo</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {overdueInvoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.number}</TableCell>
-                    <TableCell>#{invoice.tenant_id}</TableCell>
-                    <TableCell className="text-right">
-                      {currencyFormatter.format(invoice.total ?? 0)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="destructive">{formatInvoiceDueDate(invoice)}</Badge>
-                    </TableCell>
+        {limitedOverdueInvoices.length ? (
+          <>
+            <div className="max-h-80 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nomor Invoice</TableHead>
+                    <TableHead>Tenant</TableHead>
+                    <TableHead className="text-right">Nilai</TableHead>
+                    <TableHead>Jatuh Tempo</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
+                </TableHeader>
+                <TableBody>
+                  {limitedOverdueInvoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium">{invoice.number}</TableCell>
+                      <TableCell>#{invoice.tenant_id}</TableCell>
+                      <TableCell className="text-right">
+                        {currencyFormatter.format(invoice.total ?? 0)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">{formatInvoiceDueDate(invoice)}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {showOverdueNote ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                {`Menampilkan ${limitedOverdueInvoices.length} dari ${overdueInvoices.length} invoice overdue.`}
+              </p>
+            ) : null}
+          </>
+        ) : (
             <div className="rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
               Seluruh invoice dalam kondisi sehat. Tidak ada keterlambatan teridentifikasi.
             </div>

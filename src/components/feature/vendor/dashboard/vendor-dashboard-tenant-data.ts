@@ -3,10 +3,10 @@
 "use client";
 
 import { useMemo } from "react";
-import useSWR, { type SWRResponse } from "swr";
+import { useQuery, type UseQueryResult, useQueryClient } from "@tanstack/react-query";
 
 import { ensureSuccess } from "@/lib/api";
-import { swrRateLimitOptions } from "@/lib/rate-limit";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import {
   listClients,
   listVendorSubscriptions,
@@ -17,19 +17,21 @@ import type { Client, Subscription, SubscriptionSummary } from "@/types/api";
 import { useVendorDashboardFilters } from "./vendor-dashboard-filter-context";
 
 export type VendorDashboardTenantUniverse = {
-  clientsState: SWRResponse<Client[], any>;
-  subscriptionsState: SWRResponse<Subscription[], any>;
-  subscriptionSummaryState: SWRResponse<SubscriptionSummary | null, any>;
+  clientsQuery: UseQueryResult<Client[], unknown>;
+  subscriptionsQuery: UseQueryResult<Subscription[], unknown>;
+  subscriptionSummaryQuery: UseQueryResult<SubscriptionSummary | null, unknown>;
   filteredClients: Client[];
   filteredClientIds: Set<number>;
   filteredSubscriptions: Subscription[];
   subscriptionStatusByTenant: Map<number, Subscription["status"]>;
   tenantDataLoading: boolean;
   tenantDataError: unknown;
+  invalidateTenantUniverse: () => Promise<void>;
 };
 
 export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUniverse {
   const { filters } = useVendorDashboardFilters();
+  const queryClient = useQueryClient();
 
   const tenantTypeParam =
     filters.tenantType !== "all" ? filters.tenantType : undefined;
@@ -45,24 +47,34 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
     [tenantTypeParam],
   );
 
-  const clientsState = useSWR<Client[]>(
-    ["vendor-dashboard", "clients", clientParams],
-    async ([, , params]) => ensureSuccess(await listClients(params)),
-    {
-      ...swrRateLimitOptions,
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
+  const clientsQueryKey = useMemo(
+    () => ["vendor-dashboard", "clients", clientParams] as const,
+    [clientParams]
   );
 
-  const subscriptionSummaryState = useSWR<SubscriptionSummary | null>(
-    ["vendor-dashboard", "subscriptions", "summary"],
-    async () => ensureSuccess(await getVendorSubscriptionsSummary()),
-    {
-      ...swrRateLimitOptions,
-      revalidateOnFocus: false,
-    },
-  );
+  const clientsQuery = useQuery({
+    queryKey: clientsQueryKey,
+    queryFn: async ({ queryKey: [, , params] }) =>
+      ensureSuccess(
+        await listClients(params as typeof clientParams)
+      ),
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
+
+  const subscriptionSummaryQueryKey = [
+    "vendor-dashboard",
+    "subscriptions",
+    "summary",
+  ] as const;
+
+  const subscriptionSummaryQuery = useQuery({
+    queryKey: subscriptionSummaryQueryKey,
+    queryFn: async () => ensureSuccess(await getVendorSubscriptionsSummary()),
+    staleTime: 10 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const subscriptionParams = useMemo(
     () => ({
@@ -72,31 +84,37 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
     [subscriptionStatusParam],
   );
 
-  const subscriptionsState = useSWR<Subscription[]>(
-    ["vendor-dashboard", "subscriptions", subscriptionParams],
-    async ([, , params]) => ensureSuccess(await listVendorSubscriptions(params)),
-    {
-      ...swrRateLimitOptions,
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
+  const subscriptionsQueryKey = useMemo(
+    () => ["vendor-dashboard", "subscriptions", subscriptionParams] as const,
+    [subscriptionParams]
   );
+
+  const subscriptionsQuery = useQuery({
+    queryKey: subscriptionsQueryKey,
+    queryFn: async ({ queryKey: [, , params] }) =>
+      ensureSuccess(
+        await listVendorSubscriptions(params as typeof subscriptionParams)
+      ),
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const subscriptionStatusByTenant = useMemo(() => {
     const map = new Map<number, Subscription["status"]>();
-    for (const sub of subscriptionsState.data ?? []) {
+    for (const sub of subscriptionsQuery.data ?? []) {
       if (typeof sub?.tenant_id === "number" && sub.status) {
         map.set(sub.tenant_id, sub.status);
       }
     }
     return map;
-  }, [subscriptionsState.data]);
+  }, [subscriptionsQuery.data]);
 
   const filteredClients = useMemo(() => {
-    return (clientsState.data ?? []).filter((client) =>
+    return (clientsQuery.data ?? []).filter((client) =>
       matchesTenantFilters(client, filters.subscriptionStatus, subscriptionStatusByTenant),
     );
-  }, [clientsState.data, filters.subscriptionStatus, subscriptionStatusByTenant]);
+  }, [clientsQuery.data, filters.subscriptionStatus, subscriptionStatusByTenant]);
 
   const filteredClientIds = useMemo(
     () => new Set(filteredClients.map((client) => client.id)),
@@ -104,30 +122,43 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
   );
 
   const filteredSubscriptions = useMemo(() => {
-    return (subscriptionsState.data ?? []).filter((subscription) =>
+    return (subscriptionsQuery.data ?? []).filter((subscription) =>
       filteredClientIds.has(subscription.tenant_id),
     );
-  }, [filteredClientIds, subscriptionsState.data]);
+  }, [filteredClientIds, subscriptionsQuery.data]);
 
   const tenantDataLoading = Boolean(
-    clientsState.isLoading ||
-      clientsState.isValidating ||
-      subscriptionsState.isLoading ||
-      subscriptionsState.isValidating,
+    clientsQuery.isLoading ||
+      clientsQuery.isFetching ||
+      subscriptionsQuery.isLoading ||
+      subscriptionsQuery.isFetching,
   );
 
-  const tenantDataError = clientsState.error || subscriptionsState.error;
+  const tenantDataError = clientsQuery.error || subscriptionsQuery.error;
+
+  async function invalidateTenantUniverse() {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["vendor-dashboard", "clients"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["vendor-dashboard", "subscriptions"],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ["vendor-dashboard", "subscriptions", "summary"],
+      }),
+    ]);
+  }
 
   return {
-    clientsState,
-    subscriptionsState,
-    subscriptionSummaryState,
+    clientsQuery,
+    subscriptionsQuery,
+    subscriptionSummaryQuery,
     filteredClients,
     filteredClientIds,
     filteredSubscriptions,
     subscriptionStatusByTenant,
     tenantDataLoading,
     tenantDataError,
+    invalidateTenantUniverse,
   };
 }
 

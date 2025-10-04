@@ -4,7 +4,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ensureSuccess } from "@/lib/api";
-import { swrRateLimitOptions } from "@/lib/rate-limit";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import { listUsers } from "@/services/api";
 import type { Client, User } from "@/types/api";
 
@@ -86,20 +86,25 @@ export function VendorDashboardLoginLeaderboard() {
       : null;
   }, [tenantIds, resolvedRanges]);
 
-  const { data, error, isLoading } = useSWR<TenantLoginLeaderboardResult>(
-    cacheKey,
-    async () =>
+  const queryKey = cacheKey ?? [
+    "vendor-dashboard",
+    "tenant-login-leaderboard",
+    "empty",
+  ];
+
+  const { data, error, isLoading, isFetching } = useQuery({
+    queryKey,
+    queryFn: async () =>
       fetchTenantLoginLeaderboard({
         tenantIds,
         tenantLookup,
         ranges: resolvedRanges,
       }),
-    {
-      ...swrRateLimitOptions,
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-    },
-  );
+    enabled: Boolean(cacheKey),
+    keepPreviousData: true,
+    staleTime: 10 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   return (
     <Card>
@@ -118,6 +123,9 @@ export function VendorDashboardLoginLeaderboard() {
         </Badge>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isFetching ? (
+          <p className="text-xs text-muted-foreground">Memperbarui data…</p>
+        ) : null}
         {isLoading ? (
           <LeaderboardSkeleton />
         ) : error ? (

@@ -5,14 +5,14 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { differenceInCalendarDays, format } from "date-fns";
 import { Megaphone, Building2, FileWarning, LifeBuoy, Filter } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import { ensureSuccess } from "@/lib/api";
-import { swrRateLimitOptions } from "@/lib/rate-limit";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import {
   listVendorNotifications,
   publishVendorNotification,
@@ -67,70 +67,104 @@ function formatDate(date?: Date | null) {
 
 export function VendorDashboardAlertCenter() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session } = useSession();
   const isSuperAdmin = ((session?.user as any)?.role?.name ?? "") === "Super Admin";
 
   const [activeType, setActiveType] = useState<AlertType>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const fetchBroadcasts = activeType === "all" || activeType === "broadcast";
   const {
-    data: broadcasts,
+    data: broadcastsData,
     error: broadcastError,
     isLoading: broadcastLoading,
-    mutate: mutateBroadcasts,
-    isValidating: broadcastValidating,
-  } = useSWR<Notification[]>(
-    ["vendor-dashboard", "broadcasts"],
-    async () => ensureSuccess(await listVendorNotifications({ limit: 5 })),
-    { ...swrRateLimitOptions, revalidateOnFocus: false },
-  );
+    isFetching: broadcastFetching,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "broadcasts"],
+    queryFn: async () =>
+      ensureSuccess<Notification[]>(await listVendorNotifications({ limit: 5 })),
+    enabled: fetchBroadcasts,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+    refetchOnWindowFocus: false,
+  });
+  const broadcasts = useMemo(() => broadcastsData ?? [], [broadcastsData]);
 
+  const fetchTenants = activeType === "all" || activeType === "tenant";
   const {
-    data: inactiveTenants,
+    data: inactiveTenantsData,
     error: tenantError,
     isLoading: tenantsLoading,
-  } = useSWR<TenantDetail[]>(
-    ["vendor-dashboard", "tenants", "inactive"],
-    async () => ensureSuccess(await listTenants({ status: "inactive", limit: 10 })),
-    { ...swrRateLimitOptions, revalidateOnFocus: false },
+    isFetching: tenantsFetching,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "tenants", "inactive"],
+    queryFn: async () =>
+      ensureSuccess<TenantDetail[]>(
+        await listTenants({ status: "inactive", limit: 10 })
+      ),
+    enabled: fetchTenants,
+    staleTime: 10 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+    refetchOnWindowFocus: false,
+  });
+  const inactiveTenants = useMemo(
+    () => inactiveTenantsData ?? [],
+    [inactiveTenantsData]
   );
 
   const {
-    data: pendingTrials,
+    data: pendingTrialsData,
     error: trialsError,
     isLoading: trialsLoading,
-  } = useSWR<Subscription[]>(
-    ["vendor-dashboard", "subscriptions", "pending"],
-    async () =>
-      ensureSuccess(
-        await listVendorSubscriptions({ status: "pending", limit: 50 }),
+    isFetching: trialsFetching,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "subscriptions", "pending"],
+    queryFn: async () =>
+      ensureSuccess<Subscription[]>(
+        await listVendorSubscriptions({ status: "pending", limit: 25 })
       ),
-    { ...swrRateLimitOptions, revalidateOnFocus: false },
+    enabled: fetchTenants,
+    staleTime: 10 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+    refetchOnWindowFocus: false,
+  });
+  const pendingTrials = useMemo(
+    () => pendingTrialsData ?? [],
+    [pendingTrialsData]
   );
 
+  const fetchTickets = activeType === "all" || activeType === "support";
   const {
-    data: tickets,
+    data: ticketsData,
     error: ticketsError,
     isLoading: ticketsLoading,
-  } = useSWR<Ticket[]>(
-    ["vendor-dashboard", "tickets", "technical"],
-    async () =>
-      ensureSuccess(
+    isFetching: ticketsFetching,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "tickets", "technical"],
+    queryFn: async () =>
+      ensureSuccess<Ticket[]>(
         await listTickets({
           category: "technical",
           status: "in_progress|pending",
           limit: 10,
-        }),
+        })
       ),
-    { ...swrRateLimitOptions, revalidateOnFocus: false },
-  );
+    enabled: fetchTickets,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+    refetchOnWindowFocus: false,
+  });
+  const tickets = useMemo(() => ticketsData ?? [], [ticketsData]);
 
+  const fetchBilling = activeType === "all" || activeType === "billing";
   const {
     data: billing,
     error: billingError,
     isLoading: billingLoading,
-    mutate: mutateBilling,
-  } = useVendorBillingReport();
+    isFetching: billingFetching,
+    refetch: refetchBilling,
+  } = useVendorBillingReport({ enabled: fetchBilling });
 
   const overdueInvoices = useMemo(
     () => (billing?.overdue_invoices ?? []) as Invoice[],
@@ -215,7 +249,9 @@ export function VendorDashboardAlertCenter() {
                   );
                   toast.success("Broadcast dipublikasikan");
                 }
-                await mutateBroadcasts();
+                await queryClient.invalidateQueries({
+                  queryKey: ["vendor-dashboard", "broadcasts"],
+                });
               } catch (error: any) {
                 toast.error(error?.message ?? "Gagal memperbarui broadcast");
               } finally {
@@ -228,7 +264,7 @@ export function VendorDashboardAlertCenter() {
       });
     }
 
-    (inactiveTenants ?? []).forEach((tenant) => {
+    inactiveTenants.forEach((tenant) => {
       items.push({
         id: `tenant-${tenant.id}`,
         type: "tenant",
@@ -272,7 +308,7 @@ export function VendorDashboardAlertCenter() {
       });
     });
 
-    overdueInvoices.slice(0, 8).forEach((invoice) => {
+    overdueInvoices.slice(0, 5).forEach((invoice) => {
       const dueDate = invoice.due_date ? new Date(invoice.due_date) : null;
       const overdueDays = dueDate
         ? Math.max(0, differenceInCalendarDays(new Date(), dueDate))
@@ -294,7 +330,7 @@ export function VendorDashboardAlertCenter() {
       });
     });
 
-    (tickets ?? []).forEach((ticket) => {
+    tickets.forEach((ticket) => {
       const updatedAt = ticket.updated_at ? new Date(ticket.updated_at) : null;
       items.push({
         id: `ticket-${ticket.id}`,
@@ -314,7 +350,7 @@ export function VendorDashboardAlertCenter() {
   }, [
     latestBroadcast,
     isSuperAdmin,
-    mutateBroadcasts,
+    queryClient,
     inactiveTenants,
     router,
     trialAlerts,
@@ -328,8 +364,21 @@ export function VendorDashboardAlertCenter() {
   }, [alerts, activeType]);
 
   const loading =
-    broadcastLoading || tenantsLoading || trialsLoading || ticketsLoading || billingLoading;
-  const hasErrors = broadcastError || tenantError || trialsError || ticketsError || billingError;
+    (fetchBroadcasts && broadcastLoading) ||
+    (fetchTenants && (tenantsLoading || trialsLoading)) ||
+    (fetchTickets && ticketsLoading) ||
+    (fetchBilling && billingLoading);
+  const refreshing =
+    broadcastFetching ||
+    tenantsFetching ||
+    trialsFetching ||
+    ticketsFetching ||
+    (fetchBilling && billingFetching);
+  const hasErrors =
+    (fetchBroadcasts && broadcastError) ||
+    (fetchTenants && (tenantError || trialsError)) ||
+    (fetchTickets && ticketsError) ||
+    (fetchBilling && billingError);
 
   return (
     <Card className="h-full">
@@ -341,7 +390,7 @@ export function VendorDashboardAlertCenter() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {broadcastValidating ? (
+          {refreshing ? (
             <Badge variant="outline" className="gap-1 text-xs">
               <Filter className="h-3 w-3" /> Memperbarui
             </Badge>
@@ -440,7 +489,12 @@ export function VendorDashboardAlertCenter() {
           <Button variant="link" size="sm" className="px-0" asChild>
             <Link href="/vendor/notifications">Kelola broadcast</Link>
           </Button>
-          <Button variant="link" size="sm" className="px-0" onClick={() => mutateBilling()}>
+          <Button
+            variant="link"
+            size="sm"
+            className="px-0"
+            onClick={() => void refetchBilling()}
+          >
             Segarkan billing
           </Button>
         </div>
