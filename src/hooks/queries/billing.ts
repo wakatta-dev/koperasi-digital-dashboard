@@ -8,7 +8,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import type { Invoice, Payment, Plan } from "@/types/api";
+import type { Invoice, PaymentRequest, Plan, VerifyPaymentRequest } from "@/types/api";
 import {
   listVendorPlans,
   createVendorPlan,
@@ -447,7 +447,7 @@ export function useBillingActions() {
   const createClientPayment = useMutation({
     mutationFn: async (vars: {
       invoiceId: string | number;
-      payload: Partial<Payment>;
+      payload: PaymentRequest;
     }) => ensureSuccess(await createPayment(vars.invoiceId, vars.payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.client.invoices() });
@@ -459,8 +459,10 @@ export function useBillingActions() {
   });
 
   const verifyVendorPay = useMutation({
-    mutationFn: async (vars: { id: string | number; payload?: any }) =>
-      ensureSuccess(await verifyVendorPayment(vars.id, vars.payload)),
+    mutationFn: async (vars: {
+      id: string | number;
+      payload: VerifyPaymentRequest;
+    }) => ensureSuccess(await verifyVendorPayment(vars.id, vars.payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.billing.vendor.invoices() });
       toast.success("Pembayaran diverifikasi");

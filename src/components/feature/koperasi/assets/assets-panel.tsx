@@ -108,11 +108,16 @@ export function AssetsPanel({ initial = [] }: { initial?: Asset[] }) {
     }
     setLoading(true);
     try {
+      const acquisitionDateIso = toRfc3339Date(form.acquisition_date);
+      if (!acquisitionDateIso) {
+        toast.error("Tanggal akuisisi tidak valid");
+        return;
+      }
       await createAsset({
         code: form.code,
         name: form.name,
         category: form.category,
-        acquisition_date: form.acquisition_date,
+        acquisition_date: acquisitionDateIso,
         acquisition_cost: form.acquisition_cost,
         depreciation_method: form.depreciation_method,
         useful_life_months: form.useful_life_months,
@@ -146,6 +151,7 @@ export function AssetsPanel({ initial = [] }: { initial?: Asset[] }) {
   async function handleExport(format: "pdf" | "xlsx") {
     try {
       const blob = await exportAssets({
+        type: "assets",
         format,
         status: status === "all" ? undefined : status,
         term: term || undefined,
@@ -168,11 +174,12 @@ export function AssetsPanel({ initial = [] }: { initial?: Asset[] }) {
     const start = prompt("Mulai (YYYY-MM-DD)", new Date().toISOString().slice(0, 10));
     if (!start) return;
     try {
+      const payloadNotes = notes.trim();
       await logAssetUsage(asset.id, {
         used_by: usedBy,
         purpose,
         start_time: new Date(start).toISOString(),
-        notes: notes || undefined,
+        notes: payloadNotes ? payloadNotes : undefined,
       });
       toast.success("Penggunaan dicatat");
       await selectAsset(asset);
@@ -450,6 +457,13 @@ export function AssetsPanel({ initial = [] }: { initial?: Asset[] }) {
       )}
     </div>
   );
+}
+
+function toRfc3339Date(value?: string) {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  return parsed.toISOString();
 }
 
 function formatDate(value?: string) {

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Users, PiggyBank, CreditCard, DollarSign, RefreshCcw } from "lucide-react";
 import { getKoperasiDashboard } from "@/services/api";
 import type { KoperasiDashboardSummary } from "@/types/api";
+import { toast } from "sonner";
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
 const currencyFormatter = new Intl.NumberFormat("id-ID", {
@@ -24,7 +25,18 @@ export function SummaryCards({ initial }: { initial: KoperasiDashboardSummary | 
     setLoading(true);
     try {
       const res = await getKoperasiDashboard();
-      if (res.success) setData(res.data as KoperasiDashboardSummary);
+      if (res.success && res.data) {
+        setData(res.data);
+      } else {
+        setData(res.data ?? null);
+        if (!res.success) {
+          toast.error(res.message || "Gagal memuat ringkasan dashboard");
+        }
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal memuat ringkasan dashboard"
+      );
     } finally {
       setLoading(false);
     }

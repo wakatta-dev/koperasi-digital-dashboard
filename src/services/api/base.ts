@@ -5,7 +5,7 @@ import {
   refreshToken as refreshAuthToken,
   logout as authLogout,
 } from "../auth";
-import type { ApiResponse } from "@/types/api";
+import type { ApiResponse, Meta } from "@/types/api";
 
 export async function getTenantId(): Promise<string | null> {
   if (typeof window !== "undefined") {
@@ -60,6 +60,20 @@ async function request<T>(
       } else {
         await authLogout();
       }
+    }
+
+    if (res.status === 204) {
+      const meta: Meta = {
+        request_id: res.headers.get("x-request-id") ?? "",
+        timestamp: new Date().toISOString(),
+      };
+      return {
+        success: true,
+        message: res.statusText || "No Content",
+        data: null,
+        meta,
+        errors: null,
+      };
     }
 
     const json = (await res.json().catch(() => null)) as ApiResponse<T> | null;

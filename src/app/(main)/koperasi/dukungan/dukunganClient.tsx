@@ -2,12 +2,21 @@
 
 'use client';
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addTicketReply, createTicket, listTicketReplies } from "@/services/api";
+import type { TicketReply } from "@/types/api";
+import { toast } from "sonner";
+
+type ChatBubble = {
+  id: string;
+  sender: "you" | "agent";
+  text: string;
+  createdAt?: string;
+};
 
 export default function DukunganClient() {
   // TODO: optional websocket for realtime chat updates
@@ -15,34 +24,98 @@ export default function DukunganClient() {
   const [message, setMessage] = useState("");
   const [ticketId, setTicketId] = useState<string>("");
   const [chatInput, setChatInput] = useState("");
-  const [chats, setChats] = useState<{sender: 'you'|'agent'; text: string}[]>([]);
+  const [replies, setReplies] = useState<TicketReply[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sendingReply, setSendingReply] = useState(false);
 
   async function submitTicket() {
-    const res = await createTicket({ title: subject || "Tanpa subjek", category: "other", priority: "low", description: message });
-    if (res.success) {
-      setSubject("");
-      setMessage("");
-      const id = (res.data as any)?.id;
-      if (id) setTicketId(String(id));
+    const payload = {
+      title: subject.trim() || "Tanpa subjek",
+      category: "other" as const,
+      priority: "low" as const,
+      description: message.trim(),
+    };
+    if (!payload.description) {
+      toast.error("Deskripsi masalah wajib diisi");
+      return;
+    }
+    try {
+      const res = await createTicket(payload);
+      if (res.success && res.data) {
+        setSubject("");
+        setMessage("");
+        setReplies([]);
+        const id = String(res.data.id);
+        setTicketId(id);
+        await loadChat({ ticket: id, silent: true });
+        toast.success("Tiket berhasil dibuat");
+      } else {
+        throw new Error(res.message || "Gagal membuat tiket");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal membuat tiket");
     }
   }
 
   async function sendChat() {
-    if (!chatInput || !ticketId) return;
-    await addTicketReply(ticketId, { message: chatInput });
-    setChats((s) => [...s, { sender: 'you', text: chatInput }]);
-    setChatInput("");
-    await loadChat();
-  }
-
-  async function loadChat() {
-    if (!ticketId) return;
-    const res = await listTicketReplies(ticketId, { limit: 50 });
-    if (res.success) {
-      const items = (res.data ?? []).map((r: any) => ({ sender: (r.sender === 'agent' ? 'agent' : 'you') as 'agent' | 'you', text: String(r.message ?? '') }));
-      setChats(items);
+    const id = ticketId.trim();
+    const messageBody = chatInput.trim();
+    if (!id) {
+      toast.error("Masukkan ID tiket terlebih dahulu");
+      return;
+    }
+    if (!messageBody) {
+      toast.error("Pesan tidak boleh kosong");
+      return;
+    }
+    try {
+      setSendingReply(true);
+      const res = await addTicketReply(id, { message: messageBody });
+      if (res.success && res.data) {
+        setChatInput("");
+        setReplies((prev) => sanitizeReplies([...prev, res.data]));
+        await loadChat({ silent: true, ticket: id });
+        toast.success("Pesan terkirim");
+      } else {
+        throw new Error(res.message || "Gagal mengirim balasan");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengirim balasan");
+    } finally {
+      setSendingReply(false);
     }
   }
+
+  async function loadChat(options?: { silent?: boolean; ticket?: string }) {
+    const id = (options?.ticket ?? ticketId).trim();
+    if (!id) return;
+    if (!options?.silent) setLoading(true);
+    try {
+      const res = await listTicketReplies(id, { limit: 50 });
+      if (res.success && Array.isArray(res.data)) {
+        setReplies(sanitizeReplies(res.data));
+      } else if (!options?.silent) {
+        throw new Error(res.message || "Gagal memuat percakapan");
+      }
+    } catch (error) {
+      if (!options?.silent) {
+        toast.error(error instanceof Error ? error.message : "Gagal memuat percakapan");
+      }
+    } finally {
+      if (!options?.silent) setLoading(false);
+    }
+  }
+
+  const chatBubbles = useMemo<ChatBubble[]>(() => {
+    return replies.map((reply) => ({
+      id: reply.id,
+      sender: deriveSender(reply),
+      text: reply.message ?? "",
+      createdAt: reply.created_at,
+    }));
+  }, [replies]);
+
+  const hasTicket = Boolean(ticketId.trim());
 
   return (
     <div className="space-y-6">
@@ -75,20 +148,37 @@ export default function DukunganClient() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2 mb-2">
-              <Input placeholder="ID Tiket" value={ticketId} onChange={(e) => setTicketId(e.target.value)} />
-              <Button variant="outline" onClick={loadChat} disabled={!ticketId}>Muat Chat</Button>
+              <Input
+                placeholder="ID Tiket"
+                value={ticketId}
+                onChange={(e) => setTicketId(e.target.value)}
+              />
+              <Button
+                variant="outline"
+                onClick={() => loadChat()}
+                disabled={!ticketId.trim() || loading}
+              >
+                {loading ? "Memuat..." : "Muat Chat"}
+              </Button>
             </div>
             <div className="h-64 border rounded p-3 overflow-auto mb-3 space-y-2 bg-muted/30">
-              {chats.map((c, i) => (
-                <div key={i} className={`text-sm ${c.sender === 'you' ? 'text-right' : 'text-left'}`}>
-                  <span className={`inline-block px-2 py-1 rounded ${c.sender === 'you' ? 'bg-primary text-primary-foreground' : 'bg-background border'}`}>{c.text}</span>
+              {chatBubbles.map((bubble) => (
+                <div key={bubble.id} className={`text-sm ${bubble.sender === 'you' ? 'text-right' : 'text-left'}`}>
+                  <span className={`inline-block px-2 py-1 rounded ${bubble.sender === 'you' ? 'bg-primary text-primary-foreground' : 'bg-background border'}`}>{bubble.text}</span>
+                  {bubble.createdAt && (
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {formatDateTime(bubble.createdAt)}
+                    </div>
+                  )}
                 </div>
               ))}
-              {!chats.length && <div className="text-sm text-muted-foreground italic">Mulai chat dengan agen...</div>}
+              {!chatBubbles.length && <div className="text-sm text-muted-foreground italic">Mulai chat dengan agen...</div>}
             </div>
             <div className="flex gap-2">
               <Input placeholder="Ketik pesan..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} />
-              <Button onClick={sendChat} disabled={!ticketId}>Kirim</Button>
+              <Button onClick={sendChat} disabled={!ticketId.trim() || sendingReply}>
+                {sendingReply ? "Mengirim..." : "Kirim"}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -100,16 +190,19 @@ export default function DukunganClient() {
           <CardDescription>Daftar percakapan sebelumnya</CardDescription>
         </CardHeader>
         <CardContent>
-          {!ticketId && (
+          {!hasTicket && (
             <div className="text-sm text-muted-foreground italic">Masukkan ID tiket untuk melihat riwayat.</div>
           )}
-          {!!ticketId && !chats.length && (
+          {hasTicket && !chatBubbles.length && (
             <div className="text-sm text-muted-foreground italic">Belum ada riwayat chat</div>
           )}
-          {!!ticketId && !!chats.length && (
+          {hasTicket && !!chatBubbles.length && (
             <div className="space-y-1 text-sm">
-              {chats.map((c, i) => (
-                <div key={i}>{c.sender === 'agent' ? 'Agen' : 'Anda'}: {c.text}</div>
+              {chatBubbles.map((bubble) => (
+                <div key={bubble.id}>
+                  {bubble.sender === 'agent' ? 'Agen' : 'Anda'}: {bubble.text}
+                  {bubble.createdAt ? ` • ${formatDateTime(bubble.createdAt)}` : ""}
+                </div>
               ))}
             </div>
           )}
@@ -117,4 +210,37 @@ export default function DukunganClient() {
       </Card>
     </div>
   );
+}
+
+function deriveSender(reply: TicketReply): "you" | "agent" {
+  if (typeof reply.business_unit_id === "number" && !Number.isNaN(reply.business_unit_id)) {
+    return "agent";
+  }
+  return "you";
+}
+
+function sanitizeReplies(
+  entries: Array<TicketReply | null | undefined>
+): TicketReply[] {
+  const map = new Map<string, TicketReply>();
+  for (const entry of entries) {
+    if (!entry || typeof entry !== "object") continue;
+    if (!entry.id || typeof entry.id !== "string") continue;
+    const safeMessage = typeof entry.message === "string" ? entry.message : "";
+    map.set(entry.id, {
+      ...entry,
+      message: safeMessage,
+    });
+  }
+  return Array.from(map.values());
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(parsed);
 }

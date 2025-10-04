@@ -29,13 +29,17 @@ export default async function KoperasiDashboard() {
   const dashboardRes = await getKoperasiDashboard().catch(() => null);
 
   const summary =
-    dashboardRes && dashboardRes.success
-      ? (dashboardRes.data as KoperasiDashboardSummary | null)
+    dashboardRes && dashboardRes.success && dashboardRes.data
+      ? (dashboardRes.data as KoperasiDashboardSummary)
       : null;
 
-  const graphPoints = summary?.graph_data ?? [];
-  const installmentNotifications = summary?.installment_notifications ?? [];
-  const applicationNotifications = summary?.application_notifications ?? [];
+  const graphPoints = sanitizeNumberSeries(summary?.graph_data);
+  const installmentNotifications = sanitizeNotifications(
+    summary?.installment_notifications
+  );
+  const applicationNotifications = sanitizeNotifications(
+    summary?.application_notifications
+  );
 
   const fallbackShortcuts: QuickActionItem[] = [
     {
@@ -68,9 +72,10 @@ export default async function KoperasiDashboard() {
     },
   ];
 
-  const shortcuts: QuickActionItem[] = summary?.shortcuts?.length
-    ? summary.shortcuts.map((shortcut) => ({ ...shortcut }))
-    : fallbackShortcuts;
+  const shortcuts = sanitizeShortcuts(summary?.shortcuts, fallbackShortcuts);
+
+  const alertMessage =
+    dashboardRes && !dashboardRes.success ? dashboardRes.message : null;
 
   return (
     <div className="space-y-6">
@@ -81,6 +86,7 @@ export default async function KoperasiDashboard() {
           <AlertDescription>
             Data dashboard koperasi belum tersedia atau backend mengirimkan
             nilai `null`.
+            {alertMessage ? ` (${alertMessage})` : ""}
           </AlertDescription>
         </Alert>
       )}
@@ -217,6 +223,54 @@ function pascalCase(value: string) {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("");
+}
+
+function sanitizeNumberSeries(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is number => typeof item === "number" && Number.isFinite(item));
+}
+
+function sanitizeNotifications(value: unknown): DashboardNotification[] {
+  if (!Array.isArray(value)) return [];
+  const result: DashboardNotification[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object") continue;
+    const candidate = entry as Record<string, unknown>;
+    const id = candidate.id;
+    const title = candidate.title;
+    const type = candidate.type;
+    const createdAt = candidate.created_at;
+    if (typeof id === "string" && typeof createdAt === "string") {
+      result.push({
+        id,
+        title: typeof title === "string" ? title : "Notifikasi",
+        type: typeof type === "string" ? type : "INFO",
+        created_at: createdAt,
+      });
+    }
+  }
+  return result;
+}
+
+function sanitizeShortcuts(
+  value: unknown,
+  fallback: QuickActionItem[]
+): QuickActionItem[] {
+  if (!Array.isArray(value)) return fallback;
+  const result: QuickActionItem[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object") continue;
+    const candidate = entry as Record<string, unknown>;
+    const id = candidate.id;
+    const label = candidate.label;
+    const path = candidate.path;
+    if (typeof id === "string" && typeof label === "string" && typeof path === "string") {
+      const icon = typeof candidate.icon === "string" ? candidate.icon : undefined;
+      const description = typeof candidate.description === "string" ? candidate.description : undefined;
+      result.push({ id, label, path, icon, description });
+    }
+  }
+  return result.length ? result : fallback;
 }
 
 function NotificationsCard({

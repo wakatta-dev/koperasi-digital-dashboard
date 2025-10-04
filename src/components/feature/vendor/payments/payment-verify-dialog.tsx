@@ -33,8 +33,8 @@ export function PaymentVerifyDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [paymentId, setPaymentId] = useState("");
-  const [status, setStatus] = useState("verified");
-  const [gateway, setGateway] = useState("");
+  const [status, setStatus] = useState<"verified" | "rejected">("verified");
+  const [gateway, setGateway] = useState<"" | "midtrans">("");
   const [externalId, setExternalId] = useState("");
   const { verifyVendorPay } = useBillingActions();
   const confirm = useConfirm();
@@ -102,7 +102,12 @@ export function PaymentVerifyDialog({ trigger }: Props) {
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select
+              value={status}
+              onValueChange={(value) =>
+                setStatus((value as "verified" | "rejected") ?? "verified")
+              }
+            >
               <SelectTrigger className="w-full max-w-xs">
                 <SelectValue />
               </SelectTrigger>
@@ -119,7 +124,9 @@ export function PaymentVerifyDialog({ trigger }: Props) {
               id="gateway"
               placeholder="midtrans"
               value={gateway}
-              onChange={(e) => setGateway(e.target.value)}
+              onChange={(event) =>
+                setGateway(event.target.value === "midtrans" ? "midtrans" : "")
+              }
             />
           </div>
           <div className="space-y-2">

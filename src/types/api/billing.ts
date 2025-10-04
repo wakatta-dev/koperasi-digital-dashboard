@@ -53,6 +53,20 @@ export type Payment = {
   created_at: Rfc3339String;
 };
 
+export type PaymentRequest = {
+  method: "manual";
+  proof_url: string;
+  gateway?: "midtrans";
+  external_id?: string;
+  amount?: number;
+};
+
+export type VerifyPaymentRequest = {
+  status: "pending" | "verified" | "rejected";
+  gateway?: "midtrans";
+  external_id?: string;
+};
+
 export type TenantSubscription = {
   id: number;
   tenant_id: number;

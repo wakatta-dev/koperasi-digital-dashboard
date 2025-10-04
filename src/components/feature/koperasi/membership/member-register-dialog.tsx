@@ -15,6 +15,7 @@ import AsyncCombobox from "@/components/ui/async-combobox";
 import type { User } from "@/types/api";
 import { listUsers } from "@/services/api";
 import { makePaginatedListFetcher } from "@/lib/async-fetchers";
+import { toast } from "sonner";
 
 const schema = z.object({
   user_id: z.coerce.number().int().positive(),
@@ -57,23 +58,37 @@ export function MemberRegisterDialog() {
   });
 
   async function onSubmit(values: FormValues) {
-    await registerMember({
-      user_id: values.user_id,
-      no_anggota: values.no_anggota,
-      full_name: values.full_name,
-      email: values.email,
-      phone: values.phone,
-      address: values.address,
-      city: values.city,
-      province: values.province,
-      postal_code: values.postal_code,
-      identity_type: values.identity_type,
-      identity_number: values.identity_number,
-      occupation: values.occupation || undefined,
-      initial_deposit: values.initial_deposit,
-    });
-    form.reset();
-    setOpen(false);
+    try {
+      const initialDeposit = Number.isFinite(values.initial_deposit)
+        ? values.initial_deposit
+        : undefined;
+
+      const res = await registerMember({
+        user_id: values.user_id,
+        no_anggota: values.no_anggota.trim(),
+        full_name: values.full_name.trim(),
+        email: values.email.trim(),
+        phone: values.phone.trim(),
+        address: values.address.trim(),
+        city: values.city.trim(),
+        province: values.province.trim(),
+        postal_code: values.postal_code.trim(),
+        identity_type: values.identity_type.trim(),
+        identity_number: values.identity_number.trim(),
+        occupation: values.occupation?.trim() || undefined,
+        initial_deposit: initialDeposit,
+      });
+
+      if (!res.success) {
+        throw new Error(res.message || "Registrasi anggota gagal");
+      }
+
+      toast.success("Anggota berhasil didaftarkan");
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Registrasi anggota gagal");
+    }
   }
 
   const handleUserSelect = (user: User | null) => {

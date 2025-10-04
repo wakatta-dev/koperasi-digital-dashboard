@@ -12,8 +12,8 @@ import type {
   LoanReleaseLetter,
   LoanReleaseLetterHistoryResponse,
   LoanReleaseLetterResponse,
-  PaymentRequest,
 } from "@/types/api";
+import type { LoanPaymentRequest } from "@/types/api/loan";
 import { api, API_PREFIX } from "./base";
 
 export function applyLoan(
@@ -64,7 +64,7 @@ export function listLoanInstallments(
 
 export function payLoanInstallment(
   installmentId: string | number,
-  payload: PaymentRequest
+  payload: LoanPaymentRequest
 ): Promise<LoanInstallmentResponse> {
   return api.post<LoanInstallment>(
     `${API_PREFIX}${API_ENDPOINTS.loans.payInstallment(installmentId)}`,

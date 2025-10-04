@@ -24,6 +24,9 @@ import {
 import { createPayment, listClientInvoices } from "@/services/api";
 import { InvoiceDetailDialog } from "@/components/feature/koperasi/billing/invoice-detail-dialog";
 import type { Invoice } from "@/types/api";
+import { toast } from "sonner";
+
+const PAYMENT_CANCELLED = "PAYMENT_CANCELLED";
 
 const idr = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -48,7 +51,7 @@ export default function BillingClient({ initialInvoices }: Props) {
         term: query || undefined,
         status: status === "all" ? undefined : status,
       });
-      return res.success ? ((res.data as Invoice[]) ?? []) : [];
+      return res.success ? (res.data as Invoice[]) ?? [] : [];
     },
     initialData: initialInvoices,
     staleTime: 60_000,
@@ -57,24 +60,58 @@ export default function BillingClient({ initialInvoices }: Props) {
   const filtered = useMemo(
     () =>
       invoices.filter((inv) =>
-        !query ? true : String(inv.number ?? inv.id).toLowerCase().includes(query.toLowerCase())
+        !query
+          ? true
+          : String(inv.number ?? inv.id)
+              .toLowerCase()
+              .includes(query.toLowerCase())
       ),
     [invoices, query]
   );
 
   const payMutation = useMutation({
     mutationFn: async (inv: Invoice) => {
-      const raw = prompt(
+      const rawAmount = prompt(
         `Masukkan jumlah pembayaran untuk invoice ${inv.number ?? inv.id}:`,
         String(inv.total ?? 0)
       );
-      if (!raw) return;
-      const amount = Number(raw);
-      if (!amount || isNaN(amount)) return;
-      await createPayment(inv.id, { amount, method: "manual" });
+      if (rawAmount === null) throw new Error(PAYMENT_CANCELLED);
+      const amount = Number(rawAmount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error("Nominal pembayaran tidak valid");
+      }
+
+      const proofInput = prompt(
+        "Masukkan tautan bukti pembayaran (mis. upload bukti transfer)",
+        "https://"
+      );
+      if (proofInput === null) throw new Error(PAYMENT_CANCELLED);
+      const proofUrl = proofInput.trim();
+      if (!proofUrl) {
+        throw new Error("Bukti pembayaran wajib diisi");
+      }
+
+      const res = await createPayment(inv.id, {
+        method: "manual",
+        proof_url: proofUrl,
+        amount,
+      });
+
+      if (!res.success) {
+        throw new Error(res.message || "Gagal mencatat pembayaran");
+      }
+
+      return res.data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-invoices"] });
+      toast.success("Pembayaran dicatat");
+    },
+    onError: (err) => {
+      if (err instanceof Error && err.message === PAYMENT_CANCELLED) return;
+      toast.error(
+        err instanceof Error ? err.message : "Gagal mencatat pembayaran"
+      );
     },
   });
 
@@ -123,7 +160,9 @@ export default function BillingClient({ initialInvoices }: Props) {
             <Button
               variant="outline"
               disabled={isFetching}
-              onClick={() => qc.invalidateQueries({ queryKey: ["client-invoices"] })}
+              onClick={() =>
+                qc.invalidateQueries({ queryKey: ["client-invoices"] })
+              }
             >
               {isFetching ? "Memuat..." : "Refresh"}
             </Button>
@@ -141,17 +180,19 @@ export default function BillingClient({ initialInvoices }: Props) {
                     Jatuh tempo: {formatDate(inv.due_date)}
                   </div>
                 </div>
-                <div className="text-sm">Jumlah: {idr.format(inv.total ?? 0)}</div>
+                <div className="text-sm">
+                  Jumlah: {idr.format(inv.total ?? 0)}
+                </div>
                 <div>
                   <Badge
                     variant={
-                      inv.status === 'paid'
-                        ? 'default'
-                        : inv.status === 'issued'
-                        ? 'secondary'
-                        : inv.status === 'overdue'
-                        ? 'destructive'
-                        : 'outline'
+                      inv.status === "paid"
+                        ? "default"
+                        : inv.status === "issued"
+                        ? "secondary"
+                        : inv.status === "overdue"
+                        ? "destructive"
+                        : "outline"
                     }
                     className="capitalize"
                   >

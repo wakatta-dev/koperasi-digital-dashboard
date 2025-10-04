@@ -8,6 +8,8 @@ import type {
   Plan,
   Invoice,
   Payment,
+  PaymentRequest,
+  VerifyPaymentRequest,
   Subscription,
   SubscriptionSummary,
   StatusAudit,
@@ -82,7 +84,7 @@ export type ListInvoicesActionResult = Awaited<
 
 export async function createPaymentAction(
   invoiceId: string | number,
-  payload: Partial<Payment>,
+  payload: PaymentRequest,
 ): Promise<Payment | null> {
   try {
     const res = await createPayment(invoiceId, payload);
@@ -98,7 +100,7 @@ export type CreatePaymentActionResult = Awaited<
 
 export async function verifyVendorPaymentAction(
   id: string | number,
-  payload?: Partial<Payment> & { status?: string; gateway?: string; external_id?: string },
+  payload: VerifyPaymentRequest,
 ): Promise<Payment | null> {
   try {
     const res = await verifyVendorPayment(id, payload);

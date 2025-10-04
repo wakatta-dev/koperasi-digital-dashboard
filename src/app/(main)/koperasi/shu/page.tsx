@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -13,7 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Users, DollarSign, Calculator, Download } from "lucide-react";
+import { Calculator, Download } from "lucide-react";
+import AsyncCombobox from "@/components/ui/async-combobox";
+import { toast } from "sonner";
+
 import {
   createYearlySHU,
   distributeSHU,
@@ -21,95 +24,248 @@ import {
   listSHUByMember,
   listSHUHistory,
   simulateSHU,
+  listMembers,
 } from "@/services/api";
-import AsyncCombobox from "@/components/ui/async-combobox";
-import { listMembers } from "@/services/api";
 import { makePaginatedListFetcher } from "@/lib/async-fetchers";
+import type {
+  YearlySHU,
+  SHUDistribution,
+  SHUHistoryResponse,
+  SHUSimulationResponse,
+  SHUMemberHistoryResponse,
+  SHUDistributionResponse,
+  YearlySHURequest,
+} from "@/types/api";
 import type { MemberListItem } from "@/types/api";
 
+const currencyFormatter = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+});
+
+const percentageFormatter = new Intl.NumberFormat("id-ID", {
+  style: "percent",
+  minimumFractionDigits: 2,
+});
+
+type FormState = {
+  year: number | "";
+  total: number | "";
+  allocationSavings: number | "";
+  allocationParticipation: number | "";
+};
+
+type MemberFilterState = {
+  memberId?: number;
+};
+
 export default function SHUPage() {
-  const [history, setHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [year, setYear] = useState<number | "">(new Date().getFullYear());
-  const [total, setTotal] = useState<number | "">("");
-  const [simulation, setSimulation] = useState<any[] | null>(null);
-  const [memberId, setMemberId] = useState<string>("");
-  const [memberDist, setMemberDist] = useState<any[] | null>(null);
-  const [allocationSavings, setAllocationSavings] = useState<number | "">("");
-  const [allocationParticipation, setAllocationParticipation] = useState<
-    number | ""
-  >("");
+  const [history, setHistory] = useState<YearlySHU[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [form, setForm] = useState<FormState>({
+    year: new Date().getFullYear(),
+    total: "",
+    allocationSavings: "",
+    allocationParticipation: "",
+  });
+  const [simulation, setSimulation] = useState<SHUDistribution[] | null>(null);
+  const [simulateLoading, setSimulateLoading] = useState(false);
+  const [distributeLoading, setDistributeLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [distributionLoading, setDistributionLoading] = useState(false);
+  const [memberDistributions, setMemberDistributions] =
+    useState<SHUDistribution[] | null>(null);
+  const [memberFilter, setMemberFilter] = useState<MemberFilterState>({});
 
-  async function loadHistory() {
-    setLoading(true);
+  const memberFetcher = useMemo(
+    () => makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 }),
+    []
+  );
+
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
     try {
-      const res = await listSHUHistory();
-      if (res.success) setHistory(res.data || []);
+      const res: SHUHistoryResponse | null = await listSHUHistory({
+        limit: 50,
+      }).catch(() => null);
+      if (!res || !res.success || !Array.isArray(res.data)) {
+        throw new Error(res?.message || "Gagal memuat riwayat SHU");
+      }
+      setHistory(res.data as YearlySHU[]);
+    } catch (error) {
+      setHistory([]);
+      toast.error(
+        error instanceof Error ? error.message : "Gagal memuat riwayat SHU"
+      );
     } finally {
-      setLoading(false);
+      setHistoryLoading(false);
     }
-  }
-
-  useEffect(() => {
-    loadHistory();
   }, []);
 
-  const latest = useMemo(() => (history?.[0] ? history[0] : null), [history]);
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
 
-  async function onCreateYearly() {
-    if (!year || !total) return;
-      await createYearlySHU({
-        year: Number(year),
-        total_shu: Number(total),
-        allocation_savings:
-          allocationSavings === "" ? undefined : Number(allocationSavings),
-        allocation_participation:
-          allocationParticipation === ""
-            ? undefined
-            : Number(allocationParticipation),
+  const latestYearData = useMemo(() => history.at(0) ?? null, [history]);
+
+  const handleCreateYearly = useCallback(async () => {
+    const payload: YearlySHURequest = {
+      year:
+        typeof form.year === "number"
+          ? form.year
+          : Number.parseInt(String(form.year || new Date().getFullYear()), 10),
+      total_shu:
+        typeof form.total === "number"
+          ? form.total
+          : Number.parseFloat(String(form.total || 0)),
+    };
+
+    if (!payload.year || payload.total_shu <= 0) {
+      toast.error("Tahun dan total SHU wajib diisi");
+      return;
+    }
+
+    if (form.allocationSavings !== "") {
+      payload.allocation_savings = Number(form.allocationSavings);
+    }
+    if (form.allocationParticipation !== "") {
+      payload.allocation_participation = Number(form.allocationParticipation);
+    }
+
+    try {
+      const res = await createYearlySHU(payload);
+      if (!res.success) {
+        throw new Error(res.message || "Gagal menyimpan total SHU");
+      }
+      toast.success("Total SHU tersimpan");
+      setForm((prev) => ({
+        ...prev,
+        total: "",
+        allocationSavings: "",
+        allocationParticipation: "",
+      }));
+      await loadHistory();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal menyimpan total SHU"
+      );
+    }
+  }, [form, loadHistory]);
+
+  const handleSimulate = useCallback(async () => {
+    const targetYear = form.year || latestYearData?.year;
+    if (!targetYear) {
+      toast.error("Tentukan tahun terlebih dahulu");
+      return;
+    }
+    setSimulateLoading(true);
+    try {
+      const res: SHUSimulationResponse = await simulateSHU(targetYear);
+      if (!res.success || !Array.isArray(res.data)) {
+        throw new Error(res.message || "Gagal mensimulasikan SHU");
+      }
+      setSimulation(res.data as SHUDistribution[]);
+    } catch (error) {
+      setSimulation(null);
+      toast.error(
+        error instanceof Error ? error.message : "Gagal mensimulasikan SHU"
+      );
+    } finally {
+      setSimulateLoading(false);
+    }
+  }, [form.year, latestYearData?.year]);
+
+  const handleDistribute = useCallback(async () => {
+    const targetYear = form.year || latestYearData?.year;
+    if (!targetYear) {
+      toast.error("Tentukan tahun terlebih dahulu");
+      return;
+    }
+    setDistributeLoading(true);
+    try {
+      const res: SHUDistributionResponse = await distributeSHU(targetYear, {
+        method: "transfer",
+        description: `Distribusi SHU ${targetYear}`,
       });
-    setTotal("");
-    setAllocationSavings("");
-    setAllocationParticipation("");
-    await loadHistory();
-  }
+      if (!res.success) {
+        throw new Error(res.message || "Gagal mendistribusikan SHU");
+      }
+      toast.success("Distribusi SHU berhasil");
+      await loadHistory();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal mendistribusikan SHU"
+      );
+    } finally {
+      setDistributeLoading(false);
+    }
+  }, [form.year, latestYearData?.year, loadHistory]);
 
-  async function onSimulate() {
-    if (!year) return;
-    const res = await simulateSHU(year);
-    if (res.success) setSimulation(res.data || []);
-  }
+  const handleExport = useCallback(async () => {
+    const targetYear = form.year || latestYearData?.year;
+    if (!targetYear) {
+      toast.error("Tentukan tahun terlebih dahulu");
+      return;
+    }
+    setExportLoading(true);
+    try {
+      const blob = await exportSHURaw(targetYear);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `shu-${targetYear}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Export SHU berhasil");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal mengekspor SHU"
+      );
+    } finally {
+      setExportLoading(false);
+    }
+  }, [form.year, latestYearData?.year]);
 
-  async function onDistribute() {
-    if (!year) return;
-    await distributeSHU(year, {
-      method: "transfer",
-      description: `Distribusi SHU ${year}`,
-    });
-    await loadHistory();
-  }
+  const handleLoadMemberDistribution = useCallback(async () => {
+    if (!memberFilter.memberId) {
+      toast.error("Pilih anggota terlebih dahulu");
+      return;
+    }
+    setDistributionLoading(true);
+    try {
+      const res: SHUMemberHistoryResponse = await listSHUByMember(
+        memberFilter.memberId,
+        { limit: 50 }
+      );
+      if (!res.success || !Array.isArray(res.data)) {
+        throw new Error(res.message || "Gagal memuat distribusi anggota");
+      }
+      setMemberDistributions(res.data as SHUDistribution[]);
+    } catch (error) {
+      setMemberDistributions(null);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Gagal memuat distribusi anggota"
+      );
+    } finally {
+      setDistributionLoading(false);
+    }
+  }, [memberFilter.memberId]);
 
-  async function onExport() {
-    const y = year || latest?.year;
-    if (!y) return;
-    const blob = await exportSHURaw(y);
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `shu-${y}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  async function loadMember() {
-    if (!memberId) return;
-    const res = await listSHUByMember(memberId);
-    if (res.success) setMemberDist(res.data || []);
-  }
+  const historySummary = useMemo(() => {
+    const totalDistributed = history
+      .filter((item) => item.status === "distributed")
+      .reduce((acc, item) => acc + item.total_shu, 0);
+    return {
+      count: history.length,
+      distributed: totalDistributed,
+    };
+  }, [history]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Sisa Hasil Usaha (SHU)</h2>
@@ -118,16 +274,22 @@ export default function SHUPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onSimulate}>
-            <Calculator className="h-4 w-4 mr-2" /> Hitung SHU
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSimulate}
+            disabled={simulateLoading}
+          >
+            <Calculator className="mr-2 h-4 w-4" />
+            {simulateLoading ? "Menghitung..." : "Hitung SHU"}
           </Button>
-          <Button type="button" onClick={onExport}>
-            <Download className="h-4 w-4 mr-2" /> Export Data
+          <Button onClick={handleExport} disabled={exportLoading}>
+            <Download className="mr-2 h-4 w-4" />
+            {exportLoading ? "Mengunduh..." : "Export Data"}
           </Button>
         </div>
       </div>
 
-      {/* Controls */}
       <Card>
         <CardHeader>
           <CardTitle>Input & Aksi</CardTitle>
@@ -136,294 +298,238 @@ export default function SHUPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
+          <div className="grid items-end gap-3 md:grid-cols-7">
             <div>
-              <div className="text-xs text-muted-foreground mb-1">Tahun</div>
+              <div className="mb-1 text-xs text-muted-foreground">Tahun</div>
               <Input
                 type="number"
-                value={String(year)}
-                onChange={(e) =>
-                  setYear(e.target.value ? Number(e.target.value) : "")
+                value={form.year === "" ? "" : form.year}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    year: event.target.value
+                      ? Number(event.target.value)
+                      : "",
+                  }))
                 }
               />
             </div>
             <div>
-              <div className="text-xs text-muted-foreground mb-1">
-                Total SHU
-              </div>
+              <div className="mb-1 text-xs text-muted-foreground">Total SHU</div>
               <Input
                 type="number"
                 placeholder="50000000"
-                value={String(total)}
-                onChange={(e) =>
-                  setTotal(e.target.value ? Number(e.target.value) : "")
+                value={form.total === "" ? "" : form.total}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    total: event.target.value
+                      ? Number(event.target.value)
+                      : "",
+                  }))
                 }
               />
             </div>
             <div>
-              <div className="text-xs text-muted-foreground mb-1">
-                % Simpanan
-              </div>
+              <div className="mb-1 text-xs text-muted-foreground">% Simpanan</div>
               <Input
                 type="number"
                 placeholder="60"
-                value={String(allocationSavings)}
-                onChange={(e) =>
-                  setAllocationSavings(
-                    e.target.value ? Number(e.target.value) : ""
-                  )
+                value={
+                  form.allocationSavings === "" ? "" : form.allocationSavings
+                }
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    allocationSavings: event.target.value
+                      ? Number(event.target.value)
+                      : "",
+                  }))
                 }
               />
             </div>
             <div>
-              <div className="text-xs text-muted-foreground mb-1">
-                % Partisipasi
-              </div>
+              <div className="mb-1 text-xs text-muted-foreground">% Partisipasi</div>
               <Input
                 type="number"
                 placeholder="40"
-                value={String(allocationParticipation)}
-                onChange={(e) =>
-                  setAllocationParticipation(
-                    e.target.value ? Number(e.target.value) : ""
-                  )
+                value={
+                  form.allocationParticipation === ""
+                    ? ""
+                    : form.allocationParticipation
+                }
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    allocationParticipation: event.target.value
+                      ? Number(event.target.value)
+                      : "",
+                  }))
                 }
               />
             </div>
             <Button
               type="button"
-              onClick={onCreateYearly}
-              disabled={loading || !year || !total}
+              onClick={handleCreateYearly}
+              disabled={historyLoading || !form.year || !form.total}
             >
-              Simpan Total
+              {historyLoading ? "Memproses..." : "Simpan Total"}
             </Button>
             <Button
               type="button"
-              variant="outline"
-              onClick={onSimulate}
-              disabled={loading || !year}
+              onClick={handleDistribute}
+              disabled={distributeLoading}
             >
-              Simulasi
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onDistribute}
-              disabled={loading || !year}
-            >
-              Distribusi
+              {distributeLoading ? "Mendistribusi..." : "Distribusikan"}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* SHU Summary */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Total SHU {latest?.year ?? "-"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{latest?.total_shu ?? "-"}</div>
-            <p className="text-xs text-muted-foreground">Terakhir diinput</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold capitalize">
-              {latest?.status ?? "-"}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Status tahun berjalan
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Tahun</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{latest?.year ?? "-"}</div>
-            <p className="text-xs text-muted-foreground">Tahun data terbaru</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Alokasi Simpanan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {latest?.allocation_savings ?? "-"}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Persentase untuk simpanan
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Alokasi Partisipasi
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {latest?.allocation_participation ?? "-"}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Persentase untuk partisipasi
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* SHU History */}
       <Card>
         <CardHeader>
-          <CardTitle>Riwayat SHU</CardTitle>
-          <CardDescription>Data SHU per tahun</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Riwayat Tahunan</CardTitle>
+              <CardDescription>Status per tahun pembukuan SHU</CardDescription>
+            </div>
+            <Badge variant="secondary">Total terdistribusi: {currencyFormatter.format(historySummary.distributed)}</Badge>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {history.map((shu, idx) => (
-              <div
-                key={shu?.id ?? `${shu?.year ?? "unknown"}-${idx}`}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">SHU Tahun {shu.year}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Total: {shu.total_shu}
-                    </p>
-                  </div>
+        <CardContent className="space-y-3">
+          {history.map((item) => (
+            <div
+              key={item.id}
+              className="flex flex-col gap-2 rounded border p-3 md:flex-row md:items-center md:justify-between"
+            >
+              <div>
+                <div className="font-semibold">Tahun {item.year}</div>
+                <div className="text-sm text-muted-foreground">
+                  Total SHU: {currencyFormatter.format(item.total_shu)}
                 </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      Status: {shu.status ?? "-"}
-                    </p>
-                  </div>
-                  <Badge variant="default">{shu.status ?? "-"}</Badge>
+                <div className="text-xs text-muted-foreground">
+                  Simpanan: {percentageFormatter.format(item.allocation_savings / 100)} | Partisipasi: {percentageFormatter.format(item.allocation_participation / 100)}
                 </div>
               </div>
-            ))}
-            {!history.length && (
-              <div className="text-sm text-muted-foreground italic">
-                Belum ada data
-              </div>
-            )}
-          </div>
+              <Badge variant={item.status === "distributed" ? "default" : "secondary"}>
+                {item.status === "distributed" ? "Terdistribusi" : "Draft"}
+              </Badge>
+            </div>
+          ))}
+          {!history.length && (
+            <div className="text-sm text-muted-foreground italic">
+              Belum ada data riwayat SHU
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Simulation Result */}
-      {simulation && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Hasil Simulasi {year}</CardTitle>
-            <CardDescription>Perkiraan distribusi per anggota</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {simulation.map((row: any, idx: number) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 border rounded-md"
-                >
-                  <div className="font-medium">
-                    Anggota #{row.member_id ?? row.memberId ?? idx + 1}
-                  </div>
-                  <div className="text-sm">
-                    Jumlah: {row.amount ?? row.total ?? "-"}
-                  </div>
-                </div>
-              ))}
-              {!simulation.length && (
-                <div className="text-sm text-muted-foreground italic">
-                  Tidak ada hasil simulasi
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Member SHU Distribution (by member) */}
       <Card>
         <CardHeader>
-          <CardTitle>Pembagian SHU per Anggota</CardTitle>
+          <CardTitle>Simulasi Distribusi</CardTitle>
           <CardDescription>
-            Pilih anggota untuk melihat riwayat
+            Hasil simulasi distribusi berdasarkan konfigurasi SHU
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end mb-4">
+        <CardContent className="space-y-2">
+          {simulation?.map((row) => (
+            <div
+              key={row.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded border p-3"
+            >
+              <div>
+                <div className="font-semibold">{row.member_name}</div>
+                <div className="text-xs text-muted-foreground">
+                  Id anggota: {row.member_id}
+                </div>
+              </div>
+              <div className="text-sm text-right">
+                Simpanan: {currencyFormatter.format(row.simpanan)}
+                <br />
+                Partisipasi: {currencyFormatter.format(row.partisipasi)}
+                <br />
+                <strong>Total: {currencyFormatter.format(row.amount)}</strong>
+              </div>
+            </div>
+          ))}
+          {!simulation?.length && (
+            <div className="text-sm text-muted-foreground italic">
+              Jalankan simulasi untuk melihat pembagian SHU.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribusi per Anggota</CardTitle>
+          <CardDescription>Cek riwayat distribusi khusus anggota</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid items-end gap-3 md:grid-cols-4">
             <AsyncCombobox<MemberListItem, number>
-              value={memberId ? Number(memberId) : null}
-              onChange={(val) => setMemberId(val ? String(val) : "")}
-              getOptionValue={(m) => m.id}
-              getOptionLabel={(m) => m.user?.full_name || m.no_anggota || String(m.id)}
+              value={memberFilter.memberId ?? null}
+              onChange={(value) =>
+                setMemberFilter({ memberId: value ?? undefined })
+              }
+              getOptionValue={(member) => member.id}
+              getOptionLabel={(member) =>
+                member.full_name || member.no_anggota || String(member.id)
+              }
               queryKey={["members", "search-shu-member"]}
-              fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 })}
-              placeholder="Cari anggota (nama/email/no. anggota)"
+              fetchPage={memberFetcher}
+              placeholder="Pilih anggota"
               emptyText="Tidak ada anggota"
               notReadyText="Ketik untuk mencari"
               minChars={1}
-              renderOption={(m) => (
+              renderOption={(member) => (
                 <div className="flex flex-col">
-                  <span className="font-medium">{m.user?.full_name || `Anggota #${m.id}`}</span>
-                  <span className="text-xs text-muted-foreground">{m.no_anggota} • {m.user?.email || '-'}</span>
+                  <span className="font-medium">
+                    {member.full_name || `Anggota #${member.id}`}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {member.no_anggota} • {member.email || "-"}
+                  </span>
                 </div>
               )}
-              renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
+              renderValue={(value) =>
+                value ? <span>Anggota #{value}</span> : <span />
+              }
             />
-            <Button type="button" onClick={loadMember} disabled={!memberId}>
-              Muat Riwayat
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleLoadMemberDistribution}
+              disabled={distributionLoading}
+            >
+              {distributionLoading ? "Memuat..." : "Lihat Riwayat"}
             </Button>
           </div>
-          <div className="space-y-4">
-            {(memberDist ?? []).map((row: any, idx: number) => (
+
+          <div className="space-y-2">
+            {memberDistributions?.map((row) => (
               <div
-                key={idx}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                key={row.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded border p-3"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">
-                      Anggota #{row.member_id ?? memberId}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Tahun: {row.year ?? "-"}
-                    </p>
+                <div>
+                  <div className="font-semibold">Tahun {row.year}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Status: {row.status}
                   </div>
                 </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      Total SHU: {row.amount ?? row.total ?? "-"}
-                    </p>
-                  </div>
-                  <Badge variant="secondary">Riwayat</Badge>
+                <div className="text-sm text-right">
+                  Simpanan: {currencyFormatter.format(row.simpanan)}
+                  <br />
+                  Partisipasi: {currencyFormatter.format(row.partisipasi)}
+                  <br />
+                  <strong>Total: {currencyFormatter.format(row.amount)}</strong>
                 </div>
               </div>
             ))}
-            {memberDist !== null && !(memberDist ?? []).length && (
+            {!memberDistributions?.length && (
               <div className="text-sm text-muted-foreground italic">
-                Tidak ada data
+                Pilih anggota dan tekan &quot;Lihat Riwayat&quot; untuk menampilkan data.
               </div>
             )}
           </div>

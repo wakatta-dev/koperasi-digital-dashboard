@@ -20,10 +20,23 @@ export function MemberVerifyDialog({ defaultId }: { defaultId?: string | number 
   const [loading, setLoading] = useState(false);
 
   async function act(approve: boolean) {
-    if (!id) return;
+    const targetId = id.trim();
+    if (!targetId) {
+      toast.error("Pilih anggota terlebih dahulu");
+      return;
+    }
     setLoading(true);
     try {
-      await verifyMember(id, { approve, ...(approve ? {} : { reason }) });
+      const payloadReason = reason.trim();
+      const res = await verifyMember(targetId, {
+        approve,
+        ...(approve ? {} : payloadReason ? { reason: payloadReason } : {}),
+      });
+
+      if (!res.success) {
+        throw new Error(res.message || "Verifikasi anggota gagal");
+      }
+
       toast.success(approve ? "Anggota disetujui" : "Anggota ditolak");
       setReason("");
       setOpen(false);
@@ -70,11 +83,11 @@ export function MemberVerifyDialog({ defaultId }: { defaultId?: string | number 
           <Button
             variant="secondary"
             onClick={() => act(false)}
-            disabled={!id || loading}
+            disabled={!id.trim() || loading}
           >
             Tolak
           </Button>
-          <Button onClick={() => act(true)} disabled={!id || loading}>
+          <Button onClick={() => act(true)} disabled={!id.trim() || loading}>
             {loading ? "Memproses..." : "Setujui"}
           </Button>
         </DialogFooter>

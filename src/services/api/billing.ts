@@ -6,6 +6,8 @@ import type {
   Plan,
   Invoice,
   Payment,
+  PaymentRequest,
+  VerifyPaymentRequest,
   SubscriptionSummary,
   StatusAudit,
   Subscription,
@@ -178,14 +180,19 @@ export function listClientInvoices(
     cursor?: string;
     term?: string;
     status?: Invoice["status"];
+    year?: string;
+    business_unit_id?: string | number;
   },
   opts?: { signal?: AbortSignal }
 ): Promise<ApiResponse<Invoice[]>> {
   const search = new URLSearchParams();
-  search.set("limit", String(params?.limit ?? 100));
+  search.set("limit", String(params?.limit ?? 10));
   if (params?.cursor) search.set("cursor", params.cursor);
   if (params?.term) search.set("term", params.term);
   if (params?.status) search.set("status", params.status);
+  if (params?.year) search.set("year", params.year);
+  if (params?.business_unit_id)
+    search.set("business_unit_id", String(params.business_unit_id));
   const q = search.toString();
   const base = `${API_PREFIX}${API_ENDPOINTS.billing.client.invoicesBase}`;
   return api.get<Invoice[]>(q ? `${base}?${q}` : base, { signal: opts?.signal });
@@ -193,7 +200,7 @@ export function listClientInvoices(
 
 export function createPayment(
   invoiceId: string | number,
-  payload: Partial<Payment>
+  payload: PaymentRequest
 ): Promise<ApiResponse<Payment>> {
   return api.post<Payment>(
     `${API_PREFIX}${API_ENDPOINTS.billing.client.invoice(invoiceId).payments}`,
@@ -203,15 +210,11 @@ export function createPayment(
 
 export function verifyVendorPayment(
   id: string | number,
-  payload?: Partial<Payment> & {
-    status?: "pending" | "verified" | "rejected";
-    gateway?: "midtrans";
-    external_id?: string;
-  }
+  payload: VerifyPaymentRequest
 ): Promise<ApiResponse<Payment>> {
   return api.patch<Payment>(
     `${API_PREFIX}${API_ENDPOINTS.billing.vendor.payments(id).verify}`,
-    payload ?? {}
+    payload
   );
 }
 

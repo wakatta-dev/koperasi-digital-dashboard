@@ -29,6 +29,7 @@ import type { MemberListItem } from "@/types/api";
 import { MemberCardDialog } from "./member-card-dialog";
 import { makePaginatedListFetcher, type FetchPageResult } from "@/lib/async-fetchers";
 import { useDebouncedValue } from "@/hooks/use-debounce";
+import { toast } from "sonner";
 
 export function MembersListClient({
   initialData,
@@ -173,29 +174,43 @@ export function MembersListClient({
                     onClick={async () => {
                       const current = String(member.status || "").toLowerCase();
                       const next = current === "active" ? "nonaktif" : "active";
-                      await updateMemberStatus(member.id, { status: next });
-                      // Optimistic UI: update cached pages in-place
-                      qc.setQueryData<
-                        InfiniteData<FetchPageResult<MemberListItem>, string | undefined>
-                      >([
-                        "koperasi",
-                        "members",
-                        { q: debounced, status },
-                      ], (old) => {
-                        if (!old) return old as any;
-                        return {
-                          pageParams: old.pageParams,
-                          pages: old.pages.map((pg) => ({
-                            ...pg,
-                            items: pg.items.map((m) =>
-                              m.id === member.id ? { ...m, status: next } : m
-                            ),
-                          })),
-                        } as InfiniteData<
-                          FetchPageResult<MemberListItem>,
-                          string | undefined
-                        >;
-                      });
+                      try {
+                        const res = await updateMemberStatus(member.id, {
+                          status: next,
+                        });
+                        if (!res.success) {
+                          throw new Error(res.message || "Gagal memperbarui status anggota");
+                        }
+
+                        qc.setQueryData<
+                          InfiniteData<FetchPageResult<MemberListItem>, string | undefined>
+                        >([
+                          "koperasi",
+                          "members",
+                          { q: debounced, status },
+                        ], (old) => {
+                          if (!old) return old as any;
+                          return {
+                            pageParams: old.pageParams,
+                            pages: old.pages.map((pg) => ({
+                              ...pg,
+                              items: pg.items.map((m) =>
+                                m.id === member.id ? { ...m, status: next } : m
+                              ),
+                            })),
+                          } as InfiniteData<
+                            FetchPageResult<MemberListItem>,
+                            string | undefined
+                          >;
+                        });
+                        toast.success("Status anggota diperbarui");
+                      } catch (error) {
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Gagal memperbarui status anggota"
+                        );
+                      }
                     }}
                   >
                     Toggle

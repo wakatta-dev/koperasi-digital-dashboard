@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,7 +12,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CreditCard, Search, CheckCircle, FileText } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   applyLoan,
   approveLoan,
@@ -24,14 +31,14 @@ import {
 import AsyncCombobox from "@/components/ui/async-combobox";
 import { listMembers } from "@/services/api";
 import { makePaginatedListFetcher } from "@/lib/async-fetchers";
-import type { LoanInstallment, MemberListItem } from "@/types/api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import type {
+  LoanApplicationResponse,
+  LoanInstallment,
+  LoanInstallmentListResponse,
+  LoanReleaseLetterResponse,
+  MemberListItem,
+} from "@/types/api";
+import { CreditCard, Search, CheckCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 const currencyFormatter = new Intl.NumberFormat("id-ID", {
@@ -41,7 +48,7 @@ const currencyFormatter = new Intl.NumberFormat("id-ID", {
 });
 
 type ApplyFormState = {
-  member_id: string;
+  memberId?: number;
   amount: number;
   purpose: string;
   tenor: number;
@@ -49,8 +56,8 @@ type ApplyFormState = {
 };
 
 export default function PinjamanClient() {
-  const [applyPayload, setApplyPayload] = useState<ApplyFormState>({
-    member_id: "",
+  const [applyForm, setApplyForm] = useState<ApplyFormState>({
+    memberId: undefined,
     amount: 0,
     purpose: "",
     tenor: 12,
@@ -59,95 +66,153 @@ export default function PinjamanClient() {
   const [loanId, setLoanId] = useState<string>("");
   const [installments, setInstallments] = useState<LoanInstallment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [installmentLoading, setInstallmentLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "unpaid" | "paid" | "overdue"
   >("all");
   const [dueDate, setDueDate] = useState<string>("");
   const [releaseLoading, setReleaseLoading] = useState(false);
 
-  async function onApply() {
+  const userFetcher = useMemo(
+    () => makePaginatedListFetcher<MemberListItem>(listMembers, { limit: 10 }),
+    []
+  );
+
+  const isApplyDisabled = useMemo(() => {
+    const { memberId, amount, tenor } = applyForm;
+    return !memberId || amount <= 0 || tenor <= 0 || loading;
+  }, [applyForm, loading]);
+
+  const handleApply = useCallback(async () => {
+    if (isApplyDisabled || !applyForm.memberId) return;
     setLoading(true);
     try {
-      await applyLoan({
-        member_id: Number(applyPayload.member_id),
-        amount: applyPayload.amount,
-        purpose: applyPayload.purpose || undefined,
-        tenor: applyPayload.tenor,
-        rate: applyPayload.rate,
+      const res: LoanApplicationResponse = await applyLoan({
+        member_id: applyForm.memberId,
+        amount: applyForm.amount,
+        tenor: applyForm.tenor,
+        rate: applyForm.rate,
+        purpose: applyForm.purpose.trim() || undefined,
       });
+      if (!res.success) {
+        throw new Error(res.message || "Gagal mengajukan pinjaman");
+      }
       toast.success("Pengajuan pinjaman terkirim");
-      setApplyPayload({
-        member_id: "",
+      setApplyForm({
+        memberId: undefined,
         amount: 0,
         purpose: "",
         tenor: 12,
         rate: 12,
       });
-    } catch (e: any) {
-      toast.error(e?.message || "Gagal mengajukan pinjaman");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal mengajukan pinjaman"
+      );
     } finally {
       setLoading(false);
     }
-  }
+  }, [applyForm, isApplyDisabled]);
 
-  async function loadInstallments() {
-    if (!loanId) return;
-    const res = await listLoanInstallments(loanId, {
-      status: statusFilter === "all" ? undefined : statusFilter,
-      due_date: dueDate || undefined,
-      limit: 20,
-    });
-    if (res.success) {
-      setInstallments((res.data as LoanInstallment[]) ?? []);
-    } else {
-      toast.error(res.message || "Gagal memuat angsuran");
+  const loadInstallments = useCallback(async () => {
+    if (!loanId.trim()) {
+      toast.error("Masukkan ID pinjaman terlebih dahulu");
+      return;
     }
-  }
-
-  async function onApprove() {
-    if (!loanId) return;
+    setInstallmentLoading(true);
     try {
-      await approveLoan(loanId);
+      const res: LoanInstallmentListResponse = await listLoanInstallments(
+        loanId.trim(),
+        {
+          status: statusFilter === "all" ? undefined : statusFilter,
+          due_date: dueDate || undefined,
+          limit: 50,
+        }
+      );
+      if (!res.success || !Array.isArray(res.data)) {
+        throw new Error(res.message || "Gagal memuat angsuran");
+      }
+      setInstallments(res.data as LoanInstallment[]);
+    } catch (error) {
+      setInstallments([]);
+      toast.error(
+        error instanceof Error ? error.message : "Gagal memuat angsuran"
+      );
+    } finally {
+      setInstallmentLoading(false);
+    }
+  }, [dueDate, loanId, statusFilter]);
+
+  const handleApprove = useCallback(async () => {
+    if (!loanId.trim()) {
+      toast.error("Masukkan ID pinjaman terlebih dahulu");
+      return;
+    }
+    try {
+      const res: LoanApplicationResponse = await approveLoan(loanId.trim());
+      if (!res.success) {
+        throw new Error(res.message || "Gagal menyetujui pinjaman");
+      }
       toast.success("Pinjaman disetujui");
       await loadInstallments();
-    } catch (e: any) {
-      toast.error(e?.message || "Gagal menyetujui pinjaman");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal menyetujui pinjaman"
+      );
     }
-  }
+  }, [loanId, loadInstallments]);
 
-  async function onDisburse() {
-    if (!loanId) return;
+  const handleDisburse = useCallback(async () => {
+    if (!loanId.trim()) {
+      toast.error("Masukkan ID pinjaman terlebih dahulu");
+      return;
+    }
     try {
-      await disburseLoan(loanId, { method: "transfer" });
+      const res: LoanApplicationResponse = await disburseLoan(loanId.trim(), {
+        method: "transfer",
+      });
+      if (!res.success) {
+        throw new Error(res.message || "Gagal mencairkan pinjaman");
+      }
       toast.success("Pinjaman dicairkan");
       await loadInstallments();
-    } catch (e: any) {
-      toast.error(e?.message || "Gagal mencairkan pinjaman");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal mencairkan pinjaman"
+      );
     }
-  }
+  }, [loanId, loadInstallments]);
 
-  async function onReleaseLetter() {
-    if (!loanId) return;
+  const handleReleaseLetter = useCallback(async () => {
+    if (!loanId.trim()) {
+      toast.error("Masukkan ID pinjaman terlebih dahulu");
+      return;
+    }
     setReleaseLoading(true);
     try {
-      const res = await getLoanReleaseLetter(loanId);
-      if (res.success && res.data?.content) {
-        const win = window.open("", "_blank", "noopener,noreferrer");
-        if (win) {
-          win.document.write(res.data.content);
-          win.document.close();
-        } else {
-          toast.info("Buka blokir pop-up untuk melihat surat pelunasan");
-        }
-      } else {
-        toast.info("Surat pelunasan belum tersedia");
+      const res: LoanReleaseLetterResponse = await getLoanReleaseLetter(
+        loanId.trim()
+      );
+      if (!res.success || !res.data?.content) {
+        throw new Error(res.message || "Surat pelunasan belum tersedia");
       }
-    } catch (e: any) {
-      toast.error(e?.message || "Gagal mengambil surat pelunasan");
+      const popup = window.open("", "_blank", "noopener,noreferrer");
+      if (popup) {
+        popup.document.write(res.data.content);
+        popup.document.close();
+      } else {
+        toast.info("Buka blokir pop-up untuk melihat surat pelunasan");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Gagal mengambil surat pelunasan"
+      );
     } finally {
       setReleaseLoading(false);
     }
-  }
+  }, [loanId]);
 
   const totals = useMemo(() => {
     return installments.reduce(
@@ -182,67 +247,70 @@ export default function PinjamanClient() {
         <CardContent>
           <div className="grid gap-3 md:grid-cols-6">
             <AsyncCombobox<MemberListItem, number>
-              value={
-                applyPayload.member_id ? Number(applyPayload.member_id) : null
-              }
-              onChange={(val) =>
-                setApplyPayload((s) => ({
-                  ...s,
-                  member_id: val != null ? String(val) : "",
+              value={applyForm.memberId ?? null}
+              onChange={(value) =>
+                setApplyForm((prev) => ({
+                  ...prev,
+                  memberId: value ?? undefined,
                 }))
               }
-              getOptionValue={(m) => m.id}
-              getOptionLabel={(m) =>
-                m.full_name || m.no_anggota || String(m.id)
+              getOptionValue={(member) => member.id}
+              getOptionLabel={(member) =>
+                member.full_name || member.no_anggota || String(member.id)
               }
               queryKey={["members", "search-loan-apply"]}
-              fetchPage={makePaginatedListFetcher<MemberListItem>(listMembers, {
-                limit: 10,
-              })}
+              fetchPage={userFetcher}
               placeholder="Cari anggota (nama/email/no. anggota)"
               emptyText="Tidak ada anggota"
               notReadyText="Ketik untuk mencari"
               minChars={1}
-              renderOption={(m) => (
+              renderOption={(member) => (
                 <div className="flex flex-col">
                   <span className="font-medium">
-                    {m.full_name || `Anggota #${m.id}`}
+                    {member.full_name || `Anggota #${member.id}`}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {m.no_anggota} • {m.email || "-"}
+                    {member.no_anggota} • {member.email || "-"}
                   </span>
                 </div>
               )}
-              renderValue={(val) => <span>{val ? `Anggota #${val}` : ""}</span>}
+              renderValue={(value) =>
+                value ? <span>Anggota #{value}</span> : <span />
+              }
             />
             <Input
               type="number"
               min={0}
               placeholder="Jumlah"
-              value={applyPayload.amount || ""}
-              onChange={(e) =>
-                setApplyPayload((s) => ({
-                  ...s,
-                  amount: Number(e.target.value || 0),
+              value={applyForm.amount || ""}
+              onChange={(event) =>
+                setApplyForm((prev) => ({
+                  ...prev,
+                  amount: Number(event.target.value || 0),
                 }))
               }
             />
-            <Input
+            <Textarea
               placeholder="Keperluan"
-              value={applyPayload.purpose}
-              onChange={(e) =>
-                setApplyPayload((s) => ({ ...s, purpose: e.target.value }))
+              value={applyForm.purpose}
+              onChange={(event) =>
+                setApplyForm((prev) => ({
+                  ...prev,
+                  purpose: event.target.value,
+                }))
               }
+              className="md:col-span-2"
+              rows={1}
             />
             <Input
               type="number"
               min={1}
               placeholder="Tenor (bulan)"
-              value={applyPayload.tenor || ""}
-              onChange={(e) =>
-                setApplyPayload((s) => ({
-                  ...s,
-                  tenor: Number(e.target.value || 0),
+              value={applyForm.tenor || ""}
+              onChange={(event) =>
+                setApplyForm((prev) => ({
+                  ...prev,
+                  tenor: Number(event.target.value || 0),
                 }))
               }
             />
@@ -251,24 +319,16 @@ export default function PinjamanClient() {
               step="0.01"
               min={0}
               placeholder="Rate (%)"
-              value={applyPayload.rate || ""}
-              onChange={(e) =>
-                setApplyPayload((s) => ({
-                  ...s,
-                  rate: Number(e.target.value || 0),
+              value={applyForm.rate || ""}
+              onChange={(event) =>
+                setApplyForm((prev) => ({
+                  ...prev,
+                  rate: Number(event.target.value || 0),
                 }))
               }
             />
-            <Button
-              onClick={onApply}
-              disabled={
-                loading ||
-                !applyPayload.member_id ||
-                !applyPayload.amount ||
-                !applyPayload.tenor
-              }
-            >
-              Ajukan
+            <Button onClick={handleApply} disabled={isApplyDisabled}>
+              {loading ? "Memproses..." : "Ajukan"}
             </Button>
           </div>
         </CardContent>
@@ -289,13 +349,13 @@ export default function PinjamanClient() {
                 className="pl-9"
                 placeholder="ID pinjaman"
                 value={loanId}
-                onChange={(e) => setLoanId(e.target.value)}
+                onChange={(event) => setLoanId(event.target.value)}
               />
             </div>
             <Select
               value={statusFilter}
-              onValueChange={(val) =>
-                setStatusFilter(val as typeof statusFilter)
+              onValueChange={(value) =>
+                setStatusFilter(value as typeof statusFilter)
               }
             >
               <SelectTrigger>
@@ -311,27 +371,31 @@ export default function PinjamanClient() {
             <Input
               type="date"
               value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+              onChange={(event) => setDueDate(event.target.value)}
             />
             <Button
               variant="outline"
               onClick={loadInstallments}
-              disabled={!loanId}
+              disabled={!loanId.trim() || installmentLoading}
             >
-              Muat Angsuran
+              {installmentLoading ? "Memuat..." : "Muat Angsuran"}
             </Button>
           </div>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={onApprove} disabled={!loanId}>
+            <Button
+              variant="secondary"
+              onClick={handleApprove}
+              disabled={!loanId.trim()}
+            >
               <CheckCircle className="mr-2 h-4 w-4" /> Setujui
             </Button>
-            <Button onClick={onDisburse} disabled={!loanId}>
+            <Button onClick={handleDisburse} disabled={!loanId.trim()}>
               <CreditCard className="mr-2 h-4 w-4" /> Cairkan
             </Button>
             <Button
               variant="ghost"
-              onClick={onReleaseLetter}
-              disabled={!loanId || releaseLoading}
+              onClick={handleReleaseLetter}
+              disabled={!loanId.trim() || releaseLoading}
             >
               <FileText className="mr-2 h-4 w-4" />
               {releaseLoading ? "Memuat..." : "Surat Pelunasan"}
@@ -349,54 +413,69 @@ export default function PinjamanClient() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {installments.map((ins) => (
+          {installments.map((installment) => (
             <div
-              key={String(ins.id)}
+              key={installment.id}
               className="flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
             >
               <div>
-                <p className="font-medium">Angsuran #{ins.id}</p>
+                <p className="font-medium">Angsuran #{installment.id}</p>
                 <p className="text-sm text-muted-foreground">
-                  Jatuh tempo: {formatDate(ins.due_date)}
+                  Jatuh tempo: {formatDate(installment.due_date)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Penalti: {currencyFormatter.format(Number(ins.penalty || 0))}
+                  Penalti:{" "}
+                  {currencyFormatter.format(Number(installment.penalty || 0))}
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="font-semibold">
-                    Jumlah: {currencyFormatter.format(ins.amount)}
+                    Jumlah: {currencyFormatter.format(installment.amount)}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Dibayar: {currencyFormatter.format(ins.paid_amount)}
+                    Dibayar: {currencyFormatter.format(installment.paid_amount)}
                   </p>
                   <p className="text-xs text-muted-foreground capitalize">
-                    Status: {ins.status}
+                    Status: {installment.status}
                   </p>
                 </div>
-                {ins.status !== "paid" && (
+                {installment.status !== "paid" && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={async () => {
                       const nominal = Number(
                         prompt(
-                          "Nominal bayar",
-                          String(Math.max(0, ins.amount - ins.paid_amount))
+                          "Nominal pembayaran",
+                          String(
+                            Math.max(
+                              0,
+                              installment.amount - installment.paid_amount
+                            )
+                          )
                         ) || 0
                       );
-                      if (!nominal) return;
+                      if (!Number.isFinite(nominal) || nominal <= 0) return;
                       try {
-                        await payLoanInstallment(ins.id, {
+                        const res = await payLoanInstallment(installment.id, {
                           amount: nominal,
                           date: new Date().toISOString(),
                           method: "manual",
                         });
+                        if (!res.success) {
+                          throw new Error(
+                            res.message || "Gagal mencatat pembayaran"
+                          );
+                        }
                         toast.success("Angsuran dicatat");
                         await loadInstallments();
-                      } catch (e: any) {
-                        toast.error(e?.message || "Gagal mencatat pembayaran");
+                      } catch (error) {
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Gagal mencatat pembayaran"
+                        );
                       }
                     }}
                   >
@@ -408,7 +487,9 @@ export default function PinjamanClient() {
           ))}
           {!installments.length && (
             <div className="text-sm text-muted-foreground italic">
-              {`Masukkan ID pinjaman dan klik "Muat Angsuran" untuk melihat jadwal.`}
+              {loanId
+                ? "Belum ada data angsuran untuk filter saat ini."
+                : 'Masukkan ID pinjaman dan klik "Muat Angsuran" untuk melihat jadwal.'}
             </div>
           )}
         </CardContent>

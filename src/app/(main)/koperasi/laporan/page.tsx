@@ -5,12 +5,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FileText } from "lucide-react";
 import { getReportHistory } from "@/services/api";
 import { ExportQuickClient } from "@/components/feature/koperasi/report/export-quick-client";
+import type { GetReportHistoryResponse, ReportArchive } from "@/types/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function LaporanIndexPage() {
-  const res = await getReportHistory().catch(() => null);
-  const history = res && res.success ? (res.data as any[]) : [];
+  const res: GetReportHistoryResponse | null = await getReportHistory().catch(
+    () => null
+  );
+
+  const history: ReportArchive[] = Array.isArray(res?.data) && res?.success
+    ? (res.data as ReportArchive[])
+    : [];
+
+  const historyError = res && !res.success ? res.message : null;
+
+  const formatDate = (value?: string) => {
+    if (!value) return "-";
+    try {
+      return new Intl.DateTimeFormat("id-ID", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      }).format(new Date(value));
+    } catch {
+      return value;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -71,20 +93,43 @@ export default async function LaporanIndexPage() {
           <CardDescription>File export yang pernah dibuat</CardDescription>
         </CardHeader>
         <CardContent>
+          {historyError ? (
+            <div className="text-sm text-destructive">{historyError}</div>
+          ) : null}
           <div className="space-y-3">
-            {history.map((h: any) => (
-              <div key={String(h.id)} className="flex items-center justify-between p-3 border rounded">
+            {history.map((record) => (
+              <div
+                key={String(record.id)}
+                className="flex items-center justify-between rounded border p-3"
+              >
                 <div>
-                  <div className="font-medium">{h.report_type ?? h.type ?? 'report'}</div>
-                  <div className="text-xs text-muted-foreground">Periode: {h.period_start ?? '-'} s/d {h.period_end ?? '-'}</div>
+                  <div className="font-medium">
+                    {record.type || "report"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Periode: {formatDate(record.period_start)} s/d {formatDate(record.period_end)}
+                  </div>
                 </div>
-                {h.file_url && (
-                  <a href={h.file_url} target="_blank" rel="noreferrer" className="text-sm underline">Unduh</a>
+                {record.file_url ? (
+                  <a
+                    href={record.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm underline"
+                  >
+                    Unduh
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    File belum tersedia
+                  </span>
                 )}
               </div>
             ))}
-            {!history.length && (
-              <div className="text-sm text-muted-foreground italic">Belum ada riwayat export</div>
+            {!history.length && !historyError && (
+              <div className="text-sm text-muted-foreground italic">
+                Belum ada riwayat export
+              </div>
             )}
           </div>
         </CardContent>

@@ -45,7 +45,7 @@ export type DisbursementRequest = {
   method: string;
 };
 
-export type PaymentRequest = {
+export type LoanPaymentRequest = {
   amount: number;
   date: Rfc3339String;
   method: string;

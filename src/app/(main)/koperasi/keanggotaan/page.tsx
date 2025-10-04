@@ -8,51 +8,35 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MemberRegisterDialog } from "@/components/feature/koperasi/membership/member-register-dialog";
-import { getKoperasiDashboard, listMembers } from "@/services/api";
 import { MembersListClient } from "@/components/feature/koperasi/membership/members-list-client";
 import { MemberVerifyDialog } from "@/components/feature/koperasi/membership/member-verify-dialog";
+import { getKoperasiDashboard, listMembers } from "@/services/api";
+import type {
+  KoperasiDashboardSummary,
+  MemberListItem,
+  MemberListResponse,
+} from "@/types/api";
 
 export default async function KeanggotaanPage() {
-  const [summaryRes, membersRes, pendingRes, nonActiveRes, exitRes] =
+  const [summaryRes, activeChunk, pendingChunk, nonActiveChunk, exitChunk] =
     await Promise.all([
       getKoperasiDashboard().catch(() => null),
-      listMembers({ limit: 10 }).catch(() => null),
-      listMembers({ status: "pending", limit: 20 }).catch(() => null),
-      listMembers({ status: "nonaktif", limit: 20 }).catch(() => null),
-      listMembers({ status: "keluar", limit: 20 }).catch(() => null),
+      fetchMembersChunk({ limit: 20 }),
+      fetchMembersChunk({ status: "pending", limit: 20 }),
+      fetchMembersChunk({ status: "nonaktif", limit: 20 }),
+      fetchMembersChunk({ status: "keluar", limit: 20 }),
     ]);
 
-  const summary =
-    summaryRes && summaryRes.success ? summaryRes.data : null;
-
-  const members =
-    membersRes && membersRes.success ? ((membersRes.data as any[]) ?? []) : [];
-  const nextCursor = (membersRes as any)?.meta?.pagination?.next_cursor as
-    | string
-    | undefined;
-
-  const pendingMembers =
-    pendingRes && pendingRes.success
-      ? ((pendingRes.data as any[]) ?? [])
-      : [];
-  const nonActiveMembers =
-    nonActiveRes && nonActiveRes.success
-      ? ((nonActiveRes.data as any[]) ?? [])
-      : [];
-  const exitedMembers =
-    exitRes && exitRes.success ? ((exitRes.data as any[]) ?? []) : [];
+  const summary = extractDashboardSummary(summaryRes);
 
   const pendingCount = formatWithOverflow(
-    pendingMembers.length,
-    Boolean((pendingRes as any)?.meta?.pagination?.has_next)
+    pendingChunk.items.length,
+    pendingChunk.hasNext
   );
-  const inactiveCount = formatWithOverflow(
-    nonActiveMembers.length + exitedMembers.length,
-    Boolean(
-      (nonActiveRes as any)?.meta?.pagination?.has_next ||
-        (exitRes as any)?.meta?.pagination?.has_next
-    )
-  );
+  const inactiveRawCount =
+    nonActiveChunk.items.length + exitChunk.items.length;
+  const inactiveHasMore = nonActiveChunk.hasNext || exitChunk.hasNext;
+  const inactiveCount = formatWithOverflow(inactiveRawCount, inactiveHasMore);
 
   const formatNumber = new Intl.NumberFormat("id-ID");
 
@@ -133,7 +117,10 @@ export default async function KeanggotaanPage() {
           <CardDescription>Data lengkap anggota koperasi</CardDescription>
         </CardHeader>
         <CardContent>
-          <MembersListClient initialData={members} initialCursor={nextCursor} />
+          <MembersListClient
+            initialData={activeChunk.items}
+            initialCursor={activeChunk.nextCursor}
+          />
         </CardContent>
       </Card>
     </div>
@@ -143,4 +130,38 @@ export default async function KeanggotaanPage() {
 function formatWithOverflow(count: number, hasMore: boolean) {
   if (!count) return hasMore ? "0+" : "0";
   return hasMore ? `${count}+` : String(count);
+}
+
+type MemberChunk = {
+  items: MemberListItem[];
+  nextCursor?: string;
+  hasNext: boolean;
+};
+
+async function fetchMembersChunk(
+  params?: Parameters<typeof listMembers>[0]
+): Promise<MemberChunk> {
+  try {
+    const res: MemberListResponse | null = await listMembers(params).catch(
+      () => null
+    );
+    if (!res || !res.success || !Array.isArray(res.data)) {
+      return { items: [], nextCursor: undefined, hasNext: false };
+    }
+    const pagination = res.meta?.pagination;
+    return {
+      items: res.data ?? [],
+      nextCursor: pagination?.next_cursor || undefined,
+      hasNext: Boolean(pagination?.has_next),
+    };
+  } catch {
+    return { items: [], nextCursor: undefined, hasNext: false };
+  }
+}
+
+function extractDashboardSummary(
+  res: Awaited<ReturnType<typeof getKoperasiDashboard>> | null
+): KoperasiDashboardSummary | null {
+  if (!res || !res.success || !res.data) return null;
+  return res.data as KoperasiDashboardSummary;
 }

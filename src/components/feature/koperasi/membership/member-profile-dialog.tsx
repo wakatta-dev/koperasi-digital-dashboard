@@ -15,6 +15,7 @@ import { getMember, listMembers } from "@/services/api";
 import AsyncCombobox from "@/components/ui/async-combobox";
 import { makePaginatedListFetcher } from "@/lib/async-fetchers";
 import type { MemberListItem, MemberProfile } from "@/types/api";
+import { toast } from "sonner";
 
 type Props = { memberId?: string | number; member?: MemberListItem };
 
@@ -29,11 +30,20 @@ export function MemberProfileDialog({ memberId, member }: Props) {
   }, [memberId]);
 
   async function load() {
-    if (!id) return;
+    const targetId = typeof id === "number" ? id : String(id ?? "").trim();
+    if (!targetId) {
+      toast.error("Pilih anggota terlebih dahulu");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await getMember(id);
-      setData(res.success ? (res.data as MemberProfile) : null);
+      const res = await getMember(targetId).catch(() => null);
+      if (!res || !res.success || !res.data) {
+        setData(null);
+        toast.error(res?.message || "Gagal memuat profil anggota");
+        return;
+      }
+      setData(res.data as MemberProfile);
     } finally {
       setLoading(false);
     }
@@ -107,31 +117,31 @@ export function MemberProfileDialog({ memberId, member }: Props) {
           {data ? (
             <div className="grid grid-cols-2 gap-2">
               <div className="text-muted-foreground">Nama Lengkap</div>
-              <div>{data.member.full_name}</div>
+              <div>{sanitizeText(data.member.full_name) || "-"}</div>
               <div className="text-muted-foreground">Email</div>
-              <div>{data.member.email}</div>
+              <div>{sanitizeText(data.member.email) || "-"}</div>
               <div className="text-muted-foreground">ID Anggota</div>
               <div>{data.member.id}</div>
               <div className="text-muted-foreground">No. Anggota</div>
-              <div>{data.member.no_anggota}</div>
+              <div>{sanitizeText(data.member.no_anggota) || "-"}</div>
               <div className="text-muted-foreground">Status</div>
-              <div className="capitalize">{data.member.status}</div>
+              <div className="capitalize">{sanitizeText(data.member.status) || "-"}</div>
               <div className="text-muted-foreground">Saldo Simpanan</div>
-              <div>{data.savings_summary.balance}</div>
+              <div>{formatCurrency(data.savings_summary.balance)}</div>
               <div className="text-muted-foreground">Total Setoran</div>
-              <div>{data.savings_summary.total_deposit}</div>
+              <div>{formatCurrency(data.savings_summary.total_deposit)}</div>
               <div className="text-muted-foreground">Total Penarikan</div>
-              <div>{data.savings_summary.total_withdrawal}</div>
+              <div>{formatCurrency(data.savings_summary.total_withdrawal)}</div>
               <div className="text-muted-foreground">Pinjaman Aktif</div>
               <div>{data.loan_summary.active_loans}</div>
               <div className="text-muted-foreground">Outstanding</div>
-              <div>{data.loan_summary.outstanding}</div>
+              <div>{formatCurrency(data.loan_summary.outstanding)}</div>
               <div className="text-muted-foreground">Kehadiran RAT</div>
               <div>
                 {data.attendance.rat_attended} kali
                 {data.attendance.last_attended && (
                   <span className="block text-xs text-muted-foreground">
-                    Terakhir: {new Date(data.attendance.last_attended).toLocaleDateString('id-ID')}
+                    Terakhir: {formatDateId(data.attendance.last_attended)}
                   </span>
                 )}
               </div>
@@ -145,4 +155,33 @@ export function MemberProfileDialog({ memberId, member }: Props) {
       </DialogContent>
     </Dialog>
   );
+}
+
+function sanitizeText(value?: string | null): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+const currencyId = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 0,
+});
+
+function formatCurrency(value?: number | null): string {
+  return typeof value === "number" && Number.isFinite(value)
+    ? currencyId.format(value)
+    : "-";
+}
+
+function formatDateId(value?: string | null): string {
+  if (!value) return "-";
+  try {
+    return new Intl.DateTimeFormat("id-ID", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
 }
