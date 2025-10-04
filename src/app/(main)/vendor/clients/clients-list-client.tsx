@@ -47,8 +47,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Client, TenantUser } from "@/types/api";
 import { useConfirm } from "@/hooks/use-confirm";
 
-export function ClientsListClient({ rows }: { rows: Client[] }) {
-  const [selectedId, setSelectedId] = useState<Client["id"] | null>(null);
+export function ClientsListClient({
+  rows,
+  initialSelectedId,
+}: {
+  rows: Client[];
+  initialSelectedId?: number | null;
+}) {
+  const [selectedId, setSelectedId] = useState<Client["id"] | null>(
+    initialSelectedId ?? null,
+  );
   const [q, setQ] = useState("");
   const listParams = useMemo(
     () => ({ limit: rows?.length || 10 }),
@@ -69,6 +77,11 @@ export function ClientsListClient({ rows }: { rows: Client[] }) {
       (t.type || "").toLowerCase().includes(query)
     );
   });
+  useEffect(() => {
+    if (initialSelectedId != null) {
+      setSelectedId(initialSelectedId);
+    }
+  }, [initialSelectedId]);
   const selected = useMemo(() => {
     if (selectedId == null) return null;
     return (

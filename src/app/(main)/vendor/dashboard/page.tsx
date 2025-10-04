@@ -13,6 +13,9 @@ import { VendorDashboardUpcomingWidgets } from "@/components/feature/vendor/dash
 import { VendorDashboardBillingOverview } from "@/components/feature/vendor/dashboard/vendor-dashboard-billing-overview";
 import { VendorDashboardRecurringRevenue } from "@/components/feature/vendor/dashboard/vendor-dashboard-recurring-revenue";
 import { VendorDashboardInvoiceWatchlist } from "@/components/feature/vendor/dashboard/vendor-dashboard-invoice-watchlist";
+import { VendorDashboardLoginLeaderboard } from "@/components/feature/vendor/dashboard/vendor-dashboard-login-leaderboard";
+import { VendorDashboardModuleAdoption } from "@/components/feature/vendor/dashboard/vendor-dashboard-module-adoption";
+import { VendorDashboardInsightsHighlights } from "@/components/feature/vendor/dashboard/vendor-dashboard-insights-highlights";
 
 export default function VendorDashboardPage() {
   return (
@@ -83,6 +86,14 @@ function VendorDashboardPageShell() {
         <section className="grid gap-6 xl:grid-cols-[2fr_1.2fr]">
           <VendorDashboardRecurringRevenue />
           <VendorDashboardBillingOverview />
+        </section>
+
+        <section className="grid gap-6 2xl:grid-cols-[2fr_1fr]">
+          <VendorDashboardLoginLeaderboard />
+          <div className="space-y-6">
+            <VendorDashboardInsightsHighlights />
+            <VendorDashboardModuleAdoption />
+          </div>
         </section>
 
         <section className="grid gap-6 xl:grid-cols-3">
