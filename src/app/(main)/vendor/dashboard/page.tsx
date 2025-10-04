@@ -9,10 +9,13 @@ import { VendorDashboardGlobalFilters } from "@/components/feature/vendor/dashbo
 import { VendorDashboardKpiGrid } from "@/components/feature/vendor/dashboard/vendor-dashboard-kpi-grid";
 import { VendorDashboardTierBreakdown } from "@/components/feature/vendor/dashboard/vendor-dashboard-tier-breakdown";
 import { VendorDashboardTicketInsights } from "@/components/feature/vendor/dashboard/vendor-dashboard-ticket-insights";
-import { VendorDashboardUpcomingWidgets } from "@/components/feature/vendor/dashboard/vendor-dashboard-upcoming-widgets";
+import { VendorDashboardAlertCenter } from "@/components/feature/vendor/dashboard/vendor-dashboard-alert-center";
 import { VendorDashboardBillingOverview } from "@/components/feature/vendor/dashboard/vendor-dashboard-billing-overview";
 import { VendorDashboardRecurringRevenue } from "@/components/feature/vendor/dashboard/vendor-dashboard-recurring-revenue";
 import { VendorDashboardInvoiceWatchlist } from "@/components/feature/vendor/dashboard/vendor-dashboard-invoice-watchlist";
+import { VendorDashboardLoginLeaderboard } from "@/components/feature/vendor/dashboard/vendor-dashboard-login-leaderboard";
+import { VendorDashboardModuleAdoption } from "@/components/feature/vendor/dashboard/vendor-dashboard-module-adoption";
+import { VendorDashboardInsightsHighlights } from "@/components/feature/vendor/dashboard/vendor-dashboard-insights-highlights";
 
 export default function VendorDashboardPage() {
   return (
@@ -85,11 +88,19 @@ function VendorDashboardPageShell() {
           <VendorDashboardBillingOverview />
         </section>
 
+        <section className="grid gap-6 2xl:grid-cols-[2fr_1fr]">
+          <VendorDashboardLoginLeaderboard />
+          <div className="space-y-6">
+            <VendorDashboardInsightsHighlights />
+            <VendorDashboardModuleAdoption />
+          </div>
+        </section>
+
         <section className="grid gap-6 xl:grid-cols-3">
           <div className="xl:col-span-2">
             <VendorDashboardInvoiceWatchlist />
           </div>
-          <VendorDashboardUpcomingWidgets />
+          <VendorDashboardAlertCenter />
         </section>
       </div>
     </div>

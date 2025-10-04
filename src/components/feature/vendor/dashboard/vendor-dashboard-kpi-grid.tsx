@@ -4,17 +4,7 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import useSWR from "swr";
-import {
-  Users,
-  Ticket,
-  Target,
-  PackageSearch,
-  Building2,
-  UserCheck,
-  UserX,
-  Sparkles,
-} from "lucide-react";
+import { Users, Ticket, Building2, UserCheck, UserX, Sparkles } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,120 +25,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ensureSuccess } from "@/lib/api";
-import {
-  listClients,
-  getVendorSubscriptionsSummary,
-  listVendorSubscriptions,
-} from "@/services/api";
-import type { Client, Subscription, SubscriptionSummary } from "@/types/api";
+import type { Client } from "@/types/api";
 import { useClientActions } from "@/hooks/queries/clients";
-import { useVendorDashboardFilters } from "./vendor-dashboard-filter-context";
 import { useVendorDashboardData } from "./vendor-dashboard-data-provider";
+import { useVendorDashboardFilters } from "./vendor-dashboard-filter-context";
+import {
+  translateSubscriptionFilter,
+  useVendorDashboardTenantUniverse,
+} from "./vendor-dashboard-tenant-data";
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
 const dateFormatter = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" });
 
 export function VendorDashboardKpiGrid() {
-  const {
-    totalActiveClients,
-    openTickets,
-    mostActiveClient,
-    productWithMostTickets,
-    isLoading: dashboardLoading,
-    data,
-  } = useVendorDashboardData();
+  const { totalActiveClients, openTickets, isLoading: dashboardLoading } =
+    useVendorDashboardData();
   const { filters } = useVendorDashboardFilters();
+  const {
+    clientsState,
+    subscriptionsState,
+    subscriptionSummaryState,
+    filteredClients,
+    filteredSubscriptions,
+    tenantDataLoading,
+    tenantDataError,
+  } = useVendorDashboardTenantUniverse();
   const { updateStatus } = useClientActions();
-
-  const tenantTypeParam = filters.tenantType !== "all" ? filters.tenantType : undefined;
-  const subscriptionStatusParam = mapSubscriptionStatusFilter(filters.subscriptionStatus);
-
-  const clientParams = useMemo(
-    () => ({
-      limit: 200,
-      ...(tenantTypeParam ? { type: tenantTypeParam } : {}),
-    }),
-    [tenantTypeParam],
-  );
-
-  const {
-    data: clients = [],
-    error: clientsError,
-    isLoading: clientsLoading,
-    isValidating: clientsValidating,
-    mutate: mutateClients,
-  } = useSWR<Client[]>(
-    ["vendor-dashboard", "clients", clientParams],
-    async ([, , params]) => ensureSuccess(await listClients(params)),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
-
-  const {
-    data: subscriptionSummary,
-    mutate: mutateSubscriptionSummary,
-  } = useSWR<SubscriptionSummary | null>(
-    ["vendor-dashboard", "subscriptions", "summary"],
-    async () => ensureSuccess(await getVendorSubscriptionsSummary()),
-    {
-      revalidateOnFocus: false,
-    },
-  );
-
-  const subscriptionParams = useMemo(
-    () => ({
-      limit: 200,
-      ...(subscriptionStatusParam ? { status: subscriptionStatusParam } : {}),
-    }),
-    [subscriptionStatusParam],
-  );
-
-  const {
-    data: subscriptions = [],
-    error: subscriptionsError,
-    isLoading: subscriptionsLoading,
-    isValidating: subscriptionsValidating,
-    mutate: mutateSubscriptions,
-  } = useSWR<Subscription[]>(
-    ["vendor-dashboard", "subscriptions", subscriptionParams],
-    async ([, , params]) => ensureSuccess(await listVendorSubscriptions(params)),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
-
-  const subscriptionStatusByTenant = useMemo(() => {
-    const map = new Map<number, Subscription["status"]>();
-    for (const sub of subscriptions ?? []) {
-      if (typeof sub?.tenant_id === "number" && sub.status) {
-        map.set(sub.tenant_id, sub.status);
-      }
-    }
-    return map;
-  }, [subscriptions]);
-
-  const filteredClients = useMemo(() => {
-    return (clients ?? []).filter((client) =>
-      matchesTenantFilters(client, filters.subscriptionStatus, subscriptionStatusByTenant),
-    );
-  }, [clients, filters.subscriptionStatus, subscriptionStatusByTenant]);
-
-  const filteredClientIds = useMemo(
-    () => new Set(filteredClients.map((client) => client.id)),
-    [filteredClients],
-  );
-
-  const filteredSubscriptions = useMemo(
-    () =>
-      (subscriptions ?? []).filter((subscription) =>
-        filteredClientIds.has(subscription.tenant_id),
-      ),
-    [subscriptions, filteredClientIds],
-  );
+  const { mutate: mutateClients } = clientsState;
+  const { error: subscriptionsError, mutate: mutateSubscriptions } =
+    subscriptionsState;
+  const { data: subscriptionSummary, mutate: mutateSubscriptionSummary } =
+    subscriptionSummaryState;
 
   const totalTenants = filteredClients.length;
   const activeTenants = filteredClients.filter((client) => client.status === "active").length;
@@ -203,9 +110,6 @@ export function VendorDashboardKpiGrid() {
         : newTenantCandidates.find((tenant) => tenant.id === selectedTenantId) ?? null,
     [newTenantCandidates, selectedTenantId],
   );
-
-  const tenantDataLoading = clientsLoading || clientsValidating || subscriptionsLoading || subscriptionsValidating;
-  const tenantDataError = clientsError || subscriptionsError;
 
   async function handleVerifyTenant() {
     if (!selectedTenant) return;
@@ -341,58 +245,6 @@ export function VendorDashboardKpiGrid() {
               <Skeleton className="h-8 w-20" />
             ) : (
               <div className="text-2xl font-semibold">{formatNumber(openTickets)}</div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Klien Paling Aktif</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {dashboardLoading ? (
-              <Skeleton className="h-5 w-36" />
-            ) : mostActiveClient ? (
-              <div className="space-y-1">
-                <p className="font-medium leading-none">{mostActiveClient.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {formatNumber(mostActiveClient.ticket_count)} tiket dalam 30 hari terakhir
-                </p>
-              </div>
-            ) : data ? (
-              <p className="text-sm text-muted-foreground">
-                Belum ada aktivitas tiket yang menonjol.
-              </p>
-            ) : (
-              <Skeleton className="h-5 w-24" />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Produk dengan Tiket Terbanyak</CardTitle>
-            <PackageSearch className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {dashboardLoading ? (
-              <Skeleton className="h-5 w-32" />
-            ) : productWithMostTickets ? (
-              <div className="space-y-1">
-                <p className="font-medium leading-none">
-                  {productWithMostTickets.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatNumber(productWithMostTickets.ticket_count)} tiket aktif
-                </p>
-              </div>
-            ) : data ? (
-              <p className="text-sm text-muted-foreground">
-                Tidak ada produk dengan eskalasi tinggi saat ini.
-              </p>
-            ) : (
-              <Skeleton className="h-5 w-24" />
             )}
           </CardContent>
         </Card>
@@ -542,23 +394,6 @@ function formatNumber(value: number) {
   return numberFormatter.format(value);
 }
 
-function mapSubscriptionStatusFilter(
-  filter: ReturnType<typeof useVendorDashboardFilters>["filters"]["subscriptionStatus"],
-) {
-  switch (filter) {
-    case "active":
-      return "active";
-    case "trial":
-      return "pending";
-    case "cancelled":
-      return "terminated";
-    case "expired":
-      return "overdue";
-    default:
-      return undefined;
-  }
-}
-
 function translateSubscriptionFilter(filter: ReturnType<typeof useVendorDashboardFilters>["filters"]["subscriptionStatus"]) {
   switch (filter) {
     case "active":
@@ -571,37 +406,5 @@ function translateSubscriptionFilter(filter: ReturnType<typeof useVendorDashboar
       return "kedaluwarsa";
     default:
       return "semua status";
-  }
-}
-
-function matchesTenantFilters(
-  client: Client,
-  filter: ReturnType<typeof useVendorDashboardFilters>["filters"]["subscriptionStatus"],
-  subscriptionStatusByTenant: Map<number, Subscription["status"]>,
-) {
-  const subscriptionStatus = subscriptionStatusByTenant.get(client.id);
-
-  switch (filter) {
-    case "active":
-      return client.status === "active";
-    case "trial":
-      return (
-        client.status === "inactive" ||
-        client.status === "suspended" ||
-        subscriptionStatus === "pending"
-      );
-    case "cancelled":
-      return (
-        client.status === "inactive" ||
-        subscriptionStatus === "terminated" ||
-        subscriptionStatus === "paused"
-      );
-    case "expired":
-      return (
-        client.status === "suspended" ||
-        subscriptionStatus === "overdue"
-      );
-    default:
-      return true;
   }
 }
