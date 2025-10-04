@@ -18,11 +18,15 @@ export function VendorDashboardTierBreakdown() {
   const formatter = new Intl.NumberFormat("id-ID");
 
   return (
-    <Card>
+    <Card className="flex flex-col self-stretch">
       <CardHeader className="pb-2">
         <CardTitle>Distribusi Klien per Tier</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Statistik jumlah klien aktif yang tergabung di masing-masing tier.
+        </p>
       </CardHeader>
-      <CardContent className="space-y-3">
+
+      <CardContent className="flex-1 space-y-4">
         {isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 4 }).map((_, index) => (
@@ -36,7 +40,9 @@ export function VendorDashboardTierBreakdown() {
                 key={tier.tier}
                 className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
               >
-                <span className="font-medium">{formatTierLabel(tier.tier)}</span>
+                <span className="font-medium">
+                  {formatTierLabel(tier.tier)}
+                </span>
                 <Badge variant="secondary" className="font-semibold">
                   {formatter.format(tier.active_clients ?? 0)}
                 </Badge>

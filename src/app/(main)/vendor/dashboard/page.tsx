@@ -1,6 +1,7 @@
 /** @format */
 "use client";
 
+import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +12,13 @@ import { VendorDashboardGlobalFilters } from "@/components/feature/vendor/dashbo
 import { VendorDashboardKpiGrid } from "@/components/feature/vendor/dashboard/vendor-dashboard-kpi-grid";
 import { VendorDashboardTierBreakdown } from "@/components/feature/vendor/dashboard/vendor-dashboard-tier-breakdown";
 import { VendorDashboardTicketInsights } from "@/components/feature/vendor/dashboard/vendor-dashboard-ticket-insights";
-
-import Link from "next/link";
+import { VendorDashboardBillingOverview } from "@/components/feature/vendor/dashboard/vendor-dashboard-billing-overview";
+import { VendorDashboardRecurringRevenue } from "@/components/feature/vendor/dashboard/vendor-dashboard-recurring-revenue";
+import { VendorDashboardInsightsHighlights } from "@/components/feature/vendor/dashboard/vendor-dashboard-insights-highlights";
+import { VendorDashboardLoginLeaderboard } from "@/components/feature/vendor/dashboard/vendor-dashboard-login-leaderboard";
+import { VendorDashboardModuleAdoption } from "@/components/feature/vendor/dashboard/vendor-dashboard-module-adoption";
+import { VendorDashboardAlertCenter } from "@/components/feature/vendor/dashboard/vendor-dashboard-alert-center";
+import { VendorDashboardInvoiceWatchlist } from "@/components/feature/vendor/dashboard/vendor-dashboard-invoice-watchlist";
 
 export default function VendorDashboardPage() {
   return (
@@ -37,9 +43,7 @@ function VendorDashboardPageShell() {
           </ol>
         </nav>
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Vendor / Dashboard
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
             Ringkasan aktivitas tenant vendor dan status dukungan pelanggan.
           </p>
@@ -101,30 +105,28 @@ function VendorDashboardPageShell() {
           <VendorDashboardKpiGrid />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-6 lg:grid-cols-1">
           <VendorDashboardTierBreakdown />
           <VendorDashboardTicketInsights />
         </section>
 
-        {/* <section className="grid gap-6 xl:grid-cols-[2fr_1.2fr]">
+        <section className="grid gap-6 xl:grid-cols-1">
           <VendorDashboardRecurringRevenue />
           <VendorDashboardBillingOverview />
-        </section> */}
+        </section>
 
-        {/* <section className="grid gap-6 2xl:grid-cols-[2fr_1fr]">
+        <section className="grid gap-6 2xl:grid-cols-[2fr_1fr]">
           <VendorDashboardLoginLeaderboard />
           <div className="space-y-6">
             <VendorDashboardInsightsHighlights />
             <VendorDashboardModuleAdoption />
           </div>
-        </section> */}
+        </section>
 
-        {/* <section className="grid gap-6 xl:grid-cols-3">
-          <div className="xl:col-span-2">
-            <VendorDashboardInvoiceWatchlist />
-          </div>
+        <section className="grid gap-6 xl:grid-cols-1">
+          <VendorDashboardInvoiceWatchlist />
           <VendorDashboardAlertCenter />
-        </section> */}
+        </section>
       </div>
     </div>
   );

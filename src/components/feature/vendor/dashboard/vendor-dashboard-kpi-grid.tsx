@@ -66,18 +66,18 @@ export function VendorDashboardKpiGrid() {
 
   const totalTenants = filteredClients.length;
   const activeTenants = filteredClients.filter(
-    (client) => client.status === "active"
+    (c) => c.status === "active"
   ).length;
-  const inactiveTenants = filteredClients.filter(
-    (client) => client.status === "inactive" || client.status === "suspended"
+  const inactiveTenants = filteredClients.filter((c) =>
+    ["inactive", "suspended"].includes(c.status)
   ).length;
-  const newTenantCandidates = filteredClients.filter((client) =>
-    ["inactive", "suspended"].includes(client.status)
+  const newTenantCandidates = filteredClients.filter((c) =>
+    ["inactive", "suspended"].includes(c.status)
   );
   const newTenantCount = newTenantCandidates.length;
 
   const pendingTrialCount = filteredSubscriptions.filter(
-    (subscription) => subscription.status === "pending"
+    (sub) => sub.status === "pending"
   ).length;
 
   const displayTrialCount =
@@ -86,16 +86,11 @@ export function VendorDashboardKpiGrid() {
       : pendingTrialCount;
 
   const nextBillingDate = useMemo(() => {
-    const dates: Date[] = [];
-    for (const subscription of filteredSubscriptions) {
-      if (!subscription.next_billing_date) continue;
-      const parsed = new Date(subscription.next_billing_date);
-      if (Number.isNaN(parsed.getTime())) continue;
-      dates.push(parsed);
-    }
-    if (!dates.length) return null;
-    dates.sort((a, b) => a.getTime() - b.getTime());
-    return dates[0];
+    const dates = filteredSubscriptions
+      .map((s) => new Date(s.next_billing_date || ""))
+      .filter((d) => !isNaN(d.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime());
+    return dates[0] || null;
   }, [filteredSubscriptions]);
 
   const [tenantDialogOpen, setTenantDialogOpen] = useState(false);
@@ -107,27 +102,20 @@ export function VendorDashboardKpiGrid() {
     setTenantDialogOpen(true);
   }, [newTenantCandidates]);
 
-  const closeTenantDialog = useCallback(() => {
+  const closeTenantDialog = () => {
     setTenantDialogOpen(false);
     setSelectedTenantId(null);
-  }, []);
+  };
 
-  const selectedTenant = useMemo(
-    () =>
-      selectedTenantId == null
-        ? null
-        : newTenantCandidates.find(
-            (tenant) => tenant.id === selectedTenantId
-          ) ?? null,
-    [newTenantCandidates, selectedTenantId]
-  );
+  const selectedTenant = useMemo(() => {
+    return newTenantCandidates.find((t) => t.id === selectedTenantId) ?? null;
+  }, [newTenantCandidates, selectedTenantId]);
 
   async function handleVerifyTenant() {
     if (!selectedTenant) return;
     await updateStatus.mutateAsync({ id: selectedTenant.id, status: "active" });
     await invalidateTenantUniverse();
-    setSelectedTenantId(null);
-    setTenantDialogOpen(false);
+    closeTenantDialog();
   }
 
   return (
@@ -135,41 +123,38 @@ export function VendorDashboardKpiGrid() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <KpiCard
           title="Total Tenant"
-          icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
+          icon={<Building2 className="h-5 w-5 text-muted-foreground" />}
           loading={tenantDataLoading}
           error={tenantDataError}
           value={formatNumber(totalTenants)}
           description={
             filters.subscriptionStatus === "all"
               ? "Semua tenant sesuai filter tipe"
-              : `Difilter berdasarkan status ${translateSubscriptionFilter(
+              : `Status: ${translateSubscriptionFilter(
                   filters.subscriptionStatus
                 )}`
           }
         />
-
         <KpiCard
           title="Tenant Aktif"
-          icon={<UserCheck className="h-4 w-4 text-muted-foreground" />}
+          icon={<UserCheck className="h-5 w-5 text-muted-foreground" />}
           loading={tenantDataLoading}
           error={tenantDataError}
           value={formatNumber(activeTenants)}
-          description="Dengan status operasional aktif"
+          description="Status aktif & berjalan"
         />
-
         <KpiCard
           title="Tenant Nonaktif"
-          icon={<UserX className="h-4 w-4 text-muted-foreground" />}
+          icon={<UserX className="h-5 w-5 text-muted-foreground" />}
           loading={tenantDataLoading}
           error={tenantDataError}
           value={formatNumber(inactiveTenants)}
-          description="Termasuk status inactive & suspended"
+          description="Termasuk suspended & inactive"
         />
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Tenant Baru</CardTitle>
-            <Sparkles className="h-4 w-4 text-muted-foreground" />
+            <Sparkles className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-3">
             {tenantDataLoading ? (
@@ -187,7 +172,7 @@ export function VendorDashboardKpiGrid() {
                   <Badge variant="secondary">Baru</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Menunggu aktivasi (status inactive/suspended)
+                  Status belum aktif atau suspended
                 </p>
                 <Button
                   size="sm"
@@ -201,13 +186,12 @@ export function VendorDashboardKpiGrid() {
             )}
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
               Langganan Trial
             </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
             {tenantDataLoading ? (
@@ -223,7 +207,7 @@ export function VendorDashboardKpiGrid() {
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {nextBillingDate
-                    ? `Tagihan berikutnya: ${dateFormatter.format(
+                    ? `Tagihan selanjutnya: ${dateFormatter.format(
                         nextBillingDate
                       )}`
                     : "Belum ada jadwal tagihan"}
@@ -237,51 +221,26 @@ export function VendorDashboardKpiGrid() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Klien Aktif
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {dashboardLoading ? (
-              <Skeleton className="h-8 w-24" />
-            ) : (
-              <div className="text-2xl font-semibold">
-                {formatNumber(totalActiveClients)}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tiket Terbuka</CardTitle>
-            <Ticket className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {dashboardLoading ? (
-              <Skeleton className="h-8 w-20" />
-            ) : (
-              <div className="text-2xl font-semibold">
-                {formatNumber(openTickets)}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mt-6">
+        <KpiCard
+          title="Total Klien Aktif"
+          icon={<Users className="h-5 w-5 text-muted-foreground" />}
+          loading={dashboardLoading}
+          value={formatNumber(totalActiveClients)}
+        />
+        <KpiCard
+          title="Tiket Terbuka"
+          icon={<Ticket className="h-5 w-5 text-muted-foreground" />}
+          loading={dashboardLoading}
+          value={formatNumber(openTickets)}
+        />
       </div>
 
       <ManageTenantDialog
         open={tenantDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeTenantDialog();
-          } else {
-            setTenantDialogOpen(true);
-          }
-        }}
+        onOpenChange={(open) =>
+          open ? setTenantDialogOpen(true) : closeTenantDialog()
+        }
         tenants={newTenantCandidates}
         selectedId={selectedTenantId}
         onSelect={setSelectedTenantId}
@@ -292,15 +251,6 @@ export function VendorDashboardKpiGrid() {
   );
 }
 
-type KpiCardProps = {
-  title: string;
-  icon: ReactNode;
-  value: string;
-  description?: string;
-  loading?: boolean;
-  error?: unknown;
-};
-
 function KpiCard({
   title,
   icon,
@@ -308,10 +258,17 @@ function KpiCard({
   description,
   loading,
   error,
-}: KpiCardProps) {
+}: {
+  title: string;
+  icon: ReactNode;
+  value: string;
+  description?: string;
+  loading?: boolean;
+  error?: unknown;
+}) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {icon}
       </CardHeader>
@@ -323,25 +280,15 @@ function KpiCard({
         ) : (
           <>
             <div className="text-2xl font-semibold">{value}</div>
-            {description ? (
+            {description && (
               <p className="text-sm text-muted-foreground">{description}</p>
-            ) : null}
+            )}
           </>
         )}
       </CardContent>
     </Card>
   );
 }
-
-type ManageTenantDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  tenants: Client[];
-  selectedId: number | null;
-  onSelect: (id: number | null) => void;
-  onActivate: () => Promise<void> | void;
-  isActivating: boolean;
-};
 
 function ManageTenantDialog({
   open,
@@ -351,9 +298,16 @@ function ManageTenantDialog({
   onSelect,
   onActivate,
   isActivating,
-}: ManageTenantDialogProps) {
-  const selectedTenant =
-    tenants.find((tenant) => tenant.id === selectedId) ?? null;
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  tenants: Client[];
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
+  onActivate: () => void;
+  isActivating: boolean;
+}) {
+  const selectedTenant = tenants.find((t) => t.id === selectedId) ?? null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -364,7 +318,6 @@ function ManageTenantDialog({
             Verifikasi tenant baru sebelum mengaktifkan akses mereka.
           </DialogDescription>
         </DialogHeader>
-
         {tenants.length ? (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -373,7 +326,7 @@ function ManageTenantDialog({
               </span>
               <Select
                 value={selectedId ? String(selectedId) : undefined}
-                onValueChange={(value) => onSelect(Number(value))}
+                onValueChange={(v) => onSelect(Number(v))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih tenant" />
@@ -387,8 +340,7 @@ function ManageTenantDialog({
                 </SelectContent>
               </Select>
             </div>
-
-            {selectedTenant ? (
+            {selectedTenant && (
               <div className="space-y-2 rounded-lg border p-4">
                 <div>
                   <p className="text-sm font-semibold">{selectedTenant.name}</p>
@@ -396,15 +348,14 @@ function ManageTenantDialog({
                     Domain: {selectedTenant.domain ?? "-"}
                   </p>
                 </div>
-                <Badge variant="outline" className="w-fit capitalize">
+                <Badge variant="outline" className="capitalize w-fit">
                   {selectedTenant.status ?? "inactive"}
                 </Badge>
               </div>
-            ) : null}
-
+            )}
             <DialogFooter>
               <Button variant="outline" asChild>
-                <Link href="/vendor/clients">Buka Daftar Tenant</Link>
+                <Link href="/vendor/clients">Lihat Semua Tenant</Link>
               </Button>
               <Button
                 onClick={onActivate}
@@ -416,7 +367,7 @@ function ManageTenantDialog({
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Tidak ada tenant baru yang menunggu verifikasi.
+            Tidak ada tenant yang menunggu verifikasi.
           </p>
         )}
       </DialogContent>

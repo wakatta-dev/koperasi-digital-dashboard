@@ -17,8 +17,12 @@ export function useVendorDashboardDateParams() {
 
   return useMemo(() => {
     const { dateRange } = filters;
-    const start = dateRange?.from ? formatDate(dateRange.from, "yyyy-MM-dd") : undefined;
-    const end = dateRange?.to ? formatDate(dateRange.to, "yyyy-MM-dd") : undefined;
+    const start = dateRange?.from
+      ? formatDate(dateRange.from, "yyyy-MM-dd")
+      : undefined;
+    const end = dateRange?.to
+      ? formatDate(dateRange.to, "yyyy-MM-dd")
+      : undefined;
 
     return {
       hasRange: Boolean(start || end),
@@ -34,7 +38,6 @@ export function useVendorBillingReport(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["vendor-dashboard", "billing-report", { start, end }],
     queryFn: async () => ensureSuccess(await getBillingReport({ start, end })),
-    keepPreviousData: true,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
     enabled: options?.enabled ?? true,

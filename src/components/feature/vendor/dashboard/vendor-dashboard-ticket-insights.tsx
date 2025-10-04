@@ -4,13 +4,7 @@
 
 import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
-import {
-  AlertCircle,
-  Ticket,
-  UsersRound,
-  PackageSearch,
-  Activity,
-} from "lucide-react";
+import { Ticket, UsersRound, PackageSearch, Activity } from "lucide-react";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +62,7 @@ export function VendorDashboardTicketInsights() {
 
   const desiredLimit = useMemo(
     () => Math.max(100, openTickets || 0),
-    [openTickets],
+    [openTickets]
   );
 
   const {
@@ -82,7 +76,7 @@ export function VendorDashboardTicketInsights() {
       limit: desiredLimit,
     },
     undefined,
-    { refetchInterval: 300000 },
+    { refetchInterval: 300000 }
   );
 
   const tickets = useMemo(() => ticketData ?? [], [ticketData]);
@@ -91,55 +85,52 @@ export function VendorDashboardTicketInsights() {
     const base = {
       open: { low: 0, medium: 0, high: 0 },
       in_progress: { low: 0, medium: 0, high: 0 },
-    } as Record<"open" | "in_progress", Record<"low" | "medium" | "high", number>>;
+    };
 
     for (const ticket of tickets) {
-      if (ticket.status !== "open" && ticket.status !== "in_progress") continue;
-      base[ticket.status][ticket.priority] += 1;
+      if (ticket.status === "open" || ticket.status === "in_progress") {
+        base[ticket.status][ticket.priority] += 1;
+      }
     }
-
-    const openTotal =
-      base.open.low + base.open.medium + base.open.high;
-    const inProgressTotal =
-      base.in_progress.low + base.in_progress.medium + base.in_progress.high;
 
     const data = [
       {
         status: "open",
         statusLabel: statusLabels.open,
         ...base.open,
-        total: openTotal,
+        total: Object.values(base.open).reduce((a, b) => a + b, 0),
       },
       {
         status: "in_progress",
         statusLabel: statusLabels.in_progress,
         ...base.in_progress,
-        total: inProgressTotal,
+        total: Object.values(base.in_progress).reduce((a, b) => a + b, 0),
       },
     ];
 
     return {
       chartData: data,
-      openCount: openTotal,
-      inProgressCount: inProgressTotal,
+      openCount: data[0].total,
+      inProgressCount: data[1].total,
     };
   }, [tickets]);
 
   const backlogTotal = openCount + inProgressCount;
   const backlogDelta = openTickets - backlogTotal;
+
   const highPriorityTickets = useMemo(
     () =>
       tickets
         .filter((ticket) => ticket.priority === "high")
         .sort((a, b) => getSlaDeltaScore(a) - getSlaDeltaScore(b))
         .slice(0, 5),
-    [tickets],
+    [tickets]
   );
 
   const slaConfigUrl = `${API_PREFIX}${API_ENDPOINTS.tickets.sla}`;
 
   return (
-    <Card>
+    <Card className="flex flex-col self-stretch">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
@@ -164,59 +155,22 @@ export function VendorDashboardTicketInsights() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-1 flex flex-col">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="flex items-center justify-between rounded-lg border px-4 py-3">
-            <div className="space-y-1 text-sm">
-              <p className="flex items-center gap-2 font-medium">
-                <Ticket className="h-4 w-4" /> Tiket Terbuka
-              </p>
-              <p className="text-muted-foreground">
-                Total tiket yang menunggu penanganan
-              </p>
-            </div>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="flex flex-col items-end gap-2">
-                <Badge variant="outline" className="text-base font-semibold">
-                  {formatNumber(openTickets)}
-                </Badge>
-                <Badge
-                  variant={backlogDelta === 0 ? "secondary" : "destructive"}
-                  className="text-[11px]"
-                >
-                  {backlogDelta === 0
-                    ? "Sinkron dengan antrean"
-                    : `Selisih ${formatNumber(Math.abs(backlogDelta))}`}
-                </Badge>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-lg border px-4 py-3 text-sm">
-            <p className="mb-2 flex items-center gap-2 font-medium">
-              <Activity className="h-4 w-4" /> Status Antrean
-            </p>
-            {ticketsLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-5 w-32" />
-              </div>
-            ) : (
-              <div className="flex flex-wrap items-center gap-3 text-xs">
-                <Badge variant="secondary" className="capitalize">
-                  Open • {formatNumber(openCount)}
-                </Badge>
-                <Badge variant="secondary" className="capitalize">
-                  In Progress • {formatNumber(inProgressCount)}
-                </Badge>
-                <span className="text-muted-foreground">
-                  {ticketsRefetching ? "Memperbarui data…" : null}
-                </span>
-              </div>
-            )}
-          </div>
+          <TicketMetricCard
+            icon={<Ticket className="h-4 w-4" />}
+            title="Tiket Terbuka"
+            description="Total tiket yang menunggu penanganan"
+            value={openTickets}
+            delta={backlogDelta}
+            isLoading={isLoading}
+          />
+          <TicketQueueStatus
+            open={openCount}
+            inProgress={inProgressCount}
+            isLoading={ticketsLoading}
+            isFetching={ticketsRefetching}
+          />
         </div>
 
         {ticketsError ? (
@@ -266,7 +220,6 @@ export function VendorDashboardTicketInsights() {
                   dataKey="medium"
                   stackId="status"
                   fill="var(--color-medium)"
-                  radius={[0, 0, 0, 0]}
                 />
                 <Bar
                   dataKey="low"
@@ -277,7 +230,7 @@ export function VendorDashboardTicketInsights() {
               </BarChart>
             </ChartContainer>
           ) : (
-            <div className="flex h-[240px] w-full items-center justify-center rounded-lg border text-sm text-muted-foreground">
+            <div className="flex h-[240px] items-center justify-center rounded-lg border text-sm text-muted-foreground">
               Tidak ada tiket aktif dengan status open/in progress.
             </div>
           )}
@@ -288,7 +241,7 @@ export function VendorDashboardTicketInsights() {
             icon={<UsersRound className="h-4 w-4" />}
             title="Klien Paling Aktif"
             description={
-              mostActiveClient?.name ?? "Belum ada aktivitas yang menonjol"
+              mostActiveClient?.name ?? "Belum ada aktivitas menonjol"
             }
             metric={mostActiveClient?.ticket_count}
             loading={isLoading && !data}
@@ -307,11 +260,11 @@ export function VendorDashboardTicketInsights() {
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">Tiket Prioritas Tinggi</span>
+            <span className="text-sm font-semibold">
+              Tiket Prioritas Tinggi
+            </span>
             <Button size="sm" variant="outline" asChild>
-              <Link href="/vendor/tickets?status=open">
-                Lihat semua tiket
-              </Link>
+              <Link href="/vendor/tickets?status=open">Lihat semua tiket</Link>
             </Button>
           </div>
           {ticketsLoading ? (
@@ -352,7 +305,7 @@ export function VendorDashboardTicketInsights() {
                       <Button size="sm" variant="ghost" asChild>
                         <a
                           href={`${API_PREFIX}${API_ENDPOINTS.tickets.vendorView(
-                            ticket.id,
+                            ticket.id
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -376,15 +329,103 @@ export function VendorDashboardTicketInsights() {
   );
 }
 
-type InsightItemProps = {
+// — Helper Components —
+
+function TicketMetricCard({
+  icon,
+  title,
+  description,
+  value,
+  delta,
+  isLoading,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  value: number;
+  delta: number;
+  isLoading: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+      <div className="space-y-1 text-sm">
+        <p className="flex items-center gap-2 font-medium">
+          {icon} {title}
+        </p>
+        <p className="text-muted-foreground">{description}</p>
+      </div>
+      {isLoading ? (
+        <Skeleton className="h-8 w-16" />
+      ) : (
+        <div className="flex flex-col items-end gap-2">
+          <Badge variant="outline" className="text-base font-semibold">
+            {formatNumber(value)}
+          </Badge>
+          <Badge
+            variant={delta === 0 ? "secondary" : "destructive"}
+            className="text-[11px]"
+          >
+            {delta === 0
+              ? "Sinkron dengan antrean"
+              : `Selisih ${Math.abs(delta)}`}
+          </Badge>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TicketQueueStatus({
+  open,
+  inProgress,
+  isLoading,
+  isFetching,
+}: {
+  open: number;
+  inProgress: number;
+  isLoading: boolean;
+  isFetching: boolean;
+}) {
+  return (
+    <div className="rounded-lg border px-4 py-3 text-sm">
+      <p className="mb-2 flex items-center gap-2 font-medium">
+        <Activity className="h-4 w-4" /> Status Antrean
+      </p>
+      {isLoading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-3 text-xs">
+          <Badge variant="secondary" className="capitalize">
+            Open • {formatNumber(open)}
+          </Badge>
+          <Badge variant="secondary" className="capitalize">
+            In Progress • {formatNumber(inProgress)}
+          </Badge>
+          {isFetching && (
+            <span className="text-muted-foreground">Memperbarui data…</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InsightItem({
+  icon,
+  title,
+  description,
+  metric,
+  loading,
+}: {
   icon: ReactNode;
   title: string;
   description: string;
   metric?: number;
   loading?: boolean;
-};
-
-function InsightItem({ icon, title, description, metric, loading }: InsightItemProps) {
+}) {
   return (
     <div className="flex items-start gap-3 rounded-lg border px-3 py-3">
       <span className="flex h-9 w-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -397,15 +438,15 @@ function InsightItem({ icon, title, description, metric, loading }: InsightItemP
       <div className="min-w-[72px] text-right text-sm font-semibold text-muted-foreground">
         {loading ? (
           <Skeleton className="h-5 w-full" />
-        ) : typeof metric === "number" ? (
-          formatNumber(metric)
         ) : (
-          <AlertCircle className="mx-auto h-4 w-4" />
+          formatNumber(metric ?? 0)
         )}
       </div>
     </div>
   );
 }
+
+// — SLA Helpers —
 
 function getSlaBadge(ticket: TicketType) {
   const metrics = [
@@ -417,30 +458,22 @@ function getSlaBadge(ticket: TicketType) {
       type: "Resolusi",
       delta: ticket.resolution_sla_delta_minutes,
     },
-  ].filter((item) => typeof item.delta === "number") as Array<{
-    type: string;
-    delta: number;
-  }>;
+  ].filter((item) => typeof item.delta === "number");
 
-  if (!metrics.length) return null;
-
-  const breached = metrics.find((item) => item.delta < 0);
+  const breached = metrics.find((item) => item.delta! < 0);
   if (breached) {
     return {
-      label: `${breached.type} terlambat ${formatNumber(
-        Math.abs(Math.round(breached.delta)),
+      label: `${breached.type} terlambat ${Math.abs(
+        Math.round(breached.delta!)
       )}m`,
       variant: "destructive" as const,
     };
   }
 
-  const atRisk = metrics
-    .filter((item) => item.delta >= 0 && item.delta <= 30)
-    .sort((a, b) => a.delta - b.delta)[0];
-
+  const atRisk = metrics.find((item) => item.delta! <= 30);
   if (atRisk) {
     return {
-      label: `${atRisk.type} tersisa ${formatNumber(Math.round(atRisk.delta))}m`,
+      label: `${atRisk.type} tersisa ${Math.round(atRisk.delta!)}m`,
       variant: "outline" as const,
     };
   }
@@ -452,13 +485,10 @@ function getSlaDeltaScore(ticket: TicketType) {
   const values = [
     ticket.first_response_sla_delta_minutes,
     ticket.resolution_sla_delta_minutes,
-  ].filter((value) => typeof value === "number") as number[];
+  ].filter((v) => typeof v === "number") as number[];
 
-  if (!values.length) {
-    return Number.POSITIVE_INFINITY;
-  }
-
-  return values.reduce((min, value) => Math.min(min, value), values[0]);
+  if (!values.length) return Number.POSITIVE_INFINITY;
+  return Math.min(...values);
 }
 
 function formatError(error: unknown) {

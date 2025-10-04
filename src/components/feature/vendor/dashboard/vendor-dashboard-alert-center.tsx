@@ -7,7 +7,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { differenceInCalendarDays, format } from "date-fns";
-import { Megaphone, Building2, FileWarning, LifeBuoy, Filter } from "lucide-react";
+import {
+  Megaphone,
+  Building2,
+  FileWarning,
+  LifeBuoy,
+  Filter,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -34,7 +40,13 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { Notification, TenantDetail, Subscription, Invoice, Ticket } from "@/types/api";
+import type {
+  Notification,
+  TenantDetail,
+  Subscription,
+  Invoice,
+  Ticket,
+} from "@/types/api";
 import { listTickets } from "@/services/api/ticketing";
 
 const DATE_FORMAT = "d MMM yyyy";
@@ -69,7 +81,8 @@ export function VendorDashboardAlertCenter() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  const isSuperAdmin = ((session?.user as any)?.role?.name ?? "") === "Super Admin";
+  const isSuperAdmin =
+    ((session?.user as any)?.role?.name ?? "") === "Super Admin";
 
   const [activeType, setActiveType] = useState<AlertType>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -83,7 +96,9 @@ export function VendorDashboardAlertCenter() {
   } = useQuery({
     queryKey: ["vendor-dashboard", "broadcasts"],
     queryFn: async () =>
-      ensureSuccess<Notification[]>(await listVendorNotifications({ limit: 5 })),
+      ensureSuccess<Notification[]>(
+        await listVendorNotifications({ limit: 5 })
+      ),
     enabled: fetchBroadcasts,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
@@ -168,7 +183,7 @@ export function VendorDashboardAlertCenter() {
 
   const overdueInvoices = useMemo(
     () => (billing?.overdue_invoices ?? []) as Invoice[],
-    [billing?.overdue_invoices],
+    [billing?.overdue_invoices]
   );
 
   const latestBroadcast = useMemo(() => {
@@ -197,7 +212,7 @@ export function VendorDashboardAlertCenter() {
         const diff = differenceInCalendarDays(due!, now);
         return diff >= 0 && diff <= TRIAL_THRESHOLD_DAYS;
       })
-      .sort((a, b) => (a.due!.getTime() - b.due!.getTime()))
+      .sort((a, b) => a.due!.getTime() - b.due!.getTime())
       .map(({ subscription }) => subscription);
   }, [pendingTrials]);
 
@@ -215,7 +230,8 @@ export function VendorDashboardAlertCenter() {
         id: latestBroadcast.id,
         type: "broadcast",
         title: latestBroadcast.title,
-        description: latestBroadcast.body ?? "Broadcast terbaru tersedia untuk tenant.",
+        description:
+          latestBroadcast.body ?? "Broadcast terbaru tersedia untuk tenant.",
         timestamp: publishedAt,
         badge:
           latestBroadcast.status === "PUBLISHED"
@@ -240,12 +256,12 @@ export function VendorDashboardAlertCenter() {
               try {
                 if (latestBroadcast.status === "PUBLISHED") {
                   await ensureSuccess(
-                    await unpublishVendorNotification(latestBroadcast.id),
+                    await unpublishVendorNotification(latestBroadcast.id)
                   );
                   toast.success("Broadcast dibatalkan");
                 } else {
                   await ensureSuccess(
-                    await publishVendorNotification(latestBroadcast.id),
+                    await publishVendorNotification(latestBroadcast.id)
                   );
                   toast.success("Broadcast dipublikasikan");
                 }
@@ -260,7 +276,8 @@ export function VendorDashboardAlertCenter() {
             }
           : undefined,
         ctaHref: !isSuperAdmin ? "/vendor/notifications" : undefined,
-        onClick: () => router.push(`/vendor/notifications?highlight=${latestBroadcast.id}`),
+        onClick: () =>
+          router.push(`/vendor/notifications?highlight=${latestBroadcast.id}`),
       });
     }
 
@@ -293,9 +310,10 @@ export function VendorDashboardAlertCenter() {
         id: `trial-${subscription.id}`,
         type: "tenant",
         title: `Trial hampir habis (#${subscription.tenant_id})`,
-        description: remainingDays != null
-          ? `Sisa ${remainingDays} hari sebelum penagihan berikutnya.`
-          : "Jadwal penagihan berikutnya belum tersedia.",
+        description:
+          remainingDays != null
+            ? `Sisa ${remainingDays} hari sebelum penagihan berikutnya.`
+            : "Jadwal penagihan berikutnya belum tersedia.",
         timestamp: dueDate,
         badge: "Trial",
         badgeVariant: "outline",
@@ -303,7 +321,7 @@ export function VendorDashboardAlertCenter() {
         ctaHref: `/vendor/clients?subscription=pending&highlight=${subscription.tenant_id}`,
         onClick: () =>
           router.push(
-            `/vendor/clients?subscription=pending&highlight=${subscription.tenant_id}`,
+            `/vendor/clients?subscription=pending&highlight=${subscription.tenant_id}`
           ),
       });
     });
@@ -319,7 +337,9 @@ export function VendorDashboardAlertCenter() {
         title: `Invoice ${invoice.number}`,
         description:
           overdueDays != null
-            ? `Terlambat ${overdueDays} hari. Total ${formatCurrency(invoice.total)}.`
+            ? `Terlambat ${overdueDays} hari. Total ${formatCurrency(
+                invoice.total
+              )}.`
             : `Total ${formatCurrency(invoice.total)}.`,
         timestamp: dueDate,
         badge: "Overdue",
@@ -336,7 +356,9 @@ export function VendorDashboardAlertCenter() {
         id: `ticket-${ticket.id}`,
         type: "support",
         title: ticket.title,
-        description: `Tiket teknis (#${ticket.id}) status ${translateTicketStatus(ticket.status)}.`,
+        description: `Tiket teknis (#${
+          ticket.id
+        }) status ${translateTicketStatus(ticket.status)}.`,
         timestamp: updatedAt,
         badge: ticket.status === "pending" ? "Pending" : "In Progress",
         badgeVariant: ticket.status === "pending" ? "secondary" : "default",
@@ -381,21 +403,25 @@ export function VendorDashboardAlertCenter() {
     (fetchBilling && billingError);
 
   return (
-    <Card className="h-full">
+    <Card className="h-full min-h-[500px] flex flex-col">
       <CardHeader className="flex flex-col gap-4 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <CardTitle>Alert &amp; Broadcast</CardTitle>
+          <CardTitle>Alert & Broadcast</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Pantau broadcast terbaru, tenant baru, tagihan overdue, dan tiket teknis.
+            Pantau broadcast terbaru, tenant baru, tagihan overdue, dan tiket
+            teknis.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {refreshing ? (
+          {refreshing && (
             <Badge variant="outline" className="gap-1 text-xs">
               <Filter className="h-3 w-3" /> Memperbarui
             </Badge>
-          ) : null}
-          <Select value={activeType} onValueChange={(value: AlertType) => setActiveType(value)}>
+          )}
+          <Select
+            value={activeType}
+            onValueChange={(value: AlertType) => setActiveType(value)}
+          >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Filter alert" />
             </SelectTrigger>
@@ -409,11 +435,13 @@ export function VendorDashboardAlertCenter() {
           </Select>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+
+      <CardContent className="space-y-4 flex-1 flex flex-col overflow-hidden">
         {hasErrors ? (
           <Alert variant="destructive">
             <AlertDescription>
-              Tidak semua alert dapat dimuat. Beberapa data mungkin tidak lengkap.
+              Tidak semua alert dapat dimuat. Beberapa data mungkin tidak
+              lengkap.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -426,7 +454,7 @@ export function VendorDashboardAlertCenter() {
           </div>
         ) : filteredAlerts.length ? (
           <ScrollArea className="max-h-[420px] pr-4">
-            <div className="space-y-3">
+            <div className="space-y-3 pb-2">
               {filteredAlerts.map((alert) => (
                 <button
                   key={alert.id}
@@ -438,41 +466,46 @@ export function VendorDashboardAlertCenter() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <AlertIcon type={alert.type} />
-                        <h3 className="font-medium leading-tight">{alert.title}</h3>
+                        <h3 className="font-medium leading-tight">
+                          {alert.title}
+                        </h3>
                       </div>
-                      {alert.badge ? (
-                        <Badge variant={alert.badgeVariant ?? "secondary"}>{alert.badge}</Badge>
-                      ) : null}
+                      {alert.badge && (
+                        <Badge variant={alert.badgeVariant ?? "secondary"}>
+                          {alert.badge}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {alert.description}
                     </p>
                     <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
                       <span>{formatDate(alert.timestamp)}</span>
-                      {alert.ctaLabel ? (
-                        alert.onCTA ? (
+                      {alert.ctaLabel &&
+                        (alert.onCTA ? (
                           <Button
                             size="sm"
                             variant="outline"
                             disabled={actionLoading === alert.id}
-                            onClick={(event) => {
-                              event.stopPropagation();
+                            onClick={(e) => {
+                              e.stopPropagation();
                               void alert.onCTA?.();
                             }}
                           >
-                            {actionLoading === alert.id ? "Memproses..." : alert.ctaLabel}
+                            {actionLoading === alert.id
+                              ? "Memproses..."
+                              : alert.ctaLabel}
                           </Button>
                         ) : alert.ctaHref ? (
                           <Button
                             size="sm"
                             variant="outline"
                             asChild
-                            onClick={(event) => event.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <Link href={alert.ctaHref}>{alert.ctaLabel}</Link>
                           </Button>
-                        ) : null
-                      ) : null}
+                        ) : null)}
                     </div>
                   </div>
                 </button>
@@ -480,7 +513,7 @@ export function VendorDashboardAlertCenter() {
             </div>
           </ScrollArea>
         ) : (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
             Tidak ada alert untuk ditampilkan.
           </div>
         )}
