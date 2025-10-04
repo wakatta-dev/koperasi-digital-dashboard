@@ -5,7 +5,7 @@
 import { useState } from "react";
 import type { Ticket, TicketReply } from "@/types/api";
 import {
-  useTicket,
+  useVendorTicket,
   useTicketActions,
   useTicketActivities,
 } from "@/hooks/queries/ticketing";
@@ -28,7 +28,7 @@ import {
 type Props = { id: string; initialTicket?: Ticket };
 
 export function VendorTicketDetail({ id, initialTicket }: Props) {
-  const { data: ticket } = useTicket(id, initialTicket);
+  const { data: ticket } = useVendorTicket(id, initialTicket);
   const { addReply, update } = useTicketActions();
   const confirm = useConfirm();
 

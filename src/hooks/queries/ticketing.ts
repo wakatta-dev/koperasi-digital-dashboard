@@ -17,6 +17,7 @@ import {
   createTicket,
   listTickets,
   getTicket,
+  getTicketVendorView,
   addTicketReply,
   updateTicket,
   listTicketReplies,
@@ -55,6 +56,15 @@ export function useTicket(id?: string, initialData?: Ticket | undefined) {
     queryKey: QK.tickets.detail(id ?? ""),
     enabled: !!id,
     queryFn: async () => ensureSuccess(await getTicket(id as string)),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
+export function useVendorTicket(id?: string, initialData?: Ticket | undefined) {
+  return useQuery({
+    queryKey: QK.tickets.vendorView(id ?? ""),
+    enabled: !!id,
+    queryFn: async () => ensureSuccess(await getTicketVendorView(id as string)),
     ...(initialData ? { initialData } : {}),
   });
 }

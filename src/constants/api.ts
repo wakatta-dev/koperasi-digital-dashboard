@@ -186,6 +186,7 @@ export const API_ENDPOINTS = {
     list: "/tickets",
     create: "/tickets",
     detail: (id: string) => `/tickets/${id}`,
+    vendorView: (id: string) => `/tickets/${id}/vendor-view`,
     replies: (id: string) => `/tickets/${id}/replies`,
     update: (id: string) => `/tickets/${id}`,
     activities: (id: string) => `/tickets/${id}/activities`,
