@@ -3,7 +3,6 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { VendorDashboardFilterProvider } from "@/components/feature/vendor/dashboard/vendor-dashboard-filter-context";
 import { VendorDashboardDataProvider, useVendorDashboardData } from "@/components/feature/vendor/dashboard/vendor-dashboard-data-provider";
 import { VendorDashboardGlobalFilters } from "@/components/feature/vendor/dashboard/vendor-dashboard-filters";
 import { VendorDashboardKpiGrid } from "@/components/feature/vendor/dashboard/vendor-dashboard-kpi-grid";
@@ -16,14 +15,13 @@ import { VendorDashboardInvoiceWatchlist } from "@/components/feature/vendor/das
 import { VendorDashboardLoginLeaderboard } from "@/components/feature/vendor/dashboard/vendor-dashboard-login-leaderboard";
 import { VendorDashboardModuleAdoption } from "@/components/feature/vendor/dashboard/vendor-dashboard-module-adoption";
 import { VendorDashboardInsightsHighlights } from "@/components/feature/vendor/dashboard/vendor-dashboard-insights-highlights";
+import Link from "next/link";
 
 export default function VendorDashboardPage() {
   return (
-    <VendorDashboardFilterProvider>
-      <VendorDashboardDataProvider>
-        <VendorDashboardPageShell />
-      </VendorDashboardDataProvider>
-    </VendorDashboardFilterProvider>
+    <VendorDashboardDataProvider>
+      <VendorDashboardPageShell />
+    </VendorDashboardDataProvider>
   );
 }
 
@@ -46,6 +44,29 @@ function VendorDashboardPageShell() {
           <p className="text-sm text-muted-foreground">
             Ringkasan aktivitas tenant vendor dan status dukungan pelanggan.
           </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Telusuri detail:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/vendor/dashboard/tenant-activity"
+              className="rounded-md border px-3 py-1 font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              Aktivitas Tenant
+            </Link>
+            <Link
+              href="/vendor/dashboard/revenue-trend"
+              className="rounded-md border px-3 py-1 font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              Tren Pendapatan
+            </Link>
+            <Link
+              href="/vendor/dashboard/support-health"
+              className="rounded-md border px-3 py-1 font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              Kesehatan Dukungan
+            </Link>
+          </div>
         </div>
       </header>
 
