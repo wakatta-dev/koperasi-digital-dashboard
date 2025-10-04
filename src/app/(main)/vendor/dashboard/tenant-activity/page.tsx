@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   addDays,
@@ -19,6 +19,7 @@ import { id as localeId } from "date-fns/locale";
 import { ActivitySquare, Filter, Flame } from "lucide-react";
 
 import { ensureSuccess } from "@/lib/api";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import { getVendorUsageReport, listClientActivity } from "@/services/api";
 import type { ClientActivityEntry, VendorUsageReport } from "@/types/api";
 import { Button } from "@/components/ui/button";
@@ -80,32 +81,40 @@ export default function VendorTenantActivityPage() {
 
   const tenantId = selectedTenant === tenantOptionAll ? null : Number(selectedTenant);
 
+  const usageParams = useMemo(
+    () => ({ tenantId, selectedModule }),
+    [tenantId, selectedModule]
+  );
+
   const {
     data: usageData,
     error: usageError,
     isLoading: usageLoading,
-    isValidating: usageValidating,
-    mutate: refreshUsage,
-  } = useSWR<VendorUsageReport>(
-    [
-      "vendor-dashboard",
-      "tenant-activity",
-      "usage",
-      tenantId ?? tenantOptionAll,
-      selectedModule,
-    ],
-    async () =>
-      ensureSuccess(
+    isFetching: usageFetching,
+    refetch: refetchUsage,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "tenant-activity", "usage", usageParams],
+    queryFn: async ({ queryKey }) => {
+      const [, , , params] = queryKey as [
+        string,
+        string,
+        string,
+        { tenantId: number | null; selectedModule: string },
+      ];
+      return ensureSuccess<VendorUsageReport>(
         await getVendorUsageReport({
-          tenant: tenantId ?? undefined,
-          module: selectedModule !== moduleOptionAll ? selectedModule : undefined,
+          tenant: params.tenantId ?? undefined,
+          module:
+            params.selectedModule !== moduleOptionAll
+              ? params.selectedModule
+              : undefined,
         }),
-      ),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
+      );
     },
-  );
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const {
     heatmapMatrix,
@@ -125,20 +134,22 @@ export default function VendorTenantActivityPage() {
     data: timelineData,
     error: timelineError,
     isLoading: timelineLoading,
-    mutate: refreshTimeline,
-  } = useSWR<ClientActivityEntry[]>(
-    tenantId
-      ? ["vendor-dashboard", "tenant-activity", "timeline", tenantId]
-      : null,
-    async ([, , , id]) =>
-      ensureSuccess(await listClientActivity(id as number, { limit: 50 })),
-    {
-      revalidateOnFocus: false,
-    },
-  );
+    isFetching: timelineFetching,
+    refetch: refetchTimeline,
+  } = useQuery({
+    queryKey: ["vendor-dashboard", "tenant-activity", "timeline", tenantId],
+    queryFn: async ({ queryKey: [, , , id] }) =>
+      ensureSuccess<ClientActivityEntry[]>(
+        await listClientActivity(id as number, { limit: 30 })
+      ),
+    enabled: typeof tenantId === "number",
+    staleTime: 2 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const loadingHeatmap = usageLoading && !usageData;
-  const loadingTimeline = timelineLoading && !timelineData;
+  const loadingTimeline =
+    typeof tenantId === "number" && timelineLoading && !timelineData;
 
   return (
     <div className="space-y-6">
@@ -225,7 +236,7 @@ export default function VendorTenantActivityPage() {
                 ? usageError.message
                 : "Terjadi kesalahan saat mengambil data login tenant."}
             </span>
-            <Button size="sm" variant="outline" onClick={() => refreshUsage()}>
+            <Button size="sm" variant="outline" onClick={() => void refetchUsage()}>
               Coba lagi
             </Button>
           </AlertDescription>
@@ -244,7 +255,7 @@ export default function VendorTenantActivityPage() {
                 Intensitas login harian berdasarkan rentang tanggal dan filter modul.
               </CardDescription>
             </div>
-            {usageValidating ? (
+            {usageFetching ? (
               <span className="text-xs text-muted-foreground">Memperbarui data…</span>
             ) : null}
           </CardHeader>
@@ -284,7 +295,7 @@ export default function VendorTenantActivityPage() {
                       ? timelineError.message
                       : "Terjadi kesalahan saat mengambil linimasa tenant."}
                   </span>
-                  <Button size="sm" variant="outline" onClick={() => refreshTimeline()}>
+                  <Button size="sm" variant="outline" onClick={() => void refetchTimeline()}>
                     Muat ulang
                   </Button>
                 </AlertDescription>
@@ -298,13 +309,18 @@ export default function VendorTenantActivityPage() {
             ) : loadingTimeline ? (
               <TimelineSkeleton />
             ) : timelineData && timelineData.length ? (
-              <ul className="space-y-3">
-                {timelineData.map((entry, index) => (
-                  <li key={`${entry.occurred_at}-${entry.action}-${index}`}>
-                    <TimelineEntry entry={entry} />
-                  </li>
-                ))}
-              </ul>
+              <>
+                {timelineFetching ? (
+                  <span className="text-xs text-muted-foreground">Memperbarui linimasa…</span>
+                ) : null}
+                <ul className="max-h-80 space-y-3 overflow-y-auto pr-1">
+                  {timelineData.map((entry, index) => (
+                    <li key={`${entry.occurred_at}-${entry.action}-${index}`}>
+                      <TimelineEntry entry={entry} />
+                    </li>
+                  ))}
+                </ul>
+              </>
             ) : (
               <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
                 Tidak ada aktivitas terbaru yang ditemukan untuk tenant ini.
@@ -325,7 +341,7 @@ export default function VendorTenantActivityPage() {
                 </Link>
               </span>
               {tenantId ? (
-                <Button size="sm" variant="outline" onClick={() => refreshTimeline()}>
+                <Button size="sm" variant="outline" onClick={() => void refetchTimeline()}>
                   Segarkan
                 </Button>
               ) : null}

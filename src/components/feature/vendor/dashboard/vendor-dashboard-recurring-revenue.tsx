@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import {
   Area,
   AreaChart,
@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import { ensureSuccess } from "@/lib/api";
-import { swrRateLimitOptions } from "@/lib/rate-limit";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import { getVendorFinancialReport } from "@/services/api";
 import type { VendorFinancialReport } from "@/types/api";
 import { Button } from "@/components/ui/button";
@@ -61,27 +61,29 @@ export function VendorDashboardRecurringRevenue() {
   const { start, end } = useVendorDashboardDateParams();
   const [groupBy, setGroupBy] = useState<string>("month");
 
-  const paramsKey = useMemo(
-    () => JSON.stringify({ start, end, groupBy }),
+  const queryKey = useMemo(
+    () => [
+      "vendor-dashboard",
+      "financial-report",
+      { start, end, groupBy },
+    ] as const,
     [start, end, groupBy],
   );
 
-  const { data, error, isLoading, isValidating, mutate } = useSWR<VendorFinancialReport>(
-    ["vendor-dashboard", "financial-report", paramsKey],
-    async () =>
-      ensureSuccess(
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
+    queryKey,
+    queryFn: async ({ queryKey: [, , params] }) =>
+      ensureSuccess<VendorFinancialReport>(
         await getVendorFinancialReport({
-          start_date: start,
-          end_date: end,
-          group_by: groupBy,
+          start_date: params.start,
+          end_date: params.end,
+          group_by: params.groupBy,
         }),
       ),
-    {
-      ...swrRateLimitOptions,
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+  });
 
   const loading = isLoading && !data;
 
@@ -95,7 +97,7 @@ export function VendorDashboardRecurringRevenue() {
           <Alert variant="destructive">
             <AlertDescription className="flex flex-col gap-3">
               <span>Grafik pendapatan berulang tidak dapat dimuat.</span>
-              <Button size="sm" variant="outline" onClick={() => mutate()}>
+              <Button size="sm" variant="outline" onClick={() => void refetch()}>
                 Coba lagi
               </Button>
             </AlertDescription>
@@ -131,7 +133,7 @@ export function VendorDashboardRecurringRevenue() {
         </Select>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
-        {isValidating ? (
+        {isFetching ? (
           <p className="text-xs text-muted-foreground">Memperbarui data…</p>
         ) : null}
 
@@ -196,7 +198,7 @@ export function VendorDashboardRecurringRevenue() {
         )}
 
         <div className="flex justify-end">
-          <Button size="sm" variant="outline" onClick={() => mutate()}>
+          <Button size="sm" variant="outline" onClick={() => void refetch()}>
             Segarkan Data
           </Button>
         </div>

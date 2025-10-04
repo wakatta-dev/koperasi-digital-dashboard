@@ -3,19 +3,14 @@
 "use client";
 
 import { useMemo } from "react";
-import useSWR from "swr";
 import Link from "next/link";
 import { format, differenceInCalendarDays } from "date-fns";
 
-import { ensureSuccess } from "@/lib/api";
-import { swrRateLimitOptions } from "@/lib/rate-limit";
-import { getVendorInvoice } from "@/services/api";
 import type { Invoice } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -33,51 +28,13 @@ const currencyFormatter = new Intl.NumberFormat("id-ID", {
 });
 
 export function VendorDashboardInvoiceWatchlist() {
-  const {
-    data: billing,
-    error: billingError,
-    isLoading,
-    isValidating,
-    mutate,
-  } = useVendorBillingReport();
+  const { data: billing, error: billingError, isLoading, isFetching, refetch } =
+    useVendorBillingReport();
 
   const overdueInvoices = useMemo(
-    () => billing?.overdue_invoices ?? [],
+    () => ((billing?.overdue_invoices ?? []) as Invoice[]).slice(0, 10),
     [billing?.overdue_invoices],
   );
-  const invoiceIds = useMemo(
-    () => overdueInvoices.map((invoice) => invoice.id),
-    [overdueInvoices],
-  );
-
-  const {
-    data: invoiceDetails = [],
-    error: invoiceError,
-    isLoading: detailsLoading,
-    mutate: mutateInvoiceDetails,
-  } = useSWR<Invoice[]>(
-    invoiceIds.length
-      ? ["vendor-dashboard", "invoice-details", invoiceIds.join(",")]
-      : null,
-    async () => {
-      const responses = await Promise.all(
-        invoiceIds.map(async (id) => ensureSuccess(await getVendorInvoice(id))),
-      );
-      return responses;
-    },
-    {
-      ...swrRateLimitOptions,
-      revalidateOnFocus: false,
-    },
-  );
-
-  const detailMap = useMemo(() => {
-    const map = new Map<number, Invoice>();
-    for (const detail of invoiceDetails ?? []) {
-      if (detail?.id) map.set(detail.id, detail);
-    }
-    return map;
-  }, [invoiceDetails]);
 
   if (billingError) {
     return (
@@ -86,14 +43,12 @@ export function VendorDashboardInvoiceWatchlist() {
           <CardTitle>Watchlist Invoice</CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert variant="destructive">
-            <AlertDescription className="flex flex-col gap-3">
-              <span>Tidak dapat mengambil daftar invoice yang terlambat.</span>
-              <Button size="sm" variant="outline" onClick={() => mutate()}>
-                Coba lagi
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <div className="flex flex-col gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+            <span>Tidak dapat mengambil daftar invoice yang terlambat.</span>
+            <Button size="sm" variant="outline" onClick={() => void refetch()}>
+              Coba lagi
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -111,30 +66,10 @@ export function VendorDashboardInvoiceWatchlist() {
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          {isValidating ? <span>Memperbarui data…</span> : null}
-          {invoiceError ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                void mutate();
-                void mutateInvoiceDetails();
-              }}
-            >
-              Muat ulang
-            </Button>
-          ) : null}
+          {isFetching ? <span>Memperbarui data…</span> : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
-        {invoiceError ? (
-          <Alert variant="destructive">
-            <AlertDescription>
-              Detail invoice tidak dapat dimuat. Anda tetap dapat melihat ringkasan dasar.
-            </AlertDescription>
-          </Alert>
-        ) : null}
-
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (
@@ -154,13 +89,10 @@ export function VendorDashboardInvoiceWatchlist() {
                   <TableHead>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="block max-h-72 overflow-y-auto">
                 {overdueInvoices.map((invoice) => {
-                  const detail = detailMap.get(invoice.id);
                   const dueDate = invoice.due_date
                     ? new Date(invoice.due_date)
-                    : detail?.due_date
-                    ? new Date(detail.due_date)
                     : null;
                   const formattedDueDate = dueDate
                     ? format(dueDate, "d MMM yyyy")
@@ -168,18 +100,23 @@ export function VendorDashboardInvoiceWatchlist() {
                   const overdueDays = dueDate
                     ? Math.max(0, differenceInCalendarDays(new Date(), dueDate))
                     : 0;
-                  const tenantId = detail?.tenant_id ?? invoice.tenant_id;
-                  const tenantLabel = `Tenant #${tenantId}`;
-                  const amount = detail?.total ?? invoice.total ?? 0;
+                  const tenantId = invoice.tenant_id;
+                  const tenantLabel = tenantId
+                    ? `Tenant #${tenantId}`
+                    : "Tidak diketahui";
+                  const amount = invoice.total ?? 0;
 
                   return (
-                    <TableRow key={invoice.id}>
+                    <TableRow
+                      key={invoice.id}
+                      className="grid grid-cols-[1.6fr_1fr_1fr_1fr_1fr_1.3fr] items-center gap-3 border-b last:border-b-0 md:table-row md:gap-0"
+                    >
                       <TableCell className="font-medium">
                         <div className="flex flex-col">
                           <span>{invoice.number}</span>
-                          {detail?.subscription?.plan?.name ? (
+                          {invoice.description ? (
                             <span className="text-xs text-muted-foreground">
-                              {detail.subscription.plan.name}
+                              {invoice.description}
                             </span>
                           ) : null}
                         </div>
@@ -199,17 +136,10 @@ export function VendorDashboardInvoiceWatchlist() {
                               Lihat Invoice
                             </Link>
                           </Button>
-                          <Button
-                            asChild
-                            size="sm"
-                            variant="outline"
-                          >
-                            <a
-                              href={`mailto:?subject=Follow up Invoice ${invoice.number}`}
-                              rel="noreferrer"
-                            >
-                              Hubungi
-                            </a>
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/vendor/invoices/${invoice.id}`}>
+                              Detail
+                            </Link>
                           </Button>
                         </div>
                       </TableCell>
@@ -218,12 +148,6 @@ export function VendorDashboardInvoiceWatchlist() {
                 })}
               </TableBody>
             </Table>
-          </div>
-        ) : detailsLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <Skeleton key={index} className="h-14 w-full" />
-            ))}
           </div>
         ) : (
           <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">

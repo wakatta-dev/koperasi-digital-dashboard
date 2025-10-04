@@ -3,13 +3,12 @@
 "use client";
 
 import { useMemo } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import { format as formatDate } from "date-fns";
 
 import { ensureSuccess } from "@/lib/api";
-import { swrRateLimitOptions } from "@/lib/rate-limit";
+import { buildReactQueryRetry } from "@/lib/rate-limit";
 import { getBillingReport } from "@/services/api";
-import type { BillingReportResponse } from "@/types/api";
 
 import { useVendorDashboardFilters } from "./vendor-dashboard-filter-context";
 
@@ -29,20 +28,15 @@ export function useVendorDashboardDateParams() {
   }, [filters]);
 }
 
-export function useVendorBillingReport() {
+export function useVendorBillingReport(options?: { enabled?: boolean }) {
   const { start, end } = useVendorDashboardDateParams();
 
-  const paramsKey = JSON.stringify({ start, end });
-
-  const swr = useSWR<BillingReportResponse>(
-    ["vendor-dashboard", "billing-report", paramsKey],
-    async () => ensureSuccess(await getBillingReport({ start, end })),
-    {
-      ...swrRateLimitOptions,
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
-
-  return swr;
+  return useQuery({
+    queryKey: ["vendor-dashboard", "billing-report", { start, end }],
+    queryFn: async () => ensureSuccess(await getBillingReport({ start, end })),
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: buildReactQueryRetry(),
+    enabled: options?.enabled ?? true,
+  });
 }

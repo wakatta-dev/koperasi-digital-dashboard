@@ -52,20 +52,17 @@ export function VendorDashboardKpiGrid() {
   } = useVendorDashboardData();
   const { filters } = useVendorDashboardFilters();
   const {
-    clientsState,
-    subscriptionsState,
-    subscriptionSummaryState,
+    subscriptionsQuery,
+    subscriptionSummaryQuery,
     filteredClients,
     filteredSubscriptions,
     tenantDataLoading,
     tenantDataError,
+    invalidateTenantUniverse,
   } = useVendorDashboardTenantUniverse();
   const { updateStatus } = useClientActions();
-  const { mutate: mutateClients } = clientsState;
-  const { error: subscriptionsError, mutate: mutateSubscriptions } =
-    subscriptionsState;
-  const { data: subscriptionSummary, mutate: mutateSubscriptionSummary } =
-    subscriptionSummaryState;
+  const { error: subscriptionsError } = subscriptionsQuery;
+  const { data: subscriptionSummary } = subscriptionSummaryQuery;
 
   const totalTenants = filteredClients.length;
   const activeTenants = filteredClients.filter(
@@ -128,11 +125,7 @@ export function VendorDashboardKpiGrid() {
   async function handleVerifyTenant() {
     if (!selectedTenant) return;
     await updateStatus.mutateAsync({ id: selectedTenant.id, status: "active" });
-    await Promise.all([
-      mutateClients(),
-      mutateSubscriptions(),
-      mutateSubscriptionSummary(),
-    ]);
+    await invalidateTenantUniverse();
     setSelectedTenantId(null);
     setTenantDialogOpen(false);
   }
