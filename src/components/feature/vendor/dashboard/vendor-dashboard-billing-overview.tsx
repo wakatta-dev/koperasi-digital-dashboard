@@ -38,7 +38,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function VendorDashboardBillingOverview() {
-  const { data, error, isLoading, isValidating, mutate } = useVendorBillingReport();
+  const { data, error, isLoading, isFetching, refetch } =
+    useVendorBillingReport();
 
   const loading = isLoading && !data;
 
@@ -54,7 +55,7 @@ export function VendorDashboardBillingOverview() {
               <span>
                 Tidak dapat memuat ringkasan billing saat ini. Silakan coba lagi.
               </span>
-              <Button size="sm" variant="outline" onClick={() => mutate()}>
+              <Button size="sm" variant="outline" onClick={() => refetch()}>
                 Muat ulang
               </Button>
             </AlertDescription>
@@ -92,7 +93,7 @@ export function VendorDashboardBillingOverview() {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle>Ikhtisar Billing</CardTitle>
-          {isValidating ? (
+          {isFetching && !isLoading ? (
             <span className="text-xs text-muted-foreground">Memuat...</span>
           ) : null}
         </div>
@@ -182,7 +183,7 @@ export function VendorDashboardBillingOverview() {
                   <span>Tidak ada data status invoice pada rentang ini.</span>
                 </div>
               )}
-              <Button size="sm" variant="outline" onClick={() => mutate()}>
+              <Button size="sm" variant="outline" onClick={() => refetch()}>
                 Segarkan Data
               </Button>
             </div>

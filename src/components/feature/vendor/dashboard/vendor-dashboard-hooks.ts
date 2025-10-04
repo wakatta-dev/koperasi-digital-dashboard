@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import { format as formatDate } from "date-fns";
 
 import { ensureSuccess } from "@/lib/api";
@@ -31,17 +31,12 @@ export function useVendorDashboardDateParams() {
 export function useVendorBillingReport() {
   const { start, end } = useVendorDashboardDateParams();
 
-  const paramsKey = JSON.stringify({ start, end });
+  const paramsKey = useMemo(() => ({ start, end }), [start, end]);
 
-  const swr = useSWR<BillingReportResponse>(
-    ["vendor-dashboard", "billing-report", paramsKey],
-    async () => ensureSuccess(await getBillingReport({ start, end })),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
-
-  return swr;
+  return useQuery<BillingReportResponse>({
+    queryKey: ["vendor-dashboard", "billing-report", paramsKey],
+    queryFn: async () => ensureSuccess(await getBillingReport({ start, end })),
+    keepPreviousData: true,
+  });
 }
 

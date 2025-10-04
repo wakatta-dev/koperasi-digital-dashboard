@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import {
   Area,
   AreaChart,
@@ -60,14 +60,14 @@ export function VendorDashboardRecurringRevenue() {
   const { start, end } = useVendorDashboardDateParams();
   const [groupBy, setGroupBy] = useState<string>("month");
 
-  const paramsKey = useMemo(
-    () => JSON.stringify({ start, end, groupBy }),
-    [start, end, groupBy],
+  const queryParams = useMemo(
+    () => ({ start, end, groupBy }),
+    [end, groupBy, start],
   );
 
-  const { data, error, isLoading, isValidating, mutate } = useSWR<VendorFinancialReport>(
-    ["vendor-dashboard", "financial-report", paramsKey],
-    async () =>
+  const { data, error, isLoading, isFetching, refetch } = useQuery<VendorFinancialReport>({
+    queryKey: ["vendor-dashboard", "financial-report", queryParams],
+    queryFn: async () =>
       ensureSuccess(
         await getVendorFinancialReport({
           start_date: start,
@@ -75,11 +75,8 @@ export function VendorDashboardRecurringRevenue() {
           group_by: groupBy,
         }),
       ),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+    keepPreviousData: true,
+  });
 
   const loading = isLoading && !data;
 
@@ -93,7 +90,7 @@ export function VendorDashboardRecurringRevenue() {
           <Alert variant="destructive">
             <AlertDescription className="flex flex-col gap-3">
               <span>Grafik pendapatan berulang tidak dapat dimuat.</span>
-              <Button size="sm" variant="outline" onClick={() => mutate()}>
+              <Button size="sm" variant="outline" onClick={() => refetch()}>
                 Coba lagi
               </Button>
             </AlertDescription>
@@ -129,7 +126,7 @@ export function VendorDashboardRecurringRevenue() {
         </Select>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
-        {isValidating ? (
+        {isFetching && !isLoading ? (
           <p className="text-xs text-muted-foreground">Memperbarui data…</p>
         ) : null}
 
@@ -194,7 +191,7 @@ export function VendorDashboardRecurringRevenue() {
         )}
 
         <div className="flex justify-end">
-          <Button size="sm" variant="outline" onClick={() => mutate()}>
+          <Button size="sm" variant="outline" onClick={() => refetch()}>
             Segarkan Data
           </Button>
         </div>

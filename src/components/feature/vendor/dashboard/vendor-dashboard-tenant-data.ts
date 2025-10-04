@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo } from "react";
-import useSWR, { type SWRResponse } from "swr";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
 import { ensureSuccess } from "@/lib/api";
 import {
@@ -16,9 +16,9 @@ import type { Client, Subscription, SubscriptionSummary } from "@/types/api";
 import { useVendorDashboardFilters } from "./vendor-dashboard-filter-context";
 
 export type VendorDashboardTenantUniverse = {
-  clientsState: SWRResponse<Client[], any>;
-  subscriptionsState: SWRResponse<Subscription[], any>;
-  subscriptionSummaryState: SWRResponse<SubscriptionSummary | null, any>;
+  clientsState: UseQueryResult<Client[], Error>;
+  subscriptionsState: UseQueryResult<Subscription[], Error>;
+  subscriptionSummaryState: UseQueryResult<SubscriptionSummary | null, Error>;
   filteredClients: Client[];
   filteredClientIds: Set<number>;
   filteredSubscriptions: Subscription[];
@@ -44,22 +44,16 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
     [tenantTypeParam],
   );
 
-  const clientsState = useSWR<Client[]>(
-    ["vendor-dashboard", "clients", clientParams],
-    async ([, , params]) => ensureSuccess(await listClients(params)),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+  const clientsState = useQuery<Client[], Error>({
+    queryKey: ["vendor-dashboard", "clients", clientParams],
+    queryFn: async () => ensureSuccess(await listClients(clientParams)),
+    keepPreviousData: true,
+  });
 
-  const subscriptionSummaryState = useSWR<SubscriptionSummary | null>(
-    ["vendor-dashboard", "subscriptions", "summary"],
-    async () => ensureSuccess(await getVendorSubscriptionsSummary()),
-    {
-      revalidateOnFocus: false,
-    },
-  );
+  const subscriptionSummaryState = useQuery<SubscriptionSummary | null, Error>({
+    queryKey: ["vendor-dashboard", "subscriptions", "summary"],
+    queryFn: async () => ensureSuccess(await getVendorSubscriptionsSummary()),
+  });
 
   const subscriptionParams = useMemo(
     () => ({
@@ -69,14 +63,11 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
     [subscriptionStatusParam],
   );
 
-  const subscriptionsState = useSWR<Subscription[]>(
-    ["vendor-dashboard", "subscriptions", subscriptionParams],
-    async ([, , params]) => ensureSuccess(await listVendorSubscriptions(params)),
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+  const subscriptionsState = useQuery<Subscription[], Error>({
+    queryKey: ["vendor-dashboard", "subscriptions", subscriptionParams],
+    queryFn: async () => ensureSuccess(await listVendorSubscriptions(subscriptionParams)),
+    keepPreviousData: true,
+  });
 
   const subscriptionStatusByTenant = useMemo(() => {
     const map = new Map<number, Subscription["status"]>();
@@ -107,12 +98,12 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
 
   const tenantDataLoading = Boolean(
     clientsState.isLoading ||
-      clientsState.isValidating ||
+      clientsState.isFetching ||
       subscriptionsState.isLoading ||
-      subscriptionsState.isValidating,
+      subscriptionsState.isFetching,
   );
 
-  const tenantDataError = clientsState.error || subscriptionsState.error;
+  const tenantDataError = clientsState.error ?? subscriptionsState.error ?? null;
 
   return {
     clientsState,

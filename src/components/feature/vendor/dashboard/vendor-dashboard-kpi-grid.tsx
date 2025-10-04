@@ -4,6 +4,7 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { Users, Ticket, Building2, UserCheck, UserX, Sparkles } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +43,6 @@ export function VendorDashboardKpiGrid() {
     useVendorDashboardData();
   const { filters } = useVendorDashboardFilters();
   const {
-    clientsState,
     subscriptionsState,
     subscriptionSummaryState,
     filteredClients,
@@ -51,11 +51,9 @@ export function VendorDashboardKpiGrid() {
     tenantDataError,
   } = useVendorDashboardTenantUniverse();
   const { updateStatus } = useClientActions();
-  const { mutate: mutateClients } = clientsState;
-  const { error: subscriptionsError, mutate: mutateSubscriptions } =
-    subscriptionsState;
-  const { data: subscriptionSummary, mutate: mutateSubscriptionSummary } =
-    subscriptionSummaryState;
+  const { data: subscriptionSummary } = subscriptionSummaryState;
+  const subscriptionsError = subscriptionsState.error;
+  const queryClient = useQueryClient();
 
   const totalTenants = filteredClients.length;
   const activeTenants = filteredClients.filter((client) => client.status === "active").length;
@@ -115,9 +113,11 @@ export function VendorDashboardKpiGrid() {
     if (!selectedTenant) return;
     await updateStatus.mutateAsync({ id: selectedTenant.id, status: "active" });
     await Promise.all([
-      mutateClients(),
-      mutateSubscriptions(),
-      mutateSubscriptionSummary(),
+      queryClient.invalidateQueries({ queryKey: ["vendor-dashboard", "clients"] }),
+      queryClient.invalidateQueries({ queryKey: ["vendor-dashboard", "subscriptions"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["vendor-dashboard", "subscriptions", "summary"],
+      }),
     ]);
     setSelectedTenantId(null);
     setTenantDialogOpen(false);

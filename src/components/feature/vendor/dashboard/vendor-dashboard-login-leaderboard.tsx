@@ -4,7 +4,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -48,6 +48,7 @@ type TenantLoginLeaderboardResult = {
 };
 
 const MAX_ROWS = 5;
+const MAX_TENANT_SAMPLE = 50;
 
 export function VendorDashboardLoginLeaderboard() {
   const { filters } = useVendorDashboardFilters();
@@ -69,35 +70,42 @@ export function VendorDashboardLoginLeaderboard() {
     return [...tenantLookup.keys()].sort((a, b) => a - b);
   }, [tenantLookup]);
 
+  const sampledTenantIds = useMemo(
+    () => tenantIds.slice(0, MAX_TENANT_SAMPLE),
+    [tenantIds],
+  );
+
   const resolvedRanges = useMemo(
     () => resolveDashboardDateRanges(filters.dateRange ?? null),
     [filters.dateRange],
   );
 
   const cacheKey = useMemo(() => {
-    return tenantIds.length
+    return sampledTenantIds.length
       ? [
           "vendor-dashboard",
           "tenant-login-leaderboard",
-          tenantIds.join(","),
+          sampledTenantIds.join(","),
           buildRangeCacheKey(resolvedRanges),
         ]
       : null;
-  }, [tenantIds, resolvedRanges]);
+  }, [resolvedRanges, sampledTenantIds]);
 
-  const { data, error, isLoading } = useSWR<TenantLoginLeaderboardResult>(
-    cacheKey,
-    async () =>
+  const {
+    data,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: cacheKey ?? ["vendor-dashboard", "tenant-login-leaderboard", "empty"],
+    queryFn: async () =>
       fetchTenantLoginLeaderboard({
-        tenantIds,
+        tenantIds: sampledTenantIds,
         tenantLookup,
         ranges: resolvedRanges,
       }),
-    {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-    },
-  );
+    enabled: Boolean(cacheKey),
+    keepPreviousData: true,
+  });
 
   return (
     <Card>
@@ -120,7 +128,9 @@ export function VendorDashboardLoginLeaderboard() {
           <LeaderboardSkeleton />
         ) : error ? (
           <p className="text-sm text-destructive">
-            Gagal memuat data login tenant. Coba perbarui filter atau muat ulang halaman.
+            {error instanceof Error
+              ? error.message
+              : "Gagal memuat data login tenant. Coba perbarui filter atau muat ulang halaman."}
           </p>
         ) : !data || !data.entries.length ? (
           <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
@@ -180,6 +190,9 @@ export function VendorDashboardLoginLeaderboard() {
             {data.entries.length > MAX_ROWS ? (
               <p className="text-xs text-muted-foreground">
                 Menampilkan {MAX_ROWS} teratas dari {data.entries.length} tenant.
+                {tenantIds.length > sampledTenantIds.length
+                  ? ` Diambil dari ${sampledTenantIds.length} tenant pertama.`
+                  : ""}
               </p>
             ) : null}
           </div>

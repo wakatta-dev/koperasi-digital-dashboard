@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import { BarChart3, Users, PowerOff } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,8 @@ import {
 import { ensureSuccess } from "@/lib/api";
 import { listTenantModules } from "@/services/api";
 import type { Client, TenantModule } from "@/types/api";
+
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useVendorDashboardFilters } from "./vendor-dashboard-filter-context";
 import { useVendorDashboardTenantUniverse } from "./vendor-dashboard-tenant-data";
@@ -45,6 +47,8 @@ type ModuleAdoptionResult = {
   entries: ModuleAdoptionEntry[];
   totalTenants: number;
 };
+
+const MAX_VISIBLE_MODULES = 6;
 
 export function VendorDashboardModuleAdoption() {
   const { filters } = useVendorDashboardFilters();
@@ -84,19 +88,17 @@ export function VendorDashboardModuleAdoption() {
       : null;
   }, [tenantIds, resolvedRanges]);
 
-  const { data, error, isLoading } = useSWR<ModuleAdoptionResult>(
-    cacheKey,
-    async () =>
+  const { data, error, isLoading } = useQuery({
+    queryKey: cacheKey ?? ["vendor-dashboard", "module-adoption", "empty"],
+    queryFn: async () =>
       fetchModuleAdoption({
         tenantIds,
         tenantLookup,
         ranges: resolvedRanges,
       }),
-    {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-    },
-  );
+    enabled: Boolean(cacheKey),
+    keepPreviousData: true,
+  });
 
   const selectedModule = useMemo(() => {
     if (!data?.entries.length || !selectedModuleId) return null;
@@ -132,14 +134,24 @@ export function VendorDashboardModuleAdoption() {
               Belum ada modul aktif yang cocok dengan filter saat ini.
             </div>
           ) : (
-            <div className="space-y-4">
-              {data.entries.map((entry) => (
-                <ModuleAdoptionRow
-                  key={entry.moduleId}
-                  entry={entry}
-                  onViewTenants={() => setSelectedModuleId(entry.moduleId)}
-                />
-              ))}
+            <div className="space-y-3">
+              <ScrollArea className="max-h-80">
+                <div className="space-y-4 pr-2">
+                  {data.entries.slice(0, MAX_VISIBLE_MODULES).map((entry) => (
+                    <ModuleAdoptionRow
+                      key={entry.moduleId}
+                      entry={entry}
+                      onViewTenants={() => setSelectedModuleId(entry.moduleId)}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+              {data.entries.length > MAX_VISIBLE_MODULES ? (
+                <p className="text-xs text-muted-foreground">
+                  Menampilkan {MAX_VISIBLE_MODULES} modul teratas dari {data.entries.length} hasil.
+                  Gunakan filter untuk mempersempit daftar.
+                </p>
+              ) : null}
             </div>
           )}
         </CardContent>

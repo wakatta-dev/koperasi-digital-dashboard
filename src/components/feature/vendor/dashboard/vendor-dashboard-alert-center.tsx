@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import { differenceInCalendarDays, format } from "date-fns";
 import { Megaphone, Building2, FileWarning, LifeBuoy, Filter } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -72,48 +72,56 @@ export function VendorDashboardAlertCenter() {
   const [activeType, setActiveType] = useState<AlertType>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const shouldFetchBroadcasts = activeType === "all" || activeType === "broadcast";
+  const shouldFetchTenantAlerts = activeType === "all" || activeType === "tenant";
+  const shouldFetchBillingAlerts = activeType === "all" || activeType === "billing";
+  const shouldFetchSupportAlerts = activeType === "all" || activeType === "support";
+
   const {
     data: broadcasts,
     error: broadcastError,
     isLoading: broadcastLoading,
-    mutate: mutateBroadcasts,
-    isValidating: broadcastValidating,
-  } = useSWR<Notification[]>(
-    ["vendor-dashboard", "broadcasts"],
-    async () => ensureSuccess(await listVendorNotifications({ limit: 5 })),
-    { revalidateOnFocus: false },
-  );
+    isFetching: broadcastFetching,
+    refetch: refetchBroadcasts,
+  } = useQuery<Notification[]>({
+    queryKey: ["vendor-dashboard", "broadcasts"],
+    queryFn: async () => ensureSuccess(await listVendorNotifications({ limit: 5 })),
+    enabled: shouldFetchBroadcasts,
+    keepPreviousData: true,
+  });
 
   const {
     data: inactiveTenants,
     error: tenantError,
     isLoading: tenantsLoading,
-  } = useSWR<TenantDetail[]>(
-    ["vendor-dashboard", "tenants", "inactive"],
-    async () => ensureSuccess(await listTenants({ status: "inactive", limit: 10 })),
-    { revalidateOnFocus: false },
-  );
+  } = useQuery<TenantDetail[]>({
+    queryKey: ["vendor-dashboard", "tenants", "inactive"],
+    queryFn: async () => ensureSuccess(await listTenants({ status: "inactive", limit: 10 })),
+    enabled: shouldFetchTenantAlerts,
+    keepPreviousData: true,
+  });
 
   const {
     data: pendingTrials,
     error: trialsError,
     isLoading: trialsLoading,
-  } = useSWR<Subscription[]>(
-    ["vendor-dashboard", "subscriptions", "pending"],
-    async () =>
+  } = useQuery<Subscription[]>({
+    queryKey: ["vendor-dashboard", "subscriptions", "pending"],
+    queryFn: async () =>
       ensureSuccess(
         await listVendorSubscriptions({ status: "pending", limit: 50 }),
       ),
-    { revalidateOnFocus: false },
-  );
+    enabled: shouldFetchBillingAlerts,
+    keepPreviousData: true,
+  });
 
   const {
     data: tickets,
     error: ticketsError,
     isLoading: ticketsLoading,
-  } = useSWR<Ticket[]>(
-    ["vendor-dashboard", "tickets", "technical"],
-    async () =>
+  } = useQuery<Ticket[]>({
+    queryKey: ["vendor-dashboard", "tickets", "technical"],
+    queryFn: async () =>
       ensureSuccess(
         await listTickets({
           category: "technical",
@@ -121,14 +129,15 @@ export function VendorDashboardAlertCenter() {
           limit: 10,
         }),
       ),
-    { revalidateOnFocus: false },
-  );
+    enabled: shouldFetchSupportAlerts,
+    keepPreviousData: true,
+  });
 
   const {
     data: billing,
     error: billingError,
     isLoading: billingLoading,
-    mutate: mutateBilling,
+    refetch: refetchBilling,
   } = useVendorBillingReport();
 
   const overdueInvoices = useMemo(
@@ -214,7 +223,7 @@ export function VendorDashboardAlertCenter() {
                   );
                   toast.success("Broadcast dipublikasikan");
                 }
-                await mutateBroadcasts();
+                await refetchBroadcasts();
               } catch (error: any) {
                 toast.error(error?.message ?? "Gagal memperbarui broadcast");
               } finally {
@@ -313,12 +322,12 @@ export function VendorDashboardAlertCenter() {
   }, [
     latestBroadcast,
     isSuperAdmin,
-    mutateBroadcasts,
     inactiveTenants,
     router,
     trialAlerts,
     overdueInvoices,
     tickets,
+    refetchBroadcasts,
   ]);
 
   const filteredAlerts = useMemo(() => {
@@ -340,7 +349,7 @@ export function VendorDashboardAlertCenter() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {broadcastValidating ? (
+          {broadcastFetching ? (
             <Badge variant="outline" className="gap-1 text-xs">
               <Filter className="h-3 w-3" /> Memperbarui
             </Badge>
@@ -439,7 +448,7 @@ export function VendorDashboardAlertCenter() {
           <Button variant="link" size="sm" className="px-0" asChild>
             <Link href="/vendor/notifications">Kelola broadcast</Link>
           </Button>
-          <Button variant="link" size="sm" className="px-0" onClick={() => mutateBilling()}>
+          <Button variant="link" size="sm" className="px-0" onClick={() => refetchBilling()}>
             Segarkan billing
           </Button>
         </div>

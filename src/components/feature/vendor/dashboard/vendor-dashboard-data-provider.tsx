@@ -4,7 +4,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import type { ReactNode } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
 import { format as formatDate } from "date-fns";
 
 import { ensureSuccess } from "@/lib/api";
@@ -74,17 +74,24 @@ export function VendorDashboardDataProvider({
   children: ReactNode;
 }) {
   const { filters } = useVendorDashboardFilters();
-  const queryKey = useMemo(() => buildDashboardQuery(filters), [filters]);
+  const queryParam = useMemo(() => buildDashboardQuery(filters), [filters]);
 
-  const { data, error, isLoading, isValidating, mutate } =
-    useSWR<VendorDashboard>(
-      ["vendor-dashboard", queryKey],
-      async ([, query]) => fetchVendorDashboard(query as string),
-      {
-        keepPreviousData: true,
-        revalidateOnFocus: false,
-      }
-    );
+  const queryKey = useMemo(
+    () => ["vendor-dashboard", "summary", queryParam ?? "all"],
+    [queryParam]
+  );
+
+  const {
+    data,
+    error,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey,
+    queryFn: () => fetchVendorDashboard(queryParam),
+    keepPreviousData: true,
+  });
 
   const value = useMemo<VendorDashboardDataContextValue>(() => {
     const tiers = (data?.client_totals_by_tier ??
@@ -109,10 +116,13 @@ export function VendorDashboardDataProvider({
           : error
           ? new Error(String(error))
           : null,
-      refresh: () => mutate(),
-      isValidating,
+      refresh: async () => {
+        const result = await refetch({ cancelRefetch: false });
+        return result.data;
+      },
+      isValidating: isFetching && !isLoading,
     };
-  }, [data, error, isLoading, isValidating, mutate]);
+  }, [data, error, isFetching, isLoading, refetch]);
 
   return (
     <VendorDashboardDataContext.Provider value={value}>
