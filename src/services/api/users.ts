@@ -15,6 +15,7 @@ export function listUsers(
     term?: string;
     status?: string;
     role_id?: string | number;
+    tenant_id?: string | number;
     limit?: number;
     cursor?: string;
   },
@@ -26,6 +27,8 @@ export function listUsers(
   if (params?.term) search.set("term", params.term);
   if (params?.status) search.set("status", params.status);
   if (params?.role_id) search.set("role_id", String(params.role_id));
+  if (params?.tenant_id)
+    search.set("tenant_id", String(params.tenant_id));
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<User[]>(
     `${API_PREFIX}${API_ENDPOINTS.users.list}${query}`,

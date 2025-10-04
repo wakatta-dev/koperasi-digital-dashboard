@@ -10,8 +10,17 @@ import type { Client } from "@/types/api";
 export const dynamic = "force-dynamic";
 
 // TODO integrate API: extend detail modal with full client details via API
-export default async function ClientsPage() {
-  const clients = await listClients({ limit: 10 });
+export default async function ClientsPage({
+  searchParams,
+}: {
+  searchParams?: { tenantId?: string | string[] };
+}) {
+  const tenantIdParam = Array.isArray(searchParams?.tenantId)
+    ? searchParams?.tenantId[0]
+    : searchParams?.tenantId;
+  const initialSelectedId = tenantIdParam ? Number(tenantIdParam) : null;
+  const limit = initialSelectedId ? 200 : 10;
+  const clients = await listClients({ limit });
 
   return (
     <div className="space-y-6">
@@ -29,7 +38,10 @@ export default async function ClientsPage() {
         </CardHeader>
         <CardContent>
           {clients?.data?.length ? (
-            <ClientsListClient rows={clients.data as Client[]} />
+            <ClientsListClient
+              rows={clients.data as Client[]}
+              initialSelectedId={initialSelectedId}
+            />
           ) : (
             <div className="text-muted-foreground text-sm italic py-4">
               No clients found.
