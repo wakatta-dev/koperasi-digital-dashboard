@@ -3,8 +3,6 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { VendorDashboardFilterProvider } from "@/components/feature/vendor/dashboard/vendor-dashboard-filter-context";
 import { VendorDashboardDataProvider, useVendorDashboardData } from "@/components/feature/vendor/dashboard/vendor-dashboard-data-provider";
 import { VendorDashboardGlobalFilters } from "@/components/feature/vendor/dashboard/vendor-dashboard-filters";
@@ -12,6 +10,9 @@ import { VendorDashboardKpiGrid } from "@/components/feature/vendor/dashboard/ve
 import { VendorDashboardTierBreakdown } from "@/components/feature/vendor/dashboard/vendor-dashboard-tier-breakdown";
 import { VendorDashboardTicketInsights } from "@/components/feature/vendor/dashboard/vendor-dashboard-ticket-insights";
 import { VendorDashboardUpcomingWidgets } from "@/components/feature/vendor/dashboard/vendor-dashboard-upcoming-widgets";
+import { VendorDashboardBillingOverview } from "@/components/feature/vendor/dashboard/vendor-dashboard-billing-overview";
+import { VendorDashboardRecurringRevenue } from "@/components/feature/vendor/dashboard/vendor-dashboard-recurring-revenue";
+import { VendorDashboardInvoiceWatchlist } from "@/components/feature/vendor/dashboard/vendor-dashboard-invoice-watchlist";
 
 export default function VendorDashboardPage() {
   return (
@@ -79,34 +80,18 @@ function VendorDashboardPageShell() {
           <VendorDashboardTicketInsights />
         </section>
 
+        <section className="grid gap-6 xl:grid-cols-[2fr_1.2fr]">
+          <VendorDashboardRecurringRevenue />
+          <VendorDashboardBillingOverview />
+        </section>
+
         <section className="grid gap-6 xl:grid-cols-3">
+          <div className="xl:col-span-2">
+            <VendorDashboardInvoiceWatchlist />
+          </div>
           <VendorDashboardUpcomingWidgets />
-          <VendorDashboardPlaceholderCard title="Integrasi Billing" />
-          <VendorDashboardPlaceholderCard title="Aktivitas Produk" />
         </section>
       </div>
     </div>
-  );
-}
-
-type PlaceholderCardProps = {
-  title: string;
-};
-
-function VendorDashboardPlaceholderCard({ title }: PlaceholderCardProps) {
-  return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm text-muted-foreground">
-        <p>Widget akan ditempatkan di sini setelah integrasi backend tersedia.</p>
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-full" />
-          <Skeleton className="h-3 w-2/3" />
-          <Skeleton className="h-3 w-3/4" />
-        </div>
-      </CardContent>
-    </Card>
   );
 }

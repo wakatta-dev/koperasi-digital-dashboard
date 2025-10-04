@@ -119,7 +119,19 @@ export type ReportExportMeta = {
   created_at: Rfc3339String;
 };
 
-export type VendorFinancialReport = Record<string, unknown>;
+export type VendorRecurringRevenuePoint = {
+  period: string;
+  mrr: number;
+  arr: number;
+};
+
+export type VendorFinancialReport = {
+  totals: {
+    mrr: number;
+    arr: number;
+  };
+  series: VendorRecurringRevenuePoint[];
+};
 export type VendorUsageReport = Record<string, unknown>;
 
 export type GetFinanceReportResponse = ApiResponse<FinanceReportResponse>;
