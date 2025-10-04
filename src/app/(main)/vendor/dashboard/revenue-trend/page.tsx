@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   Area,
   AreaChart,
@@ -60,7 +60,10 @@ import {
 } from "@/components/ui/chart";
 
 import { VendorDashboardGlobalFilters } from "@/components/feature/vendor/dashboard/vendor-dashboard-filters";
-import { useVendorDashboardDateParams } from "@/components/feature/vendor/dashboard/vendor-dashboard-hooks";
+import {
+  useVendorBillingReport,
+  useVendorDashboardDateParams,
+} from "@/components/feature/vendor/dashboard/vendor-dashboard-hooks";
 
 const currencyFormatter = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -147,7 +150,7 @@ export default function VendorRevenueTrendPage() {
         }),
       );
     },
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });

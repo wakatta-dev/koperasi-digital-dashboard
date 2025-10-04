@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   addDays,
@@ -111,7 +111,7 @@ export default function VendorTenantActivityPage() {
         }),
       );
     },
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });

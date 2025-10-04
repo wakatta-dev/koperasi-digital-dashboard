@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { BarChart3, Users, PowerOff } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,7 +96,7 @@ export function VendorDashboardModuleAdoption() {
         ranges: resolvedRanges,
       }),
     enabled: Boolean(cacheKey),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 10 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });

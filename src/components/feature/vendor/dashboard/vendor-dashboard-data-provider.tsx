@@ -4,7 +4,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import type { ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { format as formatDate } from "date-fns";
 
 import { ensureSuccess } from "@/lib/api";
@@ -85,7 +85,7 @@ export function VendorDashboardDataProvider({
   const { data, error, isLoading, isFetching, refetch } = useQuery({
     queryKey: queryKeyParts,
     queryFn: ({ queryKey: [, , query] }) => fetchVendorDashboard(query),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });
@@ -113,7 +113,7 @@ export function VendorDashboardDataProvider({
           : error
           ? new Error(String(error))
           : null,
-      refresh: () => refetch(),
+      refresh: async () => (await refetch()).data,
       isValidating: isFetching,
     };
   }, [data, error, isLoading, isFetching, refetch]);

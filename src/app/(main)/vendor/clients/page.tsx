@@ -13,11 +13,13 @@ export const dynamic = "force-dynamic";
 export default async function ClientsPage({
   searchParams,
 }: {
-  searchParams?: { tenantId?: string | string[] };
+  searchParams?: Promise<{ tenantId?: string | string[] }>;
 }) {
-  const tenantIdParam = Array.isArray(searchParams?.tenantId)
-    ? searchParams?.tenantId[0]
-    : searchParams?.tenantId;
+  const resolvedSearchParams: { tenantId?: string | string[] } =
+    (await searchParams) ?? {};
+  const tenantIdParam = Array.isArray(resolvedSearchParams.tenantId)
+    ? resolvedSearchParams.tenantId[0]
+    : resolvedSearchParams.tenantId;
   const initialSelectedId = tenantIdParam ? Number(tenantIdParam) : null;
   const limit = initialSelectedId ? 200 : 10;
   const clients = await listClients({ limit });

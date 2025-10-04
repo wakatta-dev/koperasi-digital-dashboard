@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   Area,
   AreaChart,
@@ -80,7 +80,7 @@ export function VendorDashboardRecurringRevenue() {
           group_by: params.groupBy,
         }),
       ),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });

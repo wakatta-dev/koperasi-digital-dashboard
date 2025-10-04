@@ -3,7 +3,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow, isWithinInterval, parseISO } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Activity, Clock, LifeBuoy, MessageCircle } from "lucide-react";
@@ -74,7 +74,7 @@ export default function VendorSupportHealthPage() {
   } = useQuery({
     queryKey: ticketsQueryKey,
     queryFn: async () => ensureSuccess<Ticket[]>(await listTickets({ limit: 120 })),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 2 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });

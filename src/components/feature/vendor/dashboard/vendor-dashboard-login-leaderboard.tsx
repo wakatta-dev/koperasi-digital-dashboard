@@ -4,7 +4,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -101,7 +101,7 @@ export function VendorDashboardLoginLeaderboard() {
         ranges: resolvedRanges,
       }),
     enabled: Boolean(cacheKey),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 10 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });

@@ -3,7 +3,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery, type UseQueryResult, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  type UseQueryResult,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { ensureSuccess } from "@/lib/api";
 import { buildReactQueryRetry } from "@/lib/rate-limit";
@@ -58,7 +63,7 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
       ensureSuccess(
         await listClients(params as typeof clientParams)
       ),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });
@@ -95,7 +100,7 @@ export function useVendorDashboardTenantUniverse(): VendorDashboardTenantUnivers
       ensureSuccess(
         await listVendorSubscriptions(params as typeof subscriptionParams)
       ),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     retry: buildReactQueryRetry(),
   });
