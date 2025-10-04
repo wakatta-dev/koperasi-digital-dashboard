@@ -9,7 +9,7 @@ import { VendorDashboardGlobalFilters } from "@/components/feature/vendor/dashbo
 import { VendorDashboardKpiGrid } from "@/components/feature/vendor/dashboard/vendor-dashboard-kpi-grid";
 import { VendorDashboardTierBreakdown } from "@/components/feature/vendor/dashboard/vendor-dashboard-tier-breakdown";
 import { VendorDashboardTicketInsights } from "@/components/feature/vendor/dashboard/vendor-dashboard-ticket-insights";
-import { VendorDashboardUpcomingWidgets } from "@/components/feature/vendor/dashboard/vendor-dashboard-upcoming-widgets";
+import { VendorDashboardAlertCenter } from "@/components/feature/vendor/dashboard/vendor-dashboard-alert-center";
 import { VendorDashboardBillingOverview } from "@/components/feature/vendor/dashboard/vendor-dashboard-billing-overview";
 import { VendorDashboardRecurringRevenue } from "@/components/feature/vendor/dashboard/vendor-dashboard-recurring-revenue";
 import { VendorDashboardInvoiceWatchlist } from "@/components/feature/vendor/dashboard/vendor-dashboard-invoice-watchlist";
@@ -100,7 +100,7 @@ function VendorDashboardPageShell() {
           <div className="xl:col-span-2">
             <VendorDashboardInvoiceWatchlist />
           </div>
-          <VendorDashboardUpcomingWidgets />
+          <VendorDashboardAlertCenter />
         </section>
       </div>
     </div>
