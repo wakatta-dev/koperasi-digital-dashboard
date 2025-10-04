@@ -56,6 +56,15 @@ export function getTicket(id: string, opts?: { signal?: AbortSignal }): Promise<
   });
 }
 
+export function getTicketVendorView(
+  id: string,
+  opts?: { signal?: AbortSignal },
+): Promise<ApiResponse<Ticket>> {
+  return api.get<Ticket>(`${API_PREFIX}${API_ENDPOINTS.tickets.vendorView(id)}`, {
+    signal: opts?.signal,
+  });
+}
+
 export function addTicketReply(
   id: string,
   payload: AddReplyRequest
