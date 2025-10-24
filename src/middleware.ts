@@ -16,12 +16,9 @@ export async function middleware(request: NextRequest) {
   // lookup by domain kalau cookie kosong
   if (!tenantId && apiBase && host) {
     try {
-      const res = await fetch(
-        `${apiBase}/api/tenant/by-domain?domain=${host}`,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const res = await fetch(`${apiBase}/api/get-by-domain/${host}`, {
+        headers: { "Content-Type": "application/json" },
+      });
       if (res.ok) {
         const { data } = await res.json();
         tenantId = data?.id ? String(data.id) : undefined;
