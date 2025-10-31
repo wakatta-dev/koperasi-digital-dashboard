@@ -50,7 +50,7 @@ export function LoginForm() {
       if (redirectTarget) {
         router.push(redirectTarget);
       } else if (session?.user.jenis_tenant) {
-        router.push(`/${session.user.jenis_tenant}/dashboard`);
+        router.push(`/${session.user.jenis_tenant}/account`);
       } else {
         router.push("/");
       }
