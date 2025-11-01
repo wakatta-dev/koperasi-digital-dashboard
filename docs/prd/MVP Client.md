@@ -1,6 +1,106 @@
-### **Product Requirement Document (PRD):** 
+### 
 
-### **Modul Dashboard Utama**
+**[Modul Dashboard Utama	2](#modul-dashboard-utama)**
+
+[1\. Description	2](#1.-description)
+
+[2\. Objectives & Success Metrics	2](#2.-objectives-&-success-metrics)
+
+[3\. Features	3](#3.-features)
+
+[4\. Use Case	4](#4.-use-case)
+
+[5\. Dependencies	4](#5.-dependencies)
+
+[6\. Requirements	5](#6.-requirements)
+
+[**Modul Inventaris	7**](#modul-inventaris)
+
+[1\. Description	7](#1.-description-1)
+
+[2\. Objectives & Success Metrics	7](#2.-objectives-&-success-metrics-1)
+
+[3\. Features	8](#3.-features-1)
+
+[4\. Use Case	9](#4.-use-case-1)
+
+[5\. Dependencies	9](#5.-dependencies-1)
+
+[6\. Requirements	9](#6.-requirements-1)
+
+[**Modul Kasir (Point of Sale)	12**](#modul-kasir-\(point-of-sale\))
+
+[1\. Description	12](#1.-description-2)
+
+[2\. Objectives & Success Metrics	12](#2.-objectives-&-success-metrics-2)
+
+[3\. Features	13](#3.-features-2)
+
+[4\. Use Case	14](#4.-use-case-2)
+
+[5\. Dependencies	14](#5.-dependencies-2)
+
+[6\. Requirements	14](#6.-requirements-2)
+
+[**Modul Marketplace (Toko Online)	17**](#modul-marketplace-\(toko-online\))
+
+[1\. Description	17](#1.-description-3)
+
+[2\. Objectives & Success Metrics	17](#2.-objectives-&-success-metrics-3)
+
+[3\. Features	18](#3.-features-3)
+
+[4\. Use Case	19](#4.-use-case-3)
+
+[5\. Dependencies	19](#5.-dependencies-3)
+
+[6\. Requirements	19](#6.-requirements-3)
+
+[**Modul Manajemen Aset & Jadwal Sewa	22**](#modul-manajemen-aset-&-jadwal-sewa)
+
+[1\. Description	22](#1.-description-4)
+
+[2\. Objectives & Success Metrics	22](#2.-objectives-&-success-metrics-4)
+
+[3\. Features	23](#3.-features-4)
+
+[4\. Use Case	23](#4.-use-case-4)
+
+[5\. Dependencies	24](#5.-dependencies-4)
+
+[6\. Requirements	24](#6.-requirements-4)
+
+[**Modul Laporan	27**](#modul-laporan)
+
+[1\. Description	27](#1.-description-5)
+
+[2\. Objectives & Success Metrics	27](#2.-objectives-&-success-metrics-5)
+
+[3\. Features	28](#3.-features-5)
+
+[4\. Use Case	29](#4.-use-case-5)
+
+[5\. Dependencies	29](#5.-dependencies-5)
+
+[6\. Requirements	30](#6.-requirements-5)
+
+[**Modul Landing Page (Adaptif)	33**](#modul-landing-page-\(adaptif\))
+
+[1\. Description	33](#1.-description-6)
+
+[2\. Objectives & Success Metrics	33](#2.-objectives-&-success-metrics-6)
+
+[3\. Features (Adaptif per Jenis Klien)	34](#3.-features-\(adaptif-per-jenis-klien\))
+
+[4\. Use Case	35](#4.-use-case-6)
+
+[5\. Dependencies	36](#5.-dependencies-6)
+
+[6\. Requirements	36](#6.-requirements-6)
+
+### 
+
+### **Modul Dashboard Utama** {#modul-dashboard-utama}
 
 |  |  |  |
 | :---- | :---- | :---- |
@@ -13,13 +113,13 @@
 
 ---
 
-#### **1\.** Description
+#### **1\.** Description {#1.-description}
 
 Dashboard Utama adalah halaman pertama yang dilihat pengguna setelah berhasil login ke dalam aplikasi PWA. Halaman ini berfungsi sebagai pusat informasi visual yang menyajikan ringkasan data dan metrik kinerja terpenting dari bisnis klien (Koperasi, BUMDes, atau UMKM Toko Bangunan) secara *real-time*. Tujuannya adalah untuk memberikan gambaran kondisi bisnis "at-a-glance" (sekali lihat) dan memungkinkan pengguna mengambil keputusan cepat serta mengakses modul lain dengan lebih efisien.
 
 ---
 
-#### **2\.** Objectives & Success Metrics
+#### **2\.** Objectives & Success Metrics {#2.-objectives-&-success-metrics}
 
 **Objectives**
 
@@ -35,7 +135,7 @@ Dashboard Utama adalah halaman pertama yang dilihat pengguna setelah berhasil lo
 
 ---
 
-#### **3\.** Features
+#### **3\.** Features {#3.-features}
 
 Dashboard akan terdiri dari beberapa widget interaktif dalam tata letak (layout) berbasis grid yang responsif.
 
@@ -62,26 +162,11 @@ Dashboard akan terdiri dari beberapa widget interaktif dalam tata letak (layout)
 
 ---
 
-#### **4\.** Use Case
-
-1. **Pemilik Toko Bangunan Melakukan Pengecekan Pagi**  
-   * **Aktor:** Pemilik Toko.  
-   * **Skenario:** Pemilik toko login di pagi hari. Ia langsung melihat widget Ringkasan Performa dan Notifikasi.  
-   * **Hasil:** Ia mengetahui total penjualan kemarin, melihat ada 2 pesanan online baru yang masuk semalam, dan mendapat notifikasi bahwa stok semen tersisa sedikit. Ia langsung mengklik notifikasi stok untuk merencanakan pembelian.  
-2. **Admin Koperasi Memonitor Aktivitas Harian**  
-   * **Aktor:** Admin Koperasi.  
-   * **Skenario:** Admin membuka dashboard untuk memantau aktivitas. Ia melihat grafik penjualan dan notifikasi anggota.  
-   * **Hasil:** Admin melihat bahwa unit usaha toko koperasi sedang ramai. Ia juga melihat notifikasi pendaftaran anggota baru dan langsung mengklik untuk memprosesnya.  
-3.  **Manajer BUMDes Mempersiapkan Laporan Mingguan**  
-   * **Aktor:** Manajer/Admin BUMDes.  
-   * **Skenario:** Manajer BUMDes login ke PWA pada hari Senin pagi untuk melihat performa keseluruhan dari semua unit usaha (misalnya: unit toko, unit sewa aset, dan unit wisata) sebelum rapat mingguan dengan Kepala Desa.  
-   * **Hasil:** Melalui Dashboard Utama, manajer dengan cepat melihat total pendapatan gabungan dari semua unit. Ia melihat notifikasi bahwa ada jadwal sewa gedung yang akan datang dan grafik penjualan menunjukkan bahwa unit toko sedang meningkat pesat. Informasi ini langsung ia gunakan sebagai bahan utama untuk laporan kemajuan BUMDes kepada pemerintah desa.
-
-   
+#### **4\.** Use Case {#4.-use-case}
 
 ---
 
-#### **5\.** Dependencies
+#### **5\.** Dependencies {#5.-dependencies}
 
 * **API Endpoints:** Ketersediaan API dari tim Backend untuk menyediakan data teragregasi (penjualan, stok, pesanan).  
 * **UI/UX Design:** Desain final dari UI/UX Designer untuk setiap widget dan keseluruhan layout dashboard.  
@@ -89,7 +174,7 @@ Dashboard akan terdiri dari beberapa widget interaktif dalam tata letak (layout)
 
 ---
 
-#### **6\.** Requirements
+#### **6\.** Requirements {#6.-requirements}
 
 Tabel berikut merinci Epics dan User Stories untuk pengembangan Modul Dashboard Utama.
 
@@ -102,212 +187,9 @@ Tabel berikut merinci Epics dan User Stories untuk pengembangan Modul Dashboard 
 | **Akses Cepat ke Fitur Lain** | Sebagai pengguna, saya ingin ada tombol pintasan untuk fitur yang sering saya pakai | Sebagai pengguna, ketika saya berada di dashboard, maka saya bisa langsung menekan tombol untuk membuat penjualan baru (POS). | High | \- Terdapat tombol/CTA "+ Penjualan Baru (POS)". \- Menekan tombol tersebut akan langsung mengarahkan pengguna ke halaman kasir (POS). \- Tombol pintasan lain (seperti "+ Tambah Produk") berfungsi sesuai tujuannya. |
 |  | sehingga alur kerja saya menjadi lebih efisien. |  |  |  |
 
-### **Product Requirement Document (PRD):** 
+### 
 
-### **Modul Manajemen Akun & Pengguna**
-
-|  |  |
-| :---- | :---- |
-| **Product Name** | Modul Manajemen Akun & Pengguna (PWA SaaS) |
-| **Product Manager** | Yosh Wakatta |
-| **Shipping Date** | 31 Agustus 2025 |
-| **Stage** | Development |
-| **Status** | In Progress |
-| **Teams** | Designer , Developer (\[BE\], \[FE\]) , QA Tester |
-
----
-
-#### **1\. Description**
-
-Modul Manajemen Akun & Pengguna adalah gerbang utama bagi seluruh klien untuk masuk dan menggunakan PWA. Modul ini mencakup alur kerja krusial mulai dari pendaftaran bisnis baru (onboarding), autentikasi pengguna yang aman (login), pengelolaan informasi dasar bisnis (profil bisnis), hingga pengaturan hak akses untuk setiap anggota tim (manajemen peran). Keamanan, keandalan, dan kemudahan penggunaan adalah pilar utama dari modul ini karena menjadi fondasi bagi seluruh ekosistem aplikasi.
-
----
-
-#### **2\. Objectives & Success Metrics**
-
-**Objectives**
-
-* **Menyediakan Onboarding yang Mulus & Aman:** Memastikan klien baru dapat mendaftarkan bisnisnya dengan mudah, cepat, dan dengan verifikasi yang valid.  
-* **Menjamin Akses yang Aman & Andal:** Memberikan proses login yang terproteksi dan mudah bagi pengguna terdaftar, termasuk penanganan lupa password.  
-* **Memberdayakan Klien untuk Mengelola Tim:** Memungkinkan pemilik bisnis (Admin) untuk mendelegasikan tugas dengan aman dengan cara memberikan hak akses yang berbeda kepada anggotanya.
-
-**Success Metrics**
-
-* **Registration Funnel Conversion:** Tingkat penyelesaian registrasi dari halaman pendaftaran hingga verifikasi email berhasil mencapai \> 85%.  
-* **Security & Reliability:** Angka keberhasilan login \> 99%. Tidak ada insiden keamanan terkait kredensial pengguna pada 3 bulan pertama pasca-rilis.  
-* **Feature Adoption:** Minimal 50% klien yang memiliki lebih dari satu karyawan aktif menggunakan fitur penambahan peran pengguna (misal: menambah Kasir) dalam 2 bulan pertama.
-
----
-
-#### **3\. Features**
-
-Fitur dibagi menjadi empat komponen utama:
-
-1. **Alur Registrasi Klien Baru**  
-   * Formulir pendaftaran dengan field: Nama Lengkap Pemilik, Nama Bisnis, Jenis Bisnis (Dropdown: Koperasi, BUMDes, UMKM Toko Bangunan), Email, Nomor WhatsApp, dan Password.  
-   * Validasi kekuatan password secara real-time (misal: minimal 8 karakter, kombinasi huruf besar, kecil, dan angka).  
-   * Mekanisme verifikasi email: Sistem mengirimkan link unik atau OTP ke email terdaftar yang harus dikonfirmasi untuk mengaktifkan akun.  
-2. **Alur Login & Autentikasi**  
-   * Halaman login dengan field: Email dan Password.  
-   * Fitur "Lupa Password?" yang mengirimkan link reset password ke email pengguna.  
-   * Fitur "Ingat Saya" (Remember Me) menggunakan *persistent cookie*.  
-   * Proteksi *Brute Force Attack* (misal: mengunci akun selama beberapa menit setelah 5 kali gagal login).  
-3. **Pengelolaan Profil Bisnis**  
-   * Halaman "Profil Bisnis" yang dapat diakses oleh pengguna dengan peran Admin.  
-   * Pengguna dapat mengedit informasi:  
-     * Logo Bisnis  
-     * Nama Bisnis  
-     * Alamat Lengkap Kantor  
-     * Email Kontak  
-     * Nomor Telepon/WA Admin  
-4. **Pengelolaan Pengguna & Peran (Roles)**  
-   * Hanya dapat diakses oleh peran "Admin".  
-   * Admin dapat:  
-     * Melihat daftar semua pengguna yang terdaftar di bawah bisnisnya.  
-     * Mengundang pengguna baru melalui email untuk bergabung sebagai "Kasir".  
-     * Mengubah peran pengguna (jika ada peran baru di masa depan).  
-     * Menonaktifkan akses pengguna (misal: untuk karyawan yang sudah berhenti).  
-   * **Definisi Peran Awal:**  
-     * **Admin:** Akses penuh ke semua modul yang dilanggan oleh bisnis, termasuk pengaturan, keuangan, dan manajemen pengguna.  
-     * **Kasir:** Akses terbatas hanya pada "Modul Kasir (POS)". Tidak bisa melihat laporan keuangan, mengubah pengaturan, atau mengelola pengguna lain.
-
----
-
-#### **4\. Use Case**
-
-1. **Pemilik Koperasi Mendaftarkan Bisnisnya**  
-   * **Aktor:** Calon Klien (Pemilik Koperasi).  
-   * **Skenario:** Pemilik koperasi menemukan PWA Anda dan memutuskan untuk mendaftar. Ia mengisi formulir registrasi, lalu membuka emailnya untuk mengklik link verifikasi.  
-   * **Hasil:** Akun bisnis koperasi berhasil dibuat. Akun pemilik otomatis menjadi "Admin" dan ia langsung diarahkan ke halaman Profil Bisnis untuk melengkapi data.  
-2. **Kasir Toko Bangunan Login untuk Mulai Bekerja**  
-   * **Aktor:** Karyawan (Kasir).  
-   * **Skenario:** Seorang kasir tiba di toko, membuka PWA di perangkat kasir, dan memasukkan email serta password yang diberikan oleh pemilik toko.  
-   * **Hasil:** Kasir berhasil login dan sistem langsung mengarahkannya ke halaman "Kasir (POS)". Ia tidak dapat melihat atau mengakses menu lain seperti Laporan atau Pengaturan.  
-3. **Admin BUMDes Menambahkan Karyawan Baru**  
-   * **Aktor:** Admin BUMDes.  
-   * **Skenario:** BUMDes merekrut seorang petugas baru untuk menjaga unit toko. Admin membuka menu "Pengaturan Pengguna", mengklik "Undang Pengguna", memasukkan email petugas baru, dan memilih peran "Kasir".  
-   * **Hasil:** Sistem mengirimkan email undangan kepada petugas baru. Setelah petugas tersebut menyelesaikan pendaftarannya, akunnya akan otomatis terhubung dengan BUMDes tersebut dengan hak akses sebagai Kasir.
-
----
-
-#### **5\. Dependencies**
-
-* **Layanan Pihak Ketiga:** Integrasi dengan layanan email transaksional (seperti Mailgun, SendGrid) untuk pengiriman email verifikasi dan reset password.  
-* **UI/UX Design:** Desain final dan *mockup* untuk semua alur (registrasi, login, lupa password, halaman profil, halaman manajemen pengguna) dari tim desainer.  
-* **Infrastruktur Backend:** Penyiapan database yang aman dengan enkripsi (hashing) untuk password pengguna.
-
----
-
-#### **6\. Requirements**
-
-| Epics | User Story | US Framework | Priority | Acceptance Criteria |
-| :---- | :---- | :---- | :---- | :---- |
-| **Onboarding Klien Baru** | Sebagai pemilik bisnis baru, saya ingin bisa mendaftarkan bisnis saya dengan mudah melalui formulir online | Sebagai pemilik bisnis baru, ketika saya mengisi formulir pendaftaran dengan data yang valid dan melakukan verifikasi email, maka akun bisnis saya akan aktif dan saya bisa login sebagai Admin. | Highest | \- Formulir pendaftaran memvalidasi semua input (format email, kekuatan password). \- Email verifikasi berhasil terkirim setelah submit formulir. \- Akun tidak dapat digunakan untuk login sebelum email diverifikasi. \- Setelah verifikasi, akun pemilik otomatis berstatus "Admin". |
-|  | sehingga saya dapat segera menggunakan aplikasi. |  |  |  |
-| **Manajemen Tim Internal** | Sebagai Admin, saya ingin bisa menambahkan karyawan saya sebagai "Kasir" | Sebagai Admin, ketika saya mengundang pengguna baru dengan peran "Kasir", maka pengguna tersebut akan menerima undangan dan setelah mendaftar, hanya bisa mengakses Modul Kasir (POS). | Highest | \- Admin memiliki menu "Pengaturan Pengguna". \- Terdapat tombol "Undang Pengguna" yang memicu pengiriman email undangan. \- Pengguna yang diundang dan mendaftar akan memiliki peran "Kasir". \- Saat login, pengguna dengan peran "Kasir" hanya melihat dan dapat mengakses menu/halaman POS. Semua menu lain (Laporan, Pengaturan, dll) tersembunyi atau tidak dapat diakses. |
-|  | sehingga mereka dapat membantu operasional tanpa melihat data sensitif. |  |  |  |
-| **Keamanan Akun** | Sebagai pengguna, saya ingin bisa mereset password saya jika saya lupa | Sebagai pengguna, ketika saya mengklik "Lupa Password?" dan memasukkan email saya, maka saya akan menerima link untuk membuat password baru. | Highest | \- Link "Lupa Password?" tersedia di halaman login. \- Sistem hanya akan mengirimkan email jika email tersebut terdaftar. \- Link reset password yang dikirim bersifat unik dan memiliki masa kedaluwarsa (misal: 1 jam). \- Pengguna berhasil mengubah password dan dapat login menggunakan password baru tersebut. |
-|  | sehingga saya bisa mendapatkan kembali akses ke akun saya dengan aman. |  |  |  |
-
-### **Modul Manajemen Modul & Langganan**
-
-|  |  |
-| :---- | :---- |
-| **Product Name** | Modul Manajemen Modul & Langganan (PWA SaaS) |
-| **Product Manager** | Yosh Wakatta |
-| **Shipping Date** | 15 Oktober 2025 |
-| **Stage** | Development |
-| **Status** | In progress |
-| **Teams** | Designer , Developer (\[BE\], \[FE\]) , QA Tester |
-
----
-
-#### **1\. Description**
-
-Modul Manajemen Modul & Langganan adalah pusat kendali komersial bagi klien. Halaman ini berfungsi sebagai *self-service marketplace* internal di mana klien dapat dengan bebas menelusuri, mengaktifkan, dan menonaktifkan berbagai modul fungsional sesuai dengan kebutuhan bisnis mereka. Sistem secara otomatis menghitung dan menampilkan total biaya langganan bulanan secara transparan dan dinamis, mewujudkan model bisnis "Bayar Sesuai Pertumbuhan Anda" (*Pay-As-You-Grow*).
-
----
-
-#### **2\. Objectives & Success Metrics**
-
-**Objectives**
-
-* **Memberdayakan Klien dengan Fleksibilitas:** Memberikan kontrol penuh kepada klien untuk menyesuaikan fungsionalitas aplikasi dan anggaran mereka.  
-* **Menciptakan Proses Billing yang Transparan:** Menghilangkan kebingungan terkait biaya dengan menampilkan kalkulasi *real-time* yang jelas.  
-* **Meningkatkan *Average Revenue Per User* (ARPU):** Memudahkan proses *upselling* dengan cara membuat modul lanjutan mudah ditemukan dan diaktifkan.
-
-**Success Metrics**
-
-* **Module Adoption Rate:** Lebih dari 40% klien mengaktifkan setidaknya satu modul berbayar tambahan dalam 60 hari pertama penggunaan.  
-* **Billing-Related Support Tickets:** Jumlah tiket bantuan terkait pertanyaan tagihan kurang dari 5% dari total tiket masuk.  
-* **ARPU Growth:** Terjadi peningkatan ARPU sebesar rata-rata 5% per kuartal seiring klien mengaktifkan lebih banyak modul.
-
----
-
-#### **3\. Features**
-
-Fitur ini terpusat pada satu halaman pengaturan yang dapat diakses oleh Admin.
-
-1. **Katalog Modul**  
-   * Tampilan galeri (menggunakan kartu/card) untuk setiap modul yang tersedia.  
-   * Setiap kartu modul wajib berisi:  
-     * Nama Modul (Contoh: "Manajemen Koperasi").  
-     * Deskripsi singkat mengenai fungsi dan manfaatnya.  
-     * Harga per bulan.  
-     * Label status visual: "Aktif" atau "Tidak Aktif".  
-     * **Tombol saklar (toggle) Aktif/Nonaktif**.  
-   * Pengelompokan modul ke dalam kategori: "Modul Dasar" dan "Modul Lanjutan/Spesialisasi".  
-2. **Mekanisme Aktivasi & Deaktivasi**  
-   * Saat Admin menekan tombol untuk **mengaktifkan** modul, sebuah *modal konfirmasi* akan muncul: *"Anda akan mengaktifkan Modul \[Nama Modul\] seharga \[Harga\]/bulan. Biaya akan ditambahkan pada tagihan Anda berikutnya. Lanjutkan?"*  
-   * Saat **menonaktifkan**, *modal konfirmasi* juga muncul: *"Fitur dari Modul \[Nama Modul\] tidak akan dapat diakses lagi. Perubahan biaya akan berlaku pada periode tagihan berikutnya. Lanjutkan?"*  
-   * Setelah konfirmasi, menu navigasi utama di aplikasi akan langsung diperbarui (menu modul baru muncul atau menu yang dinonaktifkan hilang).  
-3. **Panel Billing Dinamis**  
-   * Sebuah panel ringkasan yang selalu terlihat di halaman.  
-   * Menampilkan rincian biaya:  
-     * Paket Dasar (Sistem Inti): Rp \[Harga Dasar\]  
-     * Daftar modul yang sedang aktif beserta biayanya.  
-     * **Total Estimasi Tagihan Bulan Berikutnya:** Jumlah total yang dihitung secara *real-time*.  
-   * Total biaya ini akan langsung berubah setiap kali Admin mengaktifkan atau menonaktifkan modul.
-
----
-
-#### **4\. Use Case**
-
-1. **Klien Toko Bangunan Baru Memilih Paket Awalnya**  
-   * **Aktor:** Pemilik Toko Bangunan (Admin).  
-   * **Skenario:** Setelah mendaftar, pemilik toko masuk ke halaman "Langganan". Dia melihat semua modul. Dia memutuskan butuh "Kasir (POS)" dan "Marketplace". Dia mengaktifkan tombol pada kedua modul tersebut.  
-   * **Hasil:** Panel Billing Dinamis langsung menjumlahkan harga Paket Dasar \+ Modul POS \+ Modul Marketplace. Menu "Kasir" dan "Marketplace" langsung muncul di navigasi samping aplikasinya.  
-2. **Koperasi Siap Digitalisasi Simpan Pinjam**  
-   * **Aktor:** Admin Koperasi.  
-   * **Skenario:** Setelah 3 bulan menggunakan modul dasar, koperasi siap untuk mengelola simpan pinjam secara digital. Admin membuka halaman "Langganan" dan mengaktifkan "Modul Manajemen Simpanan & Pinjaman".  
-   * **Hasil:** Sistem mengkonfirmasi aktivasi dan penambahan biaya. Menu baru untuk "Simpanan" dan "Pinjaman" kini tersedia untuk digunakan oleh admin koperasi.  
-3. **BUMDes Melakukan Efisiensi Anggaran**  
-   * **Aktor:** Manajer BUMDes (Admin).  
-   * **Skenario:** Manajer BUMDes merasa "Modul Marketplace" jarang digunakan dan ingin menghemat biaya. Dia masuk ke halaman "Langganan" dan menonaktifkan modul tersebut.  
-   * **Hasil:** Panel Billing menampilkan estimasi tagihan bulan berikutnya yang lebih rendah. Menu "Marketplace" hilang dari navigasi, namun semua data terkait tetap tersimpan di server (tidak dihapus) jika suatu saat ingin diaktifkan kembali.
-
----
-
-#### **5\. Dependencies**
-
-* **Payment Gateway:** Integrasi penuh dengan penyedia layanan pembayaran pihak ketiga yang mendukung *recurring payment* (pembayaran berulang) untuk menagih klien setiap bulan secara otomatis.  
-* **Arsitektur Modular:** Backend dan Frontend harus dirancang secara modular agar fitur (hak akses ke API dan komponen UI) dapat "dicabut-pasang" sesuai status langganan klien.  
-* **Konfigurasi Terpusat:** Diperlukan sebuah sistem konfigurasi di backend untuk mengelola daftar modul, deskripsi, dan harganya.
-
----
-
-#### **6\. Requirements**
-
-| Epics | User Story | US Framework | Priority | Acceptance Criteria |
-| :---- | :---- | :---- | :---- | :---- |
-| **Penemuan & Aktivasi Modul** | Sebagai Admin, saya ingin melihat katalog semua modul yang tersedia dan bisa mengaktifkannya dengan mudah | Sebagai Admin, ketika saya membuka halaman langganan dan mengaktifkan sebuah modul, maka modul tersebut akan berstatus aktif dan fiturnya bisa langsung saya gunakan. | Highest | \- Halaman menampilkan daftar semua modul beserta harga dan deskripsi. \- Tombol *toggle* berfungsi untuk mengubah status modul. \- Muncul *modal* konfirmasi sebelum aktivasi. \- Menu navigasi di aplikasi diperbarui secara dinamis setelah modul diaktifkan. |
-|  | sehingga saya bisa menyesuaikan aplikasi sesuai kebutuhan bisnis saya. |  |  |  |
-| **Transparansi Biaya Langganan** | Sebagai Admin, saya ingin melihat perubahan total biaya langganan secara langsung saat saya mengubah pilihan modul | Sebagai Admin, ketika saya mengaktifkan atau menonaktifkan modul, maka panel ringkasan billing akan langsung memperbarui total estimasi tagihan bulanan saya. | Highest | \- Terdapat panel ringkasan billing yang selalu terlihat. \- Total biaya berubah secara *real-time* sesuai dengan status *toggle* modul. \- Rincian biaya (paket dasar \+ setiap modul aktif) ditampilkan dengan jelas. |
-|  | sehingga tidak ada kejutan pada saat tagihan datang. |  |  |  |
-| **Deaktivasi Modul** | Sebagai Admin, saya ingin bisa menonaktifkan modul yang tidak lagi saya perlukan | Sebagai Admin, ketika saya menonaktifkan sebuah modul, maka fitur-fitur dari modul tersebut tidak lagi dapat diakses dan biaya langganan saya untuk periode berikutnya akan berkurang. | Highest | \- Tombol *toggle* berfungsi untuk menonaktifkan modul. \- Muncul *modal* konfirmasi sebelum deaktivasi. \- Menu navigasi terkait modul tersebut hilang dari aplikasi. \- Panel billing dinamis menunjukkan pengurangan biaya untuk tagihan selanjutnya. |
-|  | agar saya bisa menghemat anggaran. |  |  |  |
-
-### **Modul Inventaris**
+### **Modul Inventaris** {#modul-inventaris}
 
 |  |  |
 | :---- | :---- |
@@ -320,13 +202,13 @@ Fitur ini terpusat pada satu halaman pengaturan yang dapat diakses oleh Admin.
 
 ---
 
-#### **1\. Description**
+#### **1\. Description** {#1.-description-1}
 
 Modul Inventaris adalah sistem pusat untuk pengelolaan seluruh data produk dan stok. Modul ini memungkinkan klien (Koperasi, BUMDes, UMKM Toko Bangunan) untuk membuat, mengatur, melacak, dan mengelola katalog produk atau layanan yang mereka tawarkan. Fungsi utamanya mencakup pendefinisian detail produk, pemantauan jumlah stok secara *real-time*, dan penetapan harga beli (modal) serta harga jual. Modul ini menjadi sumber data utama yang akan dikonsumsi oleh Modul Kasir (POS) dan Modul Marketplace.
 
 ---
 
-#### **2\. Objectives & Success Metrics**
+#### **2\. Objectives & Success Metrics** {#2.-objectives-&-success-metrics-1}
 
 **Objectives**
 
@@ -342,7 +224,7 @@ Modul Inventaris adalah sistem pusat untuk pengelolaan seluruh data produk dan s
 
 ---
 
-#### **3\. Features**
+#### **3\. Features** {#3.-features-1}
 
 1. **Daftar Produk (Halaman Utama Modul)**  
    * Tampilan tabel yang informatif dan mudah dicari, berisi kolom: Foto, Nama Produk, SKU, Kategori, Stok Saat Ini, Harga Jual.  
@@ -369,7 +251,7 @@ Modul Inventaris adalah sistem pusat untuk pengelolaan seluruh data produk dan s
 
 ---
 
-#### **4\. Use Case**
+#### **4\. Use Case** {#4.-use-case-1}
 
 1. **Admin Toko Bangunan Menambahkan Produk Semen**  
    * **Aktor:** Admin Toko Bangunan.  
@@ -382,7 +264,7 @@ Modul Inventaris adalah sistem pusat untuk pengelolaan seluruh data produk dan s
 
 ---
 
-#### **5\. Dependencies**
+#### **5\. Dependencies** {#5.-dependencies-1}
 
 * **Modul Dashboard:** Modul ini akan mengambil data dari Inventaris untuk notifikasi stok menipis.  
 * **Modul Kasir (POS) & Marketplace:** Kedua modul ini sangat bergantung pada data harga jual dan akan mengirim perintah untuk mengurangi stok setelah terjadi penjualan.  
@@ -390,7 +272,7 @@ Modul Inventaris adalah sistem pusat untuk pengelolaan seluruh data produk dan s
 
 ---
 
-#### **6\. Requirements**
+#### **6\. Requirements** {#6.-requirements-1}
 
 | Epics | User Story | US Framework | Priority | Acceptance Criteria |
 | :---- | :---- | :---- | :---- | :---- |
@@ -401,7 +283,7 @@ Modul Inventaris adalah sistem pusat untuk pengelolaan seluruh data produk dan s
 | **Penyesuaian Stok Manual** | Sebagai pengguna, saya ingin bisa melakukan stok opname dan menyesuaikan jumlah stok di sistem | Sebagai pengguna, ketika saya menemukan perbedaan antara stok fisik dan stok di sistem, maka saya bisa memasukkan angka stok fisik yang benar untuk memperbarui data di sistem. | High | \- Terdapat fitur "Penyesuaian Stok" di halaman detail produk. \- Pengguna dapat memasukkan angka kuantitas fisik. \- Sistem menghitung selisih dan memperbarui kuantitas "Stok Saat Ini". \- Sebuah entri baru tercatat di "Riwayat Stok" dengan tipe "Penyesuaian". |
 |  | agar data saya kembali akurat dengan kondisi nyata di lapangan. |  |  |  |
 
-### **Modul Kasir (Point of Sale)**
+### **Modul Kasir (Point of Sale)** {#modul-kasir-(point-of-sale)}
 
 |  |  |
 | :---- | :---- |
@@ -414,13 +296,13 @@ Modul Inventaris adalah sistem pusat untuk pengelolaan seluruh data produk dan s
 
 ---
 
-#### **1\. Description**
+#### **1\. Description** {#1.-description-2}
 
 Modul Kasir (POS) adalah versi digital dari mesin kasir konvensional, yang dirancang untuk digunakan pada berbagai perangkat seperti tablet atau komputer di toko fisik. Modul ini menyediakan antarmuka yang cepat, intuitif, dan efisien bagi staf di garis depan (kasir) untuk melakukan dan mencatat transaksi penjualan. Setiap transaksi yang berhasil akan secara otomatis memperbarui jumlah stok di Modul Inventaris dan menyumbangkan data ke Modul Laporan, menciptakan ekosistem bisnis yang terintegrasi.
 
 ---
 
-#### **2\. Objectives & Success Metrics**
+#### **2\. Objectives & Success Metrics** {#2.-objectives-&-success-metrics-2}
 
 **Objectives**
 
@@ -436,7 +318,7 @@ Modul Kasir (POS) adalah versi digital dari mesin kasir konvensional, yang diran
 
 ---
 
-#### **3\. Features**
+#### **3\. Features** {#3.-features-2}
 
 1. **Antarmuka Transaksi Utama**  
    * **Grid Produk:** Tampilan visual produk yang paling sering dijual dalam bentuk kartu/grid yang mudah disentuh (*touch-friendly*).  
@@ -463,7 +345,7 @@ Modul Kasir (POS) adalah versi digital dari mesin kasir konvensional, yang diran
 
 ---
 
-#### **4\. Use Case**
+#### **4\. Use Case** {#4.-use-case-2}
 
 1. **Kasir Koperasi Melayani Anggota yang Berbelanja Rutin**  
    * **Aktor:** Kasir Koperasi.  
@@ -476,7 +358,7 @@ Modul Kasir (POS) adalah versi digital dari mesin kasir konvensional, yang diran
 
 ---
 
-#### **5\. Dependencies**
+#### **5\. Dependencies** {#5.-dependencies-2}
 
 * **Modul Inventaris:** **Ketergantungan Kritis.** Modul POS tidak dapat berfungsi tanpa akses ke daftar produk, harga, dan jumlah stok dari Modul Inventaris.  
 * **Perangkat Keras (Hardware):** Desain harus mempertimbangkan kompatibilitas dengan perangkat keras umum seperti *barcode scanner* (via input USB/Bluetooth) dan *thermal printer* (via koneksi USB atau Bluetooth).  
@@ -485,7 +367,7 @@ Modul Kasir (POS) adalah versi digital dari mesin kasir konvensional, yang diran
 
 ---
 
-#### **6\. Requirements**
+#### **6\. Requirements** {#6.-requirements-2}
 
 | Epics | User Story | US Framework | Priority | Acceptance Criteria |
 | :---- | :---- | :---- | :---- | :---- |
@@ -496,7 +378,7 @@ Modul Kasir (POS) adalah versi digital dari mesin kasir konvensional, yang diran
 | **Penyelesaian Transaksi dan Struk** | Sebagai seorang kasir, saya ingin bisa memberikan bukti pembelian kepada pelanggan setelah transaksi selesai | Sebagai seorang kasir, ketika pembayaran telah berhasil, maka saya akan diberikan pilihan untuk mencetak struk atau mengirimnya secara digital. | High | \- Setelah pembayaran, layar konfirmasi muncul dengan opsi struk. \- Tombol "Cetak Struk" mengirimkan data ke printer. \- Tombol "Kirim via WhatsApp" membuka tab baru dengan link `wa.me` yang sudah terisi pesan struk. \- Penjualan tercatat dalam riwayat transaksi. |
 |  | agar pelanggan memiliki bukti pembelian yang sah. |  |  |  |
 
-### **Modul Marketplace (Toko Online)**
+### **Modul Marketplace (Toko Online)** {#modul-marketplace-(toko-online)}
 
 |  |  |
 | :---- | :---- |
@@ -509,13 +391,13 @@ Modul Kasir (POS) adalah versi digital dari mesin kasir konvensional, yang diran
 
 ---
 
-#### **1\. Description**
+#### **1\. Description** {#1.-description-3}
 
 Modul Marketplace menyediakan setiap klien (Koperasi, BUMDes, UMKM Toko Bangunan) sebuah etalase digital atau "toko online" pribadi yang dapat diakses publik melalui URL unik. Fitur ini memungkinkan klien untuk memperluas jangkauan pasar mereka di luar toko fisik, menampilkan produk mereka kepada audiens yang lebih luas, dan menerima pesanan secara online 24/7. Bagi pelanggan akhir, ini memberikan kemudahan untuk menelusuri produk dan melakukan pembelian dari mana saja.
 
 ---
 
-#### **2\. Objectives & Success Metrics**
+#### **2\. Objectives & Success Metrics** {#2.-objectives-&-success-metrics-3}
 
 **Objectives**
 
@@ -531,7 +413,7 @@ Modul Marketplace menyediakan setiap klien (Koperasi, BUMDes, UMKM Toko Bangunan
 
 ---
 
-#### **3\. Features**
+#### **3\. Features** {#3.-features-3}
 
 1. **Halaman Toko Digital (Storefront)**  
    * **URL Unik:** Sistem secara otomatis menghasilkan URL yang unik dan mudah dibagikan untuk setiap toko (contoh: `domainanda.com/toko-amanah`).  
@@ -557,7 +439,7 @@ Modul Marketplace menyediakan setiap klien (Koperasi, BUMDes, UMKM Toko Bangunan
 
 ---
 
-#### **4\. Use Case**
+#### **4\. Use Case** {#4.-use-case-3}
 
 1. **Pelanggan Umum Memesan Barang dari Marketplace Koperasi**  
    * **Aktor:** Pelanggan Umum.  
@@ -570,7 +452,7 @@ Modul Marketplace menyediakan setiap klien (Koperasi, BUMDes, UMKM Toko Bangunan
 
 ---
 
-#### **5\. Dependencies**
+#### **5\. Dependencies** {#5.-dependencies-3}
 
 * **Modul Inventaris:** **KETERGANTUNGAN KRITIS.** Marketplace sepenuhnya bergantung pada data produk, harga, deskripsi, gambar, dan jumlah stok dari modul ini.  
 * **Modul Manajemen Pesanan Online:** Setiap pesanan yang dibuat melalui marketplace harus secara otomatis membuat entri baru di modul backend ini agar dapat diproses oleh pemilik bisnis.  
@@ -578,7 +460,7 @@ Modul Marketplace menyediakan setiap klien (Koperasi, BUMDes, UMKM Toko Bangunan
 
 ---
 
-#### **6\. Requirements**
+#### **6\. Requirements** {#6.-requirements-3}
 
 | Epics | User Story | US Framework | Priority | Acceptance Criteria |
 | :---- | :---- | :---- | :---- | :---- |
@@ -589,7 +471,7 @@ Modul Marketplace menyediakan setiap klien (Koperasi, BUMDes, UMKM Toko Bangunan
 | **Notifikasi Pesanan untuk Penjual** | Sebagai pemilik bisnis, saya ingin langsung tahu jika ada pesanan baru masuk dari marketplace saya | Sebagai pemilik bisnis, ketika seorang pelanggan membuat pesanan di marketplace saya, maka sebuah pesanan baru akan muncul di dashboard manajemen pesanan saya. | Highest | \- Pesanan yang berhasil dibuat pelanggan akan menghasilkan entri baru di "Manajemen Pesanan Online" dengan status "Baru". \- Data pesanan (info pelanggan, produk yang dipesan, kuantitas) tercatat dengan akurat. \- Jumlah stok untuk produk yang dipesan akan otomatis berkurang (atau dialokasikan) dari Modul Inventaris. |
 |  | agar saya dapat segera memprosesnya. |  |  |  |
 
-### **Modul Manajemen Aset & Jadwal Sewa**
+### **Modul Manajemen Aset & Jadwal Sewa** {#modul-manajemen-aset-&-jadwal-sewa}
 
 |  |  |
 | :---- | :---- |
@@ -602,13 +484,13 @@ Modul Marketplace menyediakan setiap klien (Koperasi, BUMDes, UMKM Toko Bangunan
 
 ---
 
-#### **1\. Description**
+#### **1\. Description** {#1.-description-4}
 
 Modul Manajemen Aset & Jadwal Sewa adalah sebuah alat bantu komprehensif yang dirancang untuk klien, terutama BUMDes, dalam mengelola aset fisik yang dapat disewakan. Modul ini memungkinkan pengguna untuk mendaftarkan aset (seperti gedung, kendaraan, atau peralatan), mengatur jadwal ketersediaan melalui kalender visual, mengelola proses pemesanan (booking), dan mencatat pendapatan dari aktivitas penyewaan. Fitur ini bertujuan untuk mendigitalkan dan merapikan proses penyewaan, memaksimalkan utilisasi aset, dan menciptakan aliran pendapatan yang transparan.
 
 ---
 
-#### **2\. Objectives & Success Metrics**
+#### **2\. Objectives & Success Metrics** {#2.-objectives-&-success-metrics-4}
 
 **Objectives**
 
@@ -624,7 +506,7 @@ Modul Manajemen Aset & Jadwal Sewa adalah sebuah alat bantu komprehensif yang di
 
 ---
 
-#### **3\. Features**
+#### **3\. Features** {#3.-features-4}
 
 1. **Manajemen Katalog Aset Sewa**  
    * Halaman khusus untuk "Tambah/Edit Aset" yang terpisah dari inventaris produk jual.  
@@ -649,7 +531,7 @@ Modul Manajemen Aset & Jadwal Sewa adalah sebuah alat bantu komprehensif yang di
 
 ---
 
-#### **4\. Use Case**
+#### **4\. Use Case** {#4.-use-case-4}
 
 1. **Admin BUMDes Menyewakan Gedung Serbaguna**  
    * **Aktor:** Admin BUMDes.  
@@ -662,7 +544,7 @@ Modul Manajemen Aset & Jadwal Sewa adalah sebuah alat bantu komprehensif yang di
 
 ---
 
-#### **5\. Dependencies**
+#### **5\. Dependencies** {#5.-dependencies-4}
 
 * **Modul Manajemen Kontak:** Diperlukan untuk memilih siapa yang menyewa aset.  
 * **Modul Laporan:** Pendapatan dari sewa harus terintegrasi ke dalam Laporan Laba/Rugi dan Laporan Arus Kas.  
@@ -671,7 +553,7 @@ Modul Manajemen Aset & Jadwal Sewa adalah sebuah alat bantu komprehensif yang di
 
 ---
 
-#### **6\. Requirements**
+#### **6\. Requirements** {#6.-requirements-4}
 
 | Epics | User Story | US Framework | Priority | Acceptance Criteria |
 | :---- | :---- | :---- | :---- | :---- |
@@ -682,7 +564,7 @@ Modul Manajemen Aset & Jadwal Sewa adalah sebuah alat bantu komprehensif yang di
 | **Proses Pembuatan Jadwal Sewa** | Sebagai Admin, saya ingin bisa dengan mudah membuat jadwal sewa baru untuk pelanggan | Sebagai Admin, ketika saya membuat jadwal sewa baru, maka saya bisa memilih aset, pelanggan, tanggal, dan sistem akan menghitung biayanya secara otomatis. | High | \- Formulir pembuatan jadwal sewa berfungsi dengan baik. \- Total biaya sewa terhitung otomatis berdasarkan tarif aset dan durasi sewa. \- Jadwal yang baru dibuat langsung muncul di Kalender Penjadwalan. \- Pendapatan dari sewa ini tercatat di laporan keuangan setelah pembayaran dikonfirmasi. |
 |  | agar proses pemesanan tercatat dengan rapi dan akurat. |  |  |  |
 
-### **Modul Laporan**
+### **Modul Laporan** {#modul-laporan}
 
 |  |  |
 | :---- | :---- |
@@ -695,13 +577,13 @@ Modul Manajemen Aset & Jadwal Sewa adalah sebuah alat bantu komprehensif yang di
 
 ---
 
-#### **1\. Description**
+#### **1\. Description** {#1.-description-5}
 
 Modul Laporan adalah pusat intelijen bisnis dari PWA. Modul ini berfungsi untuk mengagregasi, mengolah, dan menyajikan semua data transaksional dari modul lain (Kasir, Marketplace, Inventaris, Keuangan) ke dalam format laporan yang terstruktur dan mudah dipahami. Tujuannya adalah untuk memberikan para pemilik bisnis wawasan mendalam mengenai kinerja penjualan, profitabilitas, dan kesehatan keuangan usaha mereka, sehingga dapat mendukung pengambilan keputusan strategis yang berbasis data.
 
 ---
 
-#### **2\. Objectives & Success Metrics**
+#### **2\. Objectives & Success Metrics** {#2.-objectives-&-success-metrics-5}
 
 **Objectives**
 
@@ -717,7 +599,7 @@ Modul Laporan adalah pusat intelijen bisnis dari PWA. Modul ini berfungsi untuk 
 
 ---
 
-#### **3\. Features**
+#### **3\. Features** {#3.-features-5}
 
 1. **Filter Universal**  
    * Komponen filter berdasarkan rentang tanggal (Hari Ini, 7 Hari Terakhir, Bulan Ini, 3 Bulan Terakhir, Kustom) yang berlaku untuk semua jenis laporan.  
@@ -760,7 +642,7 @@ Modul Laporan adalah pusat intelijen bisnis dari PWA. Modul ini berfungsi untuk 
 
 ---
 
-#### **4\. Use Case**
+#### **4\. Use Case** {#4.-use-case-5}
 
 1. **Pemilik Toko Bangunan Mengevaluasi Kinerja Bulanan**  
    * **Aktor:** Pemilik Toko Bangunan.  
@@ -773,7 +655,7 @@ Modul Laporan adalah pusat intelijen bisnis dari PWA. Modul ini berfungsi untuk 
 
 ---
 
-#### **5\. Dependencies**
+#### **5\. Dependencies** {#5.-dependencies-5}
 
 * **Ketergantungan Data Kritis:** Modul ini sepenuhnya bergantung pada data yang akurat dan lengkap dari Modul **Inventaris** (untuk HPP), **Kasir (POS)**, **Marketplace** (untuk Pendapatan), dan **Pencatatan Keuangan** (untuk Beban dan Modal).  
 * **Logika Backend:** Membutuhkan logika kalkulasi dan agregasi data yang kompleks dan teruji di sisi backend untuk memastikan semua angka akurat.  
@@ -781,7 +663,7 @@ Modul Laporan adalah pusat intelijen bisnis dari PWA. Modul ini berfungsi untuk 
 
 ---
 
-#### **6\. Requirements**
+#### **6\. Requirements** {#6.-requirements-5}
 
 | Epics | User Story | US Framework | Priority | Acceptance Criteria |
 | :---- | :---- | :---- | :---- | :---- |
@@ -792,7 +674,7 @@ Modul Laporan adalah pusat intelijen bisnis dari PWA. Modul ini berfungsi untuk 
 | **Pemahaman Posisi Keuangan** | Sebagai pemilik bisnis, saya ingin melihat ringkasan aset dan modal yang saya miliki dalam bisnis | Sebagai pemilik bisnis, ketika saya membuka laporan Neraca Sederhana, maka saya akan melihat nilai total dari kas dan persediaan barang saya, serta total modal saya. | High | \- Laporan Neraca Sederhana menampilkan komponen Aset (Kas, Persediaan) dan Ekuitas (Modal, Laba Ditahan). \- Nilai Persediaan dihitung berdasarkan Harga Beli (modal) dari produk yang tersisa. \- Persamaan `Aset = Liabilitas + Ekuitas` harus seimbang. \- Angka Laba Ditahan cocok dengan akumulasi Laba Bersih dari Laporan L/R. |
 |  | agar saya dapat mengukur kesehatan keuangan bisnis saya secara keseluruhan. |  |  |  |
 
-### **Modul Landing Page (Adaptif)**
+### **Modul Landing Page (Adaptif)** {#modul-landing-page-(adaptif)}
 
 |  |  |
 | :---- | :---- |
@@ -805,13 +687,13 @@ Modul Laporan adalah pusat intelijen bisnis dari PWA. Modul ini berfungsi untuk 
 
 ---
 
-#### **1\. Description**
+#### **1\. Description** {#1.-description-6}
 
 Modul Landing Page adalah fitur yang menyediakan halaman depan (*storefront*) publik yang profesional dan menarik untuk setiap klien PWA. Halaman ini bersifat adaptif, artinya konten, penawaran, dan *call-to-action* (CTA) akan secara otomatis menyesuaikan dengan jenis bisnis klien (Koperasi, UMKM Toko Bangunan, atau BUMDes). Tujuannya adalah untuk memperkenalkan bisnis klien kepada audiens yang relevan, membangun kepercayaan, dan menjadi gerbang utama untuk akuisisi pelanggan atau anggota baru.
 
 ---
 
-#### **2\. Objectives & Success Metrics**
+#### **2\. Objectives & Success Metrics** {#2.-objectives-&-success-metrics-6}
 
 **Objectives**
 
@@ -830,7 +712,7 @@ Modul Landing Page adalah fitur yang menyediakan halaman depan (*storefront*) pu
 
 ---
 
-#### **3\. Features (Adaptif per Jenis Klien)**
+#### **3\. Features (Adaptif per Jenis Klien)** {#3.-features-(adaptif-per-jenis-klien)}
 
 Struktur halaman akan sama, namun konten di dalamnya akan dinamis.
 
@@ -846,7 +728,7 @@ Struktur halaman akan sama, namun konten di dalamnya akan dinamis.
 
 ---
 
-#### **4\. Use Case**
+#### **4\. Use Case** {#4.-use-case-6}
 
 1. **Calon Anggota Mendaftar ke Koperasi (Baseline)**  
    * **Aktor:** Calon anggota.  
@@ -863,7 +745,7 @@ Struktur halaman akan sama, namun konten di dalamnya akan dinamis.
 
 ---
 
-#### **5\. Dependencies**
+#### **5\. Dependencies** {#5.-dependencies-6}
 
 * Konten profil, layanan, dan foto dari setiap klien.  
 * Akses ke email atau sistem CRM klien untuk integrasi formulir.  
@@ -871,7 +753,7 @@ Struktur halaman akan sama, namun konten di dalamnya akan dinamis.
 
 ---
 
-#### **6\. Requirements**
+#### **6\. Requirements** {#6.-requirements-6}
 
 | Epics | User Story | US Framework | Priority | Acceptance Criteria |
 | :---- | :---- | :---- | :---- | :---- |
@@ -879,222 +761,4 @@ Struktur halaman akan sama, namun konten di dalamnya akan dinamis.
 |  | sehingga saya bisa dengan cepat terhubung dengan bisnis tersebut. |  |  |  |
 | **Tampilan Informasi Adaptif** | Sebagai pemilik bisnis, saya ingin landing page saya secara otomatis menampilkan informasi yang relevan dengan jenis bisnis saya | Sebagai pemilik bisnis, ketika saya memilih jenis bisnis (misal: "Toko Bangunan") saat setup awal, maka landing page saya akan otomatis menggunakan template headline, layanan, dan CTA yang sesuai untuk toko bangunan. | Highest | \- Sistem memiliki template konten yang berbeda untuk Koperasi, UMKM Toko Bangunan, dan BUMDes. \- Pemilihan jenis bisnis saat onboarding akan menentukan template mana yang digunakan. \- Semua bagian (Hero, Layanan, CTA) berubah sesuai template yang dipilih. |
 |  | agar halaman saya terlihat profesional dan tepat sasaran tanpa perlu mengedit manual secara ekstensif. |  |  |  |
-
-### **Modul Pengaturan**
-
-|  |  |
-| :---- | :---- |
-| **Product Name** | Modul Pengaturan (PWA SaaS) |
-| **Product Manager** | Yosh Wakatta |
-| **Shipping Date** | 15 Oktober 2025 (Estimasi Awal) |
-| **Stage** | Development |
-| **Status** | In progress |
-| **Teams** | Designer, Developer (\[BE\], \[FE\]), QA Tester |
-
----
-
-#### **1\. Description**
-
-Modul Pengaturan adalah pusat kontrol terpusat yang hanya dapat diakses oleh pengguna dengan peran "Admin". Modul ini memungkinkan admin untuk mengkonfigurasi, menyesuaikan, dan mengelola semua aspek fungsional dan operasional aplikasi, mulai dari informasi dasar bisnis, manajemen pengguna, hingga aturan-aturan spesifik untuk setiap modul yang diaktifkan. Pengaturan akan diorganisir ke dalam sub-menu yang logis untuk memastikan kemudahan navigasi dan penggunaan.
-
----
-
-#### **2\. Objectives & Success Metrics**
-
-**Objectives**
-
-* Menyediakan satu lokasi terpusat untuk semua konfigurasi aplikasi.  
-* Memberdayakan admin untuk menyesuaikan PWA agar sesuai dengan proses bisnis unik mereka.  
-* Menyajikan antarmuka pengaturan yang terstruktur, intuitif, dan mudah dinavigasi.
-
-**Success Metrics**
-
-* Rendahnya jumlah tiket bantuan yang menanyakan lokasi sebuah pengaturan.  
-* Tingginya tingkat penggunaan fitur-fitur konfigurasi oleh klien.  
-* Pengguna dapat menemukan dan mengubah pengaturan spesifik dalam waktu singkat.
-
----
-
-#### **3\. Features**
-
-Antarmuka Pengaturan akan dibagi menjadi beberapa bagian utama:
-
-#### **3.1. Pengaturan Umum**
-
-1. **Profil Bisnis:**  
-   * Mengedit informasi dasar bisnis seperti Logo, Nama Bisnis, Alamat, dan Kontak (Email, Nomor Telepon).  
-2. **Pengguna & Hak Akses:**  
-   * Mengundang pengguna baru melalui email.  
-   * Mengelola pengguna yang ada dan menetapkan peran (misal: Admin, Kasir).  
-3. **Langganan & Modul:**  
-   * Link menuju "Modul Manajemen Modul & Langganan" untuk mengaktifkan/menonaktifkan fitur dan melihat tagihan.
-
-#### **3.2. Pengaturan Penjualan**
-
-1. **Kasir (POS):**  
-   * **Struk:** Kustomisasi teks di bagian header dan footer struk.  
-   * **Pajak:** Mengaktifkan/menonaktifkan perhitungan pajak dan mengatur persentasenya.  
-2. **Harga Bertingkat:**  
-   * Membuat, mengedit, dan menghapus tingkatan harga (misal: "Harga Grosir", "Harga Kontraktor").
-
-#### **3.3. Pengaturan Inventaris**
-
-1. **Kategori Produk:** Membuat, mengedit, dan menghapus kategori untuk pengorganisasian produk.  
-2. **Satuan Produk:** Membuat daftar satuan yang sering digunakan (misal: Pcs, Kg, Sak) untuk mempercepat input produk.
-
-#### **3.4. Pengaturan Koperasi (Hanya tampil jika jenis bisnis adalah "Koperasi")**
-
-1. **Simpanan:**  
-   * Menetapkan nominal  
-      **Simpanan Pokok** yang wajib dibayar sekali.  
-   * Menetapkan nominal  
-      **Simpanan Wajib** yang harus dibayar berkala.  
-   * **Untuk Syariah:** Menetapkan **Nisbah Bagi Hasil** untuk Simpanan Sukarela (Mudharabah).  
-2. **Pinjaman & Pembiayaan:**  
-   * Menetapkan  
-      **Suku Bunga** default untuk pinjaman konvensional.  
-   * Mengkonfigurasi parameter untuk  
-      **Penilaian Risiko Otomatis**.  
-3. **Sisa Hasil Usaha (SHU):**  
-   * Menetapkan persentase alokasi SHU sesuai AD/ART (misal: Dana Cadangan, Jasa Modal, Jasa Usaha).
-
-#### **3.5. Pengaturan BUMDes (Hanya tampil jika jenis bisnis adalah "BUMDes")**
-
-1. **Unit Usaha:**  
-   * Membuat, mengedit, dan mengelola unit-unit usaha yang dimiliki.  
-2. **Aset Sewa:**  
-   * Mengelola kategori aset dan pengaturan default untuk Modul Manajemen Aset.
-
----
-
-#### **4\. Use Case**
-
-1. **Admin Koperasi Menetapkan Aturan SHU**  
-   * **Aktor:** Admin Koperasi.  
-   * **Skenario:** Setelah Rapat Anggota Tahunan (RAT), Admin membuka `Pengaturan > Pengaturan Koperasi > SHU`, lalu memasukkan persentase pembagian SHU yang baru disepakati untuk tahun buku mendatang.  
-   * **Hasil:** Sistem menyimpan aturan alokasi baru yang akan digunakan oleh Modul SHU pada saat perhitungan di akhir tahun.  
-2. **Admin Toko Bangunan Menambah Peran Pengguna Baru**  
-   * **Aktor:** Admin Toko Bangunan.  
-   * **Skenario:** Merekrut kasir baru, Admin masuk ke `Pengaturan > Pengaturan Umum > Pengguna & Hak Akses`, lalu mengundang email kasir baru tersebut dengan peran "Kasir".  
-   * **Hasil:** Kasir baru menerima undangan, dan setelah mendaftar, akunnya hanya memiliki akses ke Modul Kasir (POS).
-
----
-
-#### **5\. Dependencies**
-
-* **Manajemen Akun:** Hanya pengguna dengan peran "Admin" yang dapat mengakses Modul Pengaturan.  
-* **Semua Modul Lainnya:** Modul Pengaturan berisi konfigurasi untuk hampir semua modul lain. Perubahan di sini akan secara langsung memengaruhi cara kerja modul-modul tersebut.  
-* **UI/UX Design:** Membutuhkan desain tata letak yang sangat terstruktur (misalnya menggunakan navigasi vertikal di samping) agar pengguna tidak bingung dengan banyaknya pilihan.
-
----
-
-#### **6\. Requirements**
-
-| Epics | User Story | US Framework | Priority | Acceptance Criteria |  |
-| :---- | :---- | :---- | :---- | :---- | :---- |
-| **Konfigurasi Bisnis & Tim** | Sebagai Admin, saya ingin bisa mengatur informasi dasar bisnis saya dan mengelola akses tim saya | Sebagai Admin, ketika saya membuka halaman Pengaturan, maka saya bisa mengubah logo bisnis saya dan mengundang pengguna baru sebagai "Kasir". | Highest | \- Admin dapat mengubah Nama Bisnis, Alamat, dan Logo. \- Admin dapat mengundang pengguna baru via email dan menetapkan peran "Kasir". \- Pengguna dengan peran "Kasir" hanya bisa mengakses fitur yang diizinkan (misal: POS). |  |
-| **Konfigurasi Aturan Operasional** | Sebagai Admin Toko Bangunan, saya ingin bisa membuat beberapa tingkatan harga jual untuk pelanggan yang berbeda | Sebagai Admin, ketika saya masuk ke Pengaturan Penjualan, maka saya bisa membuat tingkatan harga baru bernama "Grosir". | High | \- Terdapat sub-menu "Harga Bertingkat" di dalam Pengaturan Penjualan. \- Admin dapat menambahkan tingkatan harga baru. \- Tingkatan harga yang baru dibuat ini akan tersedia sebagai pilihan di Modul Inventaris dan Kontak. |  |
-| **Konfigurasi Spesifik Koperasi** | Sebagai Admin Koperasi, saya ingin bisa menetapkan jumlah Simpanan Wajib dan Pokok sesuai AD/ART | Sebagai Admin, ketika saya membuka Pengaturan Koperasi, maka saya dapat memasukkan nominal untuk Simpanan Pokok dan Simpanan Wajib. | Highest | \- Terdapat halaman "Pengaturan Koperasi" yang hanya bisa diakses oleh klien tipe Koperasi. \- Terdapat | *input field* untuk mengatur nominal Simpanan Pokok dan Simpanan Wajib. \- Nilai yang disimpan di sini akan digunakan di seluruh aplikasi (misal: saat pendaftaran anggota baru). |
-
-### **Modul FAQ (Pusat Bantuan)**
-
-|  |  |
-| :---- | :---- |
-| **Product Name** | Modul FAQ (Pusat Bantuan) |
-| **Product Manager** | Yosh Wakatta |
-| **Shipping Date** | 31 Maret 2026 (Estimasi) |
-| **Stage** | Scoping |
-| **Status** | To Do |
-| **Teams** | Designer, Developer (\[BE\], \[FE\]), QA Tester, **Content Writer** |
-
----
-
-#### **1\. Description**
-
-Modul FAQ (Pusat Bantuan) adalah sebuah halaman informasional terpusat yang dapat diakses oleh semua pengguna PWA. Modul ini berfungsi sebagai pusat bantuan mandiri (*self-service*) yang berisi daftar pertanyaan yang sering diajukan beserta jawabannya yang jelas dan terstruktur. Tujuannya adalah untuk memberdayakan pengguna agar dapat menyelesaikan masalah dan menjawab pertanyaan mereka sendiri secara cepat, sekaligus mengurangi volume pertanyaan yang masuk ke tim layanan pelanggan (customer support).
-
----
-
-#### **2\. Objectives & Success Metrics**
-
-**Objectives**
-
-* **Mengurangi Volume Tiket Bantuan:** Menurunkan jumlah pertanyaan repetitif dan "cara penggunaan" yang diterima oleh tim customer support.  
-* **Meningkatkan Kepuasan & Kemandirian Pengguna:** Memberikan pengguna alat untuk menemukan solusi secara instan tanpa harus menunggu balasan dari tim support.  
-* **Menyediakan Sumber Dokumentasi yang Terstruktur:** Menciptakan satu sumber kebenaran untuk semua panduan penggunaan aplikasi yang mudah dikelola dan diperbarui.
-
-**Success Metrics**
-
-* Penurunan jumlah tiket bantuan terkait "cara penggunaan" sebesar \>20% dalam 3 bulan setelah peluncuran.  
-* Tingkat kepuasan "Jawaban Membantu" pada artikel FAQ mencapai \>75%.  
-* Waktu yang dibutuhkan tim internal untuk mempublikasikan atau memperbarui artikel FAQ kurang dari 5 menit.
-
----
-
-#### **3\. Features**
-
-#### **3.1. Sisi Pengguna: Halaman FAQ (User-Facing)**
-
-1. **Pencarian Cepat (Live Search):**  
-   * Sebuah bar pencarian yang prominently diletakkan di bagian atas halaman.  
-   * Hasil pencarian akan langsung muncul dan terfilter saat pengguna mengetik, mencari kata kunci pada judul pertanyaan dan isi jawaban.  
-2. **Struktur Kategori:**  
-   * Pertanyaan dikelompokkan ke dalam kategori yang logis untuk memudahkan navigasi. Contoh Kategori:  
-     * Memulai (Pendaftaran & Login)  
-     * Akun & Langganan  
-     * Manajemen Inventaris  
-     * Kasir (POS)  
-     * Laporan & Analitik  
-     * Pengaturan Koperasi  
-3. **Tampilan Pertanyaan (Accordion):**  
-   * Setiap kategori akan berisi daftar pertanyaan.  
-   * Saat pertanyaan diklik, area di bawahnya akan mengembang (*expand*) untuk menampilkan jawaban. Ini menjaga antarmuka tetap rapi dan tidak membanjiri pengguna dengan teks.  
-   * Jawaban dapat berisi teks, gambar (screenshot), atau GIF.  
-4. **Mekanisme Umpan Balik Sederhana:**  
-   * Di akhir setiap jawaban, terdapat pertanyaan "Apakah artikel ini membantu?" dengan tombol **"Ya"** dan **"Tidak"**.
-
-#### **3.2. Sisi Admin: Sistem Manajemen Konten (CMS) FAQ**
-
-1. **Manajemen Artikel FAQ:**  
-   * Antarmuka khusus bagi admin atau tim konten untuk melakukan *CRUD (Create, Read, Update, Delete)* pada artikel FAQ.  
-   * Menggunakan *Rich Text Editor* untuk memformat jawaban (bold, italic, list, memasukkan gambar).  
-2. **Manajemen Kategori:**  
-   * Admin dapat membuat, mengubah nama, dan menghapus kategori FAQ.  
-3. **Dasbor Analitik FAQ:**  
-   * Menampilkan data sederhana untuk setiap artikel:  
-     * Jumlah total berapa kali artikel dilihat.  
-     * Hasil umpan balik (jumlah klik "Ya" vs "Tidak").  
-   * Membantu tim untuk mengidentifikasi artikel mana yang paling dibutuhkan dan mana yang perlu diperbaiki.
-
----
-
-#### **4\. Use Case**
-
-1. **Kasir Baru Lupa Cara Cetak Struk**  
-   * **Aktor:** Kasir.  
-   * **Skenario:** Seorang kasir baru lupa langkah-langkah untuk mencetak ulang struk transaksi yang sudah lewat. Ia membuka menu "Bantuan/FAQ", mengetik "cetak struk" di pencarian.  
-   * **Hasil:** Artikel yang relevan muncul, menunjukkan langkah-langkah dengan gambar. Kasir dapat menyelesaikan tugasnya tanpa perlu menelepon manajernya.  
-2. **Pemilik BUMDes Ingin Mengaktifkan Modul Baru**  
-   * **Aktor:** Admin BUMDes.  
-   * **Skenario:** Pemilik ingin mencoba Modul Aset & Sewa. Ia tidak yakin bagaimana caranya. Ia membuka FAQ, masuk ke kategori "Akun & Langganan", dan menemukan pertanyaan "Bagaimana cara mengaktifkan modul baru?".  
-   * **Hasil:** Artikel menjelaskan langkah-langkah untuk masuk ke halaman langganan dan mengaktifkan modul.
-
----
-
-#### **5\. Dependencies**
-
-* **Konten:** Keberhasilan modul ini sangat bergantung pada ketersediaan konten yang berkualitas, jelas, dan relevan. Membutuhkan alokasi waktu dari tim produk atau *content writer*.  
-* **UI/UX Design:** Desain antarmuka yang bersih, intuitif, dan sangat fungsional untuk pencarian adalah krusial.
-
----
-
-#### **6\. Requirements**
-
-| Epics | User Story | US Framework | Priority | Acceptance Criteria |
-| :---- | :---- | :---- | :---- | :---- |
-| **Pencarian Jawaban Mandiri** | Sebagai pengguna, ketika saya memiliki pertanyaan, saya ingin dapat mencari dan menemukan jawabannya sendiri di dalam aplikasi | Sebagai pengguna, ketika saya mengakses halaman FAQ, maka saya dapat mencari pertanyaan saya menggunakan kata kunci atau menelusuri berdasarkan kategori. | Highest | \- Terdapat halaman "FAQ" atau "Pusat Bantuan". \- Halaman memiliki bar pencarian yang fungsional. \- Pertanyaan dikelompokkan dalam kategori yang logis. \- Mengklik pertanyaan akan menampilkan jawabannya dalam format akordion. |
-|  | agar saya dapat menyelesaikan masalah saya dengan cepat. |  |  |  |
-| **Manajemen Konten FAQ** | Sebagai tim support, saya ingin bisa dengan mudah menambah dan mengubah artikel bantuan | Sebagai tim support, ketika saya membuka CMS FAQ, maka saya bisa membuat artikel baru, menulis jawabannya, dan mengaturnya ke dalam sebuah kategori. | Highest | \- Terdapat halaman admin untuk manajemen FAQ. \- Terdapat formulir untuk membuat/mengedit artikel dengan *rich text editor*. \- Admin dapat membuat, mengedit, dan menghapus kategori. \- Perubahan yang disimpan akan langsung tampil di halaman FAQ untuk pengguna. |
-| **Peningkatan Kualitas Bantuan** | Sebagai manajer produk, saya ingin tahu artikel bantuan mana yang paling efektif dan mana yang tidak | Sebagai manajer produk, ketika saya membuka dasbor analitik FAQ, maka saya bisa melihat jumlah view dan skor "membantu" untuk setiap artikel. | High | \- Setiap jawaban memiliki tombol umpan balik "Ya/Tidak". \- Klik pada tombol tersebut akan disimpan di database. \- Terdapat halaman admin yang menampilkan statistik per artikel (jumlah view, jumlah "Ya", jumlah "Tidak"). |
-|  | agar saya bisa terus meningkatkan kualitas dokumentasi. |  |  |  |
 
