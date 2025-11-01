@@ -21,7 +21,12 @@ export async function middleware(request: NextRequest) {
       });
       if (res.ok) {
         const { data } = await res.json();
-        tenantId = data?.id ? String(data.id) : undefined;
+        const resolvedId =
+          data?.tenant_id ?? data?.id ?? data?.tenantId ?? null;
+        tenantId =
+          resolvedId !== null && typeof resolvedId !== "undefined"
+            ? String(resolvedId)
+            : undefined;
       }
     } catch (err: any) {
       console.error("Tenant lookup failed:", err?.message);

@@ -2,117 +2,132 @@
 
 import type { ApiResponse, Rfc3339String } from "./common";
 
-export type Segment = "vendor" | "koperasi" | "umkm" | "bumdes";
-export type Channel = "IN_APP" | "EMAIL" | "PUSH" | "SMS";
-export type NotificationType =
-  | "SYSTEM"
-  | "BILLING"
-  | "RAT"
-  | "LOAN"
-  | "SAVINGS"
-  | "CUSTOM"
-  | "PROMOTION";
-export type TargetType = "SINGLE" | "ALL" | "GROUP";
-export type NotificationStatus =
-  | "DRAFT"
-  | "PUBLISHED"
-  | "SENT"
-  | "READ"
-  | "ARCHIVED";
-export type SendStatus = "PENDING" | "SENT" | "FAILED";
-export type ScheduleUnit = "DAY" | "HOUR";
+export type NotificationChannel = "IN_APP" | "EMAIL" | "PUSH" | "SMS" | string;
 
 export type Notification = {
-  id: string;
+  id: string | number;
   tenant_id?: number;
-  business_unit_id?: number;
   user_id?: number;
-  segment?: Segment;
-  channel: Channel;
-  type: NotificationType;
-  category: string;
-  target_type: TargetType;
-  title: string;
-  body: string;
-  status: NotificationStatus;
-  send_status: SendStatus;
-  attachment_name?: string;
-  attachment_url?: string;
-  attachment_type?: string;
-  created_by?: number;
-  created_at: Rfc3339String;
+  channel: NotificationChannel;
+  category?: string;
+  title?: string;
+  body?: string;
+  status?: string;
+  send_status?: string;
+  created_at?: Rfc3339String;
   sent_at?: Rfc3339String;
   read_at?: Rfc3339String;
-  published_at?: Rfc3339String;
-  unpublished_at?: Rfc3339String;
-  message?: string;
+  metadata?: Record<string, unknown>;
 };
 
-export type NotificationReminder = {
-  id: string;
+export type NotificationMetrics = {
+  total_attempts: number;
+  total_failures: number;
+  failure_rate: number;
+  channel_summaries: ChannelSummary[];
+  daily: DailyMetric[];
+};
+
+export type ChannelSummary = {
+  channel: string;
+  total?: number;
+  delivered?: number;
+  failed?: number;
+  success_rate?: number;
+  failure_rate?: number;
+};
+
+export type DailyMetric = {
+  date: string;
+  channel: string;
+  total?: number;
+  sent?: number;
+  queued?: number;
+  delivered?: number;
+  failed?: number;
+};
+
+export type UserPreferenceRecord = {
+  id: number;
   tenant_id: number;
-  event_type: string;
-  schedule_offset: number;
-  schedule_unit: ScheduleUnit;
-  active: boolean;
+  user_id: number;
+  template_code: string;
+  channel_code: string;
+  enabled: boolean;
   created_at: Rfc3339String;
   updated_at: Rfc3339String;
+  updated_by?: number;
 };
 
-export type DeviceToken = {
-  id: string;
-  user_id: number;
-  token: string;
+export type PreferenceUpdate = {
+  template: string;
+  channel: string;
+  enabled: boolean;
+};
+
+export type NotificationPreferencePayload = {
+  preferences: PreferenceUpdate[];
+};
+
+export type NotificationPreferences = {
+  preferences: UserPreferenceRecord[];
+  server_time: Rfc3339String;
+};
+
+export type NotificationTemplate = {
+  id: number;
+  tenant_id: number;
+  code: string;
+  name: string;
+  description?: string;
+  category?: string;
+  channel_code: string;
+  critical?: boolean;
+  active_version_id?: number;
   created_at: Rfc3339String;
+  created_by?: number;
+  updated_at?: Rfc3339String;
+  updated_by?: number;
 };
 
-export type CreateNotificationRequest = {
-  tenant_id?: number;
-  user_id?: number;
-  channel: Channel;
-  type: string;
-  category: string;
-  title: string;
-  body: string;
-  target_type?: TargetType;
-  status?: NotificationStatus;
-  message?: string;
+export type NotificationTemplateList = {
+  templates: NotificationTemplate[];
+  total: number;
 };
 
-export type UpdateNotificationStatusRequest = {
-  status: NotificationStatus;
+export type NotificationTemplateVersion = {
+  id: number;
+  template_id: number;
+  version: number;
+  title?: string;
+  body?: string;
+  change_note?: string;
+  variables?: Record<string, unknown>;
+  created_at: Rfc3339String;
+  created_by?: number;
 };
 
-export type ReminderRequest = {
-  id?: string;
-  event_type: string;
-  schedule_offset: number;
-  schedule_unit: ScheduleUnit;
-  active: boolean;
+export type NotificationTemplatePreview = {
+  template_id: number;
+  template_code: string;
+  channel_code: string;
+  category?: string;
+  title?: string;
+  body?: string;
+  version?: number;
+  critical?: boolean;
+  change_note?: string;
+  last_modified_at?: Rfc3339String;
+  last_modified_by?: number;
+  variables?: Record<string, unknown>;
 };
 
-export type DeviceTokenRequest = {
-  token: string;
-};
-
-export type VendorBroadcastRequest = {
-  message: string;
-  targetType: TargetType;
-  tenantIDs?: number[];
-  category: string;
-};
-
-export type VendorBulkRequest = {
-  message: string;
-  targetType: TargetType;
-  segment: Segment;
-};
-
-export type CreateNotificationResponse = ApiResponse<Notification>;
 export type ListNotificationsResponse = ApiResponse<Notification[]>;
-export type UpdateNotificationResponse = ApiResponse<Notification>;
-export type ReminderListResponse = ApiResponse<NotificationReminder[]>;
-export type ReminderMutationResponse = ApiResponse<null>;
-export type DeviceTokenResponse = ApiResponse<DeviceToken>;
-export type VendorBroadcastResponse = ApiResponse<null>;
-export type VendorBulkResponse = ApiResponse<null>;
+export type NotificationMetricsResponse = ApiResponse<NotificationMetrics>;
+export type NotificationPreferencesResponse = ApiResponse<NotificationPreferences>;
+export type NotificationTemplatesResponse = ApiResponse<NotificationTemplateList>;
+export type NotificationTemplateResponse = ApiResponse<NotificationTemplate>;
+export type NotificationTemplatePreviewResponse =
+  ApiResponse<NotificationTemplatePreview>;
+export type NotificationTemplateVersionsResponse =
+  ApiResponse<NotificationTemplateVersion[]>;

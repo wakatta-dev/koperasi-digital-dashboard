@@ -4,142 +4,87 @@ export const QK = {
   users: {
     all: ["users"] as const,
     lists: () => ["users", "list"] as const,
-    list: (params?: Record<string, any>) => ["users", "list", params ?? {}] as const,
-    details: () => ["users", "detail"] as const,
-    detail: (id: string | number) => ["users", "detail", String(id)] as const,
-    roles: (userId: string | number) => ["users", "roles", String(userId)] as const,
+    list: (params?: Record<string, unknown>) =>
+      ["users", "list", params ?? {}] as const,
+    detail: (id: string | number) =>
+      ["users", "detail", String(id)] as const,
+    roles: (userId: string | number) =>
+      ["users", "roles", String(userId)] as const,
   },
   roles: {
     all: ["roles"] as const,
-    lists: (params?: Record<string, any>) =>
+    lists: (params?: Record<string, unknown>) =>
       ["roles", "list", params ?? {}] as const,
-    details: () => ["roles", "detail"] as const,
-    detail: (id: string | number) => ["roles", "detail", String(id)] as const,
-    permissions: (id: string | number) => ["roles", "permissions", String(id)] as const,
+    list: (params?: Record<string, unknown>) =>
+      ["roles", "list", params ?? {}] as const,
+    detail: (id: string | number) =>
+      ["roles", "detail", String(id)] as const,
+    permissions: (id: string | number) =>
+      ["roles", "permissions", String(id)] as const,
+    diff: (id: string | number, params?: Record<string, unknown>) =>
+      ["roles", "diff", String(id), params ?? {}] as const,
   },
   tenants: {
-    all: ["tenants"] as const,
-    lists: () => ["tenants", "list"] as const,
-    list: (params?: Record<string, any>) => ["tenants", "list", params ?? {}] as const,
-    details: () => ["tenants", "detail"] as const,
-    detail: (id: string | number) => ["tenants", "detail", String(id)] as const,
     byDomain: (domain: string) => ["tenants", "by-domain", domain] as const,
-    users: (id: string | number, params?: Record<string, any>) =>
-      ["tenants", String(id), "users", params ?? {}] as const,
-    modules: (id: string | number, params?: Record<string, any>) =>
-      ["tenants", String(id), "modules", params ?? {}] as const,
-  },
-  clients: {
-    all: ["clients"] as const,
-    lists: () => ["clients", "list"] as const,
-    list: (params?: Record<string, any>) => ["clients", "list", params ?? {}] as const,
-    activity: (id: string | number, params?: Record<string, any>) =>
-      ["clients", String(id), "activity", params ?? {}] as const,
+    auditLogs: (
+      tenantId: string | number,
+      params?: Record<string, unknown>,
+    ) => ["tenants", String(tenantId), "audit-logs", params ?? {}] as const,
+    configuration: (tenantId: string | number) =>
+      ["tenants", String(tenantId), "configuration"] as const,
+    profile: (tenantId: string | number) =>
+      ["tenants", String(tenantId), "profile"] as const,
   },
   notifications: {
-    all: ["notifications"] as const,
-    list: (params?: Record<string, any>) => ["notifications", "list", params ?? {}] as const,
+    list: (params?: Record<string, unknown>) =>
+      ["notifications", "list", params ?? {}] as const,
+    metrics: ["notifications", "metrics"] as const,
+    failures: (params?: Record<string, unknown>) =>
+      ["notifications", "failures", params ?? {}] as const,
+    failure: (id: string | number) =>
+      ["notifications", "failure", String(id)] as const,
+    preferences: (params?: Record<string, unknown>) =>
+      ["notifications", "preferences", params ?? {}] as const,
+    templates: (params?: Record<string, unknown>) =>
+      ["notifications", "templates", params ?? {}] as const,
+    template: (id: string | number) =>
+      ["notifications", "template", String(id)] as const,
+    templatePreview: (id: string | number) =>
+      ["notifications", "template", String(id), "preview"] as const,
+    templateVersions: (id: string | number) =>
+      ["notifications", "template", String(id), "versions"] as const,
   },
-  billing: {
-    vendor: {
-      plans: (params?: Record<string, any>) => ["billing", "vendor", "plans", params ?? {}] as const,
-      plan: (id: string | number) => ["billing", "vendor", "plan", String(id)] as const,
-      invoices: () => ["billing", "vendor", "invoices"] as const,
-      invoicesInfinite: (params?: Record<string, any>) => ["billing", "vendor", "invoices", "infinite", params ?? {}] as const,
-      invoice: (id: string | number) => ["billing", "vendor", "invoice", String(id)] as const,
-      subscriptions: {
-        summary: () => ["billing", "vendor", "subscriptions", "summary"] as const,
-        list: (params?: Record<string, any>) => [
-          "billing",
-          "vendor",
-          "subscriptions",
-          params ?? {},
-        ] as const,
-        infinite: (params?: Record<string, any>) => [
-          "billing",
-          "vendor",
-          "subscriptions",
-          "infinite",
-          params ?? {},
-        ] as const,
-      },
-      audits: (params?: { limit?: number; cursor?: string }) => [
-        "billing",
-        "vendor",
-        "audits",
-        params ?? {},
-      ] as const,
-      auditsInfinite: (params?: { limit?: number; cursor?: string }) => [
-        "billing",
-        "vendor",
-        "audits",
-        "infinite",
-        params ?? {},
-      ] as const,
-    },
-    client: {
-      invoices: () => ["billing", "client", "invoices"] as const,
-      invoice: (id: string | number) => ["billing", "client", "invoice", String(id)] as const,
-      invoiceAudits: (id: string | number, params?: { limit?: number; cursor?: string }) => [
-        "billing",
-        "client",
-        "invoice",
-        String(id),
-        "audits",
-        params ?? {},
-      ] as const,
-      subscription: () => ["billing", "client", "subscription"] as const,
-    },
-  },
-  transactions: {
-    list: (params?: Record<string, any>) => ["transactions", "list", params ?? {}] as const,
-    history: (id: string | number) => ["transactions", "history", String(id)] as const,
-  },
-  tickets: {
-    all: ["tickets"] as const,
-    lists: () => ["tickets", "list"] as const,
-    list: (params?: Record<string, any>) => ["tickets", "list", params ?? {}] as const,
-    details: () => ["tickets", "detail"] as const,
-    detail: (id: string) => ["tickets", "detail", id] as const,
-    vendorView: (id: string) => ["tickets", "vendor-view", id] as const,
-    replies: (id: string, params?: Record<string, any>) => ["tickets", "replies", id, params ?? {}] as const,
-    activities: (id: string, params?: Record<string, any>) => ["tickets", "activities", id, params ?? {}] as const,
-    sla: () => ["tickets", "sla"] as const,
+  vendor: {
+    accounts: (tenantId: string | number) =>
+      ["vendor", "tenants", String(tenantId), "accounts"] as const,
+    deactivate: (tenantId: string | number) =>
+      ["vendor", "tenants", String(tenantId), "deactivate"] as const,
   },
 } as const;
 
 export type QueryKey = ReturnType<
+  | typeof QK.users.lists
   | typeof QK.users.list
   | typeof QK.users.detail
   | typeof QK.users.roles
   | typeof QK.roles.lists
+  | typeof QK.roles.list
   | typeof QK.roles.detail
   | typeof QK.roles.permissions
-  | typeof QK.tenants.list
-  | typeof QK.tenants.detail
+  | typeof QK.roles.diff
   | typeof QK.tenants.byDomain
-  | typeof QK.tenants.users
-  | typeof QK.tenants.modules
-  | typeof QK.clients.list
-  | typeof QK.clients.activity
+  | typeof QK.tenants.auditLogs
+  | typeof QK.tenants.configuration
+  | typeof QK.tenants.profile
   | typeof QK.notifications.list
-  | typeof QK.billing.vendor.plans
-  | typeof QK.billing.vendor.plan
-  | typeof QK.billing.vendor.invoices
-  | typeof QK.billing.vendor.invoicesInfinite
-  | typeof QK.billing.vendor.invoice
-  | typeof QK.billing.client.invoices
-  | typeof QK.billing.vendor.subscriptions.summary
-  | typeof QK.billing.vendor.subscriptions.list
-  | typeof QK.billing.vendor.subscriptions.infinite
-  | typeof QK.billing.vendor.audits
-  | typeof QK.billing.vendor.auditsInfinite
-  | typeof QK.billing.client.invoice
-  | typeof QK.billing.client.invoiceAudits
-  | typeof QK.billing.client.subscription
-  | typeof QK.transactions.list
-  | typeof QK.transactions.history
-  | typeof QK.tickets.list
-  | typeof QK.tickets.detail
-  | typeof QK.tickets.vendorView
+  | typeof QK.notifications.metrics
+  | typeof QK.notifications.failures
+  | typeof QK.notifications.failure
+  | typeof QK.notifications.preferences
+  | typeof QK.notifications.templates
+  | typeof QK.notifications.template
+  | typeof QK.notifications.templatePreview
+  | typeof QK.notifications.templateVersions
+  | typeof QK.vendor.accounts
+  | typeof QK.vendor.deactivate
 >;

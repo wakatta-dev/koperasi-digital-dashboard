@@ -2,26 +2,42 @@
 
 import { API_ENDPOINTS } from "@/constants/api";
 import type {
-  ApiResponse,
-  Permission,
-  Role,
-  UserRole,
-  TenantRole,
-  CreateRoleRequest,
   AddPermissionResponse,
+  ApiResponse,
+  AssignRoleToTenantRequest,
+  Permission,
+  PermissionRequest,
+  Role,
+  RoleDiff,
+  TenantRole,
+  UpdateRoleRequest,
+  CreateRoleRequest,
 } from "@/types/api";
-import { api, API_PREFIX, getTenantId } from "./base";
+import { api, API_PREFIX } from "./base";
+
+type ListRoleParams = {
+  term?: string;
+  permission?: string;
+  limit?: number;
+  cursor?: string;
+};
 
 export function listRoles(
-  params?: { limit: number; cursor?: string },
+  params?: ListRoleParams,
+  opts?: { signal?: AbortSignal },
 ): Promise<ApiResponse<Role[]>> {
-  let query = "";
-  if (params && typeof params.limit !== "undefined") {
-    const search = new URLSearchParams({ limit: String(params.limit) });
-    if (params.cursor) search.set("cursor", params.cursor);
-    query = `?${search.toString()}`;
+  const search = new URLSearchParams();
+  if (params?.term) search.set("term", params.term);
+  if (params?.permission) search.set("permission", params.permission);
+  if (typeof params?.limit !== "undefined") {
+    search.set("limit", String(params.limit));
   }
-  return api.get<Role[]>(`${API_PREFIX}${API_ENDPOINTS.roles.list}${query}`);
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<Role[]>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.list}${query}`,
+    { signal: opts?.signal },
+  );
 }
 
 export function createRole(
@@ -35,7 +51,7 @@ export function createRole(
 
 export function updateRole(
   id: string | number,
-  payload: Partial<Role>,
+  payload: UpdateRoleRequest,
 ): Promise<ApiResponse<Role>> {
   return api.put<Role>(
     `${API_PREFIX}${API_ENDPOINTS.roles.detail(id)}`,
@@ -51,52 +67,41 @@ export function deleteRole(
   );
 }
 
-export async function listRolePermissions(
+export function getRoleDiff(
   id: string | number,
-  params?: { limit: number; cursor?: string },
-): Promise<ApiResponse<Permission[]>> {
-  let query = "";
-  const final = {
-    limit: params?.limit ?? 100,
-    ...(params?.cursor ? { cursor: params.cursor } : {}),
-  } as { limit: number; cursor?: string };
-  if (typeof final.limit !== "undefined") {
-    const search = new URLSearchParams({ limit: String(final.limit) });
-    if (final.cursor) search.set("cursor", final.cursor);
-    query = `?${search.toString()}`;
+  params?: { from_version?: number; to_version?: string },
+): Promise<ApiResponse<RoleDiff>> {
+  const search = new URLSearchParams();
+  if (typeof params?.from_version !== "undefined") {
+    search.set("from_version", String(params.from_version));
   }
-  const res = await api.get<any>(
-    `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}${query}`,
+  if (params?.to_version) search.set("to_version", params.to_version);
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<RoleDiff>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.diff(id)}${query}`,
   );
-  // Normalize permission shape according to docs while preserving obj/act
-  if (res?.success && Array.isArray(res.data)) {
-    const mapped: Permission[] = (res.data as any[]).map((p: any) => {
-      const obj = p.object ?? p.obj ?? p.v2 ?? "";
-      const act = p.action ?? p.act ?? p.v3 ?? "";
-      const role = p.role ?? p.v0;
-      const domain = p.domain ?? p.v1;
-      const permission = p.permission ?? (obj && act ? `${obj}:${act}` : "");
-      const label = p.label ?? (permission || "");
-      return {
-        id: Number(p.id ?? 0),
-        role,
-        domain,
-        object: obj,
-        action: act,
-        permission,
-        label,
-        obj,
-        act,
-      } as Permission;
-    });
-    return { ...res, data: mapped } as ApiResponse<Permission[]>;
+}
+
+export function listRolePermissions(
+  id: string | number,
+  params?: { limit?: number; cursor?: string },
+  opts?: { signal?: AbortSignal },
+): Promise<ApiResponse<Permission[]>> {
+  const search = new URLSearchParams();
+  if (typeof params?.limit !== "undefined") {
+    search.set("limit", String(params.limit));
   }
-  return res as ApiResponse<Permission[]>;
+  if (params?.cursor) search.set("cursor", params.cursor);
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<Permission[]>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}${query}`,
+    { signal: opts?.signal },
+  );
 }
 
 export function addRolePermission(
   id: string | number,
-  payload: { obj: string; act: string },
+  payload: PermissionRequest,
 ): Promise<AddPermissionResponse> {
   return api.post<{ obj: string; act: string }>(
     `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}`,
@@ -113,55 +118,8 @@ export function deleteRolePermission(
   );
 }
 
-export async function assignRole(
-  userId: string | number,
-  payload: { role_id: string | number; tenant_id?: string | number },
-): Promise<ApiResponse<{ user_id: number; role_id: number }>> {
-  // Ensure tenant_id is sent per docs
-  const final = { ...payload } as {
-    role_id: string | number;
-    tenant_id?: string | number;
-  };
-  if (typeof final.tenant_id === "undefined") {
-    const tenantId = await getTenantId();
-    if (tenantId) final.tenant_id = tenantId as any;
-  }
-  return api.post<{ user_id: number; role_id: number }>(
-    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}`,
-    final,
-  );
-}
-
-export function listUserRoles(
-  userId: string | number,
-  params?: { limit: number; cursor?: string },
-): Promise<ApiResponse<UserRole[]>> {
-  let query = "";
-  const final = {
-    limit: params?.limit ?? 100,
-    ...(params?.cursor ? { cursor: params.cursor } : {}),
-  } as { limit: number; cursor?: string };
-  if (typeof final.limit !== "undefined") {
-    const search = new URLSearchParams({ limit: String(final.limit) });
-    if (final.cursor) search.set("cursor", final.cursor);
-    query = `?${search.toString()}`;
-  }
-  return api.get<UserRole[]>(
-    `${API_PREFIX}${API_ENDPOINTS.users.roles(userId)}${query}`,
-  );
-}
-
-export function removeUserRole(
-  userId: string | number,
-  roleId: string | number,
-): Promise<ApiResponse<{ user_id: number; role_id: number }>> {
-  return api.delete<{ user_id: number; role_id: number }>(
-    `${API_PREFIX}${API_ENDPOINTS.users.role(userId, roleId)}`,
-  );
-}
-
 export function assignRoleToTenant(
-  payload: { role_id: number; tenant_id: number },
+  payload: AssignRoleToTenantRequest,
 ): Promise<ApiResponse<TenantRole>> {
   return api.post<TenantRole>(
     `${API_PREFIX}${API_ENDPOINTS.roles.tenants}`,

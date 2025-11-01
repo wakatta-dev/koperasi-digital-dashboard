@@ -60,7 +60,7 @@ describe("middleware", () => {
     const res = await middleware(req);
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://api.local/api/tenant/by-domain?domain=foo.com",
+      "http://api.local/api/get-by-domain/foo.com",
       { headers: { "Content-Type": "application/json" } }
     );
     expect(res.headers.get("X-Tenant-ID")).toBe("42");
@@ -84,4 +84,3 @@ describe("middleware", () => {
     );
   });
 });
-

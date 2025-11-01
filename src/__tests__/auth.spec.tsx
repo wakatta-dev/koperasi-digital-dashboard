@@ -83,7 +83,7 @@ describe("auth flow", () => {
     fireEvent.click(getByRole("button"));
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalledWith("/umkm/dashboard");
+      expect(push).toHaveBeenCalledWith("/umkm/account");
     });
   });
 

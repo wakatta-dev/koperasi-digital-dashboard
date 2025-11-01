@@ -3,158 +3,117 @@
 import { API_ENDPOINTS } from "@/constants/api";
 import type {
   ApiResponse,
-  Tenant,
-  TenantDetail,
-  TenantListResponse,
-  TenantDetailResponse,
-  TenantUser,
-  TenantUserListResponse,
-  TenantModule,
-  TenantModuleListResponse,
-  CreateTenantRequest,
-  UpdateTenantRequest,
-  UpdateTenantStatusRequest,
-  AddTenantUserRequest,
-  UpdateTenantModuleRequest,
+  AuditLogQuery,
+  RegisterTenantRequest,
+  TenantAuditLogResponse,
+  TenantConfiguration,
+  TenantConfigurationRequest,
+  TenantProfile,
+  TenantStatusRequest,
+  TenantStatusResponse,
+  VerifyTenantRequest,
 } from "@/types/api";
 import { api, API_PREFIX } from "./base";
 
-export function listTenants(
-  params?: {
-    term?: string;
-    type?: string;
-    status?: string;
-    limit?: number;
-    cursor?: string;
-  },
-  opts?: { signal?: AbortSignal }
-): Promise<TenantListResponse> {
-  const search = new URLSearchParams();
-  search.set("limit", String(params?.limit ?? 10));
-  if (params?.cursor) search.set("cursor", params.cursor);
-  if (params?.term) search.set("term", params.term);
-  if (params?.type) search.set("type", params.type);
-  if (params?.status) search.set("status", params.status);
-  const q = search.toString();
-  return api.get<TenantDetail[]>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.list}${q ? `?${q}` : ""}`,
-    { signal: opts?.signal }
-  );
-}
-
-export function getTenantByDomain(domain: string): Promise<ApiResponse<Tenant>> {
-  return api.get<Tenant>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.byDomain}?domain=${encodeURIComponent(
-      domain,
-    )}`,
-  );
-}
-
-export function getTenant(
-  id: string | number,
-  opts?: { signal?: AbortSignal }
-): Promise<TenantDetailResponse> {
-  return api.get<TenantDetail>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.detail(id)}`,
-    { signal: opts?.signal }
-  );
-}
-
-export function createTenant(
-  payload: CreateTenantRequest,
-): Promise<TenantDetailResponse> {
-  return api.post<TenantDetail>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.list}`,
+export function registerTenant(
+  payload: RegisterTenantRequest,
+): Promise<ApiResponse<Record<string, unknown>>> {
+  return api.post<Record<string, unknown>>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.register}`,
     payload,
   );
 }
 
-export function updateTenant(
-  id: string | number,
-  payload: Partial<UpdateTenantRequest>,
-): Promise<TenantDetailResponse> {
-  return api.patch<TenantDetail>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.detail(id)}`,
+export function verifyTenant(
+  payload: VerifyTenantRequest,
+): Promise<ApiResponse<Record<string, unknown>>> {
+  return api.post<Record<string, unknown>>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.verify}`,
     payload,
   );
 }
 
 export function updateTenantStatus(
-  id: string | number,
-  payload: UpdateTenantStatusRequest,
-): Promise<TenantDetailResponse> {
-  return api.patch<TenantDetail>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.status(id)}`,
+  tenantId: string | number,
+  payload: TenantStatusRequest,
+): Promise<TenantStatusResponse> {
+  return api.patch<Record<string, string | boolean>>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.status(tenantId)}`,
     payload,
   );
 }
 
-export function listTenantUsers(
-  id: string | number,
-  params?: {
-    term?: string;
-    role?: string | number;
-    status?: string;
-    limit?: number;
-    cursor?: string;
-  },
-  opts?: { signal?: AbortSignal }
-): Promise<TenantUserListResponse> {
+export function getTenantAuditLogs(
+  tenantId: string | number,
+  params?: AuditLogQuery,
+  opts?: { signal?: AbortSignal },
+): Promise<TenantAuditLogResponse> {
   const search = new URLSearchParams();
-  search.set("limit", String(params?.limit ?? 10));
-  if (params?.cursor) search.set("cursor", params.cursor);
-  if (params?.term) search.set("term", params.term);
-  if (params?.role) search.set("role", String(params.role));
-  if (params?.status) search.set("status", params.status);
-  const q = search.toString();
-  return api.get<TenantUser[]>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.users(id)}${q ? `?${q}` : ""}`,
-    { signal: opts?.signal }
+  if (params?.cursor) search.set("cursor", String(params.cursor));
+  if (typeof params?.limit !== "undefined") {
+    search.set("limit", String(params.limit));
+  }
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  if (typeof params?.actor_id !== "undefined") {
+    search.set("actor_id", String(params.actor_id));
+  }
+  if (typeof params?.target_tenant_id !== "undefined") {
+    search.set("target_tenant_id", String(params.target_tenant_id));
+  }
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<Record<string, unknown>>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.auditLogs(tenantId)}${query}`,
+    { signal: opts?.signal },
   );
 }
 
-export function addTenantUser(
-  id: string | number,
-  payload: AddTenantUserRequest,
-): Promise<ApiResponse<TenantUser>> {
-  return api.post<TenantUser>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.users(id)}`,
+export function getTenantConfiguration(
+  tenantId: string | number,
+  opts?: { signal?: AbortSignal },
+): Promise<ApiResponse<TenantConfiguration>> {
+  return api.get<TenantConfiguration>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.configuration(tenantId)}`,
+    { signal: opts?.signal },
+  );
+}
+
+export function upsertTenantConfiguration(
+  tenantId: string | number,
+  payload: TenantConfigurationRequest,
+): Promise<ApiResponse<TenantConfiguration>> {
+  return api.put<TenantConfiguration>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.configuration(tenantId)}`,
     payload,
   );
 }
 
-export function listTenantModules(
-  id: string | number,
-  params?: {
-    term?: string;
-    enabled?: string;
-    limit?: number;
-    cursor?: string;
-  },
-  opts?: { signal?: AbortSignal }
-): Promise<TenantModuleListResponse> {
-  const search = new URLSearchParams();
-  search.set("limit", String(params?.limit ?? 10));
-  if (params?.cursor) search.set("cursor", params.cursor);
-  if (params?.term) search.set("term", params.term);
-  if (params?.enabled) search.set("enabled", params.enabled);
-  const q = search.toString();
-  return api.get<TenantModule[]>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.modules(id)}${q ? `?${q}` : ""}`,
-    { signal: opts?.signal }
+export function deleteTenantConfiguration(
+  tenantId: string | number,
+): Promise<ApiResponse<Record<string, unknown>>> {
+  return api.delete<Record<string, unknown>>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.configuration(tenantId)}`,
   );
 }
 
-export function updateTenantModule(
-  id: string | number,
-  payload: { module_id: string | number; status: "aktif" | "nonaktif" }
-): Promise<ApiResponse<TenantModule>> {
-  const mapped: UpdateTenantModuleRequest = {
-    module_id: String(payload.module_id),
-    status: payload.status,
-  };
-  return api.patch<TenantModule>(
-    `${API_PREFIX}${API_ENDPOINTS.tenant.modules(id)}`,
-    mapped,
+export function updateTenantProfile(
+  tenantId: string | number,
+  payload: FormData,
+): Promise<ApiResponse<TenantProfile>> {
+  return api.put<TenantProfile>(
+    `${API_PREFIX}${API_ENDPOINTS.tenants.profile(tenantId)}`,
+    payload,
+    {
+      // Let browser set multipart boundaries automatically
+      headers: { Accept: "application/json" },
+    },
+  );
+}
+
+export function getTenantByDomain(
+  domain: string,
+): Promise<ApiResponse<Record<string, unknown>>> {
+  return api.get<Record<string, unknown>>(
+    `${API_PREFIX}${API_ENDPOINTS.domain.byDomain(domain)}`,
   );
 }

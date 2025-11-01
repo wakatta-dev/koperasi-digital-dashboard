@@ -2,102 +2,78 @@
 
 import type { ApiResponse, Rfc3339String } from "./common";
 
-export type TenantDetail = {
+export type TenantType = "vendor" | "koperasi" | "umkm" | "bumdes" | string;
+
+export interface RegisterTenantRequest {
+  name: string;
+  type: TenantType;
+  domain: string;
+  email: string;
+  full_name: string;
+  password: string;
+  pic_name: string;
+  pic_email: string;
+  pic_phone: string;
+  primary_plan_id: number;
+  addon_plan_ids?: number[];
+  address?: string;
+  legal_entity?: string;
+}
+
+export interface VerifyTenantRequest {
+  registration_id: string;
+  otp: string;
+}
+
+export interface TenantStatusRequest {
+  status: string;
+  reason?: string;
+}
+
+export type TenantStatusResponse = ApiResponse<Record<string, string | boolean>>;
+
+export interface TenantConfigurationRequest {
+  locale: string;
+  theme: string;
+  timezone: string;
+  custom_domain?: string;
+}
+
+export interface TenantConfiguration {
+  tenant_id: number;
+  locale: string;
+  theme: string;
+  timezone: string;
+  custom_domain?: string;
+  persisted?: boolean;
+  domain_verified_at?: Rfc3339String;
+  created_at?: Rfc3339String;
+  updated_at?: Rfc3339String;
+}
+
+export interface TenantProfile {
   id: number;
   name: string;
-  legal_entity?: string;
-  domain: string;
-  type: "koperasi" | "bumdes" | "umkm" | "vendor";
-  contact_email: string;
-  contact_phone: string;
-  address: string;
-  logo_url?: string;
+  domain?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
   business_category?: string;
   description?: string;
-  social_links?: Record<string, string>;
-  status: "active" | "inactive" | "suspended";
-  is_active: boolean;
-  suspended_at?: Rfc3339String;
-  primary_plan_id?: number;
-  created_at: Rfc3339String;
-  updated_at: Rfc3339String;
-};
+  logo_url?: string;
+  updated_at?: Rfc3339String;
+}
 
-export type TenantUser = {
-  id: string;
-  user_id: number;
-  tenant_id: number;
-  tenant_role_id: number;
-  email: string;
-  full_name: string;
-  created_at: Rfc3339String;
-  updated_at: Rfc3339String;
-};
+export type TenantProfileResponse = ApiResponse<TenantProfile>;
+export type TenantConfigurationResponse = ApiResponse<TenantConfiguration>;
 
-export type TenantModule = {
-  id: string;
-  tenant_id: number;
-  module_id: string;
-  business_unit_id?: number;
-  status: "aktif" | "nonaktif";
-  start_date?: Rfc3339String;
-  end_date?: Rfc3339String;
-  code: string;
-  name: string;
-};
+export interface AuditLogQuery {
+  limit?: number;
+  cursor?: string;
+  from?: string;
+  to?: string;
+  actor_id?: number;
+  target_tenant_id?: number;
+}
 
-export type CreateTenantRequest = {
-  name: string;
-  type: "koperasi" | "bumdes" | "umkm";
-  domain: string;
-  primary_plan_id?: number;
-  module_ids?: string[];
-};
-
-export type UpdateTenantRequest = {
-  name: string;
-  type: string;
-  domain: string;
-  contact_email: string;
-  contact_phone: string;
-  address: string;
-};
-
-export type UpdateTenantStatusRequest = {
-  status: "active" | "inactive" | "suspended";
-};
-
-export type AddTenantUserRequest = {
-  email: string;
-  password: string;
-  full_name: string;
-  tenant_role_id: number;
-};
-
-export type UpdateTenantModuleRequest = {
-  module_id: string;
-  status: "aktif" | "nonaktif";
-};
-
-export type UpdateTenantProfileRequest = Partial<{
-  name: string;
-  domain: string;
-  contact_email: string;
-  contact_phone: string;
-  address: string;
-  logo_url: string;
-  business_category: string;
-  description: string;
-  social_links: Record<string, string>;
-}>;
-
-export type TenantListResponse = ApiResponse<TenantDetail[]>;
-export type TenantDetailResponse = ApiResponse<TenantDetail>;
-export type TenantUserListResponse = ApiResponse<TenantUser[]>;
-export type TenantModuleListResponse = ApiResponse<TenantModule[]>;
-export type TenantStatusUpdateResponse = ApiResponse<{ status: string }>;
-export type TenantModuleUpdateResponse = ApiResponse<TenantModule>;
-
-// Backward-compatible aliases
-export type Tenant = TenantDetail;
-export type UserTenantAccess = TenantUser;
+export type TenantAuditLogResponse = ApiResponse<Record<string, unknown>>;

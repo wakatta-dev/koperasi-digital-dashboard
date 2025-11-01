@@ -11,14 +11,28 @@ export const API_ENDPOINTS = {
     resetPassword: "/auth/reset-password",
     sessions: "/auth/sessions",
   },
+  tenants: {
+    register: "/tenants",
+    verify: "/tenants/verify",
+    status: (id: string | number) => `/tenants/${id}/status`,
+    auditLogs: (tenantId: string | number) =>
+      `/tenants/${tenantId}/audit-logs`,
+    configuration: (tenantId: string | number) =>
+      `/tenants/${tenantId}/configuration`,
+    profile: (tenantId: string | number) => `/tenants/${tenantId}/profile`,
+  },
+  domain: {
+    byDomain: (domain: string) =>
+      `/get-by-domain/${encodeURIComponent(domain)}`,
+  },
   users: {
     list: "/users",
     detail: (id: string | number) => `/users/${id}`,
     status: (id: string | number) => `/users/${id}/status`,
-    role: (id: string | number) => `/users/${id}/role`,
     roles: (id: string | number) => `/users/${id}/roles`,
-    roleAssignment: (id: string | number, rid: string | number) =>
+    roleItem: (id: string | number, rid: string | number) =>
       `/users/${id}/roles/${rid}`,
+    role: (id: string | number) => `/users/${id}/role`,
     emailChange: (id: string | number) => `/users/${id}/email-change`,
     emailChangeActivate: "/users/email-change/activate",
     invite: "/users/invite",
@@ -36,13 +50,13 @@ export const API_ENDPOINTS = {
   },
   notifications: {
     list: "/notifications",
+    markAllRead: "/notifications/read",
+    markRead: (id: string | number) => `/notifications/${id}/read`,
     dashboardMetrics: "/notifications/dashboard/metrics",
     export: "/notifications/export",
     failures: "/notifications/failures",
     failureDetail: (id: string | number) => `/notifications/failures/${id}`,
     preferences: "/notifications/preferences",
-    markAllRead: "/notifications/read",
-    markRead: (id: string | number) => `/notifications/${id}/read`,
     templates: "/notifications/templates",
     templateDetail: (id: string | number) => `/notifications/templates/${id}`,
     templatePreview: (id: string | number) =>
@@ -55,21 +69,16 @@ export const API_ENDPOINTS = {
     sync: "/permissions/registry/sync",
     confirm: (id: string | number) => `/permissions/registry/${id}/confirm`,
   },
-  tenants: {
-    create: "/tenants",
-    verify: "/tenants/verify",
-    byDomain: (domain: string) =>
-      `/get-by-domain/${encodeURIComponent(domain)}`,
-    status: (id: string | number) => `/tenants/${id}/status`,
-    auditLogs: (tenantId: string | number) =>
-      `/tenants/${tenantId}/audit-logs`,
-    configuration: (tenantId: string | number) =>
-      `/tenants/${tenantId}/configuration`,
-    profile: (tenantId: string | number) => `/tenants/${tenantId}/profile`,
-  },
   vendor: {
+    emailChangeConfirm: "/vendor/email-change/confirm",
     tenantAccounts: (tenantId: string | number) =>
       `/vendor/tenants/${tenantId}/accounts`,
+    tenantAccountEmail: (
+      tenantId: string | number,
+      userId: string | number,
+    ) => `/vendor/tenants/${tenantId}/accounts/${userId}/email`,
+    tenantDeactivate: (tenantId: string | number) =>
+      `/vendor/tenants/${tenantId}/deactivate`,
   },
 } as const;
 

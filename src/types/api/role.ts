@@ -1,6 +1,6 @@
 /** @format */
 
-import type { ApiResponse, Rfc3339String } from './common';
+import type { ApiResponse, Rfc3339String } from "./common";
 
 export interface Role {
   id: number;
@@ -53,11 +53,40 @@ export interface Permission {
 export type UserRole = RoleUser; // backward compat
 
 // Requests (aligned with docs)
-export interface CreateRoleRequest { name: string; description: string }
-export interface UpdateRoleRequest { name: string; description: string }
-export interface AssignRoleToTenantRequest { role_id: number; tenant_id: number }
-export interface AssignRoleRequest { role_id: number; tenant_id: number }
-export interface PermissionRequest { obj: string; act: string }
+export interface CreateRoleRequest {
+  name: string;
+  description: string;
+}
+
+export interface UpdateRoleRequest {
+  name: string;
+  description: string;
+}
+
+export interface AssignRoleToTenantRequest {
+  role_id: number;
+  tenant_id: number;
+}
+
+export interface AssignRoleRequest {
+  role_id: number;
+  tenant_id?: number | string;
+  reason?: string;
+}
+
+export interface PermissionRequest {
+  obj: string;
+  act: string;
+}
+
+export interface RoleDiff {
+  role_id: number;
+  from_version?: number;
+  to_version?: number | string;
+  added_permissions?: Permission[];
+  removed_permissions?: Permission[];
+  metadata?: Record<string, unknown>;
+}
 
 // Response aliases (aligned with docs)
 export type ListRolesResponse = ApiResponse<Role[]>;

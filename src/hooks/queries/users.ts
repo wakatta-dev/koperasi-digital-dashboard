@@ -15,13 +15,13 @@ import {
   getUser,
   createUser,
   updateUser,
-  patchUserStatus,
+  updateUserStatus,
   deleteUser,
   listUserRoles,
   removeUserRole,
-  resetPassword,
+  resetUserPassword,
+  assignRole,
 } from "@/services/api";
-import { assignRole } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ import { toast } from "sonner";
 export function useUsers(
   params?: {
     term?: string;
-    status?: string;
+    status?: boolean;
     role_id?: string | number;
     limit?: number;
     cursor?: string;
@@ -96,7 +96,10 @@ export function useUserActions() {
   const patchStatus = useMutation({
     mutationFn: async (vars: { id: string | number; status: boolean }) =>
       ensureSuccess(
-        await patchUserStatus(vars.id, { status: vars.status } as UpdateStatusRequest)
+        await updateUserStatus(
+          vars.id,
+          { status: vars.status } as UpdateStatusRequest,
+        ),
       ),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.users.detail(vars.id) });
@@ -140,7 +143,7 @@ export function useUserActions() {
 
   const resetPwd = useMutation({
     mutationFn: async (payload: { email: string; new_password: string }) =>
-      ensureSuccess(await resetPassword(payload)),
+      ensureSuccess(await resetUserPassword(payload)),
     onSuccess: () => toast.success("Password direset"),
     onError: (err: any) => toast.error(err?.message || "Gagal reset password"),
   });

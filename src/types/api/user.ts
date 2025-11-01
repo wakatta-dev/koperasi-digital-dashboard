@@ -16,12 +16,6 @@ export type User = {
   tenant_role: TenantRole;
 };
 
-export type InviteVendorUserRequest = {
-  email: string;
-  full_name: string;
-  role_id: number;
-};
-
 export type CreateUserRequest = {
   tenant_role_id: number;
   email: string;
@@ -43,9 +37,43 @@ export type UpdateUserRoleRequest = {
   role_id: number;
 };
 
-export type ResetPasswordRequest = {
+export type InviteUserRequest = {
   email: string;
-  new_password: string;
+  full_name: string;
+  role_id: number;
+  reason?: string;
+  resend?: boolean;
+};
+
+export type ActivateInvitationRequest = {
+  token: string;
+  password: string;
+  password_confirmation: string;
+};
+
+export type ChangeEmailRequest = {
+  new_email: string;
+  reason: string;
+  otp?: string;
+};
+
+export type ActivateEmailChangeRequest = {
+  token: string;
+};
+
+export type UserInvitation = {
+  id: number;
+  tenant_id: number;
+  tenant_role_id: number;
+  role_id: number;
+  email: string;
+  full_name: string;
+  reason?: string;
+  status: string;
+  token: string;
+  token_expires_at?: Rfc3339String;
+  last_sent_at?: Rfc3339String;
+  send_count?: number;
 };
 
 export type UserListResponse = ApiResponse<User[]>;
@@ -54,4 +82,4 @@ export type UserMutationResponse = ApiResponse<User>;
 export type UserStatusResponse = ApiResponse<{ status: boolean }>;
 export type UserDeleteResponse = ApiResponse<{ id: number }>;
 export type UserRoleUpdateResponse = ApiResponse<{ id: number }>;
-export type ResetPasswordResponse = ApiResponse<{ message: string }>;
+export type UserInvitationResponse = ApiResponse<UserInvitation>;
