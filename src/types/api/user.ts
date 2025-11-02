@@ -37,6 +37,11 @@ export type UpdateUserRoleRequest = {
   role_id: number;
 };
 
+export type UserResetPasswordRequest = {
+  email: string;
+  new_password: string;
+};
+
 export type InviteUserRequest = {
   email: string;
   full_name: string;

@@ -9,13 +9,13 @@ import type {
   ChangeEmailRequest,
   CreateUserRequest,
   InviteUserRequest,
-  ResetPasswordRequest,
   UpdateStatusRequest,
   UpdateUserRequest,
   UpdateUserRoleRequest,
   User,
   UserInvitation,
   UserRole,
+  UserResetPasswordRequest,
 } from "@/types/api";
 import { api, API_PREFIX, getTenantId } from "./base";
 
@@ -112,7 +112,7 @@ export function deleteUser(
 }
 
 export function resetUserPassword(
-  payload: ResetPasswordRequest,
+  payload: UserResetPasswordRequest,
 ): Promise<ApiResponse<Record<string, unknown>>> {
   return api.post<Record<string, unknown>>(
     `${API_PREFIX}${API_ENDPOINTS.users.resetPassword}`,
@@ -181,7 +181,7 @@ export function requestEmailChange(
   userId: string | number,
   payload: ChangeEmailRequest,
 ): Promise<ApiResponse<Record<string, unknown>>> {
-  return api.patch<Record<string, unknown>>(
+  return api.post<Record<string, unknown>>(
     `${API_PREFIX}${API_ENDPOINTS.users.emailChange(userId)}`,
     payload,
   );

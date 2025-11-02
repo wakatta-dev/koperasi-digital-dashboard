@@ -1,5 +1,7 @@
 /** @format */
 
+import type { AuditLogQuery } from "@/types/api";
+
 export const QK = {
   users: {
     all: ["users"] as const,
@@ -21,14 +23,12 @@ export const QK = {
       ["roles", "detail", String(id)] as const,
     permissions: (id: string | number) =>
       ["roles", "permissions", String(id)] as const,
-    diff: (id: string | number, params?: Record<string, unknown>) =>
-      ["roles", "diff", String(id), params ?? {}] as const,
   },
   tenants: {
     byDomain: (domain: string) => ["tenants", "by-domain", domain] as const,
     auditLogs: (
       tenantId: string | number,
-      params?: Record<string, unknown>,
+      params?: AuditLogQuery,
     ) => ["tenants", String(tenantId), "audit-logs", params ?? {}] as const,
     configuration: (tenantId: string | number) =>
       ["tenants", String(tenantId), "configuration"] as const,
@@ -38,21 +38,7 @@ export const QK = {
   notifications: {
     list: (params?: Record<string, unknown>) =>
       ["notifications", "list", params ?? {}] as const,
-    metrics: ["notifications", "metrics"] as const,
-    failures: (params?: Record<string, unknown>) =>
-      ["notifications", "failures", params ?? {}] as const,
-    failure: (id: string | number) =>
-      ["notifications", "failure", String(id)] as const,
-    preferences: (params?: Record<string, unknown>) =>
-      ["notifications", "preferences", params ?? {}] as const,
-    templates: (params?: Record<string, unknown>) =>
-      ["notifications", "templates", params ?? {}] as const,
-    template: (id: string | number) =>
-      ["notifications", "template", String(id)] as const,
-    templatePreview: (id: string | number) =>
-      ["notifications", "template", String(id), "preview"] as const,
-    templateVersions: (id: string | number) =>
-      ["notifications", "template", String(id), "versions"] as const,
+    metrics: () => ["notifications", "metrics"] as const,
   },
   vendor: {
     accounts: (tenantId: string | number) =>
@@ -71,20 +57,12 @@ export type QueryKey = ReturnType<
   | typeof QK.roles.list
   | typeof QK.roles.detail
   | typeof QK.roles.permissions
-  | typeof QK.roles.diff
   | typeof QK.tenants.byDomain
   | typeof QK.tenants.auditLogs
   | typeof QK.tenants.configuration
   | typeof QK.tenants.profile
   | typeof QK.notifications.list
   | typeof QK.notifications.metrics
-  | typeof QK.notifications.failures
-  | typeof QK.notifications.failure
-  | typeof QK.notifications.preferences
-  | typeof QK.notifications.templates
-  | typeof QK.notifications.template
-  | typeof QK.notifications.templatePreview
-  | typeof QK.notifications.templateVersions
   | typeof QK.vendor.accounts
   | typeof QK.vendor.deactivate
 >;

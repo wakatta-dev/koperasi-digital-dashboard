@@ -9,6 +9,7 @@ import type {
   CreateUserRequest,
   UpdateUserRequest,
   UpdateStatusRequest,
+  UserResetPasswordRequest,
 } from "@/types/api";
 import {
   listUsers,
@@ -142,7 +143,7 @@ export function useUserActions() {
   });
 
   const resetPwd = useMutation({
-    mutationFn: async (payload: { email: string; new_password: string }) =>
+    mutationFn: async (payload: UserResetPasswordRequest) =>
       ensureSuccess(await resetUserPassword(payload)),
     onSuccess: () => toast.success("Password direset"),
     onError: (err: any) => toast.error(err?.message || "Gagal reset password"),

@@ -12,7 +12,6 @@ export interface DashboardStats {
 // Re-export API types to keep a single source of truth
 export type {
   User,
-  Tenant,
   Role,
   Plan,
   Invoice,

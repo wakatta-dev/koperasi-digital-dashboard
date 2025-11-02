@@ -8,7 +8,6 @@ import type {
   Permission,
   PermissionRequest,
   Role,
-  RoleDiff,
   TenantRole,
   UpdateRoleRequest,
   CreateRoleRequest,
@@ -64,21 +63,6 @@ export function deleteRole(
 ): Promise<ApiResponse<{ id: number }>> {
   return api.delete<{ id: number }>(
     `${API_PREFIX}${API_ENDPOINTS.roles.detail(id)}`,
-  );
-}
-
-export function getRoleDiff(
-  id: string | number,
-  params?: { from_version?: number; to_version?: string },
-): Promise<ApiResponse<RoleDiff>> {
-  const search = new URLSearchParams();
-  if (typeof params?.from_version !== "undefined") {
-    search.set("from_version", String(params.from_version));
-  }
-  if (params?.to_version) search.set("to_version", params.to_version);
-  const query = search.toString() ? `?${search.toString()}` : "";
-  return api.get<RoleDiff>(
-    `${API_PREFIX}${API_ENDPOINTS.roles.diff(id)}${query}`,
   );
 }
 

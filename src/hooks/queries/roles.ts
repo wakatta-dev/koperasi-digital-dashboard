@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
-import type { Permission, Role } from "@/types/api";
+import type { Permission, Role, UpdateRoleRequest } from "@/types/api";
 import {
   listRoles,
   createRole,
@@ -56,8 +56,10 @@ export function useRoleActions() {
   });
 
   const update = useMutation({
-    mutationFn: async (vars: { id: string | number; payload: Partial<Role> }) =>
-      ensureSuccess(await updateRole(vars.id, vars.payload)),
+    mutationFn: async (vars: {
+      id: string | number;
+      payload: UpdateRoleRequest;
+    }) => ensureSuccess(await updateRole(vars.id, vars.payload)),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.roles.detail(vars.id) });
       qc.invalidateQueries({ queryKey: QK.roles.all });

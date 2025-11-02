@@ -42,7 +42,6 @@ export const API_ENDPOINTS = {
   roles: {
     list: "/roles",
     detail: (id: string | number) => `/roles/${id}`,
-    diff: (id: string | number) => `/roles/${id}/diff`,
     permissions: (id: string | number) => `/roles/${id}/permissions`,
     permission: (id: string | number, pid: string | number) =>
       `/roles/${id}/permissions/${pid}`,
@@ -53,16 +52,6 @@ export const API_ENDPOINTS = {
     markAllRead: "/notifications/read",
     markRead: (id: string | number) => `/notifications/${id}/read`,
     dashboardMetrics: "/notifications/dashboard/metrics",
-    export: "/notifications/export",
-    failures: "/notifications/failures",
-    failureDetail: (id: string | number) => `/notifications/failures/${id}`,
-    preferences: "/notifications/preferences",
-    templates: "/notifications/templates",
-    templateDetail: (id: string | number) => `/notifications/templates/${id}`,
-    templatePreview: (id: string | number) =>
-      `/notifications/templates/${id}/preview`,
-    templateVersions: (id: string | number) =>
-      `/notifications/templates/${id}/versions`,
   },
   permissions: {
     registry: "/permissions/registry",
