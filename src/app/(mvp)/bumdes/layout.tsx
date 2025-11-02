@@ -70,7 +70,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
   const title = titleMap[pathname] ?? "BUMDes";
 
   return (
-    <ProtectedRoute requiredRole="vendor">
+    <ProtectedRoute requiredRole="bumdes">
       <DashboardLayout title={title} navigation={navigation}>
         {children}
       </DashboardLayout>
