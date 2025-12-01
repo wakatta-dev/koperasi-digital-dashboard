@@ -11,6 +11,21 @@ import { BarChart3 } from "lucide-react";
 // Sidebar navigation for Vendor section (PRD-aligned)
 const navigation = [
   {
+    name: "Dashboard",
+    href: "/vendor/dashboard",
+    icon: <BarChart3 className="h-4 w-4" />,
+  },
+  {
+    name: "Inventory",
+    href: "/vendor/inventory",
+    icon: <BarChart3 className="h-4 w-4" />,
+  },
+  {
+    name: "Manajement Aset",
+    href: "/vendor/assets",
+    icon: <BarChart3 className="h-4 w-4" />,
+  },
+  {
     name: "Account",
     href: "/vendor/account",
     icon: <BarChart3 className="h-4 w-4" />,
