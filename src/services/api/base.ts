@@ -20,7 +20,12 @@ export async function getTenantId(): Promise<string | null> {
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const RAW_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+// Normalize base URL to avoid double /api prefixes
+const STRIPPED = RAW_BASE_URL.replace(/\/+$/, "");
+const BASE_URL = STRIPPED.endsWith("/api")
+  ? STRIPPED.replace(/\/api$/, "")
+  : STRIPPED;
 export const API_PREFIX = "/api";
 
 const MAX_CONCURRENT_REQUESTS = 5;

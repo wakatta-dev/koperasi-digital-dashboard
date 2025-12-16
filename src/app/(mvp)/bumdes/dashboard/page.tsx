@@ -1,9 +1,7 @@
 /** @format */
 
-import React from "react";
+import { AnalyticsDashboardPage } from "@/modules/dashboard/analytics/page";
 
-const DashboardPage = () => {
-  return <div>DashboardPage</div>;
-};
-
-export default DashboardPage;
+export default function DashboardPage() {
+  return <AnalyticsDashboardPage />;
+}

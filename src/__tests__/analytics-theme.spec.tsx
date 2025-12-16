@@ -3,7 +3,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, fireEvent, screen } from "@testing-library/react";
-import DashboardPage from "@/app/(mvp)/vendor/dashboard/page";
+import DashboardPage from "@/app/(mvp)/bumdes/dashboard/page";
 import { analyticsFixture } from "./fixtures/analytics";
 
 const mockSetTheme = vi.fn();
@@ -33,7 +33,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-describe("DashboardPage theme integration", () => {
+describe("BUMDes Dashboard theme integration", () => {
   beforeEach(() => {
     mockSetTheme.mockReset();
   });

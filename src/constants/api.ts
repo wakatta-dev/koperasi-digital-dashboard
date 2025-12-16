@@ -58,7 +58,7 @@ export const API_ENDPOINTS = {
     confirm: (id: string | number) => `/permissions/registry/${id}/confirm`,
   },
   analytics: {
-    dashboard: "/dashboard/analytics",
+    dashboard: "/bumdes/dashboard/analytics",
   },
   vendor: {
     emailChangeConfirm: "/vendor/email-change/confirm",

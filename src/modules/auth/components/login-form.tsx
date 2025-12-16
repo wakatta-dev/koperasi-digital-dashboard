@@ -128,7 +128,11 @@ export function AuthLoginForm() {
                       type="button"
                       onClick={passwordToggle.toggle}
                       className="absolute inset-y-0 right-2 grid w-10 place-items-center text-muted-foreground transition-colors hover:text-foreground"
-                      aria-label={passwordToggle.visible ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                      aria-label={
+                        passwordToggle.visible
+                          ? "Sembunyikan sandi"
+                          : "Tampilkan sandi"
+                      }
                     >
                       {passwordToggle.visible ? (
                         <EyeOffIcon className="h-5 w-5" />
