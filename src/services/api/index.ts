@@ -11,3 +11,4 @@ export * from "./notifications";
 export * from "./permissions";
 export * from "./vendor";
 export * from "./analytics";
+export * from "./finance";

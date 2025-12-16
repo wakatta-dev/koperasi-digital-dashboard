@@ -50,8 +50,15 @@ const navigation = [
   },
   {
     name: "Report",
-    href: "/bumdes/report",
+    href: "/bumdes/report/ringkasan",
     icon: <FileText className="h-4 w-4" />,
+    items: [
+      { name: "Ringkasan", href: "/bumdes/report/ringkasan" },
+      { name: "Laba/Rugi", href: "/bumdes/report/laba-rugi" },
+      { name: "Arus Kas", href: "/bumdes/report/arus-kas" },
+      { name: "Neraca", href: "/bumdes/report/neraca" },
+      { name: "Penjualan Rinci", href: "/bumdes/report/penjualan-rinci" },
+    ],
   },
 ];
 
@@ -63,6 +70,11 @@ const titleMap: Record<string, string> = {
   "/bumdes/pos": "Point of Sales",
   "/bumdes/rent": "Rent",
   "/bumdes/report": "Report",
+  "/bumdes/report/ringkasan": "Report - Ringkasan",
+  "/bumdes/report/laba-rugi": "Report - Laba/Rugi",
+  "/bumdes/report/arus-kas": "Report - Arus Kas",
+  "/bumdes/report/neraca": "Report - Neraca",
+  "/bumdes/report/penjualan-rinci": "Report - Penjualan Rinci",
 };
 
 export default function VendorLayout({ children }: { children: ReactNode }) {

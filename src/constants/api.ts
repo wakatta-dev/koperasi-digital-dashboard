@@ -60,6 +60,13 @@ export const API_ENDPOINTS = {
   analytics: {
     dashboard: "/bumdes/dashboard/analytics",
   },
+  finance: {
+    salesSummary: "/finance/sales/summary",
+    topProducts: "/finance/sales/top-products",
+    channels: "/finance/sales/channels",
+    exportProducts: "/finance/sales/export/products",
+    exportChannels: "/finance/sales/export/channels",
+  },
   vendor: {
     emailChangeConfirm: "/vendor/email-change/confirm",
     tenantAccounts: (tenantId: string | number) =>

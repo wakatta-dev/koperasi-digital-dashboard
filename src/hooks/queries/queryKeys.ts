@@ -44,6 +44,14 @@ export const QK = {
     dashboard: (params?: Record<string, unknown>) =>
       ["analytics", "dashboard", params ?? {}] as const,
   },
+  finance: {
+    summary: (params?: Record<string, unknown>) =>
+      ["finance", "summary", params ?? {}] as const,
+    topProducts: (params?: Record<string, unknown>) =>
+      ["finance", "top-products", params ?? {}] as const,
+    channels: (params?: Record<string, unknown>) =>
+      ["finance", "channels", params ?? {}] as const,
+  },
   vendor: {
     accounts: (tenantId: string | number) =>
       ["vendor", "tenants", String(tenantId), "accounts"] as const,
@@ -68,6 +76,9 @@ export type QueryKey = ReturnType<
   | typeof QK.notifications.list
   | typeof QK.notifications.metrics
   | typeof QK.analytics.dashboard
+  | typeof QK.finance.summary
+  | typeof QK.finance.topProducts
+  | typeof QK.finance.channels
   | typeof QK.vendor.accounts
   | typeof QK.vendor.deactivate
 >;
