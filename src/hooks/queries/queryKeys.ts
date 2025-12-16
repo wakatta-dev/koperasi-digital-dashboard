@@ -51,6 +51,14 @@ export const QK = {
       ["finance", "top-products", params ?? {}] as const,
     channels: (params?: Record<string, unknown>) =>
       ["finance", "channels", params ?? {}] as const,
+    overview: (params?: Record<string, unknown>) =>
+      ["finance", "overview", params ?? {}] as const,
+    profitLoss: (params?: Record<string, unknown>) =>
+      ["finance", "profit-loss", params ?? {}] as const,
+    cashFlow: (params?: Record<string, unknown>) =>
+      ["finance", "cash-flow", params ?? {}] as const,
+    balanceSheet: (params?: Record<string, unknown>) =>
+      ["finance", "balance-sheet", params ?? {}] as const,
   },
   vendor: {
     accounts: (tenantId: string | number) =>
@@ -79,6 +87,10 @@ export type QueryKey = ReturnType<
   | typeof QK.finance.summary
   | typeof QK.finance.topProducts
   | typeof QK.finance.channels
+  | typeof QK.finance.overview
+  | typeof QK.finance.profitLoss
+  | typeof QK.finance.cashFlow
+  | typeof QK.finance.balanceSheet
   | typeof QK.vendor.accounts
   | typeof QK.vendor.deactivate
 >;

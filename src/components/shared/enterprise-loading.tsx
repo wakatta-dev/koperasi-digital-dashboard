@@ -221,7 +221,7 @@ export default function EnterpriseLoading({
 
             {/* Center dot */}
             <motion.div
-              className="absolute top-1/2 left-1/2 w-2 h-2 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2"
+              className="absolute top-1/2 left-1/2 w-2 h-2 bg-purple-600 rounded-full transform -translate-x-1/2 -translate-y-1/2"
               animate={{
                 scale: [1, 1.5, 1],
                 opacity: [0.5, 1, 0.5],
@@ -258,7 +258,7 @@ export default function EnterpriseLoading({
           {[...Array(12)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-primary/30 rounded-full"
+              className="absolute w-1 h-1 bg-purple-600/30 rounded-full"
               style={{
                 left: `${10 + ((i * 7) % 80)}%`,
                 top: `${20 + ((i * 11) % 60)}%`,

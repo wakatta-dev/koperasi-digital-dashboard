@@ -55,7 +55,12 @@ const revenueBreakdown = [
 
 const channelBreakdown = [
   { label: "Kasir (POS)", value: 319_752_300, pct: 70, color: "bg-blue-500" },
-  { label: "Marketplace", value: 137_036_700, pct: 30, color: "bg-emerald-500" },
+  {
+    label: "Marketplace",
+    value: 137_036_700,
+    pct: 30,
+    color: "bg-emerald-500",
+  },
 ];
 
 export default function RingkasanReportPage() {
@@ -79,7 +84,9 @@ export default function RingkasanReportPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/bumdes/report">Laporan Keuangan</BreadcrumbLink>
+              <BreadcrumbLink href="/bumdes/report">
+                Laporan Keuangan
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -88,13 +95,16 @@ export default function RingkasanReportPage() {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="text-xs text-muted-foreground">
-          Periode: {value.label ?? "Pilih rentang"} ({params.start} - {params.end})
+          Periode: {value.label ?? "Pilih rentang"} ({params.start} -{" "}
+          {params.end})
         </div>
       </div>
 
       <Card className="border border-border/60 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">Filter Periode</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Filter Periode
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <DateRangeControls
@@ -115,10 +125,14 @@ export default function RingkasanReportPage() {
         {kpis.map((kpi) => (
           <Card key={kpi.title} className="border border-border/60 shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground">{kpi.title}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                {kpi.title}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
+              <div className="text-2xl font-bold text-foreground">
+                {kpi.value}
+              </div>
               <span
                 className={cn(
                   "text-xs font-medium px-2 py-1 rounded-full inline-flex",
@@ -137,22 +151,31 @@ export default function RingkasanReportPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border border-border/60 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Pendapatan per Produk</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Pendapatan per Produk
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {revenueBreakdown.map((row) => (
               <div key={row.label} className="space-y-2">
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">{row.label}</span>
+                  <span className="font-medium text-foreground">
+                    {row.label}
+                  </span>
                   <span className="font-semibold text-foreground">
                     Rp {row.value.toLocaleString("id-ID")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <div className="w-full rounded-full bg-muted">
-                    <div className="h-2 rounded-full bg-primary" style={{ width: `${row.pct}%` }} />
+                    <div
+                      className="h-2 rounded-full bg-purple-600"
+                      style={{ width: `${row.pct}%` }}
+                    />
                   </div>
-                  <span className="w-10 text-right text-foreground font-medium">{row.pct}%</span>
+                  <span className="w-10 text-right text-foreground font-medium">
+                    {row.pct}%
+                  </span>
                 </div>
               </div>
             ))}
@@ -161,7 +184,9 @@ export default function RingkasanReportPage() {
 
         <Card className="border border-border/60 shadow-sm">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-semibold">Pendapatan per Channel</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Pendapatan per Channel
+            </CardTitle>
             <Button size="sm" variant="outline">
               Ekspor
             </Button>
@@ -169,12 +194,22 @@ export default function RingkasanReportPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {channelBreakdown.map((ch) => (
-                <div key={ch.label} className="rounded-lg border border-border/60 p-3 space-y-2">
+                <div
+                  key={ch.label}
+                  className="rounded-lg border border-border/60 p-3 space-y-2"
+                >
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-foreground">{ch.label}</span>
-                    <span className="text-foreground font-semibold">{ch.pct}%</span>
+                    <span className="font-medium text-foreground">
+                      {ch.label}
+                    </span>
+                    <span className="text-foreground font-semibold">
+                      {ch.pct}%
+                    </span>
                   </div>
-                  <div className={cn("h-2 rounded-full bg-muted", ch.color)} style={{ width: `${ch.pct}%` }} />
+                  <div
+                    className={cn("h-2 rounded-full bg-muted", ch.color)}
+                    style={{ width: `${ch.pct}%` }}
+                  />
                   <div className="text-xs text-muted-foreground">
                     Rp {ch.value.toLocaleString("id-ID")}
                   </div>
@@ -187,7 +222,9 @@ export default function RingkasanReportPage() {
                 <span>Rp 182.450.000</span>
               </div>
               <Progress value={65} className="h-2" />
-              <p className="mt-2 text-xs text-muted-foreground">Kas meningkat +6,2% dari bulan lalu.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Kas meningkat +6,2% dari bulan lalu.
+              </p>
             </div>
           </CardContent>
         </Card>

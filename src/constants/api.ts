@@ -66,6 +66,10 @@ export const API_ENDPOINTS = {
     channels: "/finance/sales/channels",
     exportProducts: "/finance/sales/export/products",
     exportChannels: "/finance/sales/export/channels",
+    overview: "/finance/reports/overview",
+    profitLoss: "/finance/reports/profit-loss",
+    cashFlow: "/finance/reports/cash-flow",
+    balanceSheet: "/finance/reports/balance-sheet",
   },
   vendor: {
     emailChangeConfirm: "/vendor/email-change/confirm",

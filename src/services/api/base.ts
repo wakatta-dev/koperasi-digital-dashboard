@@ -90,7 +90,7 @@ async function request<T>(
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
-  const tenantId = await getTenantId();
+  const tenantId = (await getTenantId()) || process.env.NEXT_PUBLIC_TENANT_ID || "";
   if (tenantId) {
     headers.set("X-Tenant-ID", tenantId);
   }

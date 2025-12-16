@@ -59,3 +59,65 @@ export type FinanceQuery = {
   limit?: number;
   format?: "csv" | "xlsx";
 };
+
+export type OverviewKpi = {
+  title: string;
+  value: string;
+  delta?: string;
+  positive?: boolean;
+};
+
+export type RevenueBreakdown = {
+  label: string;
+  value: number;
+  pct: number;
+};
+
+export type ChannelBreakdown = {
+  id: string;
+  name: string;
+  value: number;
+  pct: number;
+  transactions?: number;
+  average_ticket?: number;
+  color_token?: string;
+};
+
+export type OverviewResponse = {
+  range: TimeRange;
+  kpis: OverviewKpi[];
+  revenue_breakdown: RevenueBreakdown[];
+  channel_breakdown: ChannelBreakdown[];
+};
+
+export type ProfitLossRow = {
+  label: string;
+  value: number;
+  level?: number;
+  highlight?: boolean;
+};
+
+export type ProfitLossResponse = {
+  range: TimeRange;
+  summary: OverviewKpi[];
+  rows: ProfitLossRow[];
+};
+
+export type CashFlowSection = {
+  title: string;
+  items: { label: string; value: number }[];
+};
+
+export type CashFlowResponse = {
+  range: TimeRange;
+  sections: CashFlowSection[];
+};
+
+export type BalanceRow = { label: string; value: number };
+
+export type BalanceSheetResponse = {
+  range: TimeRange;
+  assets: BalanceRow[];
+  liabilities: BalanceRow[];
+  equity: BalanceRow[];
+};

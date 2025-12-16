@@ -1,6 +1,8 @@
-"use client"
+/** @format */
 
-import * as React from "react"
+"use client";
+
+import * as React from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,36 +10,36 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { CheckCircle2, Pencil, PlusCircle, Trash2 } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { CheckCircle2, Pencil, PlusCircle, Trash2 } from "lucide-react";
 
-type ActionVariant = "create" | "edit" | "delete" | "default"
+type ActionVariant = "create" | "edit" | "delete" | "default";
 
 export type ConfirmDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title?: string
-  description?: string
-  confirmText?: string
-  cancelText?: string
-  onConfirm: () => void | Promise<void>
-  variant?: ActionVariant
-  className?: string
-  showCloseButton?: boolean
-  closeOnConfirm?: boolean
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void | Promise<void>;
+  variant?: ActionVariant;
+  className?: string;
+  showCloseButton?: boolean;
+  closeOnConfirm?: boolean;
+};
 
 const variantConfig: Record<
   ActionVariant,
   {
-    icon: React.ElementType
-    iconClass: string
-    title: string
-    description: string
-    confirmText: string
-    confirmVariant: React.ComponentProps<typeof Button>["variant"]
+    icon: React.ElementType;
+    iconClass: string;
+    title: string;
+    description: string;
+    confirmText: string;
+    confirmVariant: React.ComponentProps<typeof Button>["variant"];
   }
 > = {
   create: {
@@ -70,13 +72,13 @@ const variantConfig: Record<
   default: {
     icon: CheckCircle2,
     iconClass:
-      "text-primary bg-primary/10 border-primary/20 dark:text-primary",
+      "text-primary bg-purple-600/10 border-primary/20 dark:text-primary",
     title: "Konfirmasi tindakan",
     description: "Apakah Anda yakin ingin melanjutkan?",
     confirmText: "Konfirmasi",
     confirmVariant: "default",
   },
-}
+};
 
 export default function ConfirmDialog({
   open,
@@ -91,24 +93,27 @@ export default function ConfirmDialog({
   showCloseButton = true,
   closeOnConfirm = true,
 }: ConfirmDialogProps) {
-  const [submitting, setSubmitting] = React.useState(false)
+  const [submitting, setSubmitting] = React.useState(false);
 
-  const cfg = variantConfig[variant]
-  const Icon = cfg.icon
+  const cfg = variantConfig[variant];
+  const Icon = cfg.icon;
 
   const handleConfirm = async () => {
     try {
-      setSubmitting(true)
-      await onConfirm()
-      if (closeOnConfirm) onOpenChange(false)
+      setSubmitting(true);
+      await onConfirm();
+      if (closeOnConfirm) onOpenChange(false);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-md", className)} showCloseButton={showCloseButton}>
+      <DialogContent
+        className={cn("sm:max-w-md", className)}
+        showCloseButton={showCloseButton}
+      >
         <DialogHeader>
           <div className="flex items-start gap-3">
             <span
@@ -148,6 +153,5 @@ export default function ConfirmDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

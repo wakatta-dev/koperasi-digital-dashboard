@@ -1,7 +1,11 @@
 /** @format */
 
 import { PanelsTopLeftIcon } from "lucide-react";
-import { AUTH_BACKGROUND_IMAGE, AUTH_HEADLINE, AUTH_SUBHEAD } from "../constants";
+import {
+  AUTH_BACKGROUND_IMAGE,
+  AUTH_HEADLINE,
+  AUTH_SUBHEAD,
+} from "../constants";
 
 export function AuthHero() {
   return (
@@ -14,7 +18,7 @@ export function AuthHero() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/55 to-black/65" />
       <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white xl:p-16">
         <div>
-          <div className="mb-8 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/90 shadow-lg ring-1 ring-white/10 backdrop-blur">
+          <div className="mb-8 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-600/90 shadow-lg ring-1 ring-white/10 backdrop-blur">
             <PanelsTopLeftIcon className="h-8 w-8" />
           </div>
           <h2 className="text-4xl font-bold leading-[1.1] tracking-tight xl:text-5xl">

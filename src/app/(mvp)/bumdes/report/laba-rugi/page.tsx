@@ -18,10 +18,25 @@ import { useDateRange } from "@/modules/finance/penjualan-rinci/hooks/useDateRan
 import { cn } from "@/lib/utils";
 
 const summary = [
-  { title: "Pendapatan", value: "Rp 456.789.000", delta: "+12,5%", positive: true },
+  {
+    title: "Pendapatan",
+    value: "Rp 456.789.000",
+    delta: "+12,5%",
+    positive: true,
+  },
   { title: "HPP", value: "Rp 238.339.000", delta: "-3,1%", positive: true },
-  { title: "Laba Kotor", value: "Rp 218.450.000", delta: "+8,3%", positive: true },
-  { title: "Laba Bersih", value: "Rp 118.450.000", delta: "+6,7%", positive: true },
+  {
+    title: "Laba Kotor",
+    value: "Rp 218.450.000",
+    delta: "+8,3%",
+    positive: true,
+  },
+  {
+    title: "Laba Bersih",
+    value: "Rp 118.450.000",
+    delta: "+6,7%",
+    positive: true,
+  },
 ];
 
 const labaRugiRows = [
@@ -59,7 +74,9 @@ export default function LabaRugiReportPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/bumdes/report">Laporan Keuangan</BreadcrumbLink>
+              <BreadcrumbLink href="/bumdes/report">
+                Laporan Keuangan
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -68,13 +85,16 @@ export default function LabaRugiReportPage() {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="text-xs text-muted-foreground">
-          Periode: {value.label ?? "Pilih rentang"} ({params.start} - {params.end})
+          Periode: {value.label ?? "Pilih rentang"} ({params.start} -{" "}
+          {params.end})
         </div>
       </div>
 
       <Card className="border border-border/60 shadow-sm">
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-semibold">Filter Periode</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Filter Periode
+          </CardTitle>
           <Button size="sm" variant="outline">
             Ekspor PDF
           </Button>
@@ -92,10 +112,14 @@ export default function LabaRugiReportPage() {
         {summary.map((item) => (
           <Card key={item.title} className="border border-border/60 shadow-sm">
             <CardHeader className="pb-1">
-              <CardTitle className="text-sm font-semibold text-muted-foreground">{item.title}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-muted-foreground">
+                {item.title}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="text-2xl font-bold text-foreground">{item.value}</div>
+              <div className="text-2xl font-bold text-foreground">
+                {item.value}
+              </div>
               <span
                 className={cn(
                   "text-xs font-medium px-2 py-1 rounded-full inline-flex",
@@ -113,7 +137,9 @@ export default function LabaRugiReportPage() {
 
       <Card className="border border-border/60 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">Laporan Laba/Rugi</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Laporan Laba/Rugi
+          </CardTitle>
         </CardHeader>
         <CardContent className="overflow-hidden rounded-lg border border-border/60">
           <table className="w-full text-sm">
@@ -125,8 +151,16 @@ export default function LabaRugiReportPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {labaRugiRows.map((row) => (
-                <tr key={row.label} className={cn(row.highlight && "bg-primary/5")}>
-                  <td className={cn("px-4 py-3 text-foreground", row.level > 0 && "pl-8 text-muted-foreground")}>
+                <tr
+                  key={row.label}
+                  className={cn(row.highlight && "bg-purple-600/5")}
+                >
+                  <td
+                    className={cn(
+                      "px-4 py-3 text-foreground",
+                      row.level > 0 && "pl-8 text-muted-foreground"
+                    )}
+                  >
                     {row.label}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-foreground">

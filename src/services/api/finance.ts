@@ -5,6 +5,10 @@ import { api, API_PREFIX } from "./base";
 import type {
   ChannelsResponse,
   FinanceQuery,
+  BalanceSheetResponse,
+  CashFlowResponse,
+  OverviewResponse,
+  ProfitLossResponse,
   SalesSummaryResponse,
   TopProductsResponse,
 } from "@/modules/finance/penjualan-rinci/types";
@@ -64,4 +68,48 @@ export function getExportUrl(
       ? API_ENDPOINTS.finance.exportProducts
       : API_ENDPOINTS.finance.exportChannels;
   return `${API_PREFIX}${path}${query}`;
+}
+
+export function getOverview(
+  params?: FinanceQuery,
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<OverviewResponse>> {
+  const query = buildQuery(params);
+  return api.get<OverviewResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.finance.overview}${query}`,
+    { signal: opts?.signal }
+  );
+}
+
+export function getProfitLoss(
+  params?: FinanceQuery,
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<ProfitLossResponse>> {
+  const query = buildQuery(params);
+  return api.get<ProfitLossResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.finance.profitLoss}${query}`,
+    { signal: opts?.signal }
+  );
+}
+
+export function getCashFlow(
+  params?: FinanceQuery,
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<CashFlowResponse>> {
+  const query = buildQuery(params);
+  return api.get<CashFlowResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.finance.cashFlow}${query}`,
+    { signal: opts?.signal }
+  );
+}
+
+export function getBalanceSheet(
+  params?: FinanceQuery,
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<BalanceSheetResponse>> {
+  const query = buildQuery(params);
+  return api.get<BalanceSheetResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.finance.balanceSheet}${query}`,
+    { signal: opts?.signal }
+  );
 }

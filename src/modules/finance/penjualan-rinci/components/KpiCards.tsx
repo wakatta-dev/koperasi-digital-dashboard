@@ -2,7 +2,13 @@
 
 "use client";
 
-import { ArrowDown, ArrowUp, CreditCard, ShoppingCart, Users } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CreditCard,
+  ShoppingCart,
+  Users,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SalesKpi } from "../types";
@@ -16,9 +22,16 @@ type Props = {
   onRetry?: () => void;
 };
 
-function Trend({ direction, label }: { direction?: SalesKpi["delta_direction"]; label?: string }) {
+function Trend({
+  direction,
+  label,
+}: {
+  direction?: SalesKpi["delta_direction"];
+  label?: string;
+}) {
   if (!label) return null;
-  const Icon = direction === "down" ? ArrowDown : direction === "up" ? ArrowUp : null;
+  const Icon =
+    direction === "down" ? ArrowDown : direction === "up" ? ArrowUp : null;
   const color =
     direction === "down"
       ? "text-red-500 bg-red-50 dark:bg-red-500/10"
@@ -26,7 +39,9 @@ function Trend({ direction, label }: { direction?: SalesKpi["delta_direction"]; 
       ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10"
       : "text-muted-foreground bg-muted/30";
   return (
-    <div className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${color}`}>
+    <div
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${color}`}
+    >
       {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
       <span>{label}</span>
     </div>
@@ -68,21 +83,30 @@ export function KpiCards({ kpis, isLoading, isError, onRetry }: Props) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {cards.map((card) => (
-        <Card key={card.id} className="border border-border/70 shadow-sm bg-card/80 backdrop-blur-sm">
+        <Card
+          key={card.id}
+          className="border border-border/70 shadow-sm bg-card/80 backdrop-blur-sm"
+        >
           <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
             <div className="space-y-1">
-              <CardTitle className="text-sm font-semibold text-foreground">{card.label}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-foreground">
+                {card.label}
+              </CardTitle>
               <div className="text-2xl font-bold">{card.value}</div>
               <Trend direction={card.direction} label={card.trend} />
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600 text-white shadow">
               {card.icon}
             </div>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Periode</span>
-              {card.direction ? <span className="flex items-center gap-1">{card.direction === "down" ? "Menurun" : "Naik"}</span> : null}
+              {card.direction ? (
+                <span className="flex items-center gap-1">
+                  {card.direction === "down" ? "Menurun" : "Naik"}
+                </span>
+              ) : null}
             </div>
           </CardContent>
         </Card>

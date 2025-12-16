@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { motion } from "framer-motion";
@@ -27,7 +29,7 @@ export default function TenantNotFound() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="rounded-md bg-primary px-6 py-2 text-white shadow"
+          className="rounded-md bg-purple-600 px-6 py-2 text-white shadow"
         >
           Kembali ke Login
         </motion.button>
@@ -35,4 +37,3 @@ export default function TenantNotFound() {
     </div>
   );
 }
-

@@ -2,7 +2,15 @@
 
 "use client";
 
-import { TrendingDown, TrendingUp, Minus, ShoppingBag, Users2, PackageSearch, ClipboardList } from "lucide-react";
+import {
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  ShoppingBag,
+  Users2,
+  PackageSearch,
+  ClipboardList,
+} from "lucide-react";
 import type { ReactElement } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,7 +57,7 @@ export function KpiCards({
 
   const iconMap: Record<AnalyticsKpi["id"], ReactElement> = {
     sales_today: (
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600 text-white shadow">
         <ShoppingBag className="h-5 w-5" />
       </div>
     ),
@@ -74,10 +82,15 @@ export function KpiCards({
     <div className="space-y-2">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <Card key={kpi.id} className="border border-border/70 shadow-sm bg-card/80 backdrop-blur-sm">
+          <Card
+            key={kpi.id}
+            className="border border-border/70 shadow-sm bg-card/80 backdrop-blur-sm"
+          >
             <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
               <div className="space-y-1">
-                <CardTitle className="text-sm font-semibold text-foreground">{kpi.label}</CardTitle>
+                <CardTitle className="text-sm font-semibold text-foreground">
+                  {kpi.label}
+                </CardTitle>
                 <div className="text-2xl font-bold">{formatKpiValue(kpi)}</div>
                 {typeof kpi.trend_delta_pct === "number" ? (
                   <span
