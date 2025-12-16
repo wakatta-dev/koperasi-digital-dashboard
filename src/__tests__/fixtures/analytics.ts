@@ -1,0 +1,97 @@
+import type { AnalyticsResponseData } from "@/types/api";
+
+export const analyticsFixture: AnalyticsResponseData = {
+  kpis: [
+    {
+      id: "sales_today",
+      label: "Penjualan Hari Ini",
+      value: 12890000,
+      currency: "IDR",
+      prior_value: 10730000,
+      trend_direction: "up",
+      trend_delta_pct: 20.1,
+      timeframe: "today",
+      last_updated: "2025-12-15T08:00:00Z",
+      severity: "info",
+    },
+    {
+      id: "transactions_today",
+      label: "Transaksi Hari Ini",
+      value: 89,
+      prior_value: 75,
+      trend_direction: "up",
+      trend_delta_pct: 18,
+      timeframe: "today",
+      last_updated: "2025-12-15T08:00:00Z",
+      severity: "info",
+    },
+    {
+      id: "active_orders",
+      label: "Pesanan Berjalan",
+      value: 12,
+      prior_value: 10,
+      trend_direction: "up",
+      trend_delta_pct: 19,
+      timeframe: "today",
+      last_updated: "2025-12-15T08:00:00Z",
+      severity: "info",
+    },
+    {
+      id: "low_stock_count",
+      label: "Stok Menipis",
+      value: 0,
+      prior_value: 0,
+      trend_direction: "flat",
+      trend_delta_pct: 0,
+      timeframe: "today",
+      last_updated: "2025-12-15T08:00:00Z",
+      severity: "warn",
+    },
+  ],
+  overview: {
+    series: [
+      { period: "2025-01", metric: "revenue", value: 4500000 },
+      { period: "2025-01", metric: "transactions", value: 120 },
+      { period: "2025-02", metric: "revenue", value: 5200000 },
+      { period: "2025-02", metric: "transactions", value: 132 },
+    ],
+  },
+  top_products: [
+    {
+      product_id: "sku-1",
+      name: "Produk A",
+      units_sold: 18,
+      stock_available: 5,
+      reorder_point: 8,
+      tenant_default_reorder_point: 10,
+    },
+    {
+      product_id: "sku-2",
+      name: "Produk B",
+      units_sold: 12,
+      stock_available: 20,
+      reorder_point: 5,
+      tenant_default_reorder_point: 10,
+    },
+  ],
+  notifications: [
+    {
+      id: "notif-1",
+      type: "stock",
+      message: "Stok Menipis",
+      severity: "warn",
+      timestamp: "2025-12-15T07:55:00Z",
+      read: false,
+      cleared: false,
+      action_path: "/inventory/low-stock",
+    },
+  ],
+  quick_actions: [
+    { id: "new_sale", label: "Penjualan Baru", target_path: "/pos/sale", enabled: true },
+    { id: "add_product", label: "Tambah Produk", target_path: "/inventory/add", enabled: true },
+    { id: "log_expense", label: "Buat Pengeluaran", target_path: "/expenses/new", enabled: true },
+  ],
+  meta: {
+    last_updated: "2025-12-15T08:00:00Z",
+  },
+};

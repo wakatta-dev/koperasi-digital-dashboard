@@ -343,6 +343,20 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config]
 }
 
+export function createBarLineChartConfig(options: {
+  barKey: string
+  barLabel: string
+  barColor?: string
+  lineKey: string
+  lineLabel: string
+  lineColor?: string
+}) {
+  return {
+    [options.barKey]: { label: options.barLabel, color: options.barColor ?? "var(--chart-bar, #3b82f6)" },
+    [options.lineKey]: { label: options.lineLabel, color: options.lineColor ?? "var(--chart-line, #10b981)" },
+  } satisfies ChartConfig
+}
+
 export {
   ChartContainer,
   ChartTooltip,

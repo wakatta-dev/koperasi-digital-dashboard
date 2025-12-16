@@ -36,6 +36,13 @@ try {
       dispatchEvent: () => false,
     });
   }
+  if (typeof (window as any).ResizeObserver === "undefined") {
+    (window as any).ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    };
+  }
 }
 
 // Clean up DOM between tests when using Testing Library

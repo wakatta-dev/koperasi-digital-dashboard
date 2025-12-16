@@ -10,3 +10,4 @@ export * from "./roles";
 export * from "./notifications";
 export * from "./permissions";
 export * from "./vendor";
+export * from "./analytics";

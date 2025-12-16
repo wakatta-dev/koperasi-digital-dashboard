@@ -9,3 +9,4 @@ export * from "./notification";
 export * from "./permissions";
 export * from "./vendor";
 export * from "./billing";
+export * from "./analytics";

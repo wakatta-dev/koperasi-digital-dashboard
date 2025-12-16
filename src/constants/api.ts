@@ -15,8 +15,7 @@ export const API_ENDPOINTS = {
     register: "/tenants",
     verify: "/tenants/verify",
     status: (id: string | number) => `/tenants/${id}/status`,
-    auditLogs: (tenantId: string | number) =>
-      `/tenants/${tenantId}/audit-logs`,
+    auditLogs: (tenantId: string | number) => `/tenants/${tenantId}/audit-logs`,
     configuration: (tenantId: string | number) =>
       `/tenants/${tenantId}/configuration`,
     profile: (tenantId: string | number) => `/tenants/${tenantId}/profile`,
@@ -58,14 +57,15 @@ export const API_ENDPOINTS = {
     sync: "/permissions/registry/sync",
     confirm: (id: string | number) => `/permissions/registry/${id}/confirm`,
   },
+  analytics: {
+    dashboard: "/dashboard/analytics",
+  },
   vendor: {
     emailChangeConfirm: "/vendor/email-change/confirm",
     tenantAccounts: (tenantId: string | number) =>
       `/vendor/tenants/${tenantId}/accounts`,
-    tenantAccountEmail: (
-      tenantId: string | number,
-      userId: string | number,
-    ) => `/vendor/tenants/${tenantId}/accounts/${userId}/email`,
+    tenantAccountEmail: (tenantId: string | number, userId: string | number) =>
+      `/vendor/tenants/${tenantId}/accounts/${userId}/email`,
     tenantDeactivate: (tenantId: string | number) =>
       `/vendor/tenants/${tenantId}/deactivate`,
   },
