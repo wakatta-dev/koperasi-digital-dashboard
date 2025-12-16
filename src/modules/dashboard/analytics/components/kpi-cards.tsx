@@ -3,6 +3,7 @@
 "use client";
 
 import { TrendingDown, TrendingUp, Minus, ShoppingBag, Users2, PackageSearch, ClipboardList } from "lucide-react";
+import type { ReactElement } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalyticsKpi } from "@/types/api";
@@ -46,7 +47,7 @@ export function KpiCards({
     return <EmptyState onRetry={onRetry} />;
   }
 
-  const iconMap: Record<AnalyticsKpi["id"], JSX.Element> = {
+  const iconMap: Record<AnalyticsKpi["id"], ReactElement> = {
     sales_today: (
       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow">
         <ShoppingBag className="h-5 w-5" />

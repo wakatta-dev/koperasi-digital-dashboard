@@ -3,7 +3,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { DateRangeSelector } from "@/modules/dashboard/analytics/components/date-range";
 import { KpiCards } from "@/modules/dashboard/analytics/components/kpi-cards";
 import { OverviewChart } from "@/modules/dashboard/analytics/components/overview-chart";
@@ -18,7 +17,8 @@ import { trackAnalyticsEvent } from "@/modules/dashboard/analytics/lib/telemetry
 export function AnalyticsDashboardPage() {
   const [range, setRange] = useState<AnalyticsRange>("today");
   const params = useMemo(() => ({ range }), [range]);
-  const { data, isLoading, isError, refetch, isFetching } = useAnalytics(params);
+  const { data, isLoading, isError, refetch, isFetching } =
+    useAnalytics(params);
 
   const kpis = data?.kpis;
   const overview = data?.overview?.series;
@@ -37,7 +37,6 @@ export function AnalyticsDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {isFetching ? <Skeleton className="h-4 w-24" /> : null}
-          <ThemeToggle />
         </div>
       </div>
 
@@ -49,12 +48,19 @@ export function AnalyticsDashboardPage() {
             trackAnalyticsEvent("analytics_range_change", { range: val });
           }}
           onRefresh={() => {
-            trackAnalyticsEvent("analytics_range_change", { range, refresh: true });
+            trackAnalyticsEvent("analytics_range_change", {
+              range,
+              refresh: true,
+            });
             refetch();
           }}
         />
         <div className="text-xs text-muted-foreground">
-          {lastUpdated ? `Pembaruan terakhir: ${new Date(lastUpdated).toLocaleString("id-ID")}` : ""}
+          {lastUpdated
+            ? `Pembaruan terakhir: ${new Date(lastUpdated).toLocaleString(
+                "id-ID"
+              )}`
+            : ""}
         </div>
       </div>
 

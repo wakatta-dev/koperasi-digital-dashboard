@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ensureSuccess } from "@/lib/api";
 import { formatCurrency, formatNumber } from "@/lib/format";
@@ -72,7 +72,7 @@ export function useAnalytics(
     [params]
   );
 
-  return useQuery({
+  const query = useQuery({
     queryKey,
     queryFn: async () => {
       const response = mapAnalyticsDataForView(
@@ -82,19 +82,28 @@ export function useAnalytics(
       return response;
     },
     enabled: options?.enabled ?? true,
-    onSuccess: (data: any) => {
+  });
+
+  useEffect(() => {
+    if (query.isSuccess && query.data) {
       trackAnalyticsEvent("analytics_load_success", {
         range: params?.range ?? "today",
-        last_updated: data.meta?.last_updated,
+        last_updated: query.data.meta?.last_updated,
       });
-    },
-    onError: (err: any) => {
+    }
+  }, [query.isSuccess, query.data, params?.range]);
+
+  useEffect(() => {
+    if (query.isError) {
+      const err = query.error as any;
       trackAnalyticsEvent("analytics_load_error", {
         range: params?.range ?? "today",
         message: err?.message ?? "unknown",
       });
-    },
-  });
+    }
+  }, [query.isError, query.error, params?.range]);
+
+  return query;
 }
 
 export function formatKpiValue(kpi: AnalyticsKpi): string {
