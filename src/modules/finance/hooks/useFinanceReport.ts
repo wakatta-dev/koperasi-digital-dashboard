@@ -21,7 +21,7 @@ import type {
   OverviewResponse,
   ProfitLossResponse,
   TopProductsResponse,
-} from "../penjualan-rinci/types";
+} from "../types";
 import {
   sampleBalanceSheetResponse,
   sampleCashFlowResponse,
@@ -31,7 +31,10 @@ import {
   sampleTopProductsResponse,
 } from "../fixtures";
 
-export function useFinanceOverview(params?: FinanceQuery, options?: { enabled?: boolean }) {
+export function useFinanceOverview(
+  params?: FinanceQuery,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: QK.finance.overview(params ?? {}),
     queryFn: async (): Promise<OverviewResponse> => {
@@ -46,7 +49,10 @@ export function useFinanceOverview(params?: FinanceQuery, options?: { enabled?: 
   });
 }
 
-export function useProfitLoss(params?: FinanceQuery, options?: { enabled?: boolean }) {
+export function useProfitLoss(
+  params?: FinanceQuery,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: QK.finance.profitLoss(params ?? {}),
     queryFn: async (): Promise<ProfitLossResponse> => {
@@ -61,7 +67,10 @@ export function useProfitLoss(params?: FinanceQuery, options?: { enabled?: boole
   });
 }
 
-export function useCashFlow(params?: FinanceQuery, options?: { enabled?: boolean }) {
+export function useCashFlow(
+  params?: FinanceQuery,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: QK.finance.cashFlow(params ?? {}),
     queryFn: async (): Promise<CashFlowResponse> => {
@@ -76,7 +85,10 @@ export function useCashFlow(params?: FinanceQuery, options?: { enabled?: boolean
   });
 }
 
-export function useBalanceSheet(params?: FinanceQuery, options?: { enabled?: boolean }) {
+export function useBalanceSheet(
+  params?: FinanceQuery,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: QK.finance.balanceSheet(params ?? {}),
     queryFn: async (): Promise<BalanceSheetResponse> => {
@@ -91,12 +103,20 @@ export function useBalanceSheet(params?: FinanceQuery, options?: { enabled?: boo
   });
 }
 
-export function useFinanceTopProducts(params?: FinanceQuery, options?: { enabled?: boolean }) {
+export function useFinanceTopProducts(
+  params?: FinanceQuery,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: QK.finance.topProducts(params ?? {}),
     queryFn: async (): Promise<TopProductsResponse> => {
       try {
-        return ensureSuccess(await getTopProducts(params));
+        const res = ensureSuccess(await getTopProducts(params));
+        // Backend may return an array directly; normalize to { items }.
+        if (Array.isArray(res)) {
+          return { items: res };
+        }
+        return res;
       } catch (err) {
         console.warn("finance top-products fallback to sample data", err);
         return sampleTopProductsResponse;
@@ -106,12 +126,20 @@ export function useFinanceTopProducts(params?: FinanceQuery, options?: { enabled
   });
 }
 
-export function useFinanceChannels(params?: FinanceQuery, options?: { enabled?: boolean }) {
+export function useFinanceChannels(
+  params?: FinanceQuery,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: QK.finance.channels(params ?? {}),
     queryFn: async (): Promise<ChannelsResponse> => {
       try {
-        return ensureSuccess(await getChannels(params));
+        const res = ensureSuccess(await getChannels(params));
+        // Backend may return an array directly; normalize to { items }.
+        if (Array.isArray(res)) {
+          return { items: res };
+        }
+        return res;
       } catch (err) {
         console.warn("finance channels fallback to sample data", err);
         return sampleChannelsResponse;

@@ -6,7 +6,9 @@ import { useMemo, useState } from "react";
 import { endOfMonth, formatISO, startOfMonth, subDays } from "date-fns";
 import type { FinancePreset, TimeRange } from "../types";
 
-function computeRange(preset: FinancePreset): Pick<TimeRange, "start" | "end" | "preset"> {
+function computeRange(
+  preset: FinancePreset
+): Pick<TimeRange, "start" | "end" | "preset"> {
   const today = new Date();
   if (preset === "today") {
     const iso = formatISO(today, { representation: "date" });
@@ -35,7 +37,9 @@ function labelForRange(range: TimeRange): string {
 }
 
 export function useDateRange(initialPreset: FinancePreset = "month") {
-  const [range, setRange] = useState<TimeRange>(() => computeRange(initialPreset));
+  const [range, setRange] = useState<TimeRange>(() =>
+    computeRange(initialPreset)
+  );
 
   const setPreset = (preset: FinancePreset) => {
     setRange(computeRange(preset));

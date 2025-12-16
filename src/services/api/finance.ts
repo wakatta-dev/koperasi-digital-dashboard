@@ -11,7 +11,7 @@ import type {
   ProfitLossResponse,
   SalesSummaryResponse,
   TopProductsResponse,
-} from "@/modules/finance/penjualan-rinci/types";
+} from "@/modules/finance/types";
 import type { ApiResponse } from "@/types/api";
 
 function buildQuery(params?: FinanceQuery): string {

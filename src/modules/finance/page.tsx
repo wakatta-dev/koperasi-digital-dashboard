@@ -3,7 +3,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateRangeControls } from "./components/DateRangeControls";
 import { useDateRange } from "./hooks/useDateRange";
@@ -23,12 +30,20 @@ export function FinanceSalesReportPage() {
 
   const handlePresetChange = (preset: FinancePreset) => {
     setPreset(preset);
-    console.info("telemetry:finance_range_change", { preset, start: value.start, end: value.end });
+    console.info("telemetry:finance_range_change", {
+      preset,
+      start: value.start,
+      end: value.end,
+    });
   };
 
   const handleCustomApply = (start: string, end: string) => {
     setCustomRange(start, end);
-    console.info("telemetry:finance_range_change", { preset: "custom", start, end });
+    console.info("telemetry:finance_range_change", {
+      preset: "custom",
+      start,
+      end,
+    });
   };
 
   return (
@@ -45,12 +60,16 @@ export function FinanceSalesReportPage() {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="text-xs text-muted-foreground">Laporan penjualan terpilih</div>
+        <div className="text-xs text-muted-foreground">
+          Laporan penjualan terpilih
+        </div>
       </div>
 
       <Card className="border border-border/60 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base font-semibold">Filter Periode</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Filter Periode
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <DateRangeControls
@@ -66,15 +85,20 @@ export function FinanceSalesReportPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 border border-dashed border-border/60">
           <CardHeader>
-            <CardTitle className="text-sm font-semibold text-muted-foreground">Produk Terlaris (akan datang)</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
+              Produk Terlaris (akan datang)
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Bagian ini akan menampilkan tabel produk terlaris sesuai rentang tanggal.
+            Bagian ini akan menampilkan tabel produk terlaris sesuai rentang
+            tanggal.
           </CardContent>
         </Card>
         <Card className="border border-dashed border-border/60">
           <CardHeader>
-            <CardTitle className="text-sm font-semibold text-muted-foreground">Penjualan per Channel (akan datang)</CardTitle>
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
+              Penjualan per Channel (akan datang)
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             Visualisasi channel akan ditempatkan di sini.

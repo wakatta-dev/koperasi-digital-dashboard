@@ -14,10 +14,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { DateRangeControls } from "@/modules/finance/penjualan-rinci/components/DateRangeControls";
-import { useDateRange } from "@/modules/finance/penjualan-rinci/hooks/useDateRange";
-import { KpiSection } from "@/modules/finance/penjualan-rinci/containers/KpiSection";
-import type { FinancePreset } from "@/modules/finance/penjualan-rinci/types";
+import { DateRangeControls } from "@/modules/finance/components/DateRangeControls";
+import { useDateRange } from "@/modules/finance/hooks/useDateRange";
+import { KpiSection } from "@/modules/finance/containers/KpiSection";
+import type { FinancePreset } from "@/modules/finance/types";
 import {
   useFinanceChannels,
   useFinanceTopProducts,
@@ -26,7 +26,7 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
-} from "@/modules/finance/penjualan-rinci/components/state-placeholders";
+} from "@/modules/finance/components/state-placeholders";
 
 export default function PenjualanRinciReportPage() {
   const { value, setPreset, setCustomRange } = useDateRange("month");

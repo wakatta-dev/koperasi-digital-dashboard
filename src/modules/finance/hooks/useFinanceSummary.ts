@@ -17,7 +17,23 @@ export function useFinanceSummary(
     queryKey: QK.finance.summary(params ?? {}),
     queryFn: async (): Promise<SalesSummaryResponse> => {
       try {
-        return ensureSuccess(await getSalesSummary(params));
+        const res = ensureSuccess(await getSalesSummary(params));
+        // Backend may return KPI fields at the root; normalize to kpis object.
+        if (!res.kpis && typeof res.total_revenue === "number") {
+          return {
+            ...res,
+            kpis: {
+              total_revenue: res.total_revenue,
+              transaction_count: res.transaction_count ?? 0,
+              average_ticket: res.average_ticket ?? 0,
+              delta_label: res.delta_label,
+              delta_direction: res.delta_direction,
+              comparison_period: res.comparison_period,
+              last_updated: res.last_updated,
+            },
+          };
+        }
+        return res;
       } catch (err) {
         console.warn("finance summary fallback to sample data", err);
         return sampleSummaryResponse;

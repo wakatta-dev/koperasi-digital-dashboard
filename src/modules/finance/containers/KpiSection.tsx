@@ -25,7 +25,11 @@ export function KpiSection({ params, rangeLabel }: Props) {
   }, [query.isFetching]);
 
   useEffect(() => {
-    if (!query.isFetching && (query.isSuccess || query.isError) && timerRef.current !== null) {
+    if (
+      !query.isFetching &&
+      (query.isSuccess || query.isError) &&
+      timerRef.current !== null
+    ) {
       const durationMs = performance.now() - timerRef.current;
       console.info("telemetry:finance_summary_load", {
         success: query.isSuccess,
@@ -36,7 +40,14 @@ export function KpiSection({ params, rangeLabel }: Props) {
       });
       timerRef.current = null;
     }
-  }, [query.isFetching, query.isSuccess, query.isError, params.end, params.preset, params.start]);
+  }, [
+    query.isFetching,
+    query.isSuccess,
+    query.isError,
+    params.end,
+    params.preset,
+    params.start,
+  ]);
 
   const lastUpdated = useMemo(
     () => query.data?.kpis?.last_updated ?? query.data?.range?.display_label,
@@ -47,8 +58,14 @@ export function KpiSection({ params, rangeLabel }: Props) {
     <Card className="border border-border/60 shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">Ringkasan Penjualan</CardTitle>
-          {rangeLabel ? <span className="text-xs text-muted-foreground">Periode: {rangeLabel}</span> : null}
+          <CardTitle className="text-lg font-semibold">
+            Ringkasan Penjualan
+          </CardTitle>
+          {rangeLabel ? (
+            <span className="text-xs text-muted-foreground">
+              Periode: {rangeLabel}
+            </span>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent>

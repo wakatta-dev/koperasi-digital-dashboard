@@ -2,7 +2,7 @@
 
 import { renderHook, act } from "@testing-library/react";
 import { vi, describe, expect, it, beforeEach, afterEach } from "vitest";
-import { useDateRange } from "@/modules/finance/penjualan-rinci/hooks/useDateRange";
+import { useDateRange } from "@/modules/finance/hooks/useDateRange";
 
 describe("useDateRange", () => {
   const mockNow = new Date("2023-01-15T10:00:00Z");

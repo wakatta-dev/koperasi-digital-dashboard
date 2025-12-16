@@ -13,28 +13,17 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DateRangeControls } from "@/modules/finance/penjualan-rinci/components/DateRangeControls";
-import { useDateRange } from "@/modules/finance/penjualan-rinci/hooks/useDateRange";
+import { DateRangeControls } from "@/modules/finance/components/DateRangeControls";
+import { useDateRange } from "@/modules/finance/hooks/useDateRange";
+import { useBalanceSheet } from "@/modules/finance/hooks/useFinanceReport";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/modules/finance/components/state-placeholders";
+import type { BalanceRow } from "@/modules/finance/types";
 
-const assets = [
-  { label: "Kas & Setara Kas", value: 182_450_000 },
-  { label: "Piutang Usaha", value: 75_300_000 },
-  { label: "Persediaan", value: 64_500_000 },
-  { label: "Aset Tetap", value: 210_000_000 },
-];
-
-const liabilities = [
-  { label: "Utang Usaha", value: 58_750_000 },
-  { label: "Utang Jangka Pendek", value: 45_000_000 },
-  { label: "Utang Jangka Panjang", value: 120_000_000 },
-];
-
-const equity = [
-  { label: "Modal Disetor", value: 180_000_000 },
-  { label: "Laba Ditahan", value: 128_500_000 },
-];
-
-function sum(values: { value: number }[]) {
+function sum(values: BalanceRow[]) {
   return values.reduce((acc, cur) => acc + cur.value, 0);
 }
 
@@ -49,6 +38,10 @@ export default function NeracaReportPage() {
     [value.end, value.preset, value.start]
   );
 
+  const balanceQuery = useBalanceSheet(params);
+  const assets = balanceQuery.data?.assets ?? [];
+  const liabilities = balanceQuery.data?.liabilities ?? [];
+  const equity = balanceQuery.data?.equity ?? [];
   const totalAssets = sum(assets);
   const totalLiabilities = sum(liabilities);
   const totalEquity = sum(equity);
@@ -63,7 +56,9 @@ export default function NeracaReportPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/bumdes/report">Laporan Keuangan</BreadcrumbLink>
+              <BreadcrumbLink href="/bumdes/report">
+                Laporan Keuangan
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -72,13 +67,16 @@ export default function NeracaReportPage() {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="text-xs text-muted-foreground">
-          Periode: {value.label ?? "Pilih rentang"} ({params.start} - {params.end})
+          Periode: {value.label ?? "Pilih rentang"} ({params.start} -{" "}
+          {params.end})
         </div>
       </div>
 
       <Card className="border border-border/60 shadow-sm">
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-semibold">Filter Periode</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Filter Periode
+          </CardTitle>
           <Button size="sm" variant="outline">
             Ekspor PDF
           </Button>
@@ -98,34 +96,66 @@ export default function NeracaReportPage() {
             <CardTitle className="text-base font-semibold">Aset</CardTitle>
           </CardHeader>
           <CardContent className="divide-y divide-border text-sm">
-            {assets.map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2">
-                <span className="text-foreground">{item.label}</span>
-                <span className="font-semibold text-foreground">Rp {item.value.toLocaleString("id-ID")}</span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
-              <span>Total Aset</span>
-              <span>Rp {totalAssets.toLocaleString("id-ID")}</span>
-            </div>
+            {balanceQuery.isLoading ? (
+              <LoadingState lines={4} />
+            ) : balanceQuery.isError ? (
+              <ErrorState onRetry={() => balanceQuery.refetch()} />
+            ) : !assets.length ? (
+              <EmptyState onRetry={() => balanceQuery.refetch()} />
+            ) : (
+              <>
+                {assets.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <span className="text-foreground">{item.label}</span>
+                    <span className="font-semibold text-foreground">
+                      Rp {item.value.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
+                  <span>Total Aset</span>
+                  <span>Rp {totalAssets.toLocaleString("id-ID")}</span>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <Card className="border border-border/60 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Liabilitas</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Liabilitas
+            </CardTitle>
           </CardHeader>
           <CardContent className="divide-y divide-border text-sm">
-            {liabilities.map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2">
-                <span className="text-foreground">{item.label}</span>
-                <span className="font-semibold text-foreground">Rp {item.value.toLocaleString("id-ID")}</span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
-              <span>Total Liabilitas</span>
-              <span>Rp {totalLiabilities.toLocaleString("id-ID")}</span>
-            </div>
+            {balanceQuery.isLoading ? (
+              <LoadingState lines={4} />
+            ) : balanceQuery.isError ? (
+              <ErrorState onRetry={() => balanceQuery.refetch()} />
+            ) : !liabilities.length ? (
+              <EmptyState onRetry={() => balanceQuery.refetch()} />
+            ) : (
+              <>
+                {liabilities.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <span className="text-foreground">{item.label}</span>
+                    <span className="font-semibold text-foreground">
+                      Rp {item.value.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
+                  <span>Total Liabilitas</span>
+                  <span>Rp {totalLiabilities.toLocaleString("id-ID")}</span>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -134,35 +164,63 @@ export default function NeracaReportPage() {
             <CardTitle className="text-base font-semibold">Ekuitas</CardTitle>
           </CardHeader>
           <CardContent className="divide-y divide-border text-sm">
-            {equity.map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2">
-                <span className="text-foreground">{item.label}</span>
-                <span className="font-semibold text-foreground">Rp {item.value.toLocaleString("id-ID")}</span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
-              <span>Total Ekuitas</span>
-              <span>Rp {totalEquity.toLocaleString("id-ID")}</span>
-            </div>
+            {balanceQuery.isLoading ? (
+              <LoadingState lines={4} />
+            ) : balanceQuery.isError ? (
+              <ErrorState onRetry={() => balanceQuery.refetch()} />
+            ) : !equity.length ? (
+              <EmptyState onRetry={() => balanceQuery.refetch()} />
+            ) : (
+              <>
+                {equity.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <span className="text-foreground">{item.label}</span>
+                    <span className="font-semibold text-foreground">
+                      Rp {item.value.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
+                  <span>Total Ekuitas</span>
+                  <span>Rp {totalEquity.toLocaleString("id-ID")}</span>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
 
       <Card className="border border-border/60 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">Keseimbangan</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Keseimbangan
+          </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-foreground space-y-2">
-          <div className="flex items-center justify-between">
-            <span>Aset = Liabilitas + Ekuitas</span>
-            <span className="font-semibold">
-              Rp {totalAssets.toLocaleString("id-ID")} = Rp{" "}
-              {(totalLiabilities + totalEquity).toLocaleString("id-ID")}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Pastikan penjumlahan liabilitas dan ekuitas seimbang dengan total aset. Angka di atas mencerminkan posisi keuangan saat ini.
-          </p>
+          {balanceQuery.isLoading ? (
+            <LoadingState lines={2} />
+          ) : balanceQuery.isError ? (
+            <ErrorState onRetry={() => balanceQuery.refetch()} />
+          ) : !assets.length && !liabilities.length && !equity.length ? (
+            <EmptyState onRetry={() => balanceQuery.refetch()} />
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <span>Aset = Liabilitas + Ekuitas</span>
+                <span className="font-semibold">
+                  Rp {totalAssets.toLocaleString("id-ID")} = Rp{" "}
+                  {(totalLiabilities + totalEquity).toLocaleString("id-ID")}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Pastikan penjumlahan liabilitas dan ekuitas seimbang dengan
+                total aset. Angka di atas mencerminkan posisi keuangan saat ini.
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

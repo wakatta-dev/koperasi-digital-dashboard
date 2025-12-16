@@ -9,7 +9,7 @@ import type {
   ProfitLossResponse,
   SalesSummaryResponse,
   TopProductsResponse,
-} from "./penjualan-rinci/types";
+} from "./types";
 
 export const sampleDateRange: SalesSummaryResponse["range"] = {
   start: "2023-01-01",
@@ -33,11 +33,41 @@ export const sampleSummaryResponse: SalesSummaryResponse = {
 
 export const sampleTopProductsResponse: TopProductsResponse = {
   items: [
-    { product_id: "prod-a", name: "Produk A", units_sold: 532, revenue: 159_600_000, contribution_pct: 35 },
-    { product_id: "prod-b", name: "Produk B", units_sold: 421, revenue: 126_300_000, contribution_pct: 28 },
-    { product_id: "prod-c", name: "Produk C", units_sold: 289, revenue: 86_700_000, contribution_pct: 19 },
-    { product_id: "prod-d", name: "Produk D", units_sold: 186, revenue: 55_800_000, contribution_pct: 12 },
-    { product_id: "prod-e", name: "Produk E", units_sold: 92, revenue: 27_600_000, contribution_pct: 6 },
+    {
+      product_id: "prod-a",
+      name: "Produk A",
+      units_sold: 532,
+      revenue: 159_600_000,
+      contribution_pct: 35,
+    },
+    {
+      product_id: "prod-b",
+      name: "Produk B",
+      units_sold: 421,
+      revenue: 126_300_000,
+      contribution_pct: 28,
+    },
+    {
+      product_id: "prod-c",
+      name: "Produk C",
+      units_sold: 289,
+      revenue: 86_700_000,
+      contribution_pct: 19,
+    },
+    {
+      product_id: "prod-d",
+      name: "Produk D",
+      units_sold: 186,
+      revenue: 55_800_000,
+      contribution_pct: 12,
+    },
+    {
+      product_id: "prod-e",
+      name: "Produk E",
+      units_sold: 92,
+      revenue: 27_600_000,
+      contribution_pct: 6,
+    },
   ],
   meta: { last_updated: "2023-01-31T15:30:00Z" },
 };
@@ -67,10 +97,30 @@ export const sampleChannelsResponse: ChannelsResponse = {
 export const sampleOverviewResponse: OverviewResponse = {
   range: sampleDateRange,
   kpis: [
-    { title: "Total Pendapatan", value: "Rp 456.789.000", delta: "+12,5% dari bulan lalu", positive: true },
-    { title: "Laba Kotor", value: "Rp 218.450.000", delta: "+8,3% dari bulan lalu", positive: true },
-    { title: "Margin Kotor", value: "47,8%", delta: "+3,2% dari bulan lalu", positive: true },
-    { title: "Total Biaya", value: "Rp 98.500.000", delta: "-2,1% dari bulan lalu", positive: false },
+    {
+      title: "Total Pendapatan",
+      value: "Rp 456.789.000",
+      delta: "+12,5% dari bulan lalu",
+      positive: true,
+    },
+    {
+      title: "Laba Kotor",
+      value: "Rp 218.450.000",
+      delta: "+8,3% dari bulan lalu",
+      positive: true,
+    },
+    {
+      title: "Margin Kotor",
+      value: "47,8%",
+      delta: "+3,2% dari bulan lalu",
+      positive: true,
+    },
+    {
+      title: "Total Biaya",
+      value: "Rp 98.500.000",
+      delta: "-2,1% dari bulan lalu",
+      positive: false,
+    },
   ],
   revenue_breakdown: sampleTopProductsResponse.items.map((p) => ({
     label: p.name,
