@@ -2,7 +2,7 @@
 
 "use client";
 
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { TrendingDown, TrendingUp, Minus, ShoppingBag, Users2, PackageSearch, ClipboardList } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalyticsKpi } from "@/types/api";
@@ -46,25 +46,44 @@ export function KpiCards({
     return <EmptyState onRetry={onRetry} />;
   }
 
+  const iconMap: Record<AnalyticsKpi["id"], JSX.Element> = {
+    sales_today: (
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow">
+        <ShoppingBag className="h-5 w-5" />
+      </div>
+    ),
+    transactions_today: (
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500 text-white shadow">
+        <Users2 className="h-5 w-5" />
+      </div>
+    ),
+    active_orders: (
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500 text-white shadow">
+        <ClipboardList className="h-5 w-5" />
+      </div>
+    ),
+    low_stock_count: (
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500 text-white shadow">
+        <PackageSearch className="h-5 w-5" />
+      </div>
+    ),
+  };
+
   return (
     <div className="space-y-2">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <Card key={kpi.id} className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">{kpi.label}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-2xl font-semibold leading-tight">
-                  {formatKpiValue(kpi)}
-                </span>
+          <Card key={kpi.id} className="border border-border/70 shadow-sm bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
+              <div className="space-y-1">
+                <CardTitle className="text-sm font-semibold text-foreground">{kpi.label}</CardTitle>
+                <div className="text-2xl font-bold">{formatKpiValue(kpi)}</div>
                 {typeof kpi.trend_delta_pct === "number" ? (
                   <span
                     className={
                       kpi.trend_direction === "down"
-                        ? "text-xs text-red-500"
-                        : "text-xs text-emerald-600"
+                        ? "text-xs font-medium text-red-500"
+                        : "text-xs font-medium text-emerald-600"
                     }
                   >
                     {kpi.trend_direction === "down" ? "-" : "+"}
@@ -72,7 +91,13 @@ export function KpiCards({
                   </span>
                 ) : null}
               </div>
-              <TrendIcon dir={kpi.trend_direction} />
+              <div>{iconMap[kpi.id]}</div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Periode: {kpi.timeframe}</span>
+                <TrendIcon dir={kpi.trend_direction} />
+              </div>
             </CardContent>
           </Card>
         ))}

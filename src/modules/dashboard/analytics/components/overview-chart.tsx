@@ -33,6 +33,11 @@ export function OverviewChart({ series, isLoading, isError, onRetry }: Props) {
   }));
 
   return (
+    <div className="rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">
+      <div className="mb-2">
+        <h3 className="text-sm font-semibold text-foreground">Overview</h3>
+        <p className="text-xs text-muted-foreground">Pendapatan & transaksi per periode.</p>
+      </div>
     <ChartContainer config={config} className="w-full rounded-lg border border-border/60 bg-card p-2">
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={chartData} margin={{ left: 12, right: 12 }}>
@@ -64,5 +69,6 @@ export function OverviewChart({ series, isLoading, isError, onRetry }: Props) {
         </BarChart>
       </ResponsiveContainer>
     </ChartContainer>
+    </div>
   );
 }

@@ -23,7 +23,7 @@ export function QuickActions({ actions }: Props) {
   if (!actions?.length) return null;
 
   return (
-    <div className="rounded-lg border border-border/60 bg-card p-4 shadow-sm">
+    <div className="rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold">Tindakan Cepat</h3>

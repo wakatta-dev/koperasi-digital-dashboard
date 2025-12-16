@@ -9,6 +9,7 @@ import type { AnalyticsNotification } from "@/types/api";
 import { useNotificationActions } from "@/hooks/queries/notifications";
 import { EmptyState, ErrorState, LoadingState } from "./states";
 import { trackAnalyticsEvent } from "../lib/telemetry";
+import { ShoppingBag, CreditCard, Package, Truck } from "lucide-react";
 
 type Props = {
   notifications?: AnalyticsNotification[];
@@ -35,7 +36,7 @@ export function NotificationsPanel({ notifications, isLoading, isError, onRetry 
   if (!notifications?.length) return <EmptyState onRetry={onRetry} />;
 
   return (
-    <div className="space-y-3 rounded-lg border border-border/60 bg-card p-4 shadow-sm">
+    <div className="space-y-3 rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4" />
@@ -56,38 +57,53 @@ export function NotificationsPanel({ notifications, isLoading, isError, onRetry 
         </Button>
       </div>
       <div className="space-y-3">
-        {notifications.map((notif) => (
-          <div
-            key={notif.id}
-            className="flex items-start justify-between rounded-md border border-border/60 bg-muted/40 p-3"
-          >
-            <div className="flex items-start gap-3">
-              <SeverityDot severity={notif.severity} />
-              <div>
-                <p className="text-sm font-medium">{notif.message}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(notif.timestamp).toLocaleString("id-ID")}
-                </p>
-                {notif.action_path ? (
-                  <Badge variant="secondary" className="mt-1">
-                    {notif.action_path}
-                  </Badge>
-                ) : null}
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Tandai selesai"
-              onClick={() => {
-                trackAnalyticsEvent("notification_mark_read", { id: notif.id, type: notif.type });
-                markRead.mutate(notif.id);
-              }}
+        {notifications.map((notif) => {
+          const icon =
+            notif.type === "order" ? (
+              <ShoppingBag className="h-4 w-4" />
+            ) : notif.type === "payment" ? (
+              <CreditCard className="h-4 w-4" />
+            ) : notif.type === "shipment" ? (
+              <Truck className="h-4 w-4" />
+            ) : (
+              <Package className="h-4 w-4" />
+            );
+          return (
+            <div
+              key={notif.id}
+              className="flex items-start justify-between rounded-md border border-border/60 bg-muted/40 p-3"
             >
-              <CheckCircle2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+              <div className="flex items-start gap-3">
+                <SeverityDot severity={notif.severity} />
+                <div>
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    {icon}
+                    {notif.message}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(notif.timestamp).toLocaleString("id-ID")}
+                  </p>
+                  {notif.action_path ? (
+                    <Badge variant="secondary" className="mt-1">
+                      {notif.action_path}
+                    </Badge>
+                  ) : null}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Tandai selesai"
+                onClick={() => {
+                  trackAnalyticsEvent("notification_mark_read", { id: notif.id, type: notif.type });
+                  markRead.mutate(notif.id);
+                }}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+              </Button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
