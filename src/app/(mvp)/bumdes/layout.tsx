@@ -30,7 +30,7 @@ const navigation = [
   },
   {
     name: "Inventaris",
-    href: "/bumdes/inventaris",
+    href: "/bumdes/inventory",
     icon: <ClipboardList className="h-4 w-4" />,
   },
   {
