@@ -1,9 +1,8 @@
 /** @format */
 
 import React from "react";
+import { AssetManagementPage } from "@/modules/asset/components/asset-page";
 
-const AssetPage = () => {
-  return <div>Asset</div>;
-};
-
-export default AssetPage;
+export default function AssetPage() {
+  return <AssetManagementPage />;
+}
