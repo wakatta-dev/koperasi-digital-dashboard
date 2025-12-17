@@ -2,227 +2,240 @@
 
 "use client";
 
-import { useMemo } from "react";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { DateRangeControls } from "@/modules/finance/components/DateRangeControls";
-import { useDateRange } from "@/modules/finance/hooks/useDateRange";
-import { useBalanceSheet } from "@/modules/finance/hooks/useFinanceReport";
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-} from "@/modules/finance/components/state-placeholders";
-import type { BalanceRow } from "@/modules/finance/types";
+  CalendarDays,
+  CheckCircle2,
+  Download,
+  HelpCircle,
+  Info,
+} from "lucide-react";
 
-function sum(values: BalanceRow[]) {
-  return values.reduce((acc, cur) => acc + cur.value, 0);
-}
+const periodPresets = [
+  { label: "Bulanan", active: false },
+  { label: "Kuartalan", active: true },
+  { label: "Tahunan", active: false },
+];
+
+const assets = [
+  { label: "Kas dan Setara Kas", value: "Rp 250.000.000" },
+  { label: "Piutang Usaha", value: "Rp 120.000.000" },
+  { label: "Nilai Persediaan", value: "Rp 180.000.000" },
+  { label: "Aset Lancar Lainnya", value: "Rp 75.000.000" },
+  { label: "Aset Tetap (Setelah Penyusutan)", value: "Rp 550.000.000" },
+];
+
+const liabilities = [
+  { label: "Hutang Usaha", value: "Rp 95.000.000" },
+  { label: "Hutang Bank (Jangka Pendek)", value: "Rp 120.000.000" },
+  { label: "Hutang Pajak", value: "Rp 45.000.000" },
+  { label: "Hutang Bank (Jangka Panjang)", value: "Rp 320.000.000" },
+];
+
+const equity = [
+  { label: "Modal Disetor", value: "Rp 350.000.000" },
+  { label: "Laba Ditahan", value: "Rp 245.000.000" },
+];
+
+const assetInfo = [
+  { label: "Aset Lancar", value: "Rp 625.000.000" },
+  { label: "Aset Tidak Lancar", value: "Rp 550.000.000" },
+  { label: "Rasio Lancar", value: "2.4" },
+];
+
+const liabilityInfo = [
+  { label: "Liabilitas Jangka Pendek", value: "Rp 260.000.000" },
+  { label: "Liabilitas Jangka Panjang", value: "Rp 320.000.000" },
+  { label: "Rasio Hutang terhadap Ekuitas", value: "0.97" },
+];
 
 export default function NeracaReportPage() {
-  const { value, setPreset, setCustomRange } = useDateRange("month");
-  const params = useMemo(
-    () => ({
-      preset: value.preset,
-      start: value.start,
-      end: value.end,
-    }),
-    [value.end, value.preset, value.start]
-  );
-
-  const balanceQuery = useBalanceSheet(params);
-  const assets = balanceQuery.data?.assets ?? [];
-  const liabilities = balanceQuery.data?.liabilities ?? [];
-  const equity = balanceQuery.data?.equity ?? [];
-  const totalAssets = sum(assets);
-  const totalLiabilities = sum(liabilities);
-  const totalEquity = sum(equity);
-
   return (
-    <div className="flex flex-col gap-6 bg-background p-4 sm:p-6 rounded-xl border border-border/60 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Breadcrumb>
-          <BreadcrumbList className="text-sm text-muted-foreground">
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/bumdes/dashboard">BUMDes</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/bumdes/report">
-                Laporan Keuangan
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Neraca</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="text-xs text-muted-foreground">
-          Periode: {value.label ?? "Pilih rentang"} ({params.start} -{" "}
-          {params.end})
+    <div className="max-w-7xl mx-auto space-y-6 text-slate-900 dark:text-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold">Neraca Sederhana</h1>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1 shadow-sm">
+            {periodPresets.map((item) => (
+              <button
+                key={item.label}
+                className={
+                  item.active
+                    ? "px-3 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-md shadow-sm whitespace-nowrap"
+                    : "px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white rounded-md transition-colors whitespace-nowrap"
+                }
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <button className="hidden sm:inline-flex items-center px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm font-medium rounded-md shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600">
+            <CalendarDays className="h-4 w-4 mr-2 text-slate-500" />
+            31 Desember 2023
+          </button>
+          <div className="flex gap-2 flex-wrap">
+            <button className="inline-flex items-center px-3 py-2 border border-indigo-600 text-indigo-600 dark:text-indigo-400 text-sm font-medium rounded-md hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-900">
+              <Download className="h-4 w-4 mr-2" />
+              Ekspor PDF
+            </button>
+            <button className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-colors">
+              <Download className="h-4 w-4 mr-2" />
+              Ekspor Excel
+            </button>
+          </div>
         </div>
       </div>
 
-      <Card className="border border-border/60 shadow-sm">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-semibold">
-            Filter Periode
-          </CardTitle>
-          <Button size="sm" variant="outline">
-            Ekspor PDF
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <DateRangeControls
-            value={{ ...value, label: value.label }}
-            onPresetChange={setPreset}
-            onCustomApply={setCustomRange}
-          />
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="border border-border/60 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Aset</CardTitle>
-          </CardHeader>
-          <CardContent className="divide-y divide-border text-sm">
-            {balanceQuery.isLoading ? (
-              <LoadingState lines={4} />
-            ) : balanceQuery.isError ? (
-              <ErrorState onRetry={() => balanceQuery.refetch()} />
-            ) : !assets.length ? (
-              <EmptyState onRetry={() => balanceQuery.refetch()} />
-            ) : (
-              <>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+          <h3 className="text-lg font-bold">Laporan Posisi Keuangan</h3>
+          <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-2 sm:mt-0">
+            <Info className="h-5 w-5 mr-1" />
+            Per: 31 Desember 2023
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <div className="space-y-6">
+              <h4 className="text-sm font-bold uppercase tracking-wider">
+                Aset
+              </h4>
+              <div className="space-y-4">
                 {assets.map((item) => (
                   <div
                     key={item.label}
-                    className="flex items-center justify-between py-2"
+                    className="flex justify-between items-center text-sm"
                   >
-                    <span className="text-foreground">{item.label}</span>
-                    <span className="font-semibold text-foreground">
-                      Rp {item.value.toLocaleString("id-ID")}
-                    </span>
+                    <span>{item.label}</span>
+                    <span className="font-medium">{item.value}</span>
                   </div>
                 ))}
-                <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
-                  <span>Total Aset</span>
-                  <span>Rp {totalAssets.toLocaleString("id-ID")}</span>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </div>
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <span className="font-bold">Total Aset</span>
+                <span className="font-bold">Rp 1.175.000.000</span>
+              </div>
+            </div>
 
-        <Card className="border border-border/60 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">
-              Liabilitas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="divide-y divide-border text-sm">
-            {balanceQuery.isLoading ? (
-              <LoadingState lines={4} />
-            ) : balanceQuery.isError ? (
-              <ErrorState onRetry={() => balanceQuery.refetch()} />
-            ) : !liabilities.length ? (
-              <EmptyState onRetry={() => balanceQuery.refetch()} />
-            ) : (
-              <>
-                {liabilities.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <span className="text-foreground">{item.label}</span>
-                    <span className="font-semibold text-foreground">
-                      Rp {item.value.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
-                  <span>Total Liabilitas</span>
-                  <span>Rp {totalLiabilities.toLocaleString("id-ID")}</span>
+            <div className="space-y-8">
+              <div className="space-y-6">
+                <h4 className="text-sm font-bold uppercase tracking-wider">
+                  Liabilitas
+                </h4>
+                <div className="space-y-4">
+                  {liabilities.map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex justify-between items-center text-sm"
+                    >
+                      <span>{item.label}</span>
+                      <span className="font-medium">{item.value}</span>
+                    </div>
+                  ))}
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                  <span className="font-bold">Total Liabilitas</span>
+                  <span className="font-bold">Rp 580.000.000</span>
+                </div>
+              </div>
 
-        <Card className="border border-border/60 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Ekuitas</CardTitle>
-          </CardHeader>
-          <CardContent className="divide-y divide-border text-sm">
-            {balanceQuery.isLoading ? (
-              <LoadingState lines={4} />
-            ) : balanceQuery.isError ? (
-              <ErrorState onRetry={() => balanceQuery.refetch()} />
-            ) : !equity.length ? (
-              <EmptyState onRetry={() => balanceQuery.refetch()} />
-            ) : (
-              <>
-                {equity.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <span className="text-foreground">{item.label}</span>
-                    <span className="font-semibold text-foreground">
-                      Rp {item.value.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between pt-3 font-semibold text-foreground">
-                  <span>Total Ekuitas</span>
-                  <span>Rp {totalEquity.toLocaleString("id-ID")}</span>
+              <div className="space-y-6">
+                <h4 className="text-sm font-bold uppercase tracking-wider">
+                  Ekuitas
+                </h4>
+                <div className="space-y-4">
+                  {equity.map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex justify-between items-center text-sm"
+                    >
+                      <span>{item.label}</span>
+                      <span className="font-medium">{item.value}</span>
+                    </div>
+                  ))}
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                  <span className="font-bold">Total Ekuitas</span>
+                  <span className="font-bold">Rp 595.000.000</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <span className="font-bold">Total Liabilitas dan Ekuitas</span>
+                <span className="font-bold">Rp 1.175.000.000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-lime-100/60 dark:bg-green-900/10 p-4 border-t border-slate-200 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
+            <div className="flex items-center gap-8 font-bold">
+              <span>Total Aset</span>
+              <span>Rp 1.175.000.000</span>
+              <span>=</span>
+              <span>Total Liabilitas + Ekuitas</span>
+              <span>Rp 1.175.000.000</span>
+            </div>
+            <div className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium">
+              <CheckCircle2 className="h-5 w-5 mr-1" />
+              Neraca Seimbang
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Card className="border border-border/60 shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">
-            Keseimbangan
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-foreground space-y-2">
-          {balanceQuery.isLoading ? (
-            <LoadingState lines={2} />
-          ) : balanceQuery.isError ? (
-            <ErrorState onRetry={() => balanceQuery.refetch()} />
-          ) : !assets.length && !liabilities.length && !equity.length ? (
-            <EmptyState onRetry={() => balanceQuery.refetch()} />
-          ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <span>Aset = Liabilitas + Ekuitas</span>
-                <span className="font-semibold">
-                  Rp {totalAssets.toLocaleString("id-ID")} = Rp{" "}
-                  {(totalLiabilities + totalEquity).toLocaleString("id-ID")}
+      <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 p-6 flex gap-3">
+        <HelpCircle className="h-6 w-6 text-blue-500 dark:text-blue-400 shrink-0" />
+        <div>
+          <h3 className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-1">
+            Catatan
+          </h3>
+          <p className="text-sm text-blue-600 dark:text-blue-400 leading-relaxed">
+            Neraca ini menunjukkan posisi keuangan perusahaan pada tanggal 31
+            Desember 2023. Total Aset harus sama dengan Total Liabilitas
+            ditambah Ekuitas.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <h3 className="text-base font-bold mb-4">Informasi Aset</h3>
+          <div className="space-y-3">
+            {assetInfo.map((item) => (
+              <div
+                key={item.label}
+                className="flex justify-between items-center text-sm"
+              >
+                <span className="text-slate-500 dark:text-slate-400">
+                  {item.label}
                 </span>
+                <span className="font-medium">{item.value}</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Pastikan penjumlahan liabilitas dan ekuitas seimbang dengan
-                total aset. Angka di atas mencerminkan posisi keuangan saat ini.
-              </p>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <h3 className="text-base font-bold mb-4">Informasi Liabilitas</h3>
+          <div className="space-y-3">
+            {liabilityInfo.map((item) => (
+              <div
+                key={item.label}
+                className="flex justify-between items-center text-sm"
+              >
+                <span className="text-slate-500 dark:text-slate-400">
+                  {item.label}
+                </span>
+                <span className="font-medium">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <span>© 2023 3Portals App. Hak Cipta Dilindungi.</span>
+        <span>Terakhir diperbarui: 31 Desember 2023, 15:30</span>
+      </div>
     </div>
   );
 }
