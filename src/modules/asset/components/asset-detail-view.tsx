@@ -35,29 +35,13 @@ const facilityItems = [
   "Musholla Kapasitas 20 Orang",
 ];
 
-export function AssetDetailView({ asset, onBack }: AssetDetailViewProps) {
+export function AssetDetailView({ asset }: AssetDetailViewProps) {
   const router = useRouter();
   const [showReservationModal, setShowReservationModal] = React.useState(false);
 
   return (
-    <div className="bg-[#f8f9fc] dark:bg-[#0f1115]">
+    <div className="bg-[#f8f9fc] dark:bg-[#0f1115] rounded-3xl">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-        <header className="mb-6 flex items-center justify-between">
-          <div className="flex items-center space-x-3 text-slate-500 dark:text-slate-400">
-            <button
-              type="button"
-              onClick={onBack}
-              className="text-sm font-medium text-slate-500 transition-colors hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
-            >
-              Manajemen Aset
-            </button>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-              Detail Aset
-            </span>
-          </div>
-        </header>
-
         <h1 className="mb-6 text-2xl font-bold text-slate-900 dark:text-slate-100">
           Detail Aset
         </h1>
@@ -284,10 +268,14 @@ export function AssetDetailView({ asset, onBack }: AssetDetailViewProps) {
                   className="absolute right-0 top-0 text-blue-400 opacity-80"
                   style={{ transform: "rotate(15deg) translate(10px, -10px)" }}
                 >
-                  <span className="material-symbols-outlined text-sm">water_drop</span>
+                  <span className="material-symbols-outlined text-sm">
+                    water_drop
+                  </span>
                 </div>
                 <div className="absolute bottom-4 left-0 text-blue-300 opacity-80">
-                  <span className="material-symbols-outlined text-sm">water_drop</span>
+                  <span className="material-symbols-outlined text-sm">
+                    water_drop
+                  </span>
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-blue-100">
@@ -319,9 +307,9 @@ export function AssetDetailView({ asset, onBack }: AssetDetailViewProps) {
               <span className="font-bold text-slate-900 dark:text-slate-100">
                 {asset.title}
               </span>{" "}
-              telah berhasil dikirim. Pengurus akan segera menghubungi Anda melalui
-              WhatsApp untuk memberikan informasi lebih lanjut terkait reservasi yang
-              diminta.
+              telah berhasil dikirim. Pengurus akan segera menghubungi Anda
+              melalui WhatsApp untuk memberikan informasi lebih lanjut terkait
+              reservasi yang diminta.
             </p>
             <Button
               type="button"

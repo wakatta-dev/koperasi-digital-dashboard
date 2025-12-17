@@ -25,7 +25,7 @@ const navigation = [
   },
   {
     name: "Asset",
-    href: "/bumdes/asset",
+    href: "/bumdes/asset/manajemen",
     icon: <Package className="h-4 w-4" />,
   },
   {

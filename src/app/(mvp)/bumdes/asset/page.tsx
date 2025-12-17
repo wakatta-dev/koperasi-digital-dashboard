@@ -1,8 +1,7 @@
 /** @format */
 
-import React from "react";
-import { AssetManagementPage } from "@/modules/asset/components/asset-page";
+import { redirect } from "next/navigation";
 
 export default function AssetPage() {
-  return <AssetManagementPage />;
+  redirect("/bumdes/asset/manajemen");
 }

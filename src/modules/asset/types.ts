@@ -8,3 +8,28 @@ export type AssetItem = {
   image: string;
   alt: string;
 };
+
+export type AssetSchedule = {
+  id: string;
+  assetName: string;
+  assetId: string;
+  renterCompany: string;
+  renterName: string;
+  start: string;
+  end: string;
+  duration: string;
+  timeRange?: string;
+  status:
+    | "Confirmed"
+    | "Pending"
+    | "Reserved"
+    | "Finished"
+    | "Cancelled"
+    | "Dipesan"
+    | "Menunggu Pembayaran"
+    | "Berlangsung"
+    | "Selesai";
+  price?: string;
+  thumbnail: string;
+  faded?: boolean;
+};

@@ -3,6 +3,7 @@
 "use client";
 
 import React from "react";
+import { CalendarDays, CheckCircle2, Copy, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ReservationConfirmationPage() {
@@ -13,10 +14,8 @@ export default function ReservationConfirmationPage() {
       <div className="mx-auto w-full max-w-3xl">
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
           <div className="flex flex-col items-center px-8 pb-10 pt-8 text-center md:px-10">
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#ecfdf5] dark:bg-green-900/30">
-              <span className="material-symbols-outlined text-4xl text-[#10b981]">
-                check_circle
-              </span>
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#ecfdf5] text-[#10b981] dark:bg-green-900/30">
+              <CheckCircle2 className="h-10 w-10" />
             </div>
             <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-100 md:text-3xl">
               Reservasi Aset Berhasil Dikonfirmasi!
@@ -40,7 +39,7 @@ export default function ReservationConfirmationPage() {
                 className="rounded-lg p-2 text-indigo-600 transition-colors hover:bg-blue-50 hover:text-indigo-700 dark:hover:bg-blue-900/20"
                 title="Salin Kode"
               >
-                <span className="material-symbols-outlined text-xl">content_copy</span>
+                <Copy className="h-5 w-5" />
               </button>
             </div>
 
@@ -118,7 +117,9 @@ export default function ReservationConfirmationPage() {
                     <p className="mb-1 text-xs text-slate-500 dark:text-slate-400">
                       Total Biaya
                     </p>
-                    <p className="text-lg font-bold text-indigo-600">Rp700.000</p>
+                    <p className="text-lg font-bold text-indigo-600">
+                      Rp700.000
+                    </p>
                   </div>
                 </div>
               </div>
@@ -127,9 +128,10 @@ export default function ReservationConfirmationPage() {
             <div className="mt-2 flex w-full flex-col items-center justify-center space-y-3 md:flex-row md:space-y-0 md:space-x-4">
               <button
                 type="button"
-                className="w-full rounded-xl border border-slate-200 px-6 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-gray-50 dark:border-slate-800 dark:text-slate-100 dark:hover:bg-slate-800 md:w-auto"
+                className="w-full flex items-center rounded-xl border border-slate-200 px-6 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-gray-50 dark:border-slate-800 dark:text-slate-100 dark:hover:bg-slate-800 md:w-auto"
                 onClick={() => router.push("/bumdes/asset")}
               >
+                <Home className="mr-2 h-4 w-4" />
                 Kembali ke Beranda
               </button>
               <button
@@ -137,7 +139,7 @@ export default function ReservationConfirmationPage() {
                 className="flex w-full items-center justify-center space-x-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-md shadow-indigo-600/20 transition-colors hover:bg-indigo-700 md:w-auto"
                 onClick={() => router.push("/bumdes/asset")}
               >
-                <span className="material-symbols-outlined text-lg">calendar_month</span>
+                <CalendarDays className="h-5 w-5" />
                 <span>Lihat Jadwal Saya</span>
               </button>
             </div>
