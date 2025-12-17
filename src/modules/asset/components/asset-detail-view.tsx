@@ -1,5 +1,7 @@
 /** @format */
 
+"use client";
+
 import React from "react";
 import {
   CalendarDays,
@@ -9,6 +11,7 @@ import {
   Clock3,
   MapPin,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +36,9 @@ const facilityItems = [
 ];
 
 export function AssetDetailView({ asset, onBack }: AssetDetailViewProps) {
+  const router = useRouter();
+  const [showReservationModal, setShowReservationModal] = React.useState(false);
+
   return (
     <div className="bg-[#f8f9fc] dark:bg-[#0f1115]">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
@@ -258,6 +264,7 @@ export function AssetDetailView({ asset, onBack }: AssetDetailViewProps) {
                 <Button
                   type="button"
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-600/30"
+                  onClick={() => setShowReservationModal(true)}
                 >
                   <CheckCircle className="h-5 w-5" />
                   Proses Reservasi
@@ -267,6 +274,68 @@ export function AssetDetailView({ asset, onBack }: AssetDetailViewProps) {
           </aside>
         </div>
       </div>
+
+      {showReservationModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-slate-900">
+            <div className="mb-6 flex justify-center">
+              <div className="relative h-32 w-32">
+                <div
+                  className="absolute right-0 top-0 text-blue-400 opacity-80"
+                  style={{ transform: "rotate(15deg) translate(10px, -10px)" }}
+                >
+                  <span className="material-symbols-outlined text-sm">water_drop</span>
+                </div>
+                <div className="absolute bottom-4 left-0 text-blue-300 opacity-80">
+                  <span className="material-symbols-outlined text-sm">water_drop</span>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-blue-100">
+                    <div className="z-10 flex h-20 w-20 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/30">
+                      <span className="material-symbols-outlined text-5xl font-bold">
+                        check
+                      </span>
+                    </div>
+                    <div className="absolute -right-4 top-2 -z-0 flex h-20 w-16 rotate-12 flex-col items-center justify-center rounded bg-white p-1 shadow-sm">
+                      <div className="mb-1 h-1 w-8 rounded bg-blue-100" />
+                      <div className="mb-1 h-1 w-10 rounded bg-gray-100" />
+                      <div className="h-1 w-6 rounded bg-gray-100" />
+                      <div className="mt-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+                        <span className="material-symbols-outlined text-[10px] text-blue-500">
+                          check
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-slate-100">
+              Reservasi Diproses
+            </h2>
+            <p className="mb-8 px-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+              Reservasi Anda untuk{" "}
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                {asset.title}
+              </span>{" "}
+              telah berhasil dikirim. Pengurus akan segera menghubungi Anda melalui
+              WhatsApp untuk memberikan informasi lebih lanjut terkait reservasi yang
+              diminta.
+            </p>
+            <Button
+              type="button"
+              className="h-auto w-full rounded-xl bg-indigo-600 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-600/20 active:scale-[0.98]"
+              onClick={() => {
+                setShowReservationModal(false);
+                router.push("/bumdes/asset/reservation/confirmation");
+              }}
+            >
+              Beranda
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
