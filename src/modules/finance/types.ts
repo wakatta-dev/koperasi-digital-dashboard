@@ -108,9 +108,18 @@ export type CashFlowSection = {
   items: { label: string; value: number }[];
 };
 
+export type CashFlowRow = {
+  category: string;
+  subcategory?: string;
+  description?: string;
+  amount: number;
+  highlight?: boolean;
+};
+
 export type CashFlowResponse = {
   range: TimeRange;
   sections: CashFlowSection[];
+  rows?: CashFlowRow[];
 };
 
 export type BalanceRow = { label: string; value: number };

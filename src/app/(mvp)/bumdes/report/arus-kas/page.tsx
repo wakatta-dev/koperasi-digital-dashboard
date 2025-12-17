@@ -23,6 +23,11 @@ import {
   LoadingState,
 } from "@/modules/finance/components/state-placeholders";
 
+function formatAmount(v: number) {
+  const sign = v < 0 ? "-Rp" : "Rp";
+  return `${sign} ${Math.abs(v).toLocaleString("id-ID")}`;
+}
+
 export default function ArusKasReportPage() {
   const { value, setPreset, setCustomRange } = useDateRange("month");
   const params = useMemo(
@@ -36,6 +41,7 @@ export default function ArusKasReportPage() {
 
   const cashFlowQuery = useCashFlow(params);
   const sections = cashFlowQuery.data?.sections ?? [];
+  const rows = cashFlowQuery.data?.rows ?? [];
   const netCash =
     sections.flatMap((s) => s.items).reduce((acc, cur) => acc + cur.value, 0) ||
     0;
@@ -84,98 +90,177 @@ export default function ArusKasReportPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="border border-border/60 shadow-sm lg:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Arus Kas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {cashFlowQuery.isLoading ? (
-              <LoadingState lines={6} />
-            ) : cashFlowQuery.isError ? (
-              <ErrorState onRetry={() => cashFlowQuery.refetch()} />
-            ) : !sections.length ? (
-              <EmptyState onRetry={() => cashFlowQuery.refetch()} />
-            ) : (
-              sections.map((section) => (
-                <div
-                  key={section.title}
-                  className="rounded-lg border border-border/60"
-                >
-                  <div className="px-4 py-3 border-b border-border/60 text-sm font-semibold text-foreground">
-                    {section.title}
-                  </div>
-                  <div className="divide-y divide-border">
-                    {section.items.map((item) => (
-                      <div
-                        key={item.label}
-                        className="flex items-center justify-between px-4 py-3 text-sm"
+      <Card className="border border-border/60 shadow-sm">
+        <CardHeader className="pb-2 flex items-center justify-between">
+          <CardTitle className="text-base font-semibold">Arus Kas</CardTitle>
+          <Button size="sm" variant="outline">
+            Ekspor
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {cashFlowQuery.isLoading ? (
+            <LoadingState lines={6} />
+          ) : cashFlowQuery.isError ? (
+            <ErrorState onRetry={() => cashFlowQuery.refetch()} />
+          ) : rows.length ? (
+            <div className="overflow-x-auto rounded-lg border border-border/60">
+              <table className="min-w-full text-sm">
+                <thead className="bg-muted/50 text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Kategori
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Sub Kategori
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Deskripsi
+                    </th>
+                    <th className="px-4 py-3 text-right font-semibold">
+                      Jumlah (IDR)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {rows.map((row, idx) => (
+                    <tr
+                      key={`${row.category}-${row.description}-${idx}`}
+                      className={cn(row.highlight && "bg-primary/5 font-semibold")}
+                    >
+                      <td className="px-4 py-3 align-top text-foreground">
+                        {row.category || "-"}
+                      </td>
+                      <td className="px-4 py-3 align-top text-foreground">
+                        {row.subcategory || "-"}
+                      </td>
+                      <td className="px-4 py-3 align-top text-foreground">
+                        {row.description || "-"}
+                      </td>
+                      <td
+                        className={cn(
+                          "px-4 py-3 text-right align-top",
+                          row.amount < 0 ? "text-red-500" : "text-emerald-600"
+                        )}
                       >
-                        <span
-                          className={cn(
-                            item.value < 0 && "text-muted-foreground"
-                          )}
-                        >
-                          {item.label}
-                        </span>
-                        <span
-                          className={cn(
-                            "font-semibold",
-                            item.value >= 0
-                              ? "text-emerald-600"
-                              : "text-red-500"
-                          )}
-                        >
-                          {item.value < 0 ? "-" : "+"} Rp{" "}
-                          {Math.abs(item.value).toLocaleString("id-ID")}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                        {formatAmount(row.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : !sections.length ? (
+            <EmptyState onRetry={() => cashFlowQuery.refetch()} />
+          ) : (
+            sections.map((section) => (
+              <div
+                key={section.title}
+                className="rounded-lg border border-border/60"
+              >
+                <div className="px-4 py-3 border-b border-border/60 text-sm font-semibold text-foreground">
+                  {section.title}
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+                <div className="divide-y divide-border">
+                  {section.items.map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center justify-between px-4 py-3 text-sm"
+                    >
+                      <span
+                        className={cn(
+                          item.value < 0 && "text-muted-foreground"
+                        )}
+                      >
+                        {item.label}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-semibold",
+                          item.value >= 0
+                            ? "text-emerald-600"
+                            : "text-red-500"
+                        )}
+                      >
+                        {item.value < 0 ? "-" : "+"} Rp{" "}
+                        {Math.abs(item.value).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
-        <Card className="border border-border/60 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Ringkasan</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {cashFlowQuery.isLoading ? (
-              <LoadingState lines={3} />
-            ) : cashFlowQuery.isError ? (
-              <ErrorState onRetry={() => cashFlowQuery.refetch()} />
-            ) : !sections.length ? (
-              <EmptyState onRetry={() => cashFlowQuery.refetch()} />
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Kas Bersih</span>
-                  <span
-                    className={cn(
-                      "font-semibold",
-                      netCash >= 0 ? "text-emerald-600" : "text-red-500"
-                    )}
-                  >
-                    {netCash >= 0 ? "+" : "-"} Rp{" "}
-                    {Math.abs(netCash).toLocaleString("id-ID")}
-                  </span>
-                </div>
-                <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
-                  Perubahan kas mencakup operasi, investasi, dan pendanaan.
-                  Catat peningkatan biaya operasional untuk mitigasi bulan
-                  depan.
-                </div>
-                <Button size="sm" className="w-full">
-                  Download Arus Kas
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="border border-border/60 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">Ringkasan</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {cashFlowQuery.isLoading ? (
+            <LoadingState lines={3} />
+          ) : cashFlowQuery.isError ? (
+            <ErrorState onRetry={() => cashFlowQuery.refetch()} />
+          ) : rows.length ? (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Kas Bersih Operasi</span>
+                <span
+                  className={cn(
+                    "font-semibold",
+                    rows.some((r) => r.description?.includes("Arus Kas Bersih"))
+                      ? "text-emerald-600"
+                      : "text-foreground"
+                  )}
+                >
+                  {formatAmount(
+                    rows.find((r) =>
+                      r.description?.includes("Arus Kas Bersih Aktivitas Operasi")
+                    )?.amount ?? netCash
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Saldo Akhir Periode</span>
+                <span className="font-semibold text-foreground">
+                  {formatAmount(
+                    rows.find((r) =>
+                      r.description?.includes("Saldo Kas Akhir Periode")
+                    )?.amount ?? netCash
+                  )}
+                </span>
+              </div>
+              <Button size="sm" className="w-full">
+                Download Arus Kas
+              </Button>
+            </>
+          ) : !sections.length ? (
+            <EmptyState onRetry={() => cashFlowQuery.refetch()} />
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Kas Bersih</span>
+                <span
+                  className={cn(
+                    "font-semibold",
+                    netCash >= 0 ? "text-emerald-600" : "text-red-500"
+                  )}
+                >
+                  {netCash >= 0 ? "+" : "-"} Rp{" "}
+                  {Math.abs(netCash).toLocaleString("id-ID")}
+                </span>
+              </div>
+              <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+                Perubahan kas mencakup operasi, investasi, dan pendanaan.
+              </div>
+              <Button size="sm" className="w-full">
+                Download Arus Kas
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

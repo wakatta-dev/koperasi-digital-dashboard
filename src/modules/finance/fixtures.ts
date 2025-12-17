@@ -159,27 +159,35 @@ export const sampleCashFlowResponse: CashFlowResponse = {
   range: sampleDateRange,
   sections: [
     {
-      title: "Arus Kas dari Operasi",
+      title: "Arus Kas dari Aktivitas Operasi",
       items: [
-        { label: "Penerimaan Kas", value: 520_000_000 },
-        { label: "Pembayaran Pemasok", value: -280_000_000 },
-        { label: "Biaya Operasional", value: -85_000_000 },
+        { label: "Penerimaan Kas", value: 3_370_000_000 },
+        { label: "Pembayaran Kas", value: -2_950_000_000 },
       ],
     },
     {
-      title: "Arus Kas dari Investasi",
-      items: [
-        { label: "Pembelian Aset Tetap", value: -60_000_000 },
-        { label: "Penjualan Aset", value: 18_000_000 },
-      ],
+      title: "Arus Kas dari Aktivitas Pendanaan",
+      items: [{ label: "Pendanaan Bersih", value: 0 }],
     },
-    {
-      title: "Arus Kas dari Pendanaan",
-      items: [
-        { label: "Penerimaan Pinjaman", value: 40_000_000 },
-        { label: "Pembayaran Pinjaman", value: -25_000_000 },
-      ],
-    },
+  ],
+  rows: [
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Penerimaan Kas", description: "Penerimaan dari Pelanggan", amount: 3_250_000_000 },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Penerimaan Kas", description: "Penerimaan dari Bunga", amount: 75_000_000 },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Penerimaan Kas", description: "Penerimaan dari Refund Pajak", amount: 45_000_000 },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Penerimaan Kas", description: "Total Penerimaan Kas", amount: 3_370_000_000, highlight: true },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Pembayaran Kas", description: "Pembayaran kepada Pemasok", amount: -1_850_000_000 },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Pembayaran Kas", description: "Pembayaran untuk Beban Operasional", amount: -650_000_000 },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Pembayaran Kas", description: "Pembayaran Pajak", amount: -325_000_000 },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Pembayaran Kas", description: "Pembayaran Bunga", amount: -125_000_000 },
+    { category: "Arus Kas dari Aktivitas Operasi", subcategory: "Pembayaran Kas", description: "Total Pembayaran Kas", amount: -2_950_000_000, highlight: true },
+    { category: "Arus Kas dari Aktivitas Operasi", description: "Arus Kas Bersih Aktivitas Operasi", amount: 420_000_000, highlight: true },
+    { category: "Arus Kas dari Aktivitas Pendanaan", description: "Pembayaran Dividen", amount: -200_000_000 },
+    { category: "Arus Kas dari Aktivitas Pendanaan", description: "Penerimaan dari Penerbitan Saham", amount: 500_000_000 },
+    { category: "Arus Kas dari Aktivitas Pendanaan", description: "Pembayaran Pinjaman Bank", amount: -300_000_000 },
+    { category: "Arus Kas dari Aktivitas Pendanaan", description: "Arus Kas Bersih Aktivitas Pendanaan", amount: 0, highlight: true },
+    { category: "Ringkasan Perubahan Kas", description: "Kenaikan / (Penurunan) Kas Bersih", amount: 420_000_000 },
+    { category: "Ringkasan Perubahan Kas", description: "Saldo Kas Awal Periode", amount: 1_250_000_000 },
+    { category: "Ringkasan Perubahan Kas", description: "Saldo Kas Akhir Periode", amount: 1_670_000_000, highlight: true },
   ],
 };
 
