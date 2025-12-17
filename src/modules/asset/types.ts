@@ -1,6 +1,7 @@
 /** @format */
 
 export type AssetItem = {
+  id: string;
   title: string;
   price: string;
   unit: string;

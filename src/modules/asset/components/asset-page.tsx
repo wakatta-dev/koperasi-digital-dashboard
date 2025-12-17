@@ -4,6 +4,7 @@
 
 import React from "react";
 import { Filter, PanelLeftOpen, Plus, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ const tabs = [
 ];
 
 export function AssetManagementPage() {
+  const router = useRouter();
   const [addOpen, setAddOpen] = React.useState(false);
   const [editOpen, setEditOpen] = React.useState(false);
   const [selectedAsset, setSelectedAsset] = React.useState<
@@ -97,7 +99,10 @@ export function AssetManagementPage() {
           <AssetCard
             key={`${asset.title}-${index}`}
             {...asset}
-            onClick={() => handleOpenEdit(asset)}
+            onClick={() => {
+              setSelectedAsset(asset);
+              router.push(`/bumdes/asset/${asset.id}`);
+            }}
             onEdit={() => handleOpenEdit(asset)}
           />
         ))}
