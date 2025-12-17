@@ -72,7 +72,7 @@ const variantConfig: Record<
   default: {
     icon: CheckCircle2,
     iconClass:
-      "text-primary bg-purple-600/10 border-primary/20 dark:text-primary",
+      "text-primary bg-indigo-600/10 border-primary/20 dark:text-primary",
     title: "Konfirmasi tindakan",
     description: "Apakah Anda yakin ingin melanjutkan?",
     confirmText: "Konfirmasi",

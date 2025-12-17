@@ -95,7 +95,7 @@ export function KpiCards({ kpis, isLoading, isError, onRetry }: Props) {
               <div className="text-2xl font-bold">{card.value}</div>
               <Trend direction={card.direction} label={card.trend} />
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600 text-white shadow">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white shadow">
               {card.icon}
             </div>
           </CardHeader>

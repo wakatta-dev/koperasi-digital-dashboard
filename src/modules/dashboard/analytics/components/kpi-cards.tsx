@@ -57,7 +57,7 @@ export function KpiCards({
 
   const iconMap: Record<AnalyticsKpi["id"], ReactElement> = {
     sales_today: (
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600 text-white shadow">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white shadow">
         <ShoppingBag className="h-5 w-5" />
       </div>
     ),

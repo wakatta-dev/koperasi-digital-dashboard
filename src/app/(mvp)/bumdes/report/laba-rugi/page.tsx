@@ -51,7 +51,7 @@ const summaryCards = [
     value: "Rp 156.789.000",
     delta: "+15,7% dari bulan lalu",
     icon: FileText,
-    badgeColor: "text-purple-600 dark:text-purple-400",
+    badgeColor: "text-indigo-600 dark:text-purple-400",
     badgeBg: "bg-purple-50 dark:bg-purple-900/20",
   },
 ];
@@ -142,7 +142,9 @@ export default function LabaRugiReportPage() {
                 </p>
                 <p className="mt-2 text-2xl font-bold">{card.value}</p>
               </div>
-              <div className={cn("p-2 rounded-lg", card.badgeBg, card.badgeColor)}>
+              <div
+                className={cn("p-2 rounded-lg", card.badgeBg, card.badgeColor)}
+              >
                 <card.icon className="h-5 w-5" aria-hidden="true" />
               </div>
             </div>
