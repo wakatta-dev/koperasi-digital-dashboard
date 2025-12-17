@@ -5,7 +5,11 @@
 import { useState } from "react";
 import { Calendar, Download, Filter, Printer } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+import { ReportFooter } from "../_components/report-footer";
+import { SegmentedControl } from "../_components/segmented-control";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -142,6 +146,123 @@ const indentClass: Record<number, string> = {
   2: "pl-10",
 };
 
+const renderCashFlowRow = (row: CashFlowRow) => {
+  if (row.type === "section") {
+    return (
+      <tr key={row.label} className="bg-slate-50/50 dark:bg-slate-800/20">
+        <td
+          className="px-6 py-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider"
+          colSpan={2}
+        >
+          {row.label}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "label") {
+    return (
+      <tr key={row.label}>
+        <td
+          className={cn(
+            "px-6 py-3 whitespace-nowrap text-sm font-medium",
+            indentClass[row.indent]
+          )}
+          colSpan={2}
+        >
+          {row.label}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "item") {
+    return (
+      <tr key={row.label}>
+        <td
+          className={cn(
+            "px-6 py-3 whitespace-nowrap text-sm",
+            indentClass[row.indent]
+          )}
+        >
+          {row.label}
+        </td>
+        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-medium">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "total") {
+    return (
+      <tr key={row.label} className="bg-slate-50 dark:bg-slate-800/30">
+        <td
+          className={cn(
+            "px-6 py-3 whitespace-nowrap text-sm font-bold",
+            indentClass[row.indent]
+          )}
+        >
+          {row.label}
+        </td>
+        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "netPrimary") {
+    return (
+      <tr key={row.label} className="bg-blue-50/50 dark:bg-blue-900/10">
+        <td className="px-6 py-3 whitespace-nowrap text-sm font-bold text-indigo-600 dark:text-indigo-400">
+          {row.label}
+        </td>
+        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-indigo-600 dark:text-indigo-400">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "summaryGray") {
+    return (
+      <tr key={row.label} className="bg-slate-50 dark:bg-slate-800/30">
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+          {row.label}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "plainBold") {
+    return (
+      <tr key={row.label} className="bg-white dark:bg-slate-900">
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+          {row.label}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr key={row.label} className="bg-indigo-600 text-white">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold uppercase">
+        {row.label}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+        {row.value}
+      </td>
+    </tr>
+  );
+};
+
 export default function ArusKasReportPage() {
   const [activePreset, setActivePreset] = useState("month");
 
@@ -153,34 +274,23 @@ export default function ArusKasReportPage() {
           <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline-block">
             01 Jan 2023 - 31 Jan 2023
           </span>
-          <button className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600">
+          <Button
+            type="button"
+            className="hidden sm:inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
             <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
             Pilih Tanggal
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="w-full flex justify-start">
-        <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1 shadow-sm overflow-x-auto">
-          {presetOptions.map((option) => {
-            const isActive = activePreset === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setActivePreset(option.value)}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap",
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white"
-                )}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedControl
+          options={presetOptions}
+          activeValue={activePreset}
+          onChange={setActivePreset}
+          className="overflow-x-auto"
+        />
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -192,18 +302,29 @@ export default function ArusKasReportPage() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <button className="inline-flex items-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-900">
+            <Button
+              type="button"
+              variant="outline"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
               <Filter className="h-4 w-4 mr-2" aria-hidden="true" />
               Filter
-            </button>
-            <button className="inline-flex items-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-900">
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
               <Printer className="h-4 w-4 mr-2" aria-hidden="true" />
               Cetak
-            </button>
-            <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-colors">
+            </Button>
+            <Button
+              type="button"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            >
               <Download className="h-4 w-4 mr-2" aria-hidden="true" />
               Ekspor
-            </button>
+            </Button>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -219,134 +340,7 @@ export default function ArusKasReportPage() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
-              {rows.map((row) => {
-                if (row.type === "section") {
-                  return (
-                    <tr
-                      key={row.label}
-                      className="bg-slate-50/50 dark:bg-slate-800/20"
-                    >
-                      <td
-                        className="px-6 py-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider"
-                        colSpan={2}
-                      >
-                        {row.label}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "label") {
-                  return (
-                    <tr key={row.label}>
-                      <td
-                        className={cn(
-                          "px-6 py-3 whitespace-nowrap text-sm font-medium",
-                          indentClass[row.indent]
-                        )}
-                        colSpan={2}
-                      >
-                        {row.label}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "item") {
-                  return (
-                    <tr key={row.label}>
-                      <td
-                        className={cn(
-                          "px-6 py-3 whitespace-nowrap text-sm",
-                          indentClass[row.indent]
-                        )}
-                      >
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-medium">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "total") {
-                  return (
-                    <tr
-                      key={row.label}
-                      className="bg-slate-50 dark:bg-slate-800/30"
-                    >
-                      <td
-                        className={cn(
-                          "px-6 py-3 whitespace-nowrap text-sm font-bold",
-                          indentClass[row.indent]
-                        )}
-                      >
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "netPrimary") {
-                  return (
-                    <tr
-                      key={row.label}
-                      className="bg-blue-50/50 dark:bg-blue-900/10"
-                    >
-                      <td className="px-6 py-3 whitespace-nowrap text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-indigo-600 dark:text-indigo-400">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "summaryGray") {
-                  return (
-                    <tr
-                      key={row.label}
-                      className="bg-slate-50 dark:bg-slate-800/30"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "plainBold") {
-                  return (
-                    <tr key={row.label} className="bg-white dark:bg-slate-900">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                return (
-                  <tr key={row.label} className="bg-indigo-600 text-white">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold uppercase">
-                      {row.label}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
-                      {row.value}
-                    </td>
-                  </tr>
-                );
-              })}
+              {rows.map((row) => renderCashFlowRow(row))}
             </tbody>
           </table>
         </div>
@@ -361,10 +355,7 @@ export default function ArusKasReportPage() {
         </ol>
       </div>
 
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <span>© 2023 3Portals App. Hak Cipta Dilindungi.</span>
-        <span>Terakhir diperbarui: 31 Januari 2023, 15:30</span>
-      </div>
+      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Januari 2023, 15:30" />
     </div>
   );
 }

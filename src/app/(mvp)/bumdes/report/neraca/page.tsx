@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
@@ -10,10 +11,15 @@ import {
   Info,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+
+import { ReportFooter } from "../_components/report-footer";
+import { SegmentedControl } from "../_components/segmented-control";
+
 const periodPresets = [
-  { label: "Bulanan", active: false },
-  { label: "Kuartalan", active: true },
-  { label: "Tahunan", active: false },
+  { label: "Bulanan", value: "monthly", active: false },
+  { label: "Kuartalan", value: "quarterly", active: true },
+  { label: "Tahunan", value: "yearly", active: false },
 ];
 
 const assets = [
@@ -49,38 +55,44 @@ const liabilityInfo = [
 ];
 
 export default function NeracaReportPage() {
+  const [activePeriod, setActivePeriod] = useState(
+    periodPresets.find((preset) => preset.active)?.value ?? periodPresets[0].value
+  );
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 text-slate-900 dark:text-slate-100">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Neraca Sederhana</h1>
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1 shadow-sm">
-            {periodPresets.map((item) => (
-              <button
-                key={item.label}
-                className={
-                  item.active
-                    ? "px-3 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-md shadow-sm whitespace-nowrap"
-                    : "px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white rounded-md transition-colors whitespace-nowrap"
-                }
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          <button className="hidden sm:inline-flex items-center px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm font-medium rounded-md shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600">
+          <SegmentedControl
+            options={periodPresets}
+            activeValue={activePeriod}
+            onChange={setActivePeriod}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="hidden sm:inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
             <CalendarDays className="h-4 w-4 mr-2 text-slate-500" />
             31 Desember 2023
-          </button>
+          </Button>
           <div className="flex gap-2 flex-wrap">
-            <button className="inline-flex items-center px-3 py-2 border border-indigo-600 text-indigo-600 dark:text-indigo-400 text-sm font-medium rounded-md hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-900">
+            <Button
+              type="button"
+              variant="outline"
+              className="inline-flex h-auto items-center gap-0 px-3 py-2 text-sm font-medium bg-white dark:bg-slate-900 border border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700"
+            >
               <Download className="h-4 w-4 mr-2" />
               Ekspor PDF
-            </button>
-            <button className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-colors">
+            </Button>
+            <Button
+              type="button"
+              className="inline-flex h-auto items-center gap-0 px-3 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            >
               <Download className="h-4 w-4 mr-2" />
               Ekspor Excel
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -232,10 +244,7 @@ export default function NeracaReportPage() {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <span>© 2023 3Portals App. Hak Cipta Dilindungi.</span>
-        <span>Terakhir diperbarui: 31 Desember 2023, 15:30</span>
-      </div>
+      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Desember 2023, 15:30" />
     </div>
   );
 }

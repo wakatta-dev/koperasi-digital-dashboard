@@ -11,7 +11,12 @@ import {
   Wallet,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+import { ReportFooter } from "../_components/report-footer";
+import { SegmentedControl } from "../_components/segmented-control";
+import { SummaryCard } from "../_components/summary-card";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -127,63 +132,23 @@ export default function RingkasanReportPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Laporan Ringkasan</h1>
         <div className="flex items-center gap-2">
-          <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1 shadow-sm">
-            {presetOptions.map((option) => {
-              const isActive = activePreset === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setActivePreset(option.value)}
-                  className={cn(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                    isActive
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white"
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-          <button className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600">
+          <SegmentedControl
+            options={presetOptions}
+            activeValue={activePreset}
+            onChange={setActivePreset}
+          />
+          <Button
+            type="button"
+            className="hidden sm:inline-flex h-auto px-4 py-2 bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
             Terapkan
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((card) => (
-          <div
-            key={card.title}
-            className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-40"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  {card.title}
-                </p>
-                <p className="mt-2 text-2xl font-bold">{card.value}</p>
-              </div>
-              <div
-                className={cn("p-2 rounded-lg", card.badgeBg, card.badgeColor)}
-              >
-                <card.icon className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </div>
-            <div className="mt-auto">
-              <span
-                className={cn(
-                  "text-xs font-medium px-2 py-0.5 rounded-full inline-flex",
-                  card.badgeBg,
-                  card.badgeColor
-                )}
-              >
-                {card.delta}
-              </span>
-            </div>
-          </div>
+          <SummaryCard key={card.title} {...card} />
         ))}
       </div>
 
@@ -191,10 +156,14 @@ export default function RingkasanReportPage() {
         <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold">Pendapatan vs Pengeluaran</h3>
-            <button className="inline-flex items-center px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-xs font-medium rounded text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <Button
+              type="button"
+              variant="outline"
+              className="inline-flex h-auto items-center gap-0 px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
               <Download className="h-4 w-4 mr-1" aria-hidden="true" />
               Ekspor ke CSV/Excel
-            </button>
+            </Button>
           </div>
           <div className="h-64 flex items-end justify-between gap-2 px-2 pb-2">
             {monthlyPerformance.map((month) => (
@@ -233,10 +202,14 @@ export default function RingkasanReportPage() {
         <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold">Distribusi Pendapatan</h3>
-            <button className="inline-flex items-center px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-xs font-medium rounded text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <Button
+              type="button"
+              variant="outline"
+              className="inline-flex h-auto items-center gap-0 px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
               <Download className="h-4 w-4 mr-1" aria-hidden="true" />
               Export
-            </button>
+            </Button>
           </div>
           <div className="relative h-64 flex items-center justify-center">
             <div
@@ -266,10 +239,13 @@ export default function RingkasanReportPage() {
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h3 className="text-lg font-bold">Transaksi Terakhir</h3>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-colors">
+          <Button
+            type="button"
+            className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
             <Download className="h-4 w-4 mr-2" aria-hidden="true" />
             Ekspor ke CSV/Excel
-          </button>
+          </Button>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
@@ -318,13 +294,11 @@ export default function RingkasanReportPage() {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <span>© 2023 3Portals App. Hak Cipta Dilindungi.</span>
-        <span>
-          Terakhir diperbarui: 31 Januari 2023, 15:30 —{" "}
-          {presetLabel ?? "Bulan Ini"}
-        </span>
-      </div>
+      <ReportFooter
+        updatedLabel={`Terakhir diperbarui: 31 Januari 2023, 15:30 — ${
+          presetLabel ?? "Bulan Ini"
+        }`}
+      />
     </div>
   );
 }

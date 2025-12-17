@@ -12,7 +12,11 @@ import {
   DollarSign,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+import { ReportFooter } from "../_components/report-footer";
+import { SegmentedControl } from "../_components/segmented-control";
+import { SummaryCard } from "../_components/summary-card";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -92,6 +96,71 @@ const notes = [
   "Laporan dibuat berdasarkan transaksi yang telah disetujui",
 ];
 
+const renderProfitRow = (row: ProfitRow) => {
+  if (row.type === "section") {
+    return (
+      <tr key={row.label} className="bg-slate-50 dark:bg-slate-800/30">
+        <td
+          className="px-6 py-3 whitespace-nowrap text-sm font-bold"
+          colSpan={2}
+        >
+          {row.label}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "gross") {
+    return (
+      <tr key={row.label} className="bg-blue-50/50 dark:bg-blue-900/10">
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+          {row.label}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "net") {
+    return (
+      <tr key={row.label} className="bg-indigo-600 text-white">
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+          {row.label}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  if (row.type === "total") {
+    return (
+      <tr key={row.label} className="bg-slate-50/50 dark:bg-slate-800/20">
+        <td className="px-6 py-3 whitespace-nowrap text-sm font-bold">
+          {row.label}
+        </td>
+        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold">
+          {row.value}
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr key={row.label}>
+      <td className="px-6 py-3 pl-10 whitespace-nowrap text-sm">
+        {row.label}
+      </td>
+      <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-medium">
+        {row.value}
+      </td>
+    </tr>
+  );
+};
+
 export default function LabaRugiReportPage() {
   const [activePreset, setActivePreset] = useState("month");
 
@@ -103,63 +172,27 @@ export default function LabaRugiReportPage() {
           <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline-block mr-2">
             01/01/2023 - 31/01/2023
           </span>
-          <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1 shadow-sm">
-            {presetOptions.map((option) => {
-              const isActive = activePreset === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setActivePreset(option.value)}
-                  className={cn(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                    isActive
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white"
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-          <button className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 ml-2">
+          <SegmentedControl
+            options={presetOptions}
+            activeValue={activePreset}
+            onChange={setActivePreset}
+          />
+          <Button
+            type="button"
+            className="hidden sm:inline-flex h-auto items-center px-4 py-2 ml-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
             Terapkan
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((card) => (
-          <div
+          <SummaryCard
             key={card.title}
-            className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden"
-          >
-            <div className="flex justify-between items-start relative z-10">
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  {card.title}
-                </p>
-                <p className="mt-2 text-2xl font-bold">{card.value}</p>
-              </div>
-              <div
-                className={cn("p-2 rounded-lg", card.badgeBg, card.badgeColor)}
-              >
-                <card.icon className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </div>
-            <div className="mt-auto relative z-10">
-              <span
-                className={cn(
-                  "text-xs font-medium px-2 py-0.5 rounded-full inline-flex",
-                  card.badgeBg,
-                  card.badgeColor
-                )}
-              >
-                {card.delta}
-              </span>
-            </div>
-          </div>
+            className="relative overflow-hidden"
+            {...card}
+          />
         ))}
       </div>
 
@@ -167,14 +200,21 @@ export default function LabaRugiReportPage() {
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h3 className="text-lg font-bold">Laporan Laba/Rugi</h3>
           <div className="flex gap-2">
-            <button className="inline-flex items-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <Button
+              type="button"
+              variant="outline"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
               <Printer className="h-4 w-4 mr-2" aria-hidden="true" />
               Cetak Laporan
-            </button>
-            <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-colors">
+            </Button>
+            <Button
+              type="button"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            >
               <Download className="h-4 w-4 mr-2" aria-hidden="true" />
               Ekspor ke Excel
-            </button>
+            </Button>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -190,79 +230,7 @@ export default function LabaRugiReportPage() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
-              {profitRows.map((row) => {
-                if (row.type === "section") {
-                  return (
-                    <tr
-                      key={row.label}
-                      className="bg-slate-50 dark:bg-slate-800/30"
-                    >
-                      <td
-                        className="px-6 py-3 whitespace-nowrap text-sm font-bold"
-                        colSpan={2}
-                      >
-                        {row.label}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "gross") {
-                  return (
-                    <tr
-                      key={row.label}
-                      className="bg-blue-50/50 dark:bg-blue-900/10"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "net") {
-                  return (
-                    <tr key={row.label} className="bg-indigo-600 text-white">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                if (row.type === "total") {
-                  return (
-                    <tr
-                      key={row.label}
-                      className="bg-slate-50/50 dark:bg-slate-800/20"
-                    >
-                      <td className="px-6 py-3 whitespace-nowrap text-sm font-bold">
-                        {row.label}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold">
-                        {row.value}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                return (
-                  <tr key={row.label}>
-                    <td className="px-6 py-3 pl-10 whitespace-nowrap text-sm">
-                      {row.label}
-                    </td>
-                    <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-medium">
-                      {row.value}
-                    </td>
-                  </tr>
-                );
-              })}
+              {profitRows.map((row) => renderProfitRow(row))}
             </tbody>
           </table>
         </div>
@@ -277,10 +245,7 @@ export default function LabaRugiReportPage() {
         </ul>
       </div>
 
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <span>© 2023 3Portals App. Hak Cipta Dilindungi.</span>
-        <span>Terakhir diperbarui: 31 Januari 2023, 15:30</span>
-      </div>
+      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Januari 2023, 15:30" />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import {
   Download,
   TrendingUp,
@@ -10,7 +11,11 @@ import {
   BarChart3,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+import { ReportFooter } from "../_components/report-footer";
+import { SegmentedControl } from "../_components/segmented-control";
 
 const presets = [
   { label: "Hari Ini", value: "today" },
@@ -64,6 +69,10 @@ const channelTable = [
 ];
 
 export default function PenjualanRinciReportPage() {
+  const [activePreset, setActivePreset] = useState(
+    presets.find((preset) => preset.active)?.value ?? presets[0].value
+  );
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 text-slate-900 dark:text-slate-100">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -72,29 +81,24 @@ export default function PenjualanRinciReportPage() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
         <div className="flex flex-wrap gap-2">
-          <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 overflow-hidden">
-            {presets.map((preset) => (
-              <button
-                key={preset.value}
-                className={cn(
-                  "px-4 py-1.5 text-sm font-medium rounded-md transition-colors",
-                  preset.active
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                )}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={presets}
+            activeValue={activePreset}
+            onChange={setActivePreset}
+            className="bg-slate-100 dark:bg-slate-800 border-0 rounded-lg p-1 overflow-hidden"
+            buttonClassName="px-4"
+          />
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
             01/01/2023 - 31/01/2023
           </span>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600">
+          <Button
+            type="button"
+            className="inline-flex h-auto items-center px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
             Terapkan
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -127,10 +131,13 @@ export default function PenjualanRinciReportPage() {
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
           <h2 className="text-lg font-bold">Produk Terlaris</h2>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+          <Button
+            type="button"
+            className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
             <Download className="h-4 w-4 mr-2" />
             Ekspor ke CSV/Excel
-          </button>
+          </Button>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
@@ -186,10 +193,13 @@ export default function PenjualanRinciReportPage() {
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h2 className="text-lg font-bold">Penjualan per Channel</h2>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
-            <Download className="h-4 w-4 mr-2" />
-            Ekspor ke CSV/Excel
-          </button>
+            <Button
+              type="button"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Ekspor ke CSV/Excel
+            </Button>
         </div>
         <div className="flex flex-col lg:flex-row gap-8 items-center justify-between">
           <div className="w-full lg:w-1/2 flex flex-col items-center justify-center relative">
@@ -312,10 +322,7 @@ export default function PenjualanRinciReportPage() {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <span>© 2023 3Portals App. Hak Cipta Dilindungi.</span>
-        <span>Terakhir diperbarui: 31 Januari 2023, 15:30</span>
-      </div>
+      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Januari 2023, 15:30" />
     </div>
   );
 }
