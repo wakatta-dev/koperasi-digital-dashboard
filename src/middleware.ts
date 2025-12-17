@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
 
   let tenantId = request.cookies.get("tenantId")?.value;
+  const isLanding = pathname === "/";
 
   // lookup by domain kalau cookie kosong
   if (!tenantId && apiBase && host) {
@@ -57,7 +58,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // kalau masih nggak ketemu → redirect
-  if (!tenantId && pathname !== "/tenant-not-found") {
+  if (!tenantId && pathname !== "/tenant-not-found" && !isLanding) {
     return NextResponse.redirect(new URL("/tenant-not-found", request.url));
   }
 
@@ -108,14 +109,14 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  if (pathname === "/") {
+  if (isLanding) {
     if (token) {
       const userDashboard = `/${userRole}/dashboard`;
       return withTenant(
         NextResponse.redirect(new URL(userDashboard, request.url))
       );
     }
-    return withTenant(NextResponse.redirect(new URL("/login", request.url)));
+    return withTenant(NextResponse.next());
   }
 
   return withTenant(NextResponse.next());
