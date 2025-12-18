@@ -63,7 +63,7 @@ export const RESERVATION_STATES: Record<
       statusText: "Sisa Pembayaran",
       statusColor: "text-amber-600 dark:text-amber-400",
     },
-    cta: { label: "Lanjutkan Pelunasan", href: "/penyewaan-aset/payment" },
+    cta: { label: "Lanjutkan Pelunasan", href: "/penyewaan-aset/repayment?sig=secure-token" },
     showDownloadButtons: false,
   },
   done: {
