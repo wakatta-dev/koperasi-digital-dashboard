@@ -54,15 +54,40 @@ export type MarketplaceProductDetail = {
   }[];
 };
 
+export type CartItem = {
+  id: string;
+  title: string;
+  store: string;
+  variant?: string;
+  price: string;
+  originalPrice?: string;
+  quantity: number;
+  subtotal: string;
+  image: string;
+};
+
+export type CartSummary = {
+  subtotalLabel: string;
+  subtotalValue: string;
+  shippingLabel: string;
+  shippingValue: string;
+  discountLabel: string;
+  discountValue: string;
+  totalLabel: string;
+  totalValue: string;
+  itemsCountLabel: string;
+  shippingPlaceholder: string;
+  secureNote: string;
+};
+
+export const CART_BADGE = 2;
+
 export const MARKETPLACE_NAV_LINKS: MarketplaceNavLink[] = [
   { label: "Beranda", href: "/" },
-  { label: "Program", href: "#" },
-  { label: "Layanan", href: "#" },
-  { label: "Dashboard", href: "#" },
   { label: "Marketplace", href: "/marketplace", active: true },
   { label: "POS", href: "/login", badge: "Staff" },
   { label: "Penyewaan Aset", href: "#" },
-  { label: "Daftar", href: "/register", cta: true },
+  { label: "Login", href: "/login", cta: true },
 ];
 
 export const MARKETPLACE_HEADER = {
@@ -293,4 +318,43 @@ export const PRODUCT_DETAIL: MarketplaceProductDetail = {
         "Rasanya enak, cuma pengiriman agak lama sedikit karena kurir desa. Tapi worth it sama kualitas barangnya. Semangat BUMDes!",
     },
   ],
+};
+
+export const CART_ITEMS: CartItem[] = [
+  {
+    id: "kopi-robusta",
+    title: "Kopi Robusta Sukamaju Premium (250gr)",
+    store: "UMKM Desa Sukamaju",
+    variant: "Giling Medium (V60)",
+    price: "Rp 45.000",
+    originalPrice: "Rp 55.000",
+    quantity: 2,
+    subtotal: "Rp 90.000",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDk6WiWQf_QgIaN5-P8j6WqumkJbpN7CNOrbLVJL4NqhzL2kZv5p2c-xG_IPVd485z8sut7eTI1LDMZsupIGJG0-_o8LxeqavKVThVj5Y_U09bLl6QJBtw7vRHlYK-AuskH2OlQ0ovj-UbYjy9RK5E5cEXrjy7xyZ6Di9sIcWlwr58cb0kF1iNZnSCXtgqjF0eL3JKLzwT9puC1Exf_a1HefEywcsxN6T-dmwWxXlq5As-_gnl2l3mMAorsefJyZ5GUeZai4j9_HB4",
+  },
+  {
+    id: "beras-pandan",
+    title: "Beras Pandan Wangi Organik (5kg)",
+    store: "Gapoktan Suka Makmur",
+    price: "Rp 70.000",
+    quantity: 1,
+    subtotal: "Rp 70.000",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuCsm2KPnTd51o5-yVR4bXFUsjINiCdbRbctJ3FGycF_0XZx5sgxe7fde1Z7JQLR9Zkene-23lJjPxeUy6fqWsmmdlhrHVRfP4Scq5sJAl6bwbRgzqApv5IZB9vwagdDRE0stsht16xWPz8d3inB8MhHZrNrjoT6T4jGdaxY3_0Zop35b9s31PUDZOnpsKvhtNlV6vFtP7-9inEZWpMWgwemGTSACyN3QY8N2P4gC5O2zkLFwqVHojRSn_5nxEXq8InlXtD7kDVEb1U",
+  },
+];
+
+export const CART_SUMMARY: CartSummary = {
+  subtotalLabel: "Subtotal Barang (3 item)",
+  subtotalValue: "Rp 160.000",
+  shippingLabel: "Biaya Pengiriman",
+  shippingValue: "Rp 15.000",
+  discountLabel: "Diskon",
+  discountValue: "- Rp 0",
+  totalLabel: "Total Pembayaran",
+  totalValue: "Rp 175.000",
+  itemsCountLabel: "Termasuk pajak jika berlaku",
+  shippingPlaceholder: "Kecamatan / Kode Pos",
+  secureNote: "Transaksi Aman & Terpercaya BUMDes",
 };

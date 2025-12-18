@@ -3,7 +3,7 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingFooter } from "../landing/components/footer";
-import { MarketplaceNavbar } from "./components/navbar";
+import { LandingNavbar } from "../landing/components/navbar";
 import { ProductBreadcrumbs } from "./components/product-breadcrumbs";
 import { ProductGallery } from "./components/product-gallery";
 import { ProductMainInfo } from "./components/product-main-info";
@@ -11,7 +11,7 @@ import { ProductDetailsContent } from "./components/product-details-content";
 import { ProductSpecsCard } from "./components/product-specs-card";
 import { SafetyBanner } from "./components/safety-banner";
 import { RelatedProducts } from "./components/related-products";
-import { PRODUCT_DETAIL } from "./constants";
+import { CART_BADGE, PRODUCT_DETAIL } from "./constants";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -22,7 +22,7 @@ export function MarketplaceProductDetailPage() {
   return (
     <div className={plusJakarta.className}>
       <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
-        <MarketplaceNavbar />
+        <LandingNavbar activeLabel="Marketplace" showCart cartCount={CART_BADGE} />
         <main className="pt-28 pb-20 bg-[#f8fafc] dark:bg-[#0f172a] min-h-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <ProductBreadcrumbs

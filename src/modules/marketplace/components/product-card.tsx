@@ -1,10 +1,13 @@
 /** @format */
 
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { MarketplaceProduct } from "../constants";
 
 export function ProductCard({ product }: { product: MarketplaceProduct }) {
   const ctaLabel = product.ctaLabel ?? "Beli Sekarang";
+  const detailHref = `/marketplace/${product.id}`;
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col group">
@@ -45,15 +48,21 @@ export function ProductCard({ product }: { product: MarketplaceProduct }) {
         </div>
 
         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-2">
-          <Button className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white text-sm font-medium py-2 rounded-lg transition h-auto">
-            {ctaLabel}
+          <Button
+            asChild
+            className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white text-sm font-medium py-2 rounded-lg transition h-auto"
+          >
+            <Link href={detailHref}>{ctaLabel}</Link>
           </Button>
           <Button
+            asChild
             variant="outline"
             className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition h-auto"
             title="Lihat Detail"
           >
-            <span className="material-icons-outlined text-sm">visibility</span>
+            <Link href={detailHref}>
+              <span className="material-icons-outlined text-sm">visibility</span>
+            </Link>
           </Button>
         </div>
       </div>

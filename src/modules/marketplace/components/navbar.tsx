@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MARKETPLACE_NAV_LINKS } from "../constants";
+import { CART_BADGE, MARKETPLACE_NAV_LINKS } from "../constants";
 
 export function MarketplaceNavbar() {
   return (
@@ -28,11 +28,7 @@ export function MarketplaceNavbar() {
             {MARKETPLACE_NAV_LINKS.map((link) => {
               if (link.cta) {
                 return (
-                  <Button
-                    key={link.label}
-                    asChild
-                    className="ml-2 bg-[#4338ca] hover:bg-[#3730a3] text-white px-5 py-2.5 rounded-full font-semibold text-sm transition shadow-lg shadow-indigo-500/30"
-                  >
+                  <Button key={link.label} asChild className="bg-[#4338ca] hover:bg-[#3730a3] text-white px-5 py-2.5 rounded-full font-semibold text-sm transition shadow-lg shadow-indigo-500/30">
                     <Link href={link.href}>{link.label}</Link>
                   </Button>
                 );
@@ -67,8 +63,33 @@ export function MarketplaceNavbar() {
                 </Link>
               );
             })}
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
+            <Link
+              href="/marketplace/keranjang"
+              className="text-[#4338ca] transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+              title="Keranjang"
+            >
+              <span className="material-icons-outlined fill-current">shopping_cart</span>
+              {CART_BADGE ? (
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                  {CART_BADGE}
+                </span>
+              ) : null}
+            </Link>
           </div>
           <div className="lg:hidden flex items-center">
+            <Link
+              href="/marketplace/keranjang"
+              className="text-[#4338ca] transition relative mr-2"
+              title="Keranjang"
+            >
+              <span className="material-icons-outlined">shopping_cart</span>
+              {CART_BADGE ? (
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                  {CART_BADGE}
+                </span>
+              ) : null}
+            </Link>
             <Button
               variant="ghost"
               size="icon"
