@@ -157,6 +157,21 @@ export type ReviewItem = {
   iconBg?: string;
 };
 
+export type ConfirmationInfo = {
+  orderNumber: string;
+  thankYouTitle: string;
+  thankYouDescription: string;
+  shippingTo: string;
+  shippingAddress: string;
+  arrivalEstimate: string;
+  courier: string;
+  totalPayment: string;
+  paymentMethod: string;
+  paymentNote: string;
+  paymentDeadline: string;
+  vaNumber: string;
+};
+
 export const MARKETPLACE_NAV_LINKS: MarketplaceNavLink[] = [
   { label: "Beranda", href: "/" },
   { label: "Marketplace", href: "/marketplace", active: true },
@@ -588,4 +603,20 @@ export const REVIEW_ITEMS: ReviewItem[] = [
 export const REVIEW_SUMMARY: ShippingSummary = {
   ...PAYMENT_SUMMARY,
   secureNote: "Pembayaran Anda dijamin aman",
+};
+
+export const CONFIRMATION_INFO: ConfirmationInfo = {
+  orderNumber: "#BUMDES-20230815-001",
+  thankYouTitle: "Terima Kasih atas Pesanan Anda!",
+  thankYouDescription:
+    "Pesanan Anda telah berhasil dikonfirmasi. Kami akan segera memproses pesanan Anda dan mengirimkan email konfirmasi.",
+  shippingTo: "Budi Santoso",
+  shippingAddress: "Jl. Desa Sukamaju No. 88, Kec. Sukamaju, Kab. Bogor 16880",
+  arrivalEstimate: "18 - 20 Agu",
+  courier: "JNE Reguler",
+  totalPayment: "Rp 175.000",
+  paymentMethod: "BCA Transfer",
+  paymentNote: "Silakan lakukan pembayaran ke Virtual Account BCA 880123456789",
+  paymentDeadline: "16 Agustus 2023 14:30 WIB",
+  vaNumber: "880123456789",
 };

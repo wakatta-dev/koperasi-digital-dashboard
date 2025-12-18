@@ -6,3 +6,4 @@ export { MarketplaceCartPage } from "./cart-page";
 export { MarketplaceShippingPage } from "./shipping-page";
 export { MarketplacePaymentPage } from "./payment-page";
 export { MarketplaceReviewPage } from "./review-page";
+export { MarketplaceConfirmationPage } from "./confirmation-page";
