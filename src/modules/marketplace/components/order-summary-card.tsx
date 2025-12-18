@@ -1,5 +1,7 @@
 /** @format */
 
+import Link from "next/link";
+
 import { Input } from "@/components/ui/input";
 import { CART_SUMMARY } from "../constants";
 
@@ -50,10 +52,13 @@ export function OrderSummaryCard() {
         <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{CART_SUMMARY.itemsCountLabel}</p>
       </div>
 
-      <button className="w-full bg-[#4338ca] hover:bg-[#3730a3] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 transition flex items-center justify-center gap-2 group">
-        Lanjutkan ke Pembayaran
+      <Link
+        href="/marketplace/pengiriman"
+        className="w-full bg-[#4338ca] hover:bg-[#3730a3] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 transition flex items-center justify-center gap-2 group text-center"
+      >
+        Lanjutkan ke Pengiriman
         <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
-      </button>
+      </Link>
 
       <div className="mt-6 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
         <span className="material-icons-outlined text-base text-green-600">verified_user</span>

@@ -12,7 +12,7 @@ import { LandingFooter } from "./components/footer";
 export function LandingPage() {
   return (
     <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
-      <LandingNavbar />
+      <LandingNavbar activeLabel="Beranda" />
       <main>
         <LandingHero />
         <LandingAbout />

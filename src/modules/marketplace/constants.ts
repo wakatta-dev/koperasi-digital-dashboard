@@ -82,6 +82,42 @@ export type CartSummary = {
 
 export const CART_BADGE = 2;
 
+export type ShippingAddress = {
+  fullName: string;
+  phone: string;
+  label: string;
+  address: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode: string;
+};
+
+export type ShippingOption = {
+  id: string;
+  title: string;
+  subtitle: string;
+  price: string;
+  recommended?: boolean;
+  free?: boolean;
+};
+
+export type ShippingSummary = {
+  totalItemsLabel: string;
+  totalItemsValue: string;
+  shippingLabel: string;
+  shippingValue: string;
+  serviceFeeLabel: string;
+  serviceFeeValue: string;
+  discountLabel: string;
+  discountValue: string;
+  totalLabel: string;
+  totalValue: string;
+  secureNote: string;
+  avatarImages: string[];
+  extraCountLabel: string;
+};
+
 export const MARKETPLACE_NAV_LINKS: MarketplaceNavLink[] = [
   { label: "Beranda", href: "/" },
   { label: "Marketplace", href: "/marketplace", active: true },
@@ -357,4 +393,57 @@ export const CART_SUMMARY: CartSummary = {
   itemsCountLabel: "Termasuk pajak jika berlaku",
   shippingPlaceholder: "Kecamatan / Kode Pos",
   secureNote: "Transaksi Aman & Terpercaya BUMDes",
+};
+
+export const SHIPPING_ADDRESS: ShippingAddress = {
+  fullName: "Budi Santoso",
+  phone: "08123456789",
+  label: "Rumah",
+  address: "Jl. Melati No. 45, RT 02/RW 05, Dusun Sukamaju",
+  province: "Jawa Barat",
+  city: "Kab. Bogor",
+  district: "Kec. Cibinong",
+  postalCode: "16914",
+};
+
+export const SHIPPING_OPTIONS: ShippingOption[] = [
+  {
+    id: "bumdes-logistics",
+    title: "Kurir Desa (BUMDes Logistics)",
+    subtitle: "Estimasi tiba: Besok (08:00 - 17:00)",
+    price: "Rp 15.000",
+    recommended: true,
+  },
+  {
+    id: "jne-reg",
+    title: "JNE Reguler",
+    subtitle: "Estimasi tiba: 2-3 Hari",
+    price: "Rp 18.000",
+  },
+  {
+    id: "pickup",
+    title: "Ambil Sendiri di Kantor BUMDes",
+    subtitle: "Siap diambil: Hari ini jam 14:00",
+    price: "Gratis",
+    free: true,
+  },
+];
+
+export const SHIPPING_SUMMARY: ShippingSummary = {
+  totalItemsLabel: "Total Harga (3 Barang)",
+  totalItemsValue: "Rp 160.000",
+  shippingLabel: "Biaya Pengiriman",
+  shippingValue: "Rp 15.000",
+  serviceFeeLabel: "Biaya Layanan",
+  serviceFeeValue: "Rp 1.000",
+  discountLabel: "Diskon",
+  discountValue: "- Rp 0",
+  totalLabel: "Total Tagihan",
+  totalValue: "Rp 176.000",
+  secureNote: "Data pribadi Anda dilindungi dengan aman",
+  avatarImages: [
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuDk6WiWQf_QgIaN5-P8j6WqumkJbpN7CNOrbLVJL4NqhzL2kZv5p2c-xG_IPVd485z8sut7eTI1LDMZsupIGJG0-_o8LxeqavKVThVj5Y_U09bLl6QJBtw7vRHlYK-AuskH2OlQ0ovj-UbYjy9RK5E5cEXrjy7xyZ6Di9sIcWlwr58cb0kF1iNZnSCXtgqjF0eL3JKLzwT9puC1Exf_a1HefEywcsxN6T-dmwWxXlq5As-_gnl2l3mMAorsefJyZ5GUeZai4j9_HB4",
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuCsm2KPnTd51o5-yVR4bXFUsjINiCdbRbctJ3FGycF_0XZx5sgxe7fde1Z7JQLR9Zkene-23lJjPxeUy6fqWsmmdlhrHVRfP4Scq5sJAl6bwbRgzqApv5IZB9vwagdDRE0stsht16xWPz8d3inB8MhHZrNrjoT6T4jGdaxY3_0Zop35b9s31PUDZOnpsKvhtNlV6vFtP7-9inEZWpMWgwemGTSACyN3QY8N2P4gC5O2zkLFwqVHojRSn_5nxEXq8InlXtD7kDVEb1U",
+  ],
+  extraCountLabel: "+1",
 };
