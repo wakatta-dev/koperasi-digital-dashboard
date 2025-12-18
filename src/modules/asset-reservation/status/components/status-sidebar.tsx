@@ -7,9 +7,10 @@ import { STATUS_CONTENT, REQUEST_INFO, type ReservationStatus } from "../constan
 
 type StatusSidebarProps = {
   status: ReservationStatus;
+  onCancel?: () => void;
 };
 
-export function StatusSidebar({ status }: StatusSidebarProps) {
+export function StatusSidebar({ status, onCancel }: StatusSidebarProps) {
   const content = STATUS_CONTENT[status];
 
   return (
@@ -63,17 +64,33 @@ export function StatusSidebar({ status }: StatusSidebarProps) {
 
         <div className="space-y-3">
           {content.primaryCta ? (
-            <Button className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group">
-              <span>{content.primaryCta}</span>
-              <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">
-                arrow_forward
-              </span>
+            <Button
+              className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group"
+              asChild={Boolean(content.primaryHref)}
+            >
+              {content.primaryHref ? (
+                <a href={content.primaryHref}>
+                  <span>{content.primaryCta}</span>
+                  <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </a>
+              ) : (
+                <>
+                  <span>{content.primaryCta}</span>
+                  <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </>
+              )}
             </Button>
           ) : null}
 
           <Button
             variant="ghost"
             className="w-full bg-white dark:bg-transparent hover:bg-red-50 dark:hover:bg-red-900/10 text-red-600 dark:text-red-400 py-3 rounded-xl font-semibold transition border border-red-200 dark:border-red-900 hover:border-red-300 flex items-center justify-center gap-2 group shadow-sm"
+            type="button"
+            onClick={onCancel}
           >
             <span className="material-icons-outlined group-hover:scale-110 transition-transform text-lg">
               close

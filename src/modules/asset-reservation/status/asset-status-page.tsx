@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
@@ -21,6 +22,7 @@ import { StatusHero } from "./components/status-hero";
 import { StatusRenterCard } from "./components/status-renter-card";
 import { StatusSidebar } from "./components/status-sidebar";
 import { DETAIL_ASSET } from "../detail/constants";
+import { CancelRequestModal } from "./components/cancel-request-modal";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -33,6 +35,7 @@ type AssetStatusPageProps = {
 
 export function AssetStatusPage({ status }: AssetStatusPageProps) {
   const asset = STATUS_ASSET;
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   return (
     <div className={plusJakarta.className}>
@@ -85,7 +88,7 @@ export function AssetStatusPage({ status }: AssetStatusPageProps) {
               </div>
 
               <div className="lg:col-span-1">
-                <StatusSidebar status={status} />
+                <StatusSidebar status={status} onCancel={() => setCancelOpen(true)} />
               </div>
             </div>
 
@@ -93,6 +96,7 @@ export function AssetStatusPage({ status }: AssetStatusPageProps) {
           </div>
         </main>
         <AssetReservationFooter />
+        <CancelRequestModal open={cancelOpen} onOpenChange={setCancelOpen} />
       </div>
     </div>
   );

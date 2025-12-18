@@ -37,6 +37,7 @@ export const STATUS_CONTENT: Record<
     text: string;
     summaryLabel: string;
     primaryCta?: string;
+    primaryHref?: string;
     secondaryVariant?: "danger";
   }
 > = {
@@ -61,6 +62,7 @@ export const STATUS_CONTENT: Record<
     text: "Permintaan sewa Anda telah dikonfirmasi! Silakan lanjutkan ke pembayaran untuk mengamankan reservasi Anda.",
     summaryLabel: "Total Tagihan",
     primaryCta: "Lanjutkan Pembayaran",
+    primaryHref: "/penyewaan-aset/payment",
     secondaryVariant: "danger",
   },
 };
