@@ -118,6 +118,18 @@ export type ShippingSummary = {
   extraCountLabel: string;
 };
 
+export type PaymentOption = {
+  id: string;
+  title: string;
+  subtitle: string;
+  badgeText?: string;
+  priceText?: string;
+  icon?: string;
+  iconColor?: string;
+  bgColor?: string;
+  recommended?: boolean;
+};
+
 export const MARKETPLACE_NAV_LINKS: MarketplaceNavLink[] = [
   { label: "Beranda", href: "/" },
   { label: "Marketplace", href: "/marketplace", active: true },
@@ -446,4 +458,55 @@ export const SHIPPING_SUMMARY: ShippingSummary = {
     "https://lh3.googleusercontent.com/aida-public/AB6AXuCsm2KPnTd51o5-yVR4bXFUsjINiCdbRbctJ3FGycF_0XZx5sgxe7fde1Z7JQLR9Zkene-23lJjPxeUy6fqWsmmdlhrHVRfP4Scq5sJAl6bwbRgzqApv5IZB9vwagdDRE0stsht16xWPz8d3inB8MhHZrNrjoT6T4jGdaxY3_0Zop35b9s31PUDZOnpsKvhtNlV6vFtP7-9inEZWpMWgwemGTSACyN3QY8N2P4gC5O2zkLFwqVHojRSn_5nxEXq8InlXtD7kDVEb1U",
   ],
   extraCountLabel: "+1",
+};
+
+export const PAYMENT_BANK_LOGOS = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBpbf31piTJF8ShOfTdmNrsGGfBrw2Q2KCtni_DusoSKfyPh2QILCoSTFb8cQgGhwsOgAsgviDEt33oBoWsk_Ol-cJ0d1q4qnjH19rr-kYByZYIi66qCbCU5jlXxnMG1Xj3WIqE9ODNxzL_xLIzN3G8GbyJU-pFDmhAxfCXocjOB3Fe4AHbYiJQbflapKmtAWaGidm-N4cLDBhO2YzDSLBbIEW5KeHMEl2k5zLNd4FFfigG4Ukqti3XLjbrkg8wfdsWe1IF4DQ_WpI",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuCHAhQCWJ6nNZZIpNeTdDOOqw8sAmIlxWSJym8reQBVojgcnavR2lFrjTg0lTygZC6jI2LpfT2AdxPPARsBJkXCR-M0rNJ_OZCdbxo1y_752ukuts8nJpuy2k2wMiEdGCgEPlqOwiDEklOzX1UuwgxD_dFJ91qM_ZlgtczHLFqOGlc1YWFY0q6e6kTfFuzGqJIea4Fu69KuZMzTTWWfbYbKbtOa94vvTmGh1snixGYDyOl0kjWxvqcA6PFZ9i0EYQW7nkn4Mp61S4k",
+];
+
+export const PAYMENT_VA_OPTIONS: PaymentOption[] = [
+  {
+    id: "bri",
+    title: "Bank BRI",
+    subtitle: "Dicek Otomatis",
+    badgeText: "Bebas Biaya",
+    icon: "account_balance",
+    iconColor: "text-blue-700 dark:text-blue-400",
+    bgColor: "bg-blue-50 dark:bg-blue-900/20",
+    recommended: true,
+  },
+  {
+    id: "mandiri",
+    title: "Bank Mandiri",
+    subtitle: "Dicek Otomatis",
+    badgeText: "Rp 1.000",
+    icon: "account_balance",
+    iconColor: "text-yellow-700 dark:text-yellow-400",
+    bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
+  },
+];
+
+export const PAYMENT_OTHER_OPTIONS: PaymentOption[] = [
+  {
+    id: "qris",
+    title: "QRIS",
+    subtitle: "Scan kode QR (GoPay, OVO, Dana, LinkAja)",
+    icon: "qr_code_scanner",
+    iconColor: "text-gray-700 dark:text-gray-300",
+    bgColor: "bg-gray-50 dark:bg-gray-800",
+  },
+  {
+    id: "cod",
+    title: "Bayar di Tempat (COD)",
+    subtitle: "Bayar tunai saat kurir tiba",
+    icon: "payments",
+    iconColor: "text-green-700 dark:text-green-400",
+    bgColor: "bg-green-50 dark:bg-green-900/20",
+  },
+];
+
+export const PAYMENT_SUMMARY: ShippingSummary = {
+  ...SHIPPING_SUMMARY,
+  secureNote: "Pembayaran Anda dijamin aman",
 };
