@@ -7,13 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 type DetailRentalFormProps = {
   price: string;
   unit: string;
+  onSubmit?: () => void;
 };
 
-export function DetailRentalForm({ price, unit }: DetailRentalFormProps) {
+export function DetailRentalForm({ price, unit, onSubmit }: DetailRentalFormProps) {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    onSubmit?.();
+  };
+
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg sticky top-24">
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Ajukan Sewa</h3>
-      <form className="space-y-4">
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -102,7 +108,7 @@ export function DetailRentalForm({ price, unit }: DetailRentalFormProps) {
         </div>
 
         <Button
-          type="button"
+          type="submit"
           className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-95 flex items-center justify-center gap-2"
         >
           <span className="material-icons-outlined">send</span>

@@ -1,5 +1,8 @@
 /** @format */
 
+"use client";
+
+import { useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
@@ -14,6 +17,7 @@ import { DetailFacilities } from "./components/detail-facilities";
 import { DetailAvailability } from "./components/detail-availability";
 import { DetailRentalForm } from "./components/detail-rental-form";
 import { DetailRecommendations } from "./components/detail-recommendations";
+import { RentRequestModal } from "./components/rent-request-modal";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -25,6 +29,7 @@ type AssetDetailPageProps = {
 };
 
 export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const baseAsset = ASSET_ITEMS.find((item) => item.id === assetId) ?? ASSET_ITEMS[0];
 
   const detail = {
@@ -69,7 +74,11 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
               </div>
 
               <div className="lg:col-span-1">
-                <DetailRentalForm price={detail.price} unit={detail.unit} />
+                <DetailRentalForm
+                  price={detail.price}
+                  unit={detail.unit}
+                  onSubmit={() => setIsModalOpen(true)}
+                />
               </div>
             </div>
 
@@ -77,6 +86,11 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           </div>
         </main>
         <AssetReservationFooter />
+        <RentRequestModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          statusHref={`/penyewaan-aset/status/${baseAsset.id}?status=pending`}
+        />
       </div>
     </div>
   );

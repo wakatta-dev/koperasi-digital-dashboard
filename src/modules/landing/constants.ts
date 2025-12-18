@@ -4,7 +4,7 @@ export const NAV_LINKS = [
   { label: "Beranda", href: "/" },
   { label: "Marketplace", href: "/marketplace" },
   { label: "POS", href: "/login", badge: "Staff", requiresShortcut: true },
-  { label: "Penyewaan Aset", href: "/penyewaan-asset" },
+  { label: "Penyewaan Aset", href: "/penyewaan-aset" },
   { label: "Login", href: "/login", requiresShortcut: true, cta: true },
 ];
 

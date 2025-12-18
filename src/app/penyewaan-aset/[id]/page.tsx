@@ -15,6 +15,6 @@ export const metadata: Metadata = {
   description: "Lihat detail aset, fasilitas, jadwal, dan ajukan penyewaan di BUMDes Sukamaju.",
 };
 
-export default function PenyewaanAssetDetailPage({ params }: AssetDetailPageProps) {
+export default function PenyewaanAsetDetailPage({ params }: AssetDetailPageProps) {
   return <AssetDetailPage assetId={params.id} />;
 }
