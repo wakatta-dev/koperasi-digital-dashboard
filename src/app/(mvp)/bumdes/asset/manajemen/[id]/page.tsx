@@ -6,12 +6,13 @@ import { notFound } from "next/navigation";
 import { assetItems } from "@/modules/asset/data/assets";
 import { AssetDetailView } from "@/modules/asset/components/asset-detail-view";
 
-export default function AssetDetailPage({
+export default async function AssetDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const asset = assetItems.find((item) => item.id === params.id);
+  const param = await params;
+  const asset = assetItems.find((item) => item.id === param.id);
 
   if (!asset) {
     notFound();

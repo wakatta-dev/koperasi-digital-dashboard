@@ -130,6 +130,33 @@ export type PaymentOption = {
   recommended?: boolean;
 };
 
+export type ReviewAddress = {
+  name: string;
+  label: string;
+  addressLine1: string;
+  addressLine2: string;
+  phone: string;
+  courierTag: string;
+  courierEta: string;
+};
+
+export type ReviewPayment = {
+  bankName: string;
+  note: string;
+  logo: string;
+};
+
+export type ReviewItem = {
+  id: string;
+  title: string;
+  subtitle: string;
+  price: string;
+  quantity: number;
+  image?: string;
+  icon?: string;
+  iconBg?: string;
+};
+
 export const MARKETPLACE_NAV_LINKS: MarketplaceNavLink[] = [
   { label: "Beranda", href: "/" },
   { label: "Marketplace", href: "/marketplace", active: true },
@@ -508,5 +535,57 @@ export const PAYMENT_OTHER_OPTIONS: PaymentOption[] = [
 
 export const PAYMENT_SUMMARY: ShippingSummary = {
   ...SHIPPING_SUMMARY,
+  secureNote: "Pembayaran Anda dijamin aman",
+};
+
+export const REVIEW_ADDRESS: ReviewAddress = {
+  name: "Budi Santoso",
+  label: "Rumah",
+  addressLine1: "Jl. Melati No. 45, RT 02/RW 05, Desa Sukamaju",
+  addressLine2: "Kecamatan Caringin, Kabupaten Bogor, Jawa Barat 16730",
+  phone: "0812-3456-7890",
+  courierTag: "Kurir Desa (BUMDes)",
+  courierEta: "Estimasi tiba: Besok, 10:00 - 14:00",
+};
+
+export const REVIEW_PAYMENT: ReviewPayment = {
+  bankName: "Bank BRI Virtual Account",
+  note: "Bebas biaya admin",
+  logo:
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuBpbf31piTJF8ShOfTdmNrsGGfBrw2Q2KCtni_DusoSKfyPh2QILCoSTFb8cQgGhwsOgAsgviDEt33oBoWsk_Ol-cJ0d1q4qnjH19rr-kYByZYIi66qCbCU5jlXxnMG1Xj3WIqE9ODNxzL_xLIzN3G8GbyJU-pFDmhAxfCXocjOB3Fe4AHbYiJQbflapKmtAWaGidm-N4cLDBhO2YzDSLBbIEW5KeHMEl2k5zLNd4FFfigG4Ukqti3XLjbrkg8wfdsWe1IF4DQ_WpI",
+};
+
+export const REVIEW_ITEMS: ReviewItem[] = [
+  {
+    id: "beras-wangi",
+    title: "Beras Wangi Pandan (10kg)",
+    subtitle: "Produk Unggulan Desa",
+    price: "Rp 115.000",
+    quantity: 1,
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDk6WiWQf_QgIaN5-P8j6WqumkJbpN7CNOrbLVJL4NqhzL2kZv5p2c-xG_IPVd485z8sut7eTI1LDMZsupIGJG0-_o8LxeqavKVThVj5Y_U09bLl6QJBtw7vRHlYK-AuskH2OlQ0ovj-UbYjy9RK5E5cEXrjy7xyZ6Di9sIcWlwr58cb0kF1iNZnSCXtgqjF0eL3JKLzwT9puC1Exf_a1HefEywcsxN6T-dmwWxXlq5As-_gnl2l3mMAorsefJyZ5GUeZai4j9_HB4",
+  },
+  {
+    id: "minyak-kelapa",
+    title: "Minyak Goreng Kelapa (2L)",
+    subtitle: "Murni & Higienis",
+    price: "Rp 35.000",
+    quantity: 1,
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuCsm2KPnTd51o5-yVR4bXFUsjINiCdbRbctJ3FGycF_0XZx5sgxe7fde1Z7JQLR9Zkene-23lJjPxeUy6fqWsmmdlhrHVRfP4Scq5sJAl6bwbRgzqApv5IZB9vwagdDRE0stsht16xWPz8d3inB8MhHZrNrjoT6T4jGdaxY3_0Zop35b9s31PUDZOnpsKvhtNlV6vFtP7-9inEZWpMWgwemGTSACyN3QY8N2P4gC5O2zkLFwqVHojRSn_5nxEXq8InlXtD7kDVEb1U",
+  },
+  {
+    id: "gula-pasir",
+    title: "Gula Pasir Lokal (1kg)",
+    subtitle: "Manis Alami",
+    price: "Rp 10.000",
+    quantity: 1,
+    icon: "grocery",
+    iconBg: "bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 text-orange-400",
+  },
+];
+
+export const REVIEW_SUMMARY: ShippingSummary = {
+  ...PAYMENT_SUMMARY,
   secureNote: "Pembayaran Anda dijamin aman",
 };

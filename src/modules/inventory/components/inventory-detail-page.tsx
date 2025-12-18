@@ -148,7 +148,6 @@ export function InventoryDetailPage() {
                     className="h-5 w-5 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5] dark:border-[#4b5563] dark:bg-[#374151]"
                     checked={product.trackStock}
                     disabled
-                    readOnly
                   />
                 </div>
               </div>

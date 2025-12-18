@@ -38,6 +38,13 @@ export type ChannelPerformance = {
 };
 
 export type SalesSummaryResponse = {
+  total_revenue: any;
+  transaction_count: number;
+  average_ticket: number;
+  delta_label: string | undefined;
+  delta_direction: "up" | "down" | "flat" | undefined;
+  comparison_period: string | undefined;
+  last_updated: string | undefined;
   range: TimeRange;
   kpis: SalesKpi;
 };

@@ -5,3 +5,4 @@ export { MarketplaceProductDetailPage } from "./product-detail-page";
 export { MarketplaceCartPage } from "./cart-page";
 export { MarketplaceShippingPage } from "./shipping-page";
 export { MarketplacePaymentPage } from "./payment-page";
+export { MarketplaceReviewPage } from "./review-page";

@@ -1,10 +1,23 @@
-"use client"
+/** @format */
+
+"use client";
 
 import * as React from "react";
-import { BookOpenIcon, PlusIcon, SearchIcon, SquarePenIcon, TrashIcon } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table"
+import {
+  BookOpenIcon,
+  PlusIcon,
+  SearchIcon,
+  SquarePenIcon,
+  TrashIcon,
+} from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { DataTable } from "@/components/shared/data-table";
 import Link from "next/link";
 import { InventoryItem } from "@/modules/inventory/types";
@@ -13,10 +26,10 @@ import { getInventory } from "@/modules/inventory/api";
 
 export default function InventoryPage() {
   const { data: inventoryList, isFetching } = useQuery<InventoryItem[]>({
-    queryKey: ['inventory'],
+    queryKey: ["inventory"],
     queryFn: () => getInventory(),
     placeholderData: keepPreviousData,
-  })
+  });
 
   const columns = React.useMemo<ColumnDef<InventoryItem>[]>(
     () => [
@@ -48,12 +61,12 @@ export default function InventoryPage() {
             style: "currency",
             currency: "IDR",
             minimumFractionDigits: 0,
-          }).format(info.getValue<number>())
-          return formatted
+          }).format(info.getValue<number>());
+          return formatted;
         },
       },
       {
-        id: 'actions',
+        id: "actions",
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
@@ -71,9 +84,9 @@ export default function InventoryPage() {
           </div>
         ),
       },
-    ], 
+    ],
     []
-  )
+  );
 
   return (
     <div className="space-y-4">

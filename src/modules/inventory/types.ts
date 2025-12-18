@@ -6,6 +6,13 @@ export type InventoryItem = {
   category: string;
   categoryClassName: string;
   stock: number | string;
-  price: string;
+  price: number | string;
   image: string;
+  product: {
+    id: string;
+    name: string;
+    category: string;
+    img: string | null;
+  };
+  id: string;
 };

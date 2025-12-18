@@ -37,6 +37,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp35.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuAtENrWj9ToTvhJOo5s7u4H3UT0Q_BTLTdiZM2eI0jAkCzOTQWShrtqQM9hMG1r-kVECZwzUv7UCd9wVUupsmK_Rqng6Osy7XQrJNGBJLb9mqMdBW97xnZRO1ltRkdPOrZC2Vf9TUK9FTEUGS5Hpxz-I98NuAV-TpXjeDxP2Nix0C8bDYdP15WzXCuBmCsilZL0HZqTdqW7jSwsw8ZSo5SaWYC4cWXF0zhYnReO8dH18-z-ov33rig5Ozf-tkzPpnWPByJzt7Su3kA",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "Keripik Pisang",
@@ -48,6 +55,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp150.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBdLquF-7gZvHn7zOM5J_2C3xdmDWgScuEjJfEa3zSm5NpCBnfTjUKJuDXfWoQc_4mjLi2Qf0rZYSELm1GBz1oxva_1HVy4VDLlhmKD3R43RAV0FfPYHpbXcHzB3Yv_f2manq686gep79quH4xhIfNSKH8dhpinOdSBzesVBMSY6qb2Bgo_8_rw9gNgM_z4X8OytQ2I3Mi_wQdByvVC9BM1MP3vo-ZECUap2gC0oRgGLkZSLDxu4uB_g-KbEHFEOX2eISqtgdTI8u8",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "Lipbalm",
@@ -59,6 +73,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp60.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDJZ2AwzgCA8rORWp8CHSQWwRtbaCRHlUse67dCPL_IyNsDkzZmwNQxQux60tbdldVpxRtezTmtxFYaA3EuVftxbmeoda8mQPpnMHTwgGkZ3CupzeyNBdwgVO5IWKnCGpZdln76aA9K6jCBZe-dyVuUlVnmkNo7PBNGB0JVXXnt-lqrXuZRNslu99jKd5ZJtnOsD_orlXJLxVXmRA4G7UekCssvEUKSYdNV63TRNtBuvaNUewSv_s86XyZ-yzlk4Yf1M41I_oAf4ro",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "Notebook A4",
@@ -70,6 +91,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp50.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDBZxsi6_8uaEDZoVq5rUcITCrNC14SkzoTj_prWH92wpU8HBpyQWtJMkaMTz_ExXQY-Q_S1jdyYzudav-uO5cLaxKqaepOf-8L3pH6y5efwcs6VkEmK6MQ6mIS7K7IhjfhyuqdEEvyF9Y6kVaRTvP4mfT33ay5cImgIQYYbfgoHbMNBltxaHBbTNgvh0tE_nUMWsI1YeenP7uFLZ6XHdUKwgVLf0M_n76gRhix2qvIYTJnNOmjKgMgudWa7txmxbdj0eq3eCJvJWU",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "Sunscreen",
@@ -81,6 +109,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp40.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBBMuSW9ktbMwrQQaeclaxwTVLixGd-z-T3Ij1XxVz1jHUDEXlv-k-oUVBwGlgmGLN0XNR00GcwSTjAX92iV_OD24naSDB8tasRE4DTmv4pBWpnIeROZT_cxlylH8KDA8z10ot7ND6Crb_JAxmOAAAosQug1qvs18ICFcbEi2kJ6hYp3ri9G93BGpwCbZxJ45L8tVDBRbZHezx8b57OrfAwJNV8F7gVc2k0h9OTfRJdGb8AJUuioBRzHyF2rteOTUzyrXgtSyMDcqs",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "Velg Chrome",
@@ -92,6 +127,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp70.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuCZn-LwbtA9fJC_BYsv5eNrfzVSsEjTEtHguQwOfYYKj9sgXgtG24YwOeepkRc35WYPrHCLzkznQQ-p0rqYUG1C8wOHwmuP2YIkij5eIWaK0HYdqcyJW_XjrBx0LJZqC3AlCfRKjiudhRHlmC_R_EzSJdwMgD4t58NErNbSARl6kLCkOnP8FZ-toaokC8ciFgJYlBlo1qzl1WyVWypdc0P8FPoX0_-Z-s-gtFroA4NkZYsyCxb3lEGEP6fYg_EoySs8oOjcYn-oIZA",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "TWS Airgone C12",
@@ -103,6 +145,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp30.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBtY2fqZweDh9-pLxgunrXJY3eBLF0BJHNpfus4TK01cukpTyuT3LewhCWYfBxeqXFqqphI8zWcFkwQL4LvF9UYPGsd3S_yM1UXTkh1NfLRFETD3WMWrrbv0679PqY9zXY4ZbGbXcqVU4jDtU06NBHDI7pvbtxQtAz0xqaT_zhTlJVXP7SVXsyuwVT_AqPpPRJtJrVDKF39l81YIZNMRLuT2XrN3T5HQFBLTH578Ghq8i6URrHEns21rGrHvVrBzdiXAWMjeuvnQWE",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "Surveillance camera",
@@ -114,6 +163,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp100.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBb8lbMcOXcNQwhlkmuIfreTyY1yQlEZQPYcGrUwCakP3ehX2lsKwi88TLFx9Gi7-IimEN-bxfZDo7TeT4Qc-mNdWhML-SmK5cvXaFP1BbAnbEx2GZTbqu1ZqVybJpJmIr6AwqR1JLoz2tQ7Lp_U6MDrveIyvKZb6uV4qyO7yMOO0jUskXnv37IdzjGm33--1Szv0Uti3RoIyLS7FgcOuZBwXGrfolpQ_WZmTKD2cSPhFI09msCMqP9EdseOhjIC_30-6YYX4_1n5c",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
   {
     name: "Madu Murni",
@@ -125,6 +181,13 @@ const inventoryItems: InventoryItem[] = [
     price: "Rp30.000",
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuAwGEs7bS4wEehQ2sBCcC3r5EkjZTjD5pHvW3sXL6qMDe7r_-ZAf8xilt6zP4z7Olzo2VXPmBbZV64yVqVWj0a7cvOREKv-CSxQ_0ZG2vmnzqL3KCtN-05lxyZfUj7QZJK6ECmFet92II6E1gjjuym2cao0WWb1esxak8QfMx8j6e2h2IDfn8Xa8wjKOUpZof3m0-C5rbu4cuaW_TUbyHLoOHLkGYx5i69W8J2d0PitOmgLr06ybFn-b-m-W-xXn8o9AMfuWJxS2-U",
+    product: {
+      id: "",
+      name: "",
+      category: "",
+      img: null,
+    },
+    id: "",
   },
 ];
 
