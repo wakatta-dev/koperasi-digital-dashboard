@@ -14,7 +14,12 @@ export const HERO_CONTENT = {
 
 export const ASSET_CATEGORIES = ["Gedung & Ruangan", "Alat Pertanian", "Peralatan Pesta", "Kendaraan"] as const;
 
-export const SORT_OPTIONS = ["Populer", "Harga Terendah", "Harga Tertinggi", "Terbaru"] as const;
+export const SORT_OPTIONS = [
+  { label: "Populer", value: "popular" },
+  { label: "Harga Terendah", value: "price_asc" },
+  { label: "Harga Tertinggi", value: "price_desc" },
+  { label: "Terbaru", value: "newest" },
+] as const;
 
 export const ASSET_ITEMS: AssetItem[] = [
   {

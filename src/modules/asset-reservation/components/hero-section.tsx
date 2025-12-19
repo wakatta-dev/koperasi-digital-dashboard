@@ -4,7 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HERO_CONTENT } from "../constants";
 
-export function AssetHeroSection() {
+type AssetHeroSectionProps = {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  onSearchSubmit: () => void;
+};
+
+export function AssetHeroSection({
+  searchTerm,
+  onSearchChange,
+  onSearchSubmit,
+}: AssetHeroSectionProps) {
   return (
     <div className="relative bg-white dark:bg-[#1e293b] border-b border-gray-200 dark:border-gray-800">
       <div className="absolute inset-0 z-0 opacity-10 dark:opacity-20 pointer-events-none">
@@ -33,12 +43,23 @@ export function AssetHeroSection() {
               </span>
               <Input
                 type="text"
+                value={searchTerm}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onSearchSubmit();
+                  }
+                }}
                 placeholder={HERO_CONTENT.searchPlaceholder}
                 className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus-visible:ring-0 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 h-[48px]"
               />
             </div>
             <div className="sm:border-l border-gray-200 dark:border-gray-700 sm:pl-2">
-              <Button className="w-full sm:w-auto bg-[#4338ca] hover:bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold transition shadow-lg shadow-indigo-500/30 h-[48px] flex items-center justify-center gap-2">
+              <Button
+                onClick={onSearchSubmit}
+                className="w-full sm:w-auto bg-[#4338ca] hover:bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold transition shadow-lg shadow-indigo-500/30 h-[48px] flex items-center justify-center gap-2"
+              >
                 Cari Aset
               </Button>
             </div>

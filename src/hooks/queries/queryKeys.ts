@@ -52,6 +52,12 @@ export const QK = {
     balanceSheet: (params?: Record<string, unknown>) =>
       ["finance", "balance-sheet", params ?? {}] as const,
   },
+  assetRental: {
+    list: (params?: Record<string, unknown>) =>
+      ["asset-rental", "assets", params ?? {}] as const,
+    detail: (id: string | number) =>
+      ["asset-rental", "assets", "detail", String(id)] as const,
+  },
 } as const;
 
 export type QueryKey = ReturnType<
@@ -75,4 +81,6 @@ export type QueryKey = ReturnType<
   | typeof QK.finance.profitLoss
   | typeof QK.finance.cashFlow
   | typeof QK.finance.balanceSheet
+  | typeof QK.assetRental.list
+  | typeof QK.assetRental.detail
 >;
