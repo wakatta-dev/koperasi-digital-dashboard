@@ -1,8 +1,8 @@
-# Koperasi Digital Dashboard
+# Frontend (Koperasi Digital)
 
 Dashboard web untuk manajemen modul koperasi digital.
 Aplikasi ini dibangun menggunakan [Next.js](https://nextjs.org) dan
-mengonsumsi API backend untuk fitur seperti keanggotaan dan billing.
+mengonsumsi API backend untuk fitur seperti keanggotaan dan billing. Kode frontend berada di direktori `frontend` (sebelumnya `koperasi-digital-dashboard`).
 
 ## Dokumentasi Produk
 Spesifikasi kebutuhan dashboard tersedia pada dokumen berikut:
@@ -49,4 +49,3 @@ Dashboard menyediakan rute awal untuk modul-modul berikut:
 - `npm run build` – build produksi
 - `npm run start` – menjalankan hasil build
 - `npm run lint` – menjalankan pemeriksaan kode
-
