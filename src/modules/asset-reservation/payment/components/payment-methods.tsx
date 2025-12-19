@@ -36,7 +36,7 @@ type PaymentStatus = "initiated" | "pending_verification" | "succeeded" | "faile
 export function PaymentMethods({
   mode,
   methodGroups = PAYMENT_METHOD_GROUPS,
-  reservationId = "mock-reservation",
+  reservationId,
   onStatusChange,
 }: PaymentMethodsProps) {
   const [selected, setSelected] = useState<string>(() => methodGroups[0]?.options[0]?.value ?? "");
@@ -66,6 +66,10 @@ export function PaymentMethods({
   useEffect(() => {
     let ignore = false;
     async function bootstrapSession(methodValue: string) {
+      if (!reservationId) {
+        setSessionError("ID reservasi wajib diisi sebelum membuat sesi pembayaran.");
+        return;
+      }
       setIsLoading(true);
       setSessionError(null);
       try {

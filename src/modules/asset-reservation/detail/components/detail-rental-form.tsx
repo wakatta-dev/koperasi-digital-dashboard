@@ -44,6 +44,8 @@ export function DetailRentalForm({
     const end = String(formData.get("end_date") ?? "");
     const purpose = String(formData.get("purpose") ?? "").trim();
     const now = new Date().toISOString().slice(0, 10);
+    const numericAssetId =
+      assetId && /^\d+$/.test(assetId) ? assetId : undefined;
 
     if (!start || !end) {
       setError("Tanggal mulai dan selesai wajib diisi.");
@@ -61,7 +63,13 @@ export function DetailRentalForm({
     }
 
     setIsSubmitting(true);
-    const result = checkAvailability({ start, end, assetId });
+    if (!numericAssetId) {
+      setServerError("Aset tidak valid untuk diajukan.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const result = checkAvailability({ start, end, assetId: numericAssetId });
     const resolved = result instanceof Promise ? await result : result;
 
     if (!resolved.ok) {
@@ -73,7 +81,7 @@ export function DetailRentalForm({
 
     try {
       const creation = await createReservation({
-        asset_id: assetId ?? "asset-unknown",
+        asset_id: numericAssetId,
         start_date: start,
         end_date: end,
         purpose: purpose || "Penggunaan umum",

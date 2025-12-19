@@ -1,4 +1,5 @@
 /** @format */
+"use client";
 
 import {
   Select,
@@ -9,17 +10,61 @@ import {
 } from "@/components/ui/select";
 import { ASSET_ITEMS, SORT_OPTIONS } from "../constants";
 import { AssetCard } from "./asset-card";
+import { useEffect, useMemo, useState } from "react";
+import { getAssets } from "@/services/api/assets";
+import type { AssetItem } from "../types";
 
 export function AssetGrid() {
+  const [assets, setAssets] = useState<AssetItem[]>(ASSET_ITEMS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadAssets() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getAssets();
+        if (ignore) return;
+        if (res.success && res.data) {
+          setAssets(res.data.map(mapAsset));
+        } else if (res.message) {
+          setError(res.message);
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : "Gagal memuat aset");
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+    loadAssets();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const countText = useMemo(() => {
+    if (loading) return "Memuat aset...";
+    return `${assets.length} aset`;
+  }, [loading, assets.length]);
+
   return (
     <div className="flex-grow">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Menampilkan{" "}
-          <span className="font-bold text-gray-900 dark:text-white">8 aset</span> tersedia
+          <span className="font-bold text-gray-900 dark:text-white">
+            {countText}
+          </span>{" "}
+          tersedia
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Urutkan:</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Urutkan:
+          </span>
           <Select defaultValue={SORT_OPTIONS[0]}>
             <SelectTrigger className="text-sm border-none bg-transparent font-semibold text-gray-900 dark:text-white focus:ring-0 focus-visible:ring-0 focus-visible:border-none px-0 h-10">
               <SelectValue />
@@ -35,8 +80,14 @@ export function AssetGrid() {
         </div>
       </div>
 
+      {error ? (
+        <div className="mb-4 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          {error}
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {ASSET_ITEMS.map((asset) => (
+        {assets.map((asset) => (
           <AssetCard key={asset.id} asset={asset} />
         ))}
       </div>
@@ -77,4 +128,26 @@ export function AssetGrid() {
       </div>
     </div>
   );
+}
+
+function mapAsset(asset: any): AssetItem {
+  const rateType = (asset.rate_type || asset.rateType || "").toLowerCase();
+  const unit = rateType === "hourly" ? "/jam" : "/hari";
+  const status: AssetItem["status"] =
+    (asset.status || "").toLowerCase() === "archived"
+      ? "maintenance"
+      : "available";
+  return {
+    id: String(asset.id),
+    category:
+      asset.rate_type?.toLowerCase() === "hourly" ? "Per Jam" : "Per Hari",
+    title: asset.name,
+    description: asset.description || "Aset tersedia untuk disewa.",
+    price: `Rp${(asset.rate_amount ?? 0).toLocaleString("id-ID")}`,
+    unit,
+    status,
+    imageUrl:
+      asset.photo_url ||
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=60",
+  };
 }

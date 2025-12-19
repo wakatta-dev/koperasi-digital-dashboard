@@ -18,6 +18,8 @@ import { DetailAvailability } from "./components/detail-availability";
 import { DetailRentalForm } from "./components/detail-rental-form";
 import { DetailRecommendations } from "./components/detail-recommendations";
 import { RentRequestModal } from "./components/rent-request-modal";
+import { getAssetById } from "@/services/api/assets";
+import { useEffect } from "react";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -30,18 +32,40 @@ type AssetDetailPageProps = {
 
 export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const baseAsset = ASSET_ITEMS.find((item) => item.id === assetId) ?? ASSET_ITEMS[0];
+  const [asset, setAsset] = useState(
+    ASSET_ITEMS.find((item) => item.id === assetId) ?? ASSET_ITEMS[0]
+  );
+
+  useEffect(() => {
+    let ignore = false;
+    async function fetchAsset() {
+      if (!assetId) return;
+      try {
+        const res = await getAssetById(assetId);
+        if (ignore) return;
+        if (res.success && res.data) {
+          setAsset(mapAsset(res.data));
+        }
+      } catch {
+        // ignore and keep fallback data
+      }
+    }
+    fetchAsset();
+    return () => {
+      ignore = true;
+    };
+  }, [assetId]);
 
   const detail = {
     ...DETAIL_ASSET,
-    id: baseAsset.id,
-    title: baseAsset.title,
-    category: baseAsset.category,
-    price: baseAsset.price,
-    unit: baseAsset.unit,
-    status: baseAsset.status,
-    heroImage: baseAsset.imageUrl,
-    thumbnails: [baseAsset.imageUrl, ...DETAIL_ASSET.thumbnails.slice(1)],
+    id: asset.id,
+    title: asset.title,
+    category: asset.category,
+    price: asset.price,
+    unit: asset.unit,
+    status: asset.status,
+    heroImage: asset.imageUrl,
+    thumbnails: [asset.imageUrl, ...DETAIL_ASSET.thumbnails.slice(1)],
   };
 
   return (
@@ -90,9 +114,29 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         <RentRequestModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          statusHref={`/penyewaan-aset/status/${baseAsset.id}?status=pending`}
+          statusHref={`/penyewaan-aset/status/${asset.id}?status=pending`}
         />
       </div>
     </div>
   );
+}
+
+function mapAsset(asset: any) {
+  const rateType = (asset.rate_type || asset.rateType || "").toLowerCase();
+  const unit = rateType === "hourly" ? "/jam" : "/hari";
+  return {
+    id: String(asset.id),
+    category: rateType === "hourly" ? "Per Jam" : "Per Hari",
+    title: asset.name || "Aset",
+    description: asset.description || "",
+    price: `Rp${(asset.rate_amount ?? 0).toLocaleString("id-ID")}`,
+    unit,
+    status:
+      (asset.status || "").toLowerCase() === "archived"
+        ? "maintenance"
+        : "available",
+    imageUrl:
+      asset.photo_url ||
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=60",
+  };
 }

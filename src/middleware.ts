@@ -13,6 +13,8 @@ export async function middleware(request: NextRequest) {
 
   let tenantId = request.cookies.get("tenantId")?.value;
   const isLanding = pathname === "/";
+  const publicPrefixes = ["/penyewaan-aset", "/marketplace"];
+  const isPublic = publicPrefixes.some((prefix) => pathname.startsWith(prefix));
 
   // lookup by domain kalau cookie kosong
   if (!tenantId && apiBase && host) {
@@ -58,8 +60,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // kalau masih nggak ketemu → redirect
-  if (!tenantId && pathname !== "/tenant-not-found" && !isLanding) {
+  if (
+    !tenantId &&
+    pathname !== "/tenant-not-found" &&
+    !isLanding &&
+    !isPublic
+  ) {
     return NextResponse.redirect(new URL("/tenant-not-found", request.url));
+  }
+
+  // Public routes: allow through without auth checks
+  if (isPublic) {
+    return withTenant(NextResponse.next());
   }
 
   // cek token NextAuth dengan nama cookie yang di-kustom agar unik per aplikasi
@@ -109,7 +121,7 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  if (isLanding) {
+  if (isLanding || isPublic) {
     if (token) {
       const userDashboard = `/${userRole}/dashboard`;
       return withTenant(

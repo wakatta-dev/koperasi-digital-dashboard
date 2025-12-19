@@ -68,13 +68,13 @@ export const API_ENDPOINTS = {
     availability: (id: string | number) => `/asset-rental/assets/${id}/availability`,
   },
   assetReservation: {
-    availability: "/reservations/check-availability",
-    reservations: "/reservations",
-    reservation: (id: string) => `/reservations/${id}`,
-    payments: "/payments",
-    paymentProof: (id: string) => `/payments/${id}/proof`,
-    paymentFinalize: (id: string) => `/payments/${id}/confirm`,
-    guestVerify: "/guest-links/verify",
+    availability: "/asset-rental/reservations/check-availability",
+    reservations: "/asset-rental/reservations",
+    reservation: (id: string) => `/asset-rental/reservations/${id}`,
+    payments: "/asset-rental/payments",
+    paymentProof: (id: string) => `/asset-rental/payments/${id}/proof`,
+    paymentFinalize: (id: string) => `/asset-rental/payments/${id}/confirm`,
+    guestVerify: "/asset-rental/guest-links/verify",
   },
 } as const;
 

@@ -85,6 +85,7 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   let accessToken = await getAccessToken();
+  const hadToken = Boolean(accessToken);
 
   const headers = new Headers(options.headers);
   if (accessToken) {
@@ -134,7 +135,20 @@ async function request<T>(
         authRetried = true;
         continue;
       }
-      await authLogout();
+      // Jika memang tidak ada token awalnya (halaman publik), jangan paksa logout/redirect.
+      if (hadToken) {
+        await authLogout();
+      }
+      return {
+        success: false,
+        message: "Unauthorized",
+        data: null as any,
+        meta: {
+          request_id: res.headers.get("x-request-id") ?? "",
+          timestamp: new Date().toISOString(),
+        } as any,
+        errors: null,
+      };
     }
 
     if (res.status === 429) {
