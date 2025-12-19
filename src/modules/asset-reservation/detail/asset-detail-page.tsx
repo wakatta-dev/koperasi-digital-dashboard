@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
@@ -18,8 +17,10 @@ import { DetailAvailability } from "./components/detail-availability";
 import { DetailRentalForm } from "./components/detail-rental-form";
 import { DetailRecommendations } from "./components/detail-recommendations";
 import { RentRequestModal } from "./components/rent-request-modal";
-import { getAssetById } from "@/services/api/assets";
-import { useEffect } from "react";
+import { useAssetAvailability, useAssetDetail } from "../hooks";
+import type { AssetAvailabilityRange } from "@/types/api/asset";
+import { useState, useEffect, useMemo } from "react";
+import { AssetStatus } from "../types";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -32,41 +33,64 @@ type AssetDetailPageProps = {
 
 export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [asset, setAsset] = useState(
-    ASSET_ITEMS.find((item) => item.id === assetId) ?? ASSET_ITEMS[0]
-  );
+  const { data: assetData, isLoading, error } = useAssetDetail(assetId);
+
+  const [availabilityRange, setAvailabilityRange] = useState(() => {
+    const today = new Date();
+    const end = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return {
+      start: today.toISOString().slice(0, 10),
+      end: end.toISOString().slice(0, 10),
+    };
+  });
+
+  const {
+    data: availability,
+    isLoading: isAvailabilityLoading,
+    error: availabilityError,
+  } = useAssetAvailability(assetId, {
+    start_date: availabilityRange.start,
+    end_date: availabilityRange.end,
+  });
 
   useEffect(() => {
-    let ignore = false;
-    async function fetchAsset() {
-      if (!assetId) return;
-      try {
-        const res = await getAssetById(assetId);
-        if (ignore) return;
-        if (res.success && res.data) {
-          setAsset(mapAsset(res.data));
-        }
-      } catch {
-        // ignore and keep fallback data
-      }
+    if (
+      !availabilityRange.end ||
+      availabilityRange.end < availabilityRange.start
+    ) {
+      setAvailabilityRange((prev) => ({ ...prev, end: prev.start }));
     }
-    fetchAsset();
-    return () => {
-      ignore = true;
-    };
-  }, [assetId]);
+  }, [availabilityRange.end, availabilityRange.start]);
 
-  const detail = {
-    ...DETAIL_ASSET,
-    id: asset.id,
-    title: asset.title,
-    category: asset.category,
-    price: asset.price,
-    unit: asset.unit,
-    status: asset.status,
-    heroImage: asset.imageUrl,
-    thumbnails: [asset.imageUrl, ...DETAIL_ASSET.thumbnails.slice(1)],
-  };
+  const mappedAsset = useMemo(
+    () =>
+      mapAsset(assetData) ??
+      ASSET_ITEMS.find((item) => item.id === assetId) ??
+      ASSET_ITEMS[0],
+    [assetData, assetId]
+  );
+
+  const detail = useMemo(
+    () => ({
+      ...DETAIL_ASSET,
+      id: mappedAsset.id,
+      title: mappedAsset.title,
+      category: mappedAsset.category,
+      price: mappedAsset.price,
+      unit: mappedAsset.unit,
+      status: mappedAsset.status,
+      heroImage: mappedAsset.imageUrl,
+      thumbnails: [mappedAsset.imageUrl, ...DETAIL_ASSET.thumbnails.slice(1)],
+      descriptions: assetData?.description?.trim()
+        ? assetData.description.split("\n").filter(Boolean)
+        : DETAIL_ASSET.descriptions,
+    }),
+    [mappedAsset, assetData?.description]
+  );
+
+  const blockedRanges: AssetAvailabilityRange[] = availability?.blocked ?? [];
+  const availabilityErrorMessage =
+    availabilityError instanceof Error ? availabilityError.message : null;
 
   return (
     <div className={plusJakarta.className}>
@@ -76,12 +100,24 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           <DetailBreadcrumb currentLabel="Detail Aset" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+            {isLoading ? (
+              <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                Memuat detail aset...
+              </div>
+            ) : null}
+            {error ? (
+              <div className="mb-4 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                {error instanceof Error
+                  ? error.message
+                  : "Gagal memuat detail aset"}
+              </div>
+            ) : null}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
               <div className="lg:col-span-2 space-y-8">
                 <DetailGallery
                   heroImage={detail.heroImage}
                   thumbnails={detail.thumbnails}
-                  status={detail.status}
+                  status={detail.status as AssetStatus}
                   title={detail.title}
                 />
                 <div className="space-y-6">
@@ -93,7 +129,16 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                   />
                   <DetailDescription paragraphs={detail.descriptions} />
                   <DetailFacilities facilities={detail.facilities} />
-                  <DetailAvailability />
+                  <DetailAvailability
+                    blocked={blockedRanges}
+                    isLoading={isAvailabilityLoading}
+                    error={availabilityErrorMessage}
+                    selectedRange={{
+                      start: availabilityRange.start,
+                      end: availabilityRange.end,
+                    }}
+                    onRangeChange={setAvailabilityRange}
+                  />
                 </div>
               </div>
 
@@ -114,7 +159,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         <RentRequestModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          statusHref={`/penyewaan-aset/status/${asset.id}?status=pending`}
+          statusHref={`/penyewaan-aset/status/${mappedAsset.id}?status=pending`}
         />
       </div>
     </div>
@@ -122,6 +167,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 }
 
 function mapAsset(asset: any) {
+  if (!asset) return undefined;
   const rateType = (asset.rate_type || asset.rateType || "").toLowerCase();
   const unit = rateType === "hourly" ? "/jam" : "/hari";
   return {

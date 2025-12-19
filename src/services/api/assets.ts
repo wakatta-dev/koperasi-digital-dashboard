@@ -32,6 +32,39 @@ export function getAssetCategories(): Promise<AssetCategoriesResponse> {
   return api.get<AssetCategory[]>(`${API_PREFIX}${E.categories}`);
 }
 
-export function getAssetAvailability(assetId: string | number): Promise<AssetAvailabilityApiResponse> {
-  return api.get<AssetAvailabilityResponse>(`${API_PREFIX}${E.availability(assetId)}`);
+export function getAssetAvailability(
+  assetId: string | number,
+  params?: { start_date?: string; end_date?: string }
+): Promise<AssetAvailabilityApiResponse> {
+  const now = new Date();
+  const start = params?.start_date ?? now.toISOString().slice(0, 10);
+  const endDate = params?.end_date
+    ? new Date(params.end_date)
+    : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const end = endDate.toISOString().slice(0, 10);
+  const search = new URLSearchParams({ start_date: start, end_date: end });
+  return api
+    .get<AssetAvailabilityResponse>(
+      `${API_PREFIX}${E.availability(assetId)}?${search.toString()}`
+    )
+    .then((res) => {
+      if (res.success && res.data && !("blocked" in res.data)) {
+        const raw: any = res.data;
+        const blocked = Array.isArray(raw.conflicts)
+          ? raw.conflicts.map((c: any) => ({
+              start_date: c.start_date ?? c.startDate,
+              end_date: c.end_date ?? c.endDate,
+              type: c.type,
+            }))
+          : [];
+        const suggestion = raw.suggestion
+          ? {
+              start_date: raw.suggestion.start_date ?? raw.suggestion.startDate,
+              end_date: raw.suggestion.end_date ?? raw.suggestion.endDate,
+            }
+          : undefined;
+        return { ...res, data: { blocked, suggestion } as AssetAvailabilityResponse };
+      }
+      return res;
+    });
 }

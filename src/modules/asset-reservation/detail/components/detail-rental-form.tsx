@@ -32,8 +32,11 @@ export function DetailRentalForm({
   const [reservationInfo, setReservationInfo] =
     useState<ReservationSummary | null>(null);
 
-  const defaultStart = useMemo(() => "2024-10-12", []);
-  const defaultEnd = useMemo(() => "2024-10-14", []);
+  const defaultStart = useMemo(() => {
+    const today = new Date();
+    return today.toISOString().slice(0, 10);
+  }, []);
+  const defaultEnd = useMemo(() => defaultStart, [defaultStart]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,8 +55,8 @@ export function DetailRentalForm({
       return;
     }
 
-    if (start >= end) {
-      setError("Tanggal selesai harus setelah tanggal mulai.");
+    if (start > end) {
+      setError("Tanggal selesai harus setelah tanggal mulai atau di hari yang sama.");
       return;
     }
 

@@ -19,7 +19,7 @@ export function DetailRecommendations({ currentId }: DetailRecommendationsProps)
           Aset Lain Yang Mungkin Anda Suka
         </h2>
         <Link
-          href="/penyewaan-asset"
+          href="/penyewaan-aset"
           className="text-[#4338ca] font-semibold hover:text-indigo-600 flex items-center gap-1 text-sm"
         >
           Lihat Semua <span className="material-icons-outlined text-lg">arrow_forward</span>

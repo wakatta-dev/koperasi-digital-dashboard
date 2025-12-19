@@ -1,15 +1,31 @@
 /** @format */
 
-import { CALENDAR_MONTH, SELECTED_RANGE } from "../constants";
-import { getBlockedRanges } from "../utils/availability";
+import type { AssetAvailabilityRange } from "@/types/api/asset";
+import { SELECTED_RANGE } from "../constants";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+type CellType =
+  | "blank"
+  | "disabled"
+  | "available"
+  | "booked"
+  | "start"
+  | "end"
+  | "range";
+
+type DetailAvailabilityProps = {
+  blocked?: AssetAvailabilityRange[];
+  isLoading?: boolean;
+  error?: string | null;
+  selectedRange?: { start: string; end: string };
+  onRangeChange?: (range: { start: string; end: string }) => void;
+};
 
 function DayCell({
   type,
   label,
 }: {
-  type: (typeof CALENDAR_MONTH.days)[number]["type"];
+  type: CellType;
   label?: string;
 }) {
   if (type === "blank") {
@@ -74,8 +90,83 @@ function DayCell({
   );
 }
 
-export function DetailAvailability() {
-  const blocked = getBlockedRanges();
+function calculateDurationDays(start?: string, end?: string) {
+  if (!start || !end) return null;
+  const s = new Date(start);
+  const e = new Date(end);
+  const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+  if (Number.isNaN(diff) || diff <= 0) return null;
+  return diff;
+}
+
+function buildCalendar(start: string, end: string, blocked?: AssetAvailabilityRange[]) {
+  const viewDate = start ? new Date(`${start}T00:00:00`) : new Date();
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: { type: CellType; label?: string; date?: string }[] = [];
+  for (let i = 0; i < firstDay; i += 1) {
+    cells.push({ type: "blank" });
+  }
+  const startTs = new Date(`${start}T00:00:00`).getTime();
+  const endTs = new Date(`${end}T00:00:00`).getTime();
+  const todayTs = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime();
+
+  const overlapsBlocked = (dateStr: string) => {
+    if (!blocked || blocked.length === 0) return false;
+    const ts = new Date(`${dateStr}T00:00:00`).getTime();
+    return blocked.some((b) => {
+      const bs = new Date(`${b.start_date}T00:00:00`).getTime();
+      const be = new Date(`${b.end_date}T23:59:59`).getTime();
+      return ts >= bs && ts <= be;
+    });
+  };
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const ts = new Date(`${dateStr}T00:00:00`).getTime();
+
+    let type: CellType = "available";
+    if (dateStr === start) type = "start";
+    else if (dateStr === end) type = "end";
+    else if (ts > startTs && ts < endTs) type = "range";
+    else if (overlapsBlocked(dateStr)) type = "booked";
+    else if (ts < todayTs) type = "disabled";
+
+    cells.push({ type, label: String(day), date: dateStr });
+  }
+  return cells;
+}
+
+export function DetailAvailability({
+  blocked,
+  isLoading,
+  error,
+  selectedRange,
+  onRangeChange,
+}: DetailAvailabilityProps) {
+  const hasBlocked = (blocked?.length ?? 0) > 0;
+  const startLabel = selectedRange?.start ?? SELECTED_RANGE.start;
+  const endLabel = selectedRange?.end ?? SELECTED_RANGE.end;
+  const durationDays = calculateDurationDays(selectedRange?.start, selectedRange?.end);
+  const durationLabel = durationDays ? `${durationDays} Hari` : SELECTED_RANGE.duration;
+  const monthLabel = new Intl.DateTimeFormat("id-ID", {
+    month: "long",
+    year: "numeric",
+  }).format(selectedRange?.start ? new Date(selectedRange.start) : new Date());
+
+  const handleDateChange = (which: "start" | "end", value: string) => {
+    if (!onRangeChange) return;
+    const clean = value || startLabel;
+    const currentStart = which === "start" ? clean : startLabel;
+    const currentEnd = which === "end" ? clean : endLabel;
+    const nextEnd = new Date(currentEnd) < new Date(currentStart) ? currentStart : currentEnd;
+    onRangeChange({ start: currentStart, end: nextEnd });
+  };
+
+  const calendarCells = buildCalendar(startLabel, endLabel, blocked);
+
   return (
     <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Ketersediaan & Jadwal</h2>
@@ -83,7 +174,7 @@ export function DetailAvailability() {
         <div className="flex items-center justify-between mb-8">
           <div className="relative group">
             <button className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white hover:text-[#4338ca] transition-colors">
-              <span>{CALENDAR_MONTH.label}</span>
+              <span className="capitalize">{monthLabel}</span>
               <span className="material-icons-outlined text-gray-500">expand_more</span>
             </button>
           </div>
@@ -95,6 +186,27 @@ export function DetailAvailability() {
               <span className="material-icons-outlined text-sm">arrow_forward_ios</span>
             </button>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <label className="flex flex-col text-xs font-semibold text-gray-600 dark:text-gray-300">
+            Mulai
+            <input
+              type="date"
+              value={startLabel}
+              onChange={(e) => handleDateChange("start", e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-[#4338ca] focus:ring-[#4338ca]"
+            />
+          </label>
+          <label className="flex flex-col text-xs font-semibold text-gray-600 dark:text-gray-300">
+            Selesai
+            <input
+              type="date"
+              value={endLabel}
+              onChange={(e) => handleDateChange("end", e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-[#4338ca] focus:ring-[#4338ca]"
+            />
+          </label>
         </div>
 
         <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-4">
@@ -109,8 +221,8 @@ export function DetailAvailability() {
         </div>
 
         <div className="grid grid-cols-7 gap-y-2 gap-x-0 relative select-none">
-          {CALENDAR_MONTH.days.map((cell, index) => (
-            <DayCell key={`${cell.type}-${cell.label ?? index}`} type={cell.type} label={cell.label} />
+          {calendarCells.map((cell, index) => (
+            <DayCell key={`${cell.type}-${cell.label ?? index}-${cell.date ?? index}`} type={cell.type} label={cell.label} />
           ))}
         </div>
 
@@ -136,8 +248,14 @@ export function DetailAvailability() {
         </div>
 
         <div className="mt-4 text-xs text-gray-600 dark:text-gray-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-          Slot terblokir:{" "}
-          {blocked.map((b) => `${b.start} s.d ${b.end} (${b.type ?? "booking"})`).join(", ")}
+          {isLoading
+            ? "Memuat jadwal terblokir..."
+            : hasBlocked
+              ? `Slot terblokir: ${blocked
+                  ?.map((b) => `${b.start_date} s.d ${b.end_date}${b.type ? ` (${b.type})` : ""}`)
+                  .join(", ")}`
+              : "Tidak ada jadwal bentrok dalam 30 hari ke depan."}
+          {error ? <span className="text-red-500"> {error}</span> : null}
         </div>
 
         <div className="mt-6 bg-[#4338ca]/5 dark:bg-[#4338ca]/10 rounded-xl p-4 border border-[#4338ca]/10 dark:border-[#4338ca]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -150,9 +268,9 @@ export function DetailAvailability() {
                 Jadwal Dipilih
               </p>
               <p className="text-sm font-bold text-gray-900 dark:text-white">
-                {SELECTED_RANGE.start} - {SELECTED_RANGE.end}
+                {startLabel} - {endLabel}
                 <span className="font-normal text-gray-500 dark:text-gray-400 mx-1">•</span>
-                <span className="text-[#4338ca]">{SELECTED_RANGE.duration}</span>
+                <span className="text-[#4338ca]">{durationLabel}</span>
               </p>
             </div>
           </div>
