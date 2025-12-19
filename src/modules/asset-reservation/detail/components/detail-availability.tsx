@@ -1,6 +1,8 @@
 /** @format */
 
-import type { AssetAvailabilityRange } from "@/types/api/asset";
+import { useEffect, useMemo, useRef } from "react";
+
+import type { AssetAvailabilityRange, AssetAvailabilityResponse } from "@/types/api/asset";
 import { SELECTED_RANGE } from "../constants";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -17,6 +19,7 @@ type DetailAvailabilityProps = {
   blocked?: AssetAvailabilityRange[];
   isLoading?: boolean;
   error?: string | null;
+  suggestion?: AssetAvailabilityResponse["suggestion"];
   selectedRange?: { start: string; end: string };
   onRangeChange?: (range: { start: string; end: string }) => void;
 };
@@ -139,6 +142,16 @@ function buildCalendar(start: string, end: string, blocked?: AssetAvailabilityRa
   return cells;
 }
 
+function addDays(dateStr: string, days: number) {
+  const date = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateStr;
+  date.setDate(date.getDate() + days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function overlap(aStart: string, aEnd: string, bStart: string, bEnd: string) {
   const aS = new Date(`${aStart}T00:00:00`).getTime();
   const aE = new Date(`${aEnd}T00:00:00`).getTime();
@@ -151,18 +164,40 @@ export function DetailAvailability({
   blocked,
   isLoading,
   error,
+  suggestion,
   selectedRange,
   onRangeChange,
 }: DetailAvailabilityProps) {
+  const suggestedRange = useMemo(() => {
+    if (!suggestion?.start_date) return null;
+    const start = suggestion.start_date;
+    const tentativeEnd = addDays(start, 3);
+    const endLimit = suggestion.end_date ?? tentativeEnd;
+    const end =
+      new Date(`${tentativeEnd}T00:00:00`) > new Date(`${endLimit}T00:00:00`) ? endLimit : tentativeEnd;
+    return { start, end };
+  }, [suggestion?.start_date, suggestion?.end_date]);
+
+  const appliedSuggestionRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!suggestedRange || !onRangeChange) return;
+    const key = `${suggestedRange.start}-${suggestedRange.end}`;
+    if (appliedSuggestionRef.current === key) return;
+    onRangeChange(suggestedRange);
+    appliedSuggestionRef.current = key;
+  }, [onRangeChange, suggestedRange]);
+
+  const baseRange = selectedRange ?? suggestedRange;
   const hasBlocked = (blocked?.length ?? 0) > 0;
-  const startLabel = selectedRange?.start ?? SELECTED_RANGE.start;
-  const endLabel = selectedRange?.end ?? SELECTED_RANGE.end;
-  const durationDays = calculateDurationDays(selectedRange?.start, selectedRange?.end);
+  const startLabel = selectedRange?.start ?? suggestedRange?.start ?? SELECTED_RANGE.start;
+  const endLabel = selectedRange?.end ?? suggestedRange?.end ?? SELECTED_RANGE.end;
+  const durationDays = calculateDurationDays(baseRange?.start, baseRange?.end);
   const durationLabel = durationDays ? `${durationDays} Hari` : SELECTED_RANGE.duration;
   const monthLabel = new Intl.DateTimeFormat("id-ID", {
     month: "long",
     year: "numeric",
-  }).format(selectedRange?.start ? new Date(selectedRange.start) : new Date());
+  }).format(baseRange?.start ? new Date(baseRange.start) : new Date());
 
   const handleDateChange = (which: "start" | "end", value: string) => {
     if (!onRangeChange) return;
@@ -176,7 +211,7 @@ export function DetailAvailability({
   const visibleBlocked =
     blocked
       ?.map((b) => {
-        const viewBase = selectedRange?.start ? new Date(`${selectedRange.start}T00:00:00`) : new Date();
+        const viewBase = baseRange?.start ? new Date(`${baseRange.start}T00:00:00`) : new Date();
         const monthStart = new Date(viewBase.getFullYear(), viewBase.getMonth(), 1);
         const monthEnd = new Date(viewBase.getFullYear(), viewBase.getMonth() + 1, 0);
         const monthStartStr = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}-${String(monthStart.getDate()).padStart(2, "0")}`;

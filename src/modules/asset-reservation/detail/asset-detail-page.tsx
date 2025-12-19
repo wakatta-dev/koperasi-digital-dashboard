@@ -151,6 +151,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                     blocked={blockedRanges}
                     isLoading={isAvailabilityLoading}
                     error={availabilityErrorMessage}
+                    suggestion={availability?.suggestion}
                     selectedRange={{
                       start: availabilityRange.start,
                       end: availabilityRange.end,
