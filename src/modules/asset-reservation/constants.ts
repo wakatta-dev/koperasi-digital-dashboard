@@ -12,7 +12,12 @@ export const HERO_CONTENT = {
     "https://lh3.googleusercontent.com/aida-public/AB6AXuDsBzGTe0gUXQF2f7hjKMDeon7IxtLcxugGffliqlTH90QjJjd8lrEYCkQrbBSucc8XBMn4wJEAGfmmoY7wAESyeCA3rTJ8DPp2pNHMWtNrXtSeEPf_fzrD_r2w_atlDVzKOeYJUCskKkPDxrQe-rSZfggmgvnu7Vipl34CXepV2UE27zR7WXB7cWv0ZsQu05Ig3nysMoShMrnCpB8dz-vSH08P6bRpeQBMJS-DzVMyNiNcvT7yfpZp79WSPkjPohxeO92s7Hscf-I",
 };
 
-export const ASSET_CATEGORIES = ["Gedung & Ruangan", "Alat Pertanian", "Peralatan Pesta", "Kendaraan"] as const;
+export const ASSET_CATEGORIES = [
+  "Gedung & Ruangan",
+  "Alat Pertanian",
+  "Peralatan Pesta",
+  "Kendaraan",
+] as const;
 
 export const SORT_OPTIONS = [
   { label: "Populer", value: "popular" },

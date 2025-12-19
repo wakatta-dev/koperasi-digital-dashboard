@@ -1,6 +1,6 @@
 /** @format */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,14 +12,22 @@ import type { ReservationSummary } from "../../types";
 type DetailRentalFormProps = {
   assetId?: string;
   price: string;
+  priceValue: number;
   unit: string;
+  startDate: string;
+  endDate: string;
+  onRangeChange?: (range: { start: string; end: string }) => void;
   onSubmit?: () => void;
 };
 
 export function DetailRentalForm({
   price,
+  priceValue,
   unit,
   assetId,
+  startDate,
+  endDate,
+  onRangeChange,
   onSubmit,
 }: DetailRentalFormProps) {
   const [error, setError] = useState<string | null>(null);
@@ -31,21 +39,55 @@ export function DetailRentalForm({
   const [serverError, setServerError] = useState<string | null>(null);
   const [reservationInfo, setReservationInfo] =
     useState<ReservationSummary | null>(null);
+  const [dates, setDates] = useState<{ start: string; end: string }>({
+    start: startDate,
+    end: endDate,
+  });
 
-  const defaultStart = useMemo(() => {
-    const today = new Date();
-    return today.toISOString().slice(0, 10);
-  }, []);
-  const defaultEnd = useMemo(() => defaultStart, [defaultStart]);
+  useEffect(() => {
+    setDates({ start: startDate, end: endDate });
+  }, [startDate, endDate]);
+
+  const durationDays = useMemo(() => {
+    const s = new Date(dates.start);
+    const e = new Date(dates.end);
+    const diff = Math.max(
+      1,
+      Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    );
+    return Number.isFinite(diff) ? diff : 1;
+  }, [dates.start, dates.end]);
+
+  const subtotal = useMemo(
+    () => Math.max(0, priceValue || 0) * durationDays,
+    [priceValue, durationDays]
+  );
+  const cleaningFee = 50000;
+  const total = subtotal + cleaningFee;
+
+  const handleDateUpdate = (which: "start" | "end", value: string) => {
+    const next = { ...dates, [which]: value || dates[which] };
+    const startTs = new Date(next.start).getTime();
+    const endTs = new Date(next.end).getTime();
+    if (endTs < startTs) {
+      next.end = next.start;
+    }
+    setDates(next);
+    onRangeChange?.({ start: next.start, end: next.end });
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setServerError(null);
     setReservationInfo(null);
     const formData = new FormData(event.currentTarget);
-    const start = String(formData.get("start_date") ?? "");
-    const end = String(formData.get("end_date") ?? "");
+    const start = String(formData.get("start_date") ?? dates.start);
+    const end = String(formData.get("end_date") ?? dates.end);
     const purpose = String(formData.get("purpose") ?? "").trim();
+    const fullName = String(formData.get("full_name") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const contact = [phone, email].filter(Boolean).join(" / ");
     const now = new Date().toISOString().slice(0, 10);
     const numericAssetId =
       assetId && /^\d+$/.test(assetId) ? assetId : undefined;
@@ -88,6 +130,8 @@ export function DetailRentalForm({
         start_date: start,
         end_date: end,
         purpose: purpose || "Penggunaan umum",
+        renter_name: fullName || "Pemesan",
+        renter_contact: contact || "kontak tidak tersedia",
       });
 
       if (!creation.success || !creation.data) {
@@ -130,7 +174,8 @@ export function DetailRentalForm({
             </label>
             <Input
               type="date"
-              defaultValue={defaultStart}
+              value={dates.start}
+              onChange={(e) => handleDateUpdate("start", e.target.value)}
               name="start_date"
               className="w-full text-sm rounded-lg border-[#4338ca] dark:border-[#4338ca]/50 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10"
             />
@@ -141,7 +186,8 @@ export function DetailRentalForm({
             </label>
             <Input
               type="date"
-              defaultValue={defaultEnd}
+              value={dates.end}
+              onChange={(e) => handleDateUpdate("end", e.target.value)}
               name="end_date"
               className="w-full text-sm rounded-lg border-[#4338ca] dark:border-[#4338ca]/50 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10"
             />
@@ -158,10 +204,10 @@ export function DetailRentalForm({
               <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                 {unit}
               </span>{" "}
-              x 3 Hari
+              x {durationDays} {unit === "/jam" ? "Jam" : "Hari"}
             </span>
             <span className="text-gray-900 dark:text-white font-medium">
-              Rp1.050.000
+              Rp{subtotal.toLocaleString("id-ID")}
             </span>
           </div>
           <div className="flex justify-between text-sm mb-2">
@@ -169,7 +215,7 @@ export function DetailRentalForm({
               Biaya Kebersihan
             </span>
             <span className="text-gray-900 dark:text-white font-medium">
-              Rp50.000
+              Rp{cleaningFee.toLocaleString("id-ID")}
             </span>
           </div>
           <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2 flex justify-between items-center">
@@ -177,7 +223,7 @@ export function DetailRentalForm({
               Total Estimasi
             </span>
             <span className="font-bold text-[#4338ca] text-lg">
-              Rp1.100.000
+              Rp{total.toLocaleString("id-ID")}
             </span>
           </div>
         </div>

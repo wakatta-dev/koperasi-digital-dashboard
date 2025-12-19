@@ -139,6 +139,14 @@ function buildCalendar(start: string, end: string, blocked?: AssetAvailabilityRa
   return cells;
 }
 
+function overlap(aStart: string, aEnd: string, bStart: string, bEnd: string) {
+  const aS = new Date(`${aStart}T00:00:00`).getTime();
+  const aE = new Date(`${aEnd}T00:00:00`).getTime();
+  const bS = new Date(`${bStart}T00:00:00`).getTime();
+  const bE = new Date(`${bEnd}T00:00:00`).getTime();
+  return aS <= bE && bS <= aE;
+}
+
 export function DetailAvailability({
   blocked,
   isLoading,
@@ -165,7 +173,22 @@ export function DetailAvailability({
     onRangeChange({ start: currentStart, end: nextEnd });
   };
 
-  const calendarCells = buildCalendar(startLabel, endLabel, blocked);
+  const visibleBlocked =
+    blocked
+      ?.map((b) => {
+        const viewBase = selectedRange?.start ? new Date(`${selectedRange.start}T00:00:00`) : new Date();
+        const monthStart = new Date(viewBase.getFullYear(), viewBase.getMonth(), 1);
+        const monthEnd = new Date(viewBase.getFullYear(), viewBase.getMonth() + 1, 0);
+        const monthStartStr = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}-${String(monthStart.getDate()).padStart(2, "0")}`;
+        const monthEndStr = `${monthEnd.getFullYear()}-${String(monthEnd.getMonth() + 1).padStart(2, "0")}-${String(monthEnd.getDate()).padStart(2, "0")}`;
+        if (!overlap(monthStartStr, monthEndStr, b.start_date, b.end_date)) return null;
+        const clampStart = new Date(b.start_date) > monthStart ? b.start_date : monthStartStr;
+        const clampEnd = new Date(b.end_date) < monthEnd ? b.end_date : monthEndStr;
+        return { ...b, start_date: clampStart, end_date: clampEnd };
+      })
+      .filter(Boolean) as AssetAvailabilityRange[] | undefined;
+
+  const calendarCells = buildCalendar(startLabel, endLabel, visibleBlocked);
 
   return (
     <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
@@ -250,11 +273,11 @@ export function DetailAvailability({
         <div className="mt-4 text-xs text-gray-600 dark:text-gray-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
           {isLoading
             ? "Memuat jadwal terblokir..."
-            : hasBlocked
-              ? `Slot terblokir: ${blocked
+            : (visibleBlocked?.length ?? 0) > 0
+              ? `Slot terblokir bulan ini: ${visibleBlocked
                   ?.map((b) => `${b.start_date} s.d ${b.end_date}${b.type ? ` (${b.type})` : ""}`)
                   .join(", ")}`
-              : "Tidak ada jadwal bentrok dalam 30 hari ke depan."}
+              : "Tidak ada jadwal bentrok pada bulan ini."}
           {error ? <span className="text-red-500"> {error}</span> : null}
         </div>
 

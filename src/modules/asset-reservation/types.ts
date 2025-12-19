@@ -11,6 +11,7 @@ export type AssetItem = {
   unit: string;
   status: AssetStatus;
   imageUrl: string;
+  rawPrice?: number;
 };
 
 export type ReservationStatus =
@@ -59,7 +60,11 @@ export type ReservationSummary = {
   endDate: string;
   holdExpiresAt?: string;
   amounts: { total: number; dp: number; remaining: number };
-  timeline?: Array<{ event: string; at: string; meta?: Record<string, string> }>;
+  timeline?: Array<{
+    event: string;
+    at: string;
+    meta?: Record<string, string>;
+  }>;
 };
 
 export type PaymentSession = {

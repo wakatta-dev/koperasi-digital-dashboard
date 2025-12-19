@@ -35,12 +35,19 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: assetData, isLoading, error } = useAssetDetail(assetId);
 
+  const formatDate = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
   const [availabilityRange, setAvailabilityRange] = useState(() => {
     const today = new Date();
     const end = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
     return {
-      start: today.toISOString().slice(0, 10),
-      end: end.toISOString().slice(0, 10),
+      start: formatDate(today),
+      end: formatDate(end),
     };
   });
 
@@ -48,10 +55,20 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     data: availability,
     isLoading: isAvailabilityLoading,
     error: availabilityError,
-  } = useAssetAvailability(assetId, {
-    start_date: availabilityRange.start,
-    end_date: availabilityRange.end,
-  });
+  } = useAssetAvailability(
+    assetId,
+    useMemo(() => {
+      const base = availabilityRange.start
+        ? new Date(`${availabilityRange.start}T00:00:00`)
+        : new Date();
+      const windowStart = new Date(base.getFullYear(), base.getMonth(), 1);
+      const windowEnd = new Date(base.getFullYear(), base.getMonth() + 2, 0); // end of next month
+      return {
+        start_date: formatDate(windowStart),
+        end_date: formatDate(windowEnd),
+      };
+    }, [availabilityRange.start])
+  );
 
   useEffect(() => {
     if (
@@ -77,6 +94,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
       title: mappedAsset.title,
       category: mappedAsset.category,
       price: mappedAsset.price,
+      rawPrice: mappedAsset.rawPrice,
       unit: mappedAsset.unit,
       status: mappedAsset.status,
       heroImage: mappedAsset.imageUrl,
@@ -146,7 +164,11 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                 <DetailRentalForm
                   assetId={detail.id}
                   price={detail.price}
+                  priceValue={detail.rawPrice ?? 0}
                   unit={detail.unit}
+                  startDate={availabilityRange.start}
+                  endDate={availabilityRange.end}
+                  onRangeChange={setAvailabilityRange}
                   onSubmit={() => setIsModalOpen(true)}
                 />
               </div>
@@ -176,6 +198,7 @@ function mapAsset(asset: any) {
     title: asset.name || "Aset",
     description: asset.description || "",
     price: `Rp${(asset.rate_amount ?? 0).toLocaleString("id-ID")}`,
+    rawPrice: Number(asset.rate_amount ?? 0),
     unit,
     status:
       (asset.status || "").toLowerCase() === "archived"

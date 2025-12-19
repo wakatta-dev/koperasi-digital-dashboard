@@ -25,6 +25,8 @@ export type CreateReservationRequest = {
   start_date: string;
   end_date: string;
   purpose: string;
+  renter_name?: string;
+  renter_contact?: string;
 };
 
 export type CreateReservationResponse = {
