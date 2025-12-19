@@ -3,7 +3,7 @@
 "use client";
 
 import React from "react";
-import { Plus, Upload } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   Dialog,
@@ -22,8 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { AssetItem } from "../types";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { ensureSuccess } from "@/lib/api";
+import { createAsset, updateAsset } from "@/services/api/assets";
+import type { AssetItem } from "../types";
+import { QK } from "@/hooks/queries/queryKeys";
 
 type AddAssetDialogProps = {
   open: boolean;
@@ -38,129 +42,174 @@ type EditAssetDialogProps = {
 
 const commonFieldClass =
   "rounded-lg border border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/60 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 h-11";
+const imagePlaceholder =
+  "https://images.unsplash.com/photo-1560525823-5dff3307e257?auto=format&fit=crop&w=600&q=80";
 
 export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
+  const qc = useQueryClient();
+  const [name, setName] = React.useState("");
+  const [rateType, setRateType] = React.useState<string | undefined>();
+  const [rateAmount, setRateAmount] = React.useState<string>("");
+  const [photoUrl, setPhotoUrl] = React.useState("");
+  const [description, setDescription] = React.useState("");
+
+  const createMutation = useMutation({
+    mutationFn: async () =>
+      ensureSuccess(
+        await createAsset({
+          name,
+          rate_type: rateType || "",
+          rate_amount: Number(rateAmount) || 0,
+          photo_url: photoUrl || undefined,
+          description: description || undefined,
+        })
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.assetRental.list() });
+      showToastSuccess("Aset dibuat", "Data aset berhasil disimpan");
+      resetForm();
+      onOpenChange(false);
+    },
+    onError: (err) => {
+      showToastError("Gagal menambahkan aset", err);
+    },
+  });
+
+  const resetForm = () => {
+    setName("");
+    setRateType(undefined);
+    setRateAmount("");
+    setPhotoUrl("");
+    setDescription("");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !rateType || Number(rateAmount) <= 0) {
+      showToastError(
+        "Validasi gagal",
+        "Nama aset, tipe tarif, dan nominal tarif wajib diisi"
+      );
+      return;
+    }
+    createMutation.mutate();
+  };
+
+  React.useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
         className="sm:max-w-2xl max-h-[90vh] gap-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-0 shadow-2xl dark:border-slate-800 dark:bg-slate-900 flex flex-col"
       >
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
           <DialogHeader className="text-left">
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
               Tambah Aset Sewa
             </DialogTitle>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                Nama Aset
-              </Label>
-              <Input
-                placeholder="Masukkan nama aset"
-                className={commonFieldClass}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                ID Aset
-              </Label>
-              <Input
-                placeholder="Masukkan id aset"
-                className={commonFieldClass}
-              />
-            </div>
+          <div className="space-y-3 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-xs text-indigo-800 dark:border-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-200">
+            Field sudah disesuaikan dengan payload backend: name, rate_type (daily/hourly),
+            rate_amount, photo_url (opsional), dan description (opsional).
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Foto Aset
-            </Label>
-            <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-500/30 bg-indigo-50/60 p-8 text-center transition-colors hover:bg-indigo-50 dark:border-indigo-500/30 dark:bg-indigo-900/10 dark:hover:bg-indigo-900/20">
-              <div className="space-y-1">
-                <p className="font-medium text-slate-900 dark:text-slate-100">
-                  Unggah Foto Aset
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  PNG, JPG atau JPEG
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  (Ukuran maksimal 2mb)
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Deskripsi Aset
-            </Label>
-            <Textarea
-              placeholder="Deskripsikan aset secara lengkap"
-              rows={3}
-              className={cn("min-h-[120px]", commonFieldClass)}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Fasilitas
-            </Label>
-            <Textarea
-              placeholder="Deskripsikan aset secara lengkap"
-              rows={3}
-              className={cn("min-h-[120px]", commonFieldClass)}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              Biaya Sewa
-            </h3>
+          <div className="space-y-5">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Jumlah Harga
+                  Nama Aset (name)
                 </Label>
                 <Input
-                  placeholder="Masukkan jumlah harga sewa"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Mis. Gedung Serbaguna"
                   className={commonFieldClass}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Periode sewa
+                  Tipe Tarif (rate_type)
                 </Label>
-                <Select>
+                <Select value={rateType} onValueChange={setRateType}>
                   <SelectTrigger className={cn(commonFieldClass, "h-11 w-full")}>
-                    <SelectValue placeholder="Pilih periode sewa" />
+                    <SelectValue placeholder="Pilih tipe tarif" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="harian">Harian</SelectItem>
-                    <SelectItem value="mingguan">Mingguan</SelectItem>
-                    <SelectItem value="bulanan">Bulanan</SelectItem>
+                    <SelectItem value="DAILY">Per Hari (DAILY)</SelectItem>
+                    <SelectItem value="HOURLY">Per Jam (HOURLY)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-auto px-0 text-indigo-600 transition-colors hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-            >
-              <Plus className="h-4 w-4" />
-              Tambah Skema Sewa
-            </Button>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  Nominal Tarif (rate_amount)
+                </Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-slate-500 dark:text-slate-400">
+                    Rp
+                  </span>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    step={1000}
+                    value={rateAmount}
+                    onChange={(e) => setRateAmount(e.target.value)}
+                    placeholder="3500000"
+                    className={cn(commonFieldClass, "pl-9")}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  Foto Aset (photo_url)
+                </Label>
+                <Input
+                  type="url"
+                  value={photoUrl}
+                  onChange={(e) => setPhotoUrl(e.target.value)}
+                  placeholder="https://contoh.com/foto-asset.jpg"
+                  className={commonFieldClass}
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Opsional, gunakan URL yang dapat diakses publik.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                Deskripsi Aset (description)
+              </Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Deskripsikan aset sesuai data backend"
+                rows={3}
+                className={cn("min-h-[120px]", commonFieldClass)}
+              />
+            </div>
           </div>
 
           <div className="pt-2">
-            <Button className="w-full rounded-lg bg-indigo-600 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700">
-              Tambah Aset
+            <Button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="w-full rounded-lg bg-indigo-600 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-70"
+            >
+              {createMutation.isPending ? "Menyimpan..." : "Tambah Aset"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
@@ -171,13 +220,73 @@ export function EditAssetDialog({
   onOpenChange,
   asset,
 }: EditAssetDialogProps) {
+  const qc = useQueryClient();
+  const [name, setName] = React.useState(asset?.title ?? "");
+  const [rateType, setRateType] = React.useState<string | undefined>(
+    asset?.rateType?.toUpperCase()
+  );
+  const [rateAmount, setRateAmount] = React.useState<string>(
+    asset?.rateAmount != null ? String(asset.rateAmount) : ""
+  );
+  const [photoUrl, setPhotoUrl] = React.useState(asset?.image ?? "");
+  const [description, setDescription] = React.useState(asset?.description ?? "");
+
+  React.useEffect(() => {
+    setName(asset?.title ?? "");
+    setRateType(asset?.rateType?.toUpperCase());
+    setRateAmount(asset?.rateAmount != null ? String(asset.rateAmount) : "");
+    setPhotoUrl(asset?.image ?? "");
+    setDescription(asset?.description ?? "");
+  }, [asset, open]);
+
+  const updateMutation = useMutation({
+    mutationFn: async () =>
+      ensureSuccess(
+        await updateAsset(asset?.id ?? "", {
+          name,
+          rate_type: rateType,
+          rate_amount: rateAmount ? Number(rateAmount) : undefined,
+          photo_url: photoUrl || undefined,
+          description: description || undefined,
+        })
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.assetRental.list() });
+      qc.invalidateQueries({ queryKey: QK.assetRental.detail(asset?.id ?? "") });
+      showToastSuccess("Perubahan disimpan", "Data aset berhasil diperbarui");
+      onOpenChange(false);
+    },
+    onError: (err) => {
+      showToastError("Gagal memperbarui aset", err);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!asset?.id) {
+      showToastError("Data aset tidak valid", "Tidak ada ID aset yang dipilih");
+      return;
+    }
+    if (!name.trim() || !rateType || Number(rateAmount) <= 0) {
+      showToastError(
+        "Validasi gagal",
+        "Nama aset, tipe tarif, dan nominal tarif wajib diisi"
+      );
+      return;
+    }
+    updateMutation.mutate();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
         className="sm:max-w-2xl max-h-[90vh] gap-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-0 shadow-2xl dark:border-slate-800 dark:bg-slate-900 flex flex-col"
       >
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6"
+        >
           <DialogHeader className="text-left">
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
               Edit Aset Sewa
@@ -187,119 +296,97 @@ export function EditAssetDialog({
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                Nama Aset
+                ID Aset
               </Label>
               <Input
-                defaultValue={asset?.title ?? "Gedung Serbaguna Kartika Runa Wijaya"}
-                className={commonFieldClass}
+                defaultValue={asset?.id ?? ""}
+                readOnly
+                className={cn(commonFieldClass, "bg-slate-50 dark:bg-slate-800")}
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                ID Aset
+                Nama Aset (name)
               </Label>
               <Input
-                defaultValue="AST-001-KRW"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className={commonFieldClass}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                Nominal Tarif (rate_amount)
+              </Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-slate-500 dark:text-slate-400">
+                  Rp
+                </span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={1000}
+                  value={rateAmount}
+                  onChange={(e) => setRateAmount(e.target.value)}
+                  className={cn(commonFieldClass, "pl-9")}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                Tipe Tarif (rate_type)
+              </Label>
+              <Select value={rateType} onValueChange={setRateType}>
+                <SelectTrigger className={cn(commonFieldClass, "h-11 w-full")}>
+                  <SelectValue placeholder="Pilih tipe tarif" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DAILY">Per Hari (DAILY)</SelectItem>
+                  <SelectItem value="HOURLY">Per Jam (HOURLY)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="md:col-span-2 space-y-1.5">
+              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                Foto Aset (photo_url)
+              </Label>
+              <Input
+                type="url"
+                value={photoUrl}
+                onChange={(e) => setPhotoUrl(e.target.value)}
+                placeholder="https://contoh.com/foto-asset.jpg"
+                className={commonFieldClass}
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                URL publik yang akan dikirim ke backend sebagai photo_url.
+              </p>
+            </div>
+            <div className="flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+              <img
+                src={asset?.image || imagePlaceholder}
+                alt={asset?.alt ?? "Preview Foto Aset"}
+                className="h-28 w-full rounded-md object-cover"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
             <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Unggah Foto Aset
-            </Label>
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="group relative h-32 w-full flex-shrink-0 overflow-hidden rounded-lg border border-slate-200 shadow-sm dark:border-slate-700 sm:w-40">
-                <img
-                  src={
-                    asset?.image ??
-                    "https://lh3.googleusercontent.com/aida-public/AB6AXuCjJp-Ml8FollDe2RTR3f7ISgwrNFKgf3NIlqefTgwjhjTsuJvAZV-TMzCizXfR76b3PCRzyKycFihBkD-8g0IZed67pgqtYqRdSOh3gI7aJPdGttxfZOmyJQvIw6zlzQQ6iTTEKOLDc02r9QQwmra_TnDGVL8_Tfgv1Aox9-cgTnYi4v2v4-7o_3vHaVvqHauFhzEVRcqH5c8dp9Lt7WoceDTmAAEYKhGXEz4pcN-9mgJTSoniLYXJlu4le2xf9znNXxN49tp0bfE"
-                  }
-                  alt={asset?.alt ?? "Current Asset Photo"}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                  <Upload className="h-5 w-5 text-white" />
-                </div>
-              </div>
-              <div className="flex h-32 flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-indigo-500/30 bg-indigo-50/60 p-4 text-center transition-colors hover:bg-indigo-50 dark:border-indigo-500/30 dark:bg-indigo-900/10 dark:hover:bg-indigo-900/20">
-                <Upload className="mb-2 h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Klik untuk mengganti foto
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  PNG, JPG atau JPEG (Max 2MB)
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Deskripsi Aset
+              Deskripsi Aset (description)
             </Label>
             <Textarea
-              defaultValue="Gedung serbaguna yang luas dan nyaman, cocok untuk berbagai acara seperti pernikahan, seminar, dan pertemuan formal lainnya. Dilengkapi dengan pencahayaan alami yang baik."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={3}
               className={cn("min-h-[120px]", commonFieldClass)}
             />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Fasilitas
-            </Label>
-            <Textarea
-              defaultValue="AC Central, Sound System 5000W, Projector HD, Panggung 8x4m, 200 Kursi Futura, Toilet Pria/Wanita, Ruang Rias, Parkir Luas (50 Mobil)."
-              rows={3}
-              className={cn("min-h-[120px]", commonFieldClass)}
-            />
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              Biaya Sewa
-            </h3>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Jumlah Harga
-                </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-sm text-slate-500 dark:text-slate-400">
-                    Rp
-                  </span>
-                  <Input
-                    defaultValue="3.500.000"
-                    className={cn(commonFieldClass, "pl-9")}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Periode sewa
-                </Label>
-                <Select defaultValue="bulanan">
-                  <SelectTrigger className={cn(commonFieldClass, "h-11 w-full")}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="harian">Harian</SelectItem>
-                    <SelectItem value="mingguan">Mingguan</SelectItem>
-                    <SelectItem value="bulanan">Bulanan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-auto px-0 text-indigo-600 transition-colors hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-            >
-              <Plus className="h-4 w-4" />
-              Tambah Skema Sewa
-            </Button>
           </div>
 
           <div className="mt-2 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 dark:border-slate-700">
@@ -311,11 +398,15 @@ export function EditAssetDialog({
             >
               Batal
             </Button>
-            <Button className="h-auto rounded-lg bg-indigo-600 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700">
-              Simpan Perubahan
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="h-auto rounded-lg bg-indigo-600 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-70"
+            >
+              {updateMutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

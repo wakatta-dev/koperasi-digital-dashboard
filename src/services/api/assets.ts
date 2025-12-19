@@ -7,7 +7,11 @@ import type {
   AssetAvailabilityApiResponse,
   AssetAvailabilityResponse,
 } from "@/types/api/asset";
-import type { AssetRentalAsset } from "@/types/api/asset-rental";
+import type {
+  AssetRentalAsset,
+  CreateAssetRentalRequest,
+  UpdateAssetRentalRequest,
+} from "@/types/api/asset-rental";
 import type { AssetFilterQuery } from "@/types/api/asset";
 
 const E = API_ENDPOINTS.assets;
@@ -65,4 +69,17 @@ export function getAssetAvailability(
       }
       return res;
     });
+}
+
+export function createAsset(
+  payload: CreateAssetRentalRequest
+): Promise<ApiResponse<AssetRentalAsset>> {
+  return api.post<AssetRentalAsset>(`${API_PREFIX}${E.list}`, payload);
+}
+
+export function updateAsset(
+  id: string | number,
+  payload: UpdateAssetRentalRequest
+): Promise<ApiResponse<AssetRentalAsset>> {
+  return api.patch<AssetRentalAsset>(`${API_PREFIX}${E.detail(id)}`, payload);
 }

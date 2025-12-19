@@ -30,6 +30,16 @@ export type AssetRentalAssetListResponse = ApiResponse<AssetRentalAsset[]>;
 export type AssetRentalAssetResponse = ApiResponse<AssetRentalAsset>;
 export type AssetRentalBookingListResponse = ApiResponse<AssetRentalBooking[]>;
 
+export type CreateAssetRentalRequest = {
+  name: string;
+  rate_type: "DAILY" | "HOURLY" | string;
+  rate_amount: number;
+  photo_url?: string;
+  description?: string;
+};
+
+export type UpdateAssetRentalRequest = Partial<CreateAssetRentalRequest>;
+
 export type AssetRentalReservationSummary = {
   reservation_id: string;
   status:
@@ -43,4 +53,3 @@ export type AssetRentalReservationSummary = {
   hold_expires_at?: Rfc3339String;
   amounts: { total: number; dp: number; remaining: number };
 };
-
