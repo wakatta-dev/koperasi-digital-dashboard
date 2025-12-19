@@ -55,9 +55,14 @@ export type AvailabilityCheckResult = {
 export type ReservationSummary = {
   reservationId: string;
   assetId: string;
+  assetName?: string;
   status: ReservationStatus;
   startDate: string;
   endDate: string;
+  renterName?: string;
+  renterContact?: string;
+  purpose?: string;
+  submittedAt?: string;
   holdExpiresAt?: string;
   amounts: { total: number; dp: number; remaining: number };
   timeline?: Array<{

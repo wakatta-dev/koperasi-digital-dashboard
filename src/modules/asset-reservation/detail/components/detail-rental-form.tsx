@@ -27,7 +27,7 @@ type DetailRentalFormProps = {
   startDate: string;
   endDate: string;
   onRangeChange?: (range: { start: string; end: string }) => void;
-  onSubmit?: () => void;
+  onSubmit?: (reservation: ReservationSummary) => void;
 };
 
 export function DetailRentalForm({
@@ -169,7 +169,7 @@ export function DetailRentalForm({
 
       const { reservation_id, hold_expires_at, amounts, status } =
         creation.data;
-      setReservationInfo({
+      const info: ReservationSummary = {
         reservationId: reservation_id,
         assetId: assetId ?? "asset-unknown",
         startDate: start,
@@ -177,10 +177,11 @@ export function DetailRentalForm({
         status: status === "pending_review" ? "pending_review" : "awaiting_dp",
         holdExpiresAt: hold_expires_at,
         amounts,
-      });
+      };
+      setReservationInfo(info);
       setError(null);
       setSuggestion(null);
-      onSubmit?.();
+      onSubmit?.(info);
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : "Gagal memproses permintaan"

@@ -26,6 +26,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { StatusTimeline } from "./components/status-timeline";
 import { getReservation } from "@/services/api/reservations";
 import type { ReservationSummary } from "../types";
+import { useAssetDetail } from "../hooks";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -37,6 +38,54 @@ type AssetStatusPageProps = {
   reservationId?: string;
 };
 
+function formatDateLabel(date?: string) {
+  if (!date) return "-";
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function calculateDurationLabel(start?: string, end?: string) {
+  const startDate = start ? new Date(start) : null;
+  const endDate = end ? new Date(end) : null;
+  if (!startDate || !endDate || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return "Durasi tidak diketahui";
+  }
+  const diffDays = Math.max(
+    1,
+    Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  );
+  return `${diffDays} Hari`;
+}
+
+function humanizeEvent(event: string) {
+  const labels: Record<string, string> = {
+    reservation_created: "Permintaan dibuat",
+    payment_completed: "Pembayaran selesai",
+  };
+  return labels[event] ?? event.replaceAll("_", " ");
+}
+
+function mapAssetForStatus(asset: any) {
+  if (!asset) return null;
+  const rateType = (asset.rate_type || asset.rateType || "").toLowerCase();
+  const unit = rateType === "hourly" ? "/jam" : "/hari";
+  const priceValue = Number(asset.rate_amount ?? 0);
+  return {
+    ...STATUS_ASSET,
+    id: String(asset.id ?? STATUS_ASSET.id),
+    title: asset.name || STATUS_ASSET.title,
+    price: priceValue > 0 ? `Rp${priceValue.toLocaleString("id-ID")}` : STATUS_ASSET.price,
+    unit,
+    location: asset.location || STATUS_ASSET.location,
+    heroImage: asset.photo_url || STATUS_ASSET.heroImage,
+  };
+}
+
 function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
   if (status === "confirmed_dp" || status === "confirmed_full") return "confirmed";
   if (status === "awaiting_settlement") return "confirmed";
@@ -44,13 +93,46 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
 }
 
 export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps) {
-  const asset = STATUS_ASSET;
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [reservation, setReservation] = useState<ReservationSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const resolvedReservationId = reservation?.reservationId ?? reservationId;
   const displayStatus = reservation ? mapStatus(reservation.status) : status;
+  const { data: assetData } = useAssetDetail(reservation?.assetId);
+  const asset = useMemo(() => mapAssetForStatus(assetData) ?? STATUS_ASSET, [assetData]);
+  const descriptions = useMemo(() => {
+    if (assetData?.description?.trim()) {
+      return assetData.description.split("\n").filter(Boolean);
+    }
+    return DETAIL_ASSET.descriptions;
+  }, [assetData?.description]);
+  const requestInfo = useMemo(() => {
+    if (!reservation) return REQUEST_INFO;
+    const submitted = reservation.submittedAt
+      ? `Diajukan pada ${new Date(reservation.submittedAt).toLocaleString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`
+      : REQUEST_INFO.submittedAt;
+    return {
+      ...REQUEST_INFO,
+      id: `#${reservation.reservationId}`,
+      submittedAt: submitted,
+      renterName: reservation.renterName || REQUEST_INFO.renterName,
+      renterContact: reservation.renterContact || REQUEST_INFO.renterContact,
+      dateRange: {
+        start: formatDateLabel(reservation.startDate) || REQUEST_INFO.dateRange.start,
+        end: formatDateLabel(reservation.endDate) || REQUEST_INFO.dateRange.end,
+        duration: calculateDurationLabel(reservation.startDate, reservation.endDate),
+      },
+      purpose: reservation.purpose || REQUEST_INFO.purpose,
+    };
+  }, [reservation]);
 
   useEffect(() => {
     let ignore = false;
@@ -65,6 +147,11 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
           setReservation({
             reservationId: res.data.reservation_id,
             assetId: res.data.asset_id,
+            assetName: res.data.asset_name,
+            renterName: res.data.renter_name,
+            renterContact: res.data.renter_contact,
+            purpose: res.data.purpose,
+            submittedAt: res.data.submitted_at,
             startDate: res.data.start_date,
             endDate: res.data.end_date,
             status: res.data.status,
@@ -93,13 +180,27 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
 
   const timelineItems = useMemo(() => {
     if (reservation?.timeline?.length) {
-      return reservation.timeline.map((item, idx) => ({
-        status: item.event,
-        description: item.meta?.description ?? "",
+      return reservation.timeline.map((item, idx, arr) => ({
+        status: humanizeEvent(item.event),
+        description:
+          item.meta?.description ??
+          (item.meta?.status ? `Status: ${item.meta.status}` : "Pembaruan status"),
         time: new Date(item.at).toLocaleString("id-ID"),
-        done: idx === 0 ? true : undefined,
-        active: idx === reservation.timeline!.length - 1,
+        done: idx < arr.length - 1,
+        active: idx === arr.length - 1,
       }));
+    }
+    if (reservation) {
+      return [
+        {
+          status: "Permintaan dibuat",
+          description: "Reservasi disimpan dan menunggu konfirmasi.",
+          time: reservation.submittedAt
+            ? new Date(reservation.submittedAt).toLocaleString("id-ID")
+            : "-",
+          active: true,
+        },
+      ];
     }
     if (displayStatus === "confirmed") {
       return [
@@ -141,7 +242,7 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
         time: "-",
       },
     ];
-  }, [reservation?.timeline, displayStatus]);
+  }, [reservation, displayStatus]);
 
   return (
     <div className={plusJakarta.className}>
@@ -151,9 +252,9 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
           <StatusBreadcrumb currentLabel="Detail Permintaan" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-            {reservationId ? (
+            {resolvedReservationId ? (
               <div className="mb-6 text-sm text-gray-800 dark:text-gray-200 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3">
-                <div className="font-semibold">ID Reservasi: {reservationId}</div>
+                <div className="font-semibold">ID Reservasi: {resolvedReservationId}</div>
                 {reservation ? (
                   <div className="flex flex-wrap gap-4 mt-1">
                     <span>Status: {reservation.status}</span>
@@ -174,8 +275,8 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
               <div className="lg:col-span-2 space-y-8">
                 <StatusHeader
-                  requestId={REQUEST_INFO.id}
-                  submittedAt={REQUEST_INFO.submittedAt}
+                  requestId={requestInfo.id}
+                  submittedAt={requestInfo.submittedAt}
                 />
                 <StatusHero imageUrl={asset.heroImage} title={asset.title} />
                 <div className="space-y-6">
@@ -202,15 +303,15 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
                   </div>
 
                   <StatusRenterCard
-                    renterName={REQUEST_INFO.renterName}
-                    renterContact={REQUEST_INFO.renterContact}
-                    dateRange={REQUEST_INFO.dateRange}
-                    purpose={REQUEST_INFO.purpose}
+                    renterName={requestInfo.renterName}
+                    renterContact={requestInfo.renterContact}
+                    dateRange={requestInfo.dateRange}
+                    purpose={requestInfo.purpose}
                   />
 
                   <StatusTimeline items={timelineItems} />
 
-                  <DetailDescription paragraphs={DETAIL_ASSET.descriptions} />
+                  <DetailDescription paragraphs={descriptions} />
                   <DetailFacilities facilities={STATUS_FACILITIES} />
                 </div>
               </div>

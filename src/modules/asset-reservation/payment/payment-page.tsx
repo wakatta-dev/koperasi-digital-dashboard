@@ -39,6 +39,11 @@ export function AssetPaymentPage({ reservationId }: AssetPaymentPageProps) {
           setReservation({
             reservationId: res.data.reservation_id,
             assetId: res.data.asset_id,
+            assetName: res.data.asset_name,
+            renterName: res.data.renter_name,
+            renterContact: res.data.renter_contact,
+            purpose: res.data.purpose,
+            submittedAt: res.data.submitted_at,
             startDate: res.data.start_date,
             endDate: res.data.end_date,
             status: res.data.status,

@@ -82,6 +82,10 @@ export type ReservationDetailResponse = {
   asset_id: string;
   asset_name?: string;
   location?: string;
+  renter_name?: string;
+  renter_contact?: string;
+  purpose?: string;
+  submitted_at?: Rfc3339String;
   start_date: string;
   end_date: string;
   status:

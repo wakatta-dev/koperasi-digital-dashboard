@@ -17,6 +17,7 @@ type RentRequestModalProps = {
 };
 
 export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: RentRequestModalProps) {
+  const displayId = requestId ? `#${requestId}` : "#REQ-ASSET-20231024-001";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -55,7 +56,7 @@ export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: 
           </p>
           <div className="flex items-center justify-center gap-2 group cursor-pointer">
             <span className="text-lg font-mono font-bold text-[#4338ca] group-hover:text-indigo-600 transition">
-              {requestId ?? "#REQ-ASSET-20231024-001"}
+              {displayId}
             </span>
             <span className="material-icons-outlined text-gray-400 group-hover:text-[#4338ca] text-sm transition">
               content_copy

@@ -21,6 +21,7 @@ import { useAssetAvailability, useAssetDetail } from "../hooks";
 import type { AssetAvailabilityRange } from "@/types/api/asset";
 import { useState, useEffect, useMemo } from "react";
 import { AssetStatus } from "../types";
+import type { ReservationSummary } from "../types";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -33,6 +34,7 @@ type AssetDetailPageProps = {
 
 export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastReservation, setLastReservation] = useState<ReservationSummary | null>(null);
   const { data: assetData, isLoading, error } = useAssetDetail(assetId);
 
   const formatDate = (date: Date) => {
@@ -162,16 +164,19 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
               </div>
 
               <div className="lg:col-span-1">
-                <DetailRentalForm
-                  assetId={detail.id}
-                  price={detail.price}
-                  priceValue={detail.rawPrice ?? 0}
-                  unit={detail.unit}
-                  startDate={availabilityRange.start}
-                  endDate={availabilityRange.end}
-                  onRangeChange={setAvailabilityRange}
-                  onSubmit={() => setIsModalOpen(true)}
-                />
+              <DetailRentalForm
+                assetId={detail.id}
+                price={detail.price}
+                priceValue={detail.rawPrice ?? 0}
+                unit={detail.unit}
+                startDate={availabilityRange.start}
+                endDate={availabilityRange.end}
+                onRangeChange={setAvailabilityRange}
+                onSubmit={(info) => {
+                  setLastReservation(info);
+                  setIsModalOpen(true);
+                }}
+              />
               </div>
             </div>
 
@@ -182,7 +187,8 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         <RentRequestModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          statusHref={`/penyewaan-aset/status/${mappedAsset.id}?status=pending`}
+          requestId={lastReservation?.reservationId}
+          statusHref={`/penyewaan-aset/status/${lastReservation?.reservationId ?? mappedAsset.id}?status=pending`}
         />
       </div>
     </div>

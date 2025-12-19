@@ -24,7 +24,7 @@ export default async function PenyewaanAsetStatusPage({
   const { id } = await params;
 
   const status: ReservationStatus =
-    searchParamsResolved?.status === "pending" ? "pending" : "confirmed";
+    searchParamsResolved?.status === "confirmed" ? "confirmed" : "pending";
 
   return <AssetStatusPage reservationId={id} status={status} />;
 }
