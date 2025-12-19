@@ -9,24 +9,17 @@ import { AssetReservationFooter } from "../components/reservation-footer";
 import { DetailDescription } from "../detail/components/detail-description";
 import { DetailFacilities } from "../detail/components/detail-facilities";
 import { DetailRecommendations } from "../detail/components/detail-recommendations";
-import {
-  STATUS_ASSET,
-  STATUS_FACILITIES,
-  REQUEST_INFO,
-  type ReservationStatus,
-} from "./constants";
+import { STATUS_FACILITIES, type ReservationStatus } from "./constants";
 import { StatusBreadcrumb } from "./components/status-breadcrumb";
 import { StatusHeader } from "./components/status-header";
 import { StatusHero } from "./components/status-hero";
 import { StatusRenterCard } from "./components/status-renter-card";
 import { StatusSidebar } from "./components/status-sidebar";
-import { DETAIL_ASSET } from "../detail/constants";
 import { CancelRequestModal } from "./components/cancel-request-modal";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { StatusTimeline } from "./components/status-timeline";
-import { getReservation } from "@/services/api/reservations";
 import type { ReservationSummary } from "../types";
-import { useAssetDetail } from "../hooks";
+import { useAssetDetail, useReservation } from "../hooks";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -76,13 +69,12 @@ function mapAssetForStatus(asset: any) {
   const unit = rateType === "hourly" ? "/jam" : "/hari";
   const priceValue = Number(asset.rate_amount ?? 0);
   return {
-    ...STATUS_ASSET,
-    id: String(asset.id ?? STATUS_ASSET.id),
-    title: asset.name || STATUS_ASSET.title,
-    price: priceValue > 0 ? `Rp${priceValue.toLocaleString("id-ID")}` : STATUS_ASSET.price,
+    id: String(asset.id ?? ""),
+    title: asset.name || "",
+    price: priceValue > 0 ? `Rp${priceValue.toLocaleString("id-ID")}` : "",
     unit,
-    location: asset.location || STATUS_ASSET.location,
-    heroImage: asset.photo_url || STATUS_ASSET.heroImage,
+    location: asset.location || "",
+    heroImage: asset.photo_url || "",
   };
 }
 
@@ -95,21 +87,27 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
 export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [reservation, setReservation] = useState<ReservationSummary | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: reservation,
+    isLoading: loading,
+    error,
+  } = useReservation(reservationId);
+  const errorMessage = useMemo(
+    () => (error instanceof Error ? error.message : error ? String(error) : null),
+    [error]
+  );
   const resolvedReservationId = reservation?.reservationId ?? reservationId;
   const displayStatus = reservation ? mapStatus(reservation.status) : status;
   const { data: assetData } = useAssetDetail(reservation?.assetId);
-  const asset = useMemo(() => mapAssetForStatus(assetData) ?? STATUS_ASSET, [assetData]);
+  const asset = useMemo(() => mapAssetForStatus(assetData), [assetData]);
   const descriptions = useMemo(() => {
     if (assetData?.description?.trim()) {
       return assetData.description.split("\n").filter(Boolean);
     }
-    return DETAIL_ASSET.descriptions;
+    return [];
   }, [assetData?.description]);
   const requestInfo = useMemo(() => {
-    if (!reservation) return REQUEST_INFO;
+    if (!reservation) return null;
     const submitted = reservation.submittedAt
       ? `Diajukan pada ${new Date(reservation.submittedAt).toLocaleString("id-ID", {
           day: "numeric",
@@ -118,65 +116,20 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
           hour: "2-digit",
           minute: "2-digit",
         })}`
-      : REQUEST_INFO.submittedAt;
+      : "";
     return {
-      ...REQUEST_INFO,
       id: `#${reservation.reservationId}`,
-      submittedAt: submitted,
-      renterName: reservation.renterName || REQUEST_INFO.renterName,
-      renterContact: reservation.renterContact || REQUEST_INFO.renterContact,
+      submittedAt: submitted || "Waktu pengajuan tidak tersedia",
+      renterName: reservation.renterName || "-",
+      renterContact: reservation.renterContact || "-",
       dateRange: {
-        start: formatDateLabel(reservation.startDate) || REQUEST_INFO.dateRange.start,
-        end: formatDateLabel(reservation.endDate) || REQUEST_INFO.dateRange.end,
+        start: formatDateLabel(reservation.startDate),
+        end: formatDateLabel(reservation.endDate),
         duration: calculateDurationLabel(reservation.startDate, reservation.endDate),
       },
-      purpose: reservation.purpose || REQUEST_INFO.purpose,
+      purpose: reservation.purpose || "-",
     };
   }, [reservation]);
-
-  useEffect(() => {
-    let ignore = false;
-    async function fetchReservation() {
-      if (!reservationId) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getReservation(reservationId);
-        if (ignore) return;
-        if (res.success && res.data) {
-          setReservation({
-            reservationId: res.data.reservation_id,
-            assetId: res.data.asset_id,
-            assetName: res.data.asset_name,
-            renterName: res.data.renter_name,
-            renterContact: res.data.renter_contact,
-            purpose: res.data.purpose,
-            submittedAt: res.data.submitted_at,
-            startDate: res.data.start_date,
-            endDate: res.data.end_date,
-            status: res.data.status,
-            holdExpiresAt: res.data.hold_expires_at,
-            amounts: res.data.amounts,
-            timeline: res.data.timeline?.map((t) => ({
-              event: t.event,
-              at: t.at,
-              meta: t.meta,
-            })),
-          });
-        } else {
-          setError(res.message || "Tidak dapat memuat reservasi.");
-        }
-      } catch (err) {
-        if (!ignore) setError(err instanceof Error ? err.message : "Gagal memuat reservasi.");
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    }
-    fetchReservation();
-    return () => {
-      ignore = true;
-    };
-  }, [reservationId]);
 
   const timelineItems = useMemo(() => {
     if (reservation?.timeline?.length) {
@@ -190,58 +143,7 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
         active: idx === arr.length - 1,
       }));
     }
-    if (reservation) {
-      return [
-        {
-          status: "Permintaan dibuat",
-          description: "Reservasi disimpan dan menunggu konfirmasi.",
-          time: reservation.submittedAt
-            ? new Date(reservation.submittedAt).toLocaleString("id-ID")
-            : "-",
-          active: true,
-        },
-      ];
-    }
-    if (displayStatus === "confirmed") {
-      return [
-        {
-          status: "Permintaan diterima",
-          description: "Tim BUMDes memeriksa ketersediaan.",
-          time: "24 Okt 2024, 09:00",
-          done: true,
-        },
-        {
-          status: "Aktif (DP dibayar)",
-          description: "Reservasi dikunci, selesaikan pelunasan sebelum H-3.",
-          time: "24 Okt 2024, 10:00",
-          active: true,
-        },
-        {
-          status: "Pelunasan",
-          description: "Pembayaran akhir menyelesaikan reservasi.",
-          time: "-",
-        },
-      ];
-    }
-    return [
-      {
-        status: "Permintaan diterima",
-        description: "Tim BUMDes memeriksa ketersediaan.",
-        time: "24 Okt 2024, 09:00",
-        done: true,
-      },
-      {
-        status: "Menunggu DP",
-        description: "Silakan lakukan pembayaran DP untuk mengamankan jadwal.",
-        time: "24 Okt 2024, 09:15",
-        active: true,
-      },
-      {
-        status: "Aktif (DP dibayar)",
-        description: "Reservasi dikunci, lanjutkan pelunasan sebelum H-3.",
-        time: "-",
-      },
-    ];
+    return [];
   }, [reservation, displayStatus]);
 
   return (
@@ -264,68 +166,105 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
                     </span>
                   </div>
                 ) : null}
-                {loading ? <div className="text-xs text-gray-500">Memuat status reservasi...</div> : null}
-                {error ? (
+                {loading ? (
+                  <div className="text-xs text-gray-500">Memuat status reservasi...</div>
+                ) : null}
+                {errorMessage ? (
                   <div className="text-xs text-red-600 dark:text-red-400">
-                    Gagal memuat reservasi: {error}
+                    Gagal memuat reservasi: {errorMessage}
                   </div>
                 ) : null}
               </div>
             ) : null}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
-              <div className="lg:col-span-2 space-y-8">
-                <StatusHeader
-                  requestId={requestInfo.id}
-                  submittedAt={requestInfo.submittedAt}
-                />
-                <StatusHero imageUrl={asset.heroImage} title={asset.title} />
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
-                      <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
-                        {asset.title}
-                      </h2>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-[#4338ca]">
-                          {asset.price}
-                          <span className="text-base font-normal text-gray-500 dark:text-gray-400">
-                            {asset.unit}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                      <span className="material-icons-outlined text-lg">
-                        location_on
-                      </span>
-                      <span className="text-sm">{asset.location}</span>
-                    </div>
-                  </div>
 
-                  <StatusRenterCard
-                    renterName={requestInfo.renterName}
-                    renterContact={requestInfo.renterContact}
-                    dateRange={requestInfo.dateRange}
-                    purpose={requestInfo.purpose}
-                  />
-
-                  <StatusTimeline items={timelineItems} />
-
-                  <DetailDescription paragraphs={descriptions} />
-                  <DetailFacilities facilities={STATUS_FACILITIES} />
+            {loading ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12 animate-pulse">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg w-1/2" />
+                  <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+                  <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                  <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                  <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                </div>
+                <div className="lg:col-span-1 space-y-4">
+                  <div className="h-72 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+                  <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-xl" />
                 </div>
               </div>
+            ) : null}
 
-              <div className="lg:col-span-1">
-                <StatusSidebar
-                  status={displayStatus}
-                  onCancel={() => setCancelOpen(true)}
-                  onReschedule={() => setRescheduleOpen(true)}
-                />
+            {!loading && errorMessage ? (
+              <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                Data reservasi gagal dimuat.
               </div>
-            </div>
+            ) : null}
 
-            <DetailRecommendations currentId={asset.id} />
+            {!loading && !reservation ? (
+              <div className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                Reservasi tidak ditemukan atau belum tersedia.
+              </div>
+            ) : null}
+
+            {reservation ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
+                <div className="lg:col-span-2 space-y-8">
+                  {requestInfo ? (
+                    <StatusHeader requestId={requestInfo.id} submittedAt={requestInfo.submittedAt} />
+                  ) : null}
+                  {asset ? <StatusHero imageUrl={asset.heroImage} title={asset.title || "Aset"} /> : null}
+                  <div className="space-y-6">
+                    {asset ? (
+                      <div>
+                        <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+                          <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                            {asset.title || "Aset"}
+                          </h2>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-[#4338ca]">
+                              {asset.price || "-"}
+                              <span className="text-base font-normal text-gray-500 dark:text-gray-400">
+                                {asset.unit}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <span className="material-icons-outlined text-lg">
+                            location_on
+                          </span>
+                          <span className="text-sm">{asset.location || "-"}</span>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {requestInfo ? (
+                      <StatusRenterCard
+                        renterName={requestInfo.renterName}
+                        renterContact={requestInfo.renterContact}
+                        dateRange={requestInfo.dateRange}
+                        purpose={requestInfo.purpose}
+                      />
+                    ) : null}
+
+                    {timelineItems.length > 0 ? <StatusTimeline items={timelineItems} /> : null}
+
+                    {descriptions.length > 0 ? <DetailDescription paragraphs={descriptions} /> : null}
+                    <DetailFacilities facilities={STATUS_FACILITIES} />
+                  </div>
+                </div>
+
+                <div className="lg:col-span-1">
+                  <StatusSidebar
+                    status={displayStatus}
+                    amounts={reservation?.amounts}
+                    onCancel={() => setCancelOpen(true)}
+                    onReschedule={() => setRescheduleOpen(true)}
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            {asset?.id ? <DetailRecommendations currentId={asset.id} /> : null}
           </div>
         </main>
         <AssetReservationFooter />

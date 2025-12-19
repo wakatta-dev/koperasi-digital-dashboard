@@ -6,8 +6,6 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
-import { ASSET_ITEMS } from "../constants";
-import { DETAIL_ASSET } from "./constants";
 import { DetailBreadcrumb } from "./components/detail-breadcrumb";
 import { DetailGallery } from "./components/detail-gallery";
 import { DetailInfo } from "./components/detail-info";
@@ -81,17 +79,11 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     }
   }, [availabilityRange.end, availabilityRange.start]);
 
-  const mappedAsset = useMemo(
-    () =>
-      mapAsset(assetData) ??
-      ASSET_ITEMS.find((item) => item.id === assetId) ??
-      ASSET_ITEMS[0],
-    [assetData, assetId]
-  );
+  const mappedAsset = useMemo(() => mapAsset(assetData), [assetData]);
 
-  const detail = useMemo(
-    () => ({
-      ...DETAIL_ASSET,
+  const detail = useMemo(() => {
+    if (!mappedAsset) return null;
+    return {
       id: mappedAsset.id,
       title: mappedAsset.title,
       category: mappedAsset.category,
@@ -100,13 +92,14 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
       unit: mappedAsset.unit,
       status: mappedAsset.status,
       heroImage: mappedAsset.imageUrl,
-      thumbnails: [mappedAsset.imageUrl, ...DETAIL_ASSET.thumbnails.slice(1)],
+      thumbnails: [mappedAsset.imageUrl],
       descriptions: assetData?.description?.trim()
         ? assetData.description.split("\n").filter(Boolean)
-        : DETAIL_ASSET.descriptions,
-    }),
-    [mappedAsset, assetData?.description]
-  );
+        : [],
+      facilities: [],
+      location: mappedAsset.location,
+    };
+  }, [mappedAsset, assetData?.description]);
 
   const blockedRanges: AssetAvailabilityRange[] = availability?.blocked ?? [];
   const availabilityErrorMessage =
@@ -121,8 +114,18 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             {isLoading ? (
-              <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                Memuat detail aset...
+              <div className="mb-4 grid grid-cols-1 lg:grid-cols-3 gap-8 animate-pulse">
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-2/3" />
+                  <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
+                  <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-5/6" />
+                </div>
+                <div className="lg:col-span-1 space-y-3">
+                  <div className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                  <div className="h-12 bg-gray-200 dark:bg-gray-800 rounded-lg" />
+                  <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg" />
+                </div>
               </div>
             ) : null}
             {error ? (
@@ -130,57 +133,64 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                 {error instanceof Error
                   ? error.message
                   : "Gagal memuat detail aset"}
+            </div>
+            ) : null}
+            {!isLoading && !detail ? (
+              <div className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                Data aset tidak tersedia.
               </div>
             ) : null}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
-              <div className="lg:col-span-2 space-y-8">
-                <DetailGallery
-                  heroImage={detail.heroImage}
-                  thumbnails={detail.thumbnails}
-                  status={detail.status as AssetStatus}
-                  title={detail.title}
-                />
-                <div className="space-y-6">
-                  <DetailInfo
+            {detail ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
+                <div className="lg:col-span-2 space-y-8">
+                  <DetailGallery
+                    heroImage={detail.heroImage}
+                    thumbnails={detail.thumbnails}
+                    status={detail.status as AssetStatus}
                     title={detail.title}
-                    price={detail.price}
-                    unit={detail.unit}
-                    location={detail.location}
                   />
-                  <DetailDescription paragraphs={detail.descriptions} />
-                  <DetailFacilities facilities={detail.facilities} />
-                  <DetailAvailability
-                    blocked={blockedRanges}
-                    isLoading={isAvailabilityLoading}
-                    error={availabilityErrorMessage}
-                    suggestion={availability?.suggestion}
-                    selectedRange={{
-                      start: availabilityRange.start,
-                      end: availabilityRange.end,
-                    }}
+                  <div className="space-y-6">
+                    <DetailInfo
+                      title={detail.title}
+                      price={detail.price}
+                      unit={detail.unit}
+                      location={detail.location}
+                    />
+                    <DetailDescription paragraphs={detail.descriptions} />
+                    <DetailFacilities facilities={detail.facilities} />
+                    <DetailAvailability
+                      blocked={blockedRanges}
+                      isLoading={isAvailabilityLoading}
+                      error={availabilityErrorMessage}
+                      suggestion={availability?.suggestion}
+                      selectedRange={{
+                        start: availabilityRange.start,
+                        end: availabilityRange.end,
+                      }}
+                      onRangeChange={setAvailabilityRange}
+                    />
+                  </div>
+                </div>
+
+                <div className="lg:col-span-1">
+                  <DetailRentalForm
+                    assetId={detail.id}
+                    price={detail.price}
+                    priceValue={detail.rawPrice ?? 0}
+                    unit={detail.unit}
+                    startDate={availabilityRange.start}
+                    endDate={availabilityRange.end}
                     onRangeChange={setAvailabilityRange}
+                    onSubmit={(info) => {
+                      setLastReservation(info);
+                      setIsModalOpen(true);
+                    }}
                   />
                 </div>
               </div>
+            ) : null}
 
-              <div className="lg:col-span-1">
-              <DetailRentalForm
-                assetId={detail.id}
-                price={detail.price}
-                priceValue={detail.rawPrice ?? 0}
-                unit={detail.unit}
-                startDate={availabilityRange.start}
-                endDate={availabilityRange.end}
-                onRangeChange={setAvailabilityRange}
-                onSubmit={(info) => {
-                  setLastReservation(info);
-                  setIsModalOpen(true);
-                }}
-              />
-              </div>
-            </div>
-
-            <DetailRecommendations currentId={detail.id} />
+            {detail ? <DetailRecommendations currentId={detail.id} /> : null}
           </div>
         </main>
         <AssetReservationFooter />
@@ -188,7 +198,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
           requestId={lastReservation?.reservationId}
-          statusHref={`/penyewaan-aset/status/${lastReservation?.reservationId ?? mappedAsset.id}?status=pending`}
+          statusHref={`/penyewaan-aset/status/${lastReservation?.reservationId ?? mappedAsset?.id ?? ""}?status=pending`}
         />
       </div>
     </div>
@@ -199,20 +209,20 @@ function mapAsset(asset: any) {
   if (!asset) return undefined;
   const rateType = (asset.rate_type || asset.rateType || "").toLowerCase();
   const unit = rateType === "hourly" ? "/jam" : "/hari";
+  const priceValue = Number(asset.rate_amount ?? 0);
   return {
     id: String(asset.id),
     category: rateType === "hourly" ? "Per Jam" : "Per Hari",
-    title: asset.name || "Aset",
+    title: asset.name || "",
     description: asset.description || "",
-    price: `Rp${(asset.rate_amount ?? 0).toLocaleString("id-ID")}`,
-    rawPrice: Number(asset.rate_amount ?? 0),
+    price: priceValue > 0 ? `Rp${priceValue.toLocaleString("id-ID")}` : "",
+    rawPrice: priceValue,
     unit,
     status:
       (asset.status || "").toLowerCase() === "archived"
         ? "maintenance"
         : "available",
-    imageUrl:
-      asset.photo_url ||
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=60",
+    imageUrl: asset.photo_url || "",
+    location: asset.location || "",
   };
 }

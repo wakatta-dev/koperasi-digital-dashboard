@@ -1,0 +1,39 @@
+/** @format */
+
+import { useQuery } from "@tanstack/react-query";
+
+import { QK } from "@/hooks/queries/queryKeys";
+import { getReservation } from "@/services/api/reservations";
+import type { ReservationSummary } from "../types";
+
+export function useReservation(reservationId?: string) {
+  return useQuery({
+    enabled: Boolean(reservationId),
+    queryKey: QK.assetRental.reservation(reservationId ?? "unknown"),
+    queryFn: async (): Promise<ReservationSummary> => {
+      const res = await getReservation(reservationId ?? "");
+      if (!res.success || !res.data) {
+        throw new Error(res.message || "Gagal memuat reservasi");
+      }
+      return {
+        reservationId: res.data.reservation_id,
+        assetId: res.data.asset_id,
+        assetName: res.data.asset_name,
+        renterName: res.data.renter_name,
+        renterContact: res.data.renter_contact,
+        purpose: res.data.purpose,
+        submittedAt: res.data.submitted_at,
+        startDate: res.data.start_date,
+        endDate: res.data.end_date,
+        status: res.data.status,
+        holdExpiresAt: res.data.hold_expires_at,
+        amounts: res.data.amounts,
+        timeline: res.data.timeline?.map((t) => ({
+          event: t.event,
+          at: t.at,
+          meta: t.meta,
+        })),
+      };
+    },
+  });
+}

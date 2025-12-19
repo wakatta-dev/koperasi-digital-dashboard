@@ -3,16 +3,33 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { STATUS_CONTENT, REQUEST_INFO, type ReservationStatus } from "../constants";
+import { STATUS_CONTENT, type ReservationStatus } from "../constants";
+
+type Amounts = {
+  total: number;
+  dp: number;
+  remaining: number;
+};
 
 type StatusSidebarProps = {
   status: ReservationStatus;
+  amounts?: Amounts;
   onCancel?: () => void;
   onReschedule?: () => void;
 };
 
-export function StatusSidebar({ status, onCancel, onReschedule }: StatusSidebarProps) {
+function formatCurrency(value?: number) {
+  if (typeof value !== "number" || Number.isNaN(value)) return null;
+  return `Rp${value.toLocaleString("id-ID")}`;
+}
+
+export function StatusSidebar({ status, amounts, onCancel, onReschedule }: StatusSidebarProps) {
   const content = STATUS_CONTENT[status];
+  const price = {
+    total: formatCurrency(amounts?.total) ?? "-",
+    dp: formatCurrency(amounts?.dp) ?? "-",
+    remaining: formatCurrency(amounts?.remaining) ?? "-",
+  };
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none sticky top-24 overflow-hidden">
@@ -46,20 +63,16 @@ export function StatusSidebar({ status, onCancel, onReschedule }: StatusSidebarP
             Ringkasan Biaya
           </h4>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-gray-300">{REQUEST_INFO.costs.rentalLabel}</span>
-            <span className="text-gray-900 dark:text-white font-medium">
-              {REQUEST_INFO.costs.rentalTotal}
-            </span>
+            <span className="text-gray-600 dark:text-gray-300">DP (30%)</span>
+            <span className="text-gray-900 dark:text-white font-medium">{price.dp}</span>
           </div>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-gray-300">Biaya Kebersihan</span>
-            <span className="text-gray-900 dark:text-white font-medium">
-              {REQUEST_INFO.costs.cleaning}
-            </span>
+            <span className="text-gray-600 dark:text-gray-300">Sisa Pelunasan</span>
+            <span className="text-gray-900 dark:text-white font-medium">{price.remaining}</span>
           </div>
           <div className="flex justify-between items-center mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700">
             <span className="font-bold text-gray-900 dark:text-white">{content.summaryLabel}</span>
-            <span className="font-bold text-[#4338ca] text-xl">{REQUEST_INFO.costs.total}</span>
+            <span className="font-bold text-[#4338ca] text-xl">{price.total}</span>
           </div>
         </div>
 

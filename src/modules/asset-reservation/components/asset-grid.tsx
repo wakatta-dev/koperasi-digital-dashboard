@@ -14,6 +14,7 @@ import { useMemo } from "react";
 import type { AssetFilterQuery } from "@/types/api/asset";
 import type { AssetItem } from "../types";
 import { useAssetList } from "../hooks";
+import React from "react";
 
 type AssetGridProps = {
   filters: AssetFilterQuery;
@@ -71,20 +72,32 @@ export function AssetGrid({ filters, onSortChange }: AssetGridProps) {
       ) : null}
 
       {isLoading ? (
-        <div className="text-sm text-gray-500 dark:text-gray-400">Memuat aset...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#111827] p-4 animate-pulse space-y-3"
+            >
+              <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
+              <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2" />
+              <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-2/3" />
+            </div>
+          ))}
+        </div>
       ) : null}
 
       {!isLoading && assets.length === 0 ? (
         <div className="text-sm text-gray-500 dark:text-gray-400">
           Tidak ada aset yang sesuai dengan filter.
         </div>
-      ) : null}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {assets.map((asset) => (
-          <AssetCard key={asset.id} asset={asset} />
-        ))}
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {assets.map((asset) => (
+            <AssetCard key={asset.id} asset={asset} />
+          ))}
+        </div>
+      )}
 
       <div className="mt-12 flex items-center justify-center gap-2">
         <button
@@ -133,12 +146,10 @@ function mapAsset(asset: any): AssetItem {
     id: String(asset.id),
     category: rateType === "hourly" ? "Per Jam" : "Per Hari",
     title: asset.name,
-    description: asset.description || "Aset tersedia untuk disewa.",
+    description: asset.description || "",
     price: `Rp${(asset.rate_amount ?? 0).toLocaleString("id-ID")}`,
     unit,
     status,
-    imageUrl:
-      asset.photo_url ||
-      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=60",
+    imageUrl: asset.photo_url || "",
   };
 }

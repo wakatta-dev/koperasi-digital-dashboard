@@ -51,8 +51,16 @@ export function PaymentShell({
               </div>
             ) : null}
             {loading ? (
-              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                Memuat data reservasi...
+              <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
+                <div className={isSettlement ? "lg:col-span-2 space-y-4" : "lg:col-span-2 space-y-4"}>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-1/3" />
+                  <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                  <div className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                </div>
+                <div className={isSettlement ? "lg:col-span-1 space-y-4" : "lg:col-span-1 space-y-4"}>
+                  <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                  <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                </div>
               </div>
             ) : null}
             <div
