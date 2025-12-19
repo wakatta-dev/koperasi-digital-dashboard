@@ -15,12 +15,12 @@ export type AssetItem = {
 
 export type ReservationStatus =
   | "pending_review"
-  | "waiting_dp"
-  | "active_dp_paid"
-  | "waiting_settlement"
-  | "settled"
-  | "expired"
-  | "cancelled";
+  | "awaiting_dp"
+  | "confirmed_dp"
+  | "awaiting_settlement"
+  | "confirmed_full"
+  | "cancelled"
+  | "expired";
 
 export type PaymentMode = "dp" | "settlement";
 
@@ -32,3 +32,51 @@ export type PaymentVerificationStatus =
   | "succeeded"
   | "failed"
   | "expired";
+
+export type AvailabilityCheckRequest = {
+  assetId: string;
+  start: string; // ISO date
+  end: string; // ISO date
+};
+
+export type AvailabilityConflict = {
+  start: string;
+  end: string;
+  type?: "booking" | "maintenance" | "hold";
+};
+
+export type AvailabilityCheckResult = {
+  ok: boolean;
+  conflicts?: AvailabilityConflict[];
+  suggestion?: { start: string; end: string };
+};
+
+export type ReservationSummary = {
+  reservationId: string;
+  assetId: string;
+  status: ReservationStatus;
+  startDate: string;
+  endDate: string;
+  holdExpiresAt?: string;
+  amounts: { total: number; dp: number; remaining: number };
+  timeline?: Array<{ event: string; at: string; meta?: Record<string, string> }>;
+};
+
+export type PaymentSession = {
+  paymentId: string;
+  reservationId: string;
+  type: PaymentMode;
+  method: string;
+  amount: number;
+  payBy: string;
+  status: PaymentVerificationStatus;
+};
+
+export type GuestLinkAccess = {
+  allowed: boolean;
+  expiresAt?: string;
+  reservationSummary?: Pick<
+    ReservationSummary,
+    "reservationId" | "status" | "startDate" | "endDate" | "amounts"
+  > & { assetName?: string; location?: string };
+};

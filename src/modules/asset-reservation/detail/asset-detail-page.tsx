@@ -75,6 +75,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 
               <div className="lg:col-span-1">
                 <DetailRentalForm
+                  assetId={detail.id}
                   price={detail.price}
                   unit={detail.unit}
                   onSubmit={() => setIsModalOpen(true)}

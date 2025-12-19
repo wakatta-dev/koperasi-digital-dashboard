@@ -4,6 +4,29 @@ import type { ApiResponse, Rfc3339String } from './common';
 
 export type DepreciationMethod = 'straight_line' | 'declining_balance';
 
+export type AssetCategory = {
+  id: string;
+  name: string;
+};
+
+export type AssetAvailabilityRange = {
+  start_date: string;
+  end_date: string;
+  type?: 'booking' | 'maintenance' | 'hold';
+};
+
+export type AssetAvailabilityResponse = {
+  blocked: AssetAvailabilityRange[];
+  suggestion?: { start_date: string; end_date: string };
+};
+
+export type AssetFilterQuery = {
+  category?: string;
+  status?: 'available' | 'maintenance' | 'rented';
+  search?: string;
+  sort?: 'popular' | 'price_asc' | 'price_desc' | 'newest';
+};
+
 export type AssetRequest = {
   code: string;
   name: string;
@@ -61,3 +84,5 @@ export type UpdateAssetStatusResponse = void;
 export type AssetListResponse = ApiResponse<Asset[]>;
 export type AssetDepreciationResponse = ApiResponse<AssetDepreciation[]>;
 export type AssetUsageResponse = ApiResponse<AssetUsage[]>;
+export type AssetCategoriesResponse = ApiResponse<AssetCategory[]>;
+export type AssetAvailabilityApiResponse = ApiResponse<AssetAvailabilityResponse>;

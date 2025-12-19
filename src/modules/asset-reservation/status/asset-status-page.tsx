@@ -22,8 +22,10 @@ import { StatusRenterCard } from "./components/status-renter-card";
 import { StatusSidebar } from "./components/status-sidebar";
 import { DETAIL_ASSET } from "../detail/constants";
 import { CancelRequestModal } from "./components/cancel-request-modal";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StatusTimeline } from "./components/status-timeline";
+import { getReservation } from "@/services/api/reservations";
+import type { ReservationSummary } from "../types";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -32,14 +34,74 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 type AssetStatusPageProps = {
   status: ReservationStatus;
+  reservationId?: string;
 };
 
-export function AssetStatusPage({ status }: AssetStatusPageProps) {
+function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
+  if (status === "confirmed_dp" || status === "confirmed_full") return "confirmed";
+  if (status === "awaiting_settlement") return "confirmed";
+  return "pending";
+}
+
+export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps) {
   const asset = STATUS_ASSET;
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [reservation, setReservation] = useState<ReservationSummary | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const displayStatus = reservation ? mapStatus(reservation.status) : status;
+
+  useEffect(() => {
+    let ignore = false;
+    async function fetchReservation() {
+      if (!reservationId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getReservation(reservationId);
+        if (ignore) return;
+        if (res.success && res.data) {
+          setReservation({
+            reservationId: res.data.reservation_id,
+            assetId: res.data.asset_id,
+            startDate: res.data.start_date,
+            endDate: res.data.end_date,
+            status: res.data.status,
+            holdExpiresAt: res.data.hold_expires_at,
+            amounts: res.data.amounts,
+            timeline: res.data.timeline?.map((t) => ({
+              event: t.event,
+              at: t.at,
+              meta: t.meta,
+            })),
+          });
+        } else {
+          setError(res.message || "Tidak dapat memuat reservasi.");
+        }
+      } catch (err) {
+        if (!ignore) setError(err instanceof Error ? err.message : "Gagal memuat reservasi.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+    fetchReservation();
+    return () => {
+      ignore = true;
+    };
+  }, [reservationId]);
+
   const timelineItems = useMemo(() => {
-    if (status === "confirmed") {
+    if (reservation?.timeline?.length) {
+      return reservation.timeline.map((item, idx) => ({
+        status: item.event,
+        description: item.meta?.description ?? "",
+        time: new Date(item.at).toLocaleString("id-ID"),
+        done: idx === 0 ? true : undefined,
+        active: idx === reservation.timeline!.length - 1,
+      }));
+    }
+    if (displayStatus === "confirmed") {
       return [
         {
           status: "Permintaan diterima",
@@ -79,7 +141,7 @@ export function AssetStatusPage({ status }: AssetStatusPageProps) {
         time: "-",
       },
     ];
-  }, [status]);
+  }, [reservation?.timeline, displayStatus]);
 
   return (
     <div className={plusJakarta.className}>
@@ -89,6 +151,26 @@ export function AssetStatusPage({ status }: AssetStatusPageProps) {
           <StatusBreadcrumb currentLabel="Detail Permintaan" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+            {reservationId ? (
+              <div className="mb-6 text-sm text-gray-800 dark:text-gray-200 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3">
+                <div className="font-semibold">ID Reservasi: {reservationId}</div>
+                {reservation ? (
+                  <div className="flex flex-wrap gap-4 mt-1">
+                    <span>Status: {reservation.status}</span>
+                    <span>
+                      DP: Rp{reservation.amounts.dp.toLocaleString("id-ID")} · Sisa: Rp
+                      {reservation.amounts.remaining.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                ) : null}
+                {loading ? <div className="text-xs text-gray-500">Memuat status reservasi...</div> : null}
+                {error ? (
+                  <div className="text-xs text-red-600 dark:text-red-400">
+                    Gagal memuat reservasi: {error}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
               <div className="lg:col-span-2 space-y-8">
                 <StatusHeader
@@ -135,7 +217,7 @@ export function AssetStatusPage({ status }: AssetStatusPageProps) {
 
               <div className="lg:col-span-1">
                 <StatusSidebar
-                  status={status}
+                  status={displayStatus}
                   onCancel={() => setCancelOpen(true)}
                   onReschedule={() => setRescheduleOpen(true)}
                 />

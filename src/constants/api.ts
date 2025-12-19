@@ -15,9 +15,6 @@ export const API_ENDPOINTS = {
     register: "/tenants",
     verify: "/tenants/verify",
     status: (id: string | number) => `/tenants/${id}/status`,
-    auditLogs: (tenantId: string | number) => `/tenants/${tenantId}/audit-logs`,
-    configuration: (tenantId: string | number) =>
-      `/tenants/${tenantId}/configuration`,
     profile: (tenantId: string | number) => `/tenants/${tenantId}/profile`,
   },
   domain: {
@@ -52,33 +49,32 @@ export const API_ENDPOINTS = {
     markRead: (id: string | number) => `/notifications/${id}/read`,
     dashboardMetrics: "/notifications/dashboard/metrics",
   },
-  permissions: {
-    registry: "/permissions/registry",
-    sync: "/permissions/registry/sync",
-    confirm: (id: string | number) => `/permissions/registry/${id}/confirm`,
-  },
   analytics: {
-    dashboard: "/bumdes/dashboard/analytics",
+    dashboard: "/dashboard/analytics",
   },
   finance: {
-    salesSummary: "/finance/sales/summary",
-    topProducts: "/finance/sales/top-products",
-    channels: "/finance/sales/channels",
-    exportProducts: "/finance/sales/export/products",
-    exportChannels: "/finance/sales/export/channels",
-    overview: "/finance/reports/overview",
-    profitLoss: "/finance/reports/profit-loss",
-    cashFlow: "/finance/reports/cash-flow",
-    balanceSheet: "/finance/reports/balance-sheet",
+    salesSummary: "/report/sales/summary",
+    topProducts: "/report/sales/products",
+    channels: "/report/sales/channels",
+    overview: "/finance/overview",
+    profitLoss: "/report/profit-loss",
+    cashFlow: "/finance/cash-flow",
+    balanceSheet: "/finance/balance-sheet",
   },
-  vendor: {
-    emailChangeConfirm: "/vendor/email-change/confirm",
-    tenantAccounts: (tenantId: string | number) =>
-      `/vendor/tenants/${tenantId}/accounts`,
-    tenantAccountEmail: (tenantId: string | number, userId: string | number) =>
-      `/vendor/tenants/${tenantId}/accounts/${userId}/email`,
-    tenantDeactivate: (tenantId: string | number) =>
-      `/vendor/tenants/${tenantId}/deactivate`,
+  assets: {
+    list: "/asset-rental/assets",
+    detail: (id: string | number) => `/asset-rental/assets/${id}`,
+    categories: "/asset-rental/assets/categories",
+    availability: (id: string | number) => `/asset-rental/assets/${id}/availability`,
+  },
+  assetReservation: {
+    availability: "/reservations/check-availability",
+    reservations: "/reservations",
+    reservation: (id: string) => `/reservations/${id}`,
+    payments: "/payments",
+    paymentProof: (id: string) => `/payments/${id}/proof`,
+    paymentFinalize: (id: string) => `/payments/${id}/confirm`,
+    guestVerify: "/guest-links/verify",
   },
 } as const;
 

@@ -9,6 +9,12 @@ export const metadata: Metadata = {
   description: "Selesaikan pelunasan sewa aset Anda di BUMDes Sukamaju.",
 };
 
-export default function PenyewaanAsetRepaymentPage() {
-  return <AssetRepaymentPage />;
+type RepaymentPageProps = {
+  searchParams?: Promise<{ reservationId?: string }>;
+};
+
+export default async function PenyewaanAsetRepaymentPage({ searchParams }: RepaymentPageProps) {
+  const params = await searchParams;
+  const reservationId = params?.reservationId;
+  return <AssetRepaymentPage reservationId={reservationId} />;
 }

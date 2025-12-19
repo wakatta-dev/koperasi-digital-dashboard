@@ -10,3 +10,5 @@ export * from "./permissions";
 export * from "./vendor";
 export * from "./billing";
 export * from "./analytics";
+export * from "./reservation";
+export * from "./asset";

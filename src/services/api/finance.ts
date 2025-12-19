@@ -58,18 +58,6 @@ export function getChannels(
   );
 }
 
-export function getExportUrl(
-  kind: "products" | "channels",
-  params?: FinanceQuery
-): string {
-  const query = buildQuery(params);
-  const path =
-    kind === "products"
-      ? API_ENDPOINTS.finance.exportProducts
-      : API_ENDPOINTS.finance.exportChannels;
-  return `${API_PREFIX}${path}${query}`;
-}
-
 export function getOverview(
   params?: FinanceQuery,
   opts?: { signal?: AbortSignal }

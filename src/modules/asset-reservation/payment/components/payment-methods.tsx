@@ -2,27 +2,93 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { PaymentMode } from "../../types";
 import { PAYMENT_METHOD_GROUPS } from "../constants";
+import { createPaymentSession, finalizePayment } from "@/services/api/reservations";
+import type { PaymentSession } from "../../types";
 
 type MethodGroup = (typeof PAYMENT_METHOD_GROUPS)[number];
 
 type PaymentMethodsProps = {
   mode: PaymentMode;
   methodGroups?: MethodGroup[];
+  reservationId?: string;
+  onStatusChange?: (payload: { paymentId: string; status: PaymentStatus }) => void;
 };
 
-type PaymentStatus = "initiated" | "pending_verification" | "succeeded" | "failed";
+type PaymentStatus = "initiated" | "pending_verification" | "succeeded" | "failed" | "expired";
 
 export function PaymentMethods({
   mode,
   methodGroups = PAYMENT_METHOD_GROUPS,
+  reservationId = "mock-reservation",
+  onStatusChange,
 }: PaymentMethodsProps) {
   const [selected, setSelected] = useState(methodGroups[0].options[0].value);
   const [status, setStatus] = useState<PaymentStatus>("initiated");
   const [proof, setProof] = useState<string | null>(null);
+  const [session, setSession] = useState<PaymentSession | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  const payByText = useMemo(() => {
+    if (!session?.payBy) return null;
+    return new Date(session.payBy).toLocaleString("id-ID");
+  }, [session?.payBy]);
+
+  const formattedAmount = useMemo(() => {
+    if (!session?.amount) return null;
+    return `Rp${session.amount.toLocaleString("id-ID")}`;
+  }, [session?.amount]);
+
+  const handleStatusUpdate = (next: PaymentStatus) => {
+    setStatus(next);
+    if (session?.paymentId) {
+      onStatusChange?.({ paymentId: session.paymentId, status: next });
+    }
+  };
+
+  useEffect(() => {
+    let ignore = false;
+    async function bootstrapSession(methodValue: string) {
+      setIsLoading(true);
+      setSessionError(null);
+      try {
+        const res = await createPaymentSession({
+          reservation_id: reservationId,
+          type: mode,
+          method: methodValue,
+        });
+        if (ignore) return;
+        if (res.success && res.data) {
+          setSession({
+            paymentId: res.data.payment_id,
+            reservationId: res.data.reservation_id,
+            amount: res.data.amount,
+            type: res.data.type,
+            method: res.data.method,
+            payBy: res.data.pay_by,
+            status: res.data.status,
+          });
+          setStatus(res.data.status as PaymentStatus);
+        } else {
+          setSessionError(res.message || "Tidak dapat membuat sesi pembayaran");
+        }
+      } catch (err) {
+        if (!ignore) {
+          setSessionError(err instanceof Error ? err.message : "Gagal membuat sesi pembayaran");
+        }
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+    bootstrapSession(selected);
+    return () => {
+      ignore = true;
+    };
+  }, [mode, reservationId, selected]);
 
   return (
     <section className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -30,6 +96,24 @@ export function PaymentMethods({
         <span className="material-icons-outlined text-[#4338ca]">payments</span>
         {mode === "dp" ? "Pilih Metode Pembayaran DP" : "Pilih Metode Pelunasan"}
       </h2>
+      {formattedAmount ? (
+        <div className="mb-4 text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3">
+          <div className="flex flex-col">
+            <span className="font-semibold">Jumlah yang harus dibayar</span>
+            {payByText ? (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Bayar sebelum: {payByText}
+              </span>
+            ) : null}
+          </div>
+          <span className="text-base font-bold text-[#4338ca]">{formattedAmount}</span>
+        </div>
+      ) : null}
+      {sessionError ? (
+        <div className="mb-4 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          {sessionError}
+        </div>
+      ) : null}
       <div className="space-y-4">
         {methodGroups.map((group) => (
           <div key={group.title} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
@@ -88,7 +172,7 @@ export function PaymentMethods({
                 ? "text-green-600 dark:text-green-400"
                 : status === "pending_verification"
                 ? "text-amber-600 dark:text-amber-400"
-                : status === "failed"
+                : status === "failed" || status === "expired"
                 ? "text-red-600 dark:text-red-400"
                 : "text-gray-700 dark:text-gray-300"
             }
@@ -99,6 +183,8 @@ export function PaymentMethods({
               ? "Menunggu verifikasi"
               : status === "succeeded"
               ? "Berhasil"
+              : status === "expired"
+              ? "Kedaluwarsa"
               : "Gagal"}
           </span>
         </div>
@@ -115,7 +201,7 @@ export function PaymentMethods({
                 const file = e.target.files?.[0];
                 if (file) {
                   setProof(file.name);
-                  setStatus("pending_verification");
+                  handleStatusUpdate("pending_verification");
                 }
               }}
               className="text-xs"
@@ -129,21 +215,39 @@ export function PaymentMethods({
               <button
                 type="button"
                 className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-[#4338ca] hover:text-[#4338ca]"
-                onClick={() => setStatus("pending_verification")}
+                onClick={() => handleStatusUpdate("pending_verification")}
               >
                 Tandai menunggu verifikasi
               </button>
               <button
                 type="button"
                 className="px-3 py-2 text-xs rounded-lg border border-green-500 bg-green-50 text-green-700 hover:bg-green-100"
-                onClick={() => setStatus("succeeded")}
+                onClick={async () => {
+                  if (session?.paymentId) {
+                    const res = await finalizePayment(session.paymentId, "succeeded");
+                    if (res.success && res.data) {
+                      handleStatusUpdate(res.data.status as PaymentStatus);
+                      return;
+                    }
+                  }
+                  handleStatusUpdate("succeeded");
+                }}
               >
                 Verifikasi & konfirmasi
               </button>
               <button
                 type="button"
                 className="px-3 py-2 text-xs rounded-lg border border-red-500 bg-red-50 text-red-700 hover:bg-red-100"
-                onClick={() => setStatus("failed")}
+                onClick={async () => {
+                  if (session?.paymentId) {
+                    const res = await finalizePayment(session.paymentId, "failed");
+                    if (res.success && res.data) {
+                      handleStatusUpdate(res.data.status as PaymentStatus);
+                      return;
+                    }
+                  }
+                  handleStatusUpdate("failed");
+                }}
               >
                 Tandai gagal
               </button>
@@ -154,14 +258,34 @@ export function PaymentMethods({
             <button
               type="button"
               className="px-4 py-2 text-sm rounded-lg bg-[#4338ca] text-white font-semibold shadow hover:bg-indigo-600 transition"
-              onClick={() => setStatus("succeeded")}
+              disabled={isLoading || status === "expired"}
+              onClick={async () => {
+                if (session?.paymentId) {
+                  const res = await finalizePayment(session.paymentId, "succeeded");
+                  if (res.success && res.data) {
+                    handleStatusUpdate(res.data.status as PaymentStatus);
+                    return;
+                  }
+                }
+                handleStatusUpdate("succeeded");
+              }}
             >
-              Bayar sekarang
+              {isLoading ? "Mempersiapkan..." : "Bayar sekarang"}
             </button>
             <button
               type="button"
-              className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-[#4338ca] hover:text-[#4338ca]"
-              onClick={() => setStatus("failed")}
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-[#4338ca] hover:text-[#4338ca]"
+              disabled={status === "expired"}
+              onClick={async () => {
+                if (session?.paymentId) {
+                  const res = await finalizePayment(session.paymentId, "failed");
+                  if (res.success && res.data) {
+                    handleStatusUpdate(res.data.status as PaymentStatus);
+                    return;
+                  }
+                }
+                handleStatusUpdate("failed");
+              }}
             >
               Simulasikan gagal
             </button>

@@ -7,9 +7,10 @@ import {
   verifySignature,
 } from "@/modules/asset-reservation/status-reservation";
 import type { ReservationState } from "@/modules/asset-reservation/status-reservation";
+import { verifyGuestLink } from "@/services/api/reservations";
 
 type StatusReservationRouteProps = {
-  searchParams?: Promise<{ state?: string; sig?: string }>;
+  searchParams?: Promise<{ state?: string; sig?: string; id?: string }>;
 };
 
 export const metadata: Metadata = {
@@ -24,7 +25,14 @@ export default async function StatusReservasiPage({
   const searchParamsResolved = await searchParams;
   const state: ReservationState =
     searchParamsResolved?.state === "done" ? "done" : "dp";
-  const hasSignature = verifySignature(searchParamsResolved?.sig);
+  const guestLink = await verifyGuestLink({
+    reservationId: searchParamsResolved?.id,
+    token: searchParamsResolved?.sig,
+  });
+
+  const hasSignature =
+    (guestLink.success && guestLink.data?.allowed) ||
+    verifySignature(searchParamsResolved?.sig);
 
   return <StatusReservationPage state={state} hasSignature={hasSignature} />;
 }

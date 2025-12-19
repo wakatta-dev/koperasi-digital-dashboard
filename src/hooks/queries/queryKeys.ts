@@ -1,7 +1,5 @@
 /** @format */
 
-import type { AuditLogQuery } from "@/types/api";
-
 export const QK = {
   users: {
     all: ["users"] as const,
@@ -26,12 +24,6 @@ export const QK = {
   },
   tenants: {
     byDomain: (domain: string) => ["tenants", "by-domain", domain] as const,
-    auditLogs: (
-      tenantId: string | number,
-      params?: AuditLogQuery,
-    ) => ["tenants", String(tenantId), "audit-logs", params ?? {}] as const,
-    configuration: (tenantId: string | number) =>
-      ["tenants", String(tenantId), "configuration"] as const,
     profile: (tenantId: string | number) =>
       ["tenants", String(tenantId), "profile"] as const,
   },
@@ -60,12 +52,6 @@ export const QK = {
     balanceSheet: (params?: Record<string, unknown>) =>
       ["finance", "balance-sheet", params ?? {}] as const,
   },
-  vendor: {
-    accounts: (tenantId: string | number) =>
-      ["vendor", "tenants", String(tenantId), "accounts"] as const,
-    deactivate: (tenantId: string | number) =>
-      ["vendor", "tenants", String(tenantId), "deactivate"] as const,
-  },
 } as const;
 
 export type QueryKey = ReturnType<
@@ -78,8 +64,6 @@ export type QueryKey = ReturnType<
   | typeof QK.roles.detail
   | typeof QK.roles.permissions
   | typeof QK.tenants.byDomain
-  | typeof QK.tenants.auditLogs
-  | typeof QK.tenants.configuration
   | typeof QK.tenants.profile
   | typeof QK.notifications.list
   | typeof QK.notifications.metrics
@@ -91,6 +75,4 @@ export type QueryKey = ReturnType<
   | typeof QK.finance.profitLoss
   | typeof QK.finance.cashFlow
   | typeof QK.finance.balanceSheet
-  | typeof QK.vendor.accounts
-  | typeof QK.vendor.deactivate
 >;

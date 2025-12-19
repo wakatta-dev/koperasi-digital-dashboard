@@ -18,11 +18,13 @@ export const metadata: Metadata = {
 
 export default async function PenyewaanAsetStatusPage({
   searchParams,
+  params,
 }: StatusPageProps) {
   const searchParamsResolved = await searchParams;
+  const { id } = await params;
 
   const status: ReservationStatus =
     searchParamsResolved?.status === "pending" ? "pending" : "confirmed";
 
-  return <AssetStatusPage status={status} />;
+  return <AssetStatusPage reservationId={id} status={status} />;
 }
