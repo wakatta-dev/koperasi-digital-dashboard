@@ -1,6 +1,7 @@
 /** @format */
 
 import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { checkAvailability } from "../utils/availability";
 import { createReservation } from "@/services/api/reservations";
 import type { ReservationSummary } from "../../types";
+
+const rentalSchema = z.object({
+  start_date: z.string().min(1, "Tanggal mulai wajib diisi."),
+  end_date: z.string().min(1, "Tanggal selesai wajib diisi."),
+  full_name: z.string().trim().min(1, "Nama wajib diisi."),
+  phone: z.string().trim().min(1, "Nomor telepon wajib diisi."),
+  email: z.string().trim().min(1, "Email wajib diisi.").email("Email tidak valid."),
+  purpose: z.string().trim().min(1, "Tujuan sewa wajib diisi."),
+});
 
 type DetailRentalFormProps = {
   assetId?: string;
@@ -35,6 +45,7 @@ export function DetailRentalForm({
     start: string;
     end: string;
   } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [reservationInfo, setReservationInfo] =
@@ -80,6 +91,8 @@ export function DetailRentalForm({
     event.preventDefault();
     setServerError(null);
     setReservationInfo(null);
+    setFieldErrors({});
+    setError(null);
     const formData = new FormData(event.currentTarget);
     const start = String(formData.get("start_date") ?? dates.start);
     const end = String(formData.get("end_date") ?? dates.end);
@@ -89,20 +102,36 @@ export function DetailRentalForm({
     const email = String(formData.get("email") ?? "").trim();
     const contact = [phone, email].filter(Boolean).join(" / ");
     const now = new Date().toISOString().slice(0, 10);
-    const numericAssetId =
-      assetId && /^\d+$/.test(assetId) ? assetId : undefined;
+    const numericAssetId = assetId && /^\d+$/.test(assetId) ? assetId : undefined;
 
-    if (!start || !end) {
-      setError("Tanggal mulai dan selesai wajib diisi.");
+    const validation = rentalSchema.safeParse({
+      start_date: start,
+      end_date: end,
+      purpose,
+      full_name: fullName,
+      phone,
+      email,
+    });
+
+    if (!validation.success) {
+      const flattened = validation.error.flatten();
+      const byField: Record<string, string> = {};
+      Object.entries(flattened.fieldErrors).forEach(([key, messages]) => {
+        if (messages && messages.length > 0) byField[key] = messages[0];
+      });
+      setFieldErrors(byField);
+      setError("Mohon lengkapi data yang wajib diisi.");
       return;
     }
 
     if (start > end) {
+      setFieldErrors((prev) => ({ ...prev, end_date: "Tanggal selesai harus setelah tanggal mulai." }));
       setError("Tanggal selesai harus setelah tanggal mulai atau di hari yang sama.");
       return;
     }
 
     if (start < now) {
+      setFieldErrors((prev) => ({ ...prev, start_date: "Tanggal mulai tidak boleh di masa lalu." }));
       setError("Tanggal mulai tidak boleh di masa lalu.");
       return;
     }
@@ -177,8 +206,13 @@ export function DetailRentalForm({
               value={dates.start}
               onChange={(e) => handleDateUpdate("start", e.target.value)}
               name="start_date"
-              className="w-full text-sm rounded-lg border-[#4338ca] dark:border-[#4338ca]/50 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10"
+              className={`w-full text-sm rounded-lg ${
+                fieldErrors.start_date ? "border-red-500 focus-visible:ring-red-500" : "border-[#4338ca] focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+              } dark:border-[#4338ca]/50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10`}
             />
+            {fieldErrors.start_date ? (
+              <p className="mt-1 text-[11px] text-red-500">{fieldErrors.start_date}</p>
+            ) : null}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -189,8 +223,13 @@ export function DetailRentalForm({
               value={dates.end}
               onChange={(e) => handleDateUpdate("end", e.target.value)}
               name="end_date"
-              className="w-full text-sm rounded-lg border-[#4338ca] dark:border-[#4338ca]/50 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10"
+              className={`w-full text-sm rounded-lg ${
+                fieldErrors.end_date ? "border-red-500 focus-visible:ring-red-500" : "border-[#4338ca] focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+              } dark:border-[#4338ca]/50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10`}
             />
+            {fieldErrors.end_date ? (
+              <p className="mt-1 text-[11px] text-red-500">{fieldErrors.end_date}</p>
+            ) : null}
           </div>
         </div>
 
@@ -237,8 +276,13 @@ export function DetailRentalForm({
               type="text"
               placeholder="Nama Anda"
               name="full_name"
-              className="w-full text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white"
+              className={`w-full text-sm rounded-lg ${
+                fieldErrors.full_name ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+              } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white`}
             />
+            {fieldErrors.full_name ? (
+              <p className="mt-1 text-[11px] text-red-500">{fieldErrors.full_name}</p>
+            ) : null}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -248,8 +292,13 @@ export function DetailRentalForm({
               type="tel"
               placeholder="0812..."
               name="phone"
-              className="w-full text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white"
+              className={`w-full text-sm rounded-lg ${
+                fieldErrors.phone ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+              } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white`}
             />
+            {fieldErrors.phone ? (
+              <p className="mt-1 text-[11px] text-red-500">{fieldErrors.phone}</p>
+            ) : null}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -259,8 +308,13 @@ export function DetailRentalForm({
               type="email"
               placeholder="email@contoh.com"
               name="email"
-              className="w-full text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white"
+              className={`w-full text-sm rounded-lg ${
+                fieldErrors.email ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+              } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white`}
             />
+            {fieldErrors.email ? (
+              <p className="mt-1 text-[11px] text-red-500">{fieldErrors.email}</p>
+            ) : null}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -270,8 +324,13 @@ export function DetailRentalForm({
               placeholder="Jelaskan acara atau kebutuhan Anda..."
               rows={3}
               name="purpose"
-              className="w-full text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white resize-none"
+              className={`w-full text-sm rounded-lg ${
+                fieldErrors.purpose ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+              } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white resize-none`}
             />
+            {fieldErrors.purpose ? (
+              <p className="mt-1 text-[11px] text-red-500">{fieldErrors.purpose}</p>
+            ) : null}
           </div>
         </div>
 
