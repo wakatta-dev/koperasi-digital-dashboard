@@ -10,9 +10,10 @@ import { getAssetById } from "@/services/api/assets";
 export default async function AssetDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const res = await getAssetById(params.id);
+  const { id } = await params;
+  const res = await getAssetById(id);
   if (!res.success || !res.data) {
     notFound();
   }

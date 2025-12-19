@@ -22,16 +22,22 @@ function toBase64(data: string) {
   if (typeof window !== "undefined" && window.btoa) {
     return window.btoa(data);
   }
-  // @ts-ignore
-  return Buffer.from(data).toString("base64");
+  const buffer = typeof Buffer !== "undefined" ? Buffer : undefined;
+  if (buffer) {
+    return buffer.from(data, "utf-8").toString("base64");
+  }
+  return data;
 }
 
 function fromBase64(data: string) {
   if (typeof window !== "undefined" && window.atob) {
     return window.atob(data);
   }
-  // @ts-ignore
-  return Buffer.from(data, "base64").toString("utf-8");
+  const buffer = typeof Buffer !== "undefined" ? Buffer : undefined;
+  if (buffer) {
+    return buffer.from(data, "base64").toString("utf-8");
+  }
+  return data;
 }
 
 export async function createSignedReservationLink(args: {

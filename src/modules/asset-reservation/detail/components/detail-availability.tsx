@@ -13,7 +13,8 @@ type CellType =
   | "booked"
   | "start"
   | "end"
-  | "range";
+  | "range"
+  | "ellipsis";
 
 type DetailAvailabilityProps = {
   blocked?: AssetAvailabilityRange[];
