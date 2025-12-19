@@ -16,10 +16,12 @@ import { StatusHero } from "./components/status-hero";
 import { StatusRenterCard } from "./components/status-renter-card";
 import { StatusSidebar } from "./components/status-sidebar";
 import { CancelRequestModal } from "./components/cancel-request-modal";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StatusTimeline } from "./components/status-timeline";
 import type { ReservationSummary } from "../types";
 import { useAssetDetail, useReservation } from "../hooks";
+import { verifySignedReservationToken } from "../utils/signed-link";
+import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -29,6 +31,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 type AssetStatusPageProps = {
   status: ReservationStatus;
   reservationId?: string;
+  token?: string;
+  signature?: string | null;
 };
 
 function formatDateLabel(date?: string) {
@@ -84,20 +88,21 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
   return "pending";
 }
 
-export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps) {
+export function AssetStatusPage({ status, reservationId, token, signature }: AssetStatusPageProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [decoded, setDecoded] = useState<ReservationSummary | null>(null);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<{ text: string; tone: "info" | "success" | "error" } | null>(null);
+  const [actionLoading, setActionLoading] = useState<"cancel" | "reschedule" | null>(null);
   const {
     data: reservation,
     isLoading: loading,
     error,
-  } = useReservation(reservationId);
-  const errorMessage = useMemo(
-    () => (error instanceof Error ? error.message : error ? String(error) : null),
-    [error]
-  );
-  const resolvedReservationId = reservation?.reservationId ?? reservationId;
-  const displayStatus = reservation ? mapStatus(reservation.status) : status;
+  } = useReservation(decoded?.reservationId || reservationId);
+  const errorMessage = useMemo(() => (error instanceof Error ? error.message : error ? String(error) : null), [error]);
+  const resolvedReservationId = reservation?.reservationId ?? decoded?.reservationId ?? reservationId;
+  const displayStatus = reservation ? mapStatus(reservation.status) : decoded ? mapStatus(decoded.status) : status;
   const { data: assetData } = useAssetDetail(reservation?.assetId);
   const asset = useMemo(() => mapAssetForStatus(assetData), [assetData]);
   const descriptions = useMemo(() => {
@@ -107,9 +112,11 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
     return [];
   }, [assetData?.description]);
   const requestInfo = useMemo(() => {
-    if (!reservation) return null;
-    const submitted = reservation.submittedAt
-      ? `Diajukan pada ${new Date(reservation.submittedAt).toLocaleString("id-ID", {
+    if (!reservation && !decoded) return null;
+    const base = reservation ?? decoded;
+    if (!base) return null;
+    const submitted = base.submittedAt
+      ? `Diajukan pada ${new Date(base.submittedAt).toLocaleString("id-ID", {
           day: "numeric",
           month: "long",
           year: "numeric",
@@ -118,18 +125,18 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
         })}`
       : "";
     return {
-      id: `#${reservation.reservationId}`,
+      id: `#${base.reservationId}`,
       submittedAt: submitted || "Waktu pengajuan tidak tersedia",
-      renterName: reservation.renterName || "-",
-      renterContact: reservation.renterContact || "-",
+      renterName: base.renterName || "-",
+      renterContact: base.renterContact || "-",
       dateRange: {
-        start: formatDateLabel(reservation.startDate),
-        end: formatDateLabel(reservation.endDate),
-        duration: calculateDurationLabel(reservation.startDate, reservation.endDate),
+        start: formatDateLabel(base.startDate),
+        end: formatDateLabel(base.endDate),
+        duration: calculateDurationLabel(base.startDate, base.endDate),
       },
-      purpose: reservation.purpose || "-",
+      purpose: base.purpose || "-",
     };
-  }, [reservation]);
+  }, [reservation, decoded]);
 
   const timelineItems = useMemo(() => {
     if (reservation?.timeline?.length) {
@@ -146,6 +153,75 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
     return [];
   }, [reservation, displayStatus]);
 
+  useEffect(() => {
+    let ignore = false;
+    async function run() {
+      if (!token) return;
+      const result = await verifySignedReservationToken(token, signature || undefined);
+      if (ignore) return;
+      if (!result.ok || !result.payload) {
+        setTokenError(result.reason || "Tautan tidak valid");
+        return;
+      }
+      setTokenError(null);
+      setDecoded({
+        reservationId: result.payload.id,
+        assetId: "",
+        status: (result.payload.status as any) || "pending_review",
+        startDate: result.payload.exp ? new Date().toISOString() : "",
+        endDate: result.payload.exp ? new Date().toISOString() : "",
+        amounts: { total: 0, dp: 0, remaining: 0 },
+        holdExpiresAt: result.payload.exp,
+      });
+    }
+    run();
+    return () => {
+      ignore = true;
+    };
+  }, [token, signature]);
+
+  const handleCancel = async () => {
+    if (!resolvedReservationId) return;
+    setActionLoading("cancel");
+    setActionMessage(null);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setActionMessage({
+        text: "Permintaan pembatalan dikirim. Tim akan menindaklanjuti.",
+        tone: "success",
+      });
+    } catch (err) {
+      setActionMessage({
+        text: err instanceof Error ? err.message : "Gagal mengirim permintaan pembatalan.",
+        tone: "error",
+      });
+    } finally {
+      setActionLoading(null);
+      setCancelOpen(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!resolvedReservationId) return;
+    setActionLoading("reschedule");
+    setActionMessage(null);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setActionMessage({
+        text: "Permintaan penjadwalan ulang dikirim. Tim akan mengkonfirmasi jadwal baru.",
+        tone: "success",
+      });
+    } catch (err) {
+      setActionMessage({
+        text: err instanceof Error ? err.message : "Gagal mengirim permintaan penjadwalan ulang.",
+        tone: "error",
+      });
+    } finally {
+      setActionLoading(null);
+      setRescheduleOpen(false);
+    }
+  };
+
   return (
     <div className={plusJakarta.className}>
       <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen flex flex-col">
@@ -154,6 +230,36 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
           <StatusBreadcrumb currentLabel="Detail Permintaan" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+            {tokenError ? (
+              <div className="mb-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                {tokenError}
+              </div>
+            ) : null}
+            {resolvedReservationId ? (
+              <div className="mb-4 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                Simpan tautan ini untuk memeriksa status reservasi Anda di kemudian hari.
+              </div>
+            ) : null}
+            {actionMessage ? (
+              <div
+                className={`mb-4 text-sm rounded-lg p-4 border flex items-start gap-2 ${
+                  actionMessage.tone === "success"
+                    ? "text-green-700 bg-green-50 dark:text-green-200 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                    : actionMessage.tone === "error"
+                    ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                    : "text-sky-700 bg-sky-50 dark:text-sky-200 dark:bg-sky-900/20 border-sky-200 dark:border-sky-800"
+                }`}
+              >
+                {actionMessage.tone === "success" ? (
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                ) : actionMessage.tone === "error" ? (
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                ) : (
+                  <Clock3 className="w-5 h-5 flex-shrink-0" />
+                )}
+                <span>{actionMessage.text}</span>
+              </div>
+            ) : null}
             {resolvedReservationId ? (
               <div className="mb-6 text-sm text-gray-800 dark:text-gray-200 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3">
                 <div className="font-semibold">ID Reservasi: {resolvedReservationId}</div>
@@ -199,7 +305,7 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
               </div>
             ) : null}
 
-            {!loading && !reservation ? (
+            {!loading && !reservation && !tokenError ? (
               <div className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                 Reservasi tidak ditemukan atau belum tersedia.
               </div>
@@ -253,27 +359,33 @@ export function AssetStatusPage({ status, reservationId }: AssetStatusPageProps)
                   </div>
                 </div>
 
-                <div className="lg:col-span-1">
-                  <StatusSidebar
-                    status={displayStatus}
-                    amounts={reservation?.amounts}
-                    onCancel={() => setCancelOpen(true)}
-                    onReschedule={() => setRescheduleOpen(true)}
-                  />
-                </div>
+              <div className="lg:col-span-1">
+                <StatusSidebar
+                  status={displayStatus}
+                  amounts={reservation?.amounts}
+                  onCancel={() => setCancelOpen(true)}
+                  onReschedule={() => setRescheduleOpen(true)}
+                />
               </div>
-            ) : null}
+            </div>
+          ) : null}
 
             {asset?.id ? <DetailRecommendations currentId={asset.id} /> : null}
           </div>
         </main>
         <AssetReservationFooter />
-        <CancelRequestModal open={cancelOpen} onOpenChange={setCancelOpen} onConfirm={() => setCancelOpen(false)} />
+        <CancelRequestModal
+          open={cancelOpen}
+          onOpenChange={setCancelOpen}
+          submitting={actionLoading === "cancel"}
+          onConfirm={handleCancel}
+        />
         <CancelRequestModal
           open={rescheduleOpen}
           onOpenChange={setRescheduleOpen}
           mode="reschedule"
-          onConfirm={() => setRescheduleOpen(false)}
+          submitting={actionLoading === "reschedule"}
+          onConfirm={handleReschedule}
         />
       </div>
     </div>

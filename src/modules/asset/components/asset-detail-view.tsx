@@ -1,23 +1,11 @@
 /** @format */
 
-"use client";
+import Link from "next/link";
+import { CheckCircle, MapPin } from "lucide-react";
 
-import React from "react";
-import {
-  CalendarDays,
-  CheckCircle,
-  ChevronRight,
-  CircleDot,
-  Clock3,
-  MapPin,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import type { AssetItem } from "../types";
-import { cn } from "@/lib/utils";
 
 type AssetDetailViewProps = {
   asset: AssetItem;
@@ -36,18 +24,28 @@ const facilityItems = [
 ];
 
 export function AssetDetailView({ asset }: AssetDetailViewProps) {
-  const router = useRouter();
-  const [showReservationModal, setShowReservationModal] = React.useState(false);
-
   return (
     <div className="bg-[#f8f9fc] dark:bg-[#0f1115] rounded-3xl">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-        <h1 className="mb-6 text-2xl font-bold text-slate-900 dark:text-slate-100">
-          Detail Aset
-        </h1>
+        <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-indigo-600">
+              Manajemen Aset
+            </p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              Detail Aset
+            </h1>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+            <Badge className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+              Aktif
+            </Badge>
+            <span>Terakhir diperbarui: 12 Jan 2025</span>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_1fr]">
+          <div className="space-y-6">
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
@@ -60,17 +58,25 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                       Jl. Persaudaraan no. 2 RT 004/002
                     </span>
                   </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Halaman ini hanya untuk melihat detail aset dan menjaga
+                    kelengkapan data. Permintaan reservasi diproses di halaman
+                    jadwal/approval.
+                  </p>
                 </div>
-                <div className="flex flex-col items-end">
+                <div className="flex flex-col items-end gap-2">
                   <div className="text-2xl font-bold text-indigo-600">
                     {asset.price}
                     <span className="ml-1 text-sm font-normal text-slate-500 dark:text-slate-400">
                       {asset.unit}
                     </span>
                   </div>
-                  <div className="mt-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-600 shadow-none dark:bg-green-900/20">
-                    Tersedia
+                  <div className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-600 shadow-none dark:bg-green-900/20">
+                    Dapat disewakan
                   </div>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    ID Aset: {asset.id}
+                  </span>
                 </div>
               </div>
 
@@ -121,209 +127,106 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                 </ul>
               </div>
             </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-slate-100">
+                Catatan Pengelolaan
+              </h3>
+              <ul className="space-y-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                <li>
+                  Proses penambahan reservasi dilakukan oleh penyewa melalui
+                  kanal klien. Tim pengelola hanya melakukan validasi dan
+                  approval di halaman jadwal.
+                </li>
+                <li>
+                  Pastikan data aset (harga, foto, kapasitas) selalu mutakhir
+                  sebelum menerima permintaan sewa baru.
+                </li>
+                <li>
+                  Gunakan halaman jadwal untuk memblokir tanggal yang tidak
+                  tersedia agar tidak terjadi bentrokan reservasi.
+                </li>
+              </ul>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Button
+                  asChild
+                  className="h-auto rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+                >
+                  <Link href="/bumdes/asset/jadwal">Kelola jadwal & approval</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-auto rounded-lg px-4 py-2 text-sm font-semibold"
+                >
+                  <Link href="/bumdes/asset/manajemen">Kembali ke daftar aset</Link>
+                </Button>
+              </div>
+            </div>
           </div>
 
-          <aside className="lg:col-span-1">
+          <aside className="space-y-6">
             <div className="sticky top-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="mb-6 flex items-center space-x-2 border-b border-slate-200 pb-4 dark:border-slate-800">
-                <Clock3 className="h-5 w-5 text-indigo-600" />
+              <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Reservasi Aset
+                  Ringkasan Aset
                 </h3>
-              </div>
-
-              <form className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                      Mulai Sewa
-                    </label>
-                    <div className="relative">
-                      <CalendarDays className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input
-                        type="date"
-                        className={cn(
-                          "h-11 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 text-sm text-slate-900 shadow-none transition-colors focus:border-indigo-600 focus:ring-indigo-600",
-                          "dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                        )}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                      Selesai Sewa
-                    </label>
-                    <div className="relative">
-                      <Clock3 className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input
-                        type="date"
-                        className={cn(
-                          "h-11 w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 text-sm text-slate-900 shadow-none transition-colors focus:border-indigo-600 focus:ring-indigo-600",
-                          "dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <h4 className="mb-4 flex items-center text-sm font-bold text-slate-900 dark:text-slate-100">
-                    <CircleDot className="mr-2 h-3 w-3 text-indigo-600" />
-                    Data Penyewa
-                  </h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-100">
-                        Nama Lengkap Penyewa
-                      </label>
-                      <Input
-                        placeholder="Contoh: Budi Santoso"
-                        className={cn(
-                          "h-auto rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-none focus:border-indigo-600 focus:ring-indigo-600",
-                          "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-100">
-                        Nomor Telepon Penyewa
-                      </label>
-                      <Input
-                        type="tel"
-                        placeholder="08123456789"
-                        className={cn(
-                          "h-auto rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-none focus:border-indigo-600 focus:ring-indigo-600",
-                          "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-100">
-                        Alamat Penyewa
-                      </label>
-                      <Input
-                        placeholder="Alamat lengkap..."
-                        className={cn(
-                          "h-auto rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-none focus:border-indigo-600 focus:ring-indigo-600",
-                          "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-100">
-                        Keperluan Sewa
-                      </label>
-                      <Textarea
-                        rows={3}
-                        placeholder="Deskripsikan keperluan acara..."
-                        className={cn(
-                          "min-h-[100px] rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-none focus:border-indigo-600 focus:ring-indigo-600",
-                          "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
-                  <h4 className="mb-3 text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Biaya Reservasi
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                      <span>Harga Sewa (1 Hari)</span>
-                      <span>Rp350.000</span>
-                    </div>
-                    <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                      <span>Biaya Administrasi</span>
-                      <span>Rp10.000</span>
-                    </div>
-                    <div className="my-2 flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-700 dark:text-slate-100">
-                      <span>Total Estimasi</span>
-                      <span className="text-indigo-600">Rp360.000</span>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  type="button"
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-600/30"
-                  onClick={() => setShowReservationModal(true)}
+                <Badge
+                  variant="outline"
+                  className="border-indigo-200 text-indigo-700 dark:border-indigo-900 dark:text-indigo-300"
                 >
-                  <CheckCircle className="h-5 w-5" />
-                  Proses Reservasi
-                </Button>
-              </form>
+                  Manajemen
+                </Badge>
+              </div>
+              <dl className="space-y-4 text-sm text-slate-600 dark:text-slate-400">
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500 dark:text-slate-400">
+                    Harga Sewa
+                  </dt>
+                  <dd className="font-semibold text-slate-900 dark:text-slate-100">
+                    {asset.price}
+                    <span className="ml-1 text-xs font-normal text-slate-500 dark:text-slate-400">
+                      {asset.unit}
+                    </span>
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500 dark:text-slate-400">
+                    Status Operasional
+                  </dt>
+                  <dd className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                    Aktif
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500 dark:text-slate-400">Kode</dt>
+                  <dd className="font-semibold text-slate-900 dark:text-slate-100">
+                    {asset.id}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500 dark:text-slate-400">
+                    Jadwal & approval
+                  </dt>
+                  <dd>
+                    <Link
+                      href="/bumdes/asset/jadwal"
+                      className="text-indigo-600 underline-offset-2 hover:underline"
+                    >
+                      Buka halaman jadwal
+                    </Link>
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed text-slate-600 shadow-none dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300">
+                  Proses reservasi tidak tersedia di halaman ini. Semua permintaan
+                  baru harus masuk melalui kanal klien dan diproses pada halaman
+                  jadwal/approval.
+                </div>
+              </dl>
             </div>
           </aside>
         </div>
       </div>
-
-      {showReservationModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-slate-900">
-            <div className="mb-6 flex justify-center">
-              <div className="relative h-32 w-32">
-                <div
-                  className="absolute right-0 top-0 text-blue-400 opacity-80"
-                  style={{ transform: "rotate(15deg) translate(10px, -10px)" }}
-                >
-                  <span className="material-symbols-outlined text-sm">
-                    water_drop
-                  </span>
-                </div>
-                <div className="absolute bottom-4 left-0 text-blue-300 opacity-80">
-                  <span className="material-symbols-outlined text-sm">
-                    water_drop
-                  </span>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-blue-100">
-                    <div className="z-10 flex h-20 w-20 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/30">
-                      <span className="material-symbols-outlined text-5xl font-bold">
-                        check
-                      </span>
-                    </div>
-                    <div className="absolute -right-4 top-2 -z-0 flex h-20 w-16 rotate-12 flex-col items-center justify-center rounded bg-white p-1 shadow-sm">
-                      <div className="mb-1 h-1 w-8 rounded bg-blue-100" />
-                      <div className="mb-1 h-1 w-10 rounded bg-gray-100" />
-                      <div className="h-1 w-6 rounded bg-gray-100" />
-                      <div className="mt-2 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                        <span className="material-symbols-outlined text-[10px] text-blue-500">
-                          check
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-slate-100">
-              Reservasi Diproses
-            </h2>
-            <p className="mb-8 px-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Reservasi Anda untuk{" "}
-              <span className="font-bold text-slate-900 dark:text-slate-100">
-                {asset.title}
-              </span>{" "}
-              telah berhasil dikirim. Pengurus akan segera menghubungi Anda
-              melalui WhatsApp untuk memberikan informasi lebih lanjut terkait
-              reservasi yang diminta.
-            </p>
-            <Button
-              type="button"
-              className="h-auto w-full rounded-xl bg-indigo-600 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-600/20 active:scale-[0.98]"
-              onClick={() => {
-                setShowReservationModal(false);
-                router.push("/bumdes/asset/reservation/confirmation");
-              }}
-            >
-              Beranda
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import type { AssetAvailabilityRange } from "@/types/api/asset";
 import { useState, useEffect, useMemo } from "react";
 import { AssetStatus } from "../types";
 import type { ReservationSummary } from "../types";
+import { createSignedReservationLink } from "../utils/signed-link";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -33,6 +34,7 @@ type AssetDetailPageProps = {
 export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lastReservation, setLastReservation] = useState<ReservationSummary | null>(null);
+  const [statusLink, setStatusLink] = useState<string>("");
   const { data: assetData, isLoading, error } = useAssetDetail(assetId);
 
   const formatDate = (date: Date) => {
@@ -180,12 +182,19 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                     unit={detail.unit}
                     startDate={availabilityRange.start}
                     endDate={availabilityRange.end}
-                    onRangeChange={setAvailabilityRange}
-                    onSubmit={(info) => {
-                      setLastReservation(info);
-                      setIsModalOpen(true);
-                    }}
-                  />
+                onRangeChange={setAvailabilityRange}
+                onSubmit={async (info) => {
+                  setLastReservation(info);
+                  const signed = await createSignedReservationLink({
+                    reservationId: info.reservationId,
+                    status: info.status,
+                    expiresAt: info.holdExpiresAt,
+                    basePath: "/penyewaan-aset/status",
+                  });
+                  setStatusLink(signed.url);
+                  setIsModalOpen(true);
+                }}
+              />
                 </div>
               </div>
             ) : null}
@@ -198,7 +207,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
           requestId={lastReservation?.reservationId}
-          statusHref={`/penyewaan-aset/status/${lastReservation?.reservationId ?? mappedAsset?.id ?? ""}?status=pending`}
+          statusHref={statusLink}
         />
       </div>
     </div>

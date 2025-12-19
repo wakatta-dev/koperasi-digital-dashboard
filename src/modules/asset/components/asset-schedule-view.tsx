@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVertical,
-  Plus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -49,7 +48,6 @@ const actionIcon = (
 
 export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewProps) {
   const router = useRouter();
-  const [addOpen, setAddOpen] = React.useState(false);
   const [editOpen, setEditOpen] = React.useState(false);
 
   return (
@@ -84,16 +82,13 @@ export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewPro
           ))}
         </div>
 
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <h2 className="text-2xl font-bold">Daftar Reservasi</h2>
-          <Button
-            type="button"
-            className="h-auto rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
-            onClick={() => setAddOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Reservasi
-          </Button>
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Daftar Reservasi</h2>
+            <p className="text-sm text-text-sub-light dark:text-text-sub-dark">
+              Penambahan reservasi dilakukan oleh klien; halaman ini hanya untuk review dan approval.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_minmax(260px,1fr)]">
@@ -340,7 +335,6 @@ export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewPro
         </div>
       </div>
 
-      <ScheduleModal mode="add" open={addOpen} onOpenChange={setAddOpen} />
       <ScheduleModal mode="edit" open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );

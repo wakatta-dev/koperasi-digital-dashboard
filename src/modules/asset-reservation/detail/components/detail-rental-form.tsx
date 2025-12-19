@@ -27,7 +27,7 @@ type DetailRentalFormProps = {
   startDate: string;
   endDate: string;
   onRangeChange?: (range: { start: string; end: string }) => void;
-  onSubmit?: (reservation: ReservationSummary) => void;
+  onSubmit?: (reservation: ReservationSummary) => Promise<void> | void;
 };
 
 export function DetailRentalForm({
@@ -181,7 +181,7 @@ export function DetailRentalForm({
       setReservationInfo(info);
       setError(null);
       setSuggestion(null);
-      onSubmit?.(info);
+      await onSubmit?.(info);
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : "Gagal memproses permintaan"

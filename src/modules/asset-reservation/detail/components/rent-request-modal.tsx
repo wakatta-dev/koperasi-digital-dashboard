@@ -17,7 +17,6 @@ type RentRequestModalProps = {
 };
 
 export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: RentRequestModalProps) {
-  const displayId = requestId ? `#${requestId}` : "#REQ-ASSET-20231024-001";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -50,21 +49,18 @@ export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: 
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-8 border border-dashed border-gray-200 dark:border-gray-600">
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold mb-1.5">
-            ID Permintaan Anda
-          </p>
-          <div className="flex items-center justify-center gap-2 group cursor-pointer">
-            <span className="text-lg font-mono font-bold text-[#4338ca] group-hover:text-indigo-600 transition">
-              {displayId}
-            </span>
-            <span className="material-icons-outlined text-gray-400 group-hover:text-[#4338ca] text-sm transition">
-              content_copy
-            </span>
-          </div>
-        </div>
-
         <div className="flex flex-col gap-3">
+          {statusHref ? (
+            <div className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 space-y-2">
+              <p className="font-semibold">Simpan tautan berikut untuk memantau status permintaan Anda.</p>
+              <p className="text-amber-800/80 dark:text-amber-100/80">
+                Tautan ini unik dan memerlukan signature. Salin dan simpan agar tidak hilang.
+              </p>
+              <div className="break-all font-mono text-[11px] text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-900 rounded border border-amber-200 dark:border-amber-800 p-2">
+                {statusHref}
+              </div>
+            </div>
+          ) : null}
           <Button
             className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition transform active:scale-[0.98]"
             asChild

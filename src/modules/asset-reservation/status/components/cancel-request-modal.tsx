@@ -13,7 +13,8 @@ type CancelRequestModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode?: "cancel" | "reschedule";
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void> | void;
+  submitting?: boolean;
 };
 
 export function CancelRequestModal({
@@ -21,6 +22,7 @@ export function CancelRequestModal({
   onOpenChange,
   mode = "cancel",
   onConfirm,
+  submitting,
 }: CancelRequestModalProps) {
   const isReschedule = mode === "reschedule";
   return (
@@ -88,11 +90,17 @@ export function CancelRequestModal({
             variant="ghost"
             className="w-full bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-semibold transition border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
             onClick={() => onOpenChange(false)}
-          >
+            >
             Kembali
           </Button>
-          <Button className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-red-500/20">
-            {isReschedule ? "Kirim Permintaan" : "Ya, Batalkan"}
+          <Button
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-red-500/20 disabled:opacity-60"
+            disabled={submitting}
+            onClick={async () => {
+              await onConfirm?.();
+            }}
+          >
+            {submitting ? "Memproses..." : isReschedule ? "Kirim Permintaan" : "Ya, Batalkan"}
           </Button>
         </div>
       </DialogContent>
