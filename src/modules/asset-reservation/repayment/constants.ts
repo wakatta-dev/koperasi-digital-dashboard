@@ -53,4 +53,5 @@ export const REPAYMENT_SIDEBAR = {
   dpPaid: "Rp1.050.000",
   remaining: "Rp2.450.000",
   dueText: "14 Nov 2023 14:00",
+  proofNote: "Unggah bukti untuk verifikasi manual jika diperlukan.",
 };

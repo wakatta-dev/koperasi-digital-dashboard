@@ -1,8 +1,11 @@
 /** @format */
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { checkAvailability } from "../utils/availability";
 
 type DetailRentalFormProps = {
   price: string;
@@ -11,8 +14,28 @@ type DetailRentalFormProps = {
 };
 
 export function DetailRentalForm({ price, unit, onSubmit }: DetailRentalFormProps) {
+  const [error, setError] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<{ start: string; end: string } | null>(null);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const start = String(formData.get("start_date") ?? "");
+    const end = String(formData.get("end_date") ?? "");
+    if (!start || !end) {
+      setError("Tanggal mulai dan selesai wajib diisi.");
+      return;
+    }
+
+    const result = checkAvailability({ start, end });
+    if (!result.ok) {
+      setError("Rentang tanggal bertabrakan dengan jadwal lain.");
+      setSuggestion(result.suggestion);
+      return;
+    }
+
+    setError(null);
+    setSuggestion(null);
     onSubmit?.();
   };
 
@@ -28,6 +51,7 @@ export function DetailRentalForm({ price, unit, onSubmit }: DetailRentalFormProp
             <Input
               type="date"
               defaultValue="2024-10-12"
+              name="start_date"
               className="w-full text-sm rounded-lg border-[#4338ca] dark:border-[#4338ca]/50 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10"
             />
           </div>
@@ -38,6 +62,7 @@ export function DetailRentalForm({ price, unit, onSubmit }: DetailRentalFormProp
             <Input
               type="date"
               defaultValue="2024-10-14"
+              name="end_date"
               className="w-full text-sm rounded-lg border-[#4338ca] dark:border-[#4338ca]/50 dark:bg-gray-800 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca] text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10"
             />
           </div>
@@ -109,11 +134,23 @@ export function DetailRentalForm({ price, unit, onSubmit }: DetailRentalFormProp
 
         <Button
           type="submit"
-          className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-95 flex items-center justify-center gap-2"
-        >
-          <span className="material-icons-outlined">send</span>
-          Minta Penawaran
-        </Button>
+            className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-95 flex items-center justify-center gap-2"
+          >
+            <span className="material-icons-outlined">send</span>
+            Minta Penawaran
+          </Button>
+        {error ? (
+          <div className="mt-3 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            <p className="font-semibold">Permintaan tidak bisa diproses</p>
+            <p>{error}</p>
+            {suggestion ? (
+              <p className="mt-1">
+                Coba jadwal berikut: <strong>{suggestion.start}</strong> sampai{" "}
+                <strong>{suggestion.end}</strong>.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
           Tim BUMDes akan menghubungi Anda untuk konfirmasi ketersediaan dan pembayaran.
         </p>

@@ -1,6 +1,7 @@
 /** @format */
 
 import { CALENDAR_MONTH, SELECTED_RANGE } from "../constants";
+import { getBlockedRanges } from "../utils/availability";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
@@ -74,6 +75,7 @@ function DayCell({
 }
 
 export function DetailAvailability() {
+  const blocked = getBlockedRanges();
   return (
     <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Ketersediaan & Jadwal</h2>
@@ -131,6 +133,11 @@ export function DetailAvailability() {
             </div>
             <span className="text-xs text-gray-600 dark:text-gray-400">Dipilih</span>
           </div>
+        </div>
+
+        <div className="mt-4 text-xs text-gray-600 dark:text-gray-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+          Slot terblokir:{" "}
+          {blocked.map((b) => `${b.start} s.d ${b.end} (${b.type ?? "booking"})`).join(", ")}
         </div>
 
         <div className="mt-6 bg-[#4338ca]/5 dark:bg-[#4338ca]/10 rounded-xl p-4 border border-[#4338ca]/10 dark:border-[#4338ca]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -43,6 +43,7 @@ export function StatusReservationPage({ state, hasSignature }: StatusReservation
               <>
                 <ReservationSummaryCard
                   state={selectedState}
+                  hasSignature={hasSignature}
                   onDownload={() => setDownloadOpen(true)}
                 />
               </>

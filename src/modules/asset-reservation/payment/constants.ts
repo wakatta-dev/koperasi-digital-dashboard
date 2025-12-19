@@ -67,4 +67,5 @@ export const PAYMENT_SIDEBAR = {
   fee: "Rp2.500",
   dpDue: "Rp332.500",
   remaining: "Rp770.000",
+  dueText: "Bayar sebelum 12 Nov 2023 23:59",
 };

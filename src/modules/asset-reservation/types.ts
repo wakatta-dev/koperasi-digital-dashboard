@@ -12,3 +12,23 @@ export type AssetItem = {
   status: AssetStatus;
   imageUrl: string;
 };
+
+export type ReservationStatus =
+  | "pending_review"
+  | "waiting_dp"
+  | "active_dp_paid"
+  | "waiting_settlement"
+  | "settled"
+  | "expired"
+  | "cancelled";
+
+export type PaymentMode = "dp" | "settlement";
+
+export type PaymentType = PaymentMode;
+
+export type PaymentVerificationStatus =
+  | "initiated"
+  | "pending_verification"
+  | "succeeded"
+  | "failed"
+  | "expired";

@@ -13,6 +13,7 @@ import { useAnalytics } from "@/modules/dashboard/analytics/hooks/use-analytics"
 import type { AnalyticsRange } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trackAnalyticsEvent } from "@/modules/dashboard/analytics/lib/telemetry";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export function AnalyticsDashboardPage() {
   const [range, setRange] = useState<AnalyticsRange>("today");
@@ -37,6 +38,7 @@ export function AnalyticsDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {isFetching ? <Skeleton className="h-4 w-24" /> : null}
+          <ThemeToggle />
         </div>
       </div>
 

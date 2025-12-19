@@ -35,6 +35,13 @@ export function PaymentSidebar() {
             <span>Sisa Pembayaran (Pelunasan)</span>
             <span className="font-medium">{PAYMENT_SIDEBAR.remaining}</span>
           </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-200 flex gap-2">
+            <span className="material-icons-outlined text-sm">schedule</span>
+            <div>
+              <p className="font-semibold">Batas waktu</p>
+              <p>{PAYMENT_SIDEBAR.dueText}</p>
+            </div>
+          </div>
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 mb-6 border border-blue-100 dark:border-blue-800/30 flex gap-3">
           <span className="material-icons-outlined text-blue-600 dark:text-blue-400 text-xl flex-shrink-0">security</span>

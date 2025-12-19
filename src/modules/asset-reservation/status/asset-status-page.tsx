@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
@@ -23,6 +22,8 @@ import { StatusRenterCard } from "./components/status-renter-card";
 import { StatusSidebar } from "./components/status-sidebar";
 import { DETAIL_ASSET } from "../detail/constants";
 import { CancelRequestModal } from "./components/cancel-request-modal";
+import React, { useMemo, useState } from "react";
+import { StatusTimeline } from "./components/status-timeline";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -36,6 +37,49 @@ type AssetStatusPageProps = {
 export function AssetStatusPage({ status }: AssetStatusPageProps) {
   const asset = STATUS_ASSET;
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const timelineItems = useMemo(() => {
+    if (status === "confirmed") {
+      return [
+        {
+          status: "Permintaan diterima",
+          description: "Tim BUMDes memeriksa ketersediaan.",
+          time: "24 Okt 2024, 09:00",
+          done: true,
+        },
+        {
+          status: "Aktif (DP dibayar)",
+          description: "Reservasi dikunci, selesaikan pelunasan sebelum H-3.",
+          time: "24 Okt 2024, 10:00",
+          active: true,
+        },
+        {
+          status: "Pelunasan",
+          description: "Pembayaran akhir menyelesaikan reservasi.",
+          time: "-",
+        },
+      ];
+    }
+    return [
+      {
+        status: "Permintaan diterima",
+        description: "Tim BUMDes memeriksa ketersediaan.",
+        time: "24 Okt 2024, 09:00",
+        done: true,
+      },
+      {
+        status: "Menunggu DP",
+        description: "Silakan lakukan pembayaran DP untuk mengamankan jadwal.",
+        time: "24 Okt 2024, 09:15",
+        active: true,
+      },
+      {
+        status: "Aktif (DP dibayar)",
+        description: "Reservasi dikunci, lanjutkan pelunasan sebelum H-3.",
+        time: "-",
+      },
+    ];
+  }, [status]);
 
   return (
     <div className={plusJakarta.className}>
@@ -82,13 +126,19 @@ export function AssetStatusPage({ status }: AssetStatusPageProps) {
                     purpose={REQUEST_INFO.purpose}
                   />
 
+                  <StatusTimeline items={timelineItems} />
+
                   <DetailDescription paragraphs={DETAIL_ASSET.descriptions} />
                   <DetailFacilities facilities={STATUS_FACILITIES} />
                 </div>
               </div>
 
               <div className="lg:col-span-1">
-                <StatusSidebar status={status} onCancel={() => setCancelOpen(true)} />
+                <StatusSidebar
+                  status={status}
+                  onCancel={() => setCancelOpen(true)}
+                  onReschedule={() => setRescheduleOpen(true)}
+                />
               </div>
             </div>
 
@@ -96,7 +146,13 @@ export function AssetStatusPage({ status }: AssetStatusPageProps) {
           </div>
         </main>
         <AssetReservationFooter />
-        <CancelRequestModal open={cancelOpen} onOpenChange={setCancelOpen} />
+        <CancelRequestModal open={cancelOpen} onOpenChange={setCancelOpen} onConfirm={() => setCancelOpen(false)} />
+        <CancelRequestModal
+          open={rescheduleOpen}
+          onOpenChange={setRescheduleOpen}
+          mode="reschedule"
+          onConfirm={() => setRescheduleOpen(false)}
+        />
       </div>
     </div>
   );

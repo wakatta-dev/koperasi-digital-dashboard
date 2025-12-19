@@ -8,9 +8,10 @@ import { STATUS_CONTENT, REQUEST_INFO, type ReservationStatus } from "../constan
 type StatusSidebarProps = {
   status: ReservationStatus;
   onCancel?: () => void;
+  onReschedule?: () => void;
 };
 
-export function StatusSidebar({ status, onCancel }: StatusSidebarProps) {
+export function StatusSidebar({ status, onCancel, onReschedule }: StatusSidebarProps) {
   const content = STATUS_CONTENT[status];
 
   return (
@@ -96,6 +97,16 @@ export function StatusSidebar({ status, onCancel }: StatusSidebarProps) {
               close
             </span>
             Batalkan Permintaan
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2"
+            type="button"
+            onClick={onReschedule}
+          >
+            <span className="material-icons-outlined text-lg">event_repeat</span>
+            Minta Penjadwalan Ulang
           </Button>
 
           <Link

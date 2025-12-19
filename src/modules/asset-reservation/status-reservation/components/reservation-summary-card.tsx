@@ -5,10 +5,15 @@ import { RESERVATION_SHARED, RESERVATION_STATES, type ReservationState } from ".
 
 type ReservationSummaryCardProps = {
   state: ReservationState;
+  hasSignature?: boolean;
   onDownload?: () => void;
 };
 
-export function ReservationSummaryCard({ state, onDownload }: ReservationSummaryCardProps) {
+export function ReservationSummaryCard({
+  state,
+  hasSignature,
+  onDownload,
+}: ReservationSummaryCardProps) {
   const data = RESERVATION_STATES[state];
 
   return (
@@ -190,24 +195,77 @@ export function ReservationSummaryCard({ state, onDownload }: ReservationSummary
           </div>
         </div>
 
-        {data.showDownloadButtons ? (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 border-t border-gray-100 dark:border-gray-800">
-            <Button
-              className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-semibold shadow-sm transition flex items-center justify-center gap-2"
-              type="button"
-              onClick={onDownload}
-            >
-              <span className="material-icons-outlined">download</span>
-              Unduh Bukti Reservasi (PDF)
-            </Button>
-            <Button className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-semibold transition flex items-center justify-center gap-2">
-              <span className="material-icons-outlined text-gray-500 dark:text-gray-400">
-                support_agent
-              </span>
-              Hubungi Dukungan
-            </Button>
+        {hasSignature ? (
+          <div className="space-y-4">
+            <div className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <span className="material-icons-outlined text-[#4338ca] text-lg">timeline</span>
+                Linimasa Pembayaran
+              </h4>
+              <ol className="space-y-3 text-sm text-gray-700 dark:text-gray-200">
+                <li className="flex items-start gap-2">
+                  <span className="material-icons-outlined text-green-500 text-base mt-0.5">
+                    check_circle
+                  </span>
+                  <div>
+                    <p className="font-semibold">DP diterima</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {data.payment.dp} diterima. Jadwal dikunci.
+                    </p>
+                  </div>
+                </li>
+                {state === "done" ? (
+                  <li className="flex items-start gap-2">
+                    <span className="material-icons-outlined text-green-500 text-base mt-0.5">
+                      check_circle
+                    </span>
+                    <div>
+                      <p className="font-semibold">Pelunasan selesai</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {data.payment.settlement ?? data.payment.remaining} dikonfirmasi.
+                      </p>
+                    </div>
+                  </li>
+                ) : (
+                  <li className="flex items-start gap-2">
+                    <span className="material-icons-outlined text-amber-500 text-base mt-0.5">
+                      schedule
+                    </span>
+                    <div>
+                      <p className="font-semibold">Menunggu pelunasan</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Selesaikan sebelum {data.payment.dueText ?? "tenggat"}.
+                      </p>
+                    </div>
+                  </li>
+                )}
+              </ol>
+            </div>
+
+            {data.showDownloadButtons ? (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <Button
+                  className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-semibold shadow-sm transition flex items-center justify-center gap-2"
+                  type="button"
+                  onClick={onDownload}
+                >
+                  <span className="material-icons-outlined">download</span>
+                  Unduh Bukti / Invoice
+                </Button>
+                <Button
+                  className="w-full sm:w-auto px-6 py-3 bg-[#4338ca] hover:bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2"
+                  asChild
+                >
+                  <a href="#">Bagikan Tautan Aman</a>
+                </Button>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        ) : (
+          <div className="mt-6 p-4 border border-amber-200 dark:border-amber-800 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-sm text-amber-800 dark:text-amber-200">
+            Tautan ini memerlukan signature valid untuk mengunduh bukti atau melihat timeline lengkap.
+          </div>
+        )}
       </div>
       <div className="bg-gray-50 dark:bg-gray-800/80 p-4 text-center border-t border-gray-100 dark:border-gray-700">
         <p className="text-xs text-gray-500 dark:text-gray-400">
