@@ -1,6 +1,6 @@
 /** @format */
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { AssetAvailabilityRange, AssetAvailabilityResponse } from "@/types/api/asset";
 import { SELECTED_RANGE } from "../constants";
@@ -102,8 +102,8 @@ function calculateDurationDays(start?: string, end?: string) {
   return diff;
 }
 
-function buildCalendar(start: string, end: string, blocked?: AssetAvailabilityRange[]) {
-  const viewDate = start ? new Date(`${start}T00:00:00`) : new Date();
+function buildCalendar(monthBase: string, start: string, end: string, blocked?: AssetAvailabilityRange[]) {
+  const viewDate = monthBase ? new Date(`${monthBase}T00:00:00`) : new Date();
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
@@ -168,6 +168,7 @@ export function DetailAvailability({
   selectedRange,
   onRangeChange,
 }: DetailAvailabilityProps) {
+  const appliedSuggestionRef = useRef<string | null>(null);
   const suggestedRange = useMemo(() => {
     if (!suggestion?.start_date) return null;
     const start = suggestion.start_date;
@@ -178,7 +179,10 @@ export function DetailAvailability({
     return { start, end };
   }, [suggestion?.start_date, suggestion?.end_date]);
 
-  const appliedSuggestionRef = useRef<string | null>(null);
+  const [viewMonth, setViewMonth] = useState(() => {
+    const base = selectedRange?.start ?? suggestedRange?.start ?? new Date().toISOString().slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(base) ? base : new Date().toISOString().slice(0, 10);
+  });
 
   useEffect(() => {
     if (!suggestedRange || !onRangeChange) return;
@@ -186,32 +190,51 @@ export function DetailAvailability({
     if (appliedSuggestionRef.current === key) return;
     onRangeChange(suggestedRange);
     appliedSuggestionRef.current = key;
+    setViewMonth(suggestedRange.start);
   }, [onRangeChange, suggestedRange]);
 
   const baseRange = selectedRange ?? suggestedRange;
   const hasBlocked = (blocked?.length ?? 0) > 0;
-  const startLabel = selectedRange?.start ?? suggestedRange?.start ?? SELECTED_RANGE.start;
-  const endLabel = selectedRange?.end ?? suggestedRange?.end ?? SELECTED_RANGE.end;
+  const fallbackDate = viewMonth || new Date().toISOString().slice(0, 10);
+  const startLabel = selectedRange?.start ?? suggestedRange?.start ?? fallbackDate;
+  const endLabel = selectedRange?.end ?? suggestedRange?.end ?? fallbackDate;
   const durationDays = calculateDurationDays(baseRange?.start, baseRange?.end);
   const durationLabel = durationDays ? `${durationDays} Hari` : SELECTED_RANGE.duration;
-  const monthLabel = new Intl.DateTimeFormat("id-ID", {
-    month: "long",
-    year: "numeric",
-  }).format(baseRange?.start ? new Date(baseRange.start) : new Date());
+  const monthLabel = useMemo(() => {
+    const date = viewMonth ? new Date(`${viewMonth.slice(0, 7)}-01T00:00:00`) : new Date();
+    return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(date);
+  }, [viewMonth]);
+
+  const navigateMonth = (direction: -1 | 1) => {
+    const date = viewMonth ? new Date(`${viewMonth.slice(0, 7)}-01T00:00:00`) : new Date();
+    date.setMonth(date.getMonth() + direction);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    setViewMonth(`${year}-${month}-01`);
+  };
 
   const handleDateChange = (which: "start" | "end", value: string) => {
     if (!onRangeChange) return;
     const clean = value || startLabel;
     const currentStart = which === "start" ? clean : startLabel;
     const currentEnd = which === "end" ? clean : endLabel;
+
+    const isBlocked = (date: string) =>
+      blocked?.some((b) => overlap(date, date, b.start_date, b.end_date)) ?? false;
+    if (isBlocked(clean)) return;
+
     const nextEnd = new Date(currentEnd) < new Date(currentStart) ? currentStart : currentEnd;
+    const overlapsBlockedRange =
+      blocked?.some((b) => overlap(currentStart, nextEnd, b.start_date, b.end_date)) ?? false;
+    if (overlapsBlockedRange) return;
+
     onRangeChange({ start: currentStart, end: nextEnd });
   };
 
   const visibleBlocked =
     blocked
       ?.map((b) => {
-        const viewBase = baseRange?.start ? new Date(`${baseRange.start}T00:00:00`) : new Date();
+        const viewBase = viewMonth ? new Date(`${viewMonth.slice(0, 7)}-01T00:00:00`) : new Date();
         const monthStart = new Date(viewBase.getFullYear(), viewBase.getMonth(), 1);
         const monthEnd = new Date(viewBase.getFullYear(), viewBase.getMonth() + 1, 0);
         const monthStartStr = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}-${String(monthStart.getDate()).padStart(2, "0")}`;
@@ -223,7 +246,7 @@ export function DetailAvailability({
       })
       .filter(Boolean) as AssetAvailabilityRange[] | undefined;
 
-  const calendarCells = buildCalendar(startLabel, endLabel, visibleBlocked);
+  const calendarCells = buildCalendar(viewMonth, startLabel, endLabel, visibleBlocked);
 
   return (
     <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
@@ -237,10 +260,18 @@ export function DetailAvailability({
             </button>
           </div>
           <div className="flex gap-2">
-            <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition shadow-sm">
+            <button
+              type="button"
+              onClick={() => navigateMonth(-1)}
+              className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition shadow-sm"
+            >
               <span className="material-icons-outlined text-sm">arrow_back_ios_new</span>
             </button>
-            <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition shadow-sm">
+            <button
+              type="button"
+              onClick={() => navigateMonth(1)}
+              className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition shadow-sm"
+            >
               <span className="material-icons-outlined text-sm">arrow_forward_ios</span>
             </button>
           </div>
