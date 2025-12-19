@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "@/constants/api";
 import type { ApiResponse } from "@/types/api";
 import type {
   Asset,
+  AssetCategory,
   AssetAvailabilityApiResponse,
   AssetAvailabilityResponse,
   AssetCategoriesResponse,
@@ -28,7 +29,7 @@ export function getAssetById(id: string | number): Promise<ApiResponse<Asset>> {
 }
 
 export function getAssetCategories(): Promise<AssetCategoriesResponse> {
-  return api.get<AssetCategoriesResponse["data"]>(`${API_PREFIX}${E.categories}`);
+  return api.get<AssetCategory[]>(`${API_PREFIX}${E.categories}`);
 }
 
 export function getAssetAvailability(assetId: string | number): Promise<AssetAvailabilityApiResponse> {

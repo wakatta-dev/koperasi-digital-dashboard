@@ -45,6 +45,7 @@ export const RESERVATION_STATES: Record<
       remaining?: string;
       statusText: string;
       statusColor: string;
+      dueText?: string;
     };
     cta?: { label: string; href: string };
     showDownloadButtons?: boolean;
@@ -62,6 +63,7 @@ export const RESERVATION_STATES: Record<
       remaining: "Rp2.450.000",
       statusText: "Sisa Pembayaran",
       statusColor: "text-amber-600 dark:text-amber-400",
+      dueText: "14 Nov 2023 14:00",
     },
     cta: { label: "Lanjutkan Pelunasan", href: "/penyewaan-aset/repayment?sig=secure-token" },
     showDownloadButtons: false,

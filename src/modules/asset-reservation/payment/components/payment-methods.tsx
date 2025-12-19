@@ -9,11 +9,24 @@ import { PAYMENT_METHOD_GROUPS } from "../constants";
 import { createPaymentSession, finalizePayment } from "@/services/api/reservations";
 import type { PaymentSession } from "../../types";
 
-type MethodGroup = (typeof PAYMENT_METHOD_GROUPS)[number];
+type PaymentOption = {
+  value: string;
+  label: string;
+  badge?: string;
+  icon?: string;
+  account?: string;
+  holder?: string;
+};
+
+type MethodGroup = {
+  title: string;
+  icon: string;
+  options: ReadonlyArray<PaymentOption>;
+};
 
 type PaymentMethodsProps = {
   mode: PaymentMode;
-  methodGroups?: MethodGroup[];
+  methodGroups?: ReadonlyArray<MethodGroup>;
   reservationId?: string;
   onStatusChange?: (payload: { paymentId: string; status: PaymentStatus }) => void;
 };
@@ -26,7 +39,7 @@ export function PaymentMethods({
   reservationId = "mock-reservation",
   onStatusChange,
 }: PaymentMethodsProps) {
-  const [selected, setSelected] = useState(methodGroups[0].options[0].value);
+  const [selected, setSelected] = useState<string>(() => methodGroups[0]?.options[0]?.value ?? "");
   const [status, setStatus] = useState<PaymentStatus>("initiated");
   const [proof, setProof] = useState<string | null>(null);
   const [session, setSession] = useState<PaymentSession | null>(null);
