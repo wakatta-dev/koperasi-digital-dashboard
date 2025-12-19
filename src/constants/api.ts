@@ -69,6 +69,9 @@ export const API_ENDPOINTS = {
   },
   assetReservation: {
     availability: "/asset-rental/reservations/check-availability",
+    bookings: "/asset-rental/bookings",
+    bookingComplete: (id: string | number) => `/asset-rental/bookings/${id}/complete`,
+    bookingStatus: (id: string | number) => `/asset-rental/bookings/${id}/status`,
     reservations: "/asset-rental/reservations",
     reservation: (id: string) => `/asset-rental/reservations/${id}`,
     payments: "/asset-rental/payments",

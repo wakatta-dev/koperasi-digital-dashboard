@@ -4,32 +4,30 @@ import { API_PREFIX, api } from "./base";
 import { API_ENDPOINTS } from "@/constants/api";
 import type { ApiResponse } from "@/types/api";
 import type {
-  Asset,
-  AssetCategory,
   AssetAvailabilityApiResponse,
   AssetAvailabilityResponse,
-  AssetCategoriesResponse,
-  AssetFilterQuery,
 } from "@/types/api/asset";
+import type { AssetRentalAsset } from "@/types/api/asset-rental";
+import type { AssetFilterQuery } from "@/types/api/asset";
 
 const E = API_ENDPOINTS.assets;
 
-export function getAssets(params?: AssetFilterQuery): Promise<ApiResponse<Asset[]>> {
+export function getAssets(
+  params?: AssetFilterQuery
+): Promise<ApiResponse<AssetRentalAsset[]>> {
   const search = new URLSearchParams();
   if (params?.category) search.set("category", params.category);
   if (params?.status) search.set("status", params.status);
   if (params?.search) search.set("search", params.search);
   if (params?.sort) search.set("sort", params.sort);
   const query = search.toString() ? `?${search.toString()}` : "";
-  return api.get<Asset[]>(`${API_PREFIX}${E.list}${query}`);
+  return api.get<AssetRentalAsset[]>(`${API_PREFIX}${E.list}${query}`);
 }
 
-export function getAssetById(id: string | number): Promise<ApiResponse<Asset>> {
-  return api.get<Asset>(`${API_PREFIX}${E.detail(id)}`);
-}
-
-export function getAssetCategories(): Promise<AssetCategoriesResponse> {
-  return api.get<AssetCategory[]>(`${API_PREFIX}${E.categories}`);
+export function getAssetById(
+  id: string | number
+): Promise<ApiResponse<AssetRentalAsset>> {
+  return api.get<AssetRentalAsset>(`${API_PREFIX}${E.detail(id)}`);
 }
 
 export function getAssetAvailability(

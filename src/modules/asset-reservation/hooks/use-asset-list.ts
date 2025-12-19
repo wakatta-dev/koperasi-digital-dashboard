@@ -5,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import { QK } from "@/hooks/queries/queryKeys";
 import { getAssets } from "@/services/api/assets";
-import type { AssetFilterQuery, Asset } from "@/types/api/asset";
+import type { AssetFilterQuery } from "@/types/api/asset";
+import type { AssetRentalAsset } from "@/types/api/asset-rental";
 
 function sanitizeFilters(filters: AssetFilterQuery = {}): AssetFilterQuery {
   const result: AssetFilterQuery = {};
@@ -26,7 +27,7 @@ export function useAssetList(filters: AssetFilterQuery = {}) {
 
   return useQuery({
     queryKey: QK.assetRental.list(params),
-    queryFn: async (): Promise<Asset[]> => {
+    queryFn: async (): Promise<AssetRentalAsset[]> => {
       const res = await getAssets(params);
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal memuat aset");

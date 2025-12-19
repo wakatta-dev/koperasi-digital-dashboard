@@ -1,7 +1,7 @@
 /** @format */
 
-import { redirect } from "next/navigation";
+import { AssetManagementPage } from "@/modules/asset/components/asset-page";
 
 export default function AssetPage() {
-  redirect("/bumdes/asset/manajemen");
+  return <AssetManagementPage activeTab="manajemen" />;
 }

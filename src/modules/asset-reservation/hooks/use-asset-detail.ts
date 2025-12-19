@@ -5,12 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { QK } from "@/hooks/queries/queryKeys";
 import { getAssetById, getAssetAvailability } from "@/services/api/assets";
 import type { AssetAvailabilityResponse } from "@/types/api/asset";
+import type { AssetRentalAsset } from "@/types/api/asset-rental";
 
 export function useAssetDetail(assetId?: string | number) {
   return useQuery({
     enabled: Boolean(assetId),
     queryKey: QK.assetRental.detail(assetId ?? "unknown"),
-    queryFn: async (): Promise<any> => {
+    queryFn: async (): Promise<AssetRentalAsset> => {
       const res = await getAssetById(assetId ?? "");
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal memuat detail aset");

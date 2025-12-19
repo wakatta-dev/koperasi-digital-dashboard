@@ -7,6 +7,10 @@ export type AssetItem = {
   unit: string;
   image: string;
   alt: string;
+  status?: string;
+  rateType?: string;
+  rateAmount?: number;
+  description?: string;
 };
 
 export type AssetSchedule = {
@@ -19,6 +23,7 @@ export type AssetSchedule = {
   end: string;
   duration: string;
   timeRange?: string;
+  backendStatus?: string;
   status:
     | "Confirmed"
     | "Pending"

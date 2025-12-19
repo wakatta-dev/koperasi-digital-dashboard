@@ -3,6 +3,7 @@
 "use client";
 
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   CalendarDays,
   ChevronDown,
@@ -12,16 +13,47 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { assetSchedules } from "../data/schedules";
+import { QK } from "@/hooks/queries/queryKeys";
+import { getAssetRentalBookings } from "@/services/api/asset-rental";
 import type { AssetSchedule } from "../types";
 import { ScheduleModal } from "./asset-schedule-modals";
+import { mapBookingToSchedule } from "../utils/mappers";
 
 type AssetScheduleViewProps = {
   activeTab?: "manajemen" | "jadwal";
 };
+
+const tabs = [
+  {
+    key: "manajemen",
+    label: "Manajemen Aset",
+    href: "/bumdes/asset/manajemen",
+  },
+  { key: "jadwal", label: "Jadwal Aset Sewa", href: "/bumdes/asset/jadwal" },
+];
 
 const statusClass: Record<AssetSchedule["status"], string> = {
   Confirmed:
@@ -42,42 +74,59 @@ const statusClass: Record<AssetSchedule["status"], string> = {
   Selesai: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
 };
 
-const actionIcon = (
-  <MoreVertical className="h-5 w-5 text-text-sub-light transition-colors hover:text-primary" />
-);
-
-export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewProps) {
+export function AssetScheduleView({
+  activeTab = "jadwal",
+}: AssetScheduleViewProps) {
   const router = useRouter();
   const [editOpen, setEditOpen] = React.useState(false);
+  const [selectedSchedule, setSelectedSchedule] =
+    React.useState<AssetSchedule | null>(null);
+  const { data, isLoading, error } = useQuery({
+    queryKey: QK.assetRental.bookings(),
+    queryFn: async (): Promise<AssetSchedule[]> => {
+      const res = await getAssetRentalBookings();
+      if (!res.success || !res.data) {
+        throw new Error(res.message || "Gagal memuat jadwal reservasi");
+      }
+      return res.data.map(mapBookingToSchedule);
+    },
+  });
+  const schedules = React.useMemo(() => data ?? [], [data]);
+  const totalRows = schedules.length;
+
+  const handleRowAction = (schedule: AssetSchedule) => {
+    setSelectedSchedule(schedule);
+    setEditOpen(true);
+  };
 
   return (
     <div className="mx-auto max-w-[1400px] text-slate-900 dark:text-slate-100">
       <div className="space-y-6">
         <div className="inline-flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
-          {["Manajemen Aset", "Jadwal Aset Sewa"].map((tab) => (
+          {tabs.map((tab) => (
             <Button
-              key={tab}
+              key={tab.key}
               type="button"
               variant={
-                (tab === "Manajemen Aset" && activeTab === "manajemen") ||
-                (tab === "Jadwal Aset Sewa" && activeTab === "jadwal")
+                (tab.key === "manajemen" && activeTab === "manajemen") ||
+                (tab.key === "jadwal" && activeTab === "jadwal")
                   ? "secondary"
                   : "ghost"
               }
               className={cn(
                 "h-auto rounded-md px-4 py-1.5 text-sm font-medium shadow-none",
-                (tab === "Manajemen Aset" && activeTab === "manajemen") ||
-                  (tab === "Jadwal Aset Sewa" && activeTab === "jadwal")
+                (tab.key === "manajemen" && activeTab === "manajemen") ||
+                  (tab.key === "jadwal" && activeTab === "jadwal")
                   ? "bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100"
                   : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
               )}
               onClick={() => {
-                if (tab === "Manajemen Aset") {
-                  router.push("/bumdes/asset/manajemen");
+                if (tab.href) {
+                  router.push(tab.href);
                 }
               }}
             >
-              {tab}
+              {tab.label}
             </Button>
           ))}
         </div>
@@ -86,175 +135,204 @@ export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewPro
           <div>
             <h2 className="text-2xl font-bold">Daftar Reservasi</h2>
             <p className="text-sm text-text-sub-light dark:text-text-sub-dark">
-              Penambahan reservasi dilakukan oleh klien; halaman ini hanya untuk review dan approval.
+              Penambahan reservasi dilakukan oleh klien; halaman ini hanya untuk
+              review dan approval.
             </p>
           </div>
         </div>
 
+        {error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
+            {error instanceof Error
+              ? error.message
+              : "Gagal memuat data reservasi"}
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_minmax(260px,1fr)]">
-          <div className="rounded-xl overflow-hidden border border-border-light bg-white shadow-sm dark:border-border-dark dark:bg-slate-900">
-            <div className="relative max-w-full overflow-x-auto">
-              <table className="w-full min-w-[1000px] divide-y divide-border-light dark:divide-border-dark">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
-                      No
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
-                      Aset
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
-                      Penyewa
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
-                      Waktu Sewa
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
-                      Harga Sewa
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-light bg-white dark:divide-border-dark dark:bg-slate-900">
-                  {assetSchedules.map((schedule, idx) => (
-                    <tr
-                      key={schedule.id}
-                      className={cn(
-                        "transition-colors hover:bg-gray-50 dark:hover:bg-gray-800",
-                        schedule.faded ? "opacity-60" : ""
-                      )}
-                    >
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-text-main-light dark:text-text-main-dark">
-                        {idx + 1}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0">
-                            <img
-                              src={schedule.thumbnail}
-                              alt={schedule.assetName}
-                              className={cn(
-                                "h-10 w-10 rounded-lg object-cover",
-                                schedule.faded ? "grayscale" : ""
-                              )}
-                            />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-text-main-light dark:text-text-main-dark">
-                              {schedule.assetName}
-                            </div>
-                            <div className="text-xs text-text-sub-light dark:text-text-sub-dark">
-                              ID: {schedule.assetId}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-text-main-light dark:text-text-main-dark">
-                        {schedule.price ?? "-"}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <div className="text-sm text-text-main-light dark:text-text-main-dark">
-                          {schedule.renterCompany}
-                        </div>
-                        <div className="text-xs text-text-sub-light dark:text-text-sub-dark">
-                          {schedule.renterName}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <div className="text-sm text-text-main-light dark:text-text-main-dark">
-                          {schedule.start}{" "}
-                          {schedule.end ? `- ${schedule.end}` : ""}
-                        </div>
-                        <div className="text-xs text-text-sub-light dark:text-text-sub-dark">
-                          {schedule.duration}
-                          {schedule.timeRange ? ` • ${schedule.timeRange}` : ""}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <span
+          <Card className="overflow-hidden border-border-light dark:border-border-dark">
+            <CardContent className="p-0">
+              <ScrollArea className="w-full">
+                <div className="min-w-[1000px]">
+                  <Table>
+                    <TableHeader className="bg-gray-50 dark:bg-gray-800">
+                      <TableRow className="divide-x divide-border-light dark:divide-border-dark">
+                        <TableHead className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                          No
+                        </TableHead>
+                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                          Aset
+                        </TableHead>
+                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                          Penyewa
+                        </TableHead>
+                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                          Waktu Sewa
+                        </TableHead>
+                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                          Harga Sewa
+                        </TableHead>
+                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                          Status
+                        </TableHead>
+                        <TableHead className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                          Aksi
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-border-light bg-white dark:divide-border-dark dark:bg-slate-900">
+                      {isLoading ? renderSkeletonRows() : null}
+
+                      {!isLoading && schedules.length === 0 ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            className="px-6 py-6 text-center text-sm text-text-sub-light dark:text-text-sub-dark"
+                          >
+                            Belum ada reservasi tercatat.
+                          </TableCell>
+                        </TableRow>
+                      ) : null}
+
+                      {schedules.map((schedule, idx) => (
+                        <TableRow
+                          key={schedule.id}
                           className={cn(
-                            "inline-flex px-2.5 py-0.5 text-xs font-semibold leading-5 rounded-full",
-                            statusClass[schedule.status]
+                            "transition-colors hover:bg-gray-50 dark:hover:bg-gray-800",
+                            schedule.faded ? "opacity-60" : ""
                           )}
                         >
-                          {schedule.status}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                        <button
-                          className="text-text-sub-light transition-colors hover:text-primary"
-                          onClick={() => setEditOpen(true)}
-                        >
-                          {actionIcon}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          <TableCell className="whitespace-nowrap px-6 py-4 text-sm font-medium text-text-main-light dark:text-text-main-dark align-top">
+                            {idx + 1}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 align-top">
+                            <div className="flex items-start">
+                              <div className="ml-4 space-y-1">
+                                <div className="text-sm font-semibold leading-snug text-text-main-light dark:text-text-main-dark">
+                                  {schedule.assetName}
+                                </div>
+                                <div className="text-xs leading-snug text-text-sub-light dark:text-text-sub-dark">
+                                  ID: {schedule.assetId}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 align-top text-sm text-text-main-light dark:text-text-main-dark">
+                            {schedule.price ?? "-"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 align-top">
+                            <div className="text-sm leading-snug text-text-main-light dark:text-text-main-dark">
+                              {schedule.renterCompany}
+                            </div>
+                            <div className="text-xs leading-snug text-text-sub-light dark:text-text-sub-dark">
+                              {schedule.renterName}
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 align-top">
+                            <div className="text-sm leading-snug text-text-main-light dark:text-text-main-dark">
+                              {schedule.start}{" "}
+                              {schedule.end ? `- ${schedule.end}` : ""}
+                            </div>
+                            <div className="text-xs leading-snug text-text-sub-light dark:text-text-sub-dark">
+                              {schedule.duration}
+                              {schedule.timeRange
+                                ? ` • ${schedule.timeRange}`
+                                : ""}
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap px-6 py-4 align-top">
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold leading-5",
+                                statusClass[schedule.status]
+                              )}
+                            >
+                              {schedule.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium align-top">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-text-sub-light hover:text-primary"
+                              onClick={() => handleRowAction(schedule)}
+                            >
+                              <MoreVertical className="h-5 w-5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
 
-            <div className="flex items-center justify-between border-t border-border-light bg-white px-6 py-4 text-sm text-text-sub-light dark:border-border-dark dark:bg-slate-900 dark:text-text-sub-dark">
-              <div className="hidden sm:block">
-                Menampilkan{" "}
-                <span className="font-medium text-text-main-light dark:text-text-main-dark">
-                  1
-                </span>{" "}
-                sampai{" "}
-                <span className="font-medium text-text-main-light dark:text-text-main-dark">
-                  5
-                </span>{" "}
-                dari{" "}
-                <span className="font-medium text-text-main-light dark:text-text-main-dark">
-                  12
-                </span>{" "}
-                hasil
-              </div>
-              <div className="flex space-x-2">
-                <button className="flex items-center gap-1 rounded-md border border-border-light px-3 py-1 text-sm text-text-sub-light transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-border-dark dark:text-text-sub-dark dark:hover:bg-gray-800">
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </button>
-                <button className="flex items-center gap-1 rounded-md border border-border-light px-3 py-1 text-sm text-text-main-light transition-colors hover:bg-gray-50 dark:border-border-dark dark:text-text-main-dark dark:hover:bg-gray-800">
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="hidden rounded-xl border border-border-light bg-white shadow-lg dark:border-border-dark dark:bg-slate-900 lg:flex lg:flex-col">
-            <div className="p-6">
-              <h3 className="mb-6 text-lg font-bold text-text-main-light dark:text-text-main-dark">
-                Filter
-              </h3>
-              <div className="mb-6">
-                <Input
-                  placeholder="Cari nama pemesan"
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark"
-                />
-              </div>
-              <div className="mb-6">
-                <label className="mb-2 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
-                  Aset
-                </label>
-                <div className="relative">
-                  <select className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark">
-                    <option value="">Pilih Aset</option>
-                    <option>Gedung Serbaguna Kartika</option>
-                    <option>Corporate Office Hall</option>
-                    <option>Spacious Hotel Lobby</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-gray-400" />
+              <div className="flex items-center justify-between border-t border-border-light bg-white px-6 py-4 text-sm text-text-sub-light dark:border-border-dark dark:bg-slate-900 dark:text-text-sub-dark">
+                <div className="hidden sm:block">
+                  Menampilkan{" "}
+                  <span className="font-medium text-text-main-light dark:text-text-main-dark">
+                    {totalRows || 0}
+                  </span>{" "}
+                  hasil
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-text-sub-light hover:bg-gray-50 disabled:opacity-50 dark:text-text-sub-dark dark:hover:bg-gray-800"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-text-main-light hover:bg-gray-50 dark:text-text-main-dark dark:hover:bg-gray-800"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="mb-6">
-                <label className="mb-2 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+            </CardContent>
+          </Card>
+
+          <Card className="hidden border-border-light shadow-lg dark:border-border-dark dark:bg-slate-900 lg:flex lg:flex-col">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-bold text-text-main-light dark:text-text-main-dark">
+                Filter
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex h-full flex-col gap-6">
+              <Input
+                placeholder="Cari nama pemesan"
+                className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark"
+              />
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+                  Aset
+                </label>
+                <Select>
+                  <SelectTrigger className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark">
+                    <SelectValue placeholder="Pilih Aset" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gedung-serbaguna">
+                      Gedung Serbaguna Kartika
+                    </SelectItem>
+                    <SelectItem value="corporate-hall">
+                      Corporate Office Hall
+                    </SelectItem>
+                    <SelectItem value="hotel-lobby">
+                      Spacious Hotel Lobby
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-text-main-light dark:text-text-main-dark">
                   Tanggal Sewa
                 </label>
                 <div className="space-y-3">
@@ -274,11 +352,12 @@ export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewPro
                   </div>
                 </div>
               </div>
-              <div className="mb-8">
-                <label className="mb-3 block text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-text-main-light dark:text-text-main-dark">
                   Status
                 </label>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {[
                     "Menunggu Pembayaran",
                     "Dipesan",
@@ -290,10 +369,7 @@ export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewPro
                       key={status}
                       className="flex cursor-pointer items-center space-x-3"
                     >
-                      <input
-                        type="checkbox"
-                        className="form-checkbox h-4 w-4 cursor-pointer rounded border-gray-300 text-primary focus:ring-primary"
-                      />
+                      <Checkbox className="h-4 w-4 border-gray-300 text-primary" />
                       <div
                         className={cn(
                           "flex-1 rounded-md py-1.5 px-3 text-center text-sm font-medium transition-opacity hover:opacity-90",
@@ -315,6 +391,7 @@ export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewPro
                   ))}
                 </div>
               </div>
+
               <div className="mt-auto flex items-center space-x-3 border-t border-border-light pt-4 dark:border-border-dark">
                 <Button
                   type="button"
@@ -330,12 +407,56 @@ export function AssetScheduleView({ activeTab = "jadwal" }: AssetScheduleViewPro
                   Terapkan Filter
                 </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <ScheduleModal mode="edit" open={editOpen} onOpenChange={setEditOpen} />
+      <ScheduleModal
+        mode="edit"
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open);
+          if (!open) setSelectedSchedule(null);
+        }}
+        booking={selectedSchedule ?? undefined}
+      />
     </div>
   );
+}
+
+function renderSkeletonRows(count = 5) {
+  return Array.from({ length: count }).map((_, idx) => (
+    <TableRow key={`skeleton-${idx}`} className="animate-pulse">
+      <TableCell className="px-6 py-4 text-sm text-text-sub-light dark:text-text-sub-dark">
+        <Skeleton className="h-4 w-8" />
+      </TableCell>
+      <TableCell className="px-6 py-4">
+        <div className="flex items-center space-x-3">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className="px-6 py-4">
+        <Skeleton className="h-4 w-20" />
+      </TableCell>
+      <TableCell className="px-6 py-4">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="mt-2 h-3 w-20" />
+      </TableCell>
+      <TableCell className="px-6 py-4">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="mt-2 h-3 w-24" />
+      </TableCell>
+      <TableCell className="px-6 py-4">
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </TableCell>
+      <TableCell className="px-6 py-4 text-right">
+        <Skeleton className="ml-auto h-5 w-5 rounded" />
+      </TableCell>
+    </TableRow>
+  ));
 }
