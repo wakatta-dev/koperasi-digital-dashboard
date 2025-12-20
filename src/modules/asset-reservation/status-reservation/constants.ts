@@ -65,7 +65,7 @@ export const RESERVATION_STATES: Record<
       statusColor: "text-amber-600 dark:text-amber-400",
       dueText: "14 Nov 2023 14:00",
     },
-    cta: { label: "Lanjutkan Pelunasan", href: "/penyewaan-aset/repayment?sig=secure-token" },
+    cta: { label: "Lanjutkan Pelunasan", href: "#" },
     showDownloadButtons: false,
   },
   done: {
@@ -86,9 +86,14 @@ export const RESERVATION_STATES: Record<
 };
 
 export const SECURE_LINK = {
-  expectedSignature: "secure-token",
+  // fallback signature for guest access; override via NEXT_PUBLIC_RESERVATION_SIG
+  expectedSignature: process.env.NEXT_PUBLIC_RESERVATION_SIG || "secure-token",
 };
 
 export function verifySignature(signature?: string) {
-  return Boolean(signature && signature === SECURE_LINK.expectedSignature);
+  return Boolean(
+    SECURE_LINK.expectedSignature &&
+      signature &&
+      signature === SECURE_LINK.expectedSignature
+  );
 }

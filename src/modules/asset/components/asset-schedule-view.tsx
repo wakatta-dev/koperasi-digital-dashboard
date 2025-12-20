@@ -52,7 +52,7 @@ const tabs = [
     label: "Manajemen Aset",
     href: "/bumdes/asset/manajemen",
   },
-  { key: "jadwal", label: "Jadwal Aset Sewa", href: "/bumdes/asset/jadwal" },
+  { key: "jadwal", label: "Manajemen Penyewaan", href: "/bumdes/asset/jadwal" },
 ];
 
 const statusClass: Record<AssetSchedule["status"], string> = {
@@ -72,19 +72,24 @@ const statusClass: Record<AssetSchedule["status"], string> = {
   Berlangsung:
     "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
   Selesai: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+  Cancelled:
+    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800",
 };
 
 export function AssetScheduleView({
   activeTab = "jadwal",
 }: AssetScheduleViewProps) {
   const router = useRouter();
+  const [statusFilter, setStatusFilter] = React.useState<string>("");
   const [editOpen, setEditOpen] = React.useState(false);
   const [selectedSchedule, setSelectedSchedule] =
     React.useState<AssetSchedule | null>(null);
   const { data, isLoading, error } = useQuery({
-    queryKey: QK.assetRental.bookings(),
+    queryKey: QK.assetRental.bookings({ status: statusFilter || undefined }),
     queryFn: async (): Promise<AssetSchedule[]> => {
-      const res = await getAssetRentalBookings();
+      const res = await getAssetRentalBookings(
+        statusFilter ? { status: statusFilter } : undefined
+      );
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal memuat jadwal reservasi");
       }
@@ -302,6 +307,9 @@ export function AssetScheduleView({
               <CardTitle className="text-lg font-bold text-text-main-light dark:text-text-main-dark">
                 Filter
               </CardTitle>
+              <p className="text-xs text-text-sub-light dark:text-text-sub-dark">
+                Filter status yang didukung backend: PENDING_REVIEW, AWAITING_DP, AWAITING_SETTLEMENT, CONFIRMED_FULL, CANCELLED, REJECTED.
+              </p>
             </CardHeader>
             <CardContent className="flex h-full flex-col gap-6">
               <Input
@@ -311,85 +319,25 @@ export function AssetScheduleView({
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-text-main-light dark:text-text-main-dark">
-                  Aset
+                  Status (sesuai backend)
                 </label>
-                <Select>
+                <Select
+                  value={statusFilter || "ALL"}
+                  onValueChange={(val) => setStatusFilter(val === "ALL" ? "" : val)}
+                >
                   <SelectTrigger className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark">
-                    <SelectValue placeholder="Pilih Aset" />
+                    <SelectValue placeholder="Semua status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gedung-serbaguna">
-                      Gedung Serbaguna Kartika
-                    </SelectItem>
-                    <SelectItem value="corporate-hall">
-                      Corporate Office Hall
-                    </SelectItem>
-                    <SelectItem value="hotel-lobby">
-                      Spacious Hotel Lobby
-                    </SelectItem>
+                    <SelectItem value="ALL">Semua Status</SelectItem>
+                    <SelectItem value="PENDING_REVIEW">Menunggu Persetujuan</SelectItem>
+                    <SelectItem value="AWAITING_DP">Menunggu DP</SelectItem>
+                    <SelectItem value="AWAITING_SETTLEMENT">Menunggu Pelunasan</SelectItem>
+                    <SelectItem value="CONFIRMED_FULL">Terkonfirmasi</SelectItem>
+                    <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
+                    <SelectItem value="REJECTED">Ditolak</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-text-main-light dark:text-text-main-dark">
-                  Tanggal Sewa
-                </label>
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Input
-                      placeholder="Tanggal Mulai"
-                      className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark"
-                    />
-                    <CalendarDays className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-gray-400" />
-                  </div>
-                  <div className="relative">
-                    <Input
-                      placeholder="Tanggal Selesai"
-                      className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark"
-                    />
-                    <CalendarDays className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-text-main-light dark:text-text-main-dark">
-                  Status
-                </label>
-                <div className="space-y-2">
-                  {[
-                    "Menunggu Pembayaran",
-                    "Dipesan",
-                    "Berlangsung",
-                    "Selesai",
-                    "Dibatalkan",
-                  ].map((status) => (
-                    <label
-                      key={status}
-                      className="flex cursor-pointer items-center space-x-3"
-                    >
-                      <Checkbox className="h-4 w-4 border-gray-300 text-primary" />
-                      <div
-                        className={cn(
-                          "flex-1 rounded-md py-1.5 px-3 text-center text-sm font-medium transition-opacity hover:opacity-90",
-                          status === "Menunggu Pembayaran" &&
-                            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-                          status === "Dipesan" &&
-                            "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-                          status === "Berlangsung" &&
-                            "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
-                          status === "Selesai" &&
-                            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-                          status === "Dibatalkan" &&
-                            "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                        )}
-                      >
-                        {status}
-                      </div>
-                    </label>
-                  ))}
-                </div>
               </div>
 
               <div className="mt-auto flex items-center space-x-3 border-t border-border-light pt-4 dark:border-border-dark">
@@ -397,12 +345,16 @@ export function AssetScheduleView({
                   type="button"
                   variant="outline"
                   className="flex-1 rounded-lg bg-white text-sm font-medium text-text-main-light hover:bg-gray-50 dark:bg-transparent dark:text-text-main-dark dark:hover:bg-gray-800"
+                  onClick={() => setStatusFilter("")}
                 >
-                  Batal
+                  Reset
                 </Button>
                 <Button
                   type="button"
                   className="flex-1 rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-primary-hover"
+                  onClick={() => {
+                    // query already reacts to state change; button kept for UX parity
+                  }}
                 >
                   Terapkan Filter
                 </Button>

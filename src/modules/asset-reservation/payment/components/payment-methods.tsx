@@ -29,6 +29,7 @@ type PaymentMethodsProps = {
   methodGroups?: ReadonlyArray<MethodGroup>;
   reservationId?: string;
   onStatusChange?: (payload: { paymentId: string; status: PaymentStatus }) => void;
+  onSessionChange?: (session: PaymentSession | null) => void;
 };
 
 type PaymentStatus = "initiated" | "pending_verification" | "succeeded" | "failed" | "expired";
@@ -38,6 +39,7 @@ export function PaymentMethods({
   methodGroups = PAYMENT_METHOD_GROUPS,
   reservationId,
   onStatusChange,
+  onSessionChange,
 }: PaymentMethodsProps) {
   const [selected, setSelected] = useState<string>(() => methodGroups[0]?.options[0]?.value ?? "");
   const [status, setStatus] = useState<PaymentStatus>("initiated");
@@ -90,12 +92,23 @@ export function PaymentMethods({
             status: res.data.status,
           });
           setStatus(res.data.status as PaymentStatus);
+          onSessionChange?.({
+            paymentId: res.data.payment_id,
+            reservationId: res.data.reservation_id,
+            amount: res.data.amount,
+            type: res.data.type as PaymentMode,
+            method: res.data.method,
+            payBy: res.data.pay_by,
+            status: res.data.status as PaymentStatus,
+          });
         } else {
           setSessionError(res.message || "Tidak dapat membuat sesi pembayaran");
+          onSessionChange?.(null);
         }
       } catch (err) {
         if (!ignore) {
           setSessionError(err instanceof Error ? err.message : "Gagal membuat sesi pembayaran");
+          onSessionChange?.(null);
         }
       } finally {
         if (!ignore) setIsLoading(false);

@@ -16,6 +16,7 @@ type StatusSidebarProps = {
   amounts?: Amounts;
   onCancel?: () => void;
   onReschedule?: () => void;
+  reservationId?: string;
 };
 
 function formatCurrency(value?: number) {
@@ -23,13 +24,29 @@ function formatCurrency(value?: number) {
   return `Rp${value.toLocaleString("id-ID")}`;
 }
 
-export function StatusSidebar({ status, amounts, onCancel, onReschedule }: StatusSidebarProps) {
+export function StatusSidebar({
+  status,
+  amounts,
+  onCancel,
+  onReschedule,
+  reservationId,
+}: StatusSidebarProps) {
   const content = STATUS_CONTENT[status];
   const price = {
     total: formatCurrency(amounts?.total) ?? "-",
     dp: formatCurrency(amounts?.dp) ?? "-",
     remaining: formatCurrency(amounts?.remaining) ?? "-",
   };
+  const paymentHref = (() => {
+    if (!reservationId) return content.primaryHref;
+    if (status === "awaiting_dp") {
+      return `/penyewaan-aset/payment?reservationId=${encodeURIComponent(reservationId)}&type=dp`;
+    }
+    if (status === "confirmed_dp" || status === "awaiting_settlement") {
+      return `/penyewaan-aset/payment?reservationId=${encodeURIComponent(reservationId)}&type=settlement`;
+    }
+    return content.primaryHref;
+  })();
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none sticky top-24 overflow-hidden">
@@ -80,15 +97,15 @@ export function StatusSidebar({ status, amounts, onCancel, onReschedule }: Statu
           {content.primaryCta ? (
             <Button
               className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group"
-              asChild={Boolean(content.primaryHref)}
+              asChild={Boolean(paymentHref)}
             >
-              {content.primaryHref ? (
-                <a href={content.primaryHref}>
+              {paymentHref ? (
+                <Link href={paymentHref}>
                   <span>{content.primaryCta}</span>
                   <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
-                </a>
+                </Link>
               ) : (
                 <>
                   <span>{content.primaryCta}</span>

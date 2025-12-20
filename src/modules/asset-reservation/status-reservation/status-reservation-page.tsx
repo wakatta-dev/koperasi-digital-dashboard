@@ -21,9 +21,14 @@ const plusJakarta = Plus_Jakarta_Sans({
 type StatusReservationPageProps = {
   state: ReservationState;
   hasSignature: boolean;
+  reservationId?: string;
 };
 
-export function StatusReservationPage({ state, hasSignature }: StatusReservationPageProps) {
+export function StatusReservationPage({
+  state,
+  hasSignature,
+  reservationId,
+}: StatusReservationPageProps) {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const selectedState = useMemo<ReservationState>(
     () => (state === "done" ? "done" : "dp"),
@@ -44,6 +49,7 @@ export function StatusReservationPage({ state, hasSignature }: StatusReservation
                 <ReservationSummaryCard
                   state={selectedState}
                   hasSignature={hasSignature}
+                  reservationId={reservationId}
                   onDownload={() => setDownloadOpen(true)}
                 />
               </>

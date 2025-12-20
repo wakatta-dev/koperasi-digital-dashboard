@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 
 import {
   StatusReservationPage,
-  verifySignature,
 } from "@/modules/asset-reservation/status-reservation";
 import type { ReservationState } from "@/modules/asset-reservation/status-reservation";
 import { verifyGuestLink } from "@/services/api/reservations";
@@ -23,16 +22,32 @@ export default async function StatusReservasiPage({
   searchParams,
 }: StatusReservationRouteProps) {
   const searchParamsResolved = await searchParams;
-  const state: ReservationState =
-    searchParamsResolved?.state === "done" ? "done" : "dp";
-  const guestLink = await verifyGuestLink({
-    reservationId: searchParamsResolved?.id,
-    token: searchParamsResolved?.sig,
-  });
+  const reservationId = searchParamsResolved?.id ?? "";
+  const signature = searchParamsResolved?.sig ?? "";
 
-  const hasSignature =
-    (guestLink.success && guestLink.data?.allowed) ||
-    verifySignature(searchParamsResolved?.sig);
+  const guestLink = reservationId
+    ? await verifyGuestLink({
+        reservationId,
+        token: signature,
+      })
+    : null;
 
-  return <StatusReservationPage state={state} hasSignature={hasSignature} />;
+  const allowed = Boolean(guestLink?.success && guestLink.data?.allowed);
+
+  const state: ReservationState = (() => {
+    const backendStatus = guestLink?.data?.status?.toLowerCase();
+    if (backendStatus === "confirmed_full") return "done";
+    if (backendStatus === "confirmed_dp" || backendStatus === "awaiting_settlement") return "dp";
+    if (backendStatus === "awaiting_dp" || backendStatus === "pending_review") return "dp";
+    return searchParamsResolved?.state === "done" ? "done" : "dp";
+  })();
+
+  return (
+    <StatusReservationPage
+      state={state}
+      hasSignature={allowed}
+      reservationId={guestLink?.data?.reservation_id ?? reservationId}
+      token={allowed ? signature : undefined}
+    />
+  );
 }

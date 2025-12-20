@@ -40,11 +40,20 @@ export function mapBookingToSchedule(booking: AssetRentalBooking): AssetSchedule
   const startDate = new Date(booking.start_time * 1000);
   const endDate = new Date(booking.end_time * 1000);
   const durationLabel = formatDuration(startDate, endDate, booking.status);
-  const status =
-    booking.status === "COMPLETED"
-      ? ("Selesai" as const)
-      : ("Dipesan" as const);
-  const faded = booking.status === "COMPLETED";
+  const normalized = (booking.status || "").toUpperCase();
+  const statusMap: Record<string, AssetSchedule["status"]> = {
+    PENDING_REVIEW: "Pending",
+    AWAITING_DP: "Menunggu Pembayaran",
+    CONFIRMED_DP: "Dipesan",
+    AWAITING_SETTLEMENT: "Berlangsung",
+    CONFIRMED_FULL: "Confirmed",
+    BOOKED: "Dipesan",
+    COMPLETED: "Selesai",
+    CANCELLED: "Cancelled",
+    REJECTED: "Cancelled",
+  };
+  const status = statusMap[normalized] || ("Dipesan" as const);
+  const faded = normalized === "COMPLETED" || normalized === "CONFIRMED_FULL";
 
   return {
     id: String(booking.id),

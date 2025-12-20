@@ -21,6 +21,7 @@ export type ReservationStatus =
   | "awaiting_settlement"
   | "confirmed_full"
   | "cancelled"
+  | "rejected"
   | "expired";
 
 export type PaymentMode = "dp" | "settlement";

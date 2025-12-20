@@ -23,8 +23,15 @@ export default async function PenyewaanAsetStatusPage({
   const searchParamsResolved = await searchParams;
   const { id } = await params;
 
+  const rawStatus = searchParamsResolved?.status?.toLowerCase();
   const status: ReservationStatus =
-    searchParamsResolved?.status === "confirmed" ? "confirmed" : "pending";
+    rawStatus === "confirmed_full"
+      ? "confirmed_full"
+      : rawStatus === "awaiting_dp"
+        ? "awaiting_dp"
+        : rawStatus === "awaiting_settlement"
+          ? "awaiting_settlement"
+          : "pending_review";
   const signature = searchParamsResolved?.sig;
 
   return <AssetStatusPage token={id} signature={signature} status={status} />;

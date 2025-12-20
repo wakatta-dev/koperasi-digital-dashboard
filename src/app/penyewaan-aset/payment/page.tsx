@@ -10,11 +10,12 @@ export const metadata: Metadata = {
 };
 
 type PaymentPageProps = {
-  searchParams?: Promise<{ reservationId?: string }>;
+  searchParams?: Promise<{ reservationId?: string; type?: string }>;
 };
 
 export default async function PenyewaanAsetPaymentPage({ searchParams }: PaymentPageProps) {
   const params = await searchParams;
   const reservationId = params?.reservationId;
-  return <AssetPaymentPage reservationId={reservationId} />;
+  const mode = params?.type === "settlement" ? "settlement" : "dp";
+  return <AssetPaymentPage reservationId={reservationId} mode={mode} />;
 }

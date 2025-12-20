@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
@@ -46,9 +47,9 @@ export function ScheduleModal({
       if (!booking?.id) {
         throw new Error("Booking tidak ditemukan");
       }
-      const status = selectedStatus ?? booking.backendStatus ?? "BOOKED";
+      const status = selectedStatus ?? booking.backendStatus ?? "PENDING_REVIEW";
       const res =
-        status === "COMPLETED"
+        status === "CONFIRMED_FULL"
           ? await completeAssetBooking(booking.id)
           : await updateAssetBookingStatus(booking.id, status);
       if (!res.success || !res.data) {
@@ -58,18 +59,26 @@ export function ScheduleModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QK.assetRental.bookings() });
+      showToastSuccess("Status diperbarui", "Reservasi berhasil diperbarui");
       onOpenChange(false);
+    },
+    onError: (err: any) => {
+      showToastError("Gagal menyimpan status", err?.message || err);
     },
   });
 
   if (!open || !booking) return null;
 
   const statusLabel = selectedStatus || booking.backendStatus || booking.status;
-  const isDone = statusLabel === "COMPLETED" || booking.status === "Selesai";
+  const normalizedLabel = (statusLabel || "").toUpperCase();
+  const isDone = normalizedLabel === "CONFIRMED_FULL" || booking.status === "Selesai";
   const statusOptions = [
-    { value: "BOOKED", label: "Menunggu / Pending Approval" },
-    { value: "COMPLETED", label: "Disetujui" },
-    { value: "CANCELLED", label: "Ditolak / Dibatalkan" },
+    { value: "PENDING_REVIEW", label: "Menunggu Persetujuan" },
+    { value: "AWAITING_DP", label: "Disetujui (Menunggu DP)" },
+    { value: "AWAITING_SETTLEMENT", label: "DP Lunas (Menunggu Pelunasan)" },
+    { value: "CONFIRMED_FULL", label: "Tandai Selesai / Konfirmasi Penuh" },
+    { value: "CANCELLED", label: "Dibatalkan" },
+    { value: "REJECTED", label: "Ditolak" },
   ];
 
   return (
@@ -224,6 +233,25 @@ function InfoRow({
 }
 
 function Badge({ status, done }: { status?: string; done?: boolean }) {
+  const label = (() => {
+    const key = (status || "").toUpperCase();
+    switch (key) {
+    case "PENDING_REVIEW":
+      return "Menunggu Persetujuan";
+    case "AWAITING_DP":
+      return "Menunggu DP";
+    case "AWAITING_SETTLEMENT":
+      return "Menunggu Pelunasan";
+    case "CONFIRMED_FULL":
+      return "Terkonfirmasi";
+    case "CANCELLED":
+      return "Dibatalkan";
+    case "REJECTED":
+      return "Ditolak";
+    default:
+      return status ?? "-";
+    }
+  })();
   return (
     <span
       className={cn(
@@ -233,7 +261,7 @@ function Badge({ status, done }: { status?: string; done?: boolean }) {
           : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
       )}
     >
-      {status ?? "-"}
+      {label}
     </span>
   );
 }

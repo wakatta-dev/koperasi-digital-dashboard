@@ -22,6 +22,7 @@ import type { ReservationSummary } from "../types";
 import { useAssetDetail, useReservation } from "../hooks";
 import { verifySignedReservationToken } from "../utils/signed-link";
 import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
+import { humanizeReservationStatus } from "../utils/status";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -60,11 +61,20 @@ function calculateDurationLabel(start?: string, end?: string) {
 }
 
 function humanizeEvent(event: string) {
+  const key = (event || "").toLowerCase();
   const labels: Record<string, string> = {
-    reservation_created: "Permintaan dibuat",
+    reservation_created: "Permintaan dikirim",
+    pending_review: "Menunggu persetujuan",
+    awaiting_dp: "Disetujui - menunggu DP",
+    confirmed_dp: "DP diterima",
+    awaiting_settlement: "Menunggu pelunasan",
+    confirmed_full: "Reservasi terkonfirmasi",
     payment_completed: "Pembayaran selesai",
+    cancelled: "Reservasi dibatalkan",
+    rejected: "Permintaan ditolak",
+    expired: "Reservasi kedaluwarsa",
   };
-  return labels[event] ?? event.replaceAll("_", " ");
+  return labels[key] ?? event.replaceAll("_", " ");
 }
 
 function mapAssetForStatus(asset: any) {
@@ -83,9 +93,26 @@ function mapAssetForStatus(asset: any) {
 }
 
 function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
-  if (status === "confirmed_dp" || status === "confirmed_full") return "confirmed";
-  if (status === "awaiting_settlement") return "confirmed";
-  return "pending";
+  switch (status) {
+  case "pending_review":
+    return "pending_review";
+  case "awaiting_dp":
+    return "awaiting_dp";
+  case "confirmed_dp":
+    return "confirmed_dp";
+  case "awaiting_settlement":
+    return "awaiting_settlement";
+  case "confirmed_full":
+    return "confirmed_full";
+  case "cancelled":
+    return "cancelled";
+  case "expired":
+    return "expired";
+  case "rejected":
+    return "rejected";
+  default:
+    return "pending_review";
+  }
 }
 
 export function AssetStatusPage({ status, reservationId, token, signature }: AssetStatusPageProps) {
@@ -141,11 +168,17 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
   const timelineItems = useMemo(() => {
     if (reservation?.timeline?.length) {
       return reservation.timeline.map((item, idx, arr) => ({
-        status: humanizeEvent(item.event),
+        status: humanizeEvent(item.event || item.meta?.status || ""),
         description:
           item.meta?.description ??
-          (item.meta?.status ? `Status: ${item.meta.status}` : "Pembaruan status"),
-        time: new Date(item.at).toLocaleString("id-ID"),
+          (item.meta?.status ? `Status: ${humanizeEvent(item.meta.status)}` : "Pembaruan status"),
+        time: new Date(item.at).toLocaleString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         done: idx < arr.length - 1,
         active: idx === arr.length - 1,
       }));
@@ -265,7 +298,9 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
                 <div className="font-semibold">ID Reservasi: {resolvedReservationId}</div>
                 {reservation ? (
                   <div className="flex flex-wrap gap-4 mt-1">
-                    <span>Status: {reservation.status}</span>
+                    <span>
+                      Status: {humanizeReservationStatus(reservation.status)}
+                    </span>
                     <span>
                       DP: Rp{reservation.amounts.dp.toLocaleString("id-ID")} · Sisa: Rp
                       {reservation.amounts.remaining.toLocaleString("id-ID")}
@@ -363,6 +398,7 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
                 <StatusSidebar
                   status={displayStatus}
                   amounts={reservation?.amounts}
+                  reservationId={resolvedReservationId}
                   onCancel={() => setCancelOpen(true)}
                   onReschedule={() => setRescheduleOpen(true)}
                 />

@@ -1,20 +1,30 @@
 /** @format */
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
 import { RESERVATION_SHARED, RESERVATION_STATES, type ReservationState } from "../constants";
+import { humanizeReservationStatus } from "../../utils/status";
 
 type ReservationSummaryCardProps = {
   state: ReservationState;
   hasSignature?: boolean;
   onDownload?: () => void;
+  reservationId?: string;
 };
 
 export function ReservationSummaryCard({
   state,
   hasSignature,
+  reservationId,
   onDownload,
 }: ReservationSummaryCardProps) {
   const data = RESERVATION_STATES[state];
+  const secureId = reservationId ?? RESERVATION_SHARED.reservationId;
+  const paymentHref =
+    state === "dp"
+      ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(secureId)}&type=settlement`
+      : undefined;
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
@@ -37,7 +47,7 @@ export function ReservationSummaryCard({
           </p>
           <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 flex items-center gap-3">
             <span className="text-xl md:text-2xl font-mono font-bold text-[#4338ca] dark:text-indigo-400">
-              {RESERVATION_SHARED.reservationId}
+              {secureId}
             </span>
             <button className="text-gray-400 hover:text-[#4338ca] transition" title="Salin Kode">
               <span className="material-icons-outlined text-lg">content_copy</span>
@@ -90,7 +100,7 @@ export function ReservationSummaryCard({
                   <span className="material-icons-outlined text-sm">
                     {state === "done" ? "verified" : "schedule"}
                   </span>
-                  {data.statusLabel}
+                  {humanizeReservationStatus(state === "done" ? "confirmed_full" : "confirmed_dp")}
                 </span>
               </div>
               <div className="sm:col-span-2 mt-2">
@@ -128,14 +138,14 @@ export function ReservationSummaryCard({
                         {data.payment.remaining ? "" : null}
                       </span>
                     </div>
-                    {data.payment.remaining ? (
+                    {data.payment.remaining && paymentHref ? (
                       <Button className="mt-3 w-full bg-[#4338ca] hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group" asChild>
-                        <a href={data.cta?.href ?? "#"}>
-                          <span>{data.cta?.label}</span>
+                        <Link href={paymentHref}>
+                          <span>{data.cta?.label ?? "Lanjutkan Pelunasan"}</span>
                           <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">
                             arrow_forward
                           </span>
-                        </a>
+                        </Link>
                       </Button>
                     ) : null}
                   </div>
