@@ -9,8 +9,6 @@ import {
   ShoppingCart,
   Users,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { SalesKpi } from "../types";
 import { formatInteger, formatRupiah } from "../lib/formatters";
 import {
@@ -18,6 +16,12 @@ import {
   ErrorState,
   LoadingState,
 } from "@/components/shared/feedback/async-states";
+import {
+  KpiGridBase,
+  type KpiItem,
+} from "@/components/shared/data-display/KpiGridBase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   kpis?: SalesKpi;
@@ -63,65 +67,80 @@ export function KpiCards({ kpis, isLoading, isError, onRetry }: Props) {
       />
     );
 
-  const cards = [
+  const cards: KpiItem[] = [
     {
       id: "total_revenue",
       label: "Omzet Total",
       value: formatRupiah(kpis.total_revenue),
-      icon: <CreditCard className="h-5 w-5" />,
-      trend: kpis.delta_label,
-      direction: kpis.delta_direction,
+      icon: (
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white shadow">
+          <CreditCard className="h-5 w-5" />
+        </div>
+      ),
+      trend: {
+        direction: kpis.delta_direction === "down" ? "down" : kpis.delta_direction === "up" ? "up" : "neutral",
+        label: kpis.delta_label,
+      },
     },
     {
       id: "transaction_count",
       label: "Jumlah Transaksi",
       value: formatInteger(kpis.transaction_count),
-      icon: <ShoppingCart className="h-5 w-5" />,
-      trend: kpis.delta_label,
-      direction: kpis.delta_direction,
+      icon: (
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white shadow">
+          <ShoppingCart className="h-5 w-5" />
+        </div>
+      ),
+      trend: {
+        direction: kpis.delta_direction === "down" ? "down" : kpis.delta_direction === "up" ? "up" : "neutral",
+        label: kpis.delta_label,
+      },
     },
     {
       id: "average_ticket",
       label: "Rata-rata Transaksi",
       value: formatRupiah(kpis.average_ticket),
-      icon: <Users className="h-5 w-5" />,
-      trend: kpis.delta_label,
-      direction: kpis.delta_direction,
+      icon: (
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white shadow">
+          <Users className="h-5 w-5" />
+        </div>
+      ),
+      trend: {
+        direction: kpis.delta_direction === "down" ? "down" : kpis.delta_direction === "up" ? "up" : "neutral",
+        label: kpis.delta_label,
+      },
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {cards.map((card) => (
-        <Card
-          key={card.id}
-          className="border border-border/70 shadow-sm bg-card/80 backdrop-blur-sm"
-        >
-          <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-semibold text-foreground">
-                {card.label}
-              </CardTitle>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <Trend direction={card.direction} label={card.trend} />
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white shadow">
-              {card.icon}
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Periode</span>
-              {card.direction ? (
-                <span className="flex items-center gap-1">
-                  {card.direction === "down" ? "Menurun" : "Naik"}
-                </span>
-              ) : null}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <KpiGridBase
+      items={cards.map((card) => ({
+        ...card,
+        footer: (
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Periode</span>
+            {card.trend?.direction && card.trend.direction !== "neutral" ? (
+              <span className="flex items-center gap-1">
+                {card.trend.direction === "down" ? "Menurun" : "Naik"}
+              </span>
+            ) : null}
+          </div>
+        ),
+      }))}
+      columns={{ md: 2, xl: 3 }}
+      trendSlot={(trend) => (
+        <Trend
+          direction={
+            trend?.direction === "down"
+              ? "down"
+              : trend?.direction === "up"
+              ? "up"
+              : undefined
+          }
+          label={trend?.label}
+        />
+      )}
+    />
   );
 }
 

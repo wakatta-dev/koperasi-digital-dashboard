@@ -12,8 +12,6 @@ import {
   ClipboardList,
 } from "lucide-react";
 import type { ReactElement } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalyticsKpi } from "@/types/api";
 import { formatKpiValue } from "../hooks/use-analytics";
 import {
@@ -21,6 +19,13 @@ import {
   ErrorState,
   LoadingState,
 } from "@/components/shared/feedback/async-states";
+import {
+  KpiGridBase,
+  type KpiItem,
+} from "@/components/shared/data-display/KpiGridBase";
+import type { KpiTrend } from "@/components/shared/data-display/KpiCardBase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type KpiCardsProps = {
   kpis?: AnalyticsKpi[];
@@ -89,42 +94,49 @@ export function KpiCards({
 
   return (
     <div className="space-y-2">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {kpis.map((kpi) => (
-          <Card
-            key={kpi.id}
-            className="border border-border/70 shadow-sm bg-card/80 backdrop-blur-sm"
-          >
-            <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
-              <div className="space-y-1">
-                <CardTitle className="text-sm font-semibold text-foreground">
-                  {kpi.label}
-                </CardTitle>
-                <div className="text-2xl font-bold">{formatKpiValue(kpi)}</div>
-                {typeof kpi.trend_delta_pct === "number" ? (
-                  <span
-                    className={
-                      kpi.trend_direction === "down"
-                        ? "text-xs font-medium text-red-500"
-                        : "text-xs font-medium text-emerald-600"
-                    }
-                  >
-                    {kpi.trend_direction === "down" ? "-" : "+"}
-                    {kpi.trend_delta_pct}% dari sebelumnya
-                  </span>
-                ) : null}
-              </div>
-              <div>{iconMap[kpi.id]}</div>
-            </CardHeader>
-            <CardContent className="pt-0">
+      <KpiGridBase
+        items={kpis.map((kpi) => {
+          const trendDirection: KpiTrend["direction"] =
+            kpi.trend_direction === "down"
+              ? "down"
+              : kpi.trend_direction === "up"
+              ? "up"
+              : "neutral";
+          return {
+            id: kpi.id,
+            label: kpi.label,
+            value: formatKpiValue(kpi),
+            icon: iconMap[kpi.id],
+            trend:
+              typeof kpi.trend_delta_pct === "number"
+                ? {
+                    direction: trendDirection,
+                    label: `${trendDirection === "down" ? "-" : "+"}${kpi.trend_delta_pct}% dari sebelumnya`,
+                  }
+                : undefined,
+            footer: (
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Periode: {kpi.timeframe}</span>
                 <TrendIcon dir={kpi.trend_direction} />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ),
+          };
+        })}
+        columns={{ md: 2, xl: 4 }}
+        trendSlot={(trend) =>
+          trend?.label ? (
+            <span
+              className={
+                trend.direction === "down"
+                  ? "text-xs font-medium text-red-500"
+                  : "text-xs font-medium text-emerald-600"
+              }
+            >
+              {trend.label}
+            </span>
+          ) : null
+        }
+      />
       {lastUpdated ? (
         <p className="text-xs text-muted-foreground" aria-live="polite">
           Terakhir diperbarui: {new Date(lastUpdated).toLocaleString("id-ID")}

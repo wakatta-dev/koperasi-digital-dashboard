@@ -27,14 +27,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableCell } from "@/components/shared/data-display/TableCell";
+import { TableHeader } from "@/components/shared/data-display/TableHeader";
+import { TableRow } from "@/components/shared/data-display/TableRow";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { cn } from "@/lib/utils";
 import { QK } from "@/hooks/queries/queryKeys";
 import { getAssetRentalBookings } from "@/services/api/asset-rental";
@@ -159,33 +155,61 @@ export function AssetScheduleView({
             <CardContent className="p-0">
               <ScrollArea className="w-full">
                 <div className="min-w-[1000px]">
-                  <Table>
+                  <TableShell className="w-full text-sm" containerClassName="overflow-visible">
                     <TableHeader className="bg-gray-50 dark:bg-gray-800">
                       <TableRow className="divide-x divide-border-light dark:divide-border-dark">
-                        <TableHead className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                        <TableCell
+                          as="th"
+                          scope="col"
+                          className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                        >
                           No
-                        </TableHead>
-                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                        </TableCell>
+                        <TableCell
+                          as="th"
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                        >
                           Aset
-                        </TableHead>
-                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                        </TableCell>
+                        <TableCell
+                          as="th"
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                        >
                           Penyewa
-                        </TableHead>
-                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                        </TableCell>
+                        <TableCell
+                          as="th"
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                        >
                           Waktu Sewa
-                        </TableHead>
-                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                        </TableCell>
+                        <TableCell
+                          as="th"
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                        >
                           Harga Sewa
-                        </TableHead>
-                        <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                        </TableCell>
+                        <TableCell
+                          as="th"
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                        >
                           Status
-                        </TableHead>
-                        <TableHead className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark">
+                        </TableCell>
+                        <TableCell
+                          as="th"
+                          scope="col"
+                          className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                        >
                           Aksi
-                        </TableHead>
+                        </TableCell>
                       </TableRow>
                     </TableHeader>
-                    <TableBody className="divide-y divide-border-light bg-white dark:divide-border-dark dark:bg-slate-900">
+                    <tbody className="divide-y divide-border-light bg-white dark:divide-border-dark dark:bg-slate-900">
                       {isLoading ? renderSkeletonRows() : null}
 
                       {!isLoading && schedules.length === 0 ? (
@@ -268,8 +292,8 @@ export function AssetScheduleView({
                           </TableCell>
                         </TableRow>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </tbody>
+                  </TableShell>
                 </div>
                 <ScrollBar orientation="horizontal" />
               </ScrollArea>

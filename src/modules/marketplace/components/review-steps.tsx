@@ -1,14 +1,23 @@
 /** @format */
 
-import { Stepper, type StepperStep } from "@/components/shared/navigation/stepper";
+import { Stepper } from "@/components/shared/navigation/stepper";
+import { CHECKOUT_STEPS } from "../config/checkoutSteps.config";
 
-const STEPS: StepperStep[] = [
-  { label: "Keranjang", icon: "check", state: "done" },
-  { label: "Pengiriman", icon: "check", state: "done" },
-  { label: "Pembayaran", icon: "check", state: "done" },
-  { label: "Ulasan", icon: "rate_review", state: "active" },
-];
+const iconMap: Record<string, string> = {
+  cart: "check",
+  shipping: "check",
+  payment: "check",
+  review: "rate_review",
+};
 
 export function ReviewSteps() {
-  return <Stepper steps={STEPS} progressPercent={100} />;
+  const steps = CHECKOUT_STEPS.map((step) => ({
+    label: step.label,
+    icon: iconMap[step.id],
+    state: step.id === "review" ? "active" : "done",
+  }));
+
+  const CheckoutStepper = Stepper as any;
+
+  return <CheckoutStepper steps={steps} progressPercent={100} variant="checkout" />;
 }
