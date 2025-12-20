@@ -4,9 +4,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS } from "../constants";
 
@@ -26,6 +36,8 @@ export function LandingNavbar({
   className,
 }: LandingNavbarProps) {
   const [showShortcutLinks, setShowShortcutLinks] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -38,6 +50,10 @@ export function LandingNavbar({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const links = NAV_LINKS.filter((link) => !link.requiresShortcut || showShortcutLinks);
 
@@ -133,13 +149,98 @@ export function LandingNavbar({
                 ) : null}
               </Link>
             ) : null}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-700 dark:text-gray-300 hover:text-[#4338ca]"
-            >
-              <span className="material-icons-outlined text-3xl">menu</span>
-            </Button>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-700 dark:text-gray-300 hover:text-[#4338ca]"
+                  aria-label="Buka menu"
+                >
+                  <span className="material-icons-outlined text-3xl">menu</span>
+                </Button>
+              </SheetTrigger>
+
+              <SheetContent
+                side="right"
+                className="bg-[#f8fafc] dark:bg-[#0f172a] px-0 py-0 border-l border-gray-200/70 dark:border-gray-800"
+              >
+                <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
+                <SheetHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="material-icons-outlined text-[#4338ca] text-3xl">token</span>
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold text-lg text-gray-900 dark:text-white leading-tight">BUMDes</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sukamaju</span>
+                    </div>
+                  </div>
+                  {showCart ? (
+                    <Link
+                      href={cartHref}
+                      className="text-[#4338ca] transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                      title="Keranjang"
+                    >
+                      <span className="material-icons-outlined fill-current">shopping_cart</span>
+                      {cartCount ? (
+                        <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                          {cartCount}
+                        </span>
+                      ) : null}
+                    </Link>
+                  ) : null}
+                </SheetHeader>
+
+                <div className="flex flex-col gap-1 px-6 pb-4">
+                  {links.map((link) => {
+                    const isActive = activeLabel && link.label === activeLabel;
+
+                    if (link.cta) {
+                      return (
+                        <SheetClose key={link.label} asChild>
+                          <Button
+                            asChild
+                            className="w-full justify-center bg-[#4338ca] hover:bg-[#3730a3] text-white px-5 py-3 rounded-xl font-semibold text-sm transition shadow-lg shadow-indigo-500/20"
+                          >
+                            <Link href={link.href}>{link.label}</Link>
+                          </Button>
+                        </SheetClose>
+                      );
+                    }
+
+                    return (
+                      <SheetClose key={link.label} asChild>
+                        <Link
+                          href={link.href}
+                          className={cn(
+                            "group flex items-center justify-between rounded-lg px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-slate-900 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/60 transition",
+                            isActive && "bg-white dark:bg-slate-900 border-indigo-100 dark:border-indigo-900/60 text-[#4338ca] dark:text-[#c7d2fe]"
+                          )}
+                        >
+                          <span className="flex items-center gap-2">
+                            {link.label}
+                            {link.badge ? (
+                              <Badge className="inline-flex items-center rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-500/10">
+                                {link.badge}
+                              </Badge>
+                            ) : null}
+                          </span>
+                          <span className="material-icons-outlined text-lg text-gray-400 group-hover:text-[#4338ca]">chevron_right</span>
+                        </Link>
+                      </SheetClose>
+                    );
+                  })}
+                </div>
+
+                <SheetFooter className="px-6 pb-6 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="rounded-2xl border border-dashed border-indigo-200 dark:border-indigo-900/60 bg-white/70 dark:bg-slate-900/50 p-4">
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">Shortcut Link (Ctrl/Cmd + L)</p>
+                    <p className="mt-1 leading-relaxed">
+                      Tampilkan atau sembunyikan tautan khusus staff langsung dari keyboard, tetap ringkas di layar kecil.
+                    </p>
+                  </div>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
