@@ -16,7 +16,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalyticsKpi } from "@/types/api";
 import { formatKpiValue } from "../hooks/use-analytics";
-import { EmptyState, ErrorState, LoadingState } from "./states";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/feedback/async-states";
 
 type KpiCardsProps = {
   kpis?: AnalyticsKpi[];
@@ -52,7 +56,12 @@ export function KpiCards({
   }
 
   if (!kpis?.length) {
-    return <EmptyState onRetry={onRetry} />;
+    return (
+      <EmptyState
+        description="Tambahkan transaksi atau ubah rentang tanggal untuk melihat data."
+        onRetry={onRetry}
+      />
+    );
   }
 
   const iconMap: Record<AnalyticsKpi["id"], ReactElement> = {

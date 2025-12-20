@@ -11,7 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { ProductPerformance } from "@/types/api";
-import { EmptyState, ErrorState, LoadingState } from "./states";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/feedback/async-states";
 
 type Props = {
   products?: (ProductPerformance & { low_stock?: boolean })[];
@@ -23,7 +27,13 @@ type Props = {
 export function TopProductsTable({ products, isLoading, isError, onRetry }: Props) {
   if (isLoading) return <LoadingState lines={5} />;
   if (isError) return <ErrorState onRetry={onRetry} />;
-  if (!products?.length) return <EmptyState onRetry={onRetry} />;
+  if (!products?.length)
+    return (
+      <EmptyState
+        description="Tambahkan transaksi atau ubah rentang tanggal untuk melihat data."
+        onRetry={onRetry}
+      />
+    );
 
   const sorted = [...products].sort((a, b) => b.units_sold - a.units_sold);
 

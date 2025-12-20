@@ -3,27 +3,12 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  MoreVertical,
-  Plus,
-  Search,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { AddProductModal } from "./add-product-modal";
 import { EditProductModal } from "./edit-product-modal";
+import { InventoryTable } from "./InventoryTable";
 import type { InventoryItem } from "../types";
 
 const inventoryItems: InventoryItem[] = [
@@ -231,127 +216,53 @@ export function InventoryPage() {
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
-        <div className="overflow-x-auto">
-          <Table className="min-w-full divide-y divide-[#e5e7eb] dark:divide-[#334155]">
-            <TableHeader className="bg-gray-50 dark:bg-slate-800/50">
-              <TableRow className="border-0">
-                <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
-                  Produk
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
-                  SKU
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
-                  Kategori
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
-                  Stok
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
-                  Harga Jual
-                </TableHead>
-                <TableHead className="px-6 py-3" />
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-[#e5e7eb] dark:divide-[#334155]">
-              {inventoryItems.map((item) => (
-                <TableRow
-                  key={`${item.sku}-${item.name}`}
-                  className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
-                >
-                  <TableCell className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="h-10 w-10 rounded object-cover bg-gray-100 dark:bg-gray-700"
-                        />
-                      </div>
-                      <div className="ml-4">
-                        <Link
-                          href={`/bumdes/inventory/${item.sku}`}
-                          className="text-sm font-medium text-[#111827] transition-colors hover:underline dark:text-white"
-                        >
-                          {item.name}
-                        </Link>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                    {item.sku}
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${item.categoryClassName}`}
-                    >
-                      {item.category}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                    {item.stock}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-sm text-[#111827] dark:text-white">
-                    {item.price}
-                  </TableCell>
-                  <TableCell className="px-6 py-4 text-right text-sm font-medium">
-                    <button
-                      className="text-[#6b7280] transition-colors hover:text-[#111827] dark:text-[#94a3b8] dark:hover:text-white"
-                      onClick={() => {
-                        setEditingItem(item);
-                        setEditOpen(true);
-                      }}
-                      aria-label="Edit produk"
-                    >
-                      <MoreVertical className="h-5 w-5" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="flex items-center justify-end border-t border-[#e5e7eb] px-6 py-4 dark:border-[#334155]">
-          <div className="flex items-center space-x-2">
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-auto rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
-            >
-              <ChevronLeft className="mr-1 h-4 w-4" />
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-auto rounded-md border border-[#e5e7eb] bg-white px-3 py-1 text-sm font-medium text-[#4f46e5] dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#a5b4fc]"
-            >
-              1
-            </Button>
-            {[2, 3, 4, 5, 6].map((page) => (
+      <InventoryTable
+        items={inventoryItems}
+        onEdit={(item) => {
+          setEditingItem(item);
+          setEditOpen(true);
+        }}
+        footer={
+          <div className="flex items-center justify-end">
+            <div className="flex items-center space-x-2">
               <Button
-                key={page}
                 type="button"
                 variant="ghost"
                 className="h-auto rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
               >
-                {page}
+                <ChevronLeft className="mr-1 h-4 w-4" />
+                Previous
               </Button>
-            ))}
-            <span className="px-2 text-[#6b7280] dark:text-[#94a3b8]">...</span>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-auto rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
-            >
-              Next
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-auto rounded-md border border-[#e5e7eb] bg-white px-3 py-1 text-sm font-medium text-[#4f46e5] dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#a5b4fc]"
+              >
+                1
+              </Button>
+              {[2, 3, 4, 5, 6].map((page) => (
+                <Button
+                  key={page}
+                  type="button"
+                  variant="ghost"
+                  className="h-auto rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                >
+                  {page}
+                </Button>
+              ))}
+              <span className="px-2 text-[#6b7280] dark:text-[#94a3b8]">...</span>
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-auto rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+              >
+                Next
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <AddProductModal open={addOpen} onOpenChange={setAddOpen} />
       <EditProductModal

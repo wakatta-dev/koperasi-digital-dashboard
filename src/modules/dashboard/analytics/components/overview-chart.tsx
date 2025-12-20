@@ -5,7 +5,11 @@
 import { Bar, BarChart, CartesianGrid, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { OverviewPoint } from "@/types/api";
 import { ChartContainer, ChartLegendContent, ChartTooltipContent, createBarLineChartConfig } from "@/components/ui/chart";
-import { EmptyState, ErrorState, LoadingState } from "./states";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/feedback/async-states";
 
 type Props = {
   series?: OverviewPoint[];
@@ -24,7 +28,13 @@ const config = createBarLineChartConfig({
 export function OverviewChart({ series, isLoading, isError, onRetry }: Props) {
   if (isLoading) return <LoadingState lines={6} />;
   if (isError) return <ErrorState onRetry={onRetry} />;
-  if (!series?.length) return <EmptyState onRetry={onRetry} />;
+  if (!series?.length)
+    return (
+      <EmptyState
+        description="Tambahkan transaksi atau ubah rentang tanggal untuk melihat data."
+        onRetry={onRetry}
+      />
+    );
 
   const chartData = series.map((point) => ({
     name: point.period,

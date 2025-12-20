@@ -10,6 +10,7 @@ type StateProps = {
   title?: string;
   description?: string;
   onRetry?: () => void;
+  retryLabel?: string;
 };
 
 export function LoadingState({ lines = 3 }: { lines?: number }) {
@@ -24,8 +25,9 @@ export function LoadingState({ lines = 3 }: { lines?: number }) {
 
 export function EmptyState({
   title = "Belum ada data",
-  description = "Sesuaikan rentang tanggal atau ekspor setelah data tersedia.",
+  description = "Tidak ada data untuk ditampilkan.",
   onRetry,
+  retryLabel = "Muat ulang",
 }: StateProps) {
   return (
     <Alert>
@@ -34,7 +36,7 @@ export function EmptyState({
         <span>{description}</span>
         {onRetry ? (
           <Button size="sm" variant="outline" onClick={onRetry}>
-            Muat ulang
+            {retryLabel}
           </Button>
         ) : null}
       </AlertDescription>
@@ -46,6 +48,7 @@ export function ErrorState({
   title = "Gagal memuat data",
   description = "Periksa koneksi atau coba lagi.",
   onRetry,
+  retryLabel = "Coba lagi",
 }: StateProps) {
   return (
     <Alert variant="destructive">
@@ -54,7 +57,7 @@ export function ErrorState({
         <span>{description}</span>
         {onRetry ? (
           <Button size="sm" variant="secondary" onClick={onRetry}>
-            Coba lagi
+            {retryLabel}
           </Button>
         ) : null}
       </AlertDescription>

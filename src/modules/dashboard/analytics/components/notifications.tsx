@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { AnalyticsNotification } from "@/types/api";
 import { useNotificationActions } from "@/hooks/queries/notifications";
-import { EmptyState, ErrorState, LoadingState } from "./states";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/feedback/async-states";
 import { trackAnalyticsEvent } from "../lib/telemetry";
 import { ShoppingBag, CreditCard, Package, Truck } from "lucide-react";
 
@@ -33,7 +37,13 @@ export function NotificationsPanel({ notifications, isLoading, isError, onRetry 
 
   if (isLoading) return <LoadingState lines={4} />;
   if (isError) return <ErrorState onRetry={onRetry} />;
-  if (!notifications?.length) return <EmptyState onRetry={onRetry} />;
+  if (!notifications?.length)
+    return (
+      <EmptyState
+        description="Tambahkan transaksi atau ubah rentang tanggal untuk melihat data."
+        onRetry={onRetry}
+      />
+    );
 
   return (
     <div className="space-y-3 rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">

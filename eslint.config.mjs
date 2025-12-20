@@ -31,4 +31,16 @@ const eslintConfig = [
   }),
 ];
 
+eslintConfig.push({
+  files: ['src/components/shared/**/*.{ts,tsx}'],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: ['@/modules/*', '@/modules/**', '../modules/*', '../../modules/*'],
+      },
+    ],
+  },
+});
+
 export default eslintConfig;

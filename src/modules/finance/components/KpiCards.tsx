@@ -13,7 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SalesKpi } from "../types";
 import { formatInteger, formatRupiah } from "../lib/formatters";
-import { EmptyState, ErrorState, LoadingState } from "./state-placeholders";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/shared/feedback/async-states";
 
 type Props = {
   kpis?: SalesKpi;
@@ -51,7 +55,13 @@ function Trend({
 export function KpiCards({ kpis, isLoading, isError, onRetry }: Props) {
   if (isLoading) return <LoadingState lines={4} />;
   if (isError) return <ErrorState onRetry={onRetry} />;
-  if (!kpis) return <EmptyState onRetry={onRetry} />;
+  if (!kpis)
+    return (
+      <EmptyState
+        description="Sesuaikan rentang tanggal atau ekspor setelah data tersedia."
+        onRetry={onRetry}
+      />
+    );
 
   const cards = [
     {
