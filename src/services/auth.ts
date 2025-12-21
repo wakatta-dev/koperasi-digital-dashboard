@@ -140,15 +140,21 @@ export async function getAccessToken(): Promise<string | null> {
 export async function refreshToken(): Promise<string | null> {
   try {
     let rt: string | null = null;
+    let tenantId: string | null = null;
     if (typeof window !== "undefined") {
       const match = document.cookie.match(/(?:^|; )refresh_token=([^;]+)/);
       rt = match ? decodeURIComponent(match[1]) : null;
+      const tenantMatch = document.cookie.match(/(?:^|; )tenantId=([^;]+)/);
+      tenantId = tenantMatch ? decodeURIComponent(tenantMatch[1]) : null;
     } else {
       try {
         const { cookies } = await import("next/headers");
-        rt = (await cookies()).get("refresh_token")?.value ?? null;
+        const cookieStore = await cookies();
+        rt = cookieStore.get("refresh_token")?.value ?? null;
+        tenantId = cookieStore.get("tenantId")?.value ?? null;
       } catch {
         rt = null;
+        tenantId = null;
       }
     }
 
@@ -166,9 +172,20 @@ export async function refreshToken(): Promise<string | null> {
 
     if (!rt) return null;
 
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (!headers.Accept) {
+      headers.Accept = "application/json";
+    }
+    if (!tenantId) {
+      tenantId = process.env.NEXT_PUBLIC_TENANT_ID ?? null;
+    }
+    if (tenantId) {
+      headers["X-Tenant-ID"] = tenantId;
+    }
+
     const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ refresh_token: rt }),
       credentials: "include",
     });
