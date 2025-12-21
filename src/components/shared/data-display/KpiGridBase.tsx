@@ -75,3 +75,5 @@ function getGridClass(md?: number, xl?: number) {
 
   return `${mdClass} ${xlClass}`;
 }
+
+export type { KpiItem };

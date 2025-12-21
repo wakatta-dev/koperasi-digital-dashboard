@@ -8,12 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { SORT_OPTIONS } from "../constants";
 import { AssetCard } from "./asset-card";
 import { useMemo } from "react";
 import type { AssetFilterQuery } from "@/types/api/asset";
 import type { AssetItem } from "../types";
 import { useAssetList } from "../hooks";
+import type { AssetListResult } from "../hooks/use-asset-list";
 import React from "react";
 
 type AssetGridProps = {
@@ -35,7 +37,8 @@ export function AssetGrid({
     () => ({ ...filters, cursor: pageCursor, limit: pageSize }),
     [filters, pageCursor, pageSize]
   );
-  const { data, isLoading, error, isFetching } = useAssetList(listParams);
+  const assetListQuery = useAssetList(listParams) as UseQueryResult<AssetListResult>;
+  const { data, isLoading, error, isFetching } = assetListQuery;
   const assets: AssetItem[] = useMemo(() => {
     if (!data?.items) return [];
     return data.items.map(mapAsset);

@@ -1,7 +1,7 @@
 /** @format */
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
 import { QK } from "@/hooks/queries/queryKeys";
 import { getAssets } from "@/services/api/assets";
@@ -41,10 +41,10 @@ function sanitizeFilters(filters: AssetFilterQuery = {}): AssetFilterQuery {
   return result;
 }
 
-export function useAssetList(filters: AssetFilterQuery = {}) {
+export function useAssetList(filters: AssetFilterQuery = {}): UseQueryResult<AssetListResult, Error> {
   const params = useMemo(() => sanitizeFilters(filters), [filters]);
 
-  return useQuery({
+  const query = useQuery<AssetListResult, Error>({
     queryKey: QK.assetRental.list(params),
     queryFn: async (): Promise<AssetListResult> => {
       const res = await getAssets(params);
@@ -53,6 +53,7 @@ export function useAssetList(filters: AssetFilterQuery = {}) {
       }
       return { items: res.data, pagination: res.meta?.pagination };
     },
-    keepPreviousData: true,
   });
+
+  return query as UseQueryResult<AssetListResult, Error>;
 }

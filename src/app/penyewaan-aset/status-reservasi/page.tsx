@@ -2,9 +2,7 @@
 
 import type { Metadata } from "next";
 
-import {
-  StatusReservationPage,
-} from "@/modules/asset-reservation/status-reservation";
+import { StatusReservationPage } from "@/modules/asset-reservation/status-reservation";
 import type { ReservationState } from "@/modules/asset-reservation/status-reservation";
 import { verifyGuestLink } from "@/services/api/reservations";
 
@@ -37,8 +35,13 @@ export default async function StatusReservasiPage({
   const state: ReservationState = (() => {
     const backendStatus = guestLink?.data?.status?.toLowerCase();
     if (backendStatus === "confirmed_full") return "done";
-    if (backendStatus === "confirmed_dp" || backendStatus === "awaiting_settlement") return "dp";
-    if (backendStatus === "awaiting_dp" || backendStatus === "pending_review") return "dp";
+    if (
+      backendStatus === "confirmed_dp" ||
+      backendStatus === "awaiting_settlement"
+    )
+      return "dp";
+    if (backendStatus === "awaiting_dp" || backendStatus === "pending_review")
+      return "dp";
     return searchParamsResolved?.state === "done" ? "done" : "dp";
   })();
 
@@ -47,7 +50,6 @@ export default async function StatusReservasiPage({
       state={state}
       hasSignature={allowed}
       reservationId={guestLink?.data?.reservation_id ?? reservationId}
-      token={allowed ? signature : undefined}
     />
   );
 }

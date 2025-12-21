@@ -32,6 +32,12 @@ export function StatusSidebar({
   reservationId,
 }: StatusSidebarProps) {
   const content = STATUS_CONTENT[status];
+  const statusTextClass =
+    status === "pending_review" || status === "awaiting_dp" || status === "awaiting_settlement"
+      ? "text-amber-900/70 dark:text-amber-100/70"
+      : status === "confirmed_full" || status === "confirmed_dp"
+        ? "text-green-900/70 dark:text-green-100/70"
+        : "text-gray-700 dark:text-gray-300";
   const price = {
     total: formatCurrency(amounts?.total) ?? "-",
     dp: formatCurrency(amounts?.dp) ?? "-",
@@ -69,7 +75,7 @@ export function StatusSidebar({
             </span>
           </div>
           <p className="text-sm leading-relaxed" style={{ color: "inherit" }}>
-            <span className={status === "pending" ? "text-amber-900/70 dark:text-amber-100/70" : "text-green-900/70 dark:text-green-100/70"}>
+            <span className={statusTextClass}>
               {content.text}
             </span>
           </p>

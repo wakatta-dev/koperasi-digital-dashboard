@@ -79,7 +79,7 @@ export function LandingNavbar({
         <div className="hidden lg:flex items-center gap-5 xl:gap-8">
           <NavLinks
             items={links.map((link) => {
-              const isActive = activeLabel && link.label === activeLabel;
+              const isActive = Boolean(activeLabel && link.label === activeLabel);
               if (link.cta) {
                 return {
                   key: link.label,
