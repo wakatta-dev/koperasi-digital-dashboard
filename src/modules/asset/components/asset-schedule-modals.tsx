@@ -47,7 +47,8 @@ export function ScheduleModal({
       if (!booking?.id) {
         throw new Error("Booking tidak ditemukan");
       }
-      const status = selectedStatus ?? booking.backendStatus ?? "PENDING_REVIEW";
+      const status =
+        selectedStatus ?? booking.backendStatus ?? "PENDING_REVIEW";
       const res =
         status === "CONFIRMED_FULL"
           ? await completeAssetBooking(booking.id)
@@ -71,13 +72,14 @@ export function ScheduleModal({
 
   const statusLabel = selectedStatus || booking.backendStatus || booking.status;
   const normalizedLabel = (statusLabel || "").toUpperCase();
-  const isDone = normalizedLabel === "CONFIRMED_FULL" || booking.status === "Selesai";
+  const isDone =
+    normalizedLabel === "CONFIRMED_FULL" || booking.status === "Selesai";
   const statusOptions = [
-    { value: "PENDING_REVIEW", label: "Menunggu Persetujuan" },
+    // { value: "PENDING_REVIEW", label: "Menunggu Persetujuan" },
     { value: "AWAITING_DP", label: "Disetujui (Menunggu DP)" },
-    { value: "AWAITING_SETTLEMENT", label: "DP Lunas (Menunggu Pelunasan)" },
-    { value: "CONFIRMED_FULL", label: "Tandai Selesai / Konfirmasi Penuh" },
-    { value: "CANCELLED", label: "Dibatalkan" },
+    // { value: "AWAITING_SETTLEMENT", label: "DP Lunas (Menunggu Pelunasan)" },
+    // { value: "CONFIRMED_FULL", label: "Tandai Selesai / Konfirmasi Penuh" },
+    // { value: "CANCELLED", label: "Dibatalkan" },
     { value: "REJECTED", label: "Ditolak" },
   ];
 
@@ -236,20 +238,20 @@ function Badge({ status, done }: { status?: string; done?: boolean }) {
   const label = (() => {
     const key = (status || "").toUpperCase();
     switch (key) {
-    case "PENDING_REVIEW":
-      return "Menunggu Persetujuan";
-    case "AWAITING_DP":
-      return "Menunggu DP";
-    case "AWAITING_SETTLEMENT":
-      return "Menunggu Pelunasan";
-    case "CONFIRMED_FULL":
-      return "Terkonfirmasi";
-    case "CANCELLED":
-      return "Dibatalkan";
-    case "REJECTED":
-      return "Ditolak";
-    default:
-      return status ?? "-";
+      case "PENDING_REVIEW":
+        return "Menunggu Persetujuan";
+      case "AWAITING_DP":
+        return "Menunggu DP";
+      case "AWAITING_SETTLEMENT":
+        return "Menunggu Pelunasan";
+      case "CONFIRMED_FULL":
+        return "Terkonfirmasi";
+      case "CANCELLED":
+        return "Dibatalkan";
+      case "REJECTED":
+        return "Ditolak";
+      default:
+        return status ?? "-";
     }
   })();
   return (

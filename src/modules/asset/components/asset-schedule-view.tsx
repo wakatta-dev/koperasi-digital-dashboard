@@ -68,8 +68,6 @@ const statusClass: Record<AssetSchedule["status"], string> = {
   Berlangsung:
     "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
   Selesai: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
-  Cancelled:
-    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800",
 };
 
 export function AssetScheduleView({
@@ -151,11 +149,14 @@ export function AssetScheduleView({
         ) : null}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_minmax(260px,1fr)]">
-          <Card className="overflow-hidden border-border-light dark:border-border-dark">
-            <CardContent className="p-0">
-              <ScrollArea className="w-full">
+          <Card className="flex flex-col overflow-hidden border-border-light p-0 dark:border-border-dark">
+            <CardContent className="flex h-full min-h-[520px] flex-col p-0">
+              <ScrollArea className="w-full flex-1 min-h-0">
                 <div className="min-w-[1000px]">
-                  <TableShell className="w-full text-sm" containerClassName="overflow-visible">
+                  <TableShell
+                    className="w-full text-sm"
+                    containerClassName="overflow-visible"
+                  >
                     <TableHeader className="bg-gray-50 dark:bg-gray-800">
                       <TableRow className="divide-x divide-border-light dark:divide-border-dark">
                         <TableCell
@@ -298,7 +299,7 @@ export function AssetScheduleView({
                 <ScrollBar orientation="horizontal" />
               </ScrollArea>
 
-              <div className="flex items-center justify-between border-t border-border-light bg-white px-6 py-4 text-sm text-text-sub-light dark:border-border-dark dark:bg-slate-900 dark:text-text-sub-dark">
+              <div className="mt-auto flex items-center justify-between border-t border-border-light bg-white px-6 py-4 text-sm text-text-sub-light dark:border-border-dark dark:bg-slate-900 dark:text-text-sub-dark">
                 <div className="hidden sm:block">
                   Menampilkan{" "}
                   <span className="font-medium text-text-main-light dark:text-text-main-dark">
@@ -332,7 +333,9 @@ export function AssetScheduleView({
                 Filter
               </CardTitle>
               <p className="text-xs text-text-sub-light dark:text-text-sub-dark">
-                Filter status yang didukung backend: PENDING_REVIEW, AWAITING_DP, AWAITING_SETTLEMENT, CONFIRMED_FULL, CANCELLED, REJECTED.
+                Filter status yang didukung backend: PENDING_REVIEW,
+                AWAITING_DP, AWAITING_SETTLEMENT, CONFIRMED_FULL, CANCELLED,
+                REJECTED.
               </p>
             </CardHeader>
             <CardContent className="flex h-full flex-col gap-6">
@@ -347,17 +350,25 @@ export function AssetScheduleView({
                 </label>
                 <Select
                   value={statusFilter || "ALL"}
-                  onValueChange={(val) => setStatusFilter(val === "ALL" ? "" : val)}
+                  onValueChange={(val) =>
+                    setStatusFilter(val === "ALL" ? "" : val)
+                  }
                 >
                   <SelectTrigger className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark">
                     <SelectValue placeholder="Semua status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">Semua Status</SelectItem>
-                    <SelectItem value="PENDING_REVIEW">Menunggu Persetujuan</SelectItem>
+                    <SelectItem value="PENDING_REVIEW">
+                      Menunggu Persetujuan
+                    </SelectItem>
                     <SelectItem value="AWAITING_DP">Menunggu DP</SelectItem>
-                    <SelectItem value="AWAITING_SETTLEMENT">Menunggu Pelunasan</SelectItem>
-                    <SelectItem value="CONFIRMED_FULL">Terkonfirmasi</SelectItem>
+                    <SelectItem value="AWAITING_SETTLEMENT">
+                      Menunggu Pelunasan
+                    </SelectItem>
+                    <SelectItem value="CONFIRMED_FULL">
+                      Terkonfirmasi
+                    </SelectItem>
                     <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
                     <SelectItem value="REJECTED">Ditolak</SelectItem>
                   </SelectContent>

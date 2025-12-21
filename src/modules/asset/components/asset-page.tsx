@@ -18,7 +18,7 @@ import { AddAssetDialog, EditAssetDialog } from "./asset-modals";
 
 const tabs: Array<{ key: "manajemen" | "jadwal"; label: string }> = [
   { key: "manajemen", label: "Manajemen Aset" },
-  { key: "jadwal", label: "Jadwal Aset Sewa" },
+  { key: "jadwal", label: "Manajemen Penyewaan" },
 ];
 
 type AssetManagementPageProps = {
@@ -31,7 +31,9 @@ export function AssetManagementPage({
   const router = useRouter();
   const [addOpen, setAddOpen] = React.useState(false);
   const [editOpen, setEditOpen] = React.useState(false);
-  const [selectedAsset, setSelectedAsset] = React.useState<AssetItem | undefined>();
+  const [selectedAsset, setSelectedAsset] = React.useState<
+    AssetItem | undefined
+  >();
   const { data, isLoading, error } = useQuery({
     queryKey: QK.assetRental.list(),
     queryFn: async (): Promise<AssetItem[]> => {
@@ -115,7 +117,8 @@ export function AssetManagementPage({
 
       {!isLoading && assetItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-          Belum ada aset terdaftar. Tambahkan aset untuk mulai menerima reservasi.
+          Belum ada aset terdaftar. Tambahkan aset untuk mulai menerima
+          reservasi.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
