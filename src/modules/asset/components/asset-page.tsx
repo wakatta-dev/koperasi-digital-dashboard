@@ -34,10 +34,11 @@ export function AssetManagementPage({
   const [selectedAsset, setSelectedAsset] = React.useState<
     AssetItem | undefined
   >();
+  const listParams = React.useMemo(() => ({ limit: 50 }), []);
   const { data, isLoading, error } = useQuery({
-    queryKey: QK.assetRental.list(),
+    queryKey: QK.assetRental.list(listParams),
     queryFn: async (): Promise<AssetItem[]> => {
-      const res = await getAssets();
+      const res = await getAssets(listParams);
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal memuat aset");
       }

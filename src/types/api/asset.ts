@@ -25,6 +25,8 @@ export type AssetFilterQuery = {
   status?: 'available' | 'maintenance' | 'rented';
   search?: string;
   sort?: 'popular' | 'price_asc' | 'price_desc' | 'newest';
+  cursor?: string | number;
+  limit?: number;
 };
 
 export type AssetRequest = {

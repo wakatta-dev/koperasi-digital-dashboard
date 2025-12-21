@@ -12,10 +12,10 @@ type DetailRecommendationsProps = {
 };
 
 export function DetailRecommendations({ currentId }: DetailRecommendationsProps) {
-  const { data, isLoading } = useAssetList();
+  const { data, isLoading } = useAssetList({ limit: 6 });
   const items: AssetItem[] = useMemo(() => {
-    if (!data) return [];
-    return data
+    if (!data?.items) return [];
+    return data.items
       .map(mapAsset)
       .filter((asset) => asset && String(asset.id) !== currentId)
       .slice(0, 3) as AssetItem[];

@@ -19,19 +19,40 @@ import React from "react";
 type AssetGridProps = {
   filters: AssetFilterQuery;
   onSortChange: (value: AssetFilterQuery["sort"]) => void;
+  pageCursor?: string | number;
+  pageSize?: number;
+  onPageChange?: (cursor?: string | number) => void;
 };
 
-export function AssetGrid({ filters, onSortChange }: AssetGridProps) {
-  const { data, isLoading, error } = useAssetList(filters);
+export function AssetGrid({
+  filters,
+  onSortChange,
+  pageCursor,
+  pageSize = 9,
+  onPageChange,
+}: AssetGridProps) {
+  const listParams = useMemo(
+    () => ({ ...filters, cursor: pageCursor, limit: pageSize }),
+    [filters, pageCursor, pageSize]
+  );
+  const { data, isLoading, error, isFetching } = useAssetList(listParams);
   const assets: AssetItem[] = useMemo(() => {
-    if (!data) return [];
-    return data.map(mapAsset);
+    if (!data?.items) return [];
+    return data.items.map(mapAsset);
   }, [data]);
 
   const countText = useMemo(() => {
     if (isLoading) return "Memuat aset...";
-    return `${assets.length} aset`;
-  }, [isLoading, assets.length]);
+    const currentCursor = Number(pageCursor ?? 0);
+    const safeCursor = Number.isFinite(currentCursor) ? currentCursor : 0;
+    const limit = data?.pagination?.limit ?? pageSize;
+    const currentPage = limit > 0 ? Math.floor(safeCursor / limit) + 1 : 1;
+    return `${assets.length} aset · Halaman ${currentPage}`;
+  }, [isLoading, assets.length, pageCursor, data?.pagination?.limit, pageSize]);
+
+  const pagination = data?.pagination;
+  const canPrev = !!pagination?.has_prev && !!onPageChange;
+  const canNext = !!pagination?.has_next && !!onPageChange;
 
   return (
     <div className="flex-grow">
@@ -98,9 +119,50 @@ export function AssetGrid({ filters, onSortChange }: AssetGridProps) {
           ))}
         </div>
       )}
-      <div className="mt-10 text-center text-xs text-gray-500 dark:text-gray-400">
-        Menampilkan seluruh aset yang dikembalikan backend (pagination belum tersedia di API).
-      </div>
+      {pagination ? (
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-center sm:text-left">
+            Halaman{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              {(() => {
+                const start = Number(pageCursor ?? 0);
+                const safeStart = Number.isFinite(start) ? start : 0;
+                const limit = pagination.limit || pageSize;
+                return limit > 0 ? Math.floor(safeStart / limit) + 1 : 1;
+              })()}
+            </span>{" "}
+            {pagination.has_next ? "· Masih ada aset lain" : "· Akhir daftar"}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              onClick={() => {
+                if (!onPageChange) return;
+                const prev = pagination.prev_cursor ?? 0;
+                onPageChange(prev);
+              }}
+              disabled={!canPrev || isLoading || isFetching}
+            >
+              Sebelumnya
+            </button>
+            <button
+              className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              onClick={() => {
+                if (!onPageChange) return;
+                onPageChange(pagination.next_cursor ?? pagination.limit);
+              }}
+              disabled={!canNext || isLoading || isFetching}
+            >
+              Berikutnya
+            </button>
+            {isFetching ? (
+              <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                Memuat halaman...
+              </span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

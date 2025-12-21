@@ -2,6 +2,16 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+const FORCED_REFRESH_MS: number | null = (() => {
+  const raw = process.env.NEXT_PUBLIC_FORCE_REFRESH_MS ?? process.env.FORCE_REFRESH_MS;
+  const parsed = raw ? Number(raw) : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+})();
+
+const CLOCK_SKEW = FORCED_REFRESH_MS
+  ? Math.min(30_000, Math.max(500, Math.floor(FORCED_REFRESH_MS / 2)))
+  : 30_000;
+
 type ClientSessionCache = {
   accessToken: string | null;
   refreshToken: string | null;
@@ -20,13 +30,22 @@ function parseExpiry(value: unknown): number | null {
   return Number.isNaN(numeric) ? null : numeric;
 }
 
+function computeClientExpiry(candidate: number | null): number | null {
+  const normalized = candidate && Number.isFinite(candidate) ? candidate : null;
+  if (!FORCED_REFRESH_MS) return normalized;
+
+  const forcedExpiry = Date.now() + FORCED_REFRESH_MS;
+  if (!normalized) return forcedExpiry;
+  return Math.min(normalized, forcedExpiry);
+}
+
 function setClientSessionCache(session: any): ClientSessionCache | null {
   if (!session) {
     clientSessionCache = null;
     return null;
   }
 
-  const expiresAt = parseExpiry(session.expires);
+  const expiresAt = computeClientExpiry(parseExpiry(session.expires));
 
   clientSessionCache = {
     accessToken: session?.accessToken ?? session?.access_token ?? null,
@@ -47,7 +66,6 @@ function getValidClientSessionCache(): ClientSessionCache | null {
   const { expiresAt, accessToken } = clientSessionCache;
   if (!accessToken) return null;
   if (!expiresAt) return clientSessionCache;
-  const CLOCK_SKEW = 30_000; // refresh slightly before expiry
   if (expiresAt - CLOCK_SKEW > Date.now()) {
     return clientSessionCache;
   }
@@ -210,7 +228,9 @@ export async function refreshToken(): Promise<string | null> {
     }
 
     if (typeof window !== "undefined") {
-      const expiresAt = clientSessionCache?.expiresAt ?? (Date.now() + 5 * 60_000);
+      const expiresAt = computeClientExpiry(
+        clientSessionCache?.expiresAt ?? Date.now() + 5 * 60_000
+      );
       clientSessionCache = {
         accessToken: data.access_token,
         refreshToken: data.refresh_token ?? clientSessionCache?.refreshToken ?? null,

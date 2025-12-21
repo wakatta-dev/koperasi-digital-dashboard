@@ -333,9 +333,7 @@ export function AssetScheduleView({
                 Filter
               </CardTitle>
               <p className="text-xs text-text-sub-light dark:text-text-sub-dark">
-                Filter status yang didukung backend: PENDING_REVIEW,
-                AWAITING_DP, AWAITING_SETTLEMENT, CONFIRMED_FULL, CANCELLED,
-                REJECTED.
+                Pilih status pemesanan yang tersedia
               </p>
             </CardHeader>
             <CardContent className="flex h-full flex-col gap-6">

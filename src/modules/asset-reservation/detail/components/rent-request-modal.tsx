@@ -17,6 +17,12 @@ type RentRequestModalProps = {
 };
 
 export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: RentRequestModalProps) {
+  const absoluteStatusHref = statusHref
+    ? statusHref.startsWith("http")
+      ? statusHref
+      : `${typeof window !== "undefined" ? window.location.origin : ""}${statusHref}`
+    : undefined;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -57,7 +63,7 @@ export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: 
                 Tautan ini unik dan memerlukan signature. Salin dan simpan agar tidak hilang.
               </p>
               <div className="break-all font-mono text-[11px] text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-900 rounded border border-amber-200 dark:border-amber-800 p-2">
-                {statusHref}
+                {absoluteStatusHref}
               </div>
             </div>
           ) : null}
@@ -65,7 +71,9 @@ export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: 
             className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition transform active:scale-[0.98]"
             asChild
           >
-            <a href={statusHref ?? "/penyewaan-aset/status/req-1"}>Lihat Permintaan Saya</a>
+            <a href={absoluteStatusHref ?? statusHref ?? "/penyewaan-aset/status/req-1"}>
+              Lihat Permintaan Saya
+            </a>
           </Button>
           <Button
             variant="ghost"

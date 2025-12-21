@@ -24,6 +24,8 @@ export function getAssets(
   if (params?.status) search.set("status", params.status);
   if (params?.search) search.set("search", params.search);
   if (params?.sort) search.set("sort", params.sort);
+  if (params?.limit) search.set("limit", String(params.limit));
+  if (params?.cursor !== undefined) search.set("cursor", String(params.cursor));
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<AssetRentalAsset[]>(`${API_PREFIX}${E.list}${query}`);
 }

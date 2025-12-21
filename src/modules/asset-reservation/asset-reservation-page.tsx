@@ -17,17 +17,21 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const PAGE_SIZE = 9;
+
 export function AssetReservationPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<AssetFilterQuery>({
     sort: SORT_OPTIONS[0].value,
   });
+  const [pageCursor, setPageCursor] = useState<string | number | undefined>();
 
   const handleSearchSubmit = () => {
     setFilters((prev) => ({
       ...prev,
       search: searchTerm.trim() || undefined,
     }));
+    setPageCursor(undefined);
   };
 
   const handleCategoryChange = (value?: string) => {
@@ -35,6 +39,7 @@ export function AssetReservationPage() {
       ...prev,
       category: value,
     }));
+    setPageCursor(undefined);
   };
 
   const handleSortChange = (sort: AssetFilterQuery["sort"]) => {
@@ -42,11 +47,13 @@ export function AssetReservationPage() {
       ...prev,
       sort,
     }));
+    setPageCursor(undefined);
   };
 
   const handleResetFilters = () => {
     setSearchTerm("");
     setFilters({ sort: SORT_OPTIONS[0].value });
+    setPageCursor(undefined);
   };
 
   const appliedFilters = useMemo(() => filters, [filters]);
@@ -73,6 +80,9 @@ export function AssetReservationPage() {
               <AssetGrid
                 filters={appliedFilters}
                 onSortChange={handleSortChange}
+                pageCursor={pageCursor}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPageCursor}
               />
             </div>
           </div>
