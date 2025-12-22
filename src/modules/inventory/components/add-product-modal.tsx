@@ -1,6 +1,12 @@
 /** @format */
 
+"use client";
+
 import React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,18 +24,88 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useInventoryActions } from "@/hooks/queries/inventory";
+import type { CreateInventoryProductRequest } from "@/types/api/inventory";
 
 type ModalBaseProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
+const formSchema = z.object({
+  name: z.string().min(1, "Nama produk wajib diisi"),
+  sku: z.string().optional(),
+  category: z.string().optional(),
+  description: z.string().optional(),
+  cost_price: z.coerce.number().min(0, "Harga beli tidak boleh negatif").optional(),
+  price_sell: z.coerce.number().positive("Harga jual harus lebih dari 0"),
+  track_stock: z.boolean().default(true),
+  initial_stock: z.coerce.number().min(0, "Stok awal minimal 0").default(0),
+  min_stock: z.coerce.number().min(0, "Minimum stok minimal 0").default(0),
+  show_in_marketplace: z.boolean().default(false),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
-  const [category, setCategory] = React.useState<string>();
-  const [unit, setUnit] = React.useState<string>();
+  const { create, initialStock } = useInventoryActions();
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      sku: "",
+      category: "",
+      description: "",
+      cost_price: 0,
+      price_sell: 0,
+      track_stock: true,
+      initial_stock: 0,
+      min_stock: 0,
+      show_in_marketplace: false,
+    },
+  });
+
+  const submitting = create.isPending || initialStock.isPending;
+  const trackStock = form.watch("track_stock");
+
+  const handleClose = (next: boolean) => {
+    if (!next) {
+      form.reset();
+    }
+    onOpenChange(next);
+  };
+
+  const onSubmit = async (values: FormValues) => {
+    const payload: CreateInventoryProductRequest = {
+      name: values.name,
+      price_sell: values.price_sell,
+      track_stock: values.track_stock,
+      category: values.category || undefined,
+      cost_price: values.cost_price,
+      sku: values.sku || undefined,
+      description: values.description || undefined,
+      min_stock: values.min_stock,
+      show_in_marketplace: values.show_in_marketplace,
+    };
+
+    try {
+      const product = await create.mutateAsync(payload);
+      if (values.track_stock && values.initial_stock > 0) {
+        await initialStock.mutateAsync({
+          id: product.id,
+          payload: { quantity: values.initial_stock, note: "Initial stock" },
+        });
+      }
+      form.reset();
+      onOpenChange(false);
+    } catch {
+      // handled in mutations
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogPortal>
         <DialogContent
           overlayClassName="bg-gray-900/50 backdrop-blur-sm"
@@ -40,196 +116,257 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
             <DialogTitle className="mb-6 text-left text-xl font-bold text-[#111827] dark:text-white">
               Tambahkan Produk
             </DialogTitle>
-            <form className="space-y-6">
-              <div className="space-y-2">
-                <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
-                  Foto Produk
-                </label>
-                <div className="group mt-1 flex cursor-pointer justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 pt-5 pb-6 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700">
-                  <div className="space-y-1 text-center">
-                    <div className="flex flex-col items-center justify-center text-sm text-gray-600 dark:text-gray-400">
+            <Form {...form}>
+              <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="space-y-2">
+                  <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
+                    Foto Produk
+                  </label>
+                  <div className="group mt-1 flex cursor-pointer justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 pt-5 pb-6 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700">
+                    <div className="space-y-1 text-center text-sm text-gray-600 dark:text-gray-400">
                       <p className="font-medium text-[#4f46e5] dark:text-indigo-400">
-                        Unggah Foto Produk (0/5)
+                        Unggah foto produk (opsional)
                       </p>
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                        PNG, JPG atau JPEG
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        (Ukuran maksimal 2mb)
+                        PNG atau JPG, maksimal 2MB
                       </p>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label
-                  className="mb-2 block text-sm font-medium text-[#111827] dark:text-white"
-                  htmlFor="add-product-name"
-                >
-                  Nama Produk
-                </label>
-                <Input
-                  id="add-product-name"
-                  placeholder="Masukkan nama produk"
-                  className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Produk</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Masukkan nama produk"
+                          className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <label
-                  className="mb-2 block text-sm font-medium text-[#111827] dark:text-white"
-                  htmlFor="add-sku"
-                >
-                  SKU (Stock Keeping Unit)
-                </label>
-                <Input
-                  id="add-sku"
-                  placeholder="Masukkan SKU"
-                  className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                <FormField
+                  control={form.control}
+                  name="sku"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SKU (Stock Keeping Unit)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Masukkan SKU (opsional)"
+                          className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
-                    Kategori
-                  </label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-auto w-full rounded-md border-[#e5e7eb] bg-white py-2.5 text-sm text-gray-500 shadow-sm focus-visible:border-[#4f46e5] focus-visible:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white">
-                      <SelectValue placeholder="Pilih kategori produk" />
-                    </SelectTrigger>
-                    <SelectContent className="min-w-full border-[#e5e7eb] bg-white text-[#111827] dark:border-[#334155] dark:bg-[#1e293b] dark:text-white">
-                      <SelectItem value="elektronik">Elektronik</SelectItem>
-                      <SelectItem value="makanan">Makanan &amp; Minuman</SelectItem>
-                      <SelectItem value="kesehatan">
-                        Kesehatan &amp; Kecantikan
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kategori</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="h-auto w-full rounded-md border-[#e5e7eb] bg-white py-2.5 text-sm text-gray-500 shadow-sm focus-visible:border-[#4f46e5] focus-visible:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white">
+                              <SelectValue placeholder="Pilih kategori produk" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="min-w-full border-[#e5e7eb] bg-white text-[#111827] dark:border-[#334155] dark:bg-[#1e293b] dark:text-white">
+                            <SelectItem value="elektronik">Elektronik</SelectItem>
+                            <SelectItem value="makanan">Makanan &amp; Minuman</SelectItem>
+                            <SelectItem value="kesehatan">Kesehatan &amp; Kecantikan</SelectItem>
+                            <SelectItem value="lainnya">Lainnya</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="space-y-2">
-                  <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
-                    Satuan
-                  </label>
-                  <Select value={unit} onValueChange={setUnit}>
-                    <SelectTrigger className="h-auto w-full rounded-md border-[#e5e7eb] bg-white py-2.5 text-sm text-gray-500 shadow-sm focus-visible:border-[#4f46e5] focus-visible:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white">
-                      <SelectValue placeholder="Pilih satuan" />
-                    </SelectTrigger>
-                    <SelectContent className="min-w-full border-[#e5e7eb] bg-white text-[#111827] dark:border-[#334155] dark:bg-[#1e293b] dark:text-white">
-                      <SelectItem value="pcs">Pcs</SelectItem>
-                      <SelectItem value="box">Box</SelectItem>
-                      <SelectItem value="kg">Kg</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  className="mb-2 block text-sm font-medium text-[#111827] dark:text-white"
-                  htmlFor="add-description"
-                >
-                  Deskripsi
-                </label>
-                <Textarea
-                  id="add-description"
-                  rows={3}
-                  placeholder="Masukkan deskripsi terkait produk"
-                  className="rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label
-                    className="mb-2 block text-sm font-medium text-[#111827] dark:text-white"
-                    htmlFor="add-buy-price"
-                  >
-                    Harga Beli
-                  </label>
-                  <Input
-                    id="add-buy-price"
-                    placeholder="Masukkan harga beli"
-                    className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                  <FormField
+                    control={form.control}
+                    name="cost_price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Harga Beli</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            placeholder="0"
+                            className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label
-                    className="mb-2 block text-sm font-medium text-[#111827] dark:text-white"
-                    htmlFor="add-sell-price"
-                  >
-                    Harga Jual
-                  </label>
-                  <Input
-                    id="add-sell-price"
-                    placeholder="Masukkan harga jual"
-                    className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="price_sell"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Harga Jual</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={1}
+                            placeholder="Masukkan harga jual"
+                            className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="min_stock"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Batas Minimum Stok</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            placeholder="0"
+                            className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between py-2">
-                <label
-                  className="text-sm font-medium text-[#111827] dark:text-white"
-                  htmlFor="add-track-stock"
-                >
-                  Lacak Stok
-                </label>
-                <Checkbox
-                  id="add-track-stock"
-                  className="h-4 w-4 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5]"
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Deskripsi</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={3}
+                          placeholder="Masukkan deskripsi produk"
+                          className="rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label
-                    className="mb-2 block text-sm font-medium text-[#111827] dark:text-white"
-                    htmlFor="add-initial-stock"
+                <FormField
+                  control={form.control}
+                  name="track_stock"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-md border border-border px-3 py-3">
+                      <FormLabel className="mb-0 text-sm font-medium text-[#111827] dark:text-white">
+                        Lacak Stok
+                      </FormLabel>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(val) => field.onChange(Boolean(val))}
+                          className="h-4 w-4 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5]"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="initial_stock"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stok Awal</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="Masukkan jumlah stok awal"
+                          disabled={!trackStock}
+                          className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="show_in_marketplace"
+                  render={({ field }) => (
+                    <FormItem className="flex items-start gap-3 rounded-md border border-border px-3 py-3">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(val) => field.onChange(Boolean(val))}
+                          className="h-4 w-4 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5]"
+                        />
+                      </FormControl>
+                      <div className="space-y-1">
+                        <FormLabel className="mb-0 text-sm font-medium text-[#111827] dark:text-white">
+                          Tampilkan di marketplace
+                        </FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          Hanya produk dengan harga & stok valid yang akan muncul.
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end gap-3 rounded-b-xl border-t border-[#e5e7eb] bg-gray-50 px-6 py-4 dark:border-[#334155] dark:bg-[#1f2937]">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2 dark:border-gray-600 dark:bg-[#374151] dark:text-gray-200 dark:hover:bg-[#475569]"
+                    onClick={() => handleClose(false)}
+                    disabled={submitting}
                   >
-                    Stok Awal
-                  </label>
-                  <Input
-                    id="add-initial-stock"
-                    type="number"
-                    placeholder="Masukkan jumlah stok awal"
-                    className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label
-                    className="mb-2 block text-sm font-medium text-[#111827] dark:text-white"
-                    htmlFor="add-min-stock"
+                    Batal
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="rounded-md border border-transparent bg-[#4f46e5] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2"
+                    disabled={submitting}
                   >
-                    Batas Minimum Stok
-                  </label>
-                  <Input
-                    id="add-min-stock"
-                    type="number"
-                    placeholder="Masukkan batas minimum stok"
-                    className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
-                  />
+                    {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Simpan Produk
+                  </Button>
                 </div>
-              </div>
-            </form>
-          </div>
-          <div className="flex justify-end gap-3 rounded-b-xl border-t border-[#e5e7eb] bg-gray-50 px-6 py-4 dark:border-[#334155] dark:bg-[#1f2937]">
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2 dark:border-gray-600 dark:bg-[#374151] dark:text-gray-200 dark:hover:bg-[#475569]"
-              onClick={() => onOpenChange(false)}
-            >
-              Batal
-            </Button>
-            <Button
-              type="button"
-              className="rounded-md border border-transparent bg-[#4f46e5] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2"
-            >
-              Simpan Produk
-            </Button>
+              </form>
+            </Form>
           </div>
         </DialogContent>
       </DialogPortal>

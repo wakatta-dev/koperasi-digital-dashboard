@@ -21,20 +21,18 @@ import {
 import { DataTable } from "@/components/shared/data-table";
 import Link from "next/link";
 import { InventoryItem } from "@/modules/inventory/types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getInventory } from "@/modules/inventory/api";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useInventoryProducts } from "@/hooks/queries/inventory";
+import { mapInventoryProduct } from "@/modules/inventory/utils";
 
 export default function InventoryPage() {
-  const { data: inventoryList, isFetching } = useQuery<InventoryItem[]>({
-    queryKey: ["inventory"],
-    queryFn: () => getInventory(),
-    placeholderData: keepPreviousData,
-  });
+  const { data, isFetching } = useInventoryProducts({}, { placeholderData: keepPreviousData });
+  const inventoryList: InventoryItem[] = data?.items?.map(mapInventoryProduct) ?? [];
 
   const columns = React.useMemo<ColumnDef<InventoryItem>[]>(
     () => [
       {
-        accessorFn: (row) => row.product.name,
+        accessorFn: (row) => row.name,
         header: "Product",
         cell: (info) => info.getValue(),
       },
@@ -49,7 +47,7 @@ export default function InventoryPage() {
         cell: (info) => info.getValue(),
       },
       {
-        accessorFn: (row) => row.product.category,
+        accessorFn: (row) => row.category,
         header: "Category",
         cell: (info) => info.getValue(),
       },

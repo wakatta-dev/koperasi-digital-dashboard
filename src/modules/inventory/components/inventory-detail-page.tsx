@@ -1,57 +1,121 @@
 /** @format */
 
-import { Checkbox } from "@/components/ui/checkbox";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
+import { useInventoryActions, useInventoryProduct } from "@/hooks/queries/inventory";
+import { formatCurrency } from "@/lib/format";
+import { EditProductModal } from "./edit-product-modal";
+import type { InventoryItem } from "../types";
+import { computeEligibility, mapInventoryProduct } from "../utils";
 
-type ProductDetail = {
-  name: string;
-  sku: string;
-  category: string;
-  unit: string;
-  description: string;
-  purchasePrice: string;
-  salePrice: string;
-  trackStock: boolean;
-  initialStock: number | string;
-  minStock: number | string;
-  image: string;
+type Props = {
+  id: string;
 };
 
-const product: ProductDetail = {
-  name: "Smartwacth B80 AirGone",
-  sku: "HT998765",
-  category: "Elektronik",
-  unit: "pcs",
-  description: "Smartwacth B80 AirGone",
-  purchasePrice: "Rp175.000",
-  salePrice: "Rp350.000",
-  trackStock: true,
-  initialStock: 169,
-  minStock: 20,
-  image:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDR2tyBNK8Uhn9FKFgYvi1ZYQgtnnPyFf6hgUkdwYMkG8gTq2Ke6eT8WsoBSXpQY81hIa-x3tphqCYEIImz5LoClrwVzHkoLuaTQ60iK3nImaZ_zviEm6aBaFpaFzeI2zIgU8O_Vg804tNFJn0zixEKuVkNfDI8K92IXBgoI-lAIwCR4RxXzX_fwCXaKN_7XpFkqvcy3tGcQYxbOhWnQy3_gPztTD7FLFjCjcQFtx1gKuEUau22TM36H2YsRcf71fDi1quuYo5N_zI",
-};
+export function InventoryDetailPage({ id }: Props) {
+  const { data, isLoading, isError, error } = useInventoryProduct(id);
+  const actions = useInventoryActions();
+  const [editOpen, setEditOpen] = useState(false);
+  const [stockInput, setStockInput] = useState<string>("");
 
-export function InventoryDetailPage() {
+  const item: InventoryItem | null = useMemo(
+    () => (data ? mapInventoryProduct(data) : null),
+    [data]
+  );
+  const eligibility = useMemo(
+    () => (data ? computeEligibility(data) : { eligible: false, reasons: [] }),
+    [data]
+  );
+
+  useEffect(() => {
+    if (item) {
+      setStockInput(String(item.stock));
+    }
+  }, [item]);
+
+  const handleStockSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!item || !item.trackStock) return;
+    const desired = Number(stockInput);
+    if (Number.isNaN(desired) || desired < 0) return;
+    try {
+      await actions.adjustStock.mutateAsync({
+        id: item.id,
+        payload: { physical_count: desired, note: "Manual adjustment" },
+      });
+    } catch {
+      // handled by mutation toast
+    }
+  };
+
+  const handleVisibility = (next: boolean) => {
+    if (!item) return;
+    actions.update.mutate({ id: item.id, payload: { show_in_marketplace: next } });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-md border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+        Gagal memuat produk: {(error as Error)?.message || "Terjadi kesalahan"}
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
+        Produk tidak ditemukan.
+      </div>
+    );
+  }
+
   return (
     <div className="w-full space-y-6 md:space-y-8 text-[#111827] dark:text-[#f8fafc]">
-      <div className="flex items-center gap-2 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-        <a
-          className="font-medium text-[#6b7280] transition-colors hover:text-[#4f46e5] dark:text-[#94a3b8] dark:hover:text-[#a5b4fc]"
-          href="#"
-        >
-          Inventaris
-        </a>
-        <ChevronRight className="h-4 w-4 text-gray-400" strokeWidth={2} />
-        <a
-          className="font-medium text-[#4f46e5] underline-offset-2 hover:underline dark:text-[#a5b4fc]"
-          href="#"
-        >
-          Detail Produk
-        </a>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-[#6b7280] dark:text-[#94a3b8]">
+          <Link
+            className="font-medium text-[#6b7280] transition-colors hover:text-[#4f46e5] dark:text-[#94a3b8] dark:hover:text-[#a5b4fc]"
+            href="/bumdes/inventory"
+          >
+            Inventaris
+          </Link>
+          <ChevronRight className="h-4 w-4 text-gray-400" strokeWidth={2} />
+          <span className="font-medium text-[#4f46e5] dark:text-[#a5b4fc]">
+            {item.name}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setEditOpen(true)}>
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={item.status === "ARCHIVED" || actions.archive.isPending}
+            onClick={() => actions.archive.mutate(item.id)}
+          >
+            Arsipkan
+          </Button>
+        </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-4">
         <h1 className="text-2xl font-bold text-[#111827] dark:text-white">
           Detail Produk
         </h1>
@@ -59,121 +123,146 @@ export function InventoryDetailPage() {
 
       <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
         <div className="p-8">
-          <div className="mb-8">
-            <label className="mb-2 block text-sm font-medium text-[#6b7280] dark:text-[#94a3b8]">
-              Foto Produk
-            </label>
-            <div className="mt-1">
-              <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border border-[#e5e7eb] bg-[#f3f4f6] dark:border-[#334155] dark:bg-[#1f2937]">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-x-12 gap-y-8 border-t border-[#f3f4f6] pt-8 dark:border-[#1f2937] md:grid-cols-2">
-            <div className="md:col-span-2">
-              <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                Nama Produk
-              </h3>
-              <p className="text-lg font-medium text-[#111827] dark:text-white">
-                {product.name}
-              </p>
-            </div>
-            <div className="md:col-span-2">
-              <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                SKU (Stock Keeping Unit)
-              </h3>
-              <p className="text-lg font-medium text-[#111827] dark:text-white">
-                {product.sku}
-              </p>
-            </div>
-            <div>
-              <h3 className="mb-2 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                Kategori
-              </h3>
-              <span className="inline-flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                {product.category}
-              </span>
-            </div>
-            <div>
-              <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                Satuan
-              </h3>
-              <p className="text-lg font-medium text-[#111827] dark:text-white">
-                {product.unit}
-              </p>
-            </div>
-            <div className="md:col-span-2">
-              <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                Deskripsi
-              </h3>
-              <p className="text-lg font-medium text-[#111827] dark:text-white">
-                {product.description}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 grid grid-cols-1 gap-x-12 gap-y-8 border-t border-[#f3f4f6] pt-8 dark:border-[#1f2937] md:grid-cols-2">
-            <div>
-              <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                Harga Beli
-              </h3>
-              <p className="text-lg font-medium text-[#111827] dark:text-white">
-                {product.purchasePrice}
-              </p>
-            </div>
-            <div>
-              <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                Harga Jual
-              </h3>
-              <p className="text-lg font-medium text-[#111827] dark:text-white">
-                {product.salePrice}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 border-t border-[#f3f4f6] pt-8 dark:border-[#1f2937]">
-            <div className="mb-6 flex items-center">
-              <h3 className="mr-24 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                Lacak Stok
-              </h3>
-              <div className="relative flex items-start">
-                <div className="flex h-5 items-center">
-                  <Checkbox
-                    id="track-stock"
-                    className="h-5 w-5 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5] dark:border-[#4b5563] dark:bg-[#374151]"
-                    checked={product.trackStock}
-                    disabled
+          <div className="flex flex-col gap-6 md:flex-row">
+            <div className="flex-shrink-0">
+              <label className="mb-2 block text-sm font-medium text-[#6b7280] dark:text-[#94a3b8]">
+                Foto Produk
+              </label>
+              <div className="mt-1">
+                <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border border-[#e5e7eb] bg-[#f3f4f6] dark:border-[#334155] dark:bg-[#1f2937]">
+                  <img
+                    src={item.image || "https://via.placeholder.com/200?text=Produk"}
+                    alt={item.name}
+                    className="h-full w-full object-cover"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
-              <div>
-                <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                  Stok Awal
-                </h3>
-                <p className="text-lg font-medium text-[#111827] dark:text-white">
-                  {product.initialStock}
-                </p>
+            <div className="flex-1 space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge variant={item.status === "ACTIVE" ? "default" : "outline"}>
+                  {item.status}
+                </Badge>
+                <Badge variant={item.marketplaceEligible ? "default" : "secondary"}>
+                  {item.marketplaceEligible ? "Marketplace eligible" : "Belum eligible"}
+                </Badge>
+                {!item.trackStock ? <Badge variant="secondary">Stok tidak dilacak</Badge> : null}
+              </div>
+              <div className="grid grid-cols-1 gap-x-12 gap-y-4 md:grid-cols-2">
+                <div>
+                  <p className="text-sm text-muted-foreground">Nama Produk</p>
+                  <p className="text-lg font-medium text-foreground">{item.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">SKU</p>
+                  <p className="text-lg font-medium text-foreground">{item.sku}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Kategori</p>
+                  <p className="text-lg font-medium text-foreground">
+                    {item.category || "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Harga Jual</p>
+                  <p className="text-lg font-medium text-foreground">
+                    {formatCurrency(item.price)}
+                  </p>
+                </div>
               </div>
               <div>
-                <h3 className="mb-1 text-sm font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                  Batas Minimum Stok
-                </h3>
-                <p className="text-lg font-medium text-[#111827] dark:text-white">
-                  {product.minStock}
-                </p>
+                <p className="text-sm text-muted-foreground">Deskripsi</p>
+                <p className="text-base text-foreground">{item.description || "-"}</p>
               </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">Stok</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {item.trackStock ? item.stock : "Tidak dilacak"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Minimum Stok</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {item.minStock ?? 0}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Harga Beli</p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {item.costPrice ? formatCurrency(item.costPrice) : "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className="rounded-lg border border-border p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Marketplace</p>
+                  <p className="text-base font-semibold text-foreground">
+                    {item.showInMarketplace ? "Tampil" : "Disembunyikan"}
+                  </p>
+                  {!eligibility.eligible ? (
+                    <p className="text-xs text-amber-600">
+                      Tidak memenuhi: {eligibility.reasons.join(", ")}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-emerald-600">Eligible</p>
+                  )}
+                </div>
+                <Switch
+                  checked={item.showInMarketplace}
+                  onCheckedChange={handleVisibility}
+                  disabled={item.status !== "ACTIVE" || actions.update.isPending}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Stok</p>
+                  <p className="text-base font-semibold text-foreground">
+                    {item.trackStock ? item.stock : "Tidak dilacak"}
+                  </p>
+                </div>
+                <Badge variant="secondary">{item.trackStock ? "Dilacak" : "Tidak dilacak"}</Badge>
+              </div>
+              {item.trackStock ? (
+                <form className="space-y-2" onSubmit={handleStockSubmit}>
+                  <label className="text-sm font-medium text-foreground">Perbarui stok</label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={stockInput}
+                      onChange={(e) => setStockInput(e.target.value)}
+                      className="w-32"
+                    />
+                    <Button type="submit" disabled={actions.adjustStock.isPending}>
+                      Simpan
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Stok tidak dilacak. Aktifkan pelacakan untuk mengatur stok.
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <EditProductModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        product={item}
+      />
     </div>
   );
 }

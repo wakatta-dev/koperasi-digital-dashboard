@@ -1,18 +1,24 @@
 /** @format */
 
 import Link from "next/link";
-import { MoreVertical } from "lucide-react";
+import { Archive, MoreVertical } from "lucide-react";
 import type { ReactNode } from "react";
 import { TableCell } from "@/components/shared/data-display/TableCell";
 import { TableHeader } from "@/components/shared/data-display/TableHeader";
 import { TableRow } from "@/components/shared/data-display/TableRow";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/format";
 import type { InventoryItem } from "../types";
 
 type InventoryTableProps = {
   items: InventoryItem[];
+  loading?: boolean;
   onEdit: (item: InventoryItem) => void;
+  onToggleMarketplace: (item: InventoryItem, nextValue: boolean) => void;
+  onArchive: (item: InventoryItem) => void;
   onRowClick?: (item: InventoryItem) => void;
   footer?: ReactNode;
 };
@@ -26,17 +32,20 @@ type TableColumn<Row> = {
 
 const columns: TableColumn<InventoryItem>[] = [
   { id: "product", header: "Produk" },
-  { id: "sku", header: "SKU" },
-  { id: "category", header: "Kategori" },
+  { id: "status", header: "Status" },
   { id: "stock", header: "Stok" },
   { id: "price", header: "Harga Jual" },
+  { id: "marketplace", header: "Marketplace" },
   { id: "actions", header: "", align: "right", width: 80 },
 ];
 
 export function InventoryTable({
   items,
+  loading = false,
   onEdit,
   onRowClick,
+  onToggleMarketplace,
+  onArchive,
   footer,
 }: InventoryTableProps) {
   return (
@@ -59,7 +68,17 @@ export function InventoryTable({
           </TableRow>
         </TableHeader>
         <tbody className="divide-y divide-border">
-          {items.length === 0 ? (
+          {loading ? (
+            <TableRow>
+              <TableCell
+                colSpan={columns.length}
+                className="px-6 py-6 text-sm text-muted-foreground text-center"
+              >
+                Memuat data inventaris...
+              </TableCell>
+            </TableRow>
+          ) : null}
+          {!loading && items.length === 0 ? (
             <TableRow>
               <TableCell
                 colSpan={columns.length}
@@ -71,7 +90,7 @@ export function InventoryTable({
           ) : null}
           {items.map((row) => (
             <TableRow
-              key={`${row.sku}-${row.name}`}
+              key={`${row.id}-${row.sku}`}
               hoverable
               className="hover:bg-muted/40"
               onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -80,38 +99,56 @@ export function InventoryTable({
                 <div className="flex items-center">
                   <div className="h-10 w-10 flex-shrink-0">
                     <img
-                      src={row.image}
+                      src={row.image || "https://via.placeholder.com/80x80?text=Produk"}
                       alt={row.name}
                       className="h-10 w-10 rounded object-cover bg-muted"
                     />
                   </div>
                   <div className="ml-4">
                     <Link
-                      href={`/bumdes/inventory/${row.sku}`}
+                      href={`/bumdes/inventory/${row.id}`}
                       className="text-sm font-medium text-foreground transition-colors hover:underline"
                     >
                       {row.name}
                     </Link>
+                    <p className="text-xs text-muted-foreground">SKU: {row.sku}</p>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {row.sku}
-              </TableCell>
-              <TableCell>
-                <span
-                  className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${row.categoryClassName}`}
-                >
-                  {row.category}
-                </span>
+                <Badge variant={row.status === "ACTIVE" ? "default" : "outline"}>
+                  {row.status}
+                </Badge>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {row.stock}
+                {row.trackStock ? row.stock : "Tidak dilacak"}
               </TableCell>
               <TableCell className="text-sm text-foreground">
-                {row.price}
+                {formatCurrency(row.price)}
               </TableCell>
-              <TableCell align="right" width={80}>
+              <TableCell className="text-sm text-muted-foreground">
+                <div className="flex items-start gap-3">
+                  <Switch
+                    checked={row.showInMarketplace}
+                    onCheckedChange={(val) => onToggleMarketplace(row, val)}
+                    disabled={row.status !== "ACTIVE"}
+                    aria-label="Toggle marketplace visibility"
+                  />
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-foreground">
+                      {row.showInMarketplace ? "Tampil di marketplace" : "Disembunyikan"}
+                    </p>
+                    {row.marketplaceEligible ? (
+                      <p className="text-xs text-emerald-600">Eligible</p>
+                    ) : (
+                      <p className="text-xs text-amber-600">
+                        Tidak memenuhi: {row.ineligibleReasons.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell align="right" width={120}>
                 <Button
                   type="button"
                   variant="ghost"
@@ -125,6 +162,21 @@ export function InventoryTable({
                 >
                   <MoreVertical className="h-5 w-5" />
                 </Button>
+                {row.status !== "ARCHIVED" ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Arsipkan produk"
+                    className="text-destructive hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onArchive(row);
+                    }}
+                  >
+                    <Archive className="h-5 w-5" />
+                  </Button>
+                ) : null}
               </TableCell>
             </TableRow>
           ))}

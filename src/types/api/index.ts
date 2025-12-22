@@ -12,3 +12,4 @@ export * from "./billing";
 export * from "./analytics";
 export * from "./reservation";
 export * from "./asset";
+export * from "./inventory";

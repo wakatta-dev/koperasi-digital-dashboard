@@ -87,6 +87,14 @@ export const API_ENDPOINTS = {
     paymentFinalize: (id: string) => `/asset-rental/payments/${id}/confirm`,
     guestVerify: "/asset-rental/guest-links/verify",
   },
+  inventory: {
+    products: "/inventory/products",
+    product: (id: string | number) => `/inventory/products/${id}`,
+    archive: (id: string | number) => `/inventory/products/${id}/archive`,
+    stockInitial: (id: string | number) => `/inventory/products/${id}/stock/initial`,
+    stockAdjust: (id: string | number) => `/inventory/products/${id}/stock/adjust`,
+    history: (id: string | number) => `/inventory/products/${id}/history`,
+  },
 } as const;
 
 export type ApiEndpoint = typeof API_ENDPOINTS;

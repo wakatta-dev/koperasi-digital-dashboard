@@ -1,18 +1,19 @@
 /** @format */
 
 export type InventoryItem = {
+  id: string;
   name: string;
   sku: string;
-  category: string;
-  categoryClassName: string;
-  stock: number | string;
-  price: number | string;
-  image: string;
-  product: {
-    id: string;
-    name: string;
-    category: string;
-    img: string | null;
-  };
-  id: string;
+  price: number;
+  stock: number;
+  status: string;
+  showInMarketplace: boolean;
+  trackStock: boolean;
+  category?: string;
+  image?: string;
+  description?: string;
+  minStock?: number;
+  costPrice?: number;
+  marketplaceEligible: boolean;
+  ineligibleReasons: string[];
 };

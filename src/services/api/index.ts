@@ -14,3 +14,4 @@ export * from "./reservations";
 export * from "./assets";
 export * from "./assets";
 export * from "./marketplace";
+export * from "./inventory";
