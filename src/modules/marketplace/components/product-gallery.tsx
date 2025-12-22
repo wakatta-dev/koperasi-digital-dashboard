@@ -1,24 +1,24 @@
 /** @format */
 
-import { PRODUCT_DETAIL } from "../constants";
+import type { MarketplaceProductDetail } from "../types";
 
 const PLACEHOLDER_ICONS = ["image", "image", "videocam"];
 
-export function ProductGallery() {
-  const mainImage = PRODUCT_DETAIL.gallery.main;
-  const thumbnails = PRODUCT_DETAIL.gallery.thumbnails;
+export function ProductGallery({ product }: { product: MarketplaceProductDetail }) {
+  const mainImage = product.gallery.main;
+  const thumbnails = product.gallery.thumbnails;
 
   return (
     <div className="space-y-4">
       <div className="aspect-square bg-white dark:bg-[#1e293b] rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm relative group">
         <img
-          alt={PRODUCT_DETAIL.title}
+          alt={product.title}
           src={mainImage}
           className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
         />
-        {PRODUCT_DETAIL.badge ? (
+        {product.badge ? (
           <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-[#4338ca] shadow-sm border border-gray-100 dark:border-gray-700">
-            {PRODUCT_DETAIL.badge.label}
+            {product.badge.label}
           </div>
         ) : null}
       </div>

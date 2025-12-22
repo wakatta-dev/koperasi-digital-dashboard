@@ -1,13 +1,31 @@
 /** @format */
 
+"use client";
+
 import Link from "next/link";
+import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
-import { MarketplaceProduct } from "../constants";
+import { useCartMutations } from "../hooks/useMarketplaceProducts";
 
-export function ProductCard({ product }: { product: MarketplaceProduct }) {
-  const ctaLabel = product.ctaLabel ?? "Beli Sekarang";
+type MarketplaceCardProduct = {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  price: string;
+  unit: string;
+  image: string;
+  badge?: { label: string; variant?: "primary" | "danger" };
+  inStock?: boolean;
+};
+
+export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
+  const ctaLabel = product.badge?.label ?? "Beli Sekarang";
   const detailHref = `/marketplace/${product.id}`;
+  const { addItem } = useCartMutations();
+
+  const isAdding = useMemo(() => addItem.isPending, [addItem.isPending]);
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col group">
@@ -51,18 +69,22 @@ export function ProductCard({ product }: { product: MarketplaceProduct }) {
           <Button
             asChild
             className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white text-sm font-medium py-2 rounded-lg transition h-auto"
+            disabled={!product.inStock}
           >
             <Link href={detailHref}>{ctaLabel}</Link>
           </Button>
           <Button
-            asChild
             variant="outline"
             className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition h-auto"
-            title="Lihat Detail"
+            title="Tambah ke Keranjang"
+            disabled={!product.inStock || isAdding}
+            onClick={() =>
+              addItem.mutate({ product_id: Number(product.id), quantity: 1 })
+            }
           >
-            <Link href={detailHref}>
-              <span className="material-icons-outlined text-sm">visibility</span>
-            </Link>
+            <span className="material-icons-outlined text-sm">
+              {isAdding ? "hourglass_top" : "add_shopping_cart"}
+            </span>
           </Button>
         </div>
       </div>

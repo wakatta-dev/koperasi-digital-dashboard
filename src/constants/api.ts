@@ -61,6 +61,14 @@ export const API_ENDPOINTS = {
     cashFlow: "/finance/cash-flow",
     balanceSheet: "/finance/balance-sheet",
   },
+  marketplace: {
+    products: "/marketplace/products",
+    product: (id: string | number) => `/marketplace/products/${id}`,
+    cart: "/marketplace/cart",
+    cartItem: "/marketplace/cart/items",
+    cartItemById: (id: string | number) => `/marketplace/cart/items/${id}`,
+    checkout: "/marketplace/checkout",
+  },
   assets: {
     list: "/asset-rental/assets",
     detail: (id: string | number) => `/asset-rental/assets/${id}`,

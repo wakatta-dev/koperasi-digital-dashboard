@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 
-import { PRODUCT_DETAIL } from "../constants";
+import type { MarketplaceRelatedProduct } from "../types";
 
-export function RelatedProducts() {
+type Props = {
+  products: MarketplaceRelatedProduct[];
+};
+
+export function RelatedProducts({ products }: Props) {
   return (
     <div className="mt-16 border-t border-gray-200 dark:border-gray-700 pt-12">
       <div className="flex justify-between items-center mb-8">
@@ -14,7 +18,7 @@ export function RelatedProducts() {
         </a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {PRODUCT_DETAIL.related.map((product) => (
+        {products.map((product) => (
           <div
             key={product.id}
             className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col group"

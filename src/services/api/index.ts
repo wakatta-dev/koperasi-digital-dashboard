@@ -13,3 +13,4 @@ export * from "./finance";
 export * from "./reservations";
 export * from "./assets";
 export * from "./assets";
+export * from "./marketplace";

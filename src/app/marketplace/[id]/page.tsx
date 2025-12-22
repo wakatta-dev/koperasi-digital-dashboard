@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   description: "Detail produk marketplace desa Sukamaju.",
 };
 
-export default function MarketplaceProductDetail() {
-  return <MarketplaceProductDetailPage />;
+export default function MarketplaceProductDetail({
+  params,
+}: {
+  params: { id: string };
+}) {
+  return <MarketplaceProductDetailPage productId={params.id} />;
 }

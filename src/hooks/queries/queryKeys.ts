@@ -62,6 +62,13 @@ export const QK = {
     reservation: (id: string | number) =>
       ["asset-rental", "reservations", "detail", String(id)] as const,
   },
+  marketplace: {
+    list: (params?: Record<string, unknown>) =>
+      ["marketplace", "products", params ?? {}] as const,
+    detail: (id: string | number) =>
+      ["marketplace", "products", String(id)] as const,
+    cart: () => ["marketplace", "cart"] as const,
+  },
 } as const;
 
 export type QueryKey = ReturnType<
@@ -89,4 +96,7 @@ export type QueryKey = ReturnType<
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.bookings
   | typeof QK.assetRental.reservation
+  | typeof QK.marketplace.list
+  | typeof QK.marketplace.detail
+  | typeof QK.marketplace.cart
 >;

@@ -12,13 +12,26 @@ import { Button } from "@/components/ui/button";
 import { SearchHeroBase } from "@/components/shared/layout/SearchHeroBase";
 import { CATEGORY_OPTIONS, MARKETPLACE_HEADER } from "../constants";
 
-export function MarketplaceHeader() {
+type Props = {
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  onSubmit: () => void;
+};
+
+export function MarketplaceHeader({ searchValue, onSearchChange, onSubmit }: Props) {
   const inputSlot = (
     <>
       <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
         <span className="material-icons-outlined">search</span>
       </span>
       <Input
+        value={searchValue}
+        onChange={(e) => onSearchChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onSubmit();
+          }
+        }}
         placeholder={MARKETPLACE_HEADER.searchPlaceholder}
         className="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]/40 placeholder-gray-400 dark:placeholder-gray-500 h-11"
       />
@@ -39,7 +52,10 @@ export function MarketplaceHeader() {
           ))}
         </SelectContent>
       </Select>
-      <Button className="bg-[#4338ca] hover:bg-[#3730a3] text-white px-6 py-2.5 rounded-lg font-medium transition shadow-md shadow-indigo-500/20 h-11 flex items-center gap-2">
+      <Button
+        onClick={onSubmit}
+        className="bg-[#4338ca] hover:bg-[#3730a3] text-white px-6 py-2.5 rounded-lg font-medium transition shadow-md shadow-indigo-500/20 h-11 flex items-center gap-2"
+      >
         Cari
       </Button>
     </>

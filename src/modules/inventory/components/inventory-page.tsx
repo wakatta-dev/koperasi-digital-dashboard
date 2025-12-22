@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Filter, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,8 @@ import { AddProductModal } from "./add-product-modal";
 import { EditProductModal } from "./edit-product-modal";
 import { InventoryTable } from "./InventoryTable";
 import type { InventoryItem } from "../types";
+import { useMarketplaceProducts } from "@/modules/marketplace/hooks/useMarketplaceProducts";
+import { formatCurrency } from "@/lib/format";
 
 const inventoryItems: InventoryItem[] = [
   {
@@ -177,11 +179,35 @@ const inventoryItems: InventoryItem[] = [
 ];
 
 export function InventoryPage() {
-  const [addOpen, setAddOpen] = React.useState(false);
-  const [editOpen, setEditOpen] = React.useState(false);
-  const [editingItem, setEditingItem] = React.useState<InventoryItem>(
+  const [search, setSearch] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem>(
     inventoryItems[0]
   );
+  const { data, isLoading, isError } = useMarketplaceProducts({ q: search || undefined, include_hidden: true });
+
+  const items: InventoryItem[] = useMemo(() => {
+    if (!data || data.length === 0) return inventoryItems;
+    return data.map((p) => ({
+      id: String(p.id),
+      name: p.name,
+      sku: p.sku,
+      category: p.show_in_marketplace ? "Marketplace" : "Internal",
+      categoryClassName: p.show_in_marketplace
+        ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300"
+        : "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300",
+      stock: p.stock,
+      price: formatCurrency(p.price),
+      image: p.photo_url || "https://via.placeholder.com/80x80?text=Produk",
+      product: {
+        id: String(p.id),
+        name: p.name,
+        category: p.show_in_marketplace ? "Marketplace" : "Internal",
+        img: p.photo_url ?? null,
+      },
+    }));
+  }, [data]);
 
   return (
     <div className="w-full space-y-6 text-[#111827] dark:text-[#f8fafc] md:space-y-8">
@@ -204,6 +230,8 @@ export function InventoryPage() {
             type="text"
             placeholder="Cari nama produk atau SKU"
             className="rounded-md border-[#e5e7eb] bg-white pl-10 pr-3 text-sm leading-5 text-[#111827] placeholder-[#6b7280] transition-colors focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#f8fafc] dark:placeholder-[#94a3b8]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <Button
@@ -217,7 +245,7 @@ export function InventoryPage() {
       </div>
 
       <InventoryTable
-        items={inventoryItems}
+        items={items}
         onEdit={(item) => {
           setEditingItem(item);
           setEditOpen(true);
@@ -270,6 +298,12 @@ export function InventoryPage() {
         onOpenChange={setEditOpen}
         product={editingItem}
       />
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Memuat data inventaris...</div>
+      ) : null}
+      {isError ? (
+        <div className="text-sm text-red-500">Gagal memuat data inventaris.</div>
+      ) : null}
     </div>
   );
 }

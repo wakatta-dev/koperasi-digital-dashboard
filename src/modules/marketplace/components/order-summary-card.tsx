@@ -7,11 +7,18 @@ import {
   type SummaryRow,
 } from "@/components/shared/data-display/CheckoutSummaryBase";
 import { Input } from "@/components/ui/input";
+import { formatCurrency } from "@/lib/format";
 import { CART_SUMMARY } from "../constants";
 
-export function OrderSummaryCard() {
+type Props = {
+  subtotal?: number;
+  total?: number;
+  itemCount?: number;
+};
+
+export function OrderSummaryCard({ subtotal = 0, total = 0, itemCount = 0 }: Props) {
   const rows: SummaryRow[] = [
-    { label: CART_SUMMARY.subtotalLabel, value: CART_SUMMARY.subtotalValue },
+    { label: CART_SUMMARY.subtotalLabel, value: formatCurrency(subtotal) ?? "-" },
     { label: CART_SUMMARY.shippingLabel, value: CART_SUMMARY.shippingValue },
     {
       label: CART_SUMMARY.discountLabel,
@@ -45,7 +52,7 @@ export function OrderSummaryCard() {
   const footerSlot = (
     <>
       <p className="text-xs text-gray-500 dark:text-gray-400 text-right">
-        {CART_SUMMARY.itemsCountLabel}
+        {itemCount > 0 ? `${itemCount} item` : CART_SUMMARY.itemsCountLabel}
       </p>
       <Link
         href="/marketplace/pengiriman"
@@ -67,7 +74,10 @@ export function OrderSummaryCard() {
     <CheckoutSummaryBase
       title="Ringkasan Pesanan"
       rows={rows}
-      total={{ label: CART_SUMMARY.totalLabel, value: CART_SUMMARY.totalValue }}
+      total={{
+        label: CART_SUMMARY.totalLabel,
+        value: formatCurrency(total) ?? CART_SUMMARY.totalValue,
+      }}
       headerSlot={headerSlot}
       footerSlot={footerSlot}
       stickyTop={112}

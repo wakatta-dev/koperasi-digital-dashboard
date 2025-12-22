@@ -1,5 +1,7 @@
 /** @format */
 
+"use client";
+
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingFooter } from "../landing/components/footer";
@@ -10,6 +12,7 @@ import { CartItemsSection } from "./components/cart-items-section";
 import { OrderSummaryCard } from "./components/order-summary-card";
 import { CartRecommendations } from "./components/cart-recommendations";
 import { CART_BADGE } from "./constants";
+import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -17,6 +20,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export function MarketplaceCartPage() {
+  const { data } = useMarketplaceCart();
+
   return (
     <div className={plusJakarta.className}>
       <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
@@ -31,9 +36,9 @@ export function MarketplaceCartPage() {
             </h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-              <CartItemsSection />
+              <CartItemsSection cart={data} />
               <div className="lg:col-span-4">
-                <OrderSummaryCard />
+                <OrderSummaryCard subtotal={data?.total} total={data?.total} itemCount={data?.item_count} />
               </div>
             </div>
 

@@ -1,8 +1,8 @@
 /** @format */
 
-import { PRODUCT_DETAIL } from "../constants";
+import type { MarketplaceProductDetail } from "../types";
 
-export function ProductDetailsContent() {
+export function ProductDetailsContent({ product }: { product: MarketplaceProductDetail }) {
   return (
     <div className="lg:col-span-2 space-y-8">
       <div className="border-b border-gray-200 dark:border-gray-700">
@@ -20,21 +20,21 @@ export function ProductDetailsContent() {
             className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
             href="#"
           >
-            Ulasan ({PRODUCT_DETAIL.rating.total})
+            Ulasan ({product.rating.total})
           </a>
         </nav>
       </div>
 
       <div className="bg-white dark:bg-[#1e293b] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 text-sm leading-7">
-          {PRODUCT_DETAIL.longDescription.map((paragraph, index) => (
+          {product.longDescription.map((paragraph, index) => (
             <p key={index} className="mb-4">
               {paragraph}
             </p>
           ))}
           <h4 className="text-gray-900 dark:text-white font-bold text-base mb-2">Keunggulan Produk:</h4>
           <ul className="list-disc pl-5 space-y-1 mb-4">
-            {PRODUCT_DETAIL.features.map((feature) => (
+            {product.features.map((feature) => (
               <li key={feature}>{feature}</li>
             ))}
           </ul>
@@ -48,7 +48,7 @@ export function ProductDetailsContent() {
         </div>
 
         <div className="space-y-6">
-          {PRODUCT_DETAIL.reviews.map((review, index) => (
+          {product.reviews.map((review, index) => (
             <div
               key={review.name + index}
               className="border-b border-gray-100 dark:border-gray-700 pb-6 last:border-0 last:pb-0"
