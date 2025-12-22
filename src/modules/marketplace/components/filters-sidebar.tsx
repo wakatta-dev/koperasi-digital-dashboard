@@ -1,6 +1,6 @@
 /** @format */
 
-import type { ReactNode } from "react";
+"use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,38 @@ import { FilterActions } from "@/components/shared/filters/FilterActions";
 import { FilterPanel } from "@/components/shared/filters/FilterPanel";
 import { FilterSection } from "@/components/shared/filters/FilterSection";
 import { CATEGORY_FILTERS, PRODUCER_FILTERS } from "../constants";
+import type { MarketplaceFilters } from "../types";
 
-export function FiltersSidebar() {
+type Props = {
+  filters: MarketplaceFilters;
+  onChange: (next: MarketplaceFilters) => void;
+  onApply: () => void;
+};
+
+export function FiltersSidebar({ filters, onChange, onApply }: Props) {
+  const toggleCategory = (value: string) => {
+    const current = new Set(filters.categories);
+    if (value === "all") {
+      onChange({ ...filters, categories: ["all"] });
+      return;
+    }
+    if (current.has(value)) {
+      current.delete(value);
+    } else {
+      current.add(value);
+    }
+    current.delete("all");
+    if (current.size === 0) {
+      current.add("all");
+    }
+    onChange({ ...filters, categories: Array.from(current) });
+  };
+
+  const updatePrice = (key: "priceMin" | "priceMax", raw: string) => {
+    const value = raw === "" ? undefined : Number(raw);
+    onChange({ ...filters, [key]: Number.isNaN(value) ? undefined : value });
+  };
+
   return (
     <FilterPanel className="space-y-6 p-6">
       <FilterSection title="Kategori" withDivider>
@@ -19,7 +49,12 @@ export function FiltersSidebar() {
             className="flex items-center gap-3 cursor-pointer group"
           >
             <Checkbox
-              defaultChecked={category.defaultChecked}
+              checked={
+                category.value === "all"
+                  ? filters.categories.includes("all")
+                  : filters.categories.includes(category.value)
+              }
+              onCheckedChange={() => toggleCategory(category.value)}
               className="rounded text-[#4338ca] data-[state=checked]:bg-[#4338ca] data-[state=checked]:border-[#4338ca] border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800"
             />
             <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-[#4338ca] transition">
@@ -35,6 +70,8 @@ export function FiltersSidebar() {
           <Input
             type="number"
             placeholder="Min"
+            value={filters.priceMin ?? ""}
+            onChange={(e) => updatePrice("priceMin", e.target.value)}
             className="w-full text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-gray-700 dark:text-gray-300 h-10"
           />
         </div>
@@ -43,11 +80,17 @@ export function FiltersSidebar() {
           <Input
             type="number"
             placeholder="Max"
+            value={filters.priceMax ?? ""}
+            onChange={(e) => updatePrice("priceMax", e.target.value)}
             className="w-full text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-gray-700 dark:text-gray-300 h-10"
           />
         </div>
         <FilterActions className="pt-0 border-0 justify-start">
-          <button className="w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded transition">
+          <button
+            type="button"
+            onClick={onApply}
+            className="w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded transition"
+          >
             Terapkan
           </button>
         </FilterActions>
@@ -62,7 +105,12 @@ export function FiltersSidebar() {
             <input
               type="radio"
               name="producer"
-              defaultChecked={producer.defaultChecked}
+              checked={
+                producer.value === "all"
+                  ? filters.producer === "all" || !filters.producer
+                  : filters.producer === producer.value
+              }
+              onChange={() => onChange({ ...filters, producer: producer.value })}
               className="text-[#4338ca] focus:ring-[#4338ca] border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 size-4"
             />
             <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-[#4338ca] transition">

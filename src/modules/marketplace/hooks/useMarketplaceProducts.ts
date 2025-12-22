@@ -18,16 +18,23 @@ import type {
   MarketplaceProductResponse,
 } from "@/types/api/marketplace";
 
-export function useMarketplaceProducts(params?: { q?: string; include_hidden?: boolean }) {
+export type MarketplaceProductParams = {
+  q?: string;
+  include_hidden?: boolean;
+  min_price?: number;
+  max_price?: number;
+};
+
+export function useMarketplaceProducts(params?: MarketplaceProductParams) {
+  const normalizedParams = {
+    ...params,
+    include_hidden: params?.include_hidden ?? false,
+  };
+
   return useQuery({
-    queryKey: QK.marketplace.list(params ?? {}),
+    queryKey: QK.marketplace.list(normalizedParams ?? {}),
     queryFn: async (): Promise<MarketplaceProductResponse[]> =>
-      ensureSuccess(
-        await getMarketplaceProducts({
-          ...params,
-          include_hidden: params?.include_hidden ?? true,
-        })
-      ),
+      ensureSuccess(await getMarketplaceProducts(normalizedParams)),
   });
 }
 

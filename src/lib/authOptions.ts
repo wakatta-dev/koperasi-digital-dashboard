@@ -10,11 +10,17 @@ import {
 
 export async function refreshAccessToken(token: any) {
   try {
+    const tenantId = await getTenantId();
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(tenantId ? { "X-Tenant-ID": tenantId } : {}),
+        },
         body: JSON.stringify({ refresh_token: token?.refreshToken }),
       }
     );

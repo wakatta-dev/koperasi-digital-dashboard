@@ -10,7 +10,8 @@ import { LandingNavbar } from "../landing/components/navbar";
 import { MarketplaceHeader } from "./components/header";
 import { FiltersSidebar } from "./components/filters-sidebar";
 import { ProductsSection } from "./components/products-section";
-import { CART_BADGE } from "./constants";
+import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
+import { DEFAULT_MARKETPLACE_FILTERS, type MarketplaceFilters } from "./types";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -20,13 +21,28 @@ const plusJakarta = Plus_Jakarta_Sans({
 export function MarketplacePage() {
   const [search, setSearch] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState("");
+  const [filtersDraft, setFiltersDraft] = useState<MarketplaceFilters>(DEFAULT_MARKETPLACE_FILTERS);
+  const [filters, setFilters] = useState<MarketplaceFilters>(DEFAULT_MARKETPLACE_FILTERS);
+  const { data: cart } = useMarketplaceCart();
+  const cartCount = cart?.item_count ?? 0;
 
   const handleSubmitSearch = () => setSubmittedSearch(search.trim());
+  const handleApplyFilters = () => {
+    setFilters({
+      ...filtersDraft,
+      categories: filtersDraft.categories.length ? filtersDraft.categories : ["all"],
+      producer: filtersDraft.producer ?? "all",
+    });
+  };
 
   return (
     <div className={plusJakarta.className}>
       <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
-        <LandingNavbar activeLabel="Marketplace" showCart cartCount={CART_BADGE} />
+        <LandingNavbar
+          activeLabel="Marketplace"
+          showCart
+          cartCount={cartCount}
+        />
         <main className="pt-28 pb-20 bg-[#f8fafc] dark:bg-[#0f172a] min-h-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <MarketplaceHeader
@@ -36,9 +52,13 @@ export function MarketplacePage() {
             />
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               <div className="lg:col-span-1">
-                <FiltersSidebar />
+                <FiltersSidebar
+                  filters={filtersDraft}
+                  onChange={setFiltersDraft}
+                  onApply={handleApplyFilters}
+                />
               </div>
-              <ProductsSection search={submittedSearch} />
+              <ProductsSection search={submittedSearch} filters={filters} />
             </div>
           </div>
         </main>

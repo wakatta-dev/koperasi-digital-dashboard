@@ -16,12 +16,16 @@ export function getMarketplaceProducts(params?: {
   cursor?: string;
   limit?: number;
   include_hidden?: boolean;
+  min_price?: number;
+  max_price?: number;
 }): Promise<ApiResponse<MarketplaceProductResponse[]>> {
   const search = new URLSearchParams();
   if (params?.q) search.set("q", params.q);
   if (params?.cursor) search.set("cursor", params.cursor);
   if (params?.limit) search.set("limit", String(params.limit));
   if (params?.include_hidden) search.set("include_hidden", "true");
+  if (params?.min_price !== undefined) search.set("min_price", String(params.min_price));
+  if (params?.max_price !== undefined) search.set("max_price", String(params.max_price));
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<MarketplaceProductResponse[]>(`${API_PREFIX}${E.products}${query}`);
 }
@@ -33,31 +37,41 @@ export function getMarketplaceProductDetail(
 }
 
 export function getMarketplaceCart(): Promise<ApiResponse<MarketplaceCartResponse>> {
-  return api.get<MarketplaceCartResponse>(`${API_PREFIX}${E.cart}`);
+  return api.get<MarketplaceCartResponse>(`${API_PREFIX}${E.cart}`, {
+    credentials: "include",
+  });
 }
 
 export function addMarketplaceCartItem(payload: {
   product_id: number;
   quantity: number;
 }): Promise<ApiResponse<null>> {
-  return api.post<null>(`${API_PREFIX}${E.cartItem}`, payload);
+  return api.post<null>(`${API_PREFIX}${E.cartItem}`, payload, {
+    credentials: "include",
+  });
 }
 
 export function updateMarketplaceCartItem(
   itemId: string | number,
   payload: { quantity: number }
 ): Promise<ApiResponse<null>> {
-  return api.patch<null>(`${API_PREFIX}${E.cartItemById(itemId)}`, payload);
+  return api.patch<null>(`${API_PREFIX}${E.cartItemById(itemId)}`, payload, {
+    credentials: "include",
+  });
 }
 
 export function removeMarketplaceCartItem(
   itemId: string | number
 ): Promise<ApiResponse<null>> {
-  return api.delete<null>(`${API_PREFIX}${E.cartItemById(itemId)}`);
+  return api.delete<null>(`${API_PREFIX}${E.cartItemById(itemId)}`, {
+    credentials: "include",
+  });
 }
 
 export function checkoutMarketplace(
   payload: MarketplaceCheckoutRequest
 ): Promise<ApiResponse<any>> {
-  return api.post<any>(`${API_PREFIX}${E.checkout}`, payload);
+  return api.post<any>(`${API_PREFIX}${E.checkout}`, payload, {
+    credentials: "include",
+  });
 }

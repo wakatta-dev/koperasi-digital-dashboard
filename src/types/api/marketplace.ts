@@ -39,6 +39,7 @@ export type MarketplaceCheckoutRequest = {
   fulfillment_method: "PICKUP" | "DELIVERY" | string;
   customer_name: string;
   customer_phone: string;
+  customer_email: string;
   customer_address?: string;
   notes?: string;
 };

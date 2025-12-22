@@ -1,12 +1,13 @@
 /** @format */
 
-import type {
-  MarketplaceProduct,
-  MarketplaceProductDetail as StaticProductDetail,
-} from "./constants";
+export type MarketplaceFilters = {
+  categories: string[];
+  priceMin?: number;
+  priceMax?: number;
+  producer?: string;
+};
 
-export type MarketplaceRelatedProduct = MarketplaceProduct;
-
-export type MarketplaceProductDetail = StaticProductDetail & {
-  id: string;
+export const DEFAULT_MARKETPLACE_FILTERS: MarketplaceFilters = {
+  categories: ["all"],
+  producer: "all",
 };

@@ -2,29 +2,73 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { formatCurrency } from "@/lib/format";
 import { useMarketplaceProducts } from "../hooks/useMarketplaceProducts";
 import { SORT_OPTIONS } from "../constants";
 import { ProductCard } from "./product-card";
 import { Pagination } from "./pagination";
+import type { MarketplaceFilters } from "../types";
 
 type Props = {
   search?: string;
+  filters: MarketplaceFilters;
 };
 
-export function ProductsSection({ search }: Props) {
+export function ProductsSection({ search, filters }: Props) {
+  const [sort, setSort] = useState<string>(SORT_OPTIONS[0]);
   const params = useMemo(
-    () => (search ? { q: search, include_hidden: true } : { include_hidden: true }),
-    [search]
+    () =>
+      ({
+        q: search,
+        include_hidden: true,
+        min_price: filters.priceMin,
+        max_price: filters.priceMax,
+      }) satisfies Parameters<typeof useMarketplaceProducts>[0],
+    [filters.priceMax, filters.priceMin, search]
   );
   const { data, isLoading, isError } = useMarketplaceProducts(params);
 
+  const filteredData = useMemo(() => {
+    const list = data ?? [];
+    const hasCategoryFilter = filters.categories && !filters.categories.includes("all");
+    return list.filter((product) => {
+      if (filters.priceMin !== undefined && product.price < filters.priceMin) return false;
+      if (filters.priceMax !== undefined && product.price > filters.priceMax) return false;
+
+      if (hasCategoryFilter) {
+        const haystack = `${product.name} ${product.description ?? ""} ${product.sku}`.toLowerCase();
+        const match = filters.categories.some((cat) => haystack.includes(cat.toLowerCase()));
+        if (!match) return false;
+      }
+
+      if (filters.producer && filters.producer !== "all") {
+        const haystack = `${product.description ?? ""} ${product.sku}`.toLowerCase();
+        if (!haystack.includes(filters.producer.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [data, filters.categories, filters.priceMax, filters.priceMin, filters.producer]);
+
+  const sortedData = useMemo(() => {
+    const list = [...filteredData];
+    switch (sort) {
+      case "Harga Terendah":
+        return list.sort((a, b) => a.price - b.price);
+      case "Harga Tertinggi":
+        return list.sort((a, b) => b.price - a.price);
+      case "Terbaru":
+        return list.sort((a, b) => Number(b.id) - Number(a.id));
+      default:
+        return list;
+    }
+  }, [filteredData, sort]);
+
   const displayMeta = useMemo(() => {
-    const total = data?.length ?? 0;
+    const total = sortedData.length;
     return { start: total === 0 ? 0 : 1, end: total, total };
-  }, [data]);
+  }, [sortedData]);
 
   return (
     <div className="lg:col-span-3">
@@ -38,7 +82,11 @@ export function ProductsSection({ search }: Props) {
         </span>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">Urutkan:</span>
-          <select className="text-sm border-none bg-transparent font-medium text-gray-900 dark:text-white focus:ring-0 cursor-pointer">
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="text-sm border-none bg-transparent font-medium text-gray-900 dark:text-white focus:ring-0 cursor-pointer"
+          >
             {SORT_OPTIONS.map((option) => (
               <option key={option}>{option}</option>
             ))}
@@ -54,7 +102,7 @@ export function ProductsSection({ search }: Props) {
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data?.map((product) => (
+        {sortedData?.map((product) => (
           <ProductCard
             key={product.id}
             product={{
