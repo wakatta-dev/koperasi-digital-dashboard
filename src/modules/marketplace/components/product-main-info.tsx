@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCartMutations } from "../hooks/useMarketplaceProducts";
-import { showToastError, showToastSuccess } from "@/lib/toast";
+import { showToastError } from "@/lib/toast";
 import { MarketplaceProductDetail } from "../constants";
+import { animateFlyToCart } from "../utils/fly-to-cart";
 
 export function ProductMainInfo({
   product,
@@ -23,6 +24,7 @@ export function ProductMainInfo({
 }) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartMutations();
+  const actionBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const maxQty = product.trackStock
     ? Math.max(1, product.availableStock ?? 0)
@@ -46,8 +48,7 @@ export function ProductMainInfo({
     addItem.mutate(
       { product_id: Number(product.id), quantity: qty },
       {
-        onSuccess: () =>
-          showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang"),
+        onSuccess: () => animateFlyToCart(actionBtnRef.current),
         onError: (err: any) =>
           showToastError("Gagal menambahkan ke keranjang", err),
       }
@@ -169,6 +170,7 @@ export function ProductMainInfo({
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button
             className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 h-auto"
+            ref={actionBtnRef}
             disabled={product.inStock === false}
             onClick={handleAdd}
           >

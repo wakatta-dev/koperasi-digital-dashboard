@@ -3,11 +3,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCartMutations } from "../hooks/useMarketplaceProducts";
-import { showToastError, showToastSuccess } from "@/lib/toast";
+import { showToastError } from "@/lib/toast";
+import { animateFlyToCart } from "../utils/fly-to-cart";
 
 type MarketplaceCardProduct = {
   id: string;
@@ -25,13 +26,14 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
   const ctaLabel = product.badge?.label ?? "Beli Sekarang";
   const detailHref = `/marketplace/${product.id}`;
   const { addItem } = useCartMutations();
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   const isAdding = useMemo(() => addItem.isPending, [addItem.isPending]);
   const handleAdd = () =>
     addItem.mutate(
       { product_id: Number(product.id), quantity: 1 },
       {
-        onSuccess: () => showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang"),
+        onSuccess: () => animateFlyToCart(imgRef.current, product.image),
         onError: (err: any) => showToastError("Gagal menambahkan ke keranjang", err),
       }
     );
@@ -42,6 +44,7 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
         <img
           alt={product.title}
           src={product.image}
+          ref={imgRef}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
           loading="lazy"
         />

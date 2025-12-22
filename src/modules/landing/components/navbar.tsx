@@ -136,14 +136,15 @@ export function LandingNavbar({
           {showCart ? (
             <NavActions className="items-center gap-5 xl:gap-8">
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
-              <Link
-                href={cartHref}
-                className="text-[#4338ca] transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
-                title="Keranjang"
-              >
-                <span className="material-icons-outlined fill-current">shopping_cart</span>
-                {cartCount ? (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                <Link
+                  href={cartHref}
+                  className="text-[#4338ca] transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                  data-cart-target="marketplace"
+                  title="Keranjang"
+                >
+                  <span className="material-icons-outlined fill-current">shopping_cart</span>
+                  {cartCount ? (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
                     {cartCount}
                   </span>
                 ) : null}
@@ -155,7 +156,12 @@ export function LandingNavbar({
       right={
         <div className="lg:hidden flex items-center">
           {showCart ? (
-            <Link href={cartHref} className="text-[#4338ca] transition relative mr-2" title="Keranjang">
+            <Link
+              href={cartHref}
+              className="text-[#4338ca] transition relative mr-2"
+              title="Keranjang"
+              data-cart-target="marketplace"
+            >
               <span className="material-icons-outlined">shopping_cart</span>
               {cartCount ? (
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
