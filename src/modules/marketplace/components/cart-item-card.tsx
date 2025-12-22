@@ -7,9 +7,18 @@ type Props = {
   items: MarketplaceCartItemResponse[];
   onQuantityChange: (itemId: number, quantity: number) => void;
   onRemove: (itemId: number) => void;
+  updatingId?: number | null;
+  removingId?: number | null;
 };
 
-export function CartItemCard({ items, onQuantityChange, onRemove }: Props) {
+export function CartItemCard({ items, onQuantityChange, onRemove, updatingId, removingId }: Props) {
+  const clampQty = (item: MarketplaceCartItemResponse, next: number) => {
+    const min = 1;
+    const max = item.track_stock ? item.stock : Infinity;
+    const target = Math.max(min, next);
+    return Math.min(target, max);
+  };
+
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="p-6">
@@ -60,8 +69,8 @@ export function CartItemCard({ items, onQuantityChange, onRemove }: Props) {
                   <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-9">
                     <button
                       className="px-3 h-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-r border-gray-300 dark:border-gray-600 transition"
-                      onClick={() => onQuantityChange(item.id, Math.max(1, item.quantity - 1))}
-                      disabled={item.quantity <= 1}
+                      onClick={() => onQuantityChange(item.id, clampQty(item, item.quantity - 1))}
+                      disabled={item.quantity <= 1 || updatingId === item.id}
                     >
                       <span className="material-icons-outlined text-sm">remove</span>
                     </button>
@@ -73,7 +82,8 @@ export function CartItemCard({ items, onQuantityChange, onRemove }: Props) {
                     />
                     <button
                       className="px-3 h-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600 transition"
-                      onClick={() => onQuantityChange(item.id, item.quantity + 1)}
+                      onClick={() => onQuantityChange(item.id, clampQty(item, item.quantity + 1))}
+                      disabled={(item.track_stock && item.quantity >= item.stock) || updatingId === item.id}
                     >
                       <span className="material-icons-outlined text-sm">add</span>
                     </button>
@@ -81,6 +91,7 @@ export function CartItemCard({ items, onQuantityChange, onRemove }: Props) {
                   <button
                     className="text-gray-400 hover:text-red-500 transition flex items-center gap-1 text-sm font-medium"
                     title="Hapus item"
+                    disabled={removingId === item.id}
                     onClick={() => onRemove(item.id)}
                   >
                     <span className="material-icons-outlined text-lg">delete</span>

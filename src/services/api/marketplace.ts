@@ -6,6 +6,8 @@ import type { ApiResponse } from "@/types/api";
 import type {
   MarketplaceCartResponse,
   MarketplaceCheckoutRequest,
+  MarketplaceOrderResponse,
+  MarketplaceProductListResponse,
   MarketplaceProductResponse,
 } from "@/types/api/marketplace";
 
@@ -13,21 +15,23 @@ const E = API_ENDPOINTS.marketplace;
 
 export function getMarketplaceProducts(params?: {
   q?: string;
-  cursor?: string;
+  offset?: number;
   limit?: number;
   include_hidden?: boolean;
   min_price?: number;
   max_price?: number;
-}): Promise<ApiResponse<MarketplaceProductResponse[]>> {
+  sort?: string;
+}): Promise<ApiResponse<MarketplaceProductListResponse>> {
   const search = new URLSearchParams();
   if (params?.q) search.set("q", params.q);
-  if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.offset !== undefined) search.set("offset", String(params.offset));
   if (params?.limit) search.set("limit", String(params.limit));
   if (params?.include_hidden) search.set("include_hidden", "true");
   if (params?.min_price !== undefined) search.set("min_price", String(params.min_price));
   if (params?.max_price !== undefined) search.set("max_price", String(params.max_price));
+  if (params?.sort) search.set("sort", params.sort);
   const query = search.toString() ? `?${search.toString()}` : "";
-  return api.get<MarketplaceProductResponse[]>(`${API_PREFIX}${E.products}${query}`);
+  return api.get<MarketplaceProductListResponse>(`${API_PREFIX}${E.products}${query}`);
 }
 
 export function getMarketplaceProductDetail(
@@ -70,8 +74,8 @@ export function removeMarketplaceCartItem(
 
 export function checkoutMarketplace(
   payload: MarketplaceCheckoutRequest
-): Promise<ApiResponse<any>> {
-  return api.post<any>(`${API_PREFIX}${E.checkout}`, payload, {
+): Promise<ApiResponse<MarketplaceOrderResponse>> {
+  return api.post<MarketplaceOrderResponse>(`${API_PREFIX}${E.checkout}`, payload, {
     credentials: "include",
   });
 }

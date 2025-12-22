@@ -1,34 +1,42 @@
 /** @format */
 
 type Props = {
-  total?: number;
+  total: number;
+  limit: number;
+  offset: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  onNext: () => void;
+  onPrev: () => void;
+  isLoading?: boolean;
 };
 
-export function Pagination({ total = 0 }: Props) {
-  if (!total || total <= 9) return null;
+export function Pagination({ total, limit, offset, hasNext, hasPrev, onNext, onPrev, isLoading }: Props) {
+  if (total <= limit) return null;
+  const currentPage = Math.floor(offset / limit) + 1;
+  const totalPages = Math.ceil(total / limit);
+
   return (
-    <div className="mt-12 flex justify-center">
-      <nav className="flex items-center gap-2">
-        <button
-          className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition disabled:opacity-50"
-          disabled
-        >
-          <span className="material-icons-outlined text-sm">chevron_left</span>
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#4338ca] text-white font-medium shadow-md shadow-indigo-500/20">
-          1
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-          2
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-          3
-        </button>
-        <span className="px-2 text-gray-500 dark:text-gray-400">...</span>
-        <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-          <span className="material-icons-outlined text-sm">chevron_right</span>
-        </button>
-      </nav>
+    <div className="mt-12 flex justify-center items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
+      <button
+        className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+        onClick={onPrev}
+        disabled={!hasPrev || isLoading}
+      >
+        <span className="material-icons-outlined text-sm align-middle mr-1">chevron_left</span>
+        Sebelumnya
+      </button>
+      <span>
+        Halaman {currentPage} / {totalPages}
+      </span>
+      <button
+        className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+        onClick={onNext}
+        disabled={!hasNext || isLoading}
+      >
+        Berikutnya
+        <span className="material-icons-outlined text-sm align-middle ml-1">chevron_right</span>
+      </button>
     </div>
   );
 }

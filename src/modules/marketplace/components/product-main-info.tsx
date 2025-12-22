@@ -14,13 +14,37 @@ import {
 } from "@/components/ui/select";
 import { useCartMutations } from "../hooks/useMarketplaceProducts";
 import type { MarketplaceProductDetail } from "../types";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 
 export function ProductMainInfo({ product }: { product: MarketplaceProductDetail }) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartMutations();
 
-  const decrease = () => setQuantity((prev) => Math.max(1, prev - 1));
-  const increase = () => setQuantity((prev) => prev + 1);
+  const maxQty = product.trackStock ? Math.max(1, product.availableStock ?? 0) : undefined;
+  const clamp = (val: number) => {
+    if (maxQty !== undefined) {
+      return Math.min(Math.max(1, val), maxQty);
+    }
+    return Math.max(1, val);
+  };
+
+  const decrease = () => setQuantity((prev) => clamp(prev - 1));
+  const increase = () => setQuantity((prev) => clamp(prev + 1));
+
+  const handleAdd = async () => {
+    const qty = clamp(quantity);
+    if (maxQty !== undefined && maxQty <= 0) {
+      showToastError("Stok habis", "Produk tidak tersedia");
+      return;
+    }
+    addItem.mutate(
+      { product_id: Number(product.id), quantity: qty },
+      {
+        onSuccess: () => showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang"),
+        onError: (err: any) => showToastError("Gagal menambahkan ke keranjang", err),
+      }
+    );
+  };
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:p-8 flex-grow">
@@ -108,7 +132,8 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
               <button
                 type="button"
                 onClick={increase}
-                className="px-3 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600"
+                disabled={maxQty !== undefined && quantity >= maxQty}
+                className="px-3 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600 disabled:opacity-50"
               >
                 <span className="material-icons-outlined text-sm">add</span>
               </button>
@@ -120,7 +145,8 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button
             className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 h-auto"
-            onClick={() => addItem.mutate({ product_id: Number(product.id), quantity })}
+            disabled={product.inStock === false}
+            onClick={handleAdd}
           >
             <span className="material-icons-outlined text-xl">shopping_bag</span>
             Beli Sekarang
@@ -128,7 +154,8 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
           <Button
             variant="outline"
             className="flex-1 border border-[#4338ca] text-[#4338ca] hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-6 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 h-auto"
-            onClick={() => addItem.mutate({ product_id: Number(product.id), quantity })}
+            disabled={product.inStock === false}
+            onClick={handleAdd}
           >
             <span className="material-icons-outlined text-xl">add_shopping_cart</span>
             + Keranjang

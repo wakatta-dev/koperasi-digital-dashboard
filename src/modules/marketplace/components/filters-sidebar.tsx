@@ -2,12 +2,10 @@
 
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { FilterActions } from "@/components/shared/filters/FilterActions";
 import { FilterPanel } from "@/components/shared/filters/FilterPanel";
 import { FilterSection } from "@/components/shared/filters/FilterSection";
-import { CATEGORY_FILTERS, PRODUCER_FILTERS } from "../constants";
 import type { MarketplaceFilters } from "../types";
 
 type Props = {
@@ -17,24 +15,6 @@ type Props = {
 };
 
 export function FiltersSidebar({ filters, onChange, onApply }: Props) {
-  const toggleCategory = (value: string) => {
-    const current = new Set(filters.categories);
-    if (value === "all") {
-      onChange({ ...filters, categories: ["all"] });
-      return;
-    }
-    if (current.has(value)) {
-      current.delete(value);
-    } else {
-      current.add(value);
-    }
-    current.delete("all");
-    if (current.size === 0) {
-      current.add("all");
-    }
-    onChange({ ...filters, categories: Array.from(current) });
-  };
-
   const updatePrice = (key: "priceMin" | "priceMax", raw: string) => {
     const value = raw === "" ? undefined : Number(raw);
     onChange({ ...filters, [key]: Number.isNaN(value) ? undefined : value });
@@ -42,28 +22,6 @@ export function FiltersSidebar({ filters, onChange, onApply }: Props) {
 
   return (
     <FilterPanel className="space-y-6 p-6">
-      <FilterSection title="Kategori" withDivider>
-        {CATEGORY_FILTERS.map((category) => (
-          <label
-            key={category.value}
-            className="flex items-center gap-3 cursor-pointer group"
-          >
-            <Checkbox
-              checked={
-                category.value === "all"
-                  ? filters.categories.includes("all")
-                  : filters.categories.includes(category.value)
-              }
-              onCheckedChange={() => toggleCategory(category.value)}
-              className="rounded text-[#4338ca] data-[state=checked]:bg-[#4338ca] data-[state=checked]:border-[#4338ca] border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800"
-            />
-            <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-[#4338ca] transition">
-              {category.label}
-            </span>
-          </label>
-        ))}
-      </FilterSection>
-
       <FilterSection title="Rentang Harga" withDivider className="space-y-4">
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500">Rp</span>
@@ -94,30 +52,6 @@ export function FiltersSidebar({ filters, onChange, onApply }: Props) {
             Terapkan
           </button>
         </FilterActions>
-      </FilterSection>
-
-      <FilterSection title="Produsen">
-        {PRODUCER_FILTERS.map((producer) => (
-          <label
-            key={producer.value}
-            className="flex items-center gap-3 cursor-pointer group"
-          >
-            <input
-              type="radio"
-              name="producer"
-              checked={
-                producer.value === "all"
-                  ? filters.producer === "all" || !filters.producer
-                  : filters.producer === producer.value
-              }
-              onChange={() => onChange({ ...filters, producer: producer.value })}
-              className="text-[#4338ca] focus:ring-[#4338ca] border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 size-4"
-            />
-            <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-[#4338ca] transition">
-              {producer.label}
-            </span>
-          </label>
-        ))}
       </FilterSection>
     </FilterPanel>
   );

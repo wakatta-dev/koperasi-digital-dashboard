@@ -15,6 +15,7 @@ import {
 } from "@/services/api";
 import type {
   MarketplaceCartResponse,
+  MarketplaceProductListResponse,
   MarketplaceProductResponse,
 } from "@/types/api/marketplace";
 
@@ -33,7 +34,7 @@ export function useMarketplaceProducts(params?: MarketplaceProductParams) {
 
   return useQuery({
     queryKey: QK.marketplace.list(normalizedParams ?? {}),
-    queryFn: async (): Promise<MarketplaceProductResponse[]> =>
+    queryFn: async (): Promise<MarketplaceProductListResponse> =>
       ensureSuccess(await getMarketplaceProducts(normalizedParams)),
   });
 }

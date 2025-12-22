@@ -18,13 +18,9 @@ type Props = {
 
 export function OrderSummaryCard({ subtotal = 0, total = 0, itemCount = 0 }: Props) {
   const rows: SummaryRow[] = [
-    { label: CART_SUMMARY.subtotalLabel, value: formatCurrency(subtotal) ?? "-" },
-    { label: CART_SUMMARY.shippingLabel, value: CART_SUMMARY.shippingValue },
-    {
-      label: CART_SUMMARY.discountLabel,
-      value: CART_SUMMARY.discountValue,
-      valueClassName: "text-green-600 dark:text-green-400",
-    },
+    { label: "Subtotal", value: formatCurrency(subtotal) ?? "-" },
+    { label: "Biaya Pengiriman", value: "Belum dihitung" },
+    { label: "Diskon", value: "Rp 0" },
   ];
 
   const headerSlot = (
@@ -75,8 +71,8 @@ export function OrderSummaryCard({ subtotal = 0, total = 0, itemCount = 0 }: Pro
       title="Ringkasan Pesanan"
       rows={rows}
       total={{
-        label: CART_SUMMARY.totalLabel,
-        value: formatCurrency(total) ?? CART_SUMMARY.totalValue,
+        label: "Total Pembayaran",
+        value: formatCurrency(total || subtotal) ?? "-",
       }}
       headerSlot={headerSlot}
       footerSlot={footerSlot}

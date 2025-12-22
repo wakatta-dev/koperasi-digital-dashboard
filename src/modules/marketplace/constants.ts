@@ -23,6 +23,9 @@ export type MarketplaceProduct = {
   image: string;
   badge?: MarketplaceProductBadge;
   ctaLabel?: string;
+  trackStock?: boolean;
+  availableStock?: number;
+  inStock?: boolean;
 };
 
 export type MarketplaceProductDetail = {
@@ -39,6 +42,9 @@ export type MarketplaceProductDetail = {
   longDescription: string[];
   features: string[];
   stock: string;
+  availableStock?: number;
+  trackStock?: boolean;
+  inStock?: boolean;
   seller: { name: string; location: string; avatar: string };
   badge?: MarketplaceProductBadge;
   gallery: { main: string; thumbnails: string[] };

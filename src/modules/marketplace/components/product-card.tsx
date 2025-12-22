@@ -7,6 +7,7 @@ import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCartMutations } from "../hooks/useMarketplaceProducts";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 
 type MarketplaceCardProduct = {
   id: string;
@@ -26,6 +27,14 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
   const { addItem } = useCartMutations();
 
   const isAdding = useMemo(() => addItem.isPending, [addItem.isPending]);
+  const handleAdd = () =>
+    addItem.mutate(
+      { product_id: Number(product.id), quantity: 1 },
+      {
+        onSuccess: () => showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang"),
+        onError: (err: any) => showToastError("Gagal menambahkan ke keranjang", err),
+      }
+    );
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col group">
@@ -78,9 +87,7 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
             className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition h-auto"
             title="Tambah ke Keranjang"
             disabled={!product.inStock || isAdding}
-            onClick={() =>
-              addItem.mutate({ product_id: Number(product.id), quantity: 1 })
-            }
+            onClick={handleAdd}
           >
             <span className="material-icons-outlined text-sm">
               {isAdding ? "hourglass_top" : "add_shopping_cart"}
