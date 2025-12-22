@@ -14,7 +14,10 @@ import { ProductSpecsCard } from "./components/product-specs-card";
 import { SafetyBanner } from "./components/safety-banner";
 import { RelatedProducts } from "./components/related-products";
 import { PRODUCT_DETAIL } from "./constants";
-import { useMarketplaceCart, useMarketplaceProductDetail } from "./hooks/useMarketplaceProducts";
+import {
+  useMarketplaceCart,
+  useMarketplaceProductDetail,
+} from "./hooks/useMarketplaceProducts";
 import { formatCurrency } from "@/lib/format";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -29,18 +32,20 @@ type Props = {
 };
 
 export function MarketplaceProductDetailPage({ productId }: Props) {
-  const { data, isLoading, isError, error, refetch } = useMarketplaceProductDetail(productId);
+  const { data, isLoading, isError, error, refetch } =
+    useMarketplaceProductDetail(productId);
   const { data: cart } = useMarketplaceCart();
   const router = useRouter();
 
-  const notFoundLike = isError && error?.message?.toLowerCase().includes("not found");
+  const notFoundLike =
+    isError && error?.message?.toLowerCase().includes("not found");
   useEffect(() => {
     if (notFoundLike) {
       router.replace("/404");
     }
   }, [notFoundLike, router]);
 
-  const product = data
+  const product: any = data
     ? {
         id: String(data.id),
         breadcrumbTitle: data.name,
@@ -54,14 +59,19 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
         shortDescription: data.description ?? "",
         longDescription: data.description ? [data.description] : [],
         features: [],
-        stock: data.track_stock ? `Stok tersedia: ${data.stock} pcs` : "Stok tersedia",
+        stock: data.track_stock
+          ? `Stok tersedia: ${data.stock} pcs`
+          : "Stok tersedia",
         availableStock: data.track_stock ? data.stock : undefined,
         trackStock: data.track_stock,
         inStock: data.in_stock,
         seller: PRODUCT_DETAIL.seller,
-        badge: data.in_stock ? undefined : { label: "Stok Habis", variant: "danger" },
+        badge: data.in_stock
+          ? undefined
+          : { label: "Stok Habis", variant: "danger" },
         gallery: {
-          main: data.photo_url ?? "https://via.placeholder.com/640x480?text=Produk",
+          main:
+            data.photo_url ?? "https://via.placeholder.com/640x480?text=Produk",
           thumbnails: [],
         },
         specs: [],
@@ -73,7 +83,11 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
   return (
     <div className={plusJakarta.className}>
       <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
-        <LandingNavbar activeLabel="Marketplace" showCart cartCount={cart?.item_count ?? 0} />
+        <LandingNavbar
+          activeLabel="Marketplace"
+          showCart
+          cartCount={cart?.item_count ?? 0}
+        />
         <main className="pt-28 pb-20 bg-[#f8fafc] dark:bg-[#0f172a] min-h-screen">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <ProductBreadcrumbs
@@ -98,7 +112,9 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
               </div>
             ) : null}
             {!isLoading && !product && !isError ? (
-              <div className="py-12 text-center text-gray-500 dark:text-gray-400">Produk tidak ditemukan.</div>
+              <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+                Produk tidak ditemukan.
+              </div>
             ) : null}
 
             {product ? (
@@ -112,12 +128,16 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
                   </div>
                 </div>
 
-                {Boolean(product.longDescription.length || product.features.length) ? (
+                {Boolean(
+                  product.longDescription.length || product.features.length
+                ) ? (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
                     <ProductDetailsContent product={product} />
 
                     <div className="space-y-6">
-                      {product.specs.length ? <ProductSpecsCard product={product} /> : null}
+                      {product.specs.length ? (
+                        <ProductSpecsCard product={product} />
+                      ) : null}
                       <SafetyBanner />
                     </div>
                   </div>

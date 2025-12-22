@@ -1,10 +1,14 @@
 /** @format */
 
-import type { MarketplaceProductDetail } from "../types";
+import { MarketplaceProductDetail } from "../constants";
 
 const PLACEHOLDER_ICONS = ["image", "image", "videocam"];
 
-export function ProductGallery({ product }: { product: MarketplaceProductDetail }) {
+export function ProductGallery({
+  product,
+}: {
+  product: MarketplaceProductDetail;
+}) {
   const mainImage = product.gallery.main;
   const thumbnails = product.gallery.thumbnails;
 
@@ -37,7 +41,11 @@ export function ProductGallery({ product }: { product: MarketplaceProductDetail 
                     : "border border-gray-200 dark:border-gray-700 hover:border-[#4338ca] transition opacity-70 hover:opacity-100"
                 }`}
               >
-                <img alt={`Thumbnail ${index + 1}`} src={thumb} className="w-full h-full object-cover" />
+                <img
+                  alt={`Thumbnail ${index + 1}`}
+                  src={thumb}
+                  className="w-full h-full object-cover"
+                />
               </button>
             );
           }

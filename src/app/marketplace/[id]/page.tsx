@@ -9,10 +9,11 @@ export const metadata: Metadata = {
   description: "Detail produk marketplace desa Sukamaju.",
 };
 
-export default function MarketplaceProductDetail({
+export default async function MarketplaceProductDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  return <MarketplaceProductDetailPage productId={params.id} />;
+  const paramsResolved = await params;
+  return <MarketplaceProductDetailPage productId={paramsResolved.id} />;
 }

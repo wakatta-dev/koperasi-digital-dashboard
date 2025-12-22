@@ -24,6 +24,9 @@ export type MarketplaceProductParams = {
   include_hidden?: boolean;
   min_price?: number;
   max_price?: number;
+  limit?: number;
+  offset?: number;
+  sort?: "newest" | "oldest" | "price_asc" | "price_desc";
 };
 
 export function useMarketplaceProducts(params?: MarketplaceProductParams) {
@@ -60,7 +63,8 @@ export function useMarketplaceCart(options?: { enabled?: boolean }) {
 export function useCartMutations() {
   const qc = useQueryClient();
 
-  const refreshCart = () => qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
+  const refreshCart = () =>
+    qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
 
   const addItem = useMutation({
     mutationFn: (payload: { product_id: number; quantity: number }) =>
@@ -70,12 +74,15 @@ export function useCartMutations() {
 
   const updateItem = useMutation({
     mutationFn: (payload: { itemId: number; quantity: number }) =>
-      updateMarketplaceCartItem(payload.itemId, { quantity: payload.quantity }).then(ensureSuccess),
+      updateMarketplaceCartItem(payload.itemId, {
+        quantity: payload.quantity,
+      }).then(ensureSuccess),
     onSuccess: refreshCart,
   });
 
   const removeItem = useMutation({
-    mutationFn: (itemId: number) => removeMarketplaceCartItem(itemId).then(ensureSuccess),
+    mutationFn: (itemId: number) =>
+      removeMarketplaceCartItem(itemId).then(ensureSuccess),
     onSuccess: refreshCart,
   });
 

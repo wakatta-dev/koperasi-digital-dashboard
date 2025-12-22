@@ -13,14 +13,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCartMutations } from "../hooks/useMarketplaceProducts";
-import type { MarketplaceProductDetail } from "../types";
 import { showToastError, showToastSuccess } from "@/lib/toast";
+import { MarketplaceProductDetail } from "../constants";
 
-export function ProductMainInfo({ product }: { product: MarketplaceProductDetail }) {
+export function ProductMainInfo({
+  product,
+}: {
+  product: MarketplaceProductDetail;
+}) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartMutations();
 
-  const maxQty = product.trackStock ? Math.max(1, product.availableStock ?? 0) : undefined;
+  const maxQty = product.trackStock
+    ? Math.max(1, product.availableStock ?? 0)
+    : undefined;
   const clamp = (val: number) => {
     if (maxQty !== undefined) {
       return Math.min(Math.max(1, val), maxQty);
@@ -40,8 +46,10 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
     addItem.mutate(
       { product_id: Number(product.id), quantity: qty },
       {
-        onSuccess: () => showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang"),
-        onError: (err: any) => showToastError("Gagal menambahkan ke keranjang", err),
+        onSuccess: () =>
+          showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang"),
+        onError: (err: any) =>
+          showToastError("Gagal menambahkan ke keranjang", err),
       }
     );
   };
@@ -54,7 +62,9 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
             {product.categoryTag}
           </span>
           <span className="flex items-center text-yellow-500 text-sm font-medium gap-1">
-            <span className="material-icons-outlined text-base fill-current">star</span>
+            <span className="material-icons-outlined text-base fill-current">
+              star
+            </span>
             {product.rating.value} ({product.rating.total} Ulasan)
           </span>
         </div>
@@ -63,12 +73,20 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
         </h1>
         <div className="flex items-center gap-3 mt-4">
           <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden">
-            <img alt="Seller" className="h-full w-full object-cover" src={product.seller.avatar} />
+            <img
+              alt="Seller"
+              className="h-full w-full object-cover"
+              src={product.seller.avatar}
+            />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{product.seller.name}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {product.seller.name}
+            </p>
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 gap-1">
-              <span className="material-icons-outlined text-sm">location_on</span>
+              <span className="material-icons-outlined text-sm">
+                location_on
+              </span>
               {product.seller.location}
             </div>
           </div>
@@ -83,7 +101,9 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
 
       <div className="space-y-6">
         <div>
-          <span className="text-3xl font-bold text-[#4338ca]">{product.price}</span>
+          <span className="text-3xl font-bold text-[#4338ca]">
+            {product.price}
+          </span>
           {product.originalPrice ? (
             <span className="text-sm text-gray-500 dark:text-gray-400 line-through ml-2">
               {product.originalPrice}
@@ -96,7 +116,9 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
           ) : null}
         </div>
 
-        <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{product.shortDescription}</p>
+        <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+          {product.shortDescription}
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -114,7 +136,9 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Jumlah</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Jumlah
+            </label>
             <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg w-fit overflow-hidden">
               <button
                 type="button"
@@ -148,7 +172,9 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
             disabled={product.inStock === false}
             onClick={handleAdd}
           >
-            <span className="material-icons-outlined text-xl">shopping_bag</span>
+            <span className="material-icons-outlined text-xl">
+              shopping_bag
+            </span>
             Beli Sekarang
           </Button>
           <Button
@@ -157,7 +183,9 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
             disabled={product.inStock === false}
             onClick={handleAdd}
           >
-            <span className="material-icons-outlined text-xl">add_shopping_cart</span>
+            <span className="material-icons-outlined text-xl">
+              add_shopping_cart
+            </span>
             + Keranjang
           </Button>
           <Button
@@ -170,9 +198,13 @@ export function ProductMainInfo({ product }: { product: MarketplaceProductDetail
         </div>
 
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 flex items-start gap-3 mt-6">
-          <span className="material-icons-outlined text-gray-500">local_shipping</span>
+          <span className="material-icons-outlined text-gray-500">
+            local_shipping
+          </span>
           <div className="text-sm">
-            <p className="font-bold text-gray-900 dark:text-white">Pengiriman dari Desa Sukamaju</p>
+            <p className="font-bold text-gray-900 dark:text-white">
+              Pengiriman dari Desa Sukamaju
+            </p>
             <p className="text-gray-500 dark:text-gray-400 mt-0.5">
               Estimasi tiba 2 - 4 hari ke alamat tujuan.
             </p>

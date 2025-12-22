@@ -185,11 +185,15 @@ export function InventoryPage() {
   const [editingItem, setEditingItem] = useState<InventoryItem>(
     inventoryItems[0]
   );
-  const { data, isLoading, isError } = useMarketplaceProducts({ q: search || undefined, include_hidden: true });
+  const { data, isLoading, isError } = useMarketplaceProducts({
+    q: search || undefined,
+    include_hidden: true,
+  });
 
   const items: InventoryItem[] = useMemo(() => {
-    if (!data || data.length === 0) return inventoryItems;
-    return data.map((p) => ({
+    if (!data || data?.items?.length === 0) return inventoryItems;
+
+    return data?.items?.map?.((p) => ({
       id: String(p.id),
       name: p.name,
       sku: p.sku,
@@ -278,7 +282,9 @@ export function InventoryPage() {
                   {page}
                 </Button>
               ))}
-              <span className="px-2 text-[#6b7280] dark:text-[#94a3b8]">...</span>
+              <span className="px-2 text-[#6b7280] dark:text-[#94a3b8]">
+                ...
+              </span>
               <Button
                 type="button"
                 variant="ghost"
@@ -299,10 +305,14 @@ export function InventoryPage() {
         product={editingItem}
       />
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Memuat data inventaris...</div>
+        <div className="text-sm text-muted-foreground">
+          Memuat data inventaris...
+        </div>
       ) : null}
       {isError ? (
-        <div className="text-sm text-red-500">Gagal memuat data inventaris.</div>
+        <div className="text-sm text-red-500">
+          Gagal memuat data inventaris.
+        </div>
       ) : null}
     </div>
   );

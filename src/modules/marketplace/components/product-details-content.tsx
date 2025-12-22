@@ -1,8 +1,12 @@
 /** @format */
 
-import type { MarketplaceProductDetail } from "../types";
+import { MarketplaceProductDetail } from "../constants";
 
-export function ProductDetailsContent({ product }: { product: MarketplaceProductDetail }) {
+export function ProductDetailsContent({
+  product,
+}: {
+  product: MarketplaceProductDetail;
+}) {
   const hasDescription = product.longDescription.length > 0;
   const hasFeatures = product.features.length > 0;
   const hasReviews = product.reviews.length > 0;
@@ -12,7 +16,10 @@ export function ProductDetailsContent({ product }: { product: MarketplaceProduct
     <div className="lg:col-span-2 space-y-8">
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav aria-label="Tabs" className="-mb-px flex space-x-8">
-          <a className="border-[#4338ca] text-[#4338ca] whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">
+          <a
+            className="border-[#4338ca] text-[#4338ca] whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            href="#"
+          >
             Deskripsi Produk
           </a>
           <a
@@ -40,7 +47,9 @@ export function ProductDetailsContent({ product }: { product: MarketplaceProduct
             ))}
             {hasFeatures ? (
               <>
-                <h4 className="text-gray-900 dark:text-white font-bold text-base mb-2">Keunggulan Produk:</h4>
+                <h4 className="text-gray-900 dark:text-white font-bold text-base mb-2">
+                  Keunggulan Produk:
+                </h4>
                 <ul className="list-disc pl-5 space-y-1 mb-4">
                   {product.features.map((feature) => (
                     <li key={feature}>{feature}</li>
@@ -55,8 +64,12 @@ export function ProductDetailsContent({ product }: { product: MarketplaceProduct
       {hasReviews ? (
         <div className="bg-white dark:bg-[#1e293b] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white">Ulasan Pembeli</h3>
-            <button className="text-[#4338ca] text-sm font-medium hover:underline">Lihat Semua</button>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+              Ulasan Pembeli
+            </h3>
+            <button className="text-[#4338ca] text-sm font-medium hover:underline">
+              Lihat Semua
+            </button>
           </div>
 
           <div className="space-y-6">
@@ -72,23 +85,31 @@ export function ProductDetailsContent({ product }: { product: MarketplaceProduct
                     >
                       {review.initials}
                     </div>
-                    <span className="font-medium text-sm text-gray-900 dark:text-white">{review.name}</span>
+                    <span className="font-medium text-sm text-gray-900 dark:text-white">
+                      {review.name}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-500">{review.timeAgo}</span>
+                  <span className="text-xs text-gray-500">
+                    {review.timeAgo}
+                  </span>
                 </div>
                 <div className="flex text-yellow-400 text-xs mb-2">
                   {Array.from({ length: 5 }).map((_, starIndex) => (
                     <span
                       key={starIndex}
                       className={`material-icons-outlined text-sm ${
-                        starIndex < review.rating ? "fill-current" : "text-gray-300"
+                        starIndex < review.rating
+                          ? "fill-current"
+                          : "text-gray-300"
                       }`}
                     >
                       star
                     </span>
                   ))}
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  {review.comment}
+                </p>
               </div>
             ))}
           </div>
