@@ -4,7 +4,7 @@
 
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Loader2, X } from "lucide-react";
 import {
@@ -60,7 +60,7 @@ export function EditProductModal({
 }: EditModalProps) {
   const { update, adjustStock } = useInventoryActions();
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       name: product?.name ?? "",
       sku: product?.sku ?? "",

@@ -3,9 +3,10 @@
 import { InventoryDetailPage } from "@/modules/inventory/components/inventory-detail-page";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function InventoryDetailRoutePage({ params }: PageProps) {
-  return <InventoryDetailPage id={params.id} />;
+export default async function InventoryDetailRoutePage({ params }: PageProps) {
+  const paramsResolved = await params;
+  return <InventoryDetailPage id={paramsResolved.id} />;
 }

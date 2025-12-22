@@ -5,8 +5,10 @@ export type InventoryItem = {
   name: string;
   sku: string;
   price: number;
+  product: any;
   stock: number;
   status: string;
+  categoryClassName: string;
   showInMarketplace: boolean;
   trackStock: boolean;
   category?: string;

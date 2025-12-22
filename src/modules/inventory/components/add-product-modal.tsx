@@ -4,7 +4,7 @@
 
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import {
@@ -24,7 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useInventoryActions } from "@/hooks/queries/inventory";
 import type { CreateInventoryProductRequest } from "@/types/api/inventory";
 
@@ -38,7 +45,10 @@ const formSchema = z.object({
   sku: z.string().optional(),
   category: z.string().optional(),
   description: z.string().optional(),
-  cost_price: z.coerce.number().min(0, "Harga beli tidak boleh negatif").optional(),
+  cost_price: z.coerce
+    .number()
+    .min(0, "Harga beli tidak boleh negatif")
+    .optional(),
   price_sell: z.coerce.number().positive("Harga jual harus lebih dari 0"),
   track_stock: z.boolean().default(true),
   initial_stock: z.coerce.number().min(0, "Stok awal minimal 0").default(0),
@@ -51,7 +61,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
   const { create, initialStock } = useInventoryActions();
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       name: "",
       sku: "",
@@ -117,7 +127,10 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
               Tambahkan Produk
             </DialogTitle>
             <Form {...form}>
-              <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+              <form
+                className="space-y-6"
+                onSubmit={form.handleSubmit(onSubmit)}
+              >
                 <div className="space-y-2">
                   <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
                     Foto Produk
@@ -177,16 +190,25 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Kategori</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <FormControl>
                             <SelectTrigger className="h-auto w-full rounded-md border-[#e5e7eb] bg-white py-2.5 text-sm text-gray-500 shadow-sm focus-visible:border-[#4f46e5] focus-visible:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white">
                               <SelectValue placeholder="Pilih kategori produk" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className="min-w-full border-[#e5e7eb] bg-white text-[#111827] dark:border-[#334155] dark:bg-[#1e293b] dark:text-white">
-                            <SelectItem value="elektronik">Elektronik</SelectItem>
-                            <SelectItem value="makanan">Makanan &amp; Minuman</SelectItem>
-                            <SelectItem value="kesehatan">Kesehatan &amp; Kecantikan</SelectItem>
+                            <SelectItem value="elektronik">
+                              Elektronik
+                            </SelectItem>
+                            <SelectItem value="makanan">
+                              Makanan &amp; Minuman
+                            </SelectItem>
+                            <SelectItem value="kesehatan">
+                              Kesehatan &amp; Kecantikan
+                            </SelectItem>
                             <SelectItem value="lainnya">Lainnya</SelectItem>
                           </SelectContent>
                         </Select>
@@ -208,8 +230,10 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                             placeholder="0"
                             className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
                             {...field}
-                            value={field.value ?? ""}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            value={typeof field.value === "number" ? field.value : ""}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -232,7 +256,9 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                             placeholder="Masukkan harga jual"
                             className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -253,7 +279,9 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                             placeholder="0"
                             className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -292,7 +320,9 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                       <FormControl>
                         <Checkbox
                           checked={field.value}
-                          onCheckedChange={(val) => field.onChange(Boolean(val))}
+                          onCheckedChange={(val) =>
+                            field.onChange(Boolean(val))
+                          }
                           className="h-4 w-4 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5]"
                         />
                       </FormControl>
@@ -314,7 +344,9 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                           disabled={!trackStock}
                           className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -330,7 +362,9 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                       <FormControl>
                         <Checkbox
                           checked={field.value}
-                          onCheckedChange={(val) => field.onChange(Boolean(val))}
+                          onCheckedChange={(val) =>
+                            field.onChange(Boolean(val))
+                          }
                           className="h-4 w-4 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5]"
                         />
                       </FormControl>
@@ -339,7 +373,8 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                           Tampilkan di marketplace
                         </FormLabel>
                         <p className="text-xs text-muted-foreground">
-                          Hanya produk dengan harga & stok valid yang akan muncul.
+                          Hanya produk dengan harga & stok valid yang akan
+                          muncul.
                         </p>
                       </div>
                     </FormItem>
@@ -361,7 +396,9 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                     className="rounded-md border border-transparent bg-[#4f46e5] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2"
                     disabled={submitting}
                   >
-                    {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {submitting ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
                     Simpan Produk
                   </Button>
                 </div>

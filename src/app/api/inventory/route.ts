@@ -19,6 +19,11 @@ export async function GET() {
       category: "",
       categoryClassName: "",
       image: "",
+      status: "",
+      showInMarketplace: false,
+      trackStock: false,
+      marketplaceEligible: false,
+      ineligibleReasons: [],
     },
     {
       id: "728ed52h",
@@ -35,6 +40,11 @@ export async function GET() {
       category: "",
       categoryClassName: "",
       image: "",
+      status: "",
+      showInMarketplace: false,
+      trackStock: false,
+      marketplaceEligible: false,
+      ineligibleReasons: [],
     },
     {
       id: "728ed52z",
@@ -51,6 +61,11 @@ export async function GET() {
       category: "",
       categoryClassName: "",
       image: "",
+      status: "",
+      showInMarketplace: false,
+      trackStock: false,
+      marketplaceEligible: false,
+      ineligibleReasons: [],
     },
   ];
 
