@@ -91,6 +91,7 @@ export const API_ENDPOINTS = {
     products: "/inventory/products",
     product: (id: string | number) => `/inventory/products/${id}`,
     archive: (id: string | number) => `/inventory/products/${id}/archive`,
+    unarchive: (id: string | number) => `/inventory/products/${id}/unarchive`,
     stockInitial: (id: string | number) => `/inventory/products/${id}/stock/initial`,
     stockAdjust: (id: string | number) => `/inventory/products/${id}/stock/adjust`,
     history: (id: string | number) => `/inventory/products/${id}/history`,

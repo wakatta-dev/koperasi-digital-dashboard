@@ -60,6 +60,12 @@ export function archiveInventoryProduct(
   return api.post<null>(`${API_PREFIX}${E.archive(id)}`);
 }
 
+export function unarchiveInventoryProduct(
+  id: string | number
+): Promise<ApiResponse<null>> {
+  return api.post<null>(`${API_PREFIX}${E.unarchive(id)}`);
+}
+
 export function setInitialInventoryStock(
   id: string | number,
   payload: InventoryInitialStockRequest

@@ -34,6 +34,7 @@ export function InventoryDetailPage({ id }: Props) {
     () => (data ? computeEligibility(data) : { eligible: false, reasons: [] }),
     [data]
   );
+  const isArchived = item?.status === "ARCHIVED";
 
   useEffect(() => {
     if (item) {
@@ -105,13 +106,23 @@ export function InventoryDetailPage({ id }: Props) {
           <Button variant="outline" onClick={() => setEditOpen(true)}>
             Edit
           </Button>
-          <Button
-            variant="destructive"
-            disabled={item.status === "ARCHIVED" || actions.archive.isPending}
-            onClick={() => actions.archive.mutate(item.id)}
-          >
-            Arsipkan
-          </Button>
+          {isArchived ? (
+            <Button
+              variant="default"
+              disabled={actions.unarchive.isPending}
+              onClick={() => actions.unarchive.mutate(item.id)}
+            >
+              Aktifkan kembali
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              disabled={actions.archive.isPending}
+              onClick={() => actions.archive.mutate(item.id)}
+            >
+              Arsipkan
+            </Button>
+          )}
         </div>
       </div>
 

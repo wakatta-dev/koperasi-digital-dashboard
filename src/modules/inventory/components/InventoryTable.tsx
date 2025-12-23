@@ -1,7 +1,7 @@
 /** @format */
 
 import Link from "next/link";
-import { Archive, MoreVertical } from "lucide-react";
+import { Archive, ArchiveRestore, MoreVertical } from "lucide-react";
 import type { ReactNode } from "react";
 import { TableCell } from "@/components/shared/data-display/TableCell";
 import { TableHeader } from "@/components/shared/data-display/TableHeader";
@@ -19,6 +19,7 @@ type InventoryTableProps = {
   onEdit: (item: InventoryItem) => void;
   onToggleMarketplace: (item: InventoryItem, nextValue: boolean) => void;
   onArchive: (item: InventoryItem) => void;
+  onUnarchive: (item: InventoryItem) => void;
   onRowClick?: (item: InventoryItem) => void;
   footer?: ReactNode;
 };
@@ -46,6 +47,7 @@ export function InventoryTable({
   onRowClick,
   onToggleMarketplace,
   onArchive,
+  onUnarchive,
   footer,
 }: InventoryTableProps) {
   return (
@@ -176,7 +178,21 @@ export function InventoryTable({
                   >
                     <Archive className="h-5 w-5" />
                   </Button>
-                ) : null}
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Aktifkan kembali produk"
+                    className="text-emerald-600 hover:text-emerald-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUnarchive(row);
+                    }}
+                  >
+                    <ArchiveRestore className="h-5 w-5" />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}

@@ -13,6 +13,7 @@ import {
   getInventoryProduct,
   listInventoryProducts,
   setInitialInventoryStock,
+  unarchiveInventoryProduct,
   updateInventoryProduct,
 } from "@/services/api";
 import type {
@@ -106,6 +107,17 @@ export function useInventoryActions() {
     onError: (err: any) => toast.error(err?.message || "Gagal mengarsipkan produk"),
   });
 
+  const unarchive = useMutation({
+    mutationFn: async (id: string | number) =>
+      ensureSuccess(await unarchiveInventoryProduct(id)),
+    onSuccess: (_data, id) => {
+      invalidateLists();
+      invalidateDetail(id);
+      toast.success("Produk dipulihkan");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengaktifkan produk"),
+  });
+
   const initialStock = useMutation({
     mutationFn: async (vars: { id: string | number; payload: InventoryInitialStockRequest }) =>
       ensureSuccess(await setInitialInventoryStock(vars.id, vars.payload)),
@@ -132,6 +144,7 @@ export function useInventoryActions() {
     create,
     update,
     archive,
+    unarchive,
     initialStock,
     adjustStock,
   } as const;
