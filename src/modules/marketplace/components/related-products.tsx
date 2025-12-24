@@ -34,11 +34,17 @@ export function RelatedProducts({ currentProductId }: Props) {
             className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col group"
           >
             <div className="relative h-48 overflow-hidden bg-gray-200">
-              <img
-                alt={product.name}
-                src={product.photo_url || "https://via.placeholder.com/400x300?text=Produk"}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-              />
+              {product.photo_url ? (
+                <img
+                  alt={product.name}
+                  src={product.photo_url}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+                  Tidak ada foto
+                </div>
+              )}
             </div>
             <div className="p-5 flex flex-col flex-grow">
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">{product.sku || "Produk"}</div>

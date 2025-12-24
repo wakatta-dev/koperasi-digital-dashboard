@@ -70,8 +70,7 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
           ? undefined
           : { label: "Stok Habis", variant: "danger" },
         gallery: {
-          main:
-            data.photo_url ?? "https://via.placeholder.com/640x480?text=Produk",
+          main: data.photo_url ?? "",
           thumbnails: [],
         },
         specs: [],

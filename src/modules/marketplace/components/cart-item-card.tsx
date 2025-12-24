@@ -33,11 +33,17 @@ export function CartItemCard({ items, onQuantityChange, onRemove, updatingId, re
             className={`flex flex-col sm:flex-row gap-6 pb-8 border-b border-gray-100 dark:border-gray-700 last:border-0 last:pb-0 mb-8 last:mb-0`}
           >
             <div className="w-full sm:w-32 h-32 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 relative group">
-              <img
-                alt={item.product_name}
-                src={item.product_photo || "https://via.placeholder.com/200x200?text=Produk"}
-                className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
-              />
+              {item.product_photo ? (
+                <img
+                  alt={item.product_name}
+                  src={item.product_photo}
+                  className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+                  Tidak ada foto
+                </div>
+              )}
             </div>
 
             <div className="flex-1 flex flex-col justify-between">

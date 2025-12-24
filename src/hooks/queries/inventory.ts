@@ -14,6 +14,7 @@ import {
   listInventoryProducts,
   setInitialInventoryStock,
   unarchiveInventoryProduct,
+  uploadInventoryProductImage,
   updateInventoryProduct,
 } from "@/services/api";
 import type {
@@ -96,6 +97,17 @@ export function useInventoryActions() {
     onError: (err: any) => toast.error(err?.message || "Gagal memperbarui produk"),
   });
 
+  const uploadImage = useMutation({
+    mutationFn: async (vars: { id: string | number; file: File }) =>
+      ensureSuccess(await uploadInventoryProductImage(vars.id, vars.file)),
+    onSuccess: (_data, vars) => {
+      invalidateLists();
+      invalidateDetail(vars.id);
+      toast.success("Foto produk diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengunggah foto produk"),
+  });
+
   const archive = useMutation({
     mutationFn: async (id: string | number) =>
       ensureSuccess(await archiveInventoryProduct(id)),
@@ -143,6 +155,7 @@ export function useInventoryActions() {
   return {
     create,
     update,
+    uploadImage,
     archive,
     unarchive,
     initialStock,

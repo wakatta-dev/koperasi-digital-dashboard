@@ -100,11 +100,17 @@ export function InventoryTable({
               <TableCell className="px-6 py-4">
                 <div className="flex items-center">
                   <div className="h-10 w-10 flex-shrink-0">
-                    <img
-                      src={row.image || "https://via.placeholder.com/80x80?text=Produk"}
-                      alt={row.name}
-                      className="h-10 w-10 rounded object-cover bg-muted"
-                    />
+                    {row.image ? (
+                      <img
+                        src={row.image}
+                        alt={row.name}
+                        className="h-10 w-10 rounded object-cover bg-muted"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-[10px] font-medium text-muted-foreground">
+                        No Image
+                      </div>
+                    )}
                   </div>
                   <div className="ml-4">
                     <Link

@@ -30,13 +30,23 @@ export function animateFlyToCart(sourceEl: HTMLElement | null, imageSrc?: string
   const targetRect = target.getBoundingClientRect();
 
   const flyEl = document.createElement("div");
-  const img = document.createElement("img");
-  img.src = imageSrc || "https://via.placeholder.com/64x64?text=+";
-  img.alt = "Add to cart";
-  img.style.width = `${sourceRect.width}px`;
-  img.style.height = `${sourceRect.height}px`;
-  img.style.objectFit = "cover";
-  img.style.borderRadius = "12px";
+  if (imageSrc) {
+    const img = document.createElement("img");
+    img.src = imageSrc;
+    img.alt = "Add to cart";
+    img.style.width = `${sourceRect.width}px`;
+    img.style.height = `${sourceRect.height}px`;
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "12px";
+    flyEl.appendChild(img);
+  } else {
+    const block = document.createElement("div");
+    block.style.width = `${sourceRect.width}px`;
+    block.style.height = `${sourceRect.height}px`;
+    block.style.borderRadius = "12px";
+    block.style.background = "rgba(148, 163, 184, 0.35)";
+    flyEl.appendChild(block);
+  }
 
   flyEl.style.position = "fixed";
   flyEl.style.left = `${sourceRect.left}px`;
@@ -45,7 +55,6 @@ export function animateFlyToCart(sourceEl: HTMLElement | null, imageSrc?: string
   flyEl.style.height = `${sourceRect.height}px`;
   flyEl.style.pointerEvents = "none";
   flyEl.style.zIndex = "9999";
-  flyEl.appendChild(img);
   document.body.appendChild(flyEl);
 
   const translateX = targetRect.left + targetRect.width / 2 - (sourceRect.left + sourceRect.width / 2);

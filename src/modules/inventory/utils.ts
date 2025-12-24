@@ -34,7 +34,7 @@ export function mapInventoryProduct(product: InventoryProductResponse): Inventor
     categoryClassName: product.category ?? "",
     stock: product.stock,
     price: product.price_sell,
-    image: product.photo_url || "https://via.placeholder.com/80x80?text=Produk",
+    image: product.photo_url || undefined,
     status: product.status,
     showInMarketplace: product.show_in_marketplace,
     trackStock: product.track_stock,

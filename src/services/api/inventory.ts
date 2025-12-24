@@ -54,6 +54,15 @@ export function updateInventoryProduct(
   return api.put<InventoryProductResponse>(`${API_PREFIX}${E.product(id)}`, payload);
 }
 
+export function uploadInventoryProductImage(
+  id: string | number,
+  file: File
+): Promise<ApiResponse<InventoryProductResponse>> {
+  const formData = new FormData();
+  formData.append("image", file);
+  return api.post<InventoryProductResponse>(`${API_PREFIX}${E.image(id)}`, formData);
+}
+
 export function archiveInventoryProduct(
   id: string | number
 ): Promise<ApiResponse<null>> {

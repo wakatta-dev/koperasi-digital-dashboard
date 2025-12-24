@@ -25,6 +25,8 @@ export function InventoryDetailPage({ id }: Props) {
   const actions = useInventoryActions();
   const [editOpen, setEditOpen] = useState(false);
   const [stockInput, setStockInput] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const item: InventoryItem | null = useMemo(
     () => (data ? mapInventoryProduct(data) : null),
@@ -41,6 +43,26 @@ export function InventoryDetailPage({ id }: Props) {
       setStockInput(String(item.stock));
     }
   }, [item]);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setSelectedFile(file);
+    setUploadError(null);
+  };
+
+  const handleImageUpload = async () => {
+    if (!item || !selectedFile) return;
+    setUploadError(null);
+    try {
+      await actions.uploadImage.mutateAsync({
+        id: item.id,
+        file: selectedFile,
+      });
+      setSelectedFile(null);
+    } catch (err) {
+      setUploadError((err as Error)?.message || "Gagal mengunggah foto produk.");
+    }
+  };
 
   const handleStockSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -141,11 +163,45 @@ export function InventoryDetailPage({ id }: Props) {
               </label>
               <div className="mt-1">
                 <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border border-[#e5e7eb] bg-[#f3f4f6] dark:border-[#334155] dark:bg-[#1f2937]">
-                  <img
-                    src={item.image || "https://via.placeholder.com/200?text=Produk"}
-                    alt={item.name}
-                    className="h-full w-full object-cover"
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-center text-xs font-medium text-muted-foreground">
+                      Belum ada foto
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 space-y-2">
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleImageChange}
+                    disabled={actions.uploadImage.isPending}
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleImageUpload}
+                    disabled={!selectedFile || actions.uploadImage.isPending}
+                  >
+                    {actions.uploadImage.isPending
+                      ? "Mengunggah..."
+                      : item.image
+                        ? "Ganti Foto"
+                        : "Unggah Foto"}
+                  </Button>
+                  {selectedFile && !actions.uploadImage.isPending ? (
+                    <p className="text-xs text-muted-foreground">
+                      Siap diunggah: {selectedFile.name}
+                    </p>
+                  ) : null}
+                  {uploadError ? (
+                    <p className="text-xs text-destructive">{uploadError}</p>
+                  ) : null}
                 </div>
               </div>
             </div>

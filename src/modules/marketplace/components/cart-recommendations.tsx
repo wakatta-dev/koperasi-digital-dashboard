@@ -39,7 +39,7 @@ export function CartRecommendations({ currentProductId }: Props) {
               category: product.sku || "Produk",
               price: formatCurrency(product.price),
               unit: "unit",
-              image: product.photo_url || "https://via.placeholder.com/400x300?text=Produk",
+              image: product.photo_url || undefined,
               inStock: product.in_stock,
             }}
           />

@@ -164,11 +164,17 @@ export function EditProductModal({
                   <div className="group relative mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6 transition-colors hover:border-[#4f46e5] dark:border-gray-600">
                     <div className="w-full space-y-1 text-center">
                       <div className="relative mb-3 h-48 w-full overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800">
-                        <img
-                          src={product?.image || "https://via.placeholder.com/300?text=Produk"}
-                          alt={product?.name || "Produk"}
-                          className="h-full w-full object-cover"
-                        />
+                        {product?.image ? (
+                          <img
+                            src={product.image}
+                            alt={product?.name || "Produk"}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+                            Belum ada foto
+                          </div>
+                        )}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                           <span className="text-sm font-semibold text-white">Belum mendukung unggah</span>
                         </div>

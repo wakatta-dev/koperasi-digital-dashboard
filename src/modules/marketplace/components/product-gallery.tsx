@@ -15,11 +15,17 @@ export function ProductGallery({
   return (
     <div className="space-y-4">
       <div className="aspect-square bg-white dark:bg-[#1e293b] rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm relative group">
-        <img
-          alt={product.title}
-          src={mainImage}
-          className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
-        />
+        {mainImage ? (
+          <img
+            alt={product.title}
+            src={mainImage}
+            className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+            Tidak ada foto
+          </div>
+        )}
         {product.badge ? (
           <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-[#4338ca] shadow-sm border border-gray-100 dark:border-gray-700">
             {product.badge.label}

@@ -17,7 +17,7 @@ type MarketplaceCardProduct = {
   description: string;
   price: string;
   unit: string;
-  image: string;
+  image?: string;
   badge?: { label: string; variant?: "primary" | "danger" };
   inStock?: boolean;
 };
@@ -26,7 +26,7 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
   const ctaLabel = product.badge?.label ?? "Beli Sekarang";
   const detailHref = `/marketplace/${product.id}`;
   const { addItem } = useCartMutations();
-  const imgRef = useRef<HTMLImageElement | null>(null);
+  const imgRef = useRef<HTMLDivElement | null>(null);
 
   const isAdding = useMemo(() => addItem.isPending, [addItem.isPending]);
   const handleAdd = () =>
@@ -40,14 +40,19 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col group">
-      <div className="relative h-48 overflow-hidden bg-gray-200">
-        <img
-          alt={product.title}
-          src={product.image}
-          ref={imgRef}
-          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-          loading="lazy"
-        />
+      <div className="relative h-48 overflow-hidden bg-gray-200" ref={imgRef}>
+        {product.image ? (
+          <img
+            alt={product.title}
+            src={product.image}
+            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs font-semibold text-gray-400">
+            Tidak ada foto
+          </div>
+        )}
         {product.badge ? (
           <div
             className={`absolute top-3 right-3 px-2 py-1 text-xs font-bold rounded shadow-sm ${
