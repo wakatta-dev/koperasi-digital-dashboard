@@ -33,12 +33,11 @@ export function InventoryPage() {
   }, [data]);
 
   return (
-    <div className="w-full space-y-6 text-[#111827] dark:text-[#f8fafc] md:space-y-8">
+    <div className="w-full space-y-6 text-foreground md:space-y-8">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <h1 className="text-2xl font-bold">Inventaris</h1>
         <Button
           type="button"
-          className="h-auto rounded-md border border-transparent bg-[#4f46e5] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2"
           onClick={() => setAddOpen(true)}
         >
           <Plus className="h-4 w-4" />
@@ -52,7 +51,7 @@ export function InventoryPage() {
           <Input
             type="text"
             placeholder="Cari nama produk atau SKU"
-            className="rounded-md border-[#e5e7eb] bg-white pl-10 pr-3 text-sm leading-5 text-[#111827] placeholder-[#6b7280] transition-colors focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#f8fafc] dark:placeholder-[#94a3b8]"
+            className="pl-10 pr-3 text-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -60,7 +59,6 @@ export function InventoryPage() {
         <Button
           type="button"
           variant="outline"
-          className="h-auto rounded-md border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-medium text-[#6b7280] shadow-sm transition-colors hover:bg-gray-50 focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2 dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#94a3b8] dark:hover:bg-[#334155]"
         >
           <Filter className="mr-2 h-4 w-4" />
           Filter

@@ -38,12 +38,12 @@ export function CartItemsSection({ cart }: Props) {
   return (
     <div className="lg:col-span-8 space-y-6">
       {isLoading ? (
-        <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-gray-500">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-muted-foreground">
           Memuat keranjang...
         </div>
       ) : null}
       {isError ? (
-        <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-red-500">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-destructive">
           Gagal memuat keranjang.
         </div>
       ) : null}
@@ -75,10 +75,10 @@ export function CartItemsSection({ cart }: Props) {
           }}
         />
       ) : null}
-      <Link
-        href="/marketplace"
-        className="inline-flex items-center gap-2 text-[#4338ca] dark:text-indigo-400 font-bold hover:underline transition group"
-      >
+    <Link
+      href="/marketplace"
+      className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline transition group"
+    >
         <span className="material-icons-outlined text-lg group-hover:-translate-x-1 transition-transform">
           arrow_back
         </span>

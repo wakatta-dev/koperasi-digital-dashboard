@@ -35,7 +35,6 @@ type OptionFormState = {
   priceOverride: string;
   stock: string;
   trackStock: boolean;
-  clearPriceOverride: boolean;
 };
 
 const DEFAULT_GROUP_FORM: GroupFormState = {
@@ -51,7 +50,6 @@ const DEFAULT_OPTION_FORM: OptionFormState = {
   priceOverride: "",
   stock: "0",
   trackStock: true,
-  clearPriceOverride: false,
 };
 
 export function VariantManagement({ productId }: Props) {
@@ -185,11 +183,17 @@ export function VariantManagement({ productId }: Props) {
       setOptionError("SKU varian wajib diisi.");
       return;
     }
+    if (!optionForm.priceOverride.trim()) {
+      setOptionError("Harga varian wajib diisi.");
+      return;
+    }
     try {
       const attributes = parseAttributes(optionForm.attributes);
-      const priceOverride = optionForm.priceOverride
-        ? Number(optionForm.priceOverride)
-        : undefined;
+      const priceOverride = Number(optionForm.priceOverride);
+      if (Number.isNaN(priceOverride) || priceOverride <= 0) {
+        setOptionError("Harga varian harus lebih dari 0.");
+        return;
+      }
       await actions.createOption.mutateAsync({
         productId,
         groupId: optionForm.groupId,
@@ -220,7 +224,6 @@ export function VariantManagement({ productId }: Props) {
           : "",
       stock: String(option.stock ?? 0),
       trackStock: option.track_stock,
-      clearPriceOverride: false,
     });
   };
 
@@ -231,18 +234,24 @@ export function VariantManagement({ productId }: Props) {
       setOptionError("SKU varian wajib diisi.");
       return;
     }
+    if (!editOptionForm.priceOverride.trim()) {
+      setOptionError("Harga varian wajib diisi.");
+      return;
+    }
     try {
       const attributes = parseAttributes(editOptionForm.attributes);
+      const priceOverride = Number(editOptionForm.priceOverride);
+      if (Number.isNaN(priceOverride) || priceOverride <= 0) {
+        setOptionError("Harga varian harus lebih dari 0.");
+        return;
+      }
       await actions.updateOption.mutateAsync({
         productId,
         optionId: editOptionId,
         payload: {
           sku: editOptionForm.sku,
           attributes,
-          price_override: editOptionForm.priceOverride
-            ? Number(editOptionForm.priceOverride)
-            : undefined,
-          clear_price_override: editOptionForm.clearPriceOverride,
+          price_override: priceOverride,
           stock: Number(editOptionForm.stock || 0),
           track_stock: editOptionForm.trackStock,
         },
@@ -264,7 +273,7 @@ export function VariantManagement({ productId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-border bg-white p-6 shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <p className="text-sm text-muted-foreground">Memuat data varian...</p>
       </div>
     );
@@ -279,9 +288,9 @@ export function VariantManagement({ productId }: Props) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
-      <div className="border-b border-[#e5e7eb] px-6 py-4 dark:border-[#334155]">
-        <h2 className="text-lg font-semibold text-[#111827] dark:text-white">
+    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+      <div className="border-b border-border px-6 py-4">
+        <h2 className="text-lg font-semibold text-foreground">
           Manajemen Varian
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -292,7 +301,7 @@ export function VariantManagement({ productId }: Props) {
       <div className="space-y-8 p-6">
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-[#111827] dark:text-white">
+            <h3 className="text-base font-semibold text-foreground">
               Grup Varian
             </h3>
             <Badge variant="secondary">{groups.length} grup</Badge>
@@ -345,11 +354,11 @@ export function VariantManagement({ productId }: Props) {
               {groups.map((group) => (
                 <div
                   key={group.id}
-                  className="rounded-lg border border-[#e5e7eb] p-4 dark:border-[#334155]"
+                  className="rounded-lg border border-border p-4"
                 >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
+                      <div className="h-16 w-16 overflow-hidden rounded-lg border border-border bg-muted">
                         {group.image_url ? (
                           <img
                             src={group.image_url}
@@ -357,14 +366,14 @@ export function VariantManagement({ productId }: Props) {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full items-center justify-center text-xs text-gray-400">
+                          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
                             Belum ada gambar
                           </div>
                         )}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-[#111827] dark:text-white">
+                          <p className="text-sm font-semibold text-foreground">
                             {group.name}
                           </p>
                           <Badge variant={group.status === "ACTIVE" ? "default" : "secondary"}>
@@ -411,9 +420,9 @@ export function VariantManagement({ productId }: Props) {
           )}
 
           {editGroupId ? (
-            <div className="rounded-lg border border-[#e5e7eb] bg-gray-50 p-4 dark:border-[#334155] dark:bg-gray-900/20">
+            <div className="rounded-lg border border-border bg-muted/40 p-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-[#111827] dark:text-white">
+                <h4 className="text-sm font-semibold text-foreground">
                   Edit Grup Varian
                 </h4>
                 <Button variant="ghost" size="sm" onClick={() => setEditGroupId(null)}>
@@ -467,7 +476,7 @@ export function VariantManagement({ productId }: Props) {
 
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-[#111827] dark:text-white">
+            <h3 className="text-base font-semibold text-foreground">
               Opsi Varian (SKU)
             </h3>
             <Badge variant="secondary">{options.length} opsi</Badge>
@@ -496,8 +505,9 @@ export function VariantManagement({ productId }: Props) {
               ))}
             </select>
             <Input
-              placeholder="Harga override (opsional)"
+              placeholder="Harga varian"
               type="number"
+              min={1}
               value={optionForm.priceOverride}
               onChange={(event) =>
                 setOptionForm((prev) => ({
@@ -552,9 +562,9 @@ export function VariantManagement({ productId }: Props) {
               Belum ada opsi varian. Tambahkan opsi SKU di atas.
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-[#e5e7eb] dark:border-[#334155]">
-              <table className="min-w-full divide-y divide-[#e5e7eb] text-sm dark:divide-[#334155]">
-                <thead className="bg-gray-50 dark:bg-slate-800/50">
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="min-w-full divide-y divide-border text-sm">
+                <thead className="bg-muted/40">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                       SKU
@@ -579,7 +589,7 @@ export function VariantManagement({ productId }: Props) {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e5e7eb] dark:divide-[#334155]">
+                <tbody className="divide-y divide-border">
                   {groupedOptions.map((option) => (
                     <tr key={option.id}>
                       <td className="px-4 py-3 font-medium text-foreground">
@@ -638,9 +648,9 @@ export function VariantManagement({ productId }: Props) {
           )}
 
           {editOptionId ? (
-            <div className="rounded-lg border border-[#e5e7eb] bg-gray-50 p-4 dark:border-[#334155] dark:bg-gray-900/20">
+            <div className="rounded-lg border border-border bg-muted/40 p-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-[#111827] dark:text-white">
+                <h4 className="text-sm font-semibold text-foreground">
                   Edit Opsi Varian
                 </h4>
                 <Button variant="ghost" size="sm" onClick={() => setEditOptionId(null)}>
@@ -659,8 +669,9 @@ export function VariantManagement({ productId }: Props) {
                   }
                 />
                 <Input
-                  placeholder="Harga override"
+                  placeholder="Harga varian"
                   type="number"
+                  min={1}
                   value={editOptionForm.priceOverride}
                   onChange={(event) =>
                     setEditOptionForm((prev) => ({
@@ -723,20 +734,6 @@ export function VariantManagement({ productId }: Props) {
                       Lacak stok
                     </span>
                   </div>
-                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <input
-                      type="checkbox"
-                      checked={editOptionForm.clearPriceOverride}
-                      onChange={(event) =>
-                        setEditOptionForm((prev) => ({
-                          ...prev,
-                          clearPriceOverride: event.target.checked,
-                        }))
-                      }
-                      className="h-4 w-4"
-                    />
-                    Hapus override harga
-                  </label>
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-3">

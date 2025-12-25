@@ -22,12 +22,12 @@ export function FilterSection({
   return (
     <div className={cn("space-y-3", className)}>
       {title ? (
-        <h3 className={cn("font-bold text-gray-900 dark:text-white text-sm", titleClassName)}>
+        <h3 className={cn("font-bold text-foreground text-sm", titleClassName)}>
           {title}
         </h3>
       ) : null}
       <div className="space-y-3">{children}</div>
-      {withDivider ? <div className="h-px bg-gray-200 dark:bg-gray-700" /> : null}
+      {withDivider ? <div className="h-px bg-border" /> : null}
     </div>
   );
 }

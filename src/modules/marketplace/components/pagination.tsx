@@ -17,9 +17,9 @@ export function Pagination({ total, limit, offset, hasNext, hasPrev, onNext, onP
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="mt-12 flex justify-center items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
+    <div className="mt-12 flex justify-center items-center gap-4 text-sm text-muted-foreground">
       <button
-        className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+        className="px-3 py-2 rounded-lg border border-border hover:bg-muted disabled:opacity-50"
         onClick={onPrev}
         disabled={!hasPrev || isLoading}
       >
@@ -30,7 +30,7 @@ export function Pagination({ total, limit, offset, hasNext, hasPrev, onNext, onP
         Halaman {currentPage} / {totalPages}
       </span>
       <button
-        className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+        className="px-3 py-2 rounded-lg border border-border hover:bg-muted disabled:opacity-50"
         onClick={onNext}
         disabled={!hasNext || isLoading}
       >

@@ -136,12 +136,11 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogPortal>
         <DialogContent
-          overlayClassName="bg-gray-900/50 backdrop-blur-sm"
           showCloseButton={false}
-          className="pointer-events-auto w-full max-h-[90vh] max-w-2xl overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white p-0 shadow-2xl sm:max-w-2xl dark:border-[#334155] dark:bg-[#1e293b]"
+          className="pointer-events-auto w-full max-h-[90vh] max-w-2xl overflow-y-auto rounded-xl p-0 sm:max-w-2xl"
         >
           <div className="p-6 sm:p-6">
-            <DialogTitle className="mb-6 text-left text-xl font-bold text-[#111827] dark:text-white">
+            <DialogTitle className="mb-6 text-left text-xl font-bold text-foreground">
               Tambahkan Produk
             </DialogTitle>
             <Form {...form}>
@@ -150,11 +149,11 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                 onSubmit={form.handleSubmit(onSubmit)}
               >
                 <div className="space-y-2">
-                  <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
+                  <label className="mb-2 block text-sm font-medium text-foreground">
                     Foto Produk
                   </label>
-                  <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:bg-gray-800">
-                    <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="rounded-lg border-2 border-dashed border-border bg-muted px-6 py-4">
+                    <div className="space-y-3 text-sm text-muted-foreground">
                       <Input
                         type="file"
                         accept="image/png,image/jpeg,image/webp"
@@ -175,7 +174,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                         onChange={(event) => setPhotoUrl(event.target.value)}
                         disabled={submitting}
                       />
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Upload foto atau tempel URL publik MinIO.
                       </p>
                     </div>
@@ -191,7 +190,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                       <FormControl>
                         <Input
                           placeholder="Masukkan nama produk"
-                          className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          className="h-auto rounded-md py-2.5 text-sm"
                           {...field}
                         />
                       </FormControl>
@@ -209,7 +208,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                       <FormControl>
                         <Input
                           placeholder="Masukkan SKU (opsional)"
-                          className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          className="h-auto rounded-md py-2.5 text-sm"
                           {...field}
                         />
                       </FormControl>
@@ -230,11 +229,11 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                           onValueChange={field.onChange}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-auto w-full rounded-md border-[#e5e7eb] bg-white py-2.5 text-sm text-gray-500 shadow-sm focus-visible:border-[#4f46e5] focus-visible:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white">
+                            <SelectTrigger className="h-auto w-full rounded-md py-2.5 text-sm text-muted-foreground">
                               <SelectValue placeholder="Pilih kategori produk" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="min-w-full border-[#e5e7eb] bg-white text-[#111827] dark:border-[#334155] dark:bg-[#1e293b] dark:text-white">
+                          <SelectContent className="min-w-full border-border bg-popover text-foreground">
                             <SelectItem value="elektronik">
                               Elektronik
                             </SelectItem>
@@ -263,7 +262,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                             type="number"
                             min={0}
                             placeholder="0"
-                            className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                            className="h-auto rounded-md py-2.5 text-sm"
                             {...field}
                             value={typeof field.value === "number" ? field.value : ""}
                             onChange={(e) =>
@@ -289,7 +288,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                             type="number"
                             min={1}
                             placeholder="Masukkan harga jual"
-                            className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                            className="h-auto rounded-md py-2.5 text-sm"
                             {...field}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
@@ -312,7 +311,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                             type="number"
                             min={0}
                             placeholder="0"
-                            className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                            className="h-auto rounded-md py-2.5 text-sm"
                             {...field}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value))
@@ -335,7 +334,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                         <Textarea
                           rows={3}
                           placeholder="Masukkan deskripsi produk"
-                          className="rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          className="rounded-md py-2.5 text-sm"
                           {...field}
                         />
                       </FormControl>
@@ -349,7 +348,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                   name="track_stock"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between rounded-md border border-border px-3 py-3">
-                      <FormLabel className="mb-0 text-sm font-medium text-[#111827] dark:text-white">
+                      <FormLabel className="mb-0 text-sm font-medium text-foreground">
                         Lacak Stok
                       </FormLabel>
                       <FormControl>
@@ -358,7 +357,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                           onCheckedChange={(val) =>
                             field.onChange(Boolean(val))
                           }
-                          className="h-4 w-4 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5]"
+                          className="h-4 w-4 rounded"
                         />
                       </FormControl>
                     </FormItem>
@@ -377,7 +376,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                           min={0}
                           placeholder="Masukkan jumlah stok awal"
                           disabled={!trackStock}
-                          className="h-auto rounded-md border-[#e5e7eb] py-2.5 text-sm shadow-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-[#334155] dark:bg-slate-800 dark:text-white"
+                          className="h-auto rounded-md py-2.5 text-sm"
                           {...field}
                           onChange={(e) =>
                             field.onChange(Number(e.target.value))
@@ -400,11 +399,11 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                           onCheckedChange={(val) =>
                             field.onChange(Boolean(val))
                           }
-                          className="h-4 w-4 rounded border-gray-300 text-[#4f46e5] focus-visible:ring-[#4f46e5]"
+                          className="h-4 w-4 rounded"
                         />
                       </FormControl>
                       <div className="space-y-1">
-                        <FormLabel className="mb-0 text-sm font-medium text-[#111827] dark:text-white">
+                        <FormLabel className="mb-0 text-sm font-medium text-foreground">
                           Tampilkan di marketplace
                         </FormLabel>
                         <p className="text-xs text-muted-foreground">
@@ -416,11 +415,10 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                   )}
                 />
 
-                <div className="flex justify-end gap-3 rounded-b-xl border-t border-[#e5e7eb] bg-gray-50 px-6 py-4 dark:border-[#334155] dark:bg-[#1f2937]">
+                <div className="flex justify-end gap-3 rounded-b-xl border-t border-border bg-muted/40 px-6 py-4">
                   <Button
                     type="button"
                     variant="outline"
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2 dark:border-gray-600 dark:bg-[#374151] dark:text-gray-200 dark:hover:bg-[#475569]"
                     onClick={() => handleClose(false)}
                     disabled={submitting}
                   >
@@ -428,7 +426,6 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                   </Button>
                   <Button
                     type="submit"
-                    className="rounded-md border border-transparent bg-[#4f46e5] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus-visible:ring-[#4f46e5] focus-visible:ring-2 focus-visible:ring-offset-2"
                     disabled={submitting}
                   >
                     {submitting ? (

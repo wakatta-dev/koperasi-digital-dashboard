@@ -11,7 +11,7 @@ type FilterActionsProps = {
 
 export function FilterActions({ children, className }: FilterActionsProps) {
   return (
-    <div className={cn("flex items-center justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700", className)}>
+    <div className={cn("flex items-center justify-between gap-3 pt-4 border-t border-border", className)}>
       {children}
     </div>
   );

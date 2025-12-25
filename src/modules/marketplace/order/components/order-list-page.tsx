@@ -4,6 +4,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/format";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
@@ -109,18 +111,18 @@ export function OrderListPage() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[#F9FAFB] text-[#111827] antialiased dark:bg-[#0f172a] dark:text-[#f8fafc] font-['Inter',_sans-serif]">
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-white dark:bg-[#0f172a]">
-        <header className="flex h-16 items-center justify-between border-b border-[#e5e7eb] bg-white px-6 dark:border-[#334155] dark:bg-[#0f172a]">
+    <div className="flex h-full flex-col overflow-hidden bg-background text-foreground antialiased">
+      <div className="relative flex flex-1 flex-col overflow-hidden bg-background">
+        <header className="flex h-16 items-center justify-between border-b border-border bg-background px-6">
           <div className="flex items-center">
             <button
-              className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 md:hidden"
+              className="mr-4 text-muted-foreground hover:text-foreground md:hidden"
               type="button"
             >
               <span className="material-icons-outlined">menu</span>
             </button>
             <button
-              className="mr-4 hidden text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 md:block"
+              className="mr-4 hidden text-muted-foreground hover:text-foreground md:block"
               type="button"
             >
               <span className="material-icons-outlined">menu_open</span>
@@ -129,7 +131,7 @@ export function OrderListPage() {
               <ol className="flex items-center space-x-2">
                 <li>
                   <Link
-                    className="text-sm font-medium text-[#4f46e5] hover:underline dark:text-indigo-400"
+                    className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
                     href="/bumdes/marketplace/order"
                   >
                     Manajemen Pesanan
@@ -139,7 +141,7 @@ export function OrderListPage() {
             </nav>
           </div>
           <button
-            className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-slate-800 dark:hover:text-gray-200"
+            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             type="button"
           >
             <span className="material-icons-outlined dark:hidden">dark_mode</span>
@@ -150,28 +152,26 @@ export function OrderListPage() {
         </header>
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <h1 className="text-2xl font-bold text-[#111827] dark:text-white">
-              Manajemen Pesanan
-            </h1>
+            <h1 className="text-2xl font-bold text-foreground">Manajemen Pesanan</h1>
           </div>
           <div className="mb-6 flex flex-col gap-4 md:flex-row">
             <div className="relative flex-1">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="material-icons-outlined text-gray-400">
+                <span className="material-icons-outlined text-muted-foreground">
                   search
                 </span>
               </div>
-              <input
-                className="block w-full rounded-md border border-[#e5e7eb] bg-white py-2 pl-10 pr-3 text-sm leading-5 text-[#111827] placeholder-[#6b7280] transition-colors focus:border-[#4f46e5] focus:outline-none focus:ring-1 focus:ring-[#4f46e5] focus:placeholder-gray-400 dark:border-[#334155] dark:bg-[#1e293b] dark:text-white dark:placeholder-[#94a3b8]"
+              <Input
                 placeholder="Cari ID Pesanan, nama pelanggan, atau produk..."
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
+                className="pl-10"
               />
             </div>
             <div className="relative group">
               <button
-                className="inline-flex items-center rounded-md border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-medium text-[#6b7280] shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:ring-offset-2 dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                className="inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 type="button"
               >
                 <span className="material-icons-outlined mr-2 text-lg">
@@ -179,25 +179,25 @@ export function OrderListPage() {
                 </span>
                 Filter
               </button>
-              <div className="absolute right-0 top-12 z-20 hidden w-64 rounded-md border border-[#e5e7eb] bg-white shadow-lg dark:border-[#334155] dark:bg-[#1e293b] group-hover:block">
+              <div className="absolute right-0 top-12 z-20 hidden w-64 rounded-md border border-border bg-popover shadow-lg group-hover:block">
                 <div className="space-y-4 p-4">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-[#6b7280] dark:text-[#94a3b8]">
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">
                       Rentang Tanggal
                     </label>
-                    <input
-                      className="w-full rounded border-gray-300 bg-gray-50 text-xs dark:border-gray-600 dark:bg-slate-800"
+                    <Input
+                      className="w-full text-xs"
                       type="date"
                       value={dateFilter}
                       onChange={(event) => setDateFilter(event.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-[#6b7280] dark:text-[#94a3b8]">
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">
                       Status Pembayaran
                     </label>
                     <select
-                      className="w-full rounded border-gray-300 bg-gray-50 text-xs dark:border-gray-600 dark:bg-slate-800"
+                      className="w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
                       value={statusFilter}
                       onChange={(event) => setStatusFilter(event.target.value)}
                     >
@@ -211,57 +211,57 @@ export function OrderListPage() {
               </div>
             </div>
           </div>
-          <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
+          <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-[#e5e7eb] dark:divide-[#334155]">
-                <thead className="bg-gray-50 dark:bg-slate-800/50">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted/40">
                   <tr>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                       scope="col"
                     >
                       ID Pesanan
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                       scope="col"
                     >
                       Tanggal Pesanan
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                       scope="col"
                     >
                       Nama Pelanggan
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                       scope="col"
                     >
                       Total Pembayaran
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                       scope="col"
                     >
                       Status Pembayaran
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                       scope="col"
                     >
                       Status Pengiriman
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Aksi
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e5e7eb] bg-white dark:divide-[#334155] dark:bg-[#1e293b]">
+                <tbody className="divide-y divide-border bg-card">
                   {isLoading ? (
                     <tr>
                       <td
-                        className="px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]"
+                        className="px-6 py-4 text-sm text-muted-foreground"
                         colSpan={7}
                       >
                         Memuat pesanan...
@@ -271,7 +271,7 @@ export function OrderListPage() {
                   {isError ? (
                     <tr>
                       <td
-                        className="px-6 py-4 text-sm text-red-600 dark:text-red-400"
+                        className="px-6 py-4 text-sm text-destructive"
                         colSpan={7}
                       >
                         {error instanceof Error
@@ -283,7 +283,7 @@ export function OrderListPage() {
                   {!isLoading && !isError && orders.length === 0 ? (
                     <tr>
                       <td
-                        className="px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]"
+                        className="px-6 py-4 text-sm text-muted-foreground"
                         colSpan={7}
                       >
                         Tidak ada pesanan ditemukan.
@@ -300,38 +300,30 @@ export function OrderListPage() {
                     return (
                       <tr
                         key={order.id}
-                        className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                        className="transition-colors hover:bg-muted/40"
                       >
-                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-indigo-600 dark:text-indigo-400">
                           {formatOrderNumber(order.order_number)}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
                           {formatOrderDate(order.created_at)}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                           {order.customer_name}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                           {formatCurrency(order.total)}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${payment.className}`}
-                          >
-                            {payment.label}
-                          </span>
+                          <Badge variant={payment.variant}>{payment.label}</Badge>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${shipping.className}`}
-                          >
-                            {shipping.label}
-                          </span>
+                          <Badge variant={shipping.variant}>{shipping.label}</Badge>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
                             <Link
-                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-[#111827] dark:text-[#94a3b8] dark:hover:bg-slate-700 dark:hover:text-white"
+                              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                               href={`/bumdes/marketplace/order/${order.id}`}
                               title="Lihat Detail"
                             >
@@ -340,7 +332,7 @@ export function OrderListPage() {
                               </span>
                             </Link>
                             <button
-                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-[#111827] dark:text-[#94a3b8] dark:hover:bg-slate-700 dark:hover:text-white"
+                              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                               type="button"
                               onClick={() => handleOpenInvoice(order.id)}
                               title="Cetak Invoice"
@@ -350,7 +342,7 @@ export function OrderListPage() {
                               </span>
                             </button>
                             <button
-                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-[#111827] disabled:cursor-not-allowed disabled:opacity-40 dark:text-[#94a3b8] dark:hover:bg-slate-700 dark:hover:text-white"
+                              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
                               type="button"
                               disabled={!action || isRowLoading}
                               onClick={() => {
@@ -372,7 +364,7 @@ export function OrderListPage() {
                               </span>
                             </button>
                             <button
-                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
                               type="button"
                               disabled={!canCancel || isRowLoading}
                               onClick={() => void handleCancel(order)}
@@ -398,10 +390,10 @@ export function OrderListPage() {
                 </tbody>
               </table>
             </div>
-            <div className="flex items-center justify-end border-t border-[#e5e7eb] px-6 py-4 dark:border-[#334155]">
+            <div className="flex items-center justify-end border-t border-border px-6 py-4">
               <div className="flex items-center space-x-2">
                 <button
-                  className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-100 disabled:opacity-50 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                  className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
@@ -416,8 +408,8 @@ export function OrderListPage() {
                     key={number}
                     className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
                       number === page
-                        ? "border border-[#e5e7eb] bg-white text-[#4f46e5] dark:border-[#334155] dark:bg-[#1e293b] dark:text-indigo-400"
-                        : "text-[#6b7280] hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                        ? "border border-border bg-card text-indigo-600 dark:text-indigo-400"
+                        : "text-muted-foreground hover:bg-muted"
                     }`}
                     type="button"
                     onClick={() => setPage(number)}
@@ -426,12 +418,10 @@ export function OrderListPage() {
                   </button>
                 ))}
                 {totalPages > 3 ? (
-                  <span className="px-2 text-[#6b7280] dark:text-[#94a3b8]">
-                    ...
-                  </span>
+                  <span className="px-2 text-muted-foreground">...</span>
                 ) : null}
                 <button
-                  className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-100 disabled:opacity-50 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                  className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() =>

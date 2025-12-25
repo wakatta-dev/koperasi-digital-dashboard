@@ -39,10 +39,12 @@ export function ProductMainInfo({
   product,
   variantState,
   canAddToCart,
+  priceAvailable = true,
 }: {
   product: MarketplaceProductDetail;
   variantState?: VariantState;
   canAddToCart: boolean;
+  priceAvailable?: boolean;
 }) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartMutations();
@@ -71,6 +73,10 @@ export function ProductMainInfo({
     const qty = clamp(quantity);
     if (activeVariantState && !activeVariantState.selectionReady) {
       showToastError("Pilih varian", "Silakan pilih varian terlebih dahulu");
+      return;
+    }
+    if (!priceAvailable) {
+      showToastError("Harga belum tersedia", "Silakan pilih varian lain.");
       return;
     }
     if (!canAddToCart) {
@@ -109,10 +115,10 @@ export function ProductMainInfo({
   };
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 lg:p-8 flex-grow">
-      <div className="mb-6 border-b border-gray-100 dark:border-gray-700 pb-6">
+    <div className="bg-card rounded-2xl shadow-sm border border-border p-6 lg:p-8 flex-grow">
+      <div className="mb-6 border-b border-border pb-6">
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          <span className="bg-indigo-50 dark:bg-indigo-900/30 text-[#4338ca] dark:text-indigo-300 text-xs font-bold px-2.5 py-1 rounded-md">
+          <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 text-xs font-bold px-2.5 py-1 rounded-md">
             {product.categoryTag}
           </span>
           <span className="flex items-center text-yellow-500 text-sm font-medium gap-1">
@@ -122,11 +128,11 @@ export function ProductMainInfo({
             {product.rating.value} ({product.rating.total} Ulasan)
           </span>
         </div>
-        <h1 className="text-2xl lg:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 leading-tight">
+        <h1 className="text-2xl lg:text-3xl font-extrabold text-foreground mb-2 leading-tight">
           {product.title}
         </h1>
         <div className="flex items-center gap-3 mt-4">
-          <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
             <img
               alt="Seller"
               className="h-full w-full object-cover"
@@ -134,10 +140,10 @@ export function ProductMainInfo({
             />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
+            <p className="text-sm font-medium text-foreground">
               {product.seller.name}
             </p>
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 gap-1">
+            <div className="flex items-center text-xs text-muted-foreground gap-1">
               <span className="material-icons-outlined text-sm">
                 location_on
               </span>
@@ -146,7 +152,7 @@ export function ProductMainInfo({
           </div>
           <Button
             variant="outline"
-            className="ml-auto text-[#4338ca] border-[#4338ca] px-3 py-1 rounded-full hover:bg-[#4338ca]/5 transition h-auto"
+            className="ml-auto text-indigo-600 dark:text-indigo-400 border-indigo-500 px-3 py-1 rounded-full hover:bg-indigo-500/10 transition h-auto"
           >
             Kunjungi Toko
           </Button>
@@ -155,22 +161,22 @@ export function ProductMainInfo({
 
       <div className="space-y-6">
         <div>
-          <span className="text-3xl font-bold text-[#4338ca]">
+          <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
             {product.price}
           </span>
           {product.originalPrice ? (
-            <span className="text-sm text-gray-500 dark:text-gray-400 line-through ml-2">
+            <span className="text-sm text-muted-foreground line-through ml-2">
               {product.originalPrice}
             </span>
           ) : null}
           {product.discountNote ? (
-            <span className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded ml-2">
+            <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded ml-2">
               {product.discountNote}
             </span>
           ) : null}
         </div>
 
-        <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+        <p className="text-muted-foreground leading-relaxed">
           {product.shortDescription}
         </p>
 
@@ -178,7 +184,7 @@ export function ProductMainInfo({
           {activeVariantState ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
                   {product.variantLabel}
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -192,8 +198,8 @@ export function ProductMainInfo({
                         onClick={() => activeVariantState.onSelectGroup(group.id)}
                         className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                           isSelected
-                            ? "border-[#4338ca] text-[#4338ca] bg-indigo-50 dark:bg-indigo-900/20"
-                            : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#4338ca]"
+                            ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                            : "border-border text-muted-foreground hover:border-indigo-500"
                         }`}
                       >
                         {group.image_url ? (
@@ -210,7 +216,7 @@ export function ProductMainInfo({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
                   Ukuran
                 </label>
                 {selectedGroup ? (
@@ -230,8 +236,8 @@ export function ProductMainInfo({
                           disabled={isOutOfStock}
                           className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
                             isSelected
-                              ? "border-[#4338ca] text-[#4338ca] bg-indigo-50 dark:bg-indigo-900/20"
-                              : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#4338ca]"
+                              ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-border text-muted-foreground hover:border-indigo-500"
                           } ${isOutOfStock ? "opacity-40 cursor-not-allowed" : ""}`}
                         >
                           {label}
@@ -240,7 +246,7 @@ export function ProductMainInfo({
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     Pilih varian terlebih dahulu.
                   </p>
                 )}
@@ -248,24 +254,24 @@ export function ProductMainInfo({
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-foreground mb-1.5">
                 {product.variantLabel}
               </label>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-300">
+              <div className="rounded-lg border border-border bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
                 Standar
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-foreground mb-1.5">
               Jumlah
             </label>
-            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg w-fit overflow-hidden">
+            <div className="flex items-center border border-border rounded-lg w-fit overflow-hidden">
               <button
                 type="button"
                 onClick={decrease}
-                className="px-3 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-r border-gray-300 dark:border-gray-600"
+                className="px-3 py-2 bg-muted/40 hover:bg-muted text-muted-foreground border-r border-border"
               >
                 <span className="material-icons-outlined text-sm">remove</span>
               </button>
@@ -273,24 +279,24 @@ export function ProductMainInfo({
                 type="text"
                 value={quantity}
                 readOnly
-                className="w-12 text-center border-none focus:ring-0 dark:bg-gray-800 text-gray-900 dark:text-white font-medium"
+                className="w-12 text-center border-none focus:ring-0 bg-card text-foreground font-medium"
               />
               <button
                 type="button"
                 onClick={increase}
                 disabled={maxQty !== undefined && quantity >= maxQty}
-                className="px-3 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600 disabled:opacity-50"
+                className="px-3 py-2 bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border disabled:opacity-50"
               >
                 <span className="material-icons-outlined text-sm">add</span>
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">{product.stock}</p>
+            <p className="text-xs text-muted-foreground mt-1">{product.stock}</p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button
-            className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 h-auto"
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 h-auto"
             ref={actionBtnRef}
             disabled={!canAddToCart}
             onClick={handleAdd}
@@ -302,7 +308,7 @@ export function ProductMainInfo({
           </Button>
           <Button
             variant="outline"
-            className="flex-1 border border-[#4338ca] text-[#4338ca] hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-6 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 h-auto"
+            className="flex-1 border border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-6 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 h-auto"
             disabled={!canAddToCart}
             onClick={handleAdd}
           >
@@ -313,22 +319,22 @@ export function ProductMainInfo({
           </Button>
           <Button
             variant="outline"
-            className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition text-gray-500 hover:text-red-500 h-auto"
+            className="px-4 py-3 border border-border rounded-xl hover:bg-muted transition text-muted-foreground hover:text-destructive h-auto"
             title="Tambah ke Wishlist"
           >
             <span className="material-icons-outlined text-xl">favorite</span>
           </Button>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 flex items-start gap-3 mt-6">
-          <span className="material-icons-outlined text-gray-500">
+        <div className="bg-muted/40 rounded-lg p-4 flex items-start gap-3 mt-6">
+          <span className="material-icons-outlined text-muted-foreground">
             local_shipping
           </span>
           <div className="text-sm">
-            <p className="font-bold text-gray-900 dark:text-white">
+            <p className="font-bold text-foreground">
               Pengiriman dari Desa Sukamaju
             </p>
-            <p className="text-gray-500 dark:text-gray-400 mt-0.5">
+            <p className="text-muted-foreground mt-0.5">
               Estimasi tiba 2 - 4 hari ke alamat tujuan.
             </p>
           </div>

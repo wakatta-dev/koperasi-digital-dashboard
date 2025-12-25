@@ -44,11 +44,11 @@ export function CartItemCard({
   };
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
       <div className="p-6">
-        <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
-          <h2 className="font-bold text-lg text-gray-900 dark:text-white">Daftar Produk</h2>
-          <span className="text-sm text-gray-500 dark:text-gray-400">{items.length} Item Terpilih</span>
+        <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+          <h2 className="font-bold text-lg text-foreground">Daftar Produk</h2>
+          <span className="text-sm text-muted-foreground">{items.length} Item Terpilih</span>
         </div>
 
         {items.map((item) => {
@@ -57,9 +57,9 @@ export function CartItemCard({
           return (
             <div
               key={item.id}
-              className={`flex flex-col sm:flex-row gap-6 pb-8 border-b border-gray-100 dark:border-gray-700 last:border-0 last:pb-0 mb-8 last:mb-0`}
+              className="flex flex-col sm:flex-row gap-6 pb-8 border-b border-border last:border-0 last:pb-0 mb-8 last:mb-0"
             >
-              <div className="w-full sm:w-32 h-32 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 relative group">
+              <div className="w-full sm:w-32 h-32 flex-shrink-0 bg-muted rounded-xl overflow-hidden border border-border relative group">
                 {imageSrc ? (
                   <img
                     alt={item.product_name}
@@ -67,7 +67,7 @@ export function CartItemCard({
                     className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+                  <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground">
                     Tidak ada foto
                   </div>
                 )}
@@ -76,33 +76,33 @@ export function CartItemCard({
                 <div className="flex justify-between items-start gap-4">
                   <div>
                     <a
-                      className="font-bold text-lg text-gray-900 dark:text-white hover:text-[#4338ca] transition line-clamp-2"
+                      className="font-bold text-lg text-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition line-clamp-2"
                       href="#"
                     >
                       {item.product_name}
                     </a>
                     <div className="flex items-center gap-1.5 mt-1">
-                      <span className="material-icons-outlined text-sm text-gray-400">
+                      <span className="material-icons-outlined text-sm text-muted-foreground">
                         storefront
                       </span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-muted-foreground">
                         Kode: {item.product_sku}
                       </span>
                     </div>
                     {variantLabel ? (
-                      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="mt-1 text-xs text-muted-foreground">
                         {variantLabel}
                       </div>
                     ) : null}
                     {!item.in_stock ? (
-                      <div className="mt-2 text-xs text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded w-fit">
+                      <div className="mt-2 text-xs text-destructive bg-destructive/10 px-2 py-1 rounded w-fit">
                         Stok habis
                       </div>
                     ) : null}
                   </div>
 
                   <div className="text-right flex-shrink-0">
-                    <span className="block font-bold text-lg text-gray-900 dark:text-white">
+                    <span className="block font-bold text-lg text-foreground">
                       {formatCurrency(item.price)}
                     </span>
                   </div>
@@ -110,9 +110,9 @@ export function CartItemCard({
 
                 <div className="flex flex-wrap items-end justify-between gap-4 mt-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-9">
+                    <div className="flex items-center border border-border rounded-lg overflow-hidden h-9">
                       <button
-                        className="px-3 h-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-r border-gray-300 dark:border-gray-600 transition"
+                        className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-r border-border transition"
                         onClick={() =>
                           onQuantityChange(item.id, clampQty(item, item.quantity - 1))
                         }
@@ -121,13 +121,13 @@ export function CartItemCard({
                         <span className="material-icons-outlined text-sm">remove</span>
                       </button>
                       <input
-                        className="w-10 h-full text-center border-none focus:ring-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-medium text-sm p-0"
+                        className="w-10 h-full text-center border-none focus:ring-0 bg-card text-foreground font-medium text-sm p-0"
                         type="text"
                         value={item.quantity}
                         readOnly
                       />
                       <button
-                        className="px-3 h-full bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-l border-gray-300 dark:border-gray-600 transition"
+                        className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border transition"
                         onClick={() =>
                           onQuantityChange(item.id, clampQty(item, item.quantity + 1))
                         }
@@ -140,7 +140,7 @@ export function CartItemCard({
                       </button>
                     </div>
                     <button
-                      className="text-gray-400 hover:text-red-500 transition flex items-center gap-1 text-sm font-medium"
+                      className="text-muted-foreground hover:text-destructive transition flex items-center gap-1 text-sm font-medium"
                       title="Hapus item"
                       disabled={removingId === item.id}
                       onClick={() => onRemove(item.id)}
@@ -150,10 +150,10 @@ export function CartItemCard({
                     </button>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 block mb-0.5">
+                    <span className="text-xs text-muted-foreground block mb-0.5">
                       Subtotal
                     </span>
-                    <span className="font-bold text-[#4338ca] dark:text-indigo-400 text-lg">
+                    <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">
                       {formatCurrency(item.subtotal)}
                     </span>
                   </div>

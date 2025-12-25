@@ -17,6 +17,7 @@ export type InventoryProductResponse = {
   has_variants?: boolean;
   variants_required?: boolean;
   variant_in_stock?: boolean;
+  variant_price_valid?: boolean;
   featured_variant_group_id?: number | null;
 };
 

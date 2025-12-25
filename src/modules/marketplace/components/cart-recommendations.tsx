@@ -23,9 +23,9 @@ export function CartRecommendations({ currentProductId }: Props) {
   if (isLoading || isError || !items.length) return null;
 
   return (
-    <div className="mt-16 border-t border-gray-200 dark:border-gray-700 pt-12">
+    <div className="mt-16 border-t border-border pt-12">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Mungkin Anda Suka</h2>
+        <h2 className="text-2xl font-bold text-foreground">Mungkin Anda Suka</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -37,10 +37,26 @@ export function CartRecommendations({ currentProductId }: Props) {
               title: product.name,
               description: product.description ?? "",
               category: product.sku || "Produk",
-              price: formatCurrency(product.price),
+              price: (() => {
+                const hasVariants =
+                  product.variants_required ?? product.has_variants ?? false;
+                const priceValue = hasVariants
+                  ? product.min_price
+                  : product.price ?? product.min_price;
+                if (hasVariants) {
+                  return priceValue && priceValue > 0
+                    ? `Mulai dari ${formatCurrency(priceValue)}`
+                    : "Harga belum tersedia";
+                }
+                return priceValue && priceValue > 0
+                  ? formatCurrency(priceValue)
+                  : "—";
+              })(),
               unit: "unit",
-              image: product.photo_url || undefined,
+              image: product.display_image_url || product.photo_url || undefined,
               inStock: product.in_stock,
+              requiresVariant:
+                product.variants_required ?? product.has_variants ?? false,
             }}
           />
         ))}

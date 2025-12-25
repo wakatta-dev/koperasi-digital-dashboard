@@ -1,7 +1,6 @@
 /** @format */
 "use client";
 
-import { Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -15,11 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCheckoutStore, isShippingValid } from "./state/checkout-store";
 import { showToastError } from "@/lib/toast";
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
 
 export function MarketplaceShippingPage() {
   const router = useRouter();
@@ -49,38 +43,37 @@ export function MarketplaceShippingPage() {
   };
 
   return (
-    <div className={plusJakarta.className}>
-      <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
-        <LandingNavbar
-          activeLabel="Marketplace"
-          showCart
-          cartCount={cartCount}
-        />
-        <main className="pt-28 pb-20 bg-[#f8fafc] dark:bg-[#0f172a] min-h-screen">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ShippingBreadcrumbs />
-            <ShippingSteps />
+    <div className="bg-background text-foreground min-h-screen">
+      <LandingNavbar
+        activeLabel="Marketplace"
+        showCart
+        cartCount={cartCount}
+      />
+      <main className="pt-28 pb-20 bg-background min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ShippingBreadcrumbs />
+          <ShippingSteps />
 
-            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8">
-              Informasi Pengiriman
-            </h1>
+          <h1 className="text-3xl font-extrabold text-foreground mb-8">
+            Informasi Pengiriman
+          </h1>
 
-            {isError ? (
-              <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 text-red-500">
-                Gagal memuat keranjang. Silakan kembali ke keranjang.
-              </div>
-            ) : null}
+          {isError ? (
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-destructive">
+              Gagal memuat keranjang. Silakan kembali ke keranjang.
+            </div>
+          ) : null}
 
-            {!isLoading && !isError ? (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-                <div className="lg:col-span-8 space-y-6">
-                  <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div className="p-6 lg:p-8">
-                      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
-                        <h2 className="font-bold text-xl text-gray-900 dark:text-white">
-                          Alamat & Kontak
-                        </h2>
-                        <div className="flex gap-2 text-xs text-gray-500 dark:text-gray-400">
+          {!isLoading && !isError ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+              <div className="lg:col-span-8 space-y-6">
+                <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+                  <div className="p-6 lg:p-8">
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+                      <h2 className="font-bold text-xl text-foreground">
+                        Alamat & Kontak
+                      </h2>
+                      <div className="flex gap-2 text-xs text-muted-foreground">
                           <label className="flex items-center gap-2">
                             <input
                               type="radio"
@@ -138,12 +131,12 @@ export function MarketplaceShippingPage() {
                           onChange={(e) => setField("notes", e.target.value)}
                         />
 
-                        {touched && !shippingValid ? (
-                          <div className="text-sm text-red-500">
-                            Lengkapi nama, telepon, email, dan alamat (untuk
-                            delivery).
-                          </div>
-                        ) : null}
+                      {touched && !shippingValid ? (
+                        <div className="text-sm text-destructive">
+                          Lengkapi nama, telepon, email, dan alamat (untuk
+                          delivery).
+                        </div>
+                      ) : null}
                       </div>
                     </div>
                   </div>
@@ -151,7 +144,7 @@ export function MarketplaceShippingPage() {
                   <div className="flex gap-3">
                     <Link
                       href="/marketplace/keranjang"
-                      className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium hover:text-[#4338ca] dark:hover:text-[#4338ca] transition group"
+                      className="inline-flex items-center gap-2 text-muted-foreground font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition group"
                     >
                       <span className="material-icons-outlined text-lg group-hover:-translate-x-1 transition-transform">
                         arrow_back
@@ -161,18 +154,17 @@ export function MarketplaceShippingPage() {
                     <button
                       onClick={handleNext}
                       disabled={!cart?.items?.length}
-                      className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#4338ca] text-white hover:bg-[#3730a3] transition disabled:opacity-50"
+                      className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-50"
                     >
                       Lanjut ke Pembayaran
                     </button>
                   </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
-        </main>
-        <LandingFooter />
-      </div>
+            </div>
+          ) : null}
+        </div>
+      </main>
+      <LandingFooter />
     </div>
   );
 }

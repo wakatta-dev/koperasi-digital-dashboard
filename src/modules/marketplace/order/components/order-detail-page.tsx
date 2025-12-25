@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
@@ -112,18 +113,18 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
     (order?.fulfillment_method === "DELIVERY" ? "Pengiriman" : "Pickup");
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[#F9FAFB] text-[#111827] antialiased dark:bg-[#0f172a] dark:text-[#f8fafc] font-['Inter',_sans-serif]">
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-white dark:bg-[#0f172a]">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-6 dark:border-[#334155] dark:bg-[#0f172a]">
+    <div className="flex h-full flex-col overflow-hidden bg-background text-foreground antialiased">
+      <div className="relative flex flex-1 flex-col overflow-hidden bg-background">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-6">
           <div className="flex items-center">
             <button
-              className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 md:hidden"
+              className="mr-4 text-muted-foreground hover:text-foreground md:hidden"
               type="button"
             >
               <span className="material-icons-outlined">menu</span>
             </button>
             <button
-              className="mr-4 hidden text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 md:block"
+              className="mr-4 hidden text-muted-foreground hover:text-foreground md:block"
               type="button"
             >
               <span className="material-icons-outlined">menu_open</span>
@@ -132,17 +133,17 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
               <ol className="flex items-center space-x-2">
                 <li>
                   <Link
-                    className="text-sm font-medium text-[#6b7280] hover:text-[#4f46e5] dark:text-[#94a3b8] dark:hover:text-indigo-400"
+                    className="text-sm font-medium text-muted-foreground hover:text-indigo-500"
                     href="/bumdes/marketplace/order"
                   >
                     Manajemen Pesanan
                   </Link>
                 </li>
                 <li>
-                  <span className="text-gray-400 dark:text-gray-600">/</span>
+                  <span className="text-muted-foreground">/</span>
                 </li>
                 <li>
-                  <span className="text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
+                  <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
                     Detail Pesanan
                   </span>
                 </li>
@@ -150,7 +151,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             </nav>
           </div>
           <button
-            className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-slate-800 dark:hover:text-gray-200"
+            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             type="button"
           >
             <span className="material-icons-outlined dark:hidden">dark_mode</span>
@@ -162,7 +163,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="mb-6">
             <Link
-              className="group mb-4 inline-flex items-center text-sm font-medium text-[#6b7280] transition-colors hover:text-[#4f46e5] dark:text-[#94a3b8] dark:hover:text-indigo-400"
+              className="group mb-4 inline-flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-indigo-500"
               href="/bumdes/marketplace/order"
             >
               <span className="material-icons-outlined mr-1 text-base transition-transform group-hover:-translate-x-1">
@@ -171,15 +172,15 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
               Kembali ke Manajemen Pesanan
             </Link>
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <h1 className="text-2xl font-bold text-[#111827] dark:text-white">
+              <h1 className="text-2xl font-bold text-foreground">
                 Detail Pesanan{" "}
-                <span className="ml-2 text-xl font-normal text-[#6b7280] dark:text-[#94a3b8]">
+                <span className="ml-2 text-xl font-normal text-muted-foreground">
                   {formatOrderNumber(order?.order_number)}
                 </span>
               </h1>
               <div className="flex gap-2">
                 <button
-                  className="inline-flex items-center rounded-md border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-medium text-[#111827] shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:ring-offset-2 dark:border-[#334155] dark:bg-[#1e293b] dark:text-white dark:hover:bg-slate-700"
+                  className="inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   type="button"
                   onClick={() => setInvoiceOpen(true)}
                 >
@@ -193,12 +194,12 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
           </div>
 
           {isLoading ? (
-            <div className="text-sm text-[#6b7280] dark:text-[#94a3b8]">
+            <div className="text-sm text-muted-foreground">
               Memuat detail pesanan...
             </div>
           ) : null}
           {isError ? (
-            <div className="text-sm text-red-600 dark:text-red-400">
+            <div className="text-sm text-destructive">
               {error instanceof Error
                 ? error.message
                 : "Gagal memuat detail pesanan."}
@@ -207,87 +208,81 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
 
           {order ? (
             <>
-              <div className="mb-6 rounded-lg border border-[#e5e7eb] bg-white p-6 shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
+              <div className="mb-6 rounded-lg border border-border bg-card p-6 shadow-sm">
                 <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
                   <div>
-                    <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       ID Pesanan
                     </p>
-                    <p className="text-lg font-bold text-[#111827] dark:text-white">
+                    <p className="text-lg font-bold text-foreground">
                       {formatOrderNumber(order.order_number)}
                     </p>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Tanggal Pesanan
                     </p>
-                    <p className="text-lg font-bold text-[#111827] dark:text-white">
+                    <p className="text-lg font-bold text-foreground">
                       {formatOrderDate(order.created_at)}
                     </p>
                   </div>
                   <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Status Pembayaran
                     </p>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${paymentBadge.className}`}
-                    >
-                      <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                    <Badge variant={paymentBadge.variant}>
                       {paymentBadge.label}
-                    </span>
+                    </Badge>
                   </div>
                   <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Status Pengiriman
                     </p>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${shippingBadge.className}`}
-                    >
-                      <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                    <Badge variant={shippingBadge.variant}>
                       {shippingBadge.label}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <div className="space-y-6 lg:col-span-2">
-                  <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
-                    <div className="border-b border-[#e5e7eb] px-6 py-4 dark:border-[#334155]">
-                      <h2 className="text-lg font-medium text-[#111827] dark:text-white">
+                  <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                    <div className="border-b border-border px-6 py-4">
+                      <h2 className="text-lg font-medium text-foreground">
                         Daftar Barang
                       </h2>
                     </div>
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-[#e5e7eb] dark:divide-[#334155]">
-                        <thead className="bg-gray-50 dark:bg-slate-800/50">
+                      <table className="min-w-full divide-y divide-border">
+                        <thead className="bg-muted/40">
                           <tr>
                             <th
-                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Produk
                             </th>
                             <th
-                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Jumlah
                             </th>
                             <th
-                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Harga Satuan
                             </th>
                             <th
-                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]"
+                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Subtotal
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e5e7eb] dark:divide-[#334155]">
+                        <tbody className="divide-y divide-border">
                           {order.items.map((item) => {
                             const variantLabel = formatVariantLabel(item);
                             const imageSrc =
@@ -295,11 +290,11 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                             return (
                               <tr
                                 key={`${item.product_id}-${item.variant_option_id ?? item.product_sku}`}
-                                className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                                className="transition-colors hover:bg-muted/40"
                               >
                                 <td className="px-6 py-4">
                                   <div className="flex items-center">
-                                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+                                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-border">
                                       {imageSrc ? (
                                         <img
                                           alt={item.product_name}
@@ -307,7 +302,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                                           className="h-full w-full object-cover"
                                         />
                                       ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400 dark:bg-gray-700">
+                                        <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
                                           <span className="material-icons-outlined text-lg">
                                             image
                                           </span>
@@ -315,29 +310,29 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                                       )}
                                     </div>
                                     <div className="ml-4">
-                                      <div className="text-sm font-medium text-[#111827] dark:text-white">
+                                      <div className="text-sm font-medium text-foreground">
                                         {item.product_name}
                                       </div>
-                                      <div className="text-xs text-[#6b7280] dark:text-[#94a3b8]">
+                                      <div className="text-xs text-muted-foreground">
                                         SKU: {item.product_sku}
                                       </div>
                                       {variantLabel ? (
-                                        <div className="text-xs text-[#6b7280] dark:text-[#94a3b8]">
+                                        <div className="text-xs text-muted-foreground">
                                           {variantLabel}
                                         </div>
                                       ) : null}
                                     </div>
                                   </div>
                                 </td>
-                              <td className="px-6 py-4 text-right text-sm text-[#111827] dark:text-white">
-                                {item.quantity}
-                              </td>
-                              <td className="px-6 py-4 text-right text-sm text-[#111827] dark:text-white">
-                                {formatCurrency(item.price)}
-                              </td>
-                              <td className="px-6 py-4 text-right text-sm font-medium text-[#111827] dark:text-white">
-                                {formatCurrency(item.subtotal)}
-                              </td>
+                                <td className="px-6 py-4 text-right text-sm text-foreground">
+                                  {item.quantity}
+                                </td>
+                                <td className="px-6 py-4 text-right text-sm text-foreground">
+                                  {formatCurrency(item.price)}
+                                </td>
+                                <td className="px-6 py-4 text-right text-sm font-medium text-foreground">
+                                  {formatCurrency(item.subtotal)}
+                                </td>
                               </tr>
                             );
                           })}
@@ -345,66 +340,66 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                       </table>
                     </div>
                   </div>
-                  <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
-                    <div className="border-b border-[#e5e7eb] px-6 py-4 dark:border-[#334155]">
-                      <h2 className="text-lg font-medium text-[#111827] dark:text-white">
+                  <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                    <div className="border-b border-border px-6 py-4">
+                      <h2 className="text-lg font-medium text-foreground">
                         Detail Pembayaran &amp; Keuangan
                       </h2>
                     </div>
                     <div className="p-6">
-                      <div className="mb-6 flex flex-col justify-between gap-4 border-b border-gray-100 pb-6 dark:border-gray-800 md:flex-row">
+                      <div className="mb-6 flex flex-col justify-between gap-4 border-b border-border pb-6 md:flex-row">
                         <div>
-                          <p className="mb-1 text-sm text-[#6b7280] dark:text-[#94a3b8]">
+                          <p className="mb-1 text-sm text-muted-foreground">
                             Metode Pembayaran
                           </p>
                           <div className="flex items-center">
-                            <span className="material-icons-outlined mr-2 text-gray-400">
+                            <span className="material-icons-outlined mr-2 text-muted-foreground">
                               account_balance
                             </span>
-                            <span className="font-medium text-[#111827] dark:text-white">
+                            <span className="font-medium text-foreground">
                               {order.payment_method || DEFAULT_PAYMENT_METHOD}
                             </span>
                           </div>
                         </div>
                         <div>
-                          <p className="mb-1 text-sm text-[#6b7280] dark:text-[#94a3b8]">
+                          <p className="mb-1 text-sm text-muted-foreground">
                             ID Transaksi Pembayaran
                           </p>
-                          <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm text-[#111827] dark:bg-slate-700 dark:text-white">
+                          <span className="rounded bg-muted px-2 py-1 font-mono text-sm text-foreground">
                             {order.payment_reference || "-"}
                           </span>
                         </div>
                       </div>
                       <div className="space-y-3">
                         <div className="flex justify-between text-sm">
-                          <span className="text-[#6b7280] dark:text-[#94a3b8]">
+                          <span className="text-muted-foreground">
                             Subtotal Barang
                           </span>
-                          <span className="font-medium text-[#111827] dark:text-white">
+                          <span className="font-medium text-foreground">
                             {formatCurrency(itemsSubtotal)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-[#6b7280] dark:text-[#94a3b8]">
+                          <span className="text-muted-foreground">
                             Biaya Pengiriman
                           </span>
-                          <span className="font-medium text-[#111827] dark:text-white">
+                          <span className="font-medium text-foreground">
                             {formatCurrency(shippingCost)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-[#6b7280] dark:text-[#94a3b8]">
+                          <span className="text-muted-foreground">
                             Diskon
                           </span>
-                          <span className="font-medium text-green-600 dark:text-green-400">
+                          <span className="font-medium text-emerald-500">
                             -{formatCurrency(discountValue)}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-800">
-                          <span className="text-base font-bold text-[#111827] dark:text-white">
+                        <div className="flex items-center justify-between border-t border-border pt-3">
+                          <span className="text-base font-bold text-foreground">
                             Total Pembayaran
                           </span>
-                          <span className="text-xl font-bold text-[#4f46e5] dark:text-indigo-400">
+                          <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
                             {formatCurrency(totalPayment)}
                           </span>
                         </div>
@@ -413,13 +408,13 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
-                    <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                  <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+                    <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted-foreground">
                       Aksi Pesanan
                     </h3>
                     <div className="space-y-3">
                       <button
-                        className="flex w-full items-center justify-center rounded-md bg-[#4f46e5] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:ring-offset-2 disabled:opacity-60"
+                        className="flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
                         type="button"
                         disabled={!statusAction || pendingAction !== null}
                         onClick={() => {
@@ -437,7 +432,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                         Ubah Status Pengiriman
                       </button>
                       <button
-                        className="flex w-full items-center justify-center rounded-md border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-50 focus:outline-none dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                        className="flex w-full items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         type="button"
                         onClick={() => setInvoiceOpen(true)}
                       >
@@ -447,7 +442,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                         Cetak Invoice
                       </button>
                       <button
-                        className="flex w-full items-center justify-center rounded-md border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-50 focus:outline-none dark:border-[#334155] dark:bg-[#1e293b] dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                        className="flex w-full items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         type="button"
                         onClick={() => setReturOpen(true)}
                       >
@@ -457,7 +452,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                         Ajukan Pengembalian Dana
                       </button>
                       <button
-                        className="flex w-full items-center justify-center rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 focus:outline-none disabled:opacity-60 dark:border-red-900/50 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20"
+                        className="flex w-full items-center justify-center rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
                         type="button"
                         disabled={!canCancel || pendingAction !== null}
                         onClick={() => void handleCancel()}
@@ -469,86 +464,86 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                       </button>
                     </div>
                   </div>
-                  <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
-                    <div className="border-b border-[#e5e7eb] px-6 py-4 dark:border-[#334155]">
-                      <h2 className="text-lg font-medium text-[#111827] dark:text-white">
+                  <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                    <div className="border-b border-border px-6 py-4">
+                      <h2 className="text-lg font-medium text-foreground">
                         Informasi Pelanggan
                       </h2>
                     </div>
                     <div className="space-y-4 p-6">
                       <div className="flex items-start">
-                        <span className="material-icons-outlined mr-3 mt-0.5 text-gray-400">
+                        <span className="material-icons-outlined mr-3 mt-0.5 text-muted-foreground">
                           person
                         </span>
                         <div>
-                          <p className="text-sm font-medium text-[#111827] dark:text-white">
+                          <p className="text-sm font-medium text-foreground">
                             {order.customer_name}
                           </p>
-                          <p className="text-xs text-[#6b7280] dark:text-[#94a3b8]">
+                          <p className="text-xs text-muted-foreground">
                             Customer
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start">
-                        <span className="material-icons-outlined mr-3 mt-0.5 text-gray-400">
+                        <span className="material-icons-outlined mr-3 mt-0.5 text-muted-foreground">
                           email
                         </span>
                         <div>
-                          <p className="text-sm text-[#111827] dark:text-white">
+                          <p className="text-sm text-foreground">
                             {order.customer_email}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start">
-                        <span className="material-icons-outlined mr-3 mt-0.5 text-gray-400">
+                        <span className="material-icons-outlined mr-3 mt-0.5 text-muted-foreground">
                           phone
                         </span>
                         <div>
-                          <p className="text-sm text-[#111827] dark:text-white">
+                          <p className="text-sm text-foreground">
                             {order.customer_phone}
                           </p>
                         </div>
                       </div>
-                      <div className="border-t border-gray-100 pt-4 dark:border-gray-800">
-                        <h4 className="mb-3 text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                      <div className="border-t border-border pt-4">
+                        <h4 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                           Alamat Pengiriman
                         </h4>
                         <div className="flex items-start">
-                          <span className="material-icons-outlined mr-3 mt-0.5 text-gray-400">
+                          <span className="material-icons-outlined mr-3 mt-0.5 text-muted-foreground">
                             place
                           </span>
-                          <p className="text-sm leading-relaxed text-[#111827] dark:text-white">
+                          <p className="text-sm leading-relaxed text-foreground">
                             {order.customer_address || "-"}
                           </p>
                         </div>
                       </div>
-                      <div className="border-t border-gray-100 pt-4 dark:border-gray-800">
-                        <h4 className="mb-3 text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                      <div className="border-t border-border pt-4">
+                        <h4 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                           Metode Pengiriman
                         </h4>
                         <div className="flex items-center">
-                          <span className="material-icons-outlined mr-3 text-gray-400">
+                          <span className="material-icons-outlined mr-3 text-muted-foreground">
                             local_shipping
                           </span>
-                          <span className="text-sm font-medium text-[#111827] dark:text-white">
+                          <span className="text-sm font-medium text-foreground">
                             {shippingMethod}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
-                    <div className="border-b border-[#e5e7eb] px-6 py-4 dark:border-[#334155]">
-                      <h2 className="text-lg font-medium text-[#111827] dark:text-white">
+                  <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                    <div className="border-b border-border px-6 py-4">
+                      <h2 className="text-lg font-medium text-foreground">
                         Riwayat Status
                       </h2>
                     </div>
                     <div className="p-6">
-                      <ul className="relative ml-3 space-y-6 border-l-2 border-gray-200 pl-6 dark:border-gray-700">
+                      <ul className="relative ml-3 space-y-6 border-l-2 border-border pl-6">
                         {statusHistory.length === 0 ? (
                           <li className="relative">
-                            <span className="absolute -left-[31px] top-0 h-4 w-4 rounded-full border-2 border-white bg-gray-300 dark:border-[#1e293b] dark:bg-gray-600"></span>
-                            <p className="text-sm font-medium text-[#111827] dark:text-white">
+                            <span className="absolute -left-[31px] top-0 h-4 w-4 rounded-full border-2 border-background bg-muted"></span>
+                            <p className="text-sm font-medium text-foreground">
                               Status belum tersedia
                             </p>
                           </li>
@@ -556,16 +551,14 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                           statusHistory.map((entry, index) => (
                             <li className="relative" key={`${entry.status}-${index}`}>
                               <span
-                                className={`absolute -left-[31px] top-0 h-4 w-4 rounded-full border-2 border-white dark:border-[#1e293b] ${
-                                  index === 0
-                                    ? "bg-blue-500"
-                                    : "bg-gray-300 dark:bg-gray-600"
+                                className={`absolute -left-[31px] top-0 h-4 w-4 rounded-full border-2 border-background ${
+                                  index === 0 ? "bg-indigo-500" : "bg-muted"
                                 }`}
                               ></span>
-                              <p className="text-sm font-medium text-[#111827] dark:text-white">
+                              <p className="text-sm font-medium text-foreground">
                                 {getTimelineLabel(entry.status)}
                               </p>
-                              <p className="mt-0.5 text-xs text-[#6b7280] dark:text-[#94a3b8]">
+                              <p className="mt-0.5 text-xs text-muted-foreground">
                                 {formatOrderDateTime(entry.timestamp)}
                               </p>
                             </li>

@@ -41,8 +41,8 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
     );
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col group">
-      <div className="relative h-48 overflow-hidden bg-gray-200" ref={imgRef}>
+    <div className="bg-card rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-border overflow-hidden flex flex-col group">
+      <div className="relative h-48 overflow-hidden bg-muted" ref={imgRef}>
         {product.image ? (
           <img
             alt={product.title}
@@ -51,7 +51,7 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs font-semibold text-gray-400">
+          <div className="flex h-full w-full items-center justify-center bg-muted text-xs font-semibold text-muted-foreground">
             Tidak ada foto
           </div>
         )}
@@ -59,8 +59,8 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
           <div
             className={`absolute top-3 right-3 px-2 py-1 text-xs font-bold rounded shadow-sm ${
               product.badge.variant === "danger"
-                ? "bg-red-500 text-white"
-                : "bg-white/90 backdrop-blur text-[#4338ca]"
+                ? "bg-destructive text-destructive-foreground"
+                : "bg-card/90 backdrop-blur text-indigo-600 dark:text-indigo-400"
             }`}
           >
             {product.badge.label}
@@ -69,32 +69,34 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
       </div>
 
       <div className="p-5 flex flex-col flex-grow">
-        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">
+        <div className="text-xs text-muted-foreground mb-1 font-medium">
           {product.category}
         </div>
-        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 leading-tight group-hover:text-[#4338ca] transition">
+        <h3 className="font-bold text-lg text-foreground mb-2 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
           {product.title}
         </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {product.description}
         </p>
 
         <div className="mt-auto flex items-center justify-between">
-          <span className="text-[#4338ca] font-bold text-lg">{product.price}</span>
-          <span className="text-xs text-gray-400">/ {product.unit}</span>
+          <span className="text-indigo-600 dark:text-indigo-400 font-bold text-lg">
+            {product.price}
+          </span>
+          <span className="text-xs text-muted-foreground">/ {product.unit}</span>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-2">
+        <div className="mt-4 pt-4 border-t border-border flex gap-2">
           <Button
             asChild
-            className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white text-sm font-medium py-2 rounded-lg transition h-auto"
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded-lg transition h-auto"
             disabled={!product.inStock}
           >
             <Link href={detailHref}>{ctaLabel}</Link>
           </Button>
           <Button
             variant="outline"
-            className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition h-auto"
+            className="px-3 py-2 border border-border rounded-lg hover:bg-muted text-muted-foreground transition h-auto"
             title={requiresVariant ? "Pilih Varian" : "Tambah ke Keranjang"}
             disabled={!product.inStock || isAdding}
             onClick={requiresVariant ? undefined : handleAdd}

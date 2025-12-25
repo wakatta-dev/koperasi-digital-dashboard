@@ -8,21 +8,23 @@ export function computeEligibility(product: InventoryProductResponse) {
   const hasVariants = product.has_variants ?? false;
   const variantsRequired = product.variants_required ?? false;
   const variantInStock = product.variant_in_stock ?? false;
+  const variantPriceValid = product.variant_price_valid ?? true;
   if (product.status !== "ACTIVE") {
     reasons.push("Status bukan ACTIVE");
   }
   if (!product.show_in_marketplace) {
     reasons.push("Disembunyikan");
   }
-  if (product.price_sell <= 0) {
-    reasons.push("Harga belum diatur");
-  }
   if (hasVariants) {
     if (!variantsRequired) {
       reasons.push("Varian belum lengkap");
+    } else if (!variantPriceValid) {
+      reasons.push("Harga varian belum diatur");
     } else if (!variantInStock) {
       reasons.push("Varian habis");
     }
+  } else if (product.price_sell <= 0) {
+    reasons.push("Harga belum diatur");
   } else if (product.track_stock && product.stock <= 0) {
     reasons.push("Stok habis");
   }

@@ -14,7 +14,7 @@ export function FilterPanel({ children, className, scrollable }: FilterPanelProp
   return (
     <div
       className={cn(
-        "bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm",
+        "bg-card rounded-xl border border-border shadow-sm",
         className
       )}
     >

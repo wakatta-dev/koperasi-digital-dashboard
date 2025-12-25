@@ -14,7 +14,7 @@ export function ProductGallery({
 
   return (
     <div className="space-y-4">
-      <div className="aspect-square bg-white dark:bg-[#1e293b] rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm relative group">
+      <div className="aspect-square bg-card rounded-2xl overflow-hidden border border-border shadow-sm relative group">
         {mainImage ? (
           <img
             alt={product.title}
@@ -22,12 +22,12 @@ export function ProductGallery({
             className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground">
             Tidak ada foto
           </div>
         )}
         {product.badge ? (
-          <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-[#4338ca] shadow-sm border border-gray-100 dark:border-gray-700">
+          <div className="absolute top-4 right-4 bg-card/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-indigo-600 dark:text-indigo-400 shadow-sm border border-border">
             {product.badge.label}
           </div>
         ) : null}
@@ -43,8 +43,8 @@ export function ProductGallery({
                 key={thumb + index}
                 className={`aspect-square rounded-xl overflow-hidden ${
                   isFirst
-                    ? "border-2 border-[#4338ca] ring-2 ring-[#4338ca]/20"
-                    : "border border-gray-200 dark:border-gray-700 hover:border-[#4338ca] transition opacity-70 hover:opacity-100"
+                    ? "border-2 border-indigo-500 ring-2 ring-indigo-500/20"
+                    : "border border-border hover:border-indigo-500 transition opacity-70 hover:opacity-100"
                 }`}
               >
                 <img
@@ -60,9 +60,9 @@ export function ProductGallery({
           return (
             <button
               key={`placeholder-${index}`}
-              className="aspect-square rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-[#4338ca] transition opacity-70 hover:opacity-100"
+              className="aspect-square rounded-xl overflow-hidden border border-border hover:border-indigo-500 transition opacity-70 hover:opacity-100"
             >
-              <div className="w-full h-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+              <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
                 <span className="material-icons-outlined text-sm">{icon}</span>
               </div>
             </button>

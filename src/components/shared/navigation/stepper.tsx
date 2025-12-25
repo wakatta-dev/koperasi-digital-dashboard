@@ -33,10 +33,10 @@ export function Stepper({
   return (
     <div className={cn("w-full max-w-4xl mx-auto mb-16 pt-2", className)}>
       <div className="relative flex items-center justify-between">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full z-0" />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-border rounded-full z-0" />
         {clampedProgress !== undefined ? (
           <div
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#4338ca] rounded-full z-0 transition-all duration-500"
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 rounded-full z-0 transition-all duration-500"
             style={{ width: `${clampedProgress}%` }}
           />
         ) : null}
@@ -46,21 +46,21 @@ export function Stepper({
           const isDone = state === "done";
 
           const circleClass = isActive
-            ? "bg-[#4338ca] shadow-lg shadow-indigo-500/40 scale-110"
+            ? "bg-indigo-600 shadow-lg shadow-indigo-500/40 scale-110"
             : isDone
-              ? "bg-[#4338ca] shadow-lg shadow-indigo-500/30 group-hover:scale-105"
-              : "bg-white dark:bg-[#1e293b] border-2 border-gray-300 dark:border-gray-600 text-gray-400";
+              ? "bg-indigo-600 shadow-lg shadow-indigo-500/30 group-hover:scale-105"
+              : "bg-card border-2 border-border text-muted-foreground";
 
           const labelClass = isActive
             ? cn(
                 "font-bold",
                 activeLabelTone === "primary"
-                  ? "text-primary"
-                  : "text-gray-900 dark:text-white"
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-foreground"
               )
             : isDone
-              ? "font-bold text-[#4338ca] dark:text-indigo-400"
-              : "font-medium text-gray-500 dark:text-gray-400";
+              ? "font-bold text-indigo-600 dark:text-indigo-400"
+              : "font-medium text-muted-foreground";
 
           return (
             <div
@@ -69,7 +69,7 @@ export function Stepper({
             >
               <div
                 className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center text-white ring-4 ring-[#f8fafc] dark:ring-[#0f172a] transition",
+                  "w-12 h-12 rounded-full flex items-center justify-center text-white ring-4 ring-background transition",
                   circleClass
                 )}
               >

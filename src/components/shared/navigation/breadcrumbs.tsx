@@ -22,14 +22,14 @@ export function Breadcrumbs({
   return (
     <nav
       className={cn(
-        "flex mb-8 text-sm text-gray-500 dark:text-gray-400 overflow-x-auto whitespace-nowrap pb-2",
+        "flex mb-8 text-sm text-muted-foreground overflow-x-auto whitespace-nowrap pb-2",
         className
       )}
     >
       {items.map((item, idx) => {
         const isLast = idx === items.length - 1;
         const content = item.href && !isLast ? (
-          <a className="hover:text-[#4338ca] transition" href={item.href}>
+          <a className="hover:text-indigo-600 dark:hover:text-indigo-400 transition" href={item.href}>
             {item.label}
           </a>
         ) : (
@@ -37,8 +37,8 @@ export function Breadcrumbs({
             className={cn(
               "font-medium",
               item.active || isLast
-                ? "text-gray-900 dark:text-white"
-                : "text-gray-500 dark:text-gray-400"
+                ? "text-foreground"
+                : "text-muted-foreground"
             )}
           >
             {item.label}

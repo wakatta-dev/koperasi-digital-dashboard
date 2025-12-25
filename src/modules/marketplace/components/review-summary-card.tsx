@@ -27,10 +27,10 @@ export function ReviewSummaryCard() {
           key={src + idx}
           alt=""
           src={src}
-          className="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-gray-800 object-cover"
+          className="inline-block h-10 w-10 rounded-full ring-2 ring-background object-cover"
         />
       ))}
-      <div className="h-10 w-10 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full ring-2 ring-background bg-muted text-xs font-bold text-muted-foreground">
         {REVIEW_SUMMARY.extraCountLabel}
       </div>
     </div>
@@ -40,14 +40,14 @@ export function ReviewSummaryCard() {
     <>
       <Link
         href="/marketplace/konfirmasi"
-        className="w-full bg-[#4338ca] hover:bg-[#3730a3] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 transition flex items-center justify-center gap-2 group text-center"
+        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-center font-bold text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
       >
         Konfirmasi Pesanan
         <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">
           arrow_forward
         </span>
       </Link>
-      <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
         <span className="material-icons-outlined text-base text-green-600">verified_user</span>
         {REVIEW_SUMMARY.secureNote}
       </div>

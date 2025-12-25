@@ -2,7 +2,6 @@
 
 "use client";
 
-import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
@@ -22,11 +21,6 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
 
 type Props = {
   productId: string;
@@ -68,7 +62,10 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
     [selectedGroup, selectedOptionId]
   );
   const selectionReady = !variantsRequired || Boolean(selectedGroup && selectedOption);
-  const displayPrice = selectedOption?.price ?? data?.price;
+  const hasSelection = Boolean(selectedGroup && selectedOption);
+  const selectedPrice =
+    selectedOption && selectedOption.price > 0 ? selectedOption.price : null;
+  const priceAvailable = !variantsRequired || (hasSelection && selectedPrice !== null);
   const displayTrackStock = selectionReady
     ? selectedOption?.track_stock ?? data?.track_stock
     : false;
@@ -78,7 +75,7 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
   const effectiveInStock = displayTrackStock
     ? (displayStock ?? 0) > 0
     : true;
-  const canAddToCart = selectionReady && effectiveInStock;
+  const canAddToCart = selectionReady && effectiveInStock && priceAvailable;
   const stockLabel =
     variantsRequired && !selectionReady
       ? "Pilih varian untuk melihat stok"
@@ -88,6 +85,16 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
   const galleryImage =
     selectedGroup?.image_url ?? data?.display_image_url ?? data?.photo_url ?? "";
 
+  const priceLabel = variantsRequired
+    ? !hasSelection
+      ? "Pilih varian untuk melihat harga"
+      : selectedPrice !== null
+      ? formatCurrency(selectedPrice) ?? "-"
+      : "Harga belum tersedia"
+    : data?.price
+    ? formatCurrency(data.price) ?? "-"
+    : "-";
+
   const product: any = data
     ? {
         id: String(data.id),
@@ -96,8 +103,7 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
         variantLabel: PRODUCT_DETAIL.variantLabel,
         categoryTag: data.sku || "Produk",
         rating: PRODUCT_DETAIL.rating,
-        price:
-          displayPrice !== undefined ? formatCurrency(displayPrice) ?? "-" : "-",
+        price: priceLabel,
         originalPrice: "",
         discountNote: "",
         shortDescription: data.description ?? "",
@@ -123,38 +129,37 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
     : null;
 
   return (
-    <div className={plusJakarta.className}>
-      <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
-        <LandingNavbar
-          activeLabel="Marketplace"
-          showCart
-          cartCount={cart?.item_count ?? 0}
-        />
-        <main className="pt-28 pb-20 bg-[#f8fafc] dark:bg-[#0f172a] min-h-screen">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ProductBreadcrumbs
-              category={product?.categoryTag ?? "Marketplace"}
-              title={product?.breadcrumbTitle ?? product?.title ?? "Produk"}
-            />
+    <div className="bg-background text-foreground min-h-screen">
+      <LandingNavbar
+        activeLabel="Marketplace"
+        showCart
+        cartCount={cart?.item_count ?? 0}
+      />
+      <main className="pt-28 pb-20 bg-background min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ProductBreadcrumbs
+            category={product?.categoryTag ?? "Marketplace"}
+            title={product?.breadcrumbTitle ?? product?.title ?? "Produk"}
+          />
 
             {isLoading ? (
-              <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+              <div className="py-12 text-center text-muted-foreground">
                 Memuat detail produk...
               </div>
             ) : null}
             {isError && !notFoundLike ? (
-              <div className="py-12 text-center text-red-500 space-y-3">
+              <div className="py-12 text-center text-destructive space-y-3">
                 <div>Gagal memuat produk.</div>
                 <button
                   onClick={() => refetch()}
-                  className="text-sm px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+                  className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted text-foreground"
                 >
                   Coba lagi
                 </button>
               </div>
             ) : null}
             {!isLoading && !product && !isError ? (
-              <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+              <div className="py-12 text-center text-muted-foreground">
                 Produk tidak ditemukan.
               </div>
             ) : null}
@@ -182,6 +187,7 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
                           setSelectedOptionId(optionId),
                       }}
                       canAddToCart={canAddToCart}
+                      priceAvailable={priceAvailable}
                     />
                   </div>
                 </div>
@@ -204,10 +210,9 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
                 <RelatedProducts currentProductId={product.id} />
               </>
             ) : null}
-          </div>
-        </main>
-        <LandingFooter />
-      </div>
+        </div>
+      </main>
+      <LandingFooter />
     </div>
   );
 }

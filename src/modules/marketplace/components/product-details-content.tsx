@@ -14,22 +14,22 @@ export function ProductDetailsContent({
 
   return (
     <div className="lg:col-span-2 space-y-8">
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b border-border">
         <nav aria-label="Tabs" className="-mb-px flex space-x-8">
           <a
-            className="border-[#4338ca] text-[#4338ca] whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            className="border-indigo-500 text-indigo-600 dark:text-indigo-400 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
             href="#"
           >
             Deskripsi Produk
           </a>
           <a
-            className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            className="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
             href="#"
           >
             Spesifikasi
           </a>
           <a
-            className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            className="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
             href="#"
           >
             Ulasan ({product.rating.total})
@@ -38,8 +38,8 @@ export function ProductDetailsContent({
       </div>
 
       {(hasDescription || hasFeatures) && (
-        <div className="bg-white dark:bg-[#1e293b] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 text-sm leading-7">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
+          <div className="prose dark:prose-invert max-w-none text-muted-foreground text-sm leading-7">
             {product.longDescription.map((paragraph, index) => (
               <p key={index} className="mb-4">
                 {paragraph}
@@ -47,7 +47,7 @@ export function ProductDetailsContent({
             ))}
             {hasFeatures ? (
               <>
-                <h4 className="text-gray-900 dark:text-white font-bold text-base mb-2">
+                <h4 className="text-foreground font-bold text-base mb-2">
                   Keunggulan Produk:
                 </h4>
                 <ul className="list-disc pl-5 space-y-1 mb-4">
@@ -62,12 +62,12 @@ export function ProductDetailsContent({
       )}
 
       {hasReviews ? (
-        <div className="bg-white dark:bg-[#1e293b] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+            <h3 className="font-bold text-lg text-foreground">
               Ulasan Pembeli
             </h3>
-            <button className="text-[#4338ca] text-sm font-medium hover:underline">
+            <button className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
               Lihat Semua
             </button>
           </div>
@@ -76,7 +76,7 @@ export function ProductDetailsContent({
             {product.reviews.map((review, index) => (
               <div
                 key={review.name + index}
-                className="border-b border-gray-100 dark:border-gray-700 pb-6 last:border-0 last:pb-0"
+                className="border-b border-border pb-6 last:border-0 last:pb-0"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -85,11 +85,11 @@ export function ProductDetailsContent({
                     >
                       {review.initials}
                     </div>
-                    <span className="font-medium text-sm text-gray-900 dark:text-white">
+                    <span className="font-medium text-sm text-foreground">
                       {review.name}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-muted-foreground">
                     {review.timeAgo}
                   </span>
                 </div>
@@ -100,21 +100,21 @@ export function ProductDetailsContent({
                       className={`material-icons-outlined text-sm ${
                         starIndex < review.rating
                           ? "fill-current"
-                          : "text-gray-300"
+                          : "text-muted-foreground"
                       }`}
                     >
                       star
                     </span>
                   ))}
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   {review.comment}
                 </p>
               </div>
             ))}
           </div>
 
-          <button className="w-full mt-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+          <button className="w-full mt-6 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition">
             Tulis Ulasan
           </button>
         </div>

@@ -132,7 +132,7 @@ export function InventoryTable({
                 {row.trackStock ? row.stock : "Tidak dilacak"}
               </TableCell>
               <TableCell className="text-sm text-foreground">
-                {formatCurrency(row.price)}
+                {row.product?.has_variants ? "Harga berbasis varian" : formatCurrency(row.price)}
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 <div className="flex items-start gap-3">

@@ -25,7 +25,7 @@ export function MarketplaceHeader({
 }: Props) {
   const inputSlot = (
     <>
-      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
         <span className="material-icons-outlined">search</span>
       </span>
       <Input
@@ -37,7 +37,7 @@ export function MarketplaceHeader({
           }
         }}
         placeholder={MARKETPLACE_HEADER.searchPlaceholder}
-        className="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]/40 placeholder-gray-400 dark:placeholder-gray-500 h-11"
+        className="w-full pl-10 pr-4 py-2.5 rounded-lg h-11"
       />
     </>
   );
@@ -47,11 +47,11 @@ export function MarketplaceHeader({
       <Select defaultValue={CATEGORY_OPTIONS[0]}>
         <SelectTrigger
           style={{ height: 44 }}
-          className="w-full md:w-48 px-4 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]/40"
+          className="w-full md:w-48 px-4 rounded-lg"
         >
           <SelectValue placeholder="Semua Kategori" />
         </SelectTrigger>
-        <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700">
+        <SelectContent className="bg-popover text-foreground border border-border">
           {CATEGORY_OPTIONS.map((category) => (
             <SelectItem key={category} value={category}>
               {category}
@@ -61,7 +61,7 @@ export function MarketplaceHeader({
       </Select>
       <Button
         onClick={onSubmit}
-        className="bg-[#4338ca] h-11 hover:bg-[#3730a3] text-white px-6 py-2.5 rounded-lg font-medium transition shadow-md shadow-indigo-500/20 flex items-center gap-2"
+        className="bg-indigo-600 h-11 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-medium transition shadow-md shadow-indigo-500/20 flex items-center gap-2"
       >
         Cari
       </Button>

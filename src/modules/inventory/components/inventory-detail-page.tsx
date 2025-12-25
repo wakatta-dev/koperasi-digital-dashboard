@@ -132,17 +132,17 @@ export function InventoryDetailPage({ id }: Props) {
   }
 
   return (
-    <div className="w-full space-y-6 md:space-y-8 text-[#111827] dark:text-[#f8fafc]">
+    <div className="w-full space-y-6 md:space-y-8 text-foreground">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-[#6b7280] dark:text-[#94a3b8]">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link
-            className="font-medium text-[#6b7280] transition-colors hover:text-[#4f46e5] dark:text-[#94a3b8] dark:hover:text-[#a5b4fc]"
+            className="font-medium text-muted-foreground transition-colors hover:text-indigo-500"
             href="/bumdes/marketplace/inventory"
           >
             Inventaris
           </Link>
-          <ChevronRight className="h-4 w-4 text-gray-400" strokeWidth={2} />
-          <span className="font-medium text-[#4f46e5] dark:text-[#a5b4fc]">
+          <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
+          <span className="font-medium text-indigo-600 dark:text-indigo-400">
             {item.name}
           </span>
         </div>
@@ -171,20 +171,18 @@ export function InventoryDetailPage({ id }: Props) {
       </div>
 
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-[#111827] dark:text-white">
-          Detail Produk
-        </h1>
+        <h1 className="text-2xl font-bold text-foreground">Detail Produk</h1>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-sm dark:border-[#334155] dark:bg-[#1e293b]">
+      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <div className="p-8">
           <div className="flex flex-col gap-6 md:flex-row">
             <div className="flex-shrink-0">
-              <label className="mb-2 block text-sm font-medium text-[#6b7280] dark:text-[#94a3b8]">
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">
                 Foto Produk
               </label>
               <div className="mt-1">
-                <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border border-[#e5e7eb] bg-[#f3f4f6] dark:border-[#334155] dark:bg-[#1f2937]">
+                <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
                   {item.image ? (
                     <img
                       src={item.image}
@@ -258,6 +256,11 @@ export function InventoryDetailPage({ id }: Props) {
                   <p className="text-lg font-medium text-foreground">
                     {formatCurrency(item.price)}
                   </p>
+                  {item.product?.has_variants ? (
+                    <p className="text-xs text-amber-600">
+                      Harga dikelola per varian.
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <div>
