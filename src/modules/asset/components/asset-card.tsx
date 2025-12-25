@@ -29,7 +29,7 @@ export function AssetCard({
       tabIndex={0}
       onClick={onClick}
       className={cn(
-        "group cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white p-0 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900",
+        "group cursor-pointer overflow-hidden rounded-xl border border-border bg-card p-0 shadow-sm transition-shadow hover:shadow-md",
         "gap-0"
       )}
     >
@@ -41,7 +41,7 @@ export function AssetCard({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+          <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
             Tidak ada foto
           </div>
         )}
@@ -51,19 +51,19 @@ export function AssetCard({
             e.stopPropagation();
             onEdit?.();
           }}
-          className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-slate-700 shadow-sm backdrop-blur transition hover:bg-white dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-900"
+          className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur transition hover:bg-background"
         >
           <Pencil className="h-4 w-4" />
           Edit
         </button>
       </div>
       <CardContent className="p-4">
-        <h3 className="mb-1 text-base font-medium leading-snug text-slate-900 dark:text-slate-100">
+        <h3 className="mb-1 text-base font-medium leading-snug text-foreground">
           {title}
         </h3>
-        <p className="mt-3 text-indigo-600 dark:text-indigo-400">
+        <p className="mt-3 text-primary">
           {price}
-          <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
+          <span className="text-sm font-normal text-muted-foreground">
             {unit}
           </span>
         </p>

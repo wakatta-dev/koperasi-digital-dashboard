@@ -58,13 +58,13 @@ const channelTable = [
     label: "Kasir (POS)",
     revenue: "Rp 319.752.300",
     pct: "70%",
-    color: "bg-blue-500",
+    color: "bg-primary",
   },
   {
     label: "Marketplace",
     revenue: "Rp 137.036.700",
     pct: "30%",
-    color: "bg-emerald-500",
+    color: "bg-secondary",
   },
 ];
 
@@ -74,28 +74,28 @@ export default function PenjualanRinciReportPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 text-slate-900 dark:text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-8 text-foreground">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Laporan Penjualan Rinci</h1>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-4 rounded-xl shadow-sm border border-border">
         <div className="flex flex-wrap gap-2">
           <SegmentedControl
             options={presets}
             activeValue={activePreset}
             onChange={setActivePreset}
-            className="bg-slate-100 dark:bg-slate-800 border-0 rounded-lg p-1 overflow-hidden"
+            className="bg-muted/40 border-0 rounded-lg p-1 overflow-hidden"
             buttonClassName="px-4"
           />
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+          <span className="text-sm text-muted-foreground font-medium">
             01/01/2023 - 31/01/2023
           </span>
           <Button
             type="button"
-            className="inline-flex h-auto items-center px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex h-auto items-center px-4 py-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             Terapkan
           </Button>
@@ -108,77 +108,77 @@ export default function PenjualanRinciReportPage() {
           {summaryCards.map((card) => (
             <div
               key={card.title}
-              className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex justify-between items-start"
+              className="bg-card rounded-xl p-6 shadow-sm border border-border flex justify-between items-start"
             >
               <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+                <p className="text-sm font-medium text-muted-foreground mb-1">
                   {card.title}
                 </p>
                 <h3 className="text-2xl font-bold mb-2">{card.value}</h3>
-                <div className="flex items-center text-sm font-medium text-lime-700 dark:text-emerald-400">
+                <div className="flex items-center text-sm font-medium text-primary">
                   <TrendingUp className="h-4 w-4 mr-1" />
                   {card.delta}
                 </div>
               </div>
-              <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-lg">
-                <card.icon className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+              <div className="bg-muted/40 p-2.5 rounded-lg">
+                <card.icon className="h-5 w-5 text-muted-foreground" />
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+        <div className="p-6 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <h2 className="text-lg font-bold">Produk Terlaris</h2>
           <Button
             type="button"
-            className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 shadow-sm focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             <Download className="h-4 w-4 mr-2" />
             Ekspor ke CSV/Excel
           </Button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-            <thead className="bg-slate-50 dark:bg-slate-800/50">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/40">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Nama Produk
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Jumlah Terjual
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Total Pendapatan
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   % Kontribusi
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-48">
+                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider w-48">
                   Visualisasi
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="bg-card divide-y divide-border">
               {topProducts.map((product) => (
                 <tr key={product.name}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     {product.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-slate-500 dark:text-slate-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-muted-foreground">
                     {product.units}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
                     {product.revenue}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-slate-500 dark:text-slate-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-muted-foreground">
                     {product.pct}%
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+                    <div className="w-full bg-muted/40 rounded-full h-2.5">
                       <div
-                        className="bg-indigo-600 h-2.5 rounded-full"
+                        className="bg-primary h-2.5 rounded-full"
                         style={{ width: `${product.pct}%` }}
                       />
                     </div>
@@ -190,12 +190,12 @@ export default function PenjualanRinciReportPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h2 className="text-lg font-bold">Penjualan per Channel</h2>
             <Button
               type="button"
-              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 shadow-sm focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               <Download className="h-4 w-4 mr-2" />
               Ekspor ke CSV/Excel
@@ -209,12 +209,13 @@ export default function PenjualanRinciReportPage() {
                 width: "200px",
                 height: "200px",
                 borderRadius: "50%",
-                background: "conic-gradient(#10b981 0% 30%, #3b82f6 30% 100%)",
+                background:
+                  "conic-gradient(hsl(var(--secondary)) 0% 30%, hsl(var(--primary)) 30% 100%)",
                 position: "relative",
               }}
             >
               <div
-                className="donut-hole bg-white dark:bg-slate-900"
+                className="donut-hole bg-card"
                 style={{
                   width: "70%",
                   height: "70%",
@@ -226,22 +227,22 @@ export default function PenjualanRinciReportPage() {
                 }}
               />
             </div>
-            <div className="absolute top-10 left-10 lg:left-15 text-blue-500 font-medium text-sm">
+            <div className="absolute top-10 left-10 lg:left-15 text-muted-foreground font-medium text-sm">
               Kasir (POS) 70%
             </div>
-            <div className="absolute top-10 right-10 lg:right-15 text-emerald-500 font-medium text-sm">
+            <div className="absolute top-10 right-10 lg:right-15 text-muted-foreground font-medium text-sm">
               Marketplace 30%
             </div>
             <div className="flex gap-6 mt-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-sm" />
-                <span className="text-sm text-blue-500 font-medium">
+                <div className="w-3 h-3 bg-primary rounded-sm" />
+                <span className="text-sm text-muted-foreground font-medium">
                   Kasir (POS)
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-emerald-500 rounded-sm" />
-                <span className="text-sm text-emerald-500 font-medium">
+                <div className="w-3 h-3 bg-secondary rounded-sm" />
+                <span className="text-sm text-muted-foreground font-medium">
                   Marketplace
                 </span>
               </div>
@@ -249,22 +250,22 @@ export default function PenjualanRinciReportPage() {
           </div>
 
           <div className="w-full lg:w-1/2 space-y-8">
-            <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
-              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-                <thead className="bg-slate-50 dark:bg-slate-800/50">
+            <div className="overflow-hidden rounded-lg border border-border">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted/40">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Channel
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Pendapatan
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Persentase
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="bg-card divide-y divide-border">
                   {channelTable.map((row) => (
                     <tr key={row.label}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
@@ -290,8 +291,8 @@ export default function PenjualanRinciReportPage() {
                 Perbandingan Channel
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <div className="bg-muted/40 p-4 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-2">
                     Jumlah Transaksi
                   </p>
                   <div className="flex justify-between items-center mb-1">
@@ -303,8 +304,8 @@ export default function PenjualanRinciReportPage() {
                     <span className="text-sm font-bold">358</span>
                   </div>
                 </div>
-                <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg">
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                <div className="bg-muted/40 p-4 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-2">
                     Rata-rata Transaksi
                   </p>
                   <div className="flex justify-between items-center mb-1">

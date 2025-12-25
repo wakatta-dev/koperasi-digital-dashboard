@@ -60,7 +60,7 @@ export default function NeracaReportPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-6 text-foreground">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Neraca Sederhana</h1>
         <div className="flex items-center gap-4 flex-wrap">
@@ -72,23 +72,23 @@ export default function NeracaReportPage() {
           <Button
             type="button"
             variant="outline"
-            className="hidden sm:inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="hidden sm:inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-card text-foreground border-border shadow-sm hover:bg-muted/40 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
           >
-            <CalendarDays className="h-4 w-4 mr-2 text-slate-500" />
+            <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
             31 Desember 2023
           </Button>
           <div className="flex gap-2 flex-wrap">
             <Button
               type="button"
               variant="outline"
-              className="inline-flex h-auto items-center gap-0 px-3 py-2 text-sm font-medium bg-white dark:bg-slate-900 border border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700"
+              className="inline-flex h-auto items-center gap-0 px-3 py-2 text-sm font-medium bg-card border border-border text-primary hover:bg-primary/10"
             >
               <Download className="h-4 w-4 mr-2" />
               Ekspor PDF
             </Button>
             <Button
               type="button"
-              className="inline-flex h-auto items-center gap-0 px-3 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex h-auto items-center gap-0 px-3 py-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               <Download className="h-4 w-4 mr-2" />
               Ekspor Excel
@@ -97,10 +97,10 @@ export default function NeracaReportPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <h3 className="text-lg font-bold">Laporan Posisi Keuangan</h3>
-          <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-2 sm:mt-0">
+          <div className="flex items-center text-sm text-muted-foreground mt-2 sm:mt-0">
             <Info className="h-5 w-5 mr-1" />
             Per: 31 Desember 2023
           </div>
@@ -122,7 +122,7 @@ export default function NeracaReportPage() {
                   </div>
                 ))}
               </div>
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+              <div className="pt-4 border-t border-border flex justify-between items-center">
                 <span className="font-bold">Total Aset</span>
                 <span className="font-bold">Rp 1.175.000.000</span>
               </div>
@@ -144,7 +144,7 @@ export default function NeracaReportPage() {
                     </div>
                   ))}
                 </div>
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <div className="pt-4 border-t border-border flex justify-between items-center">
                   <span className="font-bold">Total Liabilitas</span>
                   <span className="font-bold">Rp 580.000.000</span>
                 </div>
@@ -165,20 +165,20 @@ export default function NeracaReportPage() {
                     </div>
                   ))}
                 </div>
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <div className="pt-4 border-t border-border flex justify-between items-center">
                   <span className="font-bold">Total Ekuitas</span>
                   <span className="font-bold">Rp 595.000.000</span>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+              <div className="pt-4 border-t border-border flex justify-between items-center">
                 <span className="font-bold">Total Liabilitas dan Ekuitas</span>
                 <span className="font-bold">Rp 1.175.000.000</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="bg-lime-100/60 dark:bg-green-900/10 p-4 border-t border-slate-200 dark:border-slate-800">
+        <div className="bg-muted/30 p-4 border-t border-border">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
             <div className="flex items-center gap-8 font-bold">
               <span>Total Aset</span>
@@ -187,7 +187,7 @@ export default function NeracaReportPage() {
               <span>Total Liabilitas + Ekuitas</span>
               <span>Rp 1.175.000.000</span>
             </div>
-            <div className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium">
+            <div className="flex items-center text-primary font-medium">
               <CheckCircle2 className="h-5 w-5 mr-1" />
               Neraca Seimbang
             </div>
@@ -195,13 +195,11 @@ export default function NeracaReportPage() {
         </div>
       </div>
 
-      <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30 p-6 flex gap-3">
-        <HelpCircle className="h-6 w-6 text-blue-500 dark:text-blue-400 shrink-0" />
+      <div className="bg-muted/40 rounded-xl border border-border p-6 flex gap-3">
+        <HelpCircle className="h-6 w-6 text-muted-foreground shrink-0" />
         <div>
-          <h3 className="text-sm font-bold text-blue-700 dark:text-blue-300 mb-1">
-            Catatan
-          </h3>
-          <p className="text-sm text-blue-600 dark:text-blue-400 leading-relaxed">
+          <h3 className="text-sm font-bold text-foreground mb-1">Catatan</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Neraca ini menunjukkan posisi keuangan perusahaan pada tanggal 31
             Desember 2023. Total Aset harus sama dengan Total Liabilitas
             ditambah Ekuitas.
@@ -210,7 +208,7 @@ export default function NeracaReportPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
           <h3 className="text-base font-bold mb-4">Informasi Aset</h3>
           <div className="space-y-3">
             {assetInfo.map((item) => (
@@ -218,7 +216,7 @@ export default function NeracaReportPage() {
                 key={item.label}
                 className="flex justify-between items-center text-sm"
               >
-                <span className="text-slate-500 dark:text-slate-400">
+                <span className="text-muted-foreground">
                   {item.label}
                 </span>
                 <span className="font-medium">{item.value}</span>
@@ -226,7 +224,7 @@ export default function NeracaReportPage() {
             ))}
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <div className="bg-card rounded-xl border border-border shadow-sm p-6">
           <h3 className="text-base font-bold mb-4">Informasi Liabilitas</h3>
           <div className="space-y-3">
             {liabilityInfo.map((item) => (
@@ -234,7 +232,7 @@ export default function NeracaReportPage() {
                 key={item.label}
                 className="flex justify-between items-center text-sm"
               >
-                <span className="text-slate-500 dark:text-slate-400">
+                <span className="text-muted-foreground">
                   {item.label}
                 </span>
                 <span className="font-medium">{item.value}</span>

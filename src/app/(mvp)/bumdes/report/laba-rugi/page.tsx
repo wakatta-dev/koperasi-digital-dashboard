@@ -31,32 +31,32 @@ const summaryCards = [
     value: "Rp 456.789.000",
     delta: "+12,5% dari bulan lalu",
     icon: Wallet,
-    badgeColor: "text-emerald-600 dark:text-emerald-400",
-    badgeBg: "bg-emerald-50 dark:bg-emerald-900/20",
+    badgeColor: "text-primary",
+    badgeBg: "bg-primary/10",
   },
   {
     title: "Total HPP",
     value: "Rp 234.567.000",
     delta: "+5,3% dari bulan lalu",
     icon: DollarSign,
-    badgeColor: "text-rose-600 dark:text-rose-400",
-    badgeBg: "bg-rose-50 dark:bg-rose-900/20",
+    badgeColor: "text-primary",
+    badgeBg: "bg-primary/10",
   },
   {
     title: "Laba Kotor",
     value: "Rp 222.222.000",
     delta: "+18,2% dari bulan lalu",
     icon: TrendingUp,
-    badgeColor: "text-blue-600 dark:text-blue-400",
-    badgeBg: "bg-blue-50 dark:bg-blue-900/20",
+    badgeColor: "text-primary",
+    badgeBg: "bg-primary/10",
   },
   {
     title: "Laba Bersih",
     value: "Rp 156.789.000",
     delta: "+15,7% dari bulan lalu",
     icon: FileText,
-    badgeColor: "text-indigo-600 dark:text-purple-400",
-    badgeBg: "bg-purple-50 dark:bg-purple-900/20",
+    badgeColor: "text-primary",
+    badgeBg: "bg-primary/10",
   },
 ];
 
@@ -99,7 +99,7 @@ const notes = [
 const renderProfitRow = (row: ProfitRow) => {
   if (row.type === "section") {
     return (
-      <tr key={row.label} className="bg-slate-50 dark:bg-slate-800/30">
+      <tr key={row.label} className="bg-muted/30">
         <td
           className="px-6 py-3 whitespace-nowrap text-sm font-bold"
           colSpan={2}
@@ -112,7 +112,7 @@ const renderProfitRow = (row: ProfitRow) => {
 
   if (row.type === "gross") {
     return (
-      <tr key={row.label} className="bg-blue-50/50 dark:bg-blue-900/10">
+      <tr key={row.label} className="bg-muted/30">
         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </td>
@@ -125,7 +125,7 @@ const renderProfitRow = (row: ProfitRow) => {
 
   if (row.type === "net") {
     return (
-      <tr key={row.label} className="bg-indigo-600 text-white">
+      <tr key={row.label} className="bg-primary text-primary-foreground">
         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </td>
@@ -138,7 +138,7 @@ const renderProfitRow = (row: ProfitRow) => {
 
   if (row.type === "total") {
     return (
-      <tr key={row.label} className="bg-slate-50/50 dark:bg-slate-800/20">
+      <tr key={row.label} className="bg-muted/30">
         <td className="px-6 py-3 whitespace-nowrap text-sm font-bold">
           {row.label}
         </td>
@@ -165,11 +165,11 @@ export default function LabaRugiReportPage() {
   const [activePreset, setActivePreset] = useState("month");
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-6 text-foreground">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Laporan Laba/Rugi</h1>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline-block mr-2">
+          <span className="text-xs text-muted-foreground hidden sm:inline-block mr-2">
             01/01/2023 - 31/01/2023
           </span>
           <SegmentedControl
@@ -179,7 +179,7 @@ export default function LabaRugiReportPage() {
           />
           <Button
             type="button"
-            className="hidden sm:inline-flex h-auto items-center px-4 py-2 ml-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="hidden sm:inline-flex h-auto items-center px-4 py-2 ml-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             Terapkan
           </Button>
@@ -196,21 +196,21 @@ export default function LabaRugiReportPage() {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h3 className="text-lg font-bold">Laporan Laba/Rugi</h3>
           <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
-              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-card border-border text-muted-foreground hover:bg-muted/40"
             >
               <Printer className="h-4 w-4 mr-2" aria-hidden="true" />
               Cetak Laporan
             </Button>
             <Button
               type="button"
-              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               <Download className="h-4 w-4 mr-2" aria-hidden="true" />
               Ekspor ke Excel
@@ -218,27 +218,27 @@ export default function LabaRugiReportPage() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-            <thead className="bg-slate-50 dark:bg-slate-800/50">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/40">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Keterangan
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Jumlah (Rp)
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="bg-card divide-y divide-border">
               {profitRows.map((row) => renderProfitRow(row))}
             </tbody>
           </table>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+      <div className="bg-card rounded-xl border border-border shadow-sm p-6">
         <h3 className="text-sm font-bold mb-3">Catatan Laporan:</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-slate-500 dark:text-slate-400">
+        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
           {notes.map((note) => (
             <li key={note}>{note}</li>
           ))}

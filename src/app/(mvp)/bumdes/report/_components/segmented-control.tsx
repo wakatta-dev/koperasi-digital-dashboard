@@ -23,10 +23,10 @@ type SegmentedControlProps = {
 const baseButtonClass =
   "px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap";
 const baseContainerClass =
-  "flex flex-wrap bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-1 shadow-sm";
-const defaultActiveClass = "bg-indigo-600 text-white shadow-sm";
+  "flex flex-wrap bg-card border border-border rounded-md p-1 shadow-sm";
+const defaultActiveClass = "bg-primary text-primary-foreground shadow-sm";
 const defaultInactiveClass =
-  "text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white";
+  "text-muted-foreground hover:text-foreground";
 
 export function SegmentedControl({
   options,

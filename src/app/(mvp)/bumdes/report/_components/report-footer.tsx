@@ -16,7 +16,7 @@ export function ReportFooter({
   return (
     <div
       className={cn(
-        "pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2",
+        "pt-4 border-t border-border text-xs text-muted-foreground flex flex-col sm:flex-row justify-between items-center gap-2",
         className
       )}
     >

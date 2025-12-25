@@ -6,6 +6,7 @@ import React from "react";
 import { Loader2, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -85,21 +86,21 @@ export function ScheduleModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" />
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div className="relative mx-auto w-full max-w-2xl transform overflow-hidden rounded-2xl border border-border-light bg-white text-left shadow-2xl transition-all dark:border-border-dark dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-border-light px-5 py-4 dark:border-border-dark">
+        <div className="relative mx-auto w-full max-w-2xl transform overflow-hidden rounded-2xl border border-border bg-popover text-left shadow-2xl transition-all">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
-              <p className="text-xs uppercase tracking-wide text-text-sub-light dark:text-text-sub-dark">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Permintaan Reservasi
               </p>
-              <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark">
+              <h3 className="text-lg font-semibold text-foreground">
                 {isEdit ? "Konfirmasi / Tandai Selesai" : "Tambah Jadwal"}
               </h3>
             </div>
             <button
               type="button"
-              className="text-text-sub-light transition-colors hover:text-text-main-light dark:text-text-sub-dark dark:hover:text-text-main-dark"
+              className="text-muted-foreground transition-colors hover:text-foreground"
               onClick={() => onOpenChange(false)}
             >
               <X className="h-5 w-5" />
@@ -108,25 +109,25 @@ export function ScheduleModal({
 
           <div className="grid gap-4 px-5 py-5 sm:grid-cols-[1.2fr_0.8fr] sm:gap-6">
             <div className="space-y-4">
-              <section className="rounded-xl border border-border-light bg-slate-50 p-4 dark:border-border-dark dark:bg-slate-800">
+              <section className="rounded-xl border border-border bg-muted/40 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase text-text-sub-light dark:text-text-sub-dark">
+                    <p className="text-xs uppercase text-muted-foreground">
                       Aset
                     </p>
-                    <p className="text-base font-semibold text-text-main-light dark:text-text-main-dark">
+                    <p className="text-base font-semibold text-foreground">
                       {booking.assetName}
                     </p>
-                    <p className="text-xs text-text-sub-light dark:text-text-sub-dark">
+                    <p className="text-xs text-muted-foreground">
                       ID: {booking.assetId}
                     </p>
                   </div>
-                  <Badge status={statusLabel} done={isDone} />
+                  <StatusBadge status={statusLabel} done={isDone} />
                 </div>
               </section>
 
-              <section className="rounded-xl border border-border-light p-4 dark:border-border-dark dark:bg-slate-900/60">
-                <h4 className="mb-3 text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+              <section className="rounded-xl border border-border bg-card p-4">
+                <h4 className="mb-3 text-sm font-semibold text-foreground">
                   Data Penyewa
                 </h4>
                 <InfoRow label="Nama Penyewa" value={booking.renterName} />
@@ -135,8 +136,8 @@ export function ScheduleModal({
             </div>
 
             <div className="space-y-4">
-              <section className="rounded-xl border border-border-light p-4 dark:border-border-dark dark:bg-slate-900/60">
-                <h4 className="mb-3 text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+              <section className="rounded-xl border border-border bg-card p-4">
+                <h4 className="mb-3 text-sm font-semibold text-foreground">
                   Jadwal
                 </h4>
                 <InfoRow label="Mulai" value={booking.start} />
@@ -144,8 +145,8 @@ export function ScheduleModal({
                 <InfoRow label="Durasi" value={booking.duration} />
               </section>
 
-              <section className="rounded-xl border border-border-light p-4 dark:border-border-dark dark:bg-slate-900/60">
-                <h4 className="mb-3 text-sm font-semibold text-text-main-light dark:text-text-main-dark">
+              <section className="rounded-xl border border-border bg-card p-4">
+                <h4 className="mb-3 text-sm font-semibold text-foreground">
                   Ringkasan & Status Approval
                 </h4>
                 <InfoRow label="Total" value={booking.price ?? "-"} bold />
@@ -174,18 +175,18 @@ export function ScheduleModal({
             </div>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-border-light bg-gray-50 px-5 py-4 dark:border-border-dark dark:bg-gray-800/50 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-border bg-muted/40 px-5 py-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
-              className="rounded-lg bg-white dark:bg-transparent"
+              className="rounded-lg bg-background"
               onClick={() => onOpenChange(false)}
             >
               Batal
             </Button>
             <Button
               type="button"
-              className="rounded-lg bg-indigo-600 hover:bg-primary-hover"
+              className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isPending}
               onClick={() => updateStatus().catch(() => undefined)}
             >
@@ -218,14 +219,12 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start justify-between py-1.5 text-sm">
-      <span className="text-text-sub-light dark:text-text-sub-dark">
-        {label}
-      </span>
+      <span className="text-muted-foreground">{label}</span>
       <span
         className={cn(
           "text-right",
-          bold && "font-semibold text-text-main-light dark:text-text-main-dark",
-          muted && "text-xs text-text-sub-light dark:text-text-sub-dark"
+          bold && "font-semibold text-foreground",
+          muted && "text-xs text-muted-foreground"
         )}
       >
         {value ?? "-"}
@@ -234,7 +233,7 @@ function InfoRow({
   );
 }
 
-function Badge({ status, done }: { status?: string; done?: boolean }) {
+function StatusBadge({ status, done }: { status?: string; done?: boolean }) {
   const label = (() => {
     const key = (status || "").toUpperCase();
     switch (key) {
@@ -255,15 +254,11 @@ function Badge({ status, done }: { status?: string; done?: boolean }) {
     }
   })();
   return (
-    <span
-      className={cn(
-        "rounded-full px-3 py-1 text-xs font-semibold",
-        done
-          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-          : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-      )}
+    <Badge
+      variant={done ? "default" : "secondary"}
+      className="rounded-full px-3 py-1 text-xs font-semibold"
     >
       {label}
-    </span>
+    </Badge>
   );
 }

@@ -37,6 +37,7 @@ import { getAssetRentalBookings } from "@/services/api/asset-rental";
 import type { AssetSchedule } from "../types";
 import { ScheduleModal } from "./asset-schedule-modals";
 import { mapBookingToSchedule } from "../utils/mappers";
+import { Label } from "@/components/ui/label";
 
 type AssetScheduleViewProps = {
   activeTab?: "manajemen" | "jadwal";
@@ -51,23 +52,19 @@ const tabs = [
   { key: "jadwal", label: "Manajemen Penyewaan", href: "/bumdes/asset/jadwal" },
 ];
 
-const statusClass: Record<AssetSchedule["status"], string> = {
-  Confirmed:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800",
-  Pending:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800",
-  Reserved:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
-  Finished:
-    "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600",
-  Cancelled:
-    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800",
-  Dipesan: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  "Menunggu Pembayaran":
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-  Berlangsung:
-    "bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
-  Selesai: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+const statusVariant: Record<
+  AssetSchedule["status"],
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  Confirmed: "default",
+  Pending: "secondary",
+  Reserved: "outline",
+  Finished: "secondary",
+  Cancelled: "destructive",
+  Dipesan: "outline",
+  "Menunggu Pembayaran": "secondary",
+  Berlangsung: "default",
+  Selesai: "secondary",
 };
 
 export function AssetScheduleView({
@@ -99,9 +96,9 @@ export function AssetScheduleView({
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] text-slate-900 dark:text-slate-100">
+    <div className="mx-auto max-w-[1400px] text-foreground">
       <div className="space-y-6">
-        <div className="inline-flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+        <div className="inline-flex rounded-lg bg-muted/40 p-1">
           {tabs.map((tab) => (
             <Button
               key={tab.key}
@@ -116,8 +113,8 @@ export function AssetScheduleView({
                 "h-auto rounded-md px-4 py-1.5 text-sm font-medium shadow-none",
                 (tab.key === "manajemen" && activeTab === "manajemen") ||
                   (tab.key === "jadwal" && activeTab === "jadwal")
-                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100"
-                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               onClick={() => {
                 if (tab.href) {
@@ -133,7 +130,7 @@ export function AssetScheduleView({
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold">Daftar Reservasi</h2>
-            <p className="text-sm text-text-sub-light dark:text-text-sub-dark">
+            <p className="text-sm text-muted-foreground">
               Penambahan reservasi dilakukan oleh klien; halaman ini hanya untuk
               review dan approval.
             </p>
@@ -141,7 +138,7 @@ export function AssetScheduleView({
         </div>
 
         {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
+          <div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error instanceof Error
               ? error.message
               : "Gagal memuat data reservasi"}
@@ -149,7 +146,7 @@ export function AssetScheduleView({
         ) : null}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_minmax(260px,1fr)]">
-          <Card className="flex flex-col overflow-hidden border-border-light p-0 dark:border-border-dark">
+          <Card className="flex flex-col overflow-hidden border-border p-0">
             <CardContent className="flex h-full min-h-[520px] flex-col p-0">
               <ScrollArea className="w-full flex-1 min-h-0">
                 <div className="min-w-[1000px]">
@@ -157,67 +154,67 @@ export function AssetScheduleView({
                     className="w-full text-sm"
                     containerClassName="overflow-visible"
                   >
-                    <TableHeader className="bg-gray-50 dark:bg-gray-800">
-                      <TableRow className="divide-x divide-border-light dark:divide-border-dark">
+                    <TableHeader className="bg-muted/40">
+                      <TableRow className="divide-x divide-border">
                         <TableCell
                           as="th"
                           scope="col"
-                          className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                          className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
                         >
                           No
                         </TableCell>
                         <TableCell
                           as="th"
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                         >
                           Aset
                         </TableCell>
                         <TableCell
                           as="th"
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                         >
                           Penyewa
                         </TableCell>
                         <TableCell
                           as="th"
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                         >
                           Waktu Sewa
                         </TableCell>
                         <TableCell
                           as="th"
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                         >
                           Harga Sewa
                         </TableCell>
                         <TableCell
                           as="th"
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                          className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                         >
                           Status
                         </TableCell>
                         <TableCell
                           as="th"
                           scope="col"
-                          className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark"
+                          className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
                         >
                           Aksi
                         </TableCell>
                       </TableRow>
                     </TableHeader>
-                    <tbody className="divide-y divide-border-light bg-white dark:divide-border-dark dark:bg-slate-900">
+                    <tbody className="divide-y divide-border bg-card">
                       {isLoading ? renderSkeletonRows() : null}
 
                       {!isLoading && schedules.length === 0 ? (
                         <TableRow>
                           <TableCell
                             colSpan={7}
-                            className="px-6 py-6 text-center text-sm text-text-sub-light dark:text-text-sub-dark"
+                            className="px-6 py-6 text-center text-sm text-muted-foreground"
                           >
                             Belum ada reservasi tercatat.
                           </TableCell>
@@ -228,42 +225,42 @@ export function AssetScheduleView({
                         <TableRow
                           key={schedule.id}
                           className={cn(
-                            "transition-colors hover:bg-gray-50 dark:hover:bg-gray-800",
+                            "transition-colors hover:bg-muted/40",
                             schedule.faded ? "opacity-60" : ""
                           )}
                         >
-                          <TableCell className="whitespace-nowrap px-6 py-4 text-sm font-medium text-text-main-light dark:text-text-main-dark align-top">
+                          <TableCell className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground align-top">
                             {idx + 1}
                           </TableCell>
                           <TableCell className="px-6 py-4 align-top">
                             <div className="flex items-start">
                               <div className="ml-4 space-y-1">
-                                <div className="text-sm font-semibold leading-snug text-text-main-light dark:text-text-main-dark">
+                                <div className="text-sm font-semibold leading-snug text-foreground">
                                   {schedule.assetName}
                                 </div>
-                                <div className="text-xs leading-snug text-text-sub-light dark:text-text-sub-dark">
+                                <div className="text-xs leading-snug text-muted-foreground">
                                   ID: {schedule.assetId}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-6 py-4 align-top text-sm text-text-main-light dark:text-text-main-dark">
+                          <TableCell className="px-6 py-4 align-top text-sm text-foreground">
                             {schedule.price ?? "-"}
                           </TableCell>
                           <TableCell className="px-6 py-4 align-top">
-                            <div className="text-sm leading-snug text-text-main-light dark:text-text-main-dark">
+                            <div className="text-sm leading-snug text-foreground">
                               {schedule.renterCompany}
                             </div>
-                            <div className="text-xs leading-snug text-text-sub-light dark:text-text-sub-dark">
+                            <div className="text-xs leading-snug text-muted-foreground">
                               {schedule.renterName}
                             </div>
                           </TableCell>
                           <TableCell className="px-6 py-4 align-top">
-                            <div className="text-sm leading-snug text-text-main-light dark:text-text-main-dark">
+                            <div className="text-sm leading-snug text-foreground">
                               {schedule.start}{" "}
                               {schedule.end ? `- ${schedule.end}` : ""}
                             </div>
-                            <div className="text-xs leading-snug text-text-sub-light dark:text-text-sub-dark">
+                            <div className="text-xs leading-snug text-muted-foreground">
                               {schedule.duration}
                               {schedule.timeRange
                                 ? ` • ${schedule.timeRange}`
@@ -272,11 +269,8 @@ export function AssetScheduleView({
                           </TableCell>
                           <TableCell className="whitespace-nowrap px-6 py-4 align-top">
                             <Badge
-                              variant="outline"
-                              className={cn(
-                                "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold leading-5",
-                                statusClass[schedule.status]
-                              )}
+                              variant={statusVariant[schedule.status]}
+                              className="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold leading-5"
                             >
                               {schedule.status}
                             </Badge>
@@ -285,7 +279,7 @@ export function AssetScheduleView({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-text-sub-light hover:text-primary"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
                               onClick={() => handleRowAction(schedule)}
                             >
                               <MoreVertical className="h-5 w-5" />
@@ -299,10 +293,10 @@ export function AssetScheduleView({
                 <ScrollBar orientation="horizontal" />
               </ScrollArea>
 
-              <div className="mt-auto flex items-center justify-between border-t border-border-light bg-white px-6 py-4 text-sm text-text-sub-light dark:border-border-dark dark:bg-slate-900 dark:text-text-sub-dark">
+              <div className="mt-auto flex items-center justify-between border-t border-border bg-card px-6 py-4 text-sm text-muted-foreground">
                 <div className="hidden sm:block">
                   Menampilkan{" "}
-                  <span className="font-medium text-text-main-light dark:text-text-main-dark">
+                  <span className="font-medium text-foreground">
                     {totalRows || 0}
                   </span>{" "}
                   hasil
@@ -310,14 +304,14 @@ export function AssetScheduleView({
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
-                    className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-text-sub-light hover:bg-gray-50 disabled:opacity-50 dark:text-text-sub-dark dark:hover:bg-gray-800"
+                    className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-muted-foreground hover:bg-muted/40 disabled:opacity-50"
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Previous
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-text-main-light hover:bg-gray-50 dark:text-text-main-dark dark:hover:bg-gray-800"
+                    className="flex items-center gap-1 rounded-md px-3 py-1 text-sm text-foreground hover:bg-muted/40"
                   >
                     Next
                     <ChevronRight className="h-4 w-4" />
@@ -327,32 +321,32 @@ export function AssetScheduleView({
             </CardContent>
           </Card>
 
-          <Card className="hidden border-border-light shadow-lg dark:border-border-dark dark:bg-slate-900 lg:flex lg:flex-col">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-bold text-text-main-light dark:text-text-main-dark">
+          <Card className="hidden border-border bg-card shadow-lg lg:flex lg:flex-col">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-foreground">
                 Filter
               </CardTitle>
-              <p className="text-xs text-text-sub-light dark:text-text-sub-dark">
+              <p className="text-xs text-muted-foreground">
                 Pilih status pemesanan yang tersedia
               </p>
             </CardHeader>
-            <CardContent className="flex h-full flex-col gap-6">
+            <CardContent className="flex h-full flex-col gap-4">
               <Input
                 placeholder="Cari nama pemesan"
-                className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark"
+                className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:ring-1 focus:ring-primary"
               />
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-text-main-light dark:text-text-main-dark">
-                  Status (sesuai backend)
-                </label>
+                <Label className="text-sm font-semibold text-foreground">
+                  Status
+                </Label>
                 <Select
                   value={statusFilter || "ALL"}
                   onValueChange={(val) =>
                     setStatusFilter(val === "ALL" ? "" : val)
                   }
                 >
-                  <SelectTrigger className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-text-main-light focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-slate-900 dark:text-text-main-dark">
+                  <SelectTrigger className="w-full rounded-lg border border-input bg-background px-4  text-sm text-foreground focus:ring-1 focus:ring-primary">
                     <SelectValue placeholder="Semua status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -373,18 +367,18 @@ export function AssetScheduleView({
                 </Select>
               </div>
 
-              <div className="mt-auto flex items-center space-x-3 border-t border-border-light pt-4 dark:border-border-dark">
+              <div className="mt-auto flex items-center space-x-3 border-t border-border pt-4">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 rounded-lg bg-white text-sm font-medium text-text-main-light hover:bg-gray-50 dark:bg-transparent dark:text-text-main-dark dark:hover:bg-gray-800"
+                  className="flex-1 rounded-lg bg-background text-sm font-medium text-foreground hover:bg-muted/40"
                   onClick={() => setStatusFilter("")}
                 >
                   Reset
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1 rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-primary-hover"
+                  className="flex-1 rounded-lg text-sm font-medium text-primary-foreground"
                   onClick={() => {
                     // query already reacts to state change; button kept for UX parity
                   }}
@@ -413,7 +407,7 @@ export function AssetScheduleView({
 function renderSkeletonRows(count = 5) {
   return Array.from({ length: count }).map((_, idx) => (
     <TableRow key={`skeleton-${idx}`} className="animate-pulse">
-      <TableCell className="px-6 py-4 text-sm text-text-sub-light dark:text-text-sub-dark">
+      <TableCell className="px-6 py-4 text-sm text-muted-foreground">
         <Skeleton className="h-4 w-8" />
       </TableCell>
       <TableCell className="px-6 py-4">

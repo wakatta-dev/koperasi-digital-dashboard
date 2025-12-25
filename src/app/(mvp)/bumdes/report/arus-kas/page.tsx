@@ -149,7 +149,7 @@ const indentClass: Record<number, string> = {
 const renderCashFlowRow = (row: CashFlowRow) => {
   if (row.type === "section") {
     return (
-      <tr key={row.label} className="bg-slate-50/50 dark:bg-slate-800/20">
+      <tr key={row.label} className="bg-muted/30">
         <td
           className="px-6 py-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider"
           colSpan={2}
@@ -196,7 +196,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "total") {
     return (
-      <tr key={row.label} className="bg-slate-50 dark:bg-slate-800/30">
+      <tr key={row.label} className="bg-muted/30">
         <td
           className={cn(
             "px-6 py-3 whitespace-nowrap text-sm font-bold",
@@ -214,11 +214,11 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "netPrimary") {
     return (
-      <tr key={row.label} className="bg-blue-50/50 dark:bg-blue-900/10">
-        <td className="px-6 py-3 whitespace-nowrap text-sm font-bold text-indigo-600 dark:text-indigo-400">
+      <tr key={row.label} className="bg-muted/30">
+        <td className="px-6 py-3 whitespace-nowrap text-sm font-bold text-primary">
           {row.label}
         </td>
-        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-indigo-600 dark:text-indigo-400">
+        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-primary">
           {row.value}
         </td>
       </tr>
@@ -227,7 +227,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "summaryGray") {
     return (
-      <tr key={row.label} className="bg-slate-50 dark:bg-slate-800/30">
+      <tr key={row.label} className="bg-muted/30">
         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </td>
@@ -240,7 +240,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "plainBold") {
     return (
-      <tr key={row.label} className="bg-white dark:bg-slate-900">
+      <tr key={row.label} className="bg-card">
         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </td>
@@ -252,7 +252,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
   }
 
   return (
-    <tr key={row.label} className="bg-indigo-600 text-white">
+    <tr key={row.label} className="bg-primary text-primary-foreground">
       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold uppercase">
         {row.label}
       </td>
@@ -267,16 +267,16 @@ export default function ArusKasReportPage() {
   const [activePreset, setActivePreset] = useState("month");
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-6 text-foreground">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Laporan Arus Kas</h1>
         <div className="flex items-center gap-4">
-          <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline-block">
+          <span className="text-xs text-muted-foreground hidden sm:inline-block">
             01 Jan 2023 - 31 Jan 2023
           </span>
           <Button
             type="button"
-            className="hidden sm:inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="hidden sm:inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             <Calendar className="h-4 w-4 mr-2" aria-hidden="true" />
             Pilih Tanggal
@@ -293,11 +293,11 @@ export default function ArusKasReportPage() {
         />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h3 className="text-lg font-bold">Laporan Arus Kas (Metode Langsung)</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Periode: 01 Jan 2023 - 31 Jan 2023
             </p>
           </div>
@@ -305,7 +305,7 @@ export default function ArusKasReportPage() {
             <Button
               type="button"
               variant="outline"
-              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-card border-border text-muted-foreground hover:bg-muted/40"
             >
               <Filter className="h-4 w-4 mr-2" aria-hidden="true" />
               Filter
@@ -313,14 +313,14 @@ export default function ArusKasReportPage() {
             <Button
               type="button"
               variant="outline"
-              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-card border-border text-muted-foreground hover:bg-muted/40"
             >
               <Printer className="h-4 w-4 mr-2" aria-hidden="true" />
               Cetak
             </Button>
             <Button
               type="button"
-              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600 focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               <Download className="h-4 w-4 mr-2" aria-hidden="true" />
               Ekspor
@@ -328,27 +328,27 @@ export default function ArusKasReportPage() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-            <thead className="bg-slate-50 dark:bg-slate-800/50">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/40">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Deskripsi
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Jumlah (IDR)
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="bg-card divide-y divide-border">
               {rows.map((row) => renderCashFlowRow(row))}
             </tbody>
           </table>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+      <div className="bg-card rounded-xl border border-border shadow-sm p-6">
         <h3 className="text-base font-bold mb-3">Catatan Laporan Arus Kas</h3>
-        <ol className="list-decimal pl-5 space-y-1 text-sm text-slate-500 dark:text-slate-400">
+        <ol className="list-decimal pl-5 space-y-1 text-sm text-muted-foreground">
           {notes.map((note) => (
             <li key={note}>{note}</li>
           ))}

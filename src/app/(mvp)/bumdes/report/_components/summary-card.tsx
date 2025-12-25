@@ -30,16 +30,16 @@ export function SummaryCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-40",
+        "bg-card rounded-xl p-5 border border-border shadow-sm flex flex-col justify-between h-40",
         className
       )}
     >
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <p className="text-sm font-medium text-muted-foreground">
             {title}
           </p>
-          <p className="mt-2 text-2xl font-bold">{value}</p>
+          <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
         </div>
         <div
           className={cn("p-2 rounded-lg", badgeBg, badgeColor, iconWrapperClassName)}

@@ -41,7 +41,7 @@ type EditAssetDialogProps = {
 };
 
 const commonFieldClass =
-  "rounded-lg border border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/60 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 h-11";
+  "h-11 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/50";
 const maxImageSizeBytes = 5 * 1024 * 1024;
 
 export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
@@ -139,16 +139,16 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-2xl max-h-[90vh] gap-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-0 shadow-2xl dark:border-slate-800 dark:bg-slate-900 flex flex-col"
+        className="sm:max-w-2xl max-h-[90vh] gap-0 overflow-hidden rounded-xl border border-border bg-popover p-0 shadow-2xl flex flex-col"
       >
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
           <DialogHeader className="text-left">
-            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <DialogTitle className="text-xl font-bold text-foreground">
               Tambah Aset Sewa
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-xs text-indigo-800 dark:border-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-200">
+          <div className="space-y-3 rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
             Field sudah disesuaikan dengan payload backend: name, rate_type (daily/hourly),
             rate_amount, dan description (opsional). Foto aset diunggah terpisah via MinIO.
           </div>
@@ -156,7 +156,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                <Label className="text-sm font-medium text-foreground">
                   Nama Aset (name)
                 </Label>
                 <Input
@@ -167,7 +167,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                <Label className="text-sm font-medium text-foreground">
                   Tipe Tarif (rate_type)
                 </Label>
                 <Select value={rateType} onValueChange={setRateType}>
@@ -184,11 +184,11 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                <Label className="text-sm font-medium text-foreground">
                   Nominal Tarif (rate_amount)
                 </Label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-slate-500 dark:text-slate-400">
+                  <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-muted-foreground">
                     Rp
                   </span>
                   <Input
@@ -204,7 +204,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                <Label className="text-sm font-medium text-foreground">
                   Foto Aset
                 </Label>
                 <Input
@@ -213,14 +213,14 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
                   onChange={handleImageChange}
                   className={commonFieldClass}
                 />
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   JPG, PNG, atau WebP. Maksimal 5MB.
                 </p>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-medium text-foreground">
                 Deskripsi Aset (description)
               </Label>
               <Textarea
@@ -237,12 +237,12 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="w-full rounded-lg bg-indigo-600 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-70"
+              className="w-full rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-70"
             >
               {createMutation.isPending ? "Menyimpan..." : "Tambah Aset"}
             </Button>
           </div>
-          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          <div className="mt-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
             {imagePreview ? (
               <img
                 src={imagePreview}
@@ -250,7 +250,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
                 className="h-28 w-full rounded-md object-cover"
               />
             ) : (
-              <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-slate-300 text-slate-400 dark:border-slate-600 dark:text-slate-500">
+              <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-border text-muted-foreground">
                 Belum ada foto
               </div>
             )}
@@ -362,31 +362,31 @@ export function EditAssetDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-2xl max-h-[90vh] gap-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-0 shadow-2xl dark:border-slate-800 dark:bg-slate-900 flex flex-col"
+        className="sm:max-w-2xl max-h-[90vh] gap-0 overflow-hidden rounded-xl border border-border bg-popover p-0 shadow-2xl flex flex-col"
       >
         <form
           onSubmit={handleSubmit}
           className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6"
         >
           <DialogHeader className="text-left">
-            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <DialogTitle className="text-xl font-bold text-foreground">
               Edit Aset Sewa
             </DialogTitle>
           </DialogHeader>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-medium text-foreground">
                 ID Aset
               </Label>
               <Input
                 defaultValue={asset?.id ?? ""}
                 readOnly
-                className={cn(commonFieldClass, "bg-slate-50 dark:bg-slate-800")}
+                className={cn(commonFieldClass, "bg-muted/40")}
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-medium text-foreground">
                 Nama Aset (name)
               </Label>
               <Input
@@ -399,11 +399,11 @@ export function EditAssetDialog({
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-medium text-foreground">
                 Nominal Tarif (rate_amount)
               </Label>
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-slate-500 dark:text-slate-400">
+                <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-muted-foreground">
                   Rp
                 </span>
                 <Input
@@ -418,7 +418,7 @@ export function EditAssetDialog({
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-medium text-foreground">
                 Tipe Tarif (rate_type)
               </Label>
               <Select value={rateType} onValueChange={setRateType}>
@@ -435,7 +435,7 @@ export function EditAssetDialog({
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="md:col-span-2 space-y-1.5">
-              <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-medium text-foreground">
                 Foto Aset
               </Label>
               <Input
@@ -444,11 +444,11 @@ export function EditAssetDialog({
                 onChange={handleImageChange}
                 className={commonFieldClass}
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 JPG, PNG, atau WebP. Maksimal 5MB.
               </p>
             </div>
-            <div className="flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <div className="flex items-center justify-center rounded-lg border border-border bg-muted/40 p-2 shadow-sm">
               {imagePreview || asset?.image ? (
                 <img
                   src={imagePreview || asset?.image}
@@ -456,7 +456,7 @@ export function EditAssetDialog({
                   className="h-28 w-full rounded-md object-cover"
                 />
               ) : (
-                <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-slate-300 text-xs text-slate-400 dark:border-slate-600 dark:text-slate-500">
+                <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
                   Belum ada foto
                 </div>
               )}
@@ -464,7 +464,7 @@ export function EditAssetDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
+            <Label className="text-sm font-medium text-foreground">
               Deskripsi Aset (description)
             </Label>
             <Textarea
@@ -475,11 +475,11 @@ export function EditAssetDialog({
             />
           </div>
 
-          <div className="mt-2 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 dark:border-slate-700">
+          <div className="mt-2 grid grid-cols-2 gap-4 border-t border-border pt-4">
             <Button
               type="button"
               variant="outline"
-              className="h-auto rounded-lg border-slate-300 py-3 text-sm font-medium text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+              className="h-auto rounded-lg border-border py-3 text-sm font-medium text-foreground hover:bg-muted/40"
               onClick={() => onOpenChange(false)}
             >
               Batal
@@ -487,7 +487,7 @@ export function EditAssetDialog({
             <Button
               type="submit"
               disabled={updateMutation.isPending}
-              className="h-auto rounded-lg bg-indigo-600 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-70"
+              className="h-auto rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-70"
             >
               {updateMutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>

@@ -59,9 +59,9 @@ export function AssetManagementPage({
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 text-slate-900 dark:text-slate-100">
+    <div className="mx-auto max-w-7xl space-y-8 text-foreground">
       <div className="space-y-6">
-        <div className="inline-flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+        <div className="inline-flex rounded-lg bg-muted/40 p-1">
           {tabs.map((tab) => (
             <Button
               key={tab.label}
@@ -70,8 +70,8 @@ export function AssetManagementPage({
               className={cn(
                 "h-auto rounded-md px-4 py-1.5 text-sm font-medium shadow-none",
                 tab.key === activeTab
-                  ? "bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100"
-                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               onClick={() => {
                 if (tab.key === "manajemen") {
@@ -90,7 +90,7 @@ export function AssetManagementPage({
           <h2 className="text-2xl font-bold">Manajemen Aset</h2>
           <Button
             type="button"
-            className="h-auto rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+            className="h-auto rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
             onClick={() => setAddOpen(true)}
           >
             <Plus className="h-4 w-4" />
@@ -100,7 +100,7 @@ export function AssetManagementPage({
       </div>
 
       {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
+        <div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error instanceof Error ? error.message : "Gagal memuat aset"}
         </div>
       ) : null}
@@ -110,14 +110,14 @@ export function AssetManagementPage({
           {Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={idx}
-              className="h-64 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800/50"
+              className="h-64 animate-pulse rounded-xl border border-border bg-muted/40"
             />
           ))}
         </div>
       ) : null}
 
       {!isLoading && assetItems.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+        <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-muted-foreground">
           Belum ada aset terdaftar. Tambahkan aset untuk mulai menerima
           reservasi.
         </div>
