@@ -6,11 +6,17 @@ export type OrderStatusAction = {
   icon: string;
 };
 
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
+type OrderBadge = {
+  label: string;
+  variant: BadgeVariant;
+};
+
 export function normalizeOrderStatus(status?: string) {
   return (status ?? "").toUpperCase();
 }
 
-export function getPaymentBadge(status?: string) {
+export function getPaymentBadge(status?: string): OrderBadge {
   const normalized = normalizeOrderStatus(status);
   if (normalized === "CANCELED") {
     return {
@@ -36,7 +42,7 @@ export function getPaymentBadge(status?: string) {
   };
 }
 
-export function getShippingBadge(status?: string) {
+export function getShippingBadge(status?: string): OrderBadge {
   const normalized = normalizeOrderStatus(status);
   if (normalized === "CANCELED") {
     return {

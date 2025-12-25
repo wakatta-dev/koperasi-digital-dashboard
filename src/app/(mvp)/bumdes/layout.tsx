@@ -62,7 +62,6 @@ const navigation = [
 const titleMap: Record<string, string> = {
   "/bumdes/dashboard": "Dashboard",
   "/bumdes/asset": "Asset",
-  "/bumdes/marketplace": "Marketplace",
   "/bumdes/marketplace/inventory": "Marketplace - Inventaris",
   "/bumdes/marketplace/order": "Marketplace - Pesanan",
   "/bumdes/marketplace": "Marketplace",
