@@ -10,9 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
-import { useInventoryActions, useInventoryProduct } from "@/hooks/queries/inventory";
+import {
+  useInventoryActions,
+  useInventoryProduct,
+  useInventoryVariants,
+} from "@/hooks/queries/inventory";
 import { formatCurrency } from "@/lib/format";
 import { EditProductModal } from "./edit-product-modal";
+import { VariantManagement } from "./variant-management";
 import type { InventoryItem } from "../types";
 import { computeEligibility, mapInventoryProduct } from "../utils";
 
@@ -22,6 +27,7 @@ type Props = {
 
 export function InventoryDetailPage({ id }: Props) {
   const { data, isLoading, isError, error } = useInventoryProduct(id);
+  const { data: variantsData } = useInventoryVariants(id);
   const actions = useInventoryActions();
   const [editOpen, setEditOpen] = useState(false);
   const [stockInput, setStockInput] = useState<string>("");
@@ -35,6 +41,13 @@ export function InventoryDetailPage({ id }: Props) {
   const eligibility = useMemo(
     () => (data ? computeEligibility(data) : { eligible: false, reasons: [] }),
     [data]
+  );
+  const activeVariantGroups = useMemo(
+    () =>
+      (variantsData?.variant_groups ?? []).filter(
+        (group) => group.status === "ACTIVE"
+      ),
+    [variantsData?.variant_groups]
   );
   const isArchived = item?.status === "ARCHIVED";
 
@@ -82,6 +95,15 @@ export function InventoryDetailPage({ id }: Props) {
   const handleVisibility = (next: boolean) => {
     if (!item) return;
     actions.update.mutate({ id: item.id, payload: { show_in_marketplace: next } });
+  };
+
+  const handleFeaturedGroupChange = (value: string) => {
+    if (!item) return;
+    const next = value ? Number(value) : null;
+    actions.update.mutate({
+      id: item.id,
+      payload: { featured_variant_group_id: next },
+    });
   };
 
   if (isLoading) {
@@ -280,6 +302,30 @@ export function InventoryDetailPage({ id }: Props) {
                   ) : (
                     <p className="text-xs text-emerald-600">Eligible</p>
                   )}
+                  {activeVariantGroups.length > 0 ? (
+                    <div className="mt-3 space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">
+                        Varian unggulan di listing
+                      </label>
+                      <select
+                        value={data?.featured_variant_group_id ?? ""}
+                        onChange={(event) =>
+                          handleFeaturedGroupChange(event.target.value)
+                        }
+                        className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground"
+                      >
+                        <option value="">Gunakan cover produk</option>
+                        {activeVariantGroups.map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted-foreground">
+                        Mengatur foto & harga yang tampil di listing marketplace.
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
                 <Switch
                   checked={item.showInMarketplace}
@@ -324,6 +370,8 @@ export function InventoryDetailPage({ id }: Props) {
           </div>
         </div>
       </div>
+
+      <VariantManagement productId={item.id} />
 
       <EditProductModal
         open={editOpen}

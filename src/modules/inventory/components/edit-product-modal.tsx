@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { type ChangeEvent, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type Resolver, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -58,7 +58,7 @@ export function EditProductModal({
   onOpenChange,
   product,
 }: EditModalProps) {
-  const { update, adjustStock } = useInventoryActions();
+  const { update, adjustStock, uploadImage } = useInventoryActions();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
@@ -74,6 +74,9 @@ export function EditProductModal({
       show_in_marketplace: product?.showInMarketplace ?? false,
     },
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [imageError, setImageError] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
@@ -89,17 +92,63 @@ export function EditProductModal({
         min_stock: product.minStock ?? 0,
         show_in_marketplace: product.showInMarketplace,
       });
+      setPhotoUrl(product.image ?? "");
+      setSelectedFile(null);
+      setImageError(null);
     }
   }, [product, form]);
 
-  const submitting = update.isPending || adjustStock.isPending;
+  const submitting =
+    update.isPending || adjustStock.isPending || uploadImage.isPending;
   const trackStock = form.watch("track_stock");
 
   const handleClose = (next: boolean) => {
     if (!next) {
       form.reset();
+      setSelectedFile(null);
+      setPhotoUrl(product?.image ?? "");
+      setImageError(null);
     }
     onOpenChange(next);
+  };
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSelectedFile(event.target.files?.[0] ?? null);
+    setImageError(null);
+  };
+
+  const handleImageUpload = async () => {
+    if (!product || !selectedFile) return;
+    setImageError(null);
+    try {
+      const updated = await uploadImage.mutateAsync({
+        id: product.id,
+        file: selectedFile,
+      });
+      setPhotoUrl(updated.photo_url ?? "");
+      setSelectedFile(null);
+    } catch (err) {
+      setImageError((err as Error)?.message || "Gagal mengunggah foto produk.");
+    }
+  };
+
+  const handleSaveImageUrl = async () => {
+    if (!product) return;
+    const trimmed = photoUrl.trim();
+    if (!trimmed) {
+      setImageError("URL foto wajib diisi.");
+      return;
+    }
+    setImageError(null);
+    try {
+      const updated = await update.mutateAsync({
+        id: product.id,
+        payload: { photo_url: trimmed },
+      });
+      setPhotoUrl(updated.photo_url ?? trimmed);
+    } catch (err) {
+      setImageError((err as Error)?.message || "Gagal menyimpan URL foto.");
+    }
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -161,30 +210,60 @@ export function EditProductModal({
                   <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
                     Foto Produk
                   </label>
-                  <div className="group relative mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6 transition-colors hover:border-[#4f46e5] dark:border-gray-600">
-                    <div className="w-full space-y-1 text-center">
-                      <div className="relative mb-3 h-48 w-full overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800">
-                        {product?.image ? (
-                          <img
-                            src={product.image}
-                            alt={product?.name || "Produk"}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
-                            Belum ada foto
-                          </div>
-                        )}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                          <span className="text-sm font-semibold text-white">Belum mendukung unggah</span>
+                  <div className="group relative mt-1 flex flex-col gap-3 rounded-md border-2 border-dashed border-gray-300 px-6 py-4 transition-colors hover:border-[#4f46e5] dark:border-gray-600">
+                    <div className="relative h-48 w-full overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800">
+                      {photoUrl ? (
+                        <img
+                          src={photoUrl}
+                          alt={product?.name || "Produk"}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+                          Belum ada foto
                         </div>
-                      </div>
-                      <div className="text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                        <p className="font-medium text-[#4f46e5] dark:text-indigo-400">
-                          Unggah gambar akan segera hadir
-                        </p>
-                      </div>
+                      )}
                     </div>
+                    <Input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleImageChange}
+                      disabled={submitting}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleImageUpload}
+                      disabled={!selectedFile || submitting}
+                    >
+                      Unggah Foto
+                    </Button>
+                    {selectedFile ? (
+                      <p className="text-xs text-muted-foreground">
+                        Siap diunggah: {selectedFile.name}
+                      </p>
+                    ) : null}
+                    <Input
+                      type="url"
+                      placeholder="Tempel URL foto (opsional)"
+                      value={photoUrl}
+                      onChange={(event) => {
+                        setPhotoUrl(event.target.value);
+                        setImageError(null);
+                      }}
+                      disabled={submitting}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSaveImageUrl}
+                      disabled={!photoUrl.trim() || submitting}
+                    >
+                      Simpan URL Foto
+                    </Button>
+                    {imageError ? (
+                      <p className="text-xs text-destructive">{imageError}</p>
+                    ) : null}
                   </div>
                 </div>
 

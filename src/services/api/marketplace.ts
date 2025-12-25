@@ -12,6 +12,7 @@ import type {
   MarketplaceOrderStatusUpdateRequest,
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
+  MarketplaceProductVariantsResponse,
 } from "@/types/api/marketplace";
 
 const E = API_ENDPOINTS.marketplace;
@@ -43,6 +44,14 @@ export function getMarketplaceProductDetail(
   return api.get<MarketplaceProductResponse>(`${API_PREFIX}${E.product(id)}`);
 }
 
+export function getMarketplaceProductVariants(
+  id: string | number
+): Promise<ApiResponse<MarketplaceProductVariantsResponse>> {
+  return api.get<MarketplaceProductVariantsResponse>(
+    `${API_PREFIX}${E.productVariants(id)}`
+  );
+}
+
 export function getMarketplaceCart(): Promise<ApiResponse<MarketplaceCartResponse>> {
   return api.get<MarketplaceCartResponse>(`${API_PREFIX}${E.cart}`, {
     credentials: "include",
@@ -52,6 +61,8 @@ export function getMarketplaceCart(): Promise<ApiResponse<MarketplaceCartRespons
 export function addMarketplaceCartItem(payload: {
   product_id: number;
   quantity: number;
+  variant_group_id?: number;
+  variant_option_id?: number;
 }): Promise<ApiResponse<null>> {
   return api.post<null>(`${API_PREFIX}${E.cartItem}`, payload, {
     credentials: "include",

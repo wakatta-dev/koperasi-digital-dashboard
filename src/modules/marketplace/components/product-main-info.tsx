@@ -5,26 +5,54 @@
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useCartMutations } from "../hooks/useMarketplaceProducts";
 import { showToastError } from "@/lib/toast";
 import { MarketplaceProductDetail } from "../constants";
+import type { MarketplaceVariantGroupResponse } from "@/types/api/marketplace";
 import { animateFlyToCart } from "../utils/fly-to-cart";
+
+type VariantState = {
+  hasVariants: boolean;
+  groups: MarketplaceVariantGroupResponse[];
+  selectedGroupId: number | null;
+  selectedOptionId: number | null;
+  selectionReady: boolean;
+  onSelectGroup: (groupId: number) => void;
+  onSelectOption: (optionId: number) => void;
+};
+
+const formatAttributeLabel = (attributes?: Record<string, string>) => {
+  if (!attributes || Object.keys(attributes).length === 0) {
+    return "";
+  }
+  return Object.entries(attributes)
+    .map(([key, value]) => {
+      const label = key.replace(/_/g, " ").trim();
+      const title = label ? label[0].toUpperCase() + label.slice(1) : "";
+      return title ? `${title} ${value}`.trim() : value;
+    })
+    .filter(Boolean)
+    .join(" / ");
+};
 
 export function ProductMainInfo({
   product,
+  variantState,
+  canAddToCart,
 }: {
   product: MarketplaceProductDetail;
+  variantState?: VariantState;
+  canAddToCart: boolean;
 }) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartMutations();
   const actionBtnRef = useRef<HTMLButtonElement | null>(null);
+  const activeVariantState = variantState?.hasVariants ? variantState : null;
+  const selectedGroup = activeVariantState
+    ? activeVariantState.groups.find(
+        (group) => group.id === activeVariantState.selectedGroupId
+      ) ?? null
+    : null;
 
   const maxQty = product.trackStock
     ? Math.max(1, product.availableStock ?? 0)
@@ -41,12 +69,37 @@ export function ProductMainInfo({
 
   const handleAdd = async () => {
     const qty = clamp(quantity);
+    if (activeVariantState && !activeVariantState.selectionReady) {
+      showToastError("Pilih varian", "Silakan pilih varian terlebih dahulu");
+      return;
+    }
+    if (!canAddToCart) {
+      showToastError("Stok habis", "Produk tidak tersedia");
+      return;
+    }
     if (maxQty !== undefined && maxQty <= 0) {
       showToastError("Stok habis", "Produk tidak tersedia");
       return;
     }
+    const payload: {
+      product_id: number;
+      quantity: number;
+      variant_group_id?: number;
+      variant_option_id?: number;
+    } = {
+      product_id: Number(product.id),
+      quantity: qty,
+    };
+    if (activeVariantState?.selectionReady) {
+      if (activeVariantState.selectedGroupId) {
+        payload.variant_group_id = activeVariantState.selectedGroupId;
+      }
+      if (activeVariantState.selectedOptionId) {
+        payload.variant_option_id = activeVariantState.selectedOptionId;
+      }
+    }
     addItem.mutate(
-      { product_id: Number(product.id), quantity: qty },
+      payload,
       {
         onSuccess: () => animateFlyToCart(actionBtnRef.current),
         onError: (err: any) =>
@@ -122,19 +175,87 @@ export function ProductMainInfo({
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              {product.variantLabel}
-            </label>
-            <Select defaultValue="default">
-              <SelectTrigger className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 focus-visible:ring-[#4338ca]/40 focus-visible:border-[#4338ca] text-sm h-11">
-                <SelectValue placeholder="Pilih varian" />
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700">
-                <SelectItem value="default">Standar</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {activeVariantState ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  {product.variantLabel}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {activeVariantState.groups.map((group) => {
+                    const isSelected =
+                      group.id === activeVariantState.selectedGroupId;
+                    return (
+                      <button
+                        key={group.id}
+                        type="button"
+                        onClick={() => activeVariantState.onSelectGroup(group.id)}
+                        className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                          isSelected
+                            ? "border-[#4338ca] text-[#4338ca] bg-indigo-50 dark:bg-indigo-900/20"
+                            : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#4338ca]"
+                        }`}
+                      >
+                        {group.image_url ? (
+                          <img
+                            src={group.image_url}
+                            alt={group.name}
+                            className="h-6 w-6 rounded-full object-cover"
+                          />
+                        ) : null}
+                        <span>{group.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Ukuran
+                </label>
+                {selectedGroup ? (
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedGroup.options ?? []).map((option) => {
+                      const label =
+                        formatAttributeLabel(option.attributes) || option.sku;
+                      const isSelected =
+                        option.id === activeVariantState.selectedOptionId;
+                      const isOutOfStock =
+                        option.track_stock && option.stock <= 0;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => activeVariantState.onSelectOption(option.id)}
+                          disabled={isOutOfStock}
+                          className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+                            isSelected
+                              ? "border-[#4338ca] text-[#4338ca] bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#4338ca]"
+                          } ${isOutOfStock ? "opacity-40 cursor-not-allowed" : ""}`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Pilih varian terlebih dahulu.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {product.variantLabel}
+              </label>
+              <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-300">
+                Standar
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -171,7 +292,7 @@ export function ProductMainInfo({
           <Button
             className="flex-1 bg-[#4338ca] hover:bg-[#3730a3] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 h-auto"
             ref={actionBtnRef}
-            disabled={product.inStock === false}
+            disabled={!canAddToCart}
             onClick={handleAdd}
           >
             <span className="material-icons-outlined text-xl">
@@ -182,7 +303,7 @@ export function ProductMainInfo({
           <Button
             variant="outline"
             className="flex-1 border border-[#4338ca] text-[#4338ca] hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-6 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 h-auto"
-            disabled={product.inStock === false}
+            disabled={!canAddToCart}
             onClick={handleAdd}
           >
             <span className="material-icons-outlined text-xl">

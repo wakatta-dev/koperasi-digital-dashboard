@@ -20,10 +20,12 @@ type MarketplaceCardProduct = {
   image?: string;
   badge?: { label: string; variant?: "primary" | "danger" };
   inStock?: boolean;
+  requiresVariant?: boolean;
 };
 
 export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
-  const ctaLabel = product.badge?.label ?? "Beli Sekarang";
+  const requiresVariant = product.requiresVariant ?? false;
+  const ctaLabel = requiresVariant ? "Pilih Varian" : product.badge?.label ?? "Beli Sekarang";
   const detailHref = `/marketplace/${product.id}`;
   const { addItem } = useCartMutations();
   const imgRef = useRef<HTMLDivElement | null>(null);
@@ -93,13 +95,20 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
           <Button
             variant="outline"
             className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition h-auto"
-            title="Tambah ke Keranjang"
+            title={requiresVariant ? "Pilih Varian" : "Tambah ke Keranjang"}
             disabled={!product.inStock || isAdding}
-            onClick={handleAdd}
+            onClick={requiresVariant ? undefined : handleAdd}
+            asChild={requiresVariant}
           >
-            <span className="material-icons-outlined text-sm">
-              {isAdding ? "hourglass_top" : "add_shopping_cart"}
-            </span>
+            {requiresVariant ? (
+              <Link href={detailHref}>
+                <span className="material-icons-outlined text-sm">tune</span>
+              </Link>
+            ) : (
+              <span className="material-icons-outlined text-sm">
+                {isAdding ? "hourglass_top" : "add_shopping_cart"}
+              </span>
+            )}
           </Button>
         </div>
       </div>

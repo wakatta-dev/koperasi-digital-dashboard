@@ -5,6 +5,9 @@ import type { InventoryItem } from "./types";
 
 export function computeEligibility(product: InventoryProductResponse) {
   const reasons: string[] = [];
+  const hasVariants = product.has_variants ?? false;
+  const variantsRequired = product.variants_required ?? false;
+  const variantInStock = product.variant_in_stock ?? false;
   if (product.status !== "ACTIVE") {
     reasons.push("Status bukan ACTIVE");
   }
@@ -14,7 +17,13 @@ export function computeEligibility(product: InventoryProductResponse) {
   if (product.price_sell <= 0) {
     reasons.push("Harga belum diatur");
   }
-  if (product.track_stock && product.stock <= 0) {
+  if (hasVariants) {
+    if (!variantsRequired) {
+      reasons.push("Varian belum lengkap");
+    } else if (!variantInStock) {
+      reasons.push("Varian habis");
+    }
+  } else if (product.track_stock && product.stock <= 0) {
     reasons.push("Stok habis");
   }
   return {

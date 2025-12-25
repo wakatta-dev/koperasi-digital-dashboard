@@ -9,20 +9,33 @@ import { QK } from "./queryKeys";
 import {
   adjustInventoryStock,
   archiveInventoryProduct,
+  archiveInventoryVariantGroup,
+  archiveInventoryVariantOption,
+  createInventoryVariantGroup,
+  createInventoryVariantOption,
   createInventoryProduct,
   getInventoryProduct,
+  getInventoryProductVariants,
   listInventoryProducts,
   setInitialInventoryStock,
   unarchiveInventoryProduct,
   uploadInventoryProductImage,
+  uploadInventoryVariantGroupImage,
+  updateInventoryVariantGroup,
+  updateInventoryVariantOption,
   updateInventoryProduct,
 } from "@/services/api";
 import type {
   CreateInventoryProductRequest,
+  CreateInventoryVariantGroupRequest,
+  CreateInventoryVariantOptionRequest,
   InventoryAdjustmentRequest,
   InventoryInitialStockRequest,
   InventoryProductListResponse,
   InventoryProductResponse,
+  InventoryProductVariantsResponse,
+  UpdateInventoryVariantGroupRequest,
+  UpdateInventoryVariantOptionRequest,
   UpdateInventoryProductRequest,
 } from "@/types/api/inventory";
 
@@ -60,6 +73,18 @@ export function useInventoryProduct(id?: string | number, options?: { enabled?: 
     enabled: Boolean(id) && (options?.enabled ?? true),
     queryFn: async (): Promise<InventoryProductResponse> =>
       ensureSuccess(await getInventoryProduct(id as string | number)),
+  });
+}
+
+export function useInventoryVariants(
+  id?: string | number,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: QK.inventory.variants(id ?? ""),
+    enabled: Boolean(id) && (options?.enabled ?? true),
+    queryFn: async (): Promise<InventoryProductVariantsResponse> =>
+      ensureSuccess(await getInventoryProductVariants(id as string | number)),
   });
 }
 
@@ -160,5 +185,112 @@ export function useInventoryActions() {
     unarchive,
     initialStock,
     adjustStock,
+  } as const;
+}
+
+export function useInventoryVariantActions() {
+  const qc = useQueryClient();
+  const invalidateVariants = (id: string | number | undefined) => {
+    if (!id) return;
+    qc.invalidateQueries({
+      queryKey: QK.inventory.variants(id),
+    });
+  };
+
+  const createGroup = useMutation({
+    mutationFn: async (vars: {
+      productId: string | number;
+      payload: CreateInventoryVariantGroupRequest;
+    }) => ensureSuccess(await createInventoryVariantGroup(vars.productId, vars.payload)),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Varian grup dibuat");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal membuat varian grup"),
+  });
+
+  const updateGroup = useMutation({
+    mutationFn: async (vars: {
+      productId: string | number;
+      groupId: string | number;
+      payload: UpdateInventoryVariantGroupRequest;
+    }) => ensureSuccess(await updateInventoryVariantGroup(vars.productId, vars.groupId, vars.payload)),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Varian grup diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui varian grup"),
+  });
+
+  const uploadGroupImage = useMutation({
+    mutationFn: async (vars: {
+      productId: string | number;
+      groupId: string | number;
+      file: File;
+    }) =>
+      ensureSuccess(
+        await uploadInventoryVariantGroupImage(vars.productId, vars.groupId, vars.file)
+      ),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Foto varian grup diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengunggah foto varian grup"),
+  });
+
+  const archiveGroup = useMutation({
+    mutationFn: async (vars: { productId: string | number; groupId: string | number }) =>
+      ensureSuccess(await archiveInventoryVariantGroup(vars.productId, vars.groupId)),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Varian grup diarsipkan");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengarsipkan varian grup"),
+  });
+
+  const createOption = useMutation({
+    mutationFn: async (vars: {
+      productId: string | number;
+      groupId: string | number;
+      payload: CreateInventoryVariantOptionRequest;
+    }) => ensureSuccess(await createInventoryVariantOption(vars.productId, vars.groupId, vars.payload)),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Varian opsi dibuat");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal membuat varian opsi"),
+  });
+
+  const updateOption = useMutation({
+    mutationFn: async (vars: {
+      productId: string | number;
+      optionId: string | number;
+      payload: UpdateInventoryVariantOptionRequest;
+    }) => ensureSuccess(await updateInventoryVariantOption(vars.productId, vars.optionId, vars.payload)),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Varian opsi diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui varian opsi"),
+  });
+
+  const archiveOption = useMutation({
+    mutationFn: async (vars: { productId: string | number; optionId: string | number }) =>
+      ensureSuccess(await archiveInventoryVariantOption(vars.productId, vars.optionId)),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Varian opsi diarsipkan");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengarsipkan varian opsi"),
+  });
+
+  return {
+    createGroup,
+    updateGroup,
+    uploadGroupImage,
+    archiveGroup,
+    createOption,
+    updateOption,
+    archiveOption,
   } as const;
 }

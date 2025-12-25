@@ -14,6 +14,10 @@ export type InventoryProductResponse = {
   description?: string;
   min_stock?: number;
   show_in_marketplace: boolean;
+  has_variants?: boolean;
+  variants_required?: boolean;
+  variant_in_stock?: boolean;
+  featured_variant_group_id?: number | null;
 };
 
 export type InventoryProductListResponse = {
@@ -47,6 +51,7 @@ export type UpdateInventoryProductRequest = {
   description?: string;
   min_stock?: number;
   show_in_marketplace?: boolean;
+  featured_variant_group_id?: number | null;
 };
 
 export type InventoryInitialStockRequest = {
@@ -67,4 +72,65 @@ export type InventoryStockHistoryEntry = {
   quantity: number;
   balance: number;
   timestamp: number;
+};
+
+export type InventoryVariantGroupResponse = {
+  id: number;
+  product_id: number;
+  name: string;
+  image_url?: string;
+  sort_order: number;
+  status: string;
+  created_at: number;
+  updated_at: number;
+};
+
+export type InventoryVariantOptionResponse = {
+  id: number;
+  product_id: number;
+  variant_group_id: number;
+  sku: string;
+  attributes?: Record<string, string>;
+  price_override?: number | null;
+  stock: number;
+  track_stock: boolean;
+  status: string;
+  created_at: number;
+  updated_at: number;
+};
+
+export type InventoryProductVariantsResponse = {
+  product_id: number;
+  variant_groups: InventoryVariantGroupResponse[];
+  options: InventoryVariantOptionResponse[];
+};
+
+export type CreateInventoryVariantGroupRequest = {
+  name: string;
+  image_url?: string;
+  sort_order?: number;
+};
+
+export type UpdateInventoryVariantGroupRequest = {
+  name?: string;
+  image_url?: string | null;
+  sort_order?: number;
+};
+
+export type CreateInventoryVariantOptionRequest = {
+  variant_group_id: number;
+  sku: string;
+  attributes?: Record<string, string>;
+  price_override?: number | null;
+  stock?: number;
+  track_stock?: boolean;
+};
+
+export type UpdateInventoryVariantOptionRequest = {
+  sku?: string;
+  attributes?: Record<string, string>;
+  price_override?: number | null;
+  clear_price_override?: boolean;
+  stock?: number;
+  track_stock?: boolean;
 };

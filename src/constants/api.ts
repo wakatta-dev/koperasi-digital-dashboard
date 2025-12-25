@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
   marketplace: {
     products: "/marketplace/products",
     product: (id: string | number) => `/marketplace/products/${id}`,
+    productVariants: (id: string | number) => `/marketplace/products/${id}/variants`,
     cart: "/marketplace/cart",
     cartItem: "/marketplace/cart/items",
     cartItemById: (id: string | number) => `/marketplace/cart/items/${id}`,
@@ -95,6 +96,17 @@ export const API_ENDPOINTS = {
     products: "/inventory/products",
     product: (id: string | number) => `/inventory/products/${id}`,
     image: (id: string | number) => `/inventory/products/${id}/image`,
+    variants: (id: string | number) => `/inventory/products/${id}/variants`,
+    variantGroups: (id: string | number) =>
+      `/inventory/products/${id}/variant-groups`,
+    variantGroup: (id: string | number, groupId: string | number) =>
+      `/inventory/products/${id}/variant-groups/${groupId}`,
+    variantGroupImage: (id: string | number, groupId: string | number) =>
+      `/inventory/products/${id}/variant-groups/${groupId}/image`,
+    variantGroupOptions: (id: string | number, groupId: string | number) =>
+      `/inventory/products/${id}/variant-groups/${groupId}/options`,
+    variantOption: (id: string | number, optionId: string | number) =>
+      `/inventory/products/${id}/options/${optionId}`,
     archive: (id: string | number) => `/inventory/products/${id}/archive`,
     unarchive: (id: string | number) => `/inventory/products/${id}/unarchive`,
     stockInitial: (id: string | number) => `/inventory/products/${id}/stock/initial`,

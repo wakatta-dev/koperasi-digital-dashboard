@@ -17,10 +17,11 @@ import { PRODUCT_DETAIL } from "./constants";
 import {
   useMarketplaceCart,
   useMarketplaceProductDetail,
+  useMarketplaceProductVariants,
 } from "./hooks/useMarketplaceProducts";
 import { formatCurrency } from "@/lib/format";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -34,8 +35,11 @@ type Props = {
 export function MarketplaceProductDetailPage({ productId }: Props) {
   const { data, isLoading, isError, error, refetch } =
     useMarketplaceProductDetail(productId);
+  const { data: variants } = useMarketplaceProductVariants(productId);
   const { data: cart } = useMarketplaceCart();
   const router = useRouter();
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
 
   const notFoundLike =
     isError && error?.message?.toLowerCase().includes("not found");
@@ -44,6 +48,45 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
       router.replace("/404");
     }
   }, [notFoundLike, router]);
+  useEffect(() => {
+    setSelectedGroupId(null);
+    setSelectedOptionId(null);
+  }, [productId]);
+
+  const variantGroups = variants?.groups ?? [];
+  const hasVariants = variantGroups.length > 0 || data?.has_variants === true;
+  const variantsRequired = data?.variants_required ?? hasVariants;
+  const selectedGroup = useMemo(
+    () => variantGroups.find((group) => group.id === selectedGroupId) ?? null,
+    [variantGroups, selectedGroupId]
+  );
+  const selectedOption = useMemo(
+    () =>
+      selectedGroup?.options?.find(
+        (option) => option.id === selectedOptionId
+      ) ?? null,
+    [selectedGroup, selectedOptionId]
+  );
+  const selectionReady = !variantsRequired || Boolean(selectedGroup && selectedOption);
+  const displayPrice = selectedOption?.price ?? data?.price;
+  const displayTrackStock = selectionReady
+    ? selectedOption?.track_stock ?? data?.track_stock
+    : false;
+  const displayStock = selectionReady
+    ? selectedOption?.stock ?? data?.stock
+    : data?.stock;
+  const effectiveInStock = displayTrackStock
+    ? (displayStock ?? 0) > 0
+    : true;
+  const canAddToCart = selectionReady && effectiveInStock;
+  const stockLabel =
+    variantsRequired && !selectionReady
+      ? "Pilih varian untuk melihat stok"
+      : displayTrackStock
+      ? `Stok tersedia: ${displayStock ?? 0} pcs`
+      : "Stok tersedia";
+  const galleryImage =
+    selectedGroup?.image_url ?? data?.display_image_url ?? data?.photo_url ?? "";
 
   const product: any = data
     ? {
@@ -53,24 +96,24 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
         variantLabel: PRODUCT_DETAIL.variantLabel,
         categoryTag: data.sku || "Produk",
         rating: PRODUCT_DETAIL.rating,
-        price: formatCurrency(data.price) ?? "-",
+        price:
+          displayPrice !== undefined ? formatCurrency(displayPrice) ?? "-" : "-",
         originalPrice: "",
         discountNote: "",
         shortDescription: data.description ?? "",
         longDescription: data.description ? [data.description] : [],
         features: [],
-        stock: data.track_stock
-          ? `Stok tersedia: ${data.stock} pcs`
-          : "Stok tersedia",
-        availableStock: data.track_stock ? data.stock : undefined,
-        trackStock: data.track_stock,
-        inStock: data.in_stock,
+        stock: stockLabel,
+        availableStock: displayTrackStock ? displayStock ?? 0 : undefined,
+        trackStock: displayTrackStock,
+        inStock: selectionReady ? effectiveInStock : true,
         seller: PRODUCT_DETAIL.seller,
-        badge: data.in_stock
-          ? undefined
-          : { label: "Stok Habis", variant: "danger" },
+        badge:
+          selectionReady && !effectiveInStock
+            ? { label: "Stok Habis", variant: "danger" }
+            : undefined,
         gallery: {
-          main: data.photo_url ?? "",
+          main: galleryImage,
           thumbnails: [],
         },
         specs: [],
@@ -123,7 +166,23 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
                     <ProductGallery product={product} />
                   </div>
                   <div className="lg:col-span-7 flex flex-col">
-                    <ProductMainInfo product={product} />
+                    <ProductMainInfo
+                      product={product}
+                      variantState={{
+                        hasVariants: variantsRequired,
+                        groups: variantGroups,
+                        selectedGroupId,
+                        selectedOptionId,
+                        selectionReady,
+                        onSelectGroup: (groupId) => {
+                          setSelectedGroupId(groupId);
+                          setSelectedOptionId(null);
+                        },
+                        onSelectOption: (optionId) =>
+                          setSelectedOptionId(optionId),
+                      }}
+                      canAddToCart={canAddToCart}
+                    />
                   </div>
                 </div>
 

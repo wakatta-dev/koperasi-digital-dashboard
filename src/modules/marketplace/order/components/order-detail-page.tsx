@@ -22,10 +22,29 @@ import {
   getStatusAction,
   getTimelineLabel,
 } from "../utils";
+import type { MarketplaceOrderItemResponse } from "@/types/api/marketplace";
 const DEFAULT_PAYMENT_METHOD = "-";
 
 type OrderDetailPageProps = {
   id: string;
+};
+
+const formatVariantLabel = (item: MarketplaceOrderItemResponse) => {
+  const group = item.variant_group_name?.trim();
+  const attributes = item.variant_attributes ?? {};
+  const size = attributes.size;
+  const attributeLabels = Object.entries(attributes)
+    .filter(([key]) => key !== "size")
+    .map(([key, value]) => {
+      const label = key.replace(/_/g, " ").trim();
+      const title = label ? label[0].toUpperCase() + label.slice(1) : "";
+      return title ? `${title} ${value}`.trim() : value;
+    })
+    .filter(Boolean)
+    .join(" / ");
+  const optionLabel = size || attributeLabels || item.variant_sku;
+  if (group && optionLabel) return `${group} / ${optionLabel}`;
+  return group || optionLabel || "";
 };
 
 export function OrderDetailPage({ id }: OrderDetailPageProps) {
@@ -269,30 +288,47 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#e5e7eb] dark:divide-[#334155]">
-                          {order.items.map((item) => (
-                            <tr
-                              key={`${item.product_id}-${item.product_sku}`}
-                              className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
-                            >
-                              <td className="px-6 py-4">
-                                <div className="flex items-center">
-                                  <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
-                                    <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400 dark:bg-gray-700">
-                                      <span className="material-icons-outlined text-lg">
-                                        image
-                                      </span>
+                          {order.items.map((item) => {
+                            const variantLabel = formatVariantLabel(item);
+                            const imageSrc =
+                              item.variant_image_url || item.product_photo;
+                            return (
+                              <tr
+                                key={`${item.product_id}-${item.variant_option_id ?? item.product_sku}`}
+                                className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                              >
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700">
+                                      {imageSrc ? (
+                                        <img
+                                          alt={item.product_name}
+                                          src={imageSrc}
+                                          className="h-full w-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400 dark:bg-gray-700">
+                                          <span className="material-icons-outlined text-lg">
+                                            image
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-medium text-[#111827] dark:text-white">
+                                        {item.product_name}
+                                      </div>
+                                      <div className="text-xs text-[#6b7280] dark:text-[#94a3b8]">
+                                        SKU: {item.product_sku}
+                                      </div>
+                                      {variantLabel ? (
+                                        <div className="text-xs text-[#6b7280] dark:text-[#94a3b8]">
+                                          {variantLabel}
+                                        </div>
+                                      ) : null}
                                     </div>
                                   </div>
-                                  <div className="ml-4">
-                                    <div className="text-sm font-medium text-[#111827] dark:text-white">
-                                      {item.product_name}
-                                    </div>
-                                    <div className="text-xs text-[#6b7280] dark:text-[#94a3b8]">
-                                      SKU: {item.product_sku}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
+                                </td>
                               <td className="px-6 py-4 text-right text-sm text-[#111827] dark:text-white">
                                 {item.quantity}
                               </td>
@@ -302,8 +338,9 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                               <td className="px-6 py-4 text-right text-sm font-medium text-[#111827] dark:text-white">
                                 {formatCurrency(item.subtotal)}
                               </td>
-                            </tr>
-                          ))}
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

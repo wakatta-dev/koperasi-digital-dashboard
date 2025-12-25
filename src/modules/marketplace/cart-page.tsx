@@ -64,7 +64,7 @@ export function MarketplaceCartPage() {
                 <div className="space-y-2">
                   {orderResult.items.map((item) => (
                     <div
-                      key={item.product_id}
+                      key={`${item.product_id}-${item.variant_option_id ?? "base"}`}
                       className="flex justify-between text-sm text-gray-700 dark:text-gray-300"
                     >
                       <span>

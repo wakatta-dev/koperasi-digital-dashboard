@@ -17,13 +17,34 @@ import {
   formatOrderNumber,
   getPaymentBadge,
 } from "../utils";
-import type { MarketplaceOrderDetailResponse } from "@/types/api/marketplace";
+import type {
+  MarketplaceOrderDetailResponse,
+  MarketplaceOrderItemResponse,
+} from "@/types/api/marketplace";
 
 export type OrderInvoiceDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   orderId?: number | string;
   order?: MarketplaceOrderDetailResponse;
+};
+
+const formatVariantLabel = (item: MarketplaceOrderItemResponse) => {
+  const group = item.variant_group_name?.trim();
+  const attributes = item.variant_attributes ?? {};
+  const size = attributes.size;
+  const attributeLabels = Object.entries(attributes)
+    .filter(([key]) => key !== "size")
+    .map(([key, value]) => {
+      const label = key.replace(/_/g, " ").trim();
+      const title = label ? label[0].toUpperCase() + label.slice(1) : "";
+      return title ? `${title} ${value}`.trim() : value;
+    })
+    .filter(Boolean)
+    .join(" / ");
+  const optionLabel = size || attributeLabels || item.variant_sku;
+  if (group && optionLabel) return `${group} / ${optionLabel}`;
+  return group || optionLabel || "";
 };
 
 export function OrderInvoiceDialog({
@@ -261,28 +282,38 @@ export function OrderInvoiceDialog({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                      {items.map((item, index) => (
-                        <tr key={`${item.product_id}-${index}`}>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            {index + 1}
-                          </td>
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                            {item.product_name}
-                            <span className="block text-xs font-normal text-gray-400">
-                              SKU: {item.product_sku}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right text-sm text-gray-500">
-                            {formatCurrency(item.price)}
-                          </td>
-                          <td className="px-6 py-4 text-right text-sm text-gray-500">
-                            {item.quantity}
-                          </td>
-                          <td className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
-                            {formatCurrency(item.subtotal)}
-                          </td>
-                        </tr>
-                      ))}
+                      {items.map((item, index) => {
+                        const variantLabel = formatVariantLabel(item);
+                        return (
+                          <tr
+                            key={`${item.product_id}-${item.variant_option_id ?? index}`}
+                          >
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {index + 1}
+                            </td>
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                              {item.product_name}
+                              <span className="block text-xs font-normal text-gray-400">
+                                SKU: {item.product_sku}
+                              </span>
+                              {variantLabel ? (
+                                <span className="block text-xs font-normal text-gray-400">
+                                  {variantLabel}
+                                </span>
+                              ) : null}
+                            </td>
+                            <td className="px-6 py-4 text-right text-sm text-gray-500">
+                              {formatCurrency(item.price)}
+                            </td>
+                            <td className="px-6 py-4 text-right text-sm text-gray-500">
+                              {item.quantity}
+                            </td>
+                            <td className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                              {formatCurrency(item.subtotal)}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

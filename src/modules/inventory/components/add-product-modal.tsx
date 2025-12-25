@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type Resolver, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -59,7 +59,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
-  const { create, initialStock } = useInventoryActions();
+  const { create, initialStock, uploadImage } = useInventoryActions();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
@@ -76,17 +76,22 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
     },
   });
 
-  const submitting = create.isPending || initialStock.isPending;
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const submitting = create.isPending || initialStock.isPending || uploadImage.isPending;
   const trackStock = form.watch("track_stock");
 
   const handleClose = (next: boolean) => {
     if (!next) {
       form.reset();
+      setSelectedFile(null);
+      setPhotoUrl("");
     }
     onOpenChange(next);
   };
 
   const onSubmit = async (values: FormValues) => {
+    const trimmedPhotoUrl = photoUrl.trim();
     const payload: CreateInventoryProductRequest = {
       name: values.name,
       price_sell: values.price_sell,
@@ -97,6 +102,7 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
       description: values.description || undefined,
       min_stock: values.min_stock,
       show_in_marketplace: values.show_in_marketplace,
+      photo_url: trimmedPhotoUrl || undefined,
     };
 
     try {
@@ -107,7 +113,19 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
           payload: { quantity: values.initial_stock, note: "Initial stock" },
         });
       }
+      if (selectedFile) {
+        try {
+          await uploadImage.mutateAsync({
+            id: product.id,
+            file: selectedFile,
+          });
+        } catch {
+          // handled in upload mutation
+        }
+      }
       form.reset();
+      setSelectedFile(null);
+      setPhotoUrl("");
       onOpenChange(false);
     } catch {
       // handled in mutations
@@ -135,13 +153,30 @@ export function AddProductModal({ open, onOpenChange }: ModalBaseProps) {
                   <label className="mb-2 block text-sm font-medium text-[#111827] dark:text-white">
                     Foto Produk
                   </label>
-                  <div className="group mt-1 flex cursor-pointer justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 pt-5 pb-6 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700">
-                    <div className="space-y-1 text-center text-sm text-gray-600 dark:text-gray-400">
-                      <p className="font-medium text-[#4f46e5] dark:text-indigo-400">
-                        Unggah foto produk (opsional)
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                        PNG atau JPG, maksimal 2MB
+                  <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:bg-gray-800">
+                    <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                      <Input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(event) =>
+                          setSelectedFile(event.target.files?.[0] ?? null)
+                        }
+                        disabled={submitting}
+                      />
+                      {selectedFile ? (
+                        <p className="text-xs text-muted-foreground">
+                          Siap diunggah: {selectedFile.name}
+                        </p>
+                      ) : null}
+                      <Input
+                        type="url"
+                        placeholder="Tempel URL foto (opsional)"
+                        value={photoUrl}
+                        onChange={(event) => setPhotoUrl(event.target.value)}
+                        disabled={submitting}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Upload foto atau tempel URL publik MinIO.
                       </p>
                     </div>
                   </div>

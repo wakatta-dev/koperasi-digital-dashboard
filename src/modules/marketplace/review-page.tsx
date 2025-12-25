@@ -84,6 +84,12 @@ export function MarketplaceReviewPage() {
       if (msg.includes("insufficient stock")) {
         showToastError("Stok tidak cukup", err);
         router.replace("/marketplace/keranjang");
+      } else if (msg.includes("variant selection required")) {
+        showToastError("Pilih varian", "Silakan pilih varian di keranjang");
+        router.replace("/marketplace/keranjang");
+      } else if (msg.includes("not available")) {
+        showToastError("Produk tidak tersedia", err);
+        router.replace("/marketplace/keranjang");
       } else {
         showToastError("Checkout gagal", err);
       }
@@ -120,7 +126,7 @@ export function MarketplaceReviewPage() {
                 <div className="space-y-2">
                   {orderResult.items.map((item) => (
                     <div
-                      key={item.product_id}
+                      key={`${item.product_id}-${item.variant_option_id ?? "base"}`}
                       className="flex justify-between text-sm text-gray-700 dark:text-gray-300"
                     >
                       <span>

@@ -11,6 +11,12 @@ export type MarketplaceProductResponse = {
   description?: string;
   show_in_marketplace: boolean;
   in_stock: boolean;
+  has_variants?: boolean;
+  variants_required?: boolean;
+  primary_variant_group_id?: number;
+  display_image_url?: string;
+  min_price?: number;
+  max_price?: number;
 };
 
 export type MarketplaceProductListResponse = {
@@ -27,6 +33,12 @@ export type MarketplaceCartItemResponse = {
   product_name: string;
   product_sku: string;
   product_photo?: string;
+  variant_group_id?: number;
+  variant_group_name?: string;
+  variant_option_id?: number;
+  variant_attributes?: Record<string, string>;
+  variant_sku?: string;
+  variant_image_url?: string;
   quantity: number;
   price: number;
   subtotal: number;
@@ -57,6 +69,12 @@ export type MarketplaceOrderItemResponse = {
   product_name: string;
   product_sku: string;
   product_photo?: string;
+  variant_group_id?: number;
+  variant_group_name?: string;
+  variant_option_id?: number;
+  variant_attributes?: Record<string, string>;
+  variant_sku?: string;
+  variant_image_url?: string;
   quantity: number;
   price: number;
   subtotal: number;
@@ -124,4 +142,26 @@ export type MarketplaceOrderDetailResponse = {
 export type MarketplaceOrderStatusUpdateRequest = {
   status: string;
   reason?: string;
+};
+
+export type MarketplaceVariantOptionResponse = {
+  id: number;
+  sku: string;
+  attributes?: Record<string, string>;
+  price: number;
+  stock: number;
+  track_stock: boolean;
+};
+
+export type MarketplaceVariantGroupResponse = {
+  id: number;
+  name: string;
+  image_url?: string;
+  options?: MarketplaceVariantOptionResponse[];
+};
+
+export type MarketplaceProductVariantsResponse = {
+  product_id: number;
+  cover_image?: string;
+  groups?: MarketplaceVariantGroupResponse[];
 };

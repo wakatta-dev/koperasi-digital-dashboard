@@ -10,6 +10,7 @@ import {
   getMarketplaceCart,
   getMarketplaceProductDetail,
   getMarketplaceProducts,
+  getMarketplaceProductVariants,
   removeMarketplaceCartItem,
   updateMarketplaceCartItem,
 } from "@/services/api";
@@ -17,6 +18,7 @@ import type {
   MarketplaceCartResponse,
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
+  MarketplaceProductVariantsResponse,
 } from "@/types/api/marketplace";
 
 export type MarketplaceProductParams = {
@@ -51,6 +53,15 @@ export function useMarketplaceProductDetail(id: string | number | undefined) {
   });
 }
 
+export function useMarketplaceProductVariants(id: string | number | undefined) {
+  return useQuery({
+    queryKey: QK.marketplace.variants(id ?? ""),
+    enabled: Boolean(id),
+    queryFn: async (): Promise<MarketplaceProductVariantsResponse> =>
+      ensureSuccess(await getMarketplaceProductVariants(id as string | number)),
+  });
+}
+
 export function useMarketplaceCart(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: QK.marketplace.cart(),
@@ -67,7 +78,12 @@ export function useCartMutations() {
     qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
 
   const addItem = useMutation({
-    mutationFn: (payload: { product_id: number; quantity: number }) =>
+    mutationFn: (payload: {
+      product_id: number;
+      quantity: number;
+      variant_group_id?: number;
+      variant_option_id?: number;
+    }) =>
       addMarketplaceCartItem(payload).then(ensureSuccess),
     onSuccess: refreshCart,
   });

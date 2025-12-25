@@ -103,21 +103,34 @@ export function ProductsSection({ search, filters }: Props) {
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items?.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={{
-              id: String(product.id),
-              title: product.name,
-              description: product.description ?? "",
-              category: product.sku || "Produk",
-              price: formatCurrency(product.price),
-              unit: "unit",
-              image: product.photo_url || undefined,
-              inStock: product.in_stock,
-            }}
-          />
-        ))}
+        {items?.map((product) => {
+          const priceValue = product.variants_required
+            ? product.min_price ?? product.price
+            : product.price ?? product.min_price;
+          const priceLabel =
+            priceValue === undefined || priceValue === null
+              ? "—"
+              : formatCurrency(priceValue);
+          return (
+            <ProductCard
+              key={product.id}
+              product={{
+                id: String(product.id),
+                title: product.name,
+                description: product.description ?? "",
+                category: product.sku || "Produk",
+                price: priceLabel,
+                unit: "unit",
+                image:
+                  product.display_image_url ||
+                  product.photo_url ||
+                  undefined,
+                inStock: product.in_stock,
+                requiresVariant: product.variants_required ?? product.has_variants ?? false,
+              }}
+            />
+          );
+        })}
       </div>
 
       <Pagination
