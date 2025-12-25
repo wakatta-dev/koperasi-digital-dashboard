@@ -63,11 +63,17 @@ export function ReservationSummaryCard({
           <div className="flex flex-col md:flex-row gap-6">
             <div className="w-full md:w-1/3 flex-shrink-0">
               <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-sm relative group">
-                <img
-                  src={RESERVATION_SHARED.assetImage}
-                  alt="Gedung Serbaguna"
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                />
+                {RESERVATION_SHARED.assetImage ? (
+                  <img
+                    src={RESERVATION_SHARED.assetImage}
+                    alt="Gedung Serbaguna"
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400 dark:bg-gray-800 dark:text-gray-500">
+                    Tidak ada foto
+                  </div>
+                )}
                 <div className="absolute top-2 right-2 bg-white/90 dark:bg-black/80 backdrop-blur px-2 py-1 rounded text-xs font-bold text-gray-800 dark:text-white shadow-sm">
                   Aset Desa
                 </div>

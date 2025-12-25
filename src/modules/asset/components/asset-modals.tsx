@@ -25,7 +25,7 @@ import {
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ensureSuccess } from "@/lib/api";
-import { createAsset, updateAsset } from "@/services/api/assets";
+import { createAsset, updateAsset, uploadAssetImage } from "@/services/api/assets";
 import type { AssetItem } from "../types";
 import { QK } from "@/hooks/queries/queryKeys";
 
@@ -42,28 +42,32 @@ type EditAssetDialogProps = {
 
 const commonFieldClass =
   "rounded-lg border border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/60 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 h-11";
-const imagePlaceholder =
-  "https://images.unsplash.com/photo-1560525823-5dff3307e257?auto=format&fit=crop&w=600&q=80";
+const maxImageSizeBytes = 5 * 1024 * 1024;
 
 export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
   const qc = useQueryClient();
   const [name, setName] = React.useState("");
   const [rateType, setRateType] = React.useState<string | undefined>();
   const [rateAmount, setRateAmount] = React.useState<string>("");
-  const [photoUrl, setPhotoUrl] = React.useState("");
   const [description, setDescription] = React.useState("");
+  const [imageFile, setImageFile] = React.useState<File | null>(null);
+  const [imagePreview, setImagePreview] = React.useState<string>("");
 
   const createMutation = useMutation({
-    mutationFn: async () =>
-      ensureSuccess(
+    mutationFn: async () => {
+      const created = ensureSuccess(
         await createAsset({
           name,
           rate_type: rateType || "",
           rate_amount: Number(rateAmount) || 0,
-          photo_url: photoUrl || undefined,
           description: description || undefined,
         })
-      ),
+      );
+      if (imageFile) {
+        await ensureSuccess(await uploadAssetImage(created.id, imageFile));
+      }
+      return created;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.assetRental.list() });
       showToastSuccess("Aset dibuat", "Data aset berhasil disimpan");
@@ -79,8 +83,9 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
     setName("");
     setRateType(undefined);
     setRateAmount("");
-    setPhotoUrl("");
     setDescription("");
+    setImageFile(null);
+    setImagePreview("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -101,6 +106,35 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
     }
   }, [open]);
 
+  React.useEffect(() => {
+    if (!imageFile) {
+      setImagePreview("");
+      return;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [imageFile]);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+    if (file.size > maxImageSizeBytes) {
+      showToastError(
+        "Ukuran foto terlalu besar",
+        "Maksimal ukuran gambar 5MB."
+      );
+      event.target.value = "";
+      return;
+    }
+    setImageFile(file);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -116,7 +150,7 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
 
           <div className="space-y-3 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-xs text-indigo-800 dark:border-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-200">
             Field sudah disesuaikan dengan payload backend: name, rate_type (daily/hourly),
-            rate_amount, photo_url (opsional), dan description (opsional).
+            rate_amount, dan description (opsional). Foto aset diunggah terpisah via MinIO.
           </div>
 
           <div className="space-y-5">
@@ -171,17 +205,16 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Foto Aset (photo_url)
+                  Foto Aset
                 </Label>
                 <Input
-                  type="url"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  placeholder="https://contoh.com/foto-asset.jpg"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageChange}
                   className={commonFieldClass}
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Opsional, gunakan URL yang dapat diakses publik.
+                  JPG, PNG, atau WebP. Maksimal 5MB.
                 </p>
               </div>
             </div>
@@ -209,6 +242,19 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
               {createMutation.isPending ? "Menyimpan..." : "Tambah Aset"}
             </Button>
           </div>
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            {imagePreview ? (
+              <img
+                src={imagePreview}
+                alt="Preview Foto Aset"
+                className="h-28 w-full rounded-md object-cover"
+              />
+            ) : (
+              <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-slate-300 text-slate-400 dark:border-slate-600 dark:text-slate-500">
+                Belum ada foto
+              </div>
+            )}
+          </div>
         </form>
       </DialogContent>
     </Dialog>
@@ -228,28 +274,34 @@ export function EditAssetDialog({
   const [rateAmount, setRateAmount] = React.useState<string>(
     asset?.rateAmount != null ? String(asset.rateAmount) : ""
   );
-  const [photoUrl, setPhotoUrl] = React.useState(asset?.image ?? "");
   const [description, setDescription] = React.useState(asset?.description ?? "");
+  const [imageFile, setImageFile] = React.useState<File | null>(null);
+  const [imagePreview, setImagePreview] = React.useState<string>("");
 
   React.useEffect(() => {
     setName(asset?.title ?? "");
     setRateType(asset?.rateType?.toUpperCase());
     setRateAmount(asset?.rateAmount != null ? String(asset.rateAmount) : "");
-    setPhotoUrl(asset?.image ?? "");
     setDescription(asset?.description ?? "");
+    setImageFile(null);
+    setImagePreview("");
   }, [asset, open]);
 
   const updateMutation = useMutation({
-    mutationFn: async () =>
-      ensureSuccess(
+    mutationFn: async () => {
+      const updated = ensureSuccess(
         await updateAsset(asset?.id ?? "", {
           name,
           rate_type: rateType,
           rate_amount: rateAmount ? Number(rateAmount) : undefined,
-          photo_url: photoUrl || undefined,
           description: description || undefined,
         })
-      ),
+      );
+      if (imageFile && asset?.id) {
+        await ensureSuccess(await uploadAssetImage(asset.id, imageFile));
+      }
+      return updated;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.assetRental.list() });
       qc.invalidateQueries({ queryKey: QK.assetRental.detail(asset?.id ?? "") });
@@ -275,6 +327,35 @@ export function EditAssetDialog({
       return;
     }
     updateMutation.mutate();
+  };
+
+  React.useEffect(() => {
+    if (!imageFile) {
+      setImagePreview("");
+      return;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [imageFile]);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+    if (file.size > maxImageSizeBytes) {
+      showToastError(
+        "Ukuran foto terlalu besar",
+        "Maksimal ukuran gambar 5MB."
+      );
+      event.target.value = "";
+      return;
+    }
+    setImageFile(file);
   };
 
   return (
@@ -355,25 +436,30 @@ export function EditAssetDialog({
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="md:col-span-2 space-y-1.5">
               <Label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                Foto Aset (photo_url)
+                Foto Aset
               </Label>
               <Input
-                type="url"
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-                placeholder="https://contoh.com/foto-asset.jpg"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleImageChange}
                 className={commonFieldClass}
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                URL publik yang akan dikirim ke backend sebagai photo_url.
+                JPG, PNG, atau WebP. Maksimal 5MB.
               </p>
             </div>
             <div className="flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-              <img
-                src={asset?.image || imagePlaceholder}
-                alt={asset?.alt ?? "Preview Foto Aset"}
-                className="h-28 w-full rounded-md object-cover"
-              />
+              {imagePreview || asset?.image ? (
+                <img
+                  src={imagePreview || asset?.image}
+                  alt={asset?.alt ?? "Preview Foto Aset"}
+                  className="h-28 w-full rounded-md object-cover"
+                />
+              ) : (
+                <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-slate-300 text-xs text-slate-400 dark:border-slate-600 dark:text-slate-500">
+                  Belum ada foto
+                </div>
+              )}
             </div>
           </div>
 

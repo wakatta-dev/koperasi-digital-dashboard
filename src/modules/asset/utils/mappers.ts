@@ -15,8 +15,6 @@ const dateFormatter = new Intl.DateTimeFormat("id-ID", {
   year: "numeric",
 });
 
-const placeholderImage =
-  "https://images.unsplash.com/photo-1560525823-5dff3307e257?auto=format&fit=crop&w=600&q=80";
 
 export function mapAssetToItem(asset: AssetRentalAsset): AssetItem {
   const rateType = (asset.rate_type || "").toLowerCase();
@@ -27,7 +25,7 @@ export function mapAssetToItem(asset: AssetRentalAsset): AssetItem {
     title: asset.name,
     price,
     unit,
-    image: asset.photo_url || placeholderImage,
+    image: asset.photo_url || "",
     alt: asset.name || "Aset sewa",
     status: asset.status,
     rateType: asset.rate_type,
@@ -67,7 +65,7 @@ export function mapBookingToSchedule(booking: AssetRentalBooking): AssetSchedule
     backendStatus: booking.status,
     status,
     price: currencyFormatter.format(booking.total_amount ?? 0),
-    thumbnail: placeholderImage,
+    thumbnail: "",
     faded,
   };
 }

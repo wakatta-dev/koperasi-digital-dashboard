@@ -19,6 +19,7 @@ type AssetCardProps = {
 
 export function AssetCard({ asset }: AssetCardProps) {
   const statusStyle = STATUS_STYLES[asset.status];
+  const hasImage = Boolean(asset.imageUrl);
 
   return (
     <Link
@@ -26,11 +27,17 @@ export function AssetCard({ asset }: AssetCardProps) {
       className="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition duration-300 flex flex-col group"
     >
       <div className="relative h-48 overflow-hidden">
-        <img
-          src={asset.imageUrl}
-          alt={asset.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-        />
+        {hasImage ? (
+          <img
+            src={asset.imageUrl}
+            alt={asset.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400 dark:bg-gray-800 dark:text-gray-500">
+            Tidak ada foto
+          </div>
+        )}
         <div
           className={`${statusStyle.className} absolute top-3 right-3 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide`}
         >

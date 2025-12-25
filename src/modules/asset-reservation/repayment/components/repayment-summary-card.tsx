@@ -18,11 +18,17 @@ export function RepaymentSummaryCard() {
         <div className="flex flex-col sm:flex-row gap-6 mb-6">
           <div className="w-full sm:w-32 flex-shrink-0">
             <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-sm relative group bg-gray-100">
-              <img
-                src={REPAYMENT_SUMMARY.assetImage}
-                alt={REPAYMENT_SUMMARY.assetName}
-                className="w-full h-full object-cover"
-              />
+              {REPAYMENT_SUMMARY.assetImage ? (
+                <img
+                  src={REPAYMENT_SUMMARY.assetImage}
+                  alt={REPAYMENT_SUMMARY.assetName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xs text-gray-400 dark:text-gray-500">
+                  Tidak ada foto
+                </div>
+              )}
             </div>
           </div>
           <div className="flex-grow space-y-2">

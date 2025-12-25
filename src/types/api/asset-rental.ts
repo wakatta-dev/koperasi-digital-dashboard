@@ -34,7 +34,6 @@ export type CreateAssetRentalRequest = {
   name: string;
   rate_type: "DAILY" | "HOURLY" | string;
   rate_amount: number;
-  photo_url?: string;
   description?: string;
 };
 

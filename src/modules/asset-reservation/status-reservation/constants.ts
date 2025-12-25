@@ -6,8 +6,7 @@ export const RESERVATION_SHARED = {
   reservationId: "#RES-ASSET-20230815-001",
   assetName: "Gedung Serbaguna Kartika Runa Wijaya",
   assetLocation: "Jl. Persaudaraan no. 2 RT 004/002, Desa Sukamaju",
-  assetImage:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBmUoYd87NraZXqDoAyBE4uZo8NHjBclUYtagfwsTLxYjBqyeD0VacXFHScBS14NwGjMD0Jph1DBE5aFXTnTYKpKlX7rQP2ApJC9letgK3AcnB557OWOXxXcBGxMUbo6RZV5Vt3lfbvh5BTERchP37jMxiHUYGH9owtUZx4i59prR6ky4mq6DNinLab4GZrW1S1YsKbRUeGwpcWFA0J8x3mWW2dv4Qm5aotXuj026pi5S0D6xXpv4LNFUWMdlwgS1lORSUYGNzU1zw",
+  assetImage: "",
   checkIn: "13 Nov 2023, 08:00",
   checkOut: "15 Nov 2023, 17:00",
   renter: {

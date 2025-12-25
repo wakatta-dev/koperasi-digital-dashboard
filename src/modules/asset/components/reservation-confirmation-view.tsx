@@ -62,12 +62,8 @@ export function ReservationConfirmationView({
                       Aset Yang Disewa
                     </p>
                     <div className="flex items-start space-x-3">
-                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-200">
-                        <img
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjJp-Ml8FollDe2RTR3f7ISgwrNFKgf3NIlqefTgwjhjTsuJvAZV-TMzCizXfR76b3PCRzyKycFihBkD-8g0IZed67pgqtYqRdSOh3gI7aJPdGttxfZOmyJQvIw6zlzQQ6iTTEKOLDc02r9QQwmra_TnDGVL8_Tfgv1Aox9-cgTnYi4v2v4-7o_3vHaVvqHauFhzEVRcqH5c8dp9Lt7WoceDTmAAEYKhGXEz4pcN-9mgJTSoniLYXJlu4le2xf9znNXxN49tp0bfE"
-                          alt="Thumbnail"
-                          className="h-full w-full object-cover"
-                        />
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-[10px] text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                        Foto
                       </div>
                       <div>
                         <p className="font-bold text-slate-900 dark:text-slate-100">

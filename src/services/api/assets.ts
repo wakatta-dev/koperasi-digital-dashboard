@@ -85,3 +85,12 @@ export function updateAsset(
 ): Promise<ApiResponse<AssetRentalAsset>> {
   return api.patch<AssetRentalAsset>(`${API_PREFIX}${E.detail(id)}`, payload);
 }
+
+export function uploadAssetImage(
+  id: string | number,
+  file: File
+): Promise<ApiResponse<AssetRentalAsset>> {
+  const formData = new FormData();
+  formData.append("image", file);
+  return api.post<AssetRentalAsset>(`${API_PREFIX}${E.image(id)}`, formData);
+}

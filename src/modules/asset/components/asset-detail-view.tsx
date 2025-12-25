@@ -81,11 +81,17 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
               </div>
 
               <div className="mb-8 h-[400px] w-full overflow-hidden rounded-xl">
-                <img
-                  src={asset.image}
-                  alt={asset.alt}
-                  className="h-full w-full object-cover"
-                />
+                {asset.image ? (
+                  <img
+                    src={asset.image}
+                    alt={asset.alt}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-slate-100 text-sm text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+                    Tidak ada foto
+                  </div>
+                )}
               </div>
 
               <div className="mb-8">

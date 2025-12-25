@@ -2,6 +2,6 @@
 
 import { redirect } from "next/navigation";
 
-export default function InventoryRoutePage() {
+export default function MarketplaceIndexPage() {
   redirect("/bumdes/marketplace/inventory");
 }

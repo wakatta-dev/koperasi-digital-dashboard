@@ -17,11 +17,19 @@ type DetailGalleryProps = {
 
 export function DetailGallery({ heroImage, thumbnails, status, title }: DetailGalleryProps) {
   const badgeStyle = STATUS_STYLES[status];
+  const safeThumbs = thumbnails.filter((thumb) => Boolean(thumb));
+  const hasHero = Boolean(heroImage);
 
   return (
     <div className="space-y-4">
       <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-        <img src={heroImage} alt={title} className="w-full h-full object-cover" />
+        {hasHero ? (
+          <img src={heroImage} alt={title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs text-gray-400 dark:text-gray-500">
+            Tidak ada foto
+          </div>
+        )}
         <div
           className={`${badgeStyle.className} absolute top-4 right-4 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-lg`}
         >
@@ -29,7 +37,12 @@ export function DetailGallery({ heroImage, thumbnails, status, title }: DetailGa
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">
-        {thumbnails.map((thumb, index) => {
+        {safeThumbs.length === 0 ? (
+          <div className="col-span-4 flex h-24 items-center justify-center rounded-xl border border-dashed border-gray-200 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">
+            Belum ada foto tambahan
+          </div>
+        ) : null}
+        {safeThumbs.map((thumb, index) => {
           if (thumb === "placeholder") {
             return (
               <button

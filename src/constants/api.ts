@@ -72,6 +72,7 @@ export const API_ENDPOINTS = {
   assets: {
     list: "/asset-rental/assets",
     detail: (id: string | number) => `/asset-rental/assets/${id}`,
+    image: (id: string | number) => `/asset-rental/assets/${id}/image`,
     categories: "/asset-rental/assets/categories",
     availability: (id: string | number) => `/asset-rental/assets/${id}/availability`,
   },

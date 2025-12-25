@@ -1,6 +1,6 @@
 /** @format */
 
-import { InventoryDetailPage } from "@/modules/inventory/components/inventory-detail-page";
+import { redirect } from "next/navigation";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -8,5 +8,5 @@ type PageProps = {
 
 export default async function InventoryDetailRoutePage({ params }: PageProps) {
   const paramsResolved = await params;
-  return <InventoryDetailPage id={paramsResolved.id} />;
+  redirect(`/bumdes/marketplace/inventory/${paramsResolved.id}`);
 }

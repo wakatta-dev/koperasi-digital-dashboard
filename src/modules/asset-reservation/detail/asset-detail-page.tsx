@@ -85,6 +85,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 
   const detail = useMemo(() => {
     if (!mappedAsset) return null;
+    const heroImage = mappedAsset.imageUrl;
     return {
       id: mappedAsset.id,
       title: mappedAsset.title,
@@ -93,8 +94,8 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
       rawPrice: mappedAsset.rawPrice,
       unit: mappedAsset.unit,
       status: mappedAsset.status,
-      heroImage: mappedAsset.imageUrl,
-      thumbnails: [mappedAsset.imageUrl],
+      heroImage,
+      thumbnails: heroImage ? [heroImage] : [],
       descriptions: assetData?.description?.trim()
         ? assetData.description.split("\n").filter(Boolean)
         : [],

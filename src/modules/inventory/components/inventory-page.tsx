@@ -82,7 +82,9 @@ export function InventoryPage() {
         }
         onArchive={(item) => actions.archive.mutate(item.id)}
         onUnarchive={(item) => actions.unarchive.mutate(item.id)}
-        onRowClick={(item) => router.push(`/bumdes/inventory/${item.id}`)}
+        onRowClick={(item) =>
+          router.push(`/bumdes/marketplace/inventory/${item.id}`)
+        }
         footer={
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>

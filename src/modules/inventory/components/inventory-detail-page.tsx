@@ -115,7 +115,7 @@ export function InventoryDetailPage({ id }: Props) {
         <div className="flex items-center gap-2 text-sm text-[#6b7280] dark:text-[#94a3b8]">
           <Link
             className="font-medium text-[#6b7280] transition-colors hover:text-[#4f46e5] dark:text-[#94a3b8] dark:hover:text-[#a5b4fc]"
-            href="/bumdes/inventory"
+            href="/bumdes/marketplace/inventory"
           >
             Inventaris
           </Link>

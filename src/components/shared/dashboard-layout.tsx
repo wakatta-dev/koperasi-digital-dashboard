@@ -30,11 +30,15 @@ interface DashboardLayoutProps {
       icon?: ReactNode;
     }>;
   }>;
+  showHeader?: boolean;
+  contentClassName?: string;
 }
 
 export function DashboardLayout({
   children,
   navigation,
+  showHeader = true,
+  contentClassName,
 }: DashboardLayoutProps) {
   const { data: session } = useSession();
 
@@ -70,8 +74,14 @@ export function DashboardLayout({
     <React.Fragment>
       <AppSidebar variant="inset" data={sidebarData} />
       <SidebarInset className="flex flex-col h-full">
-        <SiteHeader />
-        <div className="h-full overflow-y-auto p-4 md:py-6 lg:px-6">{children}</div>
+        {showHeader ? <SiteHeader /> : null}
+        <div
+          className={
+            contentClassName ?? "h-full overflow-y-auto p-4 md:py-6 lg:px-6"
+          }
+        >
+          {children}
+        </div>
       </SidebarInset>
     </React.Fragment>
   );

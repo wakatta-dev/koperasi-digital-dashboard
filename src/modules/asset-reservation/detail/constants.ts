@@ -31,14 +31,8 @@ export const DETAIL_ASSET = {
   unit: "/hari",
   status: "available" as const,
   location: "Jl. Persaudaraan no. 2 RT 004/002, Desa Sukamaju",
-  heroImage:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuAIKy98Qr9BaKfa4F9wbOvLAcsVleQBczGsYAKZQ2T_wf47SjNMo-A1iCxiEt2b1Qcb7swn3EeJOriZ9QIgLV6dsKdFFXxNHGCbkZh2DYDHMO2IdwdLrEQhTSt8Zp3XzFjgV8UOAAR0wcKQiez2mSN-mj3mQc1Z4Ydh8oSmyxdBgZySLhsgp_GulmDJideGh0Hnl3YfOoDtXN-xynfBdjWWS0xGk07vrVmNQdmNDXX1dZj5QGZe2rsxzABDybTlCCopy1RJD8vkmVE",
-  thumbnails: [
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuAIKy98Qr9BaKfa4F9wbOvLAcsVleQBczGsYAKZQ2T_wf47SjNMo-A1iCxiEt2b1Qcb7swn3EeJOriZ9QIgLV6dsKdFFXxNHGCbkZh2DYDHMO2IdwdLrEQhTSt8Zp3XzFjgV8UOAAR0wcKQiez2mSN-mj3mQc1Z4Ydh8oSmyxdBgZySLhsgp_GulmDJideGh0Hnl3YfOoDtXN-xynfBdjWWS0xGk07vrVmNQdmNDXX1dZj5QGZe2rsxzABDybTlCCopy1RJD8vkmVE",
-    "placeholder",
-    "placeholder",
-    "more",
-  ],
+  heroImage: "",
+  thumbnails: [],
   descriptions: [
     "Gedung Serbaguna Kartika Runa Wijaya adalah fasilitas desa yang dirancang untuk mengakomodasi berbagai kegiatan masyarakat dalam skala besar maupun menengah. Terletak strategis di pusat desa, gedung ini menawarkan akses yang mudah bagi seluruh warga.",
     "Dengan luas bangunan mencapai 400 meter persegi, gedung ini sangat ideal untuk penyelenggaraan resepsi pernikahan, pertemuan warga, seminar, pelatihan, maupun acara kesenian. Pencahayaan alami yang baik serta sirkulasi udara yang optimal menjamin kenyamanan pengguna.",

@@ -21,6 +21,8 @@ export function AssetCard({
   onClick,
   onEdit,
 }: AssetCardProps) {
+  const hasImage = Boolean(image);
+
   return (
     <Card
       role="button"
@@ -32,11 +34,17 @@ export function AssetCard({
       )}
     >
       <div className="relative h-48 overflow-hidden">
-        <img
-          src={image}
-          alt={alt}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+        {hasImage ? (
+          <img
+            src={image}
+            alt={alt}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+            Tidak ada foto
+          </div>
+        )}
         <button
           type="button"
           onClick={(e) => {

@@ -114,7 +114,7 @@ export function InventoryTable({
                   </div>
                   <div className="ml-4">
                     <Link
-                      href={`/bumdes/inventory/${row.id}`}
+                      href={`/bumdes/marketplace/inventory/${row.id}`}
                       className="text-sm font-medium text-foreground transition-colors hover:underline"
                     >
                       {row.name}
