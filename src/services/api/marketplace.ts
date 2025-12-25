@@ -6,7 +6,10 @@ import type { ApiResponse } from "@/types/api";
 import type {
   MarketplaceCartResponse,
   MarketplaceCheckoutRequest,
+  MarketplaceOrderDetailResponse,
+  MarketplaceOrderListResponse,
   MarketplaceOrderResponse,
+  MarketplaceOrderStatusUpdateRequest,
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
 } from "@/types/api/marketplace";
@@ -78,4 +81,41 @@ export function checkoutMarketplace(
   return api.post<MarketplaceOrderResponse>(`${API_PREFIX}${E.checkout}`, payload, {
     credentials: "include",
   });
+}
+
+export function listMarketplaceOrders(params?: {
+  q?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+  offset?: number;
+  sort?: string;
+}): Promise<ApiResponse<MarketplaceOrderListResponse>> {
+  const search = new URLSearchParams();
+  if (params?.q) search.set("q", params.q);
+  if (params?.status) search.set("status", params.status);
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  if (params?.limit !== undefined) search.set("limit", String(params.limit));
+  if (params?.offset !== undefined) search.set("offset", String(params.offset));
+  if (params?.sort) search.set("sort", params.sort);
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<MarketplaceOrderListResponse>(`${API_PREFIX}${E.orders}${query}`);
+}
+
+export function getMarketplaceOrderDetail(
+  id: string | number
+): Promise<ApiResponse<MarketplaceOrderDetailResponse>> {
+  return api.get<MarketplaceOrderDetailResponse>(`${API_PREFIX}${E.order(id)}`);
+}
+
+export function updateMarketplaceOrderStatus(
+  id: string | number,
+  payload: MarketplaceOrderStatusUpdateRequest
+): Promise<ApiResponse<MarketplaceOrderDetailResponse>> {
+  return api.patch<MarketplaceOrderDetailResponse>(
+    `${API_PREFIX}${E.orderStatus(id)}`,
+    payload
+  );
 }

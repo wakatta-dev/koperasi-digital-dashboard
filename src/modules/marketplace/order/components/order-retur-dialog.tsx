@@ -2,29 +2,37 @@
 
 "use client";
 
-import type { ReactNode } from "react";
+import { useMemo } from "react";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatOrderNumber } from "../utils";
+import type { MarketplaceOrderDetailResponse } from "@/types/api/marketplace";
 
 type OrderReturDialogProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  trigger?: ReactNode;
+  order?: MarketplaceOrderDetailResponse | null;
 };
 
 export function OrderReturDialog({
   open,
   onOpenChange,
-  trigger,
+  order,
 }: OrderReturDialogProps) {
+  const totalPayment = order?.total ?? null;
+  const refundSuggestion = useMemo(() => {
+    if (totalPayment === null || totalPayment <= 0) return "";
+    const partial = Math.round(totalPayment / 2);
+    return formatNumber(partial, { maximumFractionDigits: 0 });
+  }, [totalPayment]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent
         className="!flex !flex-col !gap-0 !p-0 w-full max-w-[90vw] sm:!max-w-lg align-bottom sm:my-8 sm:align-middle overflow-hidden rounded-lg bg-white text-left shadow-xl ring-1 ring-black ring-opacity-5 dark:bg-[#1e293b] font-['Inter',_sans-serif]"
         overlayClassName="bg-gray-900 bg-opacity-75 transition-opacity"
@@ -43,7 +51,7 @@ export function OrderReturDialog({
                 ID Pesanan
               </span>
               <span className="font-semibold text-[#111827] dark:text-white">
-                #ORD-2023-001
+                {formatOrderNumber(order?.order_number)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -51,7 +59,7 @@ export function OrderReturDialog({
                 Pelanggan
               </span>
               <span className="font-medium text-[#111827] dark:text-white">
-                Budi Santoso
+                {order?.customer_name || "-"}
               </span>
             </div>
             <div className="mt-1 flex justify-between border-t border-gray-200 pt-2 dark:border-gray-700">
@@ -59,7 +67,7 @@ export function OrderReturDialog({
                 Total Pembayaran
               </span>
               <span className="font-bold text-[#4f46e5] dark:text-indigo-400">
-                Rp470.000
+                {formatCurrency(totalPayment)}
               </span>
             </div>
           </div>
@@ -83,7 +91,7 @@ export function OrderReturDialog({
                 >
                   Pengembalian Dana Penuh
                   <span className="block text-xs font-normal text-[#6b7280] dark:text-[#94a3b8]">
-                    Otomatis senilai Rp470.000
+                    Otomatis senilai {formatCurrency(totalPayment)}
                   </span>
                 </label>
               </div>
@@ -109,7 +117,7 @@ export function OrderReturDialog({
                   </div>
                   <input
                     className="block w-full rounded-md border-gray-300 pl-10 text-sm focus:border-[#4f46e5] focus:ring-[#4f46e5] dark:border-gray-600 dark:bg-slate-800 dark:text-white"
-                    defaultValue="250.000"
+                    defaultValue={refundSuggestion}
                     id="price"
                     name="price"
                     placeholder="0"
@@ -187,8 +195,10 @@ export function OrderReturDialog({
         </div>
         <div className="border-t border-[#e5e7eb] bg-gray-50 px-4 py-3 dark:border-[#334155] dark:bg-slate-800/50 sm:flex sm:flex-row-reverse sm:px-6">
           <button
-            className="inline-flex w-full justify-center rounded-md bg-[#4f46e5] px-4 py-2 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+            className="inline-flex w-full justify-center rounded-md bg-[#4f46e5] px-4 py-2 text-base font-medium text-white shadow-sm transition-colors hover:bg-[#4338ca] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-3 sm:w-auto sm:text-sm"
             type="button"
+            disabled
+            title="Fitur pengembalian dana belum tersedia"
           >
             Proses Pengembalian Dana
           </button>
@@ -200,6 +210,9 @@ export function OrderReturDialog({
               Batal
             </button>
           </DialogClose>
+        </div>
+        <div className="border-t border-gray-100 bg-white px-4 pb-4 text-xs text-amber-600 dark:border-gray-700 dark:bg-[#1e293b] dark:text-amber-400 sm:px-6">
+          Fitur pengembalian dana belum tersedia di backend saat ini.
         </div>
       </DialogContent>
     </Dialog>

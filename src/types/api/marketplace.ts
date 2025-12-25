@@ -62,6 +62,30 @@ export type MarketplaceOrderItemResponse = {
   subtotal: number;
 };
 
+export type MarketplaceOrderSummaryResponse = {
+  id: number;
+  order_number: string;
+  status: string;
+  fulfillment_method: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string;
+  total: number;
+  created_at: number;
+};
+
+export type MarketplaceOrderListResponse = {
+  items: MarketplaceOrderSummaryResponse[];
+  total?: number;
+  limit?: number;
+  offset?: number;
+};
+
+export type MarketplaceOrderStatusHistoryResponse = {
+  status: string;
+  timestamp: number;
+};
+
 export type MarketplaceOrderResponse = {
   id: number;
   status: string;
@@ -74,4 +98,30 @@ export type MarketplaceOrderResponse = {
   total: number;
   items: MarketplaceOrderItemResponse[];
   created_at: number;
+};
+
+export type MarketplaceOrderDetailResponse = {
+  id: number;
+  order_number: string;
+  status: string;
+  fulfillment_method: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string;
+  customer_address?: string;
+  notes?: string;
+  total: number;
+  items: MarketplaceOrderItemResponse[];
+  created_at: number;
+  updated_at: number;
+  status_history?: MarketplaceOrderStatusHistoryResponse[];
+  payment_method?: string;
+  payment_reference?: string;
+  shipping_method?: string;
+  shipping_tracking_number?: string;
+};
+
+export type MarketplaceOrderStatusUpdateRequest = {
+  status: string;
+  reason?: string;
 };

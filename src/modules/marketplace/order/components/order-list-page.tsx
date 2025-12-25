@@ -1,8 +1,113 @@
 /** @format */
 
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/format";
+import { useConfirm } from "@/components/shared/confirm-dialog-provider";
+import {
+  useMarketplaceOrderActions,
+  useMarketplaceOrders,
+} from "@/hooks/queries/marketplace-orders";
+import { OrderInvoiceDialog } from "./order-invoice-dialog";
+import {
+  canCancelOrder,
+  formatOrderDate,
+  formatOrderNumber,
+  getPaymentBadge,
+  getShippingBadge,
+  getStatusAction,
+} from "../utils";
+import type { MarketplaceOrderSummaryResponse } from "@/types/api/marketplace";
+
+const PAGE_SIZE = 10;
 
 export function OrderListPage() {
+  const confirm = useConfirm();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [invoiceOrderId, setInvoiceOrderId] = useState<number | null>(null);
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    | {
+        id: number;
+        action: string;
+      }
+    | null
+  >(null);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, dateFilter]);
+
+  const statusParam = useMemo(() => {
+    if (statusFilter === "pending") return "PENDING";
+    if (statusFilter === "paid") return "PAID,PROCESSING,COMPLETED";
+    if (statusFilter === "canceled") return "CANCELED";
+    return undefined;
+  }, [statusFilter]);
+
+  const queryParams = useMemo(
+    () => ({
+      q: search || undefined,
+      status: statusParam,
+      from: dateFilter || undefined,
+      to: dateFilter || undefined,
+      limit: PAGE_SIZE,
+      offset: (page - 1) * PAGE_SIZE,
+      sort: "newest",
+    }),
+    [search, statusParam, dateFilter, page]
+  );
+
+  const { data, isLoading, isError, error } = useMarketplaceOrders(queryParams);
+  const { updateStatus } = useMarketplaceOrderActions();
+
+  const orders = data?.items ?? [];
+  const totalItems = data?.total ?? orders.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+  const pageNumbers = useMemo(() => {
+    const maxPages = Math.min(3, totalPages);
+    return Array.from({ length: maxPages }, (_, idx) => idx + 1);
+  }, [totalPages]);
+
+  const handleOpenInvoice = (orderId: number) => {
+    setInvoiceOrderId(orderId);
+    setInvoiceOpen(true);
+  };
+
+  const handleStatusUpdate = async (
+    order: MarketplaceOrderSummaryResponse,
+    nextStatus: string,
+    actionKey: string,
+    reason?: string
+  ) => {
+    setPendingAction({ id: order.id, action: actionKey });
+    try {
+      await updateStatus.mutateAsync({
+        id: order.id,
+        payload: { status: nextStatus, reason },
+      });
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const handleCancel = async (order: MarketplaceOrderSummaryResponse) => {
+    const ok = await confirm({
+      variant: "delete",
+      title: "Batalkan pesanan?",
+      description: `Pesanan ${formatOrderNumber(order.order_number)} akan dibatalkan.`,
+      confirmText: "Batalkan",
+    });
+    if (!ok) return;
+    await handleStatusUpdate(order, "CANCELED", "cancel", "Dibatalkan oleh admin");
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#F9FAFB] text-[#111827] antialiased dark:bg-[#0f172a] dark:text-[#f8fafc] font-['Inter',_sans-serif]">
       <div className="relative flex flex-1 flex-col overflow-hidden bg-white dark:bg-[#0f172a]">
@@ -60,6 +165,8 @@ export function OrderListPage() {
                 className="block w-full rounded-md border border-[#e5e7eb] bg-white py-2 pl-10 pr-3 text-sm leading-5 text-[#111827] placeholder-[#6b7280] transition-colors focus:border-[#4f46e5] focus:outline-none focus:ring-1 focus:ring-[#4f46e5] focus:placeholder-gray-400 dark:border-[#334155] dark:bg-[#1e293b] dark:text-white dark:placeholder-[#94a3b8]"
                 placeholder="Cari ID Pesanan, nama pelanggan, atau produk..."
                 type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
               />
             </div>
             <div className="relative group">
@@ -81,16 +188,23 @@ export function OrderListPage() {
                     <input
                       className="w-full rounded border-gray-300 bg-gray-50 text-xs dark:border-gray-600 dark:bg-slate-800"
                       type="date"
+                      value={dateFilter}
+                      onChange={(event) => setDateFilter(event.target.value)}
                     />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-[#6b7280] dark:text-[#94a3b8]">
                       Status Pembayaran
                     </label>
-                    <select className="w-full rounded border-gray-300 bg-gray-50 text-xs dark:border-gray-600 dark:bg-slate-800">
-                      <option>Semua</option>
-                      <option>Menunggu</option>
-                      <option>Lunas</option>
+                    <select
+                      className="w-full rounded border-gray-300 bg-gray-50 text-xs dark:border-gray-600 dark:bg-slate-800"
+                      value={statusFilter}
+                      onChange={(event) => setStatusFilter(event.target.value)}
+                    >
+                      <option value="all">Semua</option>
+                      <option value="pending">Menunggu</option>
+                      <option value="paid">Lunas</option>
+                      <option value="canceled">Dibatalkan</option>
                     </select>
                   </div>
                 </div>
@@ -138,251 +252,149 @@ export function OrderListPage() {
                     >
                       Status Pengiriman
                     </th>
-                    <th className="relative px-6 py-3" scope="col">
-                      <span className="sr-only">Actions</span>
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6b7280] dark:text-[#94a3b8]">
+                      Aksi
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e5e7eb] bg-white dark:divide-[#334155] dark:bg-[#1e293b]">
-                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
-                      #ORD-2023-001
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                      20 Okt 2023
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Budi Santoso
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Rp450.000
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                        Lunas
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                        Dikirim
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                      <div className="relative inline-block text-left group">
-                        <button
-                          className="text-[#6b7280] hover:text-[#111827] focus:outline-none dark:text-[#94a3b8] dark:hover:text-white"
-                          type="button"
-                        >
-                          <span className="material-icons-outlined">
-                            more_vert
+                  {isLoading ? (
+                    <tr>
+                      <td
+                        className="px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]"
+                        colSpan={7}
+                      >
+                        Memuat pesanan...
+                      </td>
+                    </tr>
+                  ) : null}
+                  {isError ? (
+                    <tr>
+                      <td
+                        className="px-6 py-4 text-sm text-red-600 dark:text-red-400"
+                        colSpan={7}
+                      >
+                        {error instanceof Error
+                          ? error.message
+                          : "Gagal memuat pesanan."}
+                      </td>
+                    </tr>
+                  ) : null}
+                  {!isLoading && !isError && orders.length === 0 ? (
+                    <tr>
+                      <td
+                        className="px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]"
+                        colSpan={7}
+                      >
+                        Tidak ada pesanan ditemukan.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {orders.map((order) => {
+                    const payment = getPaymentBadge(order.status);
+                    const shipping = getShippingBadge(order.status);
+                    const action = getStatusAction(order.status);
+                    const isRowLoading = pendingAction?.id === order.id;
+                    const canCancel = canCancelOrder(order.status);
+
+                    return (
+                      <tr
+                        key={order.id}
+                        className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                      >
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
+                          {formatOrderNumber(order.order_number)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
+                          {formatOrderDate(order.created_at)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
+                          {order.customer_name}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
+                          {formatCurrency(order.total)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${payment.className}`}
+                          >
+                            {payment.label}
                           </span>
-                        </button>
-                        <div className="absolute right-0 z-10 mt-2 hidden w-48 origin-top-right divide-y divide-gray-100 rounded-md border border-gray-200 bg-white shadow-lg outline-none dark:divide-gray-700 dark:border-gray-700 dark:bg-slate-800 group-hover:block">
-                          <div className="py-1">
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${shipping.className}`}
+                          >
+                            {shipping.label}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-2">
                             <Link
-                              className="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-slate-700"
-                              href="/bumdes/marketplace/order/ORD-2023-001"
+                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-[#111827] dark:text-[#94a3b8] dark:hover:bg-slate-700 dark:hover:text-white"
+                              href={`/bumdes/marketplace/order/${order.id}`}
+                              title="Lihat Detail"
                             >
-                              <span className="material-icons-outlined mr-3 text-base text-gray-400">
+                              <span className="material-icons-outlined text-[18px]">
                                 visibility
                               </span>
-                              Lihat Detail
                             </Link>
-                            <a
-                              className="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-slate-700"
-                              href="#"
+                            <button
+                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-[#111827] dark:text-[#94a3b8] dark:hover:bg-slate-700 dark:hover:text-white"
+                              type="button"
+                              onClick={() => handleOpenInvoice(order.id)}
+                              title="Cetak Invoice"
                             >
-                              <span className="material-icons-outlined mr-3 text-base text-gray-400">
-                                edit
-                              </span>
-                              Ubah Status
-                            </a>
-                          </div>
-                          <div className="py-1">
-                            <a
-                              className="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-slate-700"
-                              href="#"
-                            >
-                              <span className="material-icons-outlined mr-3 text-base text-gray-400">
+                              <span className="material-icons-outlined text-[18px]">
                                 print
                               </span>
-                              Cetak Invoice
-                            </a>
+                            </button>
+                            <button
+                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-[#111827] disabled:cursor-not-allowed disabled:opacity-40 dark:text-[#94a3b8] dark:hover:bg-slate-700 dark:hover:text-white"
+                              type="button"
+                              disabled={!action || isRowLoading}
+                              onClick={() => {
+                                if (!action) return;
+                                void handleStatusUpdate(order, action.nextStatus, "status");
+                              }}
+                              title={action?.label ?? "Ubah Status"}
+                            >
+                              <span
+                                className={`material-icons-outlined text-[18px] ${
+                                  isRowLoading && pendingAction?.action === "status"
+                                    ? "animate-spin"
+                                    : ""
+                                }`}
+                              >
+                                {isRowLoading && pendingAction?.action === "status"
+                                  ? "autorenew"
+                                  : action?.icon ?? "play_circle"}
+                              </span>
+                            </button>
+                            <button
+                              className="rounded-full p-1 text-[#6b7280] transition-colors hover:bg-gray-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                              type="button"
+                              disabled={!canCancel || isRowLoading}
+                              onClick={() => void handleCancel(order)}
+                              title="Batalkan Pesanan"
+                            >
+                              <span
+                                className={`material-icons-outlined text-[18px] ${
+                                  isRowLoading && pendingAction?.action === "cancel"
+                                    ? "animate-spin"
+                                    : ""
+                                }`}
+                              >
+                                {isRowLoading && pendingAction?.action === "cancel"
+                                  ? "autorenew"
+                                  : "cancel"}
+                              </span>
+                            </button>
                           </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
-                      #ORD-2023-002
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                      21 Okt 2023
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Siti Aminah
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Rp125.000
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-yellow-100 px-2 text-xs font-semibold leading-5 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                        Menunggu Pembayaran
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-gray-100 px-2 text-xs font-semibold leading-5 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                        Baru
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                      <button
-                        className="text-[#6b7280] hover:text-[#111827] dark:text-[#94a3b8] dark:hover:text-white"
-                        type="button"
-                      >
-                        <span className="material-icons-outlined">
-                          more_vert
-                        </span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
-                      #ORD-2023-003
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                      21 Okt 2023
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Rudi Hermawan
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Rp850.000
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                        Lunas
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-orange-100 px-2 text-xs font-semibold leading-5 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                        Diproses
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                      <button
-                        className="text-[#6b7280] hover:text-[#111827] dark:text-[#94a3b8] dark:hover:text-white"
-                        type="button"
-                      >
-                        <span className="material-icons-outlined">
-                          more_vert
-                        </span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
-                      #ORD-2023-004
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                      22 Okt 2023
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Dewi Lestari
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Rp2.300.000
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                        Lunas
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-purple-100 px-2 text-xs font-semibold leading-5 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                        Selesai
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                      <button
-                        className="text-[#6b7280] hover:text-[#111827] dark:text-[#94a3b8] dark:hover:text-white"
-                        type="button"
-                      >
-                        <span className="material-icons-outlined">
-                          more_vert
-                        </span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
-                      #ORD-2023-005
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                      23 Okt 2023
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Ahmad Fauzi
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Rp65.000
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                        Dibatalkan
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                        Dibatalkan
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                      <button
-                        className="text-[#6b7280] hover:text-[#111827] dark:text-[#94a3b8] dark:hover:text-white"
-                        type="button"
-                      >
-                        <span className="material-icons-outlined">
-                          more_vert
-                        </span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-[#4f46e5] dark:text-indigo-400">
-                      #ORD-2023-006
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#6b7280] dark:text-[#94a3b8]">
-                      23 Okt 2023
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Maya Sari
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-[#111827] dark:text-white">
-                      Rp1.150.000
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                        Lunas
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-full bg-orange-100 px-2 text-xs font-semibold leading-5 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                        Diproses
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                      <button
-                        className="text-[#6b7280] hover:text-[#111827] dark:text-[#94a3b8] dark:hover:text-white"
-                        type="button"
-                      >
-                        <span className="material-icons-outlined">
-                          more_vert
-                        </span>
-                      </button>
-                    </td>
-                  </tr>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -391,36 +403,40 @@ export function OrderListPage() {
                 <button
                   className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-100 disabled:opacity-50 dark:text-[#94a3b8] dark:hover:bg-slate-700"
                   type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 >
                   <span className="material-icons-outlined mr-1 text-sm">
                     chevron_left
                   </span>
                   Previous
                 </button>
+                {pageNumbers.map((number) => (
+                  <button
+                    key={number}
+                    className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                      number === page
+                        ? "border border-[#e5e7eb] bg-white text-[#4f46e5] dark:border-[#334155] dark:bg-[#1e293b] dark:text-indigo-400"
+                        : "text-[#6b7280] hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
+                    }`}
+                    type="button"
+                    onClick={() => setPage(number)}
+                  >
+                    {number}
+                  </button>
+                ))}
+                {totalPages > 3 ? (
+                  <span className="px-2 text-[#6b7280] dark:text-[#94a3b8]">
+                    ...
+                  </span>
+                ) : null}
                 <button
-                  className="rounded-md border border-[#e5e7eb] bg-white px-3 py-1 text-sm font-medium text-[#4f46e5] dark:border-[#334155] dark:bg-[#1e293b] dark:text-indigo-400"
+                  className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-100 disabled:opacity-50 dark:text-[#94a3b8] dark:hover:bg-slate-700"
                   type="button"
-                >
-                  1
-                </button>
-                <button
-                  className="rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
-                  type="button"
-                >
-                  2
-                </button>
-                <button
-                  className="rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
-                  type="button"
-                >
-                  3
-                </button>
-                <span className="px-2 text-[#6b7280] dark:text-[#94a3b8]">
-                  ...
-                </span>
-                <button
-                  className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-[#6b7280] transition-colors hover:bg-gray-100 dark:text-[#94a3b8] dark:hover:bg-slate-700"
-                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() =>
+                    setPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                 >
                   Next
                   <span className="material-icons-outlined ml-1 text-sm">
@@ -432,6 +448,14 @@ export function OrderListPage() {
           </div>
         </div>
       </div>
+      <OrderInvoiceDialog
+        open={invoiceOpen}
+        onOpenChange={(open) => {
+          setInvoiceOpen(open);
+          if (!open) setInvoiceOrderId(null);
+        }}
+        orderId={invoiceOrderId ?? undefined}
+      />
     </div>
   );
 }

@@ -68,6 +68,10 @@ export const QK = {
     detail: (id: string | number) =>
       ["marketplace", "products", String(id)] as const,
     cart: () => ["marketplace", "cart"] as const,
+    orders: (params?: Record<string, unknown>) =>
+      ["marketplace", "orders", params ?? {}] as const,
+    orderDetail: (id: string | number) =>
+      ["marketplace", "orders", String(id)] as const,
   },
   inventory: {
     lists: () => ["inventory", "products"] as const,
@@ -108,6 +112,8 @@ export type QueryKey = ReturnType<
   | typeof QK.marketplace.list
   | typeof QK.marketplace.detail
   | typeof QK.marketplace.cart
+  | typeof QK.marketplace.orders
+  | typeof QK.marketplace.orderDetail
   | typeof QK.inventory.list
   | typeof QK.inventory.detail
   | typeof QK.inventory.history

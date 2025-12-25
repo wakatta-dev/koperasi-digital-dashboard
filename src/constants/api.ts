@@ -68,6 +68,9 @@ export const API_ENDPOINTS = {
     cartItem: "/marketplace/cart/items",
     cartItemById: (id: string | number) => `/marketplace/cart/items/${id}`,
     checkout: "/marketplace/checkout",
+    orders: "/marketplace/orders",
+    order: (id: string | number) => `/marketplace/orders/${id}`,
+    orderStatus: (id: string | number) => `/marketplace/orders/${id}/status`,
   },
   assets: {
     list: "/asset-rental/assets",
