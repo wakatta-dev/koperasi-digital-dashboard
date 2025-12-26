@@ -1,7 +1,6 @@
 /** @format */
 
 import { Button } from "@/components/ui/button";
-import { PAYMENT_BREADCRUMB } from "../constants";
 import type { ReservationSummary } from "../../types";
 
 type PaymentSidebarProps = {
@@ -18,10 +17,13 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
   const dueText = sessionPayBy
     ? `Bayar sebelum ${new Date(sessionPayBy).toLocaleString("id-ID")}`
     : "Segera selesaikan pembayaran sebelum batas waktu yang ditentukan.";
-  const confirmationSig = process.env.NEXT_PUBLIC_RESERVATION_SIG || "secure-token";
-  const confirmationHref = `/penyewaan-aset/status-reservasi?state=done&id=${encodeURIComponent(
-    reservation.reservationId
-  )}&sig=${encodeURIComponent(confirmationSig)}`;
+  const confirmationSig = process.env.NEXT_PUBLIC_RESERVATION_SIG;
+  const confirmationHref =
+    confirmationSig && reservation.reservationId
+      ? `/penyewaan-aset/status-reservasi?state=done&id=${encodeURIComponent(
+          reservation.reservationId
+        )}&sig=${encodeURIComponent(confirmationSig)}`
+      : null;
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl sticky top-24 overflow-hidden ring-1 ring-gray-900/5">
@@ -76,12 +78,20 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
         </div>
         <Button
           className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-[0.98] flex items-center justify-center gap-2 group"
-          asChild
+          disabled={!confirmationHref}
+          asChild={Boolean(confirmationHref)}
         >
-          <a href={confirmationHref}>
-            <span className="material-icons-outlined group-hover:scale-110 transition">lock</span>
-            Selesaikan Pembayaran
-          </a>
+          {confirmationHref ? (
+            <a href={confirmationHref}>
+              <span className="material-icons-outlined group-hover:scale-110 transition">lock</span>
+              Selesaikan Pembayaran
+            </a>
+          ) : (
+            <>
+              <span className="material-icons-outlined group-hover:scale-110 transition">lock</span>
+              Selesaikan Pembayaran
+            </>
+          )}
         </Button>
       </div>
       <div className="bg-gray-50 dark:bg-gray-800/50 p-4 border-t border-gray-100 dark:border-gray-800">

@@ -9,7 +9,7 @@ import { AssetReservationFooter } from "../components/reservation-footer";
 import { DetailDescription } from "../detail/components/detail-description";
 import { DetailFacilities } from "../detail/components/detail-facilities";
 import { DetailRecommendations } from "../detail/components/detail-recommendations";
-import { STATUS_FACILITIES, type ReservationStatus } from "./constants";
+import { type ReservationStatus } from "./constants";
 import { StatusBreadcrumb } from "./components/status-breadcrumb";
 import { StatusHeader } from "./components/status-header";
 import { StatusHero } from "./components/status-hero";
@@ -132,6 +132,24 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
   const displayStatus = reservation ? mapStatus(reservation.status) : decoded ? mapStatus(decoded.status) : status;
   const { data: assetData } = useAssetDetail(reservation?.assetId);
   const asset = useMemo(() => mapAssetForStatus(assetData), [assetData]);
+  const facilities = useMemo(() => {
+    const rawFacilities = (assetData as any)?.facilities;
+    if (!Array.isArray(rawFacilities)) return [];
+    return rawFacilities
+      .map((item) => {
+        if (typeof item === "string") {
+          return { icon: "check", label: item };
+        }
+        if (item && typeof item === "object" && "label" in item) {
+          const label = String((item as any).label || "").trim();
+          if (!label) return null;
+          const icon = typeof (item as any).icon === "string" ? (item as any).icon : "check";
+          return { icon, label };
+        }
+        return null;
+      })
+      .filter(Boolean) as { icon: string; label: string }[];
+  }, [assetData]);
   const descriptions = useMemo(() => {
     if (assetData?.description?.trim()) {
       return assetData.description.split("\n").filter(Boolean);
@@ -201,8 +219,8 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
         reservationId: result.payload.id,
         assetId: "",
         status: (result.payload.status as any) || "pending_review",
-        startDate: result.payload.exp ? new Date().toISOString() : "",
-        endDate: result.payload.exp ? new Date().toISOString() : "",
+        startDate: "",
+        endDate: "",
         amounts: { total: 0, dp: 0, remaining: 0 },
         holdExpiresAt: result.payload.exp,
       });
@@ -390,7 +408,7 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
                     {timelineItems.length > 0 ? <StatusTimeline items={timelineItems} /> : null}
 
                     {descriptions.length > 0 ? <DetailDescription paragraphs={descriptions} /> : null}
-                    <DetailFacilities facilities={STATUS_FACILITIES} />
+                    <DetailFacilities facilities={facilities} />
                   </div>
                 </div>
 

@@ -4,9 +4,22 @@ import type { FacilityItem } from "../constants";
 
 type DetailFacilitiesProps = {
   facilities: FacilityItem[];
+  emptyLabel?: string;
 };
 
-export function DetailFacilities({ facilities }: DetailFacilitiesProps) {
+export function DetailFacilities({
+  facilities,
+  emptyLabel = "Fasilitas belum tersedia.",
+}: DetailFacilitiesProps) {
+  if (!facilities || facilities.length === 0) {
+    return (
+      <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Fasilitas Aset</h2>
+        <div className="text-sm text-gray-500 dark:text-gray-400">{emptyLabel}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Fasilitas Aset</h2>

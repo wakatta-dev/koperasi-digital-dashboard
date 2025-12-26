@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
@@ -12,6 +12,7 @@ import { SecureInfoBar } from "./components/secure-info-bar";
 import { ConfirmationBreadcrumb } from "../confirmation/components/confirmation-breadcrumb";
 import { ReservationSummaryCard } from "./components/reservation-summary-card";
 import { DownloadProofModal } from "./components/download-proof-modal";
+import { useReservation } from "../hooks";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -25,15 +26,15 @@ type StatusReservationPageProps = {
 };
 
 export function StatusReservationPage({
-  state,
+  state: _state,
   hasSignature,
   reservationId,
 }: StatusReservationPageProps) {
   const [downloadOpen, setDownloadOpen] = useState(false);
-  const selectedState = useMemo<ReservationState>(
-    () => (state === "done" ? "done" : "dp"),
-    [state]
+  const { data: reservation, isLoading, error } = useReservation(
+    hasSignature ? reservationId : undefined
   );
+  const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
   return (
     <div className={plusJakarta.className}>
@@ -46,12 +47,24 @@ export function StatusReservationPage({
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
             {hasSignature ? (
               <>
-                <ReservationSummaryCard
-                  state={selectedState}
-                  hasSignature={hasSignature}
-                  reservationId={reservationId}
-                  onDownload={() => setDownloadOpen(true)}
-                />
+                {isLoading ? (
+                  <div className="rounded-3xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1e293b] p-8 text-sm text-gray-500 dark:text-gray-400">
+                    Memuat data reservasi...
+                  </div>
+                ) : (
+                  <ReservationSummaryCard
+                    hasSignature={hasSignature}
+                    reservationId={reservationId}
+                    reservation={reservation ?? null}
+                    proofAvailable={false}
+                    onDownload={() => setDownloadOpen(true)}
+                  />
+                )}
+                {errorMessage ? (
+                  <div className="mt-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    {errorMessage}
+                  </div>
+                ) : null}
               </>
             ) : (
               <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-md text-center">

@@ -10,6 +10,14 @@ export const metadata: Metadata = {
     "Reservasi aset Anda telah aktif. Lihat detail konfirmasi pembayaran dan reservasi.",
 };
 
-export default function PenyewaanAsetConfirmationPage() {
-  return <AssetConfirmationPage />;
+type ConfirmationPageProps = {
+  searchParams?: Promise<{ reservationId?: string }>;
+};
+
+export default async function PenyewaanAsetConfirmationPage({
+  searchParams,
+}: ConfirmationPageProps) {
+  const params = await searchParams;
+  const reservationId = params?.reservationId;
+  return <AssetConfirmationPage reservationId={reservationId} />;
 }

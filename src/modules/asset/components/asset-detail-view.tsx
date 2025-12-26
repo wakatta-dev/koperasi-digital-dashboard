@@ -1,7 +1,7 @@
 /** @format */
 
 import Link from "next/link";
-import { CheckCircle, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,18 +12,16 @@ type AssetDetailViewProps = {
   onBack?: () => void;
 };
 
-const facilityItems = [
-  "Ruang Utama Full AC (Central)",
-  "Sound System Professional 5000W",
-  "Panggung Modular (Max 8x4m)",
-  "Kursi Futura + Cover (200 unit)",
-  "Ruang VIP / Ruang Tunggu",
-  "Area Parkir Luas (50 Mobil)",
-  "Toilet Bersih & Terawat",
-  "Musholla Kapasitas 20 Orang",
-];
-
 export function AssetDetailView({ asset }: AssetDetailViewProps) {
+  const descriptionLines = asset.description?.split("\n").filter(Boolean) ?? [];
+  const statusLabel = (() => {
+    const raw = (asset.status || "").toString().toUpperCase();
+    if (raw === "ACTIVE") return "Aktif";
+    if (raw === "ARCHIVED") return "Nonaktif";
+    if (!raw) return "Tidak tersedia";
+    return raw;
+  })();
+
   return (
     <div className="rounded-3xl bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
@@ -33,8 +31,8 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
             <h1 className="text-2xl font-bold text-foreground">Detail Aset</h1>
           </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Badge variant="secondary">Aktif</Badge>
-            <span>Terakhir diperbarui: 12 Jan 2025</span>
+            <Badge variant="secondary">{statusLabel}</Badge>
+            <span>Terakhir diperbarui: Tidak tersedia</span>
           </div>
         </div>
 
@@ -49,7 +47,7 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                   <div className="flex items-center text-muted-foreground">
                     <MapPin className="mr-2 h-5 w-5 text-primary" />
                     <span className="text-base">
-                      Jl. Persaudaraan no. 2 RT 004/002
+                      Lokasi belum diatur
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -65,7 +63,7 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                       {asset.unit}
                     </span>
                   </div>
-                  <Badge variant="secondary">Dapat disewakan</Badge>
+                  <Badge variant="secondary">{statusLabel}</Badge>
                   <span className="text-xs text-muted-foreground">
                     ID Aset: {asset.id}
                   </span>
@@ -91,20 +89,11 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                   Deskripsi
                 </h3>
                 <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
-                  <p>
-                    Gedung Serbaguna Kartika Runa Wijaya merupakan fasilitas
-                    premium yang dirancang untuk memenuhi kebutuhan berbagai
-                    jenis acara. Dengan desain arsitektur modern yang memadukan
-                    estetika dan fungsionalitas, gedung ini menawarkan ruang
-                    yang luas, nyaman, dan fleksibel.
-                  </p>
-                  <p>
-                    Cocok digunakan untuk resepsi pernikahan, seminar,
-                    lokakarya, pertemuan korporat, hingga pameran. Lokasinya
-                    yang strategis di pusat area dengan akses mudah
-                    menjadikannya pilihan utama bagi penyelenggara acara yang
-                    mengutamakan kenyamanan tamu.
-                  </p>
+                  {descriptionLines.length > 0 ? (
+                    descriptionLines.map((line, idx) => <p key={idx}>{line}</p>)
+                  ) : (
+                    <p>Deskripsi belum tersedia.</p>
+                  )}
                 </div>
               </div>
 
@@ -112,14 +101,9 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                 <h3 className="mb-4 border-b border-border pb-2 text-lg font-bold text-foreground">
                   Fasilitas Aset
                 </h3>
-                <ul className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
-                  {facilityItems.map((item) => (
-                    <li key={item} className="flex items-start text-foreground">
-                      <CheckCircle className="mr-2 mt-0.5 h-5 w-5 text-primary" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="text-sm text-muted-foreground">
+                  Fasilitas belum tersedia.
+                </div>
               </div>
             </div>
 
@@ -185,7 +169,7 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                 <div className="flex items-center justify-between">
                   <dt>Status Operasional</dt>
                   <dd>
-                    <Badge variant="secondary">Aktif</Badge>
+                    <Badge variant="secondary">{statusLabel}</Badge>
                   </dd>
                 </div>
                 <div className="flex items-center justify-between">

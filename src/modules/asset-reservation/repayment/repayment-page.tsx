@@ -6,9 +6,7 @@ import { RepaymentBreadcrumb } from "./components/repayment-breadcrumb";
 import { RepaymentHeader } from "./components/repayment-header";
 import { RepaymentSummaryCard } from "./components/repayment-summary-card";
 import { RepaymentSidebar } from "./components/repayment-sidebar";
-import { REPAYMENT_BREADCRUMB } from "./constants";
 import { PaymentMethods } from "../payment/components/payment-methods";
-import { REPAYMENT_METHOD_GROUPS } from "./constants";
 import { PaymentShell } from "../payment/shared/payment-shell";
 import { useReservation } from "../hooks";
 import { humanizeReservationStatus } from "../utils/status";
@@ -45,14 +43,21 @@ export function AssetRepaymentPage({ reservationId }: AssetRepaymentPageProps) {
           </div>
         ) : null
       }
-      breadcrumb={<RepaymentBreadcrumb />}
-      header={<RepaymentHeader backHref={REPAYMENT_BREADCRUMB.backHref} />}
-      summary={reservation ? <RepaymentSummaryCard /> : null}
+      breadcrumb={
+        <RepaymentBreadcrumb
+          detailLabel={
+            reservation?.reservationId
+              ? `Detail Permintaan #${reservation.reservationId}`
+              : "Detail Permintaan"
+          }
+        />
+      }
+      header={<RepaymentHeader backHref="/penyewaan-aset/status" />}
+      summary={reservation ? <RepaymentSummaryCard reservation={reservation} /> : null}
       methods={
         reservation ? (
           <PaymentMethods
             mode="settlement"
-            methodGroups={REPAYMENT_METHOD_GROUPS as any}
             reservationId={reservation.reservationId}
             onStatusChange={() => {
               queryClient.invalidateQueries({ queryKey: QK.assetRental.bookings() });
@@ -63,7 +68,7 @@ export function AssetRepaymentPage({ reservationId }: AssetRepaymentPageProps) {
           />
         ) : null
       }
-      sidebar={<RepaymentSidebar />}
+      sidebar={reservation ? <RepaymentSidebar reservation={reservation} /> : null}
     />
   );
 }

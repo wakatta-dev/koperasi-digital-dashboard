@@ -5,7 +5,6 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { PaymentMode } from "../../types";
-import { PAYMENT_METHOD_GROUPS } from "../constants";
 import { createPaymentSession, finalizePayment } from "@/services/api/reservations";
 import type { PaymentSession } from "../../types";
 
@@ -36,17 +35,19 @@ type PaymentStatus = "initiated" | "pending_verification" | "succeeded" | "faile
 
 export function PaymentMethods({
   mode,
-  methodGroups = PAYMENT_METHOD_GROUPS,
+  methodGroups,
   reservationId,
   onStatusChange,
   onSessionChange,
 }: PaymentMethodsProps) {
-  const [selected, setSelected] = useState<string>(() => methodGroups[0]?.options[0]?.value ?? "");
+  const hasMethods = Boolean(methodGroups && methodGroups.length > 0);
+  const [selected, setSelected] = useState<string>(() => methodGroups?.[0]?.options?.[0]?.value ?? "");
   const [status, setStatus] = useState<PaymentStatus>("initiated");
   const [proof, setProof] = useState<string | null>(null);
   const [session, setSession] = useState<PaymentSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const actionsDisabled = !hasMethods || !reservationId;
 
   const payByText = useMemo(() => {
     if (!session?.payBy) return null;
@@ -68,6 +69,11 @@ export function PaymentMethods({
   useEffect(() => {
     let ignore = false;
     async function bootstrapSession(methodValue: string) {
+      if (!hasMethods || !methodValue) {
+        setSession(null);
+        setSessionError("Metode pembayaran belum tersedia.");
+        return;
+      }
       if (!reservationId) {
         setSessionError("ID reservasi wajib diisi sebelum membuat sesi pembayaran.");
         return;
@@ -118,7 +124,7 @@ export function PaymentMethods({
     return () => {
       ignore = true;
     };
-  }, [mode, reservationId, selected]);
+  }, [mode, reservationId, selected, hasMethods]);
 
   return (
     <section className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -126,6 +132,11 @@ export function PaymentMethods({
         <span className="material-icons-outlined text-[#4338ca]">payments</span>
         {mode === "dp" ? "Pilih Metode Pembayaran DP" : "Pilih Metode Pelunasan"}
       </h2>
+      {!hasMethods ? (
+        <div className="mb-4 text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+          Metode pembayaran belum tersedia.
+        </div>
+      ) : null}
       {formattedAmount ? (
         <div className="mb-4 text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3">
           <div className="flex flex-col">
@@ -144,53 +155,55 @@ export function PaymentMethods({
           {sessionError}
         </div>
       ) : null}
-      <div className="space-y-4">
-        {methodGroups.map((group) => (
-          <div key={group.title} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-            <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
-              <span className="material-icons-outlined text-gray-500 text-sm">{group.icon}</span>
-              <h3 className="font-bold text-gray-900 dark:text-white text-sm">{group.title}</h3>
-            </div>
-            <div className="p-4 space-y-3">
-              {group.options.map((option) => (
-                <label
-                  key={option.value}
-                  className="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-[#4338ca] hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition group"
-                >
-                  <input
-                    className="form-radio h-4 w-4 text-[#4338ca] border-gray-300 focus:ring-[#4338ca]"
-                    name="payment_method"
-                    type="radio"
-                    value={option.value}
-                    checked={selected === option.value}
-                    onChange={() => setSelected(option.value)}
-                  />
-                  <div className="ml-4 flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-[#4338ca]">
-                        {option.label}
-                      </span>
-                      {option.badge ? (
-                        <span className="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                          {option.badge}
+      {hasMethods ? (
+        <div className="space-y-4">
+          {methodGroups?.map((group) => (
+            <div key={group.title} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                <span className="material-icons-outlined text-gray-500 text-sm">{group.icon}</span>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{group.title}</h3>
+              </div>
+              <div className="p-4 space-y-3">
+                {group.options.map((option) => (
+                  <label
+                    key={option.value}
+                    className="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-[#4338ca] hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition group"
+                  >
+                    <input
+                      className="form-radio h-4 w-4 text-[#4338ca] border-gray-300 focus:ring-[#4338ca]"
+                      name="payment_method"
+                      type="radio"
+                      value={option.value}
+                      checked={selected === option.value}
+                      onChange={() => setSelected(option.value)}
+                    />
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-[#4338ca]">
+                          {option.label}
                         </span>
-                      ) : option.icon ? (
-                        <span className="material-icons-outlined text-gray-400">{option.icon}</span>
+                        {option.badge ? (
+                          <span className="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                            {option.badge}
+                          </span>
+                        ) : option.icon ? (
+                          <span className="material-icons-outlined text-gray-400">{option.icon}</span>
+                        ) : null}
+                      </div>
+                      {option.account ? (
+                        <>
+                          <p className="text-xs text-gray-500">{option.account}</p>
+                          <p className="text-xs text-gray-500">{option.holder}</p>
+                        </>
                       ) : null}
                     </div>
-                    {option.account ? (
-                      <>
-                        <p className="text-xs text-gray-500">{option.account}</p>
-                        <p className="text-xs text-gray-500">{option.holder}</p>
-                      </>
-                    ) : null}
-                  </div>
-                </label>
-              ))}
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="mt-6 space-y-3 bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-100">
@@ -246,6 +259,7 @@ export function PaymentMethods({
                 type="button"
                 className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-[#4338ca] hover:text-[#4338ca]"
                 onClick={() => handleStatusUpdate("pending_verification")}
+                disabled={actionsDisabled}
               >
                 Tandai menunggu verifikasi
               </button>
@@ -262,6 +276,7 @@ export function PaymentMethods({
                   }
                   handleStatusUpdate("succeeded");
                 }}
+                disabled={actionsDisabled}
               >
                 Verifikasi & konfirmasi
               </button>
@@ -278,6 +293,7 @@ export function PaymentMethods({
                   }
                   handleStatusUpdate("failed");
                 }}
+                disabled={actionsDisabled}
               >
                 Tandai gagal
               </button>
@@ -288,7 +304,7 @@ export function PaymentMethods({
             <button
               type="button"
               className="px-4 py-2 text-sm rounded-lg bg-[#4338ca] text-white font-semibold shadow hover:bg-indigo-600 transition"
-              disabled={isLoading || status === "expired"}
+              disabled={isLoading || status === "expired" || actionsDisabled}
               onClick={async () => {
                 if (session?.paymentId) {
                   const res = await finalizePayment(session.paymentId, "succeeded");
@@ -305,7 +321,7 @@ export function PaymentMethods({
             <button
               type="button"
                 className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-[#4338ca] hover:text-[#4338ca]"
-              disabled={status === "expired"}
+              disabled={status === "expired" || actionsDisabled}
               onClick={async () => {
                 if (session?.paymentId) {
                   const res = await finalizePayment(session.paymentId, "failed");

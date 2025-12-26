@@ -3,28 +3,101 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-import { RESERVATION_SHARED, RESERVATION_STATES, type ReservationState } from "../constants";
 import { humanizeReservationStatus } from "../../utils/status";
+import type { ReservationSummary } from "../../types";
 
 type ReservationSummaryCardProps = {
-  state: ReservationState;
   hasSignature?: boolean;
   onDownload?: () => void;
   reservationId?: string;
+  reservation?: ReservationSummary | null;
+  proofAvailable?: boolean;
 };
 
 export function ReservationSummaryCard({
-  state,
   hasSignature,
   reservationId,
   onDownload,
+  reservation,
+  proofAvailable = false,
 }: ReservationSummaryCardProps) {
-  const data = RESERVATION_STATES[state];
-  const secureId = reservationId ?? RESERVATION_SHARED.reservationId;
+  if (!reservation) {
+    return (
+      <div className="bg-white dark:bg-[#1e293b] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-8 text-center text-sm text-gray-600 dark:text-gray-300">
+        Data reservasi tidak tersedia.
+      </div>
+    );
+  }
+
+  const formattedStart = reservation.startDate
+    ? new Date(reservation.startDate).toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "-";
+  const formattedEnd = reservation.endDate
+    ? new Date(reservation.endDate).toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "-";
+  const secureId = reservation.reservationId || reservationId || "-";
+  const bannerText =
+    reservation.status === "confirmed_full"
+      ? "Reservasi Anda Telah Dikonfirmasi!"
+      : reservation.status === "confirmed_dp"
+        ? "DP Sudah Diterima"
+        : reservation.status === "awaiting_settlement"
+          ? "Menunggu Pelunasan"
+          : reservation.status === "awaiting_dp"
+            ? "Menunggu Pembayaran DP"
+            : reservation.status === "cancelled"
+              ? "Reservasi Dibatalkan"
+              : reservation.status === "rejected"
+                ? "Permintaan Ditolak"
+                : reservation.status === "expired"
+                  ? "Reservasi Kedaluwarsa"
+                  : "Permintaan Sedang Ditinjau";
+  const bannerSubtext =
+    reservation.status === "confirmed_full"
+      ? "Pembayaran selesai. Reservasi Anda aktif."
+      : reservation.status === "confirmed_dp"
+        ? "DP diterima. Silakan lakukan pelunasan sebelum jadwal."
+        : reservation.status === "awaiting_settlement"
+          ? "DP sudah diterima. Pelunasan diperlukan."
+          : reservation.status === "awaiting_dp"
+            ? "Segera lakukan pembayaran DP untuk mengunci jadwal."
+            : reservation.status === "cancelled"
+              ? "Reservasi telah dibatalkan."
+              : reservation.status === "rejected"
+                ? "Permintaan sewa tidak dapat diproses."
+                : reservation.status === "expired"
+                  ? "Reservasi Anda telah kedaluwarsa."
+                  : "Permintaan Anda sedang dalam proses review.";
+  const statusBadgeClasses =
+    reservation.status === "confirmed_full"
+      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+      : reservation.status === "confirmed_dp" || reservation.status === "awaiting_settlement"
+        ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+        : reservation.status === "awaiting_dp" || reservation.status === "pending_review"
+          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
   const paymentHref =
-    state === "dp"
+    reservation.status === "confirmed_dp" || reservation.status === "awaiting_settlement"
       ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(secureId)}&type=settlement`
-      : undefined;
+      : reservation.status === "awaiting_dp"
+        ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(secureId)}&type=dp`
+        : undefined;
+  const totalCost = reservation.amounts?.total ?? null;
+  const dpAmount = reservation.amounts?.dp ?? null;
+  const remainingAmount = reservation.amounts?.remaining ?? null;
+  const statusLabel = humanizeReservationStatus(reservation.status);
 
   return (
     <div className="bg-white dark:bg-[#1e293b] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
@@ -34,9 +107,9 @@ export function ReservationSummaryCard({
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-            {data.bannerText}
+            {bannerText}
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{data.bannerSubtext}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{bannerSubtext}</p>
         </div>
       </div>
 
@@ -63,50 +136,42 @@ export function ReservationSummaryCard({
           <div className="flex flex-col md:flex-row gap-6">
             <div className="w-full md:w-1/3 flex-shrink-0">
               <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-sm relative group">
-                {RESERVATION_SHARED.assetImage ? (
-                  <img
-                    src={RESERVATION_SHARED.assetImage}
-                    alt="Gedung Serbaguna"
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400 dark:bg-gray-800 dark:text-gray-500">
-                    Tidak ada foto
-                  </div>
-                )}
+                <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400 dark:bg-gray-800 dark:text-gray-500">
+                  Tidak ada foto
+                </div>
                 <div className="absolute top-2 right-2 bg-white/90 dark:bg-black/80 backdrop-blur px-2 py-1 rounded text-xs font-bold text-gray-800 dark:text-white shadow-sm">
                   Aset Desa
                 </div>
               </div>
             </div>
             <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 content-start">
-              <div className="sm:col-span-2">
+                  <div className="sm:col-span-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Nama Aset</p>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
-                  {RESERVATION_SHARED.assetName}
+                  {reservation.assetName || "Aset belum tersedia"}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Check-in</p>
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {RESERVATION_SHARED.checkIn}
+                  {formattedStart}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Check-out</p>
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {RESERVATION_SHARED.checkOut}
+                  {formattedEnd}
                 </p>
               </div>
               <div className="sm:col-span-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Status Reservasi</p>
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${data.statusBadgeClasses}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadgeClasses}`}
                 >
                   <span className="material-icons-outlined text-sm">
-                    {state === "done" ? "verified" : "schedule"}
+                    {reservation.status === "confirmed_full" ? "verified" : "schedule"}
                   </span>
-                  {humanizeReservationStatus(state === "done" ? "confirmed_full" : "confirmed_dp")}
+                  {statusLabel}
                 </span>
               </div>
               <div className="sm:col-span-2 mt-2">
@@ -115,39 +180,38 @@ export function ReservationSummaryCard({
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600 dark:text-gray-300">Total Biaya Sewa</span>
                       <span className="font-semibold text-gray-900 dark:text-white">
-                        {data.payment.total}
+                        {typeof totalCost === "number"
+                          ? `Rp${totalCost.toLocaleString("id-ID")}`
+                          : "-"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600 dark:text-gray-300">
-                        {state === "done" ? "DP Dibayar" : "DP Dibayar (30%)"}
+                        DP Dibayar (30%)
                       </span>
                       <span className="font-semibold text-green-600 dark:text-green-400">
-                        {state === "dp" ? `- ${data.payment.dp}` : data.payment.dp}
+                        {typeof dpAmount === "number"
+                          ? `Rp${dpAmount.toLocaleString("id-ID")}`
+                          : "-"}
                       </span>
                     </div>
-                    {data.payment.settlement ? (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">Pelunasan</span>
-                        <span className="font-semibold text-green-600 dark:text-green-400">
-                          {data.payment.settlement}
-                        </span>
-                      </div>
-                    ) : null}
                     <div className="h-px bg-gray-100 dark:bg-gray-700 my-1" />
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-gray-900 dark:text-white">
-                        {data.payment.statusText}
+                        {reservation.status === "confirmed_full" ? "LUNAS" : "Sisa Pembayaran"}
                       </span>
-                      <span className={`font-bold text-lg ${data.payment.statusColor}`}>
-                        {data.payment.remaining ?? data.payment.statusText}
-                        {data.payment.remaining ? "" : null}
+                      <span className="font-bold text-lg text-amber-600 dark:text-amber-400">
+                        {typeof remainingAmount === "number"
+                          ? `Rp${remainingAmount.toLocaleString("id-ID")}`
+                          : "-"}
                       </span>
                     </div>
-                    {data.payment.remaining && paymentHref ? (
+                    {typeof remainingAmount === "number" && paymentHref ? (
                       <Button className="mt-3 w-full bg-[#4338ca] hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group" asChild>
                         <Link href={paymentHref}>
-                          <span>{data.cta?.label ?? "Lanjutkan Pelunasan"}</span>
+                          <span>
+                            {reservation.status === "awaiting_dp" ? "Bayar DP" : "Lanjutkan Pelunasan"}
+                          </span>
                           <span className="material-icons-outlined text-lg group-hover:translate-x-1 transition-transform">
                             arrow_forward
                           </span>
@@ -162,16 +226,16 @@ export function ReservationSummaryCard({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div>
+              <div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
               <span className="material-icons-outlined text-[#4338ca] text-lg">person</span>
               Detail Penyewa
             </h3>
             <div className="space-y-3">
-              <InfoRow label="Nama Lengkap" value={RESERVATION_SHARED.renter.name} />
-              <InfoRow label="Nomor Telepon" value={RESERVATION_SHARED.renter.phone} />
-              <InfoRow label="Email" value={RESERVATION_SHARED.renter.email} />
-              <InfoRow label="Instansi" value={RESERVATION_SHARED.renter.organization} />
+              <InfoRow label="Nama Lengkap" value={reservation.renterName || "-"} />
+              <InfoRow label="Nomor Telepon" value={reservation.renterContact || "-"} />
+              <InfoRow label="Email" value="Tidak tersedia" />
+              <InfoRow label="Instansi" value="Tidak tersedia" />
             </div>
           </div>
           <div className="flex flex-col">
@@ -183,8 +247,8 @@ export function ReservationSummaryCard({
               <div className="flex gap-3">
                 <span className="material-icons-outlined text-blue-600 dark:text-blue-400 mt-0.5">info</span>
                 <div className="text-sm text-blue-800 dark:text-blue-200">
-                  <p className="mb-2 font-medium">{RESERVATION_SHARED.managerNote.title}</p>
-                  <p className="leading-relaxed opacity-90">{RESERVATION_SHARED.managerNote.body}</p>
+                  <p className="mb-2 font-medium">Belum ada catatan.</p>
+                  <p className="leading-relaxed opacity-90">Pesan dari manajemen belum tersedia.</p>
                 </div>
               </div>
             </div>
@@ -193,21 +257,14 @@ export function ReservationSummaryCard({
 
         <div className="mb-10">
           <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span className="material-icons-outlined text-[#4338ca] text-lg">description</span>
-            Detail Aset
-          </h3>
+          <span className="material-icons-outlined text-[#4338ca] text-lg">description</span>
+          Detail Aset
+        </h3>
           <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-            {RESERVATION_SHARED.description}
+            {reservation.purpose ? `Keperluan: ${reservation.purpose}` : "Detail aset belum tersedia."}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {RESERVATION_SHARED.tags.map((tag) => (
-              <span
-                key={tag.label}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-              >
-                <span className="material-icons-outlined text-sm">{tag.icon}</span> {tag.label}
-              </span>
-            ))}
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Fasilitas belum tersedia.
           </div>
         </div>
 
@@ -226,11 +283,14 @@ export function ReservationSummaryCard({
                   <div>
                     <p className="font-semibold">DP diterima</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {data.payment.dp} diterima. Jadwal dikunci.
+                      {typeof dpAmount === "number"
+                        ? `Rp${dpAmount.toLocaleString("id-ID")}`
+                        : "-"}{" "}
+                      diterima. Jadwal dikunci.
                     </p>
                   </div>
                 </li>
-                {state === "done" ? (
+                {reservation.status === "confirmed_full" ? (
                   <li className="flex items-start gap-2">
                     <span className="material-icons-outlined text-green-500 text-base mt-0.5">
                       check_circle
@@ -238,7 +298,10 @@ export function ReservationSummaryCard({
                     <div>
                       <p className="font-semibold">Pelunasan selesai</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {data.payment.settlement ?? data.payment.remaining} dikonfirmasi.
+                        {typeof remainingAmount === "number"
+                          ? `Rp${remainingAmount.toLocaleString("id-ID")}`
+                          : "-"}{" "}
+                        dikonfirmasi.
                       </p>
                     </div>
                   </li>
@@ -250,7 +313,7 @@ export function ReservationSummaryCard({
                     <div>
                       <p className="font-semibold">Menunggu pelunasan</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Selesaikan sebelum {data.payment.dueText ?? "tenggat"}.
+                        Selesaikan sebelum tenggat yang ditentukan.
                       </p>
                     </div>
                   </li>
@@ -258,12 +321,13 @@ export function ReservationSummaryCard({
               </ol>
             </div>
 
-            {data.showDownloadButtons ? (
+            {reservation.status === "confirmed_full" ? (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <Button
                   className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-semibold shadow-sm transition flex items-center justify-center gap-2"
                   type="button"
-                  onClick={onDownload}
+                  onClick={proofAvailable ? onDownload : undefined}
+                  disabled={!proofAvailable}
                 >
                   <span className="material-icons-outlined">download</span>
                   Unduh Bukti / Invoice

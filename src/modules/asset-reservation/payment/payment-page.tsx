@@ -7,7 +7,6 @@ import { PaymentHeader } from "./components/payment-header";
 import { RentalSummaryCard } from "./components/rental-summary-card";
 import { PaymentMethods } from "./components/payment-methods";
 import { PaymentSidebar } from "./components/payment-sidebar";
-import { PAYMENT_BREADCRUMB } from "./constants";
 import { PaymentShell } from "./shared/payment-shell";
 import { useReservation } from "../hooks";
 import { humanizeReservationStatus } from "../utils/status";
@@ -56,7 +55,7 @@ export function AssetPaymentPage({ reservationId, mode = "dp" }: AssetPaymentPag
         ) : null
       }
       breadcrumb={<PaymentBreadcrumb />}
-      header={<PaymentHeader backHref={PAYMENT_BREADCRUMB.backHref} />}
+      header={<PaymentHeader backHref="/penyewaan-aset/status" />}
       summary={reservation ? <RentalSummaryCard reservation={reservation} /> : null}
       methods={
         reservation ? (
