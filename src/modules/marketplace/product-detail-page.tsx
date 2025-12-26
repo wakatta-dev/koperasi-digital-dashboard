@@ -2,7 +2,6 @@
 
 "use client";
 
-
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
 import { ProductBreadcrumbs } from "./components/product-breadcrumbs";
@@ -47,7 +46,10 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
     setSelectedOptionId(null);
   }, [productId]);
 
-  const variantGroups = variants?.groups ?? [];
+  const variantGroups = useMemo(
+    () => variants?.groups ?? [],
+    [variants?.groups]
+  );
   const hasVariants = variantGroups.length > 0 || data?.has_variants === true;
   const variantsRequired = data?.variants_required ?? hasVariants;
   const selectedGroup = useMemo(
@@ -61,20 +63,20 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
       ) ?? null,
     [selectedGroup, selectedOptionId]
   );
-  const selectionReady = !variantsRequired || Boolean(selectedGroup && selectedOption);
+  const selectionReady =
+    !variantsRequired || Boolean(selectedGroup && selectedOption);
   const hasSelection = Boolean(selectedGroup && selectedOption);
   const selectedPrice =
     selectedOption && selectedOption.price > 0 ? selectedOption.price : null;
-  const priceAvailable = !variantsRequired || (hasSelection && selectedPrice !== null);
+  const priceAvailable =
+    !variantsRequired || (hasSelection && selectedPrice !== null);
   const displayTrackStock = selectionReady
     ? selectedOption?.track_stock ?? data?.track_stock
     : false;
   const displayStock = selectionReady
     ? selectedOption?.stock ?? data?.stock
     : data?.stock;
-  const effectiveInStock = displayTrackStock
-    ? (displayStock ?? 0) > 0
-    : true;
+  const effectiveInStock = displayTrackStock ? (displayStock ?? 0) > 0 : true;
   const canAddToCart = selectionReady && effectiveInStock && priceAvailable;
   const stockLabel =
     variantsRequired && !selectionReady
@@ -83,7 +85,10 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
       ? `Stok tersedia: ${displayStock ?? 0} pcs`
       : "Stok tersedia";
   const galleryImage =
-    selectedGroup?.image_url ?? data?.display_image_url ?? data?.photo_url ?? "";
+    selectedGroup?.image_url ??
+    data?.display_image_url ??
+    data?.photo_url ??
+    "";
 
   const priceLabel = variantsRequired
     ? !hasSelection
@@ -142,74 +147,74 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
             title={product?.breadcrumbTitle ?? product?.title ?? "Produk"}
           />
 
-            {isLoading ? (
-              <div className="py-12 text-center text-muted-foreground">
-                Memuat detail produk...
-              </div>
-            ) : null}
-            {isError && !notFoundLike ? (
-              <div className="py-12 text-center text-destructive space-y-3">
-                <div>Gagal memuat produk.</div>
-                <button
-                  onClick={() => refetch()}
-                  className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted text-foreground"
-                >
-                  Coba lagi
-                </button>
-              </div>
-            ) : null}
-            {!isLoading && !product && !isError ? (
-              <div className="py-12 text-center text-muted-foreground">
-                Produk tidak ditemukan.
-              </div>
-            ) : null}
+          {isLoading ? (
+            <div className="py-12 text-center text-muted-foreground">
+              Memuat detail produk...
+            </div>
+          ) : null}
+          {isError && !notFoundLike ? (
+            <div className="py-12 text-center text-destructive space-y-3">
+              <div>Gagal memuat produk.</div>
+              <button
+                onClick={() => refetch()}
+                className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted text-foreground"
+              >
+                Coba lagi
+              </button>
+            </div>
+          ) : null}
+          {!isLoading && !product && !isError ? (
+            <div className="py-12 text-center text-muted-foreground">
+              Produk tidak ditemukan.
+            </div>
+          ) : null}
 
-            {product ? (
-              <>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-                  <div className="lg:col-span-5">
-                    <ProductGallery product={product} />
-                  </div>
-                  <div className="lg:col-span-7 flex flex-col">
-                    <ProductMainInfo
-                      product={product}
-                      variantState={{
-                        hasVariants: variantsRequired,
-                        groups: variantGroups,
-                        selectedGroupId,
-                        selectedOptionId,
-                        selectionReady,
-                        onSelectGroup: (groupId) => {
-                          setSelectedGroupId(groupId);
-                          setSelectedOptionId(null);
-                        },
-                        onSelectOption: (optionId) =>
-                          setSelectedOptionId(optionId),
-                      }}
-                      canAddToCart={canAddToCart}
-                      priceAvailable={priceAvailable}
-                    />
+          {product ? (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                <div className="lg:col-span-5">
+                  <ProductGallery product={product} />
+                </div>
+                <div className="lg:col-span-7 flex flex-col">
+                  <ProductMainInfo
+                    product={product}
+                    variantState={{
+                      hasVariants: variantsRequired,
+                      groups: variantGroups,
+                      selectedGroupId,
+                      selectedOptionId,
+                      selectionReady,
+                      onSelectGroup: (groupId) => {
+                        setSelectedGroupId(groupId);
+                        setSelectedOptionId(null);
+                      },
+                      onSelectOption: (optionId) =>
+                        setSelectedOptionId(optionId),
+                    }}
+                    canAddToCart={canAddToCart}
+                    priceAvailable={priceAvailable}
+                  />
+                </div>
+              </div>
+
+              {Boolean(
+                product.longDescription.length || product.features.length
+              ) ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+                  <ProductDetailsContent product={product} />
+
+                  <div className="space-y-6">
+                    {product.specs.length ? (
+                      <ProductSpecsCard product={product} />
+                    ) : null}
+                    <SafetyBanner />
                   </div>
                 </div>
+              ) : null}
 
-                {Boolean(
-                  product.longDescription.length || product.features.length
-                ) ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
-                    <ProductDetailsContent product={product} />
-
-                    <div className="space-y-6">
-                      {product.specs.length ? (
-                        <ProductSpecsCard product={product} />
-                      ) : null}
-                      <SafetyBanner />
-                    </div>
-                  </div>
-                ) : null}
-
-                <RelatedProducts currentProductId={product.id} />
-              </>
-            ) : null}
+              <RelatedProducts currentProductId={product.id} />
+            </>
+          ) : null}
         </div>
       </main>
       <LandingFooter />
