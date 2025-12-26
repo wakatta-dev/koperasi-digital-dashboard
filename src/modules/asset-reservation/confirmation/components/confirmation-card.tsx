@@ -125,13 +125,13 @@ export function ConfirmationCard({ reservation }: ConfirmationCardProps) {
       </div>
 
       <div className="mt-8">
-        <a
+        <Link
           className="text-sm text-[#4338ca] hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline inline-flex items-center gap-1"
           href="/penyewaan-aset"
         >
           <span className="material-icons-outlined text-base">arrow_back</span>
           Kembali ke Halaman Aset
-        </a>
+        </Link>
       </div>
     </div>
   );
