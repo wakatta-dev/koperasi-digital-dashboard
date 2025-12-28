@@ -14,14 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TableShell } from "@/components/shared/data-display/TableShell";
 import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  GenericTable,
+  type GenericTableColumn,
+} from "@/components/shared/data-display/GenericTable";
 import { formatCurrency } from "@/lib/format";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
@@ -130,6 +126,135 @@ export function OrderListPage() {
     );
   };
 
+  const rowsForTable = !isLoading && !isError ? orders : [];
+  const emptyState = isError ? (
+    <span className="text-destructive">
+      {error instanceof Error ? error.message : "Gagal memuat pesanan."}
+    </span>
+  ) : (
+    "Tidak ada pesanan ditemukan."
+  );
+
+  const columns: GenericTableColumn<MarketplaceOrderSummaryResponse>[] = [
+    {
+      id: "orderNumber",
+      header: "ID Pesanan",
+      cellClassName:
+        "whitespace-nowrap text-sm font-medium text-indigo-600 dark:text-indigo-400",
+      render: (order) => formatOrderNumber(order.order_number),
+    },
+    {
+      id: "orderDate",
+      header: "Tanggal Pesanan",
+      cellClassName: "whitespace-nowrap text-sm text-muted-foreground",
+      render: (order) => formatOrderDate(order.created_at),
+    },
+    {
+      id: "customer",
+      header: "Nama Pelanggan",
+      cellClassName: "whitespace-nowrap text-sm text-foreground",
+      render: (order) => order.customer_name,
+    },
+    {
+      id: "total",
+      header: "Total Pembayaran",
+      cellClassName: "whitespace-nowrap text-sm text-foreground",
+      render: (order) => formatCurrency(order.total),
+    },
+    {
+      id: "payment",
+      header: "Status Pembayaran",
+      cellClassName: "whitespace-nowrap",
+      render: (order) => {
+        const payment = getPaymentBadge(order.status);
+        return <Badge variant={payment.variant}>{payment.label}</Badge>;
+      },
+    },
+    {
+      id: "shipping",
+      header: "Status Pengiriman",
+      cellClassName: "whitespace-nowrap",
+      render: (order) => {
+        const shipping = getShippingBadge(order.status);
+        return <Badge variant={shipping.variant}>{shipping.label}</Badge>;
+      },
+    },
+    {
+      id: "actions",
+      header: "Aksi",
+      align: "right",
+      cellClassName: "whitespace-nowrap text-right text-sm font-medium",
+      render: (order) => {
+        const action = getStatusAction(order.status);
+        const isRowLoading = pendingAction?.id === order.id;
+        const canCancel = canCancelOrder(order.status);
+
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <Link
+              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              href={`/bumdes/marketplace/order/${order.id}`}
+              title="Lihat Detail"
+            >
+              <span className="material-icons-outlined text-[18px]">
+                visibility
+              </span>
+            </Link>
+            <button
+              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              type="button"
+              onClick={() => handleOpenInvoice(order.id)}
+              title="Cetak Invoice"
+            >
+              <span className="material-icons-outlined text-[18px]">print</span>
+            </button>
+            <button
+              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+              type="button"
+              disabled={!action || isRowLoading}
+              onClick={() => {
+                if (!action) return;
+                void handleStatusUpdate(order, action.nextStatus, "status");
+              }}
+              title={action?.label ?? "Ubah Status"}
+            >
+              <span
+                className={`material-icons-outlined text-[18px] ${
+                  isRowLoading && pendingAction?.action === "status"
+                    ? "animate-spin"
+                    : ""
+                }`}
+              >
+                {isRowLoading && pendingAction?.action === "status"
+                  ? "autorenew"
+                  : action?.icon ?? "play_circle"}
+              </span>
+            </button>
+            <button
+              className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
+              type="button"
+              disabled={!canCancel || isRowLoading}
+              onClick={() => void handleCancel(order)}
+              title="Batalkan Pesanan"
+            >
+              <span
+                className={`material-icons-outlined text-[18px] ${
+                  isRowLoading && pendingAction?.action === "cancel"
+                    ? "animate-spin"
+                    : ""
+                }`}
+              >
+                {isRowLoading && pendingAction?.action === "cancel"
+                  ? "autorenew"
+                  : "cancel"}
+              </span>
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="w-full space-y-6 text-foreground md:space-y-8">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
@@ -193,237 +318,66 @@ export function OrderListPage() {
           </div>
         </div>
       </div>
-      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-        <TableShell
-          className="min-w-full divide-y divide-border"
-          containerClassName="w-full max-w-full"
-        >
-          <TableHeader className="bg-muted/40">
-            <TableRow>
-              <TableHead
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                scope="col"
-              >
-                ID Pesanan
-              </TableHead>
-              <TableHead
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                scope="col"
-              >
-                Tanggal Pesanan
-              </TableHead>
-              <TableHead
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                scope="col"
-              >
-                Nama Pelanggan
-              </TableHead>
-              <TableHead
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                scope="col"
-              >
-                Total Pembayaran
-              </TableHead>
-              <TableHead
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                scope="col"
-              >
-                Status Pembayaran
-              </TableHead>
-              <TableHead
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                scope="col"
-              >
-                Status Pengiriman
-              </TableHead>
-              <TableHead className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Aksi
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="divide-y divide-border bg-card">
-            {isLoading ? (
-              <TableRow>
-                <TableCell
-                  className="px-6 py-4 text-sm text-muted-foreground"
-                  colSpan={7}
-                >
-                  Memuat pesanan...
-                </TableCell>
-              </TableRow>
-            ) : null}
-            {isError ? (
-              <TableRow>
-                <TableCell
-                  className="px-6 py-4 text-sm text-destructive"
-                  colSpan={7}
-                >
-                  {error instanceof Error
-                    ? error.message
-                    : "Gagal memuat pesanan."}
-                </TableCell>
-              </TableRow>
-            ) : null}
-            {!isLoading && !isError && orders.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  className="px-6 py-4 text-sm text-muted-foreground"
-                  colSpan={7}
-                >
-                  Tidak ada pesanan ditemukan.
-                </TableCell>
-              </TableRow>
-            ) : null}
-            {orders.map((order) => {
-              const payment = getPaymentBadge(order.status);
-              const shipping = getShippingBadge(order.status);
-              const action = getStatusAction(order.status);
-              const isRowLoading = pendingAction?.id === order.id;
-              const canCancel = canCancelOrder(order.status);
-
-              return (
-                <TableRow
-                  key={order.id}
-                  className="transition-colors hover:bg-muted/40"
-                >
-                  <TableCell className="whitespace-nowrap px-6 py-4 text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                    {formatOrderNumber(order.order_number)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                    {formatOrderDate(order.created_at)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
-                    {order.customer_name}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
-                    {formatCurrency(order.total)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-6 py-4">
-                    <Badge variant={payment.variant}>{payment.label}</Badge>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-6 py-4">
-                    <Badge variant={shipping.variant}>{shipping.label}</Badge>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        href={`/bumdes/marketplace/order/${order.id}`}
-                        title="Lihat Detail"
-                      >
-                        <span className="material-icons-outlined text-[18px]">
-                          visibility
-                        </span>
-                      </Link>
-                      <button
-                        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        type="button"
-                        onClick={() => handleOpenInvoice(order.id)}
-                        title="Cetak Invoice"
-                      >
-                        <span className="material-icons-outlined text-[18px]">
-                          print
-                        </span>
-                      </button>
-                      <button
-                        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-                        type="button"
-                        disabled={!action || isRowLoading}
-                        onClick={() => {
-                          if (!action) return;
-                          void handleStatusUpdate(
-                            order,
-                            action.nextStatus,
-                            "status"
-                          );
-                        }}
-                        title={action?.label ?? "Ubah Status"}
-                      >
-                        <span
-                          className={`material-icons-outlined text-[18px] ${
-                            isRowLoading && pendingAction?.action === "status"
-                              ? "animate-spin"
-                              : ""
-                          }`}
-                        >
-                          {isRowLoading && pendingAction?.action === "status"
-                            ? "autorenew"
-                            : action?.icon ?? "play_circle"}
-                        </span>
-                      </button>
-                      <button
-                        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
-                        type="button"
-                        disabled={!canCancel || isRowLoading}
-                        onClick={() => void handleCancel(order)}
-                        title="Batalkan Pesanan"
-                      >
-                        <span
-                          className={`material-icons-outlined text-[18px] ${
-                            isRowLoading && pendingAction?.action === "cancel"
-                              ? "animate-spin"
-                              : ""
-                          }`}
-                        >
-                          {isRowLoading && pendingAction?.action === "cancel"
-                            ? "autorenew"
-                            : "cancel"}
-                        </span>
-                      </button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </TableShell>
-        <div className="flex items-center justify-end border-t border-border px-6 py-4">
-          <div className="flex items-center space-x-2">
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
-              disabled={page <= 1}
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            >
-              <span className="material-icons-outlined mr-1 text-sm">
-                chevron_left
-              </span>
-              Previous
-            </Button>
-            {pageNumbers.map((number) => (
+      <GenericTable
+        columns={columns}
+        rows={rowsForTable}
+        loading={isLoading}
+        loadingState="Memuat pesanan..."
+        emptyState={emptyState}
+        getRowKey={(row) => String(row.id)}
+        containerClassName="w-full max-w-full"
+        bodyClassName="bg-card"
+        footer={
+          <div className="flex items-center justify-end">
+            <div className="flex items-center space-x-2">
               <Button
-                key={number}
                 type="button"
                 variant="ghost"
-                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                  number === page
-                    ? "border border-border bg-card text-indigo-600 dark:text-indigo-400"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-                onClick={() => setPage(number)}
+                className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                disabled={page <= 1}
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               >
-                {number}
+                <span className="material-icons-outlined mr-1 text-sm">
+                  chevron_left
+                </span>
+                Previous
               </Button>
-            ))}
-            {totalPages > 3 ? (
-              <span className="px-2 text-muted-foreground">...</span>
-            ) : null}
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
-              disabled={page >= totalPages}
-              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            >
-              Next
-              <span className="material-icons-outlined ml-1 text-sm">
-                chevron_right
-              </span>
-            </Button>
+              {pageNumbers.map((number) => (
+                <Button
+                  key={number}
+                  type="button"
+                  variant="ghost"
+                  className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+                    number === page
+                      ? "border border-border bg-card text-indigo-600 dark:text-indigo-400"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                  onClick={() => setPage(number)}
+                >
+                  {number}
+                </Button>
+              ))}
+              {totalPages > 3 ? (
+                <span className="px-2 text-muted-foreground">...</span>
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                disabled={page >= totalPages}
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+              >
+                Next
+                <span className="material-icons-outlined ml-1 text-sm">
+                  chevron_right
+                </span>
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
       <OrderInvoiceDialog
         open={invoiceOpen}
         onOpenChange={(open) => {

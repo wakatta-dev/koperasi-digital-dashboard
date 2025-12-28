@@ -73,11 +73,12 @@ export function DashboardLayout({
   return (
     <React.Fragment>
       <AppSidebar variant="inset" data={sidebarData} />
-      <SidebarInset className="flex flex-col h-full">
+      <SidebarInset className="flex h-full min-w-0 flex-col">
         {showHeader ? <SiteHeader /> : null}
         <div
           className={
-            contentClassName ?? "h-full overflow-y-auto p-4 md:py-6 lg:px-6"
+            contentClassName ??
+            "h-full min-w-0 w-full overflow-x-hidden overflow-y-auto p-4 md:py-6 lg:px-6"
           }
         >
           {children}
