@@ -10,7 +10,10 @@ import { LandingNavbar } from "../landing/components/navbar";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { ShippingBreadcrumbs } from "./components/shipping-breadcrumbs";
 import { ShippingSteps } from "./components/shipping-steps";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useCheckoutStore, isShippingValid } from "./state/checkout-store";
 import { showToastError } from "@/lib/toast";
@@ -73,27 +76,29 @@ export function MarketplaceShippingPage() {
                       <h2 className="font-bold text-xl text-foreground">
                         Alamat & Kontak
                       </h2>
-                      <div className="flex gap-2 text-xs text-muted-foreground">
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              checked={checkout.fulfillment === "PICKUP"}
-                              onChange={() => setField("fulfillment", "PICKUP")}
-                            />
-                            Pickup
-                          </label>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              checked={checkout.fulfillment === "DELIVERY"}
-                              onChange={() =>
-                                setField("fulfillment", "DELIVERY")
-                              }
-                            />
-                            Delivery
-                          </label>
-                        </div>
-                      </div>
+                      <RadioGroup
+                        className="flex gap-2 text-xs text-muted-foreground"
+                        value={checkout.fulfillment}
+                        onValueChange={(value) =>
+                          setField("fulfillment", value as "PICKUP" | "DELIVERY")
+                        }
+                      >
+                        <Label
+                          htmlFor="fulfillment-pickup"
+                          className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer"
+                        >
+                          <RadioGroupItem value="PICKUP" id="fulfillment-pickup" />
+                          Pickup
+                        </Label>
+                        <Label
+                          htmlFor="fulfillment-delivery"
+                          className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer"
+                        >
+                          <RadioGroupItem value="DELIVERY" id="fulfillment-delivery" />
+                          Delivery
+                        </Label>
+                      </RadioGroup>
+                    </div>
 
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -151,13 +156,13 @@ export function MarketplaceShippingPage() {
                       </span>
                       Kembali ke Keranjang
                     </Link>
-                    <button
+                    <Button
                       onClick={handleNext}
                       disabled={!cart?.items?.length}
                       className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-50"
                     >
                       Lanjut ke Pembayaran
-                    </button>
+                    </Button>
                   </div>
                 </div>
             </div>

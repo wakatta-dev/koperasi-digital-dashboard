@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import { formatOrderNumber } from "../utils";
 import type { MarketplaceOrderDetailResponse } from "@/types/api/marketplace";
@@ -94,14 +95,9 @@ export function OrderReturDialog({
             <Label className="mb-3 block text-sm font-medium text-foreground">
               Jenis Pengembalian Dana
             </Label>
-            <div className="space-y-3">
+            <RadioGroup defaultValue="partial" className="space-y-3">
               <div className="flex items-center">
-                <input
-                  className="h-4 w-4 border-border text-primary focus:ring-ring"
-                  id="refund-full"
-                  name="refund-type"
-                  type="radio"
-                />
+                <RadioGroupItem value="full" id="refund-full" />
                 <Label
                   className="ml-3 block text-sm font-medium text-foreground"
                   htmlFor="refund-full"
@@ -113,13 +109,7 @@ export function OrderReturDialog({
                 </Label>
               </div>
               <div className="flex items-center">
-                <input
-                  className="h-4 w-4 border-border text-primary focus:ring-ring"
-                  defaultChecked
-                  id="refund-partial"
-                  name="refund-type"
-                  type="radio"
-                />
+                <RadioGroupItem value="partial" id="refund-partial" />
                 <Label
                   className="ml-3 block text-sm font-medium text-foreground"
                   htmlFor="refund-partial"
@@ -142,7 +132,7 @@ export function OrderReturDialog({
                   />
                 </div>
               </div>
-            </div>
+            </RadioGroup>
           </div>
           <div>
             <Label

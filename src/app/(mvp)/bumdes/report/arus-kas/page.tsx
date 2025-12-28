@@ -6,6 +6,14 @@ import { useState } from "react";
 import { Calendar, Download, Filter, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 import { ReportFooter } from "../_components/report-footer";
@@ -149,21 +157,21 @@ const indentClass: Record<number, string> = {
 const renderCashFlowRow = (row: CashFlowRow) => {
   if (row.type === "section") {
     return (
-      <tr key={row.label} className="bg-muted/30">
-        <td
+      <TableRow key={row.label} className="bg-muted/30">
+        <TableCell
           className="px-6 py-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider"
           colSpan={2}
         >
           {row.label}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 
   if (row.type === "label") {
     return (
-      <tr key={row.label}>
-        <td
+      <TableRow key={row.label}>
+        <TableCell
           className={cn(
             "px-6 py-3 whitespace-nowrap text-sm font-medium",
             indentClass[row.indent]
@@ -171,95 +179,95 @@ const renderCashFlowRow = (row: CashFlowRow) => {
           colSpan={2}
         >
           {row.label}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 
   if (row.type === "item") {
     return (
-      <tr key={row.label}>
-        <td
+      <TableRow key={row.label}>
+        <TableCell
           className={cn(
             "px-6 py-3 whitespace-nowrap text-sm",
             indentClass[row.indent]
           )}
         >
           {row.label}
-        </td>
-        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-medium">
+        </TableCell>
+        <TableCell className="px-6 py-3 whitespace-nowrap text-sm text-right font-medium">
           {row.value}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 
   if (row.type === "total") {
     return (
-      <tr key={row.label} className="bg-muted/30">
-        <td
+      <TableRow key={row.label} className="bg-muted/30">
+        <TableCell
           className={cn(
             "px-6 py-3 whitespace-nowrap text-sm font-bold",
             indentClass[row.indent]
           )}
         >
           {row.label}
-        </td>
-        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold">
+        </TableCell>
+        <TableCell className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold">
           {row.value}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 
   if (row.type === "netPrimary") {
     return (
-      <tr key={row.label} className="bg-muted/30">
-        <td className="px-6 py-3 whitespace-nowrap text-sm font-bold text-primary">
+      <TableRow key={row.label} className="bg-muted/30">
+        <TableCell className="px-6 py-3 whitespace-nowrap text-sm font-bold text-primary">
           {row.label}
-        </td>
-        <td className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-primary">
+        </TableCell>
+        <TableCell className="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-primary">
           {row.value}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 
   if (row.type === "summaryGray") {
     return (
-      <tr key={row.label} className="bg-muted/30">
-        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+      <TableRow key={row.label} className="bg-muted/30">
+        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+        </TableCell>
+        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
           {row.value}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 
   if (row.type === "plainBold") {
     return (
-      <tr key={row.label} className="bg-card">
-        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+      <TableRow key={row.label} className="bg-card">
+        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+        </TableCell>
+        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
           {row.value}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     );
   }
 
   return (
-    <tr key={row.label} className="bg-primary text-primary-foreground">
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold uppercase">
+    <TableRow key={row.label} className="bg-primary text-primary-foreground">
+      <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold uppercase">
         {row.label}
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
+      </TableCell>
+      <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold">
         {row.value}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 };
 
@@ -328,21 +336,21 @@ export default function ArusKasReportPage() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          <Table className="min-w-full divide-y divide-border">
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Deskripsi
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Jumlah (IDR)
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-card divide-y divide-border">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="bg-card divide-y divide-border">
               {rows.map((row) => renderCashFlowRow(row))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 

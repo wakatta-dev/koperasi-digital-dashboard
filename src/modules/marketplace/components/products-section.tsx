@@ -6,6 +6,13 @@ import { useMemo, useState } from "react";
 import { useEffect } from "react";
 
 import { formatCurrency } from "@/lib/format";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useMarketplaceProducts } from "../hooks/useMarketplaceProducts";
 import { SORT_OPTIONS } from "../constants";
 import { ProductCard } from "./product-card";
@@ -68,15 +75,18 @@ export function ProductsSection({ search, filters }: Props) {
         </span>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Urutkan:</span>
-          <select
-            value={sort}
-            onChange={(e) => handleChangeSort(e.target.value)}
-            className="text-sm border-none bg-transparent font-medium text-foreground focus:ring-0 cursor-pointer"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option}>{option}</option>
-            ))}
-          </select>
+          <Select value={sort} onValueChange={handleChangeSort}>
+            <SelectTrigger className="text-sm border-none bg-transparent font-medium text-foreground focus-visible:ring-0 h-auto px-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-popover text-foreground border border-border">
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

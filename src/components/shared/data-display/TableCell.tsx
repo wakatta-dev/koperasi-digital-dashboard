@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { TableCell as UiTableCell, TableHead } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 type TableCellProps = {
@@ -23,18 +24,36 @@ export function TableCell({
   colSpan,
   scope,
 }: TableCellProps) {
-  const Component = as;
   const alignClass =
     align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
 
+  const cellClassName = cn(
+    "px-6 py-4 align-middle text-sm text-foreground",
+    alignClass,
+    className
+  );
+
+  if (as === "th") {
+    return (
+      <TableHead
+        className={cellClassName}
+        style={width ? { width } : undefined}
+        colSpan={colSpan}
+        scope={scope}
+      >
+        {children}
+      </TableHead>
+    );
+  }
+
   return (
-    <Component
-      className={cn("px-6 py-4 align-middle text-sm text-foreground", alignClass, className)}
+    <UiTableCell
+      className={cellClassName}
       style={width ? { width } : undefined}
       colSpan={colSpan}
       scope={scope}
     >
       {children}
-    </Component>
+    </UiTableCell>
   );
 }

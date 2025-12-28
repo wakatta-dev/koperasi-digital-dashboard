@@ -2,6 +2,7 @@
 
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterActions } from "@/components/shared/filters/FilterActions";
 import { FilterPanel } from "@/components/shared/filters/FilterPanel";
@@ -44,13 +45,14 @@ export function FiltersSidebar({ filters, onChange, onApply }: Props) {
           />
         </div>
         <FilterActions className="pt-0 border-0 justify-start">
-          <button
+          <Button
             type="button"
             onClick={onApply}
-            className="w-full py-2 bg-muted hover:bg-muted/80 text-foreground text-sm font-medium rounded transition"
+            variant="outline"
+            className="w-full py-2 bg-muted hover:bg-muted/80 text-foreground text-sm font-medium rounded transition border-border"
           >
             Terapkan
-          </button>
+          </Button>
         </FilterActions>
       </FilterSection>
     </FilterPanel>

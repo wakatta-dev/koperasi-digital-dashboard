@@ -1,5 +1,7 @@
 /** @format */
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { MarketplaceCartItemResponse } from "@/types/api/marketplace";
 import { formatCurrency } from "@/lib/format";
 
@@ -111,23 +113,28 @@ export function CartItemCard({
                 <div className="flex flex-wrap items-end justify-between gap-4 mt-4">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-border rounded-lg overflow-hidden h-9">
-                      <button
-                        className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-r border-border transition"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-r border-border transition rounded-none"
                         onClick={() =>
                           onQuantityChange(item.id, clampQty(item, item.quantity - 1))
                         }
                         disabled={item.quantity <= 1 || updatingId === item.id}
                       >
                         <span className="material-icons-outlined text-sm">remove</span>
-                      </button>
-                      <input
-                        className="w-10 h-full text-center border-none focus:ring-0 bg-card text-foreground font-medium text-sm p-0"
+                      </Button>
+                      <Input
+                        readOnly
+                        tabIndex={-1}
                         type="text"
                         value={item.quantity}
-                        readOnly
+                        className="w-10 h-full text-center border-none focus-visible:ring-0 bg-card text-foreground font-medium text-sm p-0"
                       />
-                      <button
-                        className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border transition"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border transition rounded-none"
                         onClick={() =>
                           onQuantityChange(item.id, clampQty(item, item.quantity + 1))
                         }
@@ -137,17 +144,19 @@ export function CartItemCard({
                         }
                       >
                         <span className="material-icons-outlined text-sm">add</span>
-                      </button>
+                      </Button>
                     </div>
-                    <button
-                      className="text-muted-foreground hover:text-destructive transition flex items-center gap-1 text-sm font-medium"
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-destructive transition flex items-center gap-1 text-sm font-medium h-auto px-0"
                       title="Hapus item"
                       disabled={removingId === item.id}
                       onClick={() => onRemove(item.id)}
                     >
                       <span className="material-icons-outlined text-lg">delete</span>
                       <span className="hidden sm:inline">Hapus</span>
-                    </button>
+                    </Button>
                   </div>
                   <div className="text-right">
                     <span className="text-xs text-muted-foreground block mb-0.5">

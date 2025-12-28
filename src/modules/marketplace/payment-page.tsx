@@ -10,6 +10,9 @@ import { LandingNavbar } from "../landing/components/navbar";
 import { PaymentBreadcrumbs } from "./components/payment-breadcrumbs";
 import { PaymentSteps } from "./components/payment-steps";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   useCheckoutStore,
   isPaymentValid,
@@ -78,28 +81,28 @@ export function MarketplacePaymentPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Simulasi pembayaran (tidak memproses pembayaran nyata).
                   </p>
-                  <div className="space-y-3">
+                  <RadioGroup
+                    className="space-y-3"
+                    value={checkout.paymentMethod ?? ""}
+                    onValueChange={(value) => setField("paymentMethod", value)}
+                  >
                     {["VA_BRI", "VA_MANDIRI", "COD"].map((method) => (
-                      <label
+                      <Label
                         key={method}
+                        htmlFor={`payment-${method}`}
                         className="flex items-center gap-3 border border-border rounded-lg px-4 py-3 hover:border-indigo-500 cursor-pointer"
                       >
-                        <input
-                          type="radio"
-                          name="payment"
-                          checked={checkout.paymentMethod === method}
-                          onChange={() => setField("paymentMethod", method)}
-                        />
-                        <span className="text-sm text-foreground">
+                        <RadioGroupItem value={method} id={`payment-${method}`} />
+                        <span className="text-sm text-foreground cursor-pointer">
                           {method === "VA_BRI"
                             ? "Virtual Account BRI (simulasi)"
                             : method === "VA_MANDIRI"
                               ? "Virtual Account Mandiri (simulasi)"
                               : "Bayar di Tempat (simulasi)"}
                         </span>
-                      </label>
+                      </Label>
                     ))}
-                  </div>
+                  </RadioGroup>
                   {touched && !paymentValid ? (
                     <div className="text-sm text-destructive mt-2">
                       Pilih satu metode pembayaran.
@@ -137,13 +140,14 @@ export function MarketplacePaymentPage() {
                     <span>Total</span>
                     <span>{formatCurrency(cart?.total ?? 0)}</span>
                   </div>
-                  <button
+                  <Button
+                    type="button"
                     onClick={handleNext}
                     disabled={!paymentValid}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 font-bold disabled:opacity-50"
                   >
                     Lanjut ke Ulasan
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

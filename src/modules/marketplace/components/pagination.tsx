@@ -1,5 +1,7 @@
 /** @format */
 
+import { Button } from "@/components/ui/button";
+
 type Props = {
   total: number;
   limit: number;
@@ -18,25 +20,29 @@ export function Pagination({ total, limit, offset, hasNext, hasPrev, onNext, onP
 
   return (
     <div className="mt-12 flex justify-center items-center gap-4 text-sm text-muted-foreground">
-      <button
-        className="px-3 py-2 rounded-lg border border-border hover:bg-muted disabled:opacity-50"
+      <Button
+        type="button"
+        variant="outline"
+        className="px-3 py-2 rounded-lg border-border hover:bg-muted disabled:opacity-50"
         onClick={onPrev}
         disabled={!hasPrev || isLoading}
       >
         <span className="material-icons-outlined text-sm align-middle mr-1">chevron_left</span>
         Sebelumnya
-      </button>
+      </Button>
       <span>
         Halaman {currentPage} / {totalPages}
       </span>
-      <button
-        className="px-3 py-2 rounded-lg border border-border hover:bg-muted disabled:opacity-50"
+      <Button
+        type="button"
+        variant="outline"
+        className="px-3 py-2 rounded-lg border-border hover:bg-muted disabled:opacity-50"
         onClick={onNext}
         disabled={!hasNext || isLoading}
       >
         Berikutnya
         <span className="material-icons-outlined text-sm align-middle ml-1">chevron_right</span>
-      </button>
+      </Button>
     </div>
   );
 }

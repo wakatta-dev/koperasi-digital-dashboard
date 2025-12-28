@@ -7,6 +7,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
@@ -310,20 +317,30 @@ export function InventoryDetailPage({ id }: Props) {
                       <label className="text-xs font-medium text-muted-foreground">
                         Varian unggulan di listing
                       </label>
-                      <select
-                        value={data?.featured_variant_group_id ?? ""}
-                        onChange={(event) =>
-                          handleFeaturedGroupChange(event.target.value)
+                      <Select
+                        value={
+                          data?.featured_variant_group_id
+                            ? `${data.featured_variant_group_id}`
+                            : "cover"
                         }
-                        className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground"
+                        onValueChange={(value) =>
+                          handleFeaturedGroupChange(
+                            value === "cover" ? "" : value
+                          )
+                        }
                       >
-                        <option value="">Gunakan cover produk</option>
-                        {activeVariantGroups.map((group) => (
-                          <option key={group.id} value={group.id}>
-                            {group.name}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground h-auto">
+                          <SelectValue placeholder="Gunakan cover produk" />
+                        </SelectTrigger>
+                        <SelectContent className="border border-border bg-popover text-foreground">
+                          <SelectItem value="cover">Gunakan cover produk</SelectItem>
+                          {activeVariantGroups.map((group) => (
+                            <SelectItem key={group.id} value={`${group.id}`}>
+                              {group.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <p className="text-xs text-muted-foreground">
                         Mengatur foto & harga yang tampil di listing marketplace.
                       </p>

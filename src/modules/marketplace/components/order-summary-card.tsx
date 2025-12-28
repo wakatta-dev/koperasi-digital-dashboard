@@ -6,6 +6,7 @@ import {
   CheckoutSummaryBase,
   type SummaryRow,
 } from "@/components/shared/data-display/CheckoutSummaryBase";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/format";
 import { CART_SUMMARY } from "../constants";
@@ -38,9 +39,13 @@ export function OrderSummaryCard({ subtotal = 0, total = 0, itemCount = 0 }: Pro
             location_on
           </span>
         </div>
-        <button className="bg-muted hover:bg-muted/80 text-foreground px-3 rounded-lg text-sm font-bold transition">
+        <Button
+          type="button"
+          variant="outline"
+          className="bg-muted hover:bg-muted/80 text-foreground px-3 rounded-lg text-sm font-bold transition border-border"
+        >
           Cek
-        </button>
+        </Button>
       </div>
     </div>
   );

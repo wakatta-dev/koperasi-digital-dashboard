@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { TableRow as UiTableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 type TableRowProps = {
@@ -13,15 +14,15 @@ type TableRowProps = {
 
 export function TableRow({ children, className, hoverable, onClick }: TableRowProps) {
   return (
-    <tr
+    <UiTableRow
       className={cn(
         hoverable && "transition-colors hover:bg-muted/40",
         onClick && "cursor-pointer",
-        className,
+        className
       )}
       onClick={onClick}
     >
       {children}
-    </tr>
+    </UiTableRow>
   );
 }

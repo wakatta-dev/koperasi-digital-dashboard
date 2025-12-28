@@ -12,6 +12,14 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 import { ReportFooter } from "../_components/report-footer";
@@ -243,33 +251,33 @@ export default function RingkasanReportPage() {
           </Button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <Table className="min-w-full divide-y divide-border">
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Tanggal
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Deskripsi
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Kategori
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Jumlah
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-card divide-y divide-border">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="bg-card divide-y divide-border">
               {recentTransactions.map((trx) => (
-                <tr key={trx.description + trx.date}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <TableRow key={trx.description + trx.date}>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                     {trx.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                     {trx.description}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
                       className={cn(
                         "px-2 inline-flex text-xs leading-5 font-semibold rounded-full",
@@ -278,14 +286,14 @@ export default function RingkasanReportPage() {
                     >
                       {trx.category}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
                     {trx.amount}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 

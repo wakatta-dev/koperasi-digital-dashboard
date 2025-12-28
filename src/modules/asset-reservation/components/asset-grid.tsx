@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { SORT_OPTIONS } from "../constants";
 import { AssetCard } from "./asset-card";
@@ -137,7 +138,9 @@ export function AssetGrid({
             {pagination.has_next ? "· Masih ada aset lain" : "· Akhir daftar"}
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              type="button"
+              variant="outline"
               className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               onClick={() => {
                 if (!onPageChange) return;
@@ -147,8 +150,10 @@ export function AssetGrid({
               disabled={!canPrev || isLoading || isFetching}
             >
               Sebelumnya
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
               className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               onClick={() => {
                 if (!onPageChange) return;
@@ -157,7 +162,7 @@ export function AssetGrid({
               disabled={!canNext || isLoading || isFetching}
             >
               Berikutnya
-            </button>
+            </Button>
             {isFetching ? (
               <span className="text-[11px] text-gray-400 dark:text-gray-500">
                 Memuat halaman...

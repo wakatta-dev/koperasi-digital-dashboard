@@ -12,6 +12,14 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 import { ReportFooter } from "../_components/report-footer";
@@ -140,53 +148,53 @@ export default function PenjualanRinciReportPage() {
           </Button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          <Table className="min-w-full divide-y divide-border">
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Nama Produk
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Jumlah Terjual
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Total Pendapatan
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   % Kontribusi
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider w-48">
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider w-48">
                   Visualisasi
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-card divide-y divide-border">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="bg-card divide-y divide-border">
               {topProducts.map((product) => (
-                <tr key={product.name}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <TableRow key={product.name}>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     {product.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right text-muted-foreground">
                     {product.units}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
                     {product.revenue}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right text-muted-foreground">
                     {product.pct}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="w-full bg-muted/40 rounded-full h-2.5">
                       <div
                         className="bg-primary h-2.5 rounded-full"
                         style={{ width: `${product.pct}%` }}
                       />
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 
@@ -251,39 +259,39 @@ export default function PenjualanRinciReportPage() {
 
           <div className="w-full lg:w-1/2 space-y-8">
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-muted/40">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <Table className="min-w-full divide-y divide-border">
+                <TableHeader className="bg-muted/40">
+                  <TableRow>
+                    <TableHead className="px-6 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Channel
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Pendapatan
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-3 text-right text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Persentase
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-border">
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="bg-card divide-y divide-border">
                   {channelTable.map((row) => (
-                    <tr key={row.label}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
+                    <TableRow key={row.label}>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
                         <div
                           className={cn("w-2.5 h-2.5 rounded-full", row.color)}
                         />
                         {row.label}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
                         {row.revenue}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
+                      </TableCell>
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold">
                         {row.pct}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
             <div>

@@ -5,6 +5,14 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
@@ -253,46 +261,46 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                       </h2>
                     </div>
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-border">
-                        <thead className="bg-muted/40">
-                          <tr>
-                            <th
+                      <Table className="min-w-full divide-y divide-border">
+                        <TableHeader className="bg-muted/40">
+                          <TableRow>
+                            <TableHead
                               className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Produk
-                            </th>
-                            <th
+                            </TableHead>
+                            <TableHead
                               className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Jumlah
-                            </th>
-                            <th
+                            </TableHead>
+                            <TableHead
                               className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Harga Satuan
-                            </th>
-                            <th
+                            </TableHead>
+                            <TableHead
                               className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
                               scope="col"
                             >
                               Subtotal
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody className="divide-y divide-border">
                           {order.items.map((item) => {
                             const variantLabel = formatVariantLabel(item);
                             const imageSrc =
                               item.variant_image_url || item.product_photo;
                             return (
-                              <tr
+                              <TableRow
                                 key={`${item.product_id}-${item.variant_option_id ?? item.product_sku}`}
                                 className="transition-colors hover:bg-muted/40"
                               >
-                                <td className="px-6 py-4">
+                                <TableCell className="px-6 py-4">
                                   <div className="flex items-center">
                                     <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-border">
                                       {imageSrc ? (
@@ -323,21 +331,21 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                                       ) : null}
                                     </div>
                                   </div>
-                                </td>
-                                <td className="px-6 py-4 text-right text-sm text-foreground">
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-right text-sm text-foreground">
                                   {item.quantity}
-                                </td>
-                                <td className="px-6 py-4 text-right text-sm text-foreground">
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-right text-sm text-foreground">
                                   {formatCurrency(item.price)}
-                                </td>
-                                <td className="px-6 py-4 text-right text-sm font-medium text-foreground">
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-right text-sm font-medium text-foreground">
                                   {formatCurrency(item.subtotal)}
-                                </td>
-                              </tr>
+                                </TableCell>
+                              </TableRow>
                             );
                           })}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                   <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">

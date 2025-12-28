@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { TableHeader as UiTableHeader } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 type TableHeaderProps = {
@@ -18,14 +19,11 @@ export function TableHeader({
   top = 0,
 }: TableHeaderProps) {
   return (
-    <thead
-      className={cn(
-        sticky && "sticky z-10",
-        className,
-      )}
+    <UiTableHeader
+      className={cn(sticky && "sticky z-10", className)}
       style={sticky ? { top } : undefined}
     >
       {children}
-    </thead>
+    </UiTableHeader>
   );
 }

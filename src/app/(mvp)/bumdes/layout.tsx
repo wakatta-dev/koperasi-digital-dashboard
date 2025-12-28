@@ -78,16 +78,10 @@ const titleMap: Record<string, string> = {
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const title = titleMap[pathname] ?? "BUMDes";
-  const isMarketplaceOrder = pathname.startsWith("/bumdes/marketplace/order");
 
   return (
     <ProtectedRoute requiredRole="bumdes">
-      <DashboardLayout
-        title={title}
-        navigation={navigation}
-        showHeader={!isMarketplaceOrder}
-        contentClassName={isMarketplaceOrder ? "flex-1 overflow-hidden" : undefined}
-      >
+      <DashboardLayout title={title} navigation={navigation}>
         {children}
       </DashboardLayout>
     </ProtectedRoute>

@@ -1,5 +1,6 @@
 /** @format */
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FilterPanel } from "@/components/shared/filters/FilterPanel";
 import { FilterSection } from "@/components/shared/filters/FilterSection";
@@ -22,13 +23,14 @@ export function AssetFiltersSidebar({
         <h3 className="font-bold text-gray-900 dark:text-white text-lg">
           Filter
         </h3>
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={onReset}
-          className="text-xs text-[#4338ca] font-medium hover:underline"
+          className="text-xs text-[#4338ca] font-medium hover:underline px-0 h-auto"
         >
           Reset
-        </button>
+        </Button>
       </div>
 
       <FilterSection
