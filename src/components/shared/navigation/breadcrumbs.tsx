@@ -1,6 +1,18 @@
 /** @format */
 
+import Link from "next/link";
+import { Fragment } from "react";
+
+import {
+  Breadcrumb,
+  BreadcrumbItem as UiBreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 export type BreadcrumbItem = {
   label: string;
@@ -10,7 +22,7 @@ export type BreadcrumbItem = {
 
 type BreadcrumbsProps = {
   items: BreadcrumbItem[];
-  separator?: string;
+  separator?: ReactNode;
   className?: string;
 };
 
@@ -20,38 +32,41 @@ export function Breadcrumbs({
   className,
 }: BreadcrumbsProps) {
   return (
-    <nav
-      className={cn(
-        "flex mb-8 text-sm text-muted-foreground overflow-x-auto whitespace-nowrap pb-2",
-        className
-      )}
-    >
-      {items.map((item, idx) => {
-        const isLast = idx === items.length - 1;
-        const content = item.href && !isLast ? (
-          <a className="hover:text-indigo-600 dark:hover:text-indigo-400 transition" href={item.href}>
-            {item.label}
-          </a>
-        ) : (
-          <span
-            className={cn(
-              "font-medium",
-              item.active || isLast
-                ? "text-foreground"
-                : "text-muted-foreground"
-            )}
-          >
-            {item.label}
-          </span>
-        );
+    <Breadcrumb className={cn("mb-8 overflow-x-auto pb-2", className)}>
+      <BreadcrumbList className="flex-nowrap whitespace-nowrap gap-0">
+        {items.map((item, idx) => {
+          const isLast = idx === items.length - 1;
+          const isActive = item.active || isLast;
 
-        return (
-          <span key={`${item.label}-${idx}`} className="inline-flex items-center">
-            {content}
-            {!isLast ? <span className="mx-2">{separator}</span> : null}
-          </span>
-        );
-      })}
-    </nav>
+          return (
+            <Fragment key={`${item.label}-${idx}`}>
+              <UiBreadcrumbItem>
+                {item.href && !isActive ? (
+                  <BreadcrumbLink
+                    asChild
+                    className="hover:text-indigo-600 dark:hover:text-indigo-400"
+                  >
+                    <Link href={item.href}>{item.label}</Link>
+                  </BreadcrumbLink>
+                ) : isActive ? (
+                  <BreadcrumbPage className="font-medium">
+                    {item.label}
+                  </BreadcrumbPage>
+                ) : (
+                  <span className="font-medium text-muted-foreground">
+                    {item.label}
+                  </span>
+                )}
+              </UiBreadcrumbItem>
+              {!isLast ? (
+                <BreadcrumbSeparator className="mx-2">
+                  {separator}
+                </BreadcrumbSeparator>
+              ) : null}
+            </Fragment>
+          );
+        })}
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 }
