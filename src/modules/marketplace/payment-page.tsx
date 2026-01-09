@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
@@ -11,15 +11,18 @@ import { PaymentBreadcrumbs } from "./components/payment-breadcrumbs";
 import { PaymentSteps } from "./components/payment-steps";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   useCheckoutStore,
   isPaymentValid,
   isShippingValid,
 } from "./state/checkout-store";
-import { showToastError } from "@/lib/toast";
+import { useManualPaymentStore } from "./state/manual-payment-store";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 import { formatCurrency } from "@/lib/format";
+
+const BANK_ACCOUNT = "1234 5678 9012 3456";
+const BANK_NAME = "Bank BRI";
+const BANK_HOLDER = "BUMDes Sukamaju";
 
 export function MarketplacePaymentPage() {
   const router = useRouter();
@@ -27,9 +30,15 @@ export function MarketplacePaymentPage() {
   const cartCount = cart?.item_count ?? 0;
   const checkout = useCheckoutStore();
   const setField = useCheckoutStore((s) => s.setField);
+  const proofFile = useManualPaymentStore((s) => s.proofFile);
+  const setProofFile = useManualPaymentStore((s) => s.setProofFile);
   const paymentValid = isPaymentValid(checkout);
   const shippingValid = isShippingValid(checkout);
   const [touched, setTouched] = useState(false);
+  const [proofTouched, setProofTouched] = useState(false);
+
+  const totalPayment = useMemo(() => cart?.total ?? 0, [cart?.total]);
+  const orderLabel = cart?.id ? `#CART-${cart.id}` : "#ORD-DRAFT";
 
   useEffect(() => {
     if (!shippingValid || (!isLoading && !cart?.items?.length)) {
@@ -37,12 +46,32 @@ export function MarketplacePaymentPage() {
     }
   }, [cart?.items?.length, isLoading, router, shippingValid]);
 
+  useEffect(() => {
+    if (checkout.paymentMethod !== "MANUAL_TRANSFER") {
+      setField("paymentMethod", "MANUAL_TRANSFER");
+    }
+  }, [checkout.paymentMethod, setField]);
+
+  const handleCopy = async (value: string, label: string) => {
+    try {
+      await navigator.clipboard?.writeText(value);
+      showToastSuccess("Tersalin", `${label} berhasil disalin.`);
+    } catch {
+      showToastError("Gagal menyalin", "Silakan salin secara manual.");
+    }
+  };
+
   const handleNext = () => {
     setTouched(true);
+    setProofTouched(true);
     if (!paymentValid) {
+      showToastError("Metode pembayaran belum lengkap", "Silakan lanjutkan.");
+      return;
+    }
+    if (!proofFile) {
       showToastError(
-        "Pilih metode pembayaran",
-        "Silakan pilih metode pembayaran simulasi"
+        "Bukti transfer diperlukan",
+        "Unggah bukti transfer sebelum melanjutkan."
       );
       return;
     }
@@ -62,7 +91,7 @@ export function MarketplacePaymentPage() {
           <PaymentSteps />
 
           <h1 className="text-3xl font-extrabold text-foreground mb-8">
-            Metode Pembayaran
+            Pembayaran Transfer Bank Manual
           </h1>
 
           {isError ? (
@@ -74,40 +103,195 @@ export function MarketplacePaymentPage() {
           {!isLoading && !isError ? (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
               <div className="lg:col-span-8 space-y-6">
-                <div className="bg-card rounded-2xl shadow-sm border border-border p-6">
-                  <h2 className="font-bold text-xl text-foreground mb-4">
-                    Pilih Metode Pembayaran
-                  </h2>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Simulasi pembayaran (tidak memproses pembayaran nyata).
-                  </p>
-                  <RadioGroup
-                    className="space-y-3"
-                    value={checkout.paymentMethod ?? ""}
-                    onValueChange={(value) => setField("paymentMethod", value)}
-                  >
-                    {["VA_BRI", "VA_MANDIRI", "COD"].map((method) => (
-                      <Label
-                        key={method}
-                        htmlFor={`payment-${method}`}
-                        className="flex items-center gap-3 border border-border rounded-lg px-4 py-3 hover:border-indigo-500 cursor-pointer"
-                      >
-                        <RadioGroupItem value={method} id={`payment-${method}`} />
-                        <span className="text-sm text-foreground cursor-pointer">
-                          {method === "VA_BRI"
-                            ? "Virtual Account BRI (simulasi)"
-                            : method === "VA_MANDIRI"
-                              ? "Virtual Account Mandiri (simulasi)"
-                              : "Bayar di Tempat (simulasi)"}
-                        </span>
-                      </Label>
-                    ))}
-                  </RadioGroup>
-                  {touched && !paymentValid ? (
-                    <div className="text-sm text-destructive mt-2">
-                      Pilih satu metode pembayaran.
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-5 flex items-start gap-4">
+                  <span className="material-icons-outlined text-orange-600 dark:text-orange-400 mt-0.5">
+                    timer
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-orange-900 dark:text-orange-200">
+                      Selesaikan Pembayaran
+                    </h3>
+                    <p className="text-sm text-orange-800 dark:text-orange-300 mt-1">
+                      Harap selesaikan pembayaran dalam <strong>1x24 jam</strong>.
+                      Pesanan otomatis dibatalkan jika melewati batas waktu.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+                  <div className="p-6 lg:p-8">
+                    <h2 className="font-bold text-xl text-foreground mb-6">
+                      Instruksi Transfer
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 pb-8 border-b border-border">
+                      <div className="space-y-6">
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Bank Tujuan
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-lg bg-blue-700 flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                              BRI
+                            </div>
+                            <div>
+                              <p className="font-bold text-lg text-foreground leading-none">
+                                {BANK_NAME}
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {BANK_HOLDER}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Nomor Rekening
+                          </p>
+                          <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-lg border border-border">
+                            <span className="font-mono text-xl font-bold text-foreground tracking-wide">
+                              {BANK_ACCOUNT}
+                            </span>
+                            <button
+                              className="ml-auto text-indigo-600 dark:text-indigo-400 p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded transition"
+                              type="button"
+                              title="Salin"
+                              onClick={() =>
+                                handleCopy(BANK_ACCOUNT, "Nomor rekening")
+                              }
+                            >
+                              <span className="material-icons-outlined text-lg">
+                                content_copy
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-6">
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Total Transfer
+                          </p>
+                          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                                {formatCurrency(totalPayment)}
+                              </span>
+                              <button
+                                className="text-indigo-600 dark:text-indigo-400 text-sm font-semibold flex items-center gap-1"
+                                type="button"
+                                onClick={() =>
+                                  handleCopy(String(totalPayment), "Total transfer")
+                                }
+                              >
+                                Salin
+                              </button>
+                            </div>
+                            <div className="text-xs text-indigo-700 dark:text-indigo-300 flex items-start gap-1.5">
+                              <span className="material-icons-outlined text-sm mt-0.5">
+                                info
+                              </span>
+                              <span>
+                                Pastikan nominal transfer sesuai hingga 3 digit
+                                terakhir.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  ) : null}
+                    <div>
+                      <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                          ?
+                        </span>
+                        Cara Pembayaran
+                      </h3>
+                      <ol className="space-y-4 list-decimal list-inside text-sm text-muted-foreground">
+                        <li className="pl-2">
+                          <span className="ml-1">
+                            Buka aplikasi Mobile Banking BRI atau datang ke ATM
+                            BRI terdekat.
+                          </span>
+                        </li>
+                        <li className="pl-2">
+                          <span className="ml-1">
+                            Pilih menu <strong>Transfer &gt; Sesama BRI</strong>.
+                          </span>
+                        </li>
+                        <li className="pl-2">
+                          <span className="ml-1">
+                            Masukkan nomor rekening tujuan{" "}
+                            <strong>{BANK_ACCOUNT}</strong>.
+                          </span>
+                        </li>
+                        <li className="pl-2">
+                          <span className="ml-1">
+                            Masukkan nominal transfer sebesar{" "}
+                            <strong>{formatCurrency(totalPayment)}</strong>.
+                          </span>
+                        </li>
+                        <li className="pl-2">
+                          <span className="ml-1">
+                            Sertakan <strong>ID Pesanan</strong> Anda sebagai
+                            catatan transfer jika memungkinkan.
+                          </span>
+                        </li>
+                        <li className="pl-2">
+                          <span className="ml-1">
+                            Simpan bukti transfer/struk transaksi Anda.
+                          </span>
+                        </li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+                  <div className="p-6 lg:p-8">
+                    <h2 className="font-bold text-xl text-foreground mb-2">
+                      Unggah Bukti Transfer
+                    </h2>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Untuk mempercepat proses verifikasi, mohon unggah foto
+                      bukti transfer Anda di sini.
+                    </p>
+                    <div className="relative border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 hover:border-indigo-500 transition-all cursor-pointer group">
+                      <input
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        type="file"
+                        accept=".jpg,.jpeg,.png"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0] ?? null;
+                          setProofFile(file);
+                          setProofTouched(true);
+                        }}
+                      />
+                      <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                        <span className="material-icons-outlined text-3xl">
+                          cloud_upload
+                        </span>
+                      </div>
+                      <p className="font-bold text-foreground mb-1">
+                        Klik untuk unggah atau seret gambar ke sini
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Format: JPG, PNG, JPEG (Maks. 2MB)
+                      </p>
+                      <div className="mt-6 px-5 py-2.5 bg-card border border-border text-muted-foreground rounded-lg text-sm font-semibold hover:border-indigo-500 hover:text-indigo-600 transition shadow-sm group-hover:shadow-md">
+                        Pilih File
+                      </div>
+                    </div>
+                    {proofFile ? (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Bukti diunggah: <strong>{proofFile.name}</strong>
+                      </p>
+                    ) : null}
+                    {proofTouched && !proofFile ? (
+                      <p className="mt-3 text-xs text-destructive">
+                        Bukti transfer wajib diunggah.
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
 
                 <Link
@@ -122,9 +306,17 @@ export function MarketplacePaymentPage() {
               </div>
 
               <div className="lg:col-span-4 lg:sticky lg:top-28 space-y-4">
-                <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-3">
+                <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-6">
+                  <div className="flex justify-between items-center pb-4 border-b border-border">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      ID Pesanan
+                    </span>
+                    <span className="font-mono font-bold text-foreground tracking-tight">
+                      {orderLabel}
+                    </span>
+                  </div>
                   <h3 className="font-bold text-lg text-foreground">
-                    Ringkasan
+                    Ringkasan Pesanan
                   </h3>
                   <div className="space-y-2 text-sm text-muted-foreground">
                     {cart?.items?.map?.((item) => (
@@ -137,17 +329,31 @@ export function MarketplacePaymentPage() {
                     ))}
                   </div>
                   <div className="flex justify-between font-semibold text-foreground">
-                    <span>Total</span>
-                    <span>{formatCurrency(cart?.total ?? 0)}</span>
+                    <span>Total Tagihan</span>
+                    <span>{formatCurrency(totalPayment)}</span>
                   </div>
+                  {touched && !paymentValid ? (
+                    <div className="text-sm text-destructive">
+                      Metode pembayaran belum lengkap.
+                    </div>
+                  ) : null}
                   <Button
                     type="button"
                     onClick={handleNext}
-                    disabled={!paymentValid}
+                    disabled={!paymentValid || !proofFile}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 font-bold disabled:opacity-50"
                   >
-                    Lanjut ke Ulasan
+                    Konfirmasi Pembayaran Saya
                   </Button>
+                  <div className="flex items-start gap-3 text-xs text-muted-foreground bg-muted/40 p-4 rounded-xl border border-border">
+                    <span className="material-icons-outlined text-base text-muted-foreground mt-0.5">
+                      lock
+                    </span>
+                    <p>
+                      Data pembayaran Anda dienkripsi dan diproses dengan aman
+                      oleh sistem BUMDes.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
