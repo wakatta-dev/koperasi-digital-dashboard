@@ -187,6 +187,15 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                 </span>
               </h1>
               <div className="flex gap-2">
+                <Link
+                  className="inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  href={`/bumdes/marketplace/order/${id}/manual-payment`}
+                >
+                  <span className="material-icons-outlined mr-2 text-lg">
+                    payments
+                  </span>
+                  Konfirmasi Pembayaran
+                </Link>
                 <button
                   className="inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   type="button"

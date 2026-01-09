@@ -11,7 +11,7 @@ import { ReviewBreadcrumbs } from "./components/review-breadcrumbs";
 import { ReviewSteps } from "./components/review-steps";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { formatCurrency } from "@/lib/format";
-import { checkoutMarketplace } from "@/services/api";
+import { checkoutMarketplace, submitMarketplaceManualPayment } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import {
@@ -19,6 +19,7 @@ import {
   isPaymentValid,
   isShippingValid,
 } from "./state/checkout-store";
+import { useManualPaymentStore } from "./state/manual-payment-store";
 import type { MarketplaceOrderResponse } from "@/types/api/marketplace";
 
 export function MarketplaceReviewPage() {
@@ -27,6 +28,8 @@ export function MarketplaceReviewPage() {
   const cartCount = cart?.item_count ?? 0;
   const checkout = useCheckoutStore();
   const resetCheckout = useCheckoutStore((s) => s.reset);
+  const proofFile = useManualPaymentStore((s) => s.proofFile);
+  const resetProof = useManualPaymentStore((s) => s.reset);
   const shippingValid = isShippingValid(checkout);
   const paymentValid = isPaymentValid(checkout);
   const [submitting, setSubmitting] = useState(false);
@@ -70,7 +73,21 @@ export function MarketplaceReviewPage() {
         })
       );
       setOrderResult(order);
+      if (checkout.paymentMethod === "MANUAL_TRANSFER" && proofFile) {
+        try {
+          await ensureSuccess(
+            await submitMarketplaceManualPayment(order.id, { file: proofFile })
+          );
+          showToastSuccess(
+            "Bukti transfer terkirim",
+            "Kami akan memverifikasi pembayaran Anda."
+          );
+        } catch (err) {
+          showToastError("Gagal mengunggah bukti transfer", err);
+        }
+      }
       resetCheckout();
+      resetProof();
       await refetch();
       showToastSuccess("Pesanan dibuat", "Checkout berhasil");
     } catch (err: any) {

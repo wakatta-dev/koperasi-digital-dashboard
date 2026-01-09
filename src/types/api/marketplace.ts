@@ -104,6 +104,20 @@ export type MarketplaceOrderStatusHistoryResponse = {
   timestamp: number;
 };
 
+export type MarketplaceOrderManualPaymentResponse = {
+  status: string;
+  proof_url: string;
+  proof_filename?: string;
+  note?: string;
+  bank_name?: string;
+  account_name?: string;
+  transfer_amount?: number;
+  transfer_date?: string;
+  submitted_by?: number;
+  created_at: number;
+  updated_at: number;
+};
+
 export type MarketplaceOrderResponse = {
   id: number;
   status: string;
@@ -133,6 +147,7 @@ export type MarketplaceOrderDetailResponse = {
   created_at: number;
   updated_at: number;
   status_history?: MarketplaceOrderStatusHistoryResponse[];
+  manual_payment?: MarketplaceOrderManualPaymentResponse;
   payment_method?: string;
   payment_reference?: string;
   shipping_method?: string;

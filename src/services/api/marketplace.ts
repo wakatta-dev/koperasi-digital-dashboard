@@ -8,6 +8,7 @@ import type {
   MarketplaceCheckoutRequest,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
+  MarketplaceOrderManualPaymentResponse,
   MarketplaceOrderResponse,
   MarketplaceOrderStatusUpdateRequest,
   MarketplaceProductListResponse,
@@ -128,5 +129,32 @@ export function updateMarketplaceOrderStatus(
   return api.patch<MarketplaceOrderDetailResponse>(
     `${API_PREFIX}${E.orderStatus(id)}`,
     payload
+  );
+}
+
+export function submitMarketplaceManualPayment(
+  id: string | number,
+  payload: {
+    file: File;
+    note?: string;
+    bank_name?: string;
+    account_name?: string;
+    transfer_amount?: number;
+    transfer_date?: string;
+  }
+): Promise<ApiResponse<MarketplaceOrderManualPaymentResponse>> {
+  const formData = new FormData();
+  formData.append("file", payload.file);
+  if (payload.note) formData.append("note", payload.note);
+  if (payload.bank_name) formData.append("bank_name", payload.bank_name);
+  if (payload.account_name) formData.append("account_name", payload.account_name);
+  if (payload.transfer_amount !== undefined)
+    formData.append("transfer_amount", String(payload.transfer_amount));
+  if (payload.transfer_date) formData.append("transfer_date", payload.transfer_date);
+
+  return api.post<MarketplaceOrderManualPaymentResponse>(
+    `${API_PREFIX}${E.orderManualPayment(id)}`,
+    formData,
+    { credentials: "include" }
   );
 }
