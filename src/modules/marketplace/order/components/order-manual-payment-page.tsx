@@ -2,14 +2,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useMarketplaceOrder } from "@/hooks/queries/marketplace-orders";
+import { useMarketplaceOrder, useMarketplaceOrderActions } from "@/hooks/queries/marketplace-orders";
 import { formatCurrency } from "@/lib/format";
-import { formatOrderDateTime, formatOrderNumber } from "../utils";
+import { formatOrderDateTime, formatOrderNumber, normalizeOrderStatus } from "../utils";
 
 type OrderManualPaymentPageProps = {
   id: string;
@@ -38,16 +38,82 @@ const manualStatusMap: Record<string, { label: string; className: string }> = {
   },
 };
 
+type ManualPaymentStatus = "WAITING_MANUAL_CONFIRMATION" | "CONFIRMED" | "REJECTED";
+
+const manualStatusOptions: Array<{
+  value: ManualPaymentStatus;
+  label: string;
+  orderStatus: string;
+}> = [
+  {
+    value: "WAITING_MANUAL_CONFIRMATION",
+    label: "Menunggu Verifikasi",
+    orderStatus: "PENDING",
+  },
+  {
+    value: "CONFIRMED",
+    label: "Lunas",
+    orderStatus: "PAID",
+  },
+  {
+    value: "REJECTED",
+    label: "Gagal/Ditolak",
+    orderStatus: "CANCELED",
+  },
+];
+
+const normalizeManualPaymentStatus = (status?: string): ManualPaymentStatus => {
+  switch (status) {
+    case "CONFIRMED":
+      return "CONFIRMED";
+    case "REJECTED":
+      return "REJECTED";
+    case "WAITING_MANUAL_CONFIRMATION":
+    case "MANUAL_PAYMENT_SUBMITTED":
+    default:
+      return "WAITING_MANUAL_CONFIRMATION";
+  }
+};
+
 export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
   const { data: order, isLoading, isError, error } = useMarketplaceOrder(id);
+  const { updateStatus } = useMarketplaceOrderActions();
   const manualPayment = order?.manual_payment;
   const statusKey = manualPayment?.status ?? "WAITING_MANUAL_CONFIRMATION";
   const status = manualStatusMap[statusKey] ?? manualStatusMap.WAITING_MANUAL_CONFIRMATION;
+  const normalizedStatus = normalizeManualPaymentStatus(statusKey);
+  const [selectedStatus, setSelectedStatus] = useState<ManualPaymentStatus>(normalizedStatus);
+  const [adminNote, setAdminNote] = useState("");
+
+  useEffect(() => {
+    setSelectedStatus(normalizeManualPaymentStatus(statusKey));
+  }, [statusKey]);
 
   const paymentMethodLabel = useMemo(() => {
     if (!manualPayment?.bank_name) return "Transfer Bank Manual";
     return `Transfer Bank Manual (${manualPayment.bank_name})`;
   }, [manualPayment?.bank_name]);
+
+  const selectedOption = manualStatusOptions.find(
+    (option) => option.value === selectedStatus
+  );
+  const targetOrderStatus = selectedOption?.orderStatus ?? "";
+  const currentOrderStatus = normalizeOrderStatus(order?.status);
+  const isSubmitting = updateStatus.isPending;
+  const isStatusUnchanged =
+    !targetOrderStatus || currentOrderStatus === targetOrderStatus;
+
+  const handleConfirm = async () => {
+    if (!order || !targetOrderStatus || isSubmitting) return;
+    const reason = adminNote.trim();
+    await updateStatus.mutateAsync({
+      id: order.id,
+      payload: {
+        status: targetOrderStatus,
+        ...(reason ? { reason } : {}),
+      },
+    });
+  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background text-foreground antialiased">
@@ -366,18 +432,21 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                         <label className="block text-sm font-medium text-foreground mb-2">
                           Ubah Status Pembayaran
                         </label>
-                        <Select defaultValue="Menunggu Verifikasi">
+                        <Select
+                          value={selectedStatus}
+                          onValueChange={(value) =>
+                            setSelectedStatus(value as ManualPaymentStatus)
+                          }
+                        >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Pilih status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Menunggu Verifikasi">
-                              Menunggu Verifikasi
-                            </SelectItem>
-                            <SelectItem value="Lunas">Lunas</SelectItem>
-                            <SelectItem value="Gagal/Ditolak">
-                              Gagal/Ditolak
-                            </SelectItem>
+                            {manualStatusOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -391,11 +460,19 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                         <Textarea
                           placeholder="Tambahkan catatan internal mengenai verifikasi ini..."
                           rows={4}
+                          value={adminNote}
+                          onChange={(event) => setAdminNote(event.target.value)}
                         />
                       </div>
                       <div className="pt-4 border-t border-border space-y-3">
-                        <Button className="w-full">
-                          Simpan Perubahan &amp; Konfirmasi
+                        <Button
+                          className="w-full"
+                          onClick={handleConfirm}
+                          disabled={!order || isSubmitting || isStatusUnchanged}
+                        >
+                          {isSubmitting
+                            ? "Menyimpan..."
+                            : "Simpan Perubahan & Konfirmasi"}
                         </Button>
                         <Button variant="outline" className="w-full" asChild>
                           <Link href={`/bumdes/marketplace/order/${id}`}>
