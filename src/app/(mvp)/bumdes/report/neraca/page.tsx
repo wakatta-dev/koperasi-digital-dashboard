@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
@@ -15,49 +15,86 @@ import { Button } from "@/components/ui/button";
 
 import { ReportFooter } from "../_components/report-footer";
 import { SegmentedControl } from "../_components/segmented-control";
+import { ensureSuccess } from "@/lib/api";
+import { getBumdesBalanceSheetReport } from "@/services/api";
+import type { BalanceSheetReport } from "@/modules/bumdes/report/types";
 
 const periodPresets = [
-  { label: "Bulanan", value: "monthly", active: false },
-  { label: "Kuartalan", value: "quarterly", active: true },
-  { label: "Tahunan", value: "yearly", active: false },
+  { label: "Bulanan", value: "month", active: false },
+  { label: "Kuartalan", value: "quarter", active: true },
+  { label: "Tahunan", value: "year", active: false },
 ];
 
-const assets = [
-  { label: "Kas dan Setara Kas", value: "Rp 250.000.000" },
-  { label: "Piutang Usaha", value: "Rp 120.000.000" },
-  { label: "Nilai Persediaan", value: "Rp 180.000.000" },
-  { label: "Aset Lancar Lainnya", value: "Rp 75.000.000" },
-  { label: "Aset Tetap (Setelah Penyusutan)", value: "Rp 550.000.000" },
-];
-
-const liabilities = [
-  { label: "Hutang Usaha", value: "Rp 95.000.000" },
-  { label: "Hutang Bank (Jangka Pendek)", value: "Rp 120.000.000" },
-  { label: "Hutang Pajak", value: "Rp 45.000.000" },
-  { label: "Hutang Bank (Jangka Panjang)", value: "Rp 320.000.000" },
-];
-
-const equity = [
-  { label: "Modal Disetor", value: "Rp 350.000.000" },
-  { label: "Laba Ditahan", value: "Rp 245.000.000" },
-];
-
-const assetInfo = [
-  { label: "Aset Lancar", value: "Rp 625.000.000" },
-  { label: "Aset Tidak Lancar", value: "Rp 550.000.000" },
-  { label: "Rasio Lancar", value: "2.4" },
-];
-
-const liabilityInfo = [
-  { label: "Liabilitas Jangka Pendek", value: "Rp 260.000.000" },
-  { label: "Liabilitas Jangka Panjang", value: "Rp 320.000.000" },
-  { label: "Rasio Hutang terhadap Ekuitas", value: "0.97" },
-];
 
 export default function NeracaReportPage() {
   const [activePeriod, setActivePeriod] = useState(
     periodPresets.find((preset) => preset.active)?.value ?? periodPresets[0].value
   );
+  const [report, setReport] = useState<BalanceSheetReport | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadReport = async () => {
+      try {
+        const data = ensureSuccess(
+          await getBumdesBalanceSheetReport({ preset: activePeriod })
+        );
+        if (!cancelled) {
+          setReport(data);
+        }
+      } catch (err) {
+        console.warn("bumdes balance-sheet failed to load", err);
+      }
+    };
+    loadReport();
+    return () => {
+      cancelled = true;
+    };
+  }, [activePeriod]);
+
+  const assets =
+    report?.assets?.map((item) => ({
+      label: item.label,
+      value: item.value_display,
+    })) ?? [];
+  const liabilities =
+    report?.liabilities?.map((item) => ({
+      label: item.label,
+      value: item.value_display,
+    })) ?? [];
+  const equity =
+    report?.equity?.map((item) => ({
+      label: item.label,
+      value: item.value_display,
+    })) ?? [];
+  const assetInfo =
+    report?.asset_info?.map((item) => ({
+      label: item.label,
+      value: item.value_display,
+    })) ?? [];
+  const liabilityInfo =
+    report?.liability_info?.map((item) => ({
+      label: item.label,
+      value: item.value_display,
+    })) ?? [];
+
+  const totalAssetsDisplay = report?.asset_total_display ?? "";
+  const totalLEDisplay = report?.liab_equity_total_display ?? "";
+  const totalLiabilitiesDisplay = report
+    ? formatCurrencyID(sumDisplayValues(liabilities))
+    : "";
+  const totalEquityDisplay = report ? formatCurrencyID(sumDisplayValues(equity)) : "";
+  const statusLabel = report?.status_label ?? "";
+  const perLabel = report?.period_label
+    ? report.period_label.includes(" - ")
+      ? report.period_label.split(" - ").slice(-1)[0]
+      : report.period_label
+      : "";
+  const updatedLabel = report?.updated_at
+    ? `Terakhir diperbarui: ${report.updated_at}${
+        report.period_label ? ` — ${report.period_label}` : ""
+      }`
+    : "";
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 text-foreground">
@@ -75,7 +112,7 @@ export default function NeracaReportPage() {
             className="hidden sm:inline-flex h-auto items-center gap-0 px-4 py-2 text-sm font-medium bg-card text-foreground border-border shadow-sm hover:bg-muted/40 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-            31 Desember 2023
+            {perLabel}
           </Button>
           <div className="flex gap-2 flex-wrap">
             <Button
@@ -102,7 +139,7 @@ export default function NeracaReportPage() {
           <h3 className="text-lg font-bold">Laporan Posisi Keuangan</h3>
           <div className="flex items-center text-sm text-muted-foreground mt-2 sm:mt-0">
             <Info className="h-5 w-5 mr-1" />
-            Per: 31 Desember 2023
+            Per: {perLabel}
           </div>
         </div>
         <div className="p-6">
@@ -124,7 +161,7 @@ export default function NeracaReportPage() {
               </div>
               <div className="pt-4 border-t border-border flex justify-between items-center">
                 <span className="font-bold">Total Aset</span>
-                <span className="font-bold">Rp 1.175.000.000</span>
+                <span className="font-bold">{totalAssetsDisplay}</span>
               </div>
             </div>
 
@@ -146,7 +183,7 @@ export default function NeracaReportPage() {
                 </div>
                 <div className="pt-4 border-t border-border flex justify-between items-center">
                   <span className="font-bold">Total Liabilitas</span>
-                  <span className="font-bold">Rp 580.000.000</span>
+                  <span className="font-bold">{totalLiabilitiesDisplay}</span>
                 </div>
               </div>
 
@@ -167,13 +204,13 @@ export default function NeracaReportPage() {
                 </div>
                 <div className="pt-4 border-t border-border flex justify-between items-center">
                   <span className="font-bold">Total Ekuitas</span>
-                  <span className="font-bold">Rp 595.000.000</span>
+                  <span className="font-bold">{totalEquityDisplay}</span>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-border flex justify-between items-center">
                 <span className="font-bold">Total Liabilitas dan Ekuitas</span>
-                <span className="font-bold">Rp 1.175.000.000</span>
+                <span className="font-bold">{totalLEDisplay}</span>
               </div>
             </div>
           </div>
@@ -182,14 +219,14 @@ export default function NeracaReportPage() {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
             <div className="flex items-center gap-8 font-bold">
               <span>Total Aset</span>
-              <span>Rp 1.175.000.000</span>
+              <span>{totalAssetsDisplay}</span>
               <span>=</span>
               <span>Total Liabilitas + Ekuitas</span>
-              <span>Rp 1.175.000.000</span>
+              <span>{totalLEDisplay}</span>
             </div>
             <div className="flex items-center text-primary font-medium">
               <CheckCircle2 className="h-5 w-5 mr-1" />
-              Neraca Seimbang
+              {statusLabel}
             </div>
           </div>
         </div>
@@ -242,7 +279,36 @@ export default function NeracaReportPage() {
         </div>
       </div>
 
-      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Desember 2023, 15:30" />
+      <ReportFooter updatedLabel={updatedLabel} />
     </div>
   );
+}
+
+function sumDisplayValues(items: Array<{ value: string }>): number {
+  return items.reduce((acc, item) => acc + parseCurrency(item.value), 0);
+}
+
+function parseCurrency(value: string): number {
+  const numeric = value.replace(/[^0-9-]/g, "");
+  const parsed = Number(numeric);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function formatCurrencyID(value: number): string {
+  return `Rp ${formatNumberID(value)}`;
+}
+
+function formatNumberID(value: number): string {
+  const negative = value < 0;
+  const raw = Math.abs(value).toString();
+  if (raw.length <= 3) {
+    return negative ? `-${raw}` : raw;
+  }
+  const parts = [];
+  for (let i = raw.length; i > 0; i -= 3) {
+    const start = Math.max(i - 3, 0);
+    parts.unshift(raw.slice(start, i));
+  }
+  const joined = parts.join(".");
+  return negative ? `-${joined}` : joined;
 }
