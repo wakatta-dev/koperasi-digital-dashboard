@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Download,
   FileText,
@@ -25,6 +25,9 @@ import {
 import { ReportFooter } from "../_components/report-footer";
 import { SegmentedControl } from "../_components/segmented-control";
 import { SummaryCard } from "../_components/summary-card";
+import { ensureSuccess } from "@/lib/api";
+import { getBumdesProfitLossReport } from "@/services/api";
+import type { ProfitLossReport } from "@/modules/bumdes/report/types";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -33,40 +36,6 @@ const presetOptions = [
   { label: "Kustom", value: "custom" },
 ];
 
-const summaryCards = [
-  {
-    title: "Total Pendapatan",
-    value: "Rp 456.789.000",
-    delta: "+12,5% dari bulan lalu",
-    icon: Wallet,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-  {
-    title: "Total HPP",
-    value: "Rp 234.567.000",
-    delta: "+5,3% dari bulan lalu",
-    icon: DollarSign,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-  {
-    title: "Laba Kotor",
-    value: "Rp 222.222.000",
-    delta: "+18,2% dari bulan lalu",
-    icon: TrendingUp,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-  {
-    title: "Laba Bersih",
-    value: "Rp 156.789.000",
-    delta: "+15,7% dari bulan lalu",
-    icon: FileText,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-];
 
 type ProfitRow =
   | { type: "section"; label: string }
@@ -75,34 +44,6 @@ type ProfitRow =
   | { type: "gross"; label: string; value: string }
   | { type: "net"; label: string; value: string };
 
-const profitRows: ProfitRow[] = [
-  { type: "section", label: "Pendapatan" },
-  { type: "row", label: "Penjualan Produk", value: "345.678.000" },
-  { type: "row", label: "Pendapatan Jasa", value: "98.765.000" },
-  { type: "row", label: "Pendapatan Lainnya", value: "12.346.000" },
-  { type: "total", label: "Total Pendapatan", value: "456.789.000" },
-  { type: "section", label: "Harga Pokok Penjualan (HPP)" },
-  { type: "row", label: "Pembelian Bahan", value: "156.789.000" },
-  { type: "row", label: "Biaya Produksi", value: "45.678.000" },
-  { type: "row", label: "Biaya Pengiriman", value: "32.100.000" },
-  { type: "total", label: "Total HPP", value: "234.567.000" },
-  { type: "gross", label: "Laba Kotor", value: "222.222.000" },
-  { type: "section", label: "Beban Operasional" },
-  { type: "row", label: "Gaji Karyawan", value: "45.678.000" },
-  { type: "row", label: "Sewa Gedung", value: "12.345.000" },
-  { type: "row", label: "Utilitas", value: "5.678.000" },
-  { type: "row", label: "Pemasaran", value: "8.765.000" },
-  { type: "row", label: "Administrasi", value: "3.456.000" },
-  { type: "total", label: "Total Beban", value: "75.922.000" },
-  { type: "net", label: "Laba Bersih", value: "146.300.000" },
-];
-
-const notes = [
-  "Laporan ini mencakup periode 01 Januari 2023 - 31 Januari 2023",
-  "Seluruh nilai ditampilkan dalam Rupiah (Rp)",
-  "Tidak termasuk beban pajak penghasilan",
-  "Laporan dibuat berdasarkan transaksi yang telah disetujui",
-];
 
 const renderProfitRow = (row: ProfitRow) => {
   if (row.type === "section") {
@@ -171,6 +112,68 @@ const renderProfitRow = (row: ProfitRow) => {
 
 export default function LabaRugiReportPage() {
   const [activePreset, setActivePreset] = useState("month");
+  const [appliedPreset, setAppliedPreset] = useState("month");
+  const [report, setReport] = useState<ProfitLossReport | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadReport = async () => {
+      try {
+        const data = ensureSuccess(
+          await getBumdesProfitLossReport({ preset: appliedPreset })
+        );
+        if (!cancelled) {
+          setReport(data);
+        }
+      } catch (err) {
+        console.warn("bumdes profit-loss failed to load", err);
+      }
+    };
+    loadReport();
+    return () => {
+      cancelled = true;
+    };
+  }, [appliedPreset]);
+
+  const summaryCards = report?.summary_cards?.map((card) => ({
+    title: card.title,
+    value: card.value_display,
+    delta: card.delta_display ?? "",
+    icon:
+      card.title === "Total Pendapatan"
+        ? Wallet
+        : card.title === "Total HPP"
+          ? DollarSign
+          : card.title === "Laba Kotor"
+            ? TrendingUp
+            : FileText,
+    badgeColor: "text-primary",
+    badgeBg: "bg-primary/10",
+  })) ?? [];
+
+  const profitRows: ProfitRow[] = report?.rows?.map((row) => {
+    switch (row.type) {
+      case "section":
+        return { type: "section", label: row.label };
+      case "row":
+        return { type: "row", label: row.label, value: row.value_display ?? "" };
+      case "total":
+        return { type: "total", label: row.label, value: row.value_display ?? "" };
+      case "gross":
+        return { type: "gross", label: row.label, value: row.value_display ?? "" };
+      default:
+        return { type: "net", label: row.label, value: row.value_display ?? "" };
+    }
+  }) ?? [];
+
+  const notes = report?.notes ?? [];
+  const periodLabel = report?.period_label ?? "";
+
+  const updatedLabel = report?.updated_at
+    ? `Terakhir diperbarui: ${report.updated_at}${
+        report.period_label ? ` — ${report.period_label}` : ""
+      }`
+    : "";
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 text-foreground">
@@ -178,7 +181,7 @@ export default function LabaRugiReportPage() {
         <h1 className="text-2xl font-bold">Laporan Laba/Rugi</h1>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground hidden sm:inline-block mr-2">
-            01/01/2023 - 31/01/2023
+            {periodLabel}
           </span>
           <SegmentedControl
             options={presetOptions}
@@ -188,6 +191,7 @@ export default function LabaRugiReportPage() {
           <Button
             type="button"
             className="hidden sm:inline-flex h-auto items-center px-4 py-2 ml-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
+            onClick={() => setAppliedPreset(activePreset)}
           >
             Terapkan
           </Button>
@@ -253,7 +257,7 @@ export default function LabaRugiReportPage() {
         </ul>
       </div>
 
-      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Januari 2023, 15:30" />
+      <ReportFooter updatedLabel={updatedLabel} />
     </div>
   );
 }

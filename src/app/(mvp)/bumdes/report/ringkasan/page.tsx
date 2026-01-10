@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Download,
   FileText,
@@ -21,6 +21,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { ensureSuccess } from "@/lib/api";
+import { getBumdesOverviewReport } from "@/services/api";
+import type { OverviewReport, RevenueSegment } from "@/modules/bumdes/report/types";
 
 import { ReportFooter } from "../_components/report-footer";
 import { SegmentedControl } from "../_components/segmented-control";
@@ -33,102 +36,83 @@ const presetOptions = [
   { label: "Kustom", value: "custom" },
 ];
 
-const summaryCards = [
-  {
-    title: "Total Pendapatan",
-    value: "Rp 456.789.000",
-    delta: "+12,5% dari bulan lalu",
-    icon: Wallet,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-  {
-    title: "Total Pengeluaran",
-    value: "Rp 234.567.000",
-    delta: "+5,3% dari bulan lalu",
-    icon: ReceiptText,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-  {
-    title: "Laba Bersih",
-    value: "Rp 222.222.000",
-    delta: "+18,2% dari bulan lalu",
-    icon: TrendingUp,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-  {
-    title: "Saldo Kas",
-    value: "Rp 345.678.000",
-    delta: "+7,8% dari bulan lalu",
-    icon: FileText,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  },
-];
-
-const monthlyPerformance = [
-  { label: "Jan", revenue: 45, expense: 30 },
-  { label: "Feb", revenue: 60, expense: 40 },
-  { label: "Mar", revenue: 55, expense: 35 },
-  { label: "Apr", revenue: 75, expense: 45 },
-  { label: "Mei", revenue: 70, expense: 38 },
-  { label: "Jun", revenue: 80, expense: 42 },
-];
-
-const revenueSegments = [
-  { label: "Penjualan Produk 66%", className: "top-10 left-4 text-muted-foreground" },
-  { label: "Jasa 26%", className: "bottom-10 right-16 text-muted-foreground" },
-  {
-    label: "Lainnya 8%",
-    className: "top-1/2 right-2 -translate-y-1/2 text-muted-foreground",
-  },
-];
-
-const recentTransactions = [
-  {
-    date: "28/01/2023",
-    description: "Penjualan Produk A",
-    category: "Penjualan",
-    amount: "Rp 5.800.000",
-    colorClass: "bg-muted/40 text-muted-foreground",
-  },
-  {
-    date: "25/01/2023",
-    description: "Pembayaran Supplier",
-    category: "Pembelian",
-    amount: "Rp 3.450.000",
-    colorClass: "bg-muted/40 text-muted-foreground",
-  },
-  {
-    date: "23/01/2023",
-    description: "Pembayaran Gaji",
-    category: "Pengeluaran",
-    amount: "Rp 12.500.000",
-    colorClass: "bg-muted/40 text-muted-foreground",
-  },
-  {
-    date: "20/01/2023",
-    description: "Penjualan Produk B",
-    category: "Penjualan",
-    amount: "Rp 7.250.000",
-    colorClass: "bg-muted/40 text-muted-foreground",
-  },
-  {
-    date: "18/01/2023",
-    description: "Biaya Utilitas",
-    category: "Pengeluaran",
-    amount: "Rp 1.875.000",
-    colorClass: "bg-muted/40 text-muted-foreground",
-  },
+const segmentPositions = [
+  "top-10 left-4 text-muted-foreground",
+  "bottom-10 right-16 text-muted-foreground",
+  "top-1/2 right-2 -translate-y-1/2 text-muted-foreground",
 ];
 
 export default function RingkasanReportPage() {
   const [activePreset, setActivePreset] = useState("month");
-  const presetLabel = presetOptions.find(
-    (item) => item.value === activePreset
-  )?.label;
+  const [appliedPreset, setAppliedPreset] = useState("month");
+  const [report, setReport] = useState<OverviewReport | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadReport = async () => {
+      try {
+        const data = ensureSuccess(
+          await getBumdesOverviewReport({ preset: appliedPreset, limit: 5 })
+        );
+        if (!cancelled) {
+          setReport(data);
+        }
+      } catch (err) {
+        console.warn("bumdes overview failed to load", err);
+      }
+    };
+    loadReport();
+    return () => {
+      cancelled = true;
+    };
+  }, [appliedPreset]);
+
+  const summaryCards = report?.kpis?.map((kpi) => ({
+    title: kpi.title,
+    value: kpi.value_display,
+    delta: kpi.delta_display ?? "",
+    icon:
+      kpi.title === "Total Pendapatan"
+        ? Wallet
+        : kpi.title === "Total Pengeluaran"
+          ? ReceiptText
+          : kpi.title === "Laba Bersih"
+            ? TrendingUp
+            : FileText,
+    badgeColor: "text-primary",
+    badgeBg: "bg-primary/10",
+  })) ?? [];
+
+  const monthlyPerformance =
+    report?.monthly_performance?.map((item) => ({
+      label: item.label,
+      revenue: item.revenue_pct,
+      expense: item.expense_pct,
+    })) ?? [];
+
+  const revenueSegments = report?.revenue_segments ?? [];
+  const positionedSegments = revenueSegments.map((segment, index) => ({
+    label: segment.label_display,
+    className: segmentPositions[index] ?? "text-muted-foreground",
+  }));
+  const revenueGradient = revenueSegments.length
+    ? buildRevenueGradient(revenueSegments)
+    : "";
+
+  const recentTransactions =
+    report?.recent_transactions?.map((trx) => ({
+      date: trx.date_display,
+      description: trx.description,
+      category: trx.category,
+      amount: trx.amount_display,
+      colorClass: trx.badge_class ?? "",
+    })) ?? [];
+
+  const updatedLabel = report?.updated_at
+    ? `Terakhir diperbarui: ${report.updated_at}${
+        report.period_label ? ` — ${report.period_label}` : ""
+      }`
+    : "";
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 text-foreground">
@@ -143,6 +127,7 @@ export default function RingkasanReportPage() {
           <Button
             type="button"
             className="hidden sm:inline-flex h-auto px-4 py-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
+            onClick={() => setAppliedPreset(activePreset)}
           >
             Terapkan
           </Button>
@@ -218,13 +203,12 @@ export default function RingkasanReportPage() {
             <div
               className="w-48 h-48 rounded-full p-8 flex items-center justify-center"
               style={{
-                background:
-                  "conic-gradient(hsl(var(--primary)) 0% 66%, hsl(var(--secondary)) 66% 74%, hsl(var(--accent)) 74% 100%)",
+                background: revenueGradient,
               }}
             >
               <div className="w-24 h-24 bg-card rounded-full" />
             </div>
-            {revenueSegments.map((segment) => (
+            {positionedSegments.map((segment) => (
               <div
                 key={segment.label}
                 className={cn(
@@ -297,11 +281,28 @@ export default function RingkasanReportPage() {
         </div>
       </div>
 
-      <ReportFooter
-        updatedLabel={`Terakhir diperbarui: 31 Januari 2023, 15:30 — ${
-          presetLabel ?? "Bulan Ini"
-        }`}
-      />
+      <ReportFooter updatedLabel={updatedLabel} />
     </div>
   );
+}
+
+function buildRevenueGradient(segments: RevenueSegment[]): string {
+  const colors = [
+    "hsl(var(--primary))",
+    "hsl(var(--secondary))",
+    "hsl(var(--accent))",
+  ];
+  let cursor = 0;
+  const stops = segments.map((segment, index) => {
+    const start = cursor;
+    const end = cursor + segment.pct;
+    cursor = end;
+    const color = colors[index % colors.length];
+    return `${color} ${start}% ${end}%`;
+  });
+  if (cursor < 100) {
+    const color = colors[segments.length % colors.length];
+    stops.push(`${color} ${cursor}% 100%`);
+  }
+  return `conic-gradient(${stops.join(", ")})`;
 }

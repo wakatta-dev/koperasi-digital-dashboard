@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, Download, Filter, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ import { cn } from "@/lib/utils";
 
 import { ReportFooter } from "../_components/report-footer";
 import { SegmentedControl } from "../_components/segmented-control";
+import { ensureSuccess } from "@/lib/api";
+import { getBumdesCashFlowReport } from "@/services/api";
+import type { CashFlowReport } from "@/modules/bumdes/report/types";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -38,115 +41,6 @@ type CashFlowRow =
   | { type: "plainBold"; label: string; value: string }
   | { type: "finalPrimary"; label: string; value: string };
 
-const rows: CashFlowRow[] = [
-  { type: "section", label: "Arus Kas Dari Aktivitas Operasi" },
-  { type: "label", label: "Penerimaan Kas:", indent: 1 },
-  {
-    type: "item",
-    label: "Penerimaan dari Pelanggan",
-    value: "Rp 3.250.000.000",
-    indent: 2,
-  },
-  {
-    type: "item",
-    label: "Penerimaan dari Bunga",
-    value: "Rp 75.000.000",
-    indent: 2,
-  },
-  {
-    type: "item",
-    label: "Penerimaan dari Refund Pajak",
-    value: "Rp 45.000.000",
-    indent: 2,
-  },
-  {
-    type: "total",
-    label: "Total Penerimaan Kas",
-    value: "Rp 3.370.000.000",
-    indent: 2,
-  },
-  { type: "label", label: "Pembayaran Kas:", indent: 1 },
-  {
-    type: "item",
-    label: "Pembayaran kepada Pemasok",
-    value: "-Rp 1.850.000.000",
-    indent: 2,
-  },
-  {
-    type: "item",
-    label: "Pembayaran untuk Beban Operasional",
-    value: "-Rp 650.000.000",
-    indent: 2,
-  },
-  {
-    type: "item",
-    label: "Pembayaran Pajak",
-    value: "-Rp 325.000.000",
-    indent: 2,
-  },
-  {
-    type: "item",
-    label: "Pembayaran Bunga",
-    value: "-Rp 125.000.000",
-    indent: 2,
-  },
-  {
-    type: "total",
-    label: "Total Pembayaran Kas",
-    value: "-Rp 2.950.000.000",
-    indent: 2,
-  },
-  {
-    type: "netPrimary",
-    label: "Arus Kas Bersih dari Aktivitas Operasi",
-    value: "Rp 420.000.000",
-  },
-  { type: "section", label: "Arus Kas Dari Aktivitas Pendanaan" },
-  {
-    type: "item",
-    label: "Pembayaran Dividen",
-    value: "-Rp 200.000.000",
-    indent: 1,
-  },
-  {
-    type: "item",
-    label: "Penerimaan dari Penerbitan Saham",
-    value: "Rp 500.000.000",
-    indent: 1,
-  },
-  {
-    type: "item",
-    label: "Pembayaran Pinjaman Bank",
-    value: "-Rp 300.000.000",
-    indent: 1,
-  },
-  {
-    type: "netPrimary",
-    label: "Arus Kas Bersih dari Aktivitas Pendanaan",
-    value: "Rp 0",
-  },
-  {
-    type: "summaryGray",
-    label: "Kenaikan/Penurunan Kas Bersih",
-    value: "Rp 420.000.000",
-  },
-  {
-    type: "plainBold",
-    label: "Saldo Kas Awal Periode",
-    value: "Rp 1.250.000.000",
-  },
-  {
-    type: "finalPrimary",
-    label: "Saldo Kas Akhir Periode",
-    value: "Rp 1.670.000.000",
-  },
-];
-
-const notes = [
-  "Laporan ini disusun menggunakan metode langsung sesuai dengan Standar Akuntansi Keuangan yang berlaku.",
-  "Aktivitas operasi termasuk transaksi yang terkait dengan produksi dan pengiriman barang atau jasa.",
-  "Aktivitas pendanaan termasuk transaksi dengan pemilik dan kreditor perusahaan.",
-];
 
 const indentClass: Record<number, string> = {
   0: "",
@@ -273,6 +167,83 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
 export default function ArusKasReportPage() {
   const [activePreset, setActivePreset] = useState("month");
+  const [report, setReport] = useState<CashFlowReport | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadReport = async () => {
+      try {
+        const data = ensureSuccess(
+          await getBumdesCashFlowReport({ preset: activePreset })
+        );
+        if (!cancelled) {
+          setReport(data);
+        }
+      } catch (err) {
+        console.warn("bumdes cash-flow failed to load", err);
+      }
+    };
+    loadReport();
+    return () => {
+      cancelled = true;
+    };
+  }, [activePreset]);
+
+  const rows: CashFlowRow[] =
+    report?.rows?.map((row) => {
+      switch (row.type) {
+        case "section":
+          return { type: "section", label: row.label };
+        case "label":
+          return { type: "label", label: row.label, indent: row.indent ?? 0 };
+        case "item":
+          return {
+            type: "item",
+            label: row.label,
+            value: row.value_display ?? "",
+            indent: row.indent ?? 0,
+          };
+        case "total":
+          return {
+            type: "total",
+            label: row.label,
+            value: row.value_display ?? "",
+            indent: row.indent ?? 0,
+          };
+        case "netPrimary":
+          return {
+            type: "netPrimary",
+            label: row.label,
+            value: row.value_display ?? "",
+          };
+        case "summaryGray":
+          return {
+            type: "summaryGray",
+            label: row.label,
+            value: row.value_display ?? "",
+          };
+        case "plainBold":
+          return {
+            type: "plainBold",
+            label: row.label,
+            value: row.value_display ?? "",
+          };
+        default:
+          return {
+            type: "finalPrimary",
+            label: row.label,
+            value: row.value_display ?? "",
+          };
+      }
+    }) ?? [];
+
+  const notes = report?.notes ?? [];
+  const periodLabel = report?.period_label ?? "";
+  const updatedLabel = report?.updated_at
+    ? `Terakhir diperbarui: ${report.updated_at}${
+        report.period_label ? ` — ${report.period_label}` : ""
+      }`
+    : "";
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 text-foreground">
@@ -280,7 +251,7 @@ export default function ArusKasReportPage() {
         <h1 className="text-2xl font-bold">Laporan Arus Kas</h1>
         <div className="flex items-center gap-4">
           <span className="text-xs text-muted-foreground hidden sm:inline-block">
-            01 Jan 2023 - 31 Jan 2023
+            {periodLabel}
           </span>
           <Button
             type="button"
@@ -306,7 +277,7 @@ export default function ArusKasReportPage() {
           <div>
             <h3 className="text-lg font-bold">Laporan Arus Kas (Metode Langsung)</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Periode: 01 Jan 2023 - 31 Jan 2023
+              Periode: {periodLabel}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -363,7 +334,7 @@ export default function ArusKasReportPage() {
         </ol>
       </div>
 
-      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Januari 2023, 15:30" />
+      <ReportFooter updatedLabel={updatedLabel} />
     </div>
   );
 }

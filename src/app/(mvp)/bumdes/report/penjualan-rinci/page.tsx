@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Download,
   TrendingUp,
@@ -24,6 +24,9 @@ import { cn } from "@/lib/utils";
 
 import { ReportFooter } from "../_components/report-footer";
 import { SegmentedControl } from "../_components/segmented-control";
+import { ensureSuccess } from "@/lib/api";
+import { getBumdesSalesDetailReport } from "@/services/api";
+import type { SalesDetailReport } from "@/modules/bumdes/report/types";
 
 const presets = [
   { label: "Hari Ini", value: "today" },
@@ -32,54 +35,89 @@ const presets = [
   { label: "Kustom", value: "custom" },
 ];
 
-const summaryCards = [
-  {
-    title: "Omzet Total",
-    value: "Rp 456.789.000",
-    delta: "+12,5% dari bulan lalu",
-    icon: Wallet,
-  },
-  {
-    title: "Jumlah Transaksi",
-    value: "1.234",
-    delta: "+8,3% dari bulan lalu",
-    icon: ReceiptText,
-  },
-  {
-    title: "Rata-rata Transaksi",
-    value: "Rp 370.170",
-    delta: "+3,7% dari bulan lalu",
-    icon: BarChart3,
-  },
-];
-
-const topProducts = [
-  { name: "Produk A", units: "532 unit", revenue: "Rp 159.600.000", pct: 35 },
-  { name: "Produk B", units: "421 unit", revenue: "Rp 126.300.000", pct: 28 },
-  { name: "Produk C", units: "289 unit", revenue: "Rp 86.700.000", pct: 19 },
-  { name: "Produk D", units: "186 unit", revenue: "Rp 55.800.000", pct: 12 },
-  { name: "Produk E", units: "92 unit", revenue: "Rp 27.600.000", pct: 6 },
-];
-
-const channelTable = [
-  {
-    label: "Kasir (POS)",
-    revenue: "Rp 319.752.300",
-    pct: "70%",
-    color: "bg-primary",
-  },
-  {
-    label: "Marketplace",
-    revenue: "Rp 137.036.700",
-    pct: "30%",
-    color: "bg-secondary",
-  },
-];
 
 export default function PenjualanRinciReportPage() {
   const [activePreset, setActivePreset] = useState(
     presets.find((preset) => preset.active)?.value ?? presets[0].value
   );
+  const [appliedPreset, setAppliedPreset] = useState(
+    presets.find((preset) => preset.active)?.value ?? presets[0].value
+  );
+  const [report, setReport] = useState<SalesDetailReport | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadReport = async () => {
+      try {
+        const data = ensureSuccess(
+          await getBumdesSalesDetailReport({ preset: appliedPreset, limit: 10 })
+        );
+        if (!cancelled) {
+          setReport(data);
+        }
+      } catch (err) {
+        console.warn("bumdes sales-detail failed to load", err);
+      }
+    };
+    loadReport();
+    return () => {
+      cancelled = true;
+    };
+  }, [appliedPreset]);
+
+  const summaryCards = report?.summary_cards?.map((card) => ({
+    title: card.title,
+    value: card.value_display,
+    delta: card.delta_display ?? "",
+    icon:
+      card.title === "Omzet Total"
+        ? Wallet
+        : card.title === "Jumlah Transaksi"
+          ? ReceiptText
+          : BarChart3,
+  })) ?? [];
+
+  const topProducts =
+    report?.top_products?.map((product) => ({
+      name: product.name,
+      units: product.units_display,
+      revenue: product.revenue_display,
+      pct: product.pct,
+    })) ?? [];
+
+  const channelBreakdown = report?.channel_breakdown ?? [];
+  const channelTable = channelBreakdown.map((row) => ({
+    label: row.label,
+    revenue: row.revenue_display,
+    pct: row.pct_display,
+    color: row.color_key ?? "",
+    transactions: row.transactions,
+    average: row.average_ticket_display,
+  }));
+
+  const comparisonItems = report?.channel_comparison ?? [];
+  const comparisonMap = new Map(
+    comparisonItems.map((item) => [item.label, item])
+  );
+  const primaryChannel = channelBreakdown[0];
+  const secondaryChannel = channelBreakdown[1];
+  const primaryLabel =
+    primaryChannel?.label ?? comparisonItems[0]?.label ?? "";
+  const secondaryLabel =
+    secondaryChannel?.label ?? comparisonItems[1]?.label ?? "";
+  const primaryPct = parsePercentage(primaryChannel?.pct_display);
+  const secondaryPct = parsePercentage(secondaryChannel?.pct_display);
+  const primaryComparison = comparisonMap.get(primaryLabel);
+  const secondaryComparison = comparisonMap.get(secondaryLabel);
+  const updatedLabel = report?.updated_at
+    ? `Terakhir diperbarui: ${report.updated_at}${
+        report.period_label ? ` — ${report.period_label}` : ""
+      }`
+    : "";
+  const periodLabel = report?.period_label ?? "";
+
+  const primaryChannelColor = primaryChannel?.color_key ?? "";
+  const secondaryChannelColor = secondaryChannel?.color_key ?? "";
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 text-foreground">
@@ -99,11 +137,12 @@ export default function PenjualanRinciReportPage() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground font-medium">
-            01/01/2023 - 31/01/2023
+            {periodLabel}
           </span>
           <Button
             type="button"
             className="inline-flex h-auto items-center px-4 py-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
+            onClick={() => setAppliedPreset(activePreset)}
           >
             Terapkan
           </Button>
@@ -217,8 +256,7 @@ export default function PenjualanRinciReportPage() {
                 width: "200px",
                 height: "200px",
                 borderRadius: "50%",
-                background:
-                  "conic-gradient(hsl(var(--secondary)) 0% 30%, hsl(var(--primary)) 30% 100%)",
+                background: `conic-gradient(hsl(var(--secondary)) 0% ${secondaryPct}%, hsl(var(--primary)) ${secondaryPct}% ${Math.min(secondaryPct + primaryPct, 100)}%)`,
                 position: "relative",
               }}
             >
@@ -235,25 +273,33 @@ export default function PenjualanRinciReportPage() {
                 }}
               />
             </div>
-            <div className="absolute top-10 left-10 lg:left-15 text-muted-foreground font-medium text-sm">
-              Kasir (POS) 70%
-            </div>
-            <div className="absolute top-10 right-10 lg:right-15 text-muted-foreground font-medium text-sm">
-              Marketplace 30%
-            </div>
+            {primaryLabel ? (
+              <div className="absolute top-10 left-10 lg:left-15 text-muted-foreground font-medium text-sm">
+                {primaryLabel} {primaryPct}%
+              </div>
+            ) : null}
+            {secondaryLabel ? (
+              <div className="absolute top-10 right-10 lg:right-15 text-muted-foreground font-medium text-sm">
+                {secondaryLabel} {secondaryPct}%
+              </div>
+            ) : null}
             <div className="flex gap-6 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-primary rounded-sm" />
-                <span className="text-sm text-muted-foreground font-medium">
-                  Kasir (POS)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-secondary rounded-sm" />
-                <span className="text-sm text-muted-foreground font-medium">
-                  Marketplace
-                </span>
-              </div>
+              {primaryLabel ? (
+                <div className="flex items-center gap-2">
+                  <div className={cn("w-3 h-3 rounded-sm", primaryChannelColor)} />
+                  <span className="text-sm text-muted-foreground font-medium">
+                    {primaryLabel}
+                  </span>
+                </div>
+              ) : null}
+              {secondaryLabel ? (
+                <div className="flex items-center gap-2">
+                  <div className={cn("w-3 h-3 rounded-sm", secondaryChannelColor)} />
+                  <span className="text-sm text-muted-foreground font-medium">
+                    {secondaryLabel}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -303,27 +349,43 @@ export default function PenjualanRinciReportPage() {
                   <p className="text-xs text-muted-foreground mb-2">
                     Jumlah Transaksi
                   </p>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium">Kasir (POS)</span>
-                    <span className="text-sm font-bold">876</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Marketplace</span>
-                    <span className="text-sm font-bold">358</span>
-                  </div>
+                  {primaryLabel ? (
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">{primaryLabel}</span>
+                      <span className="text-sm font-bold">
+                        {primaryComparison?.transaction_count?.toString() ?? ""}
+                      </span>
+                    </div>
+                  ) : null}
+                  {secondaryLabel ? (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{secondaryLabel}</span>
+                      <span className="text-sm font-bold">
+                        {secondaryComparison?.transaction_count?.toString() ?? ""}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="bg-muted/40 p-4 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-2">
                     Rata-rata Transaksi
                   </p>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium">Kasir (POS)</span>
-                    <span className="text-sm font-bold">Rp 365.014</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Marketplace</span>
-                    <span className="text-sm font-bold">Rp 382.784</span>
-                  </div>
+                  {primaryLabel ? (
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">{primaryLabel}</span>
+                      <span className="text-sm font-bold">
+                        {primaryComparison?.average_ticket_display ?? ""}
+                      </span>
+                    </div>
+                  ) : null}
+                  {secondaryLabel ? (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{secondaryLabel}</span>
+                      <span className="text-sm font-bold">
+                        {secondaryComparison?.average_ticket_display ?? ""}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -331,7 +393,13 @@ export default function PenjualanRinciReportPage() {
         </div>
       </div>
 
-      <ReportFooter updatedLabel="Terakhir diperbarui: 31 Januari 2023, 15:30" />
+      <ReportFooter updatedLabel={updatedLabel} />
     </div>
   );
+}
+
+function parsePercentage(value?: string): number {
+  if (!value) return 0;
+  const numeric = Number(value.replace(/[^0-9]/g, ""));
+  return Number.isNaN(numeric) ? 0 : numeric;
 }
