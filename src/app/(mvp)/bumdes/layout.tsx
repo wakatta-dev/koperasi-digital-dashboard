@@ -10,11 +10,29 @@ import { BarChart3, Package, FileText, ShoppingBag } from "lucide-react";
 import { IconUsersGroup } from "@tabler/icons-react";
 
 // Sidebar navigation for BUMDes MVP section
-const navigation = [
+export const bumdesNavigation = [
   {
     name: "Dashboard",
     href: "/bumdes/dashboard",
     icon: <BarChart3 className="h-4 w-4" />,
+  },
+  {
+    name: "Landing Page",
+    href: "/bumdes/landing-page",
+    icon: <FileText className="h-4 w-4" />,
+    items: [
+      {
+        name: "Identitas & Navigasi",
+        href: "/bumdes/landing-page/identitas-navigasi",
+      },
+      { name: "Hero Section", href: "/bumdes/landing-page/hero-section" },
+      { name: "Tentang BUMDes", href: "/bumdes/landing-page/tentang-bumdes" },
+      { name: "Unit Usaha", href: "/bumdes/landing-page/unit-usaha" },
+      { name: "Produk Unggulan", href: "/bumdes/landing-page/produk-unggulan" },
+      { name: "Keunggulan", href: "/bumdes/landing-page/keunggulan" },
+      { name: "Testimoni", href: "/bumdes/landing-page/testimoni" },
+      { name: "Footer & Kontak", href: "/bumdes/landing-page/footer-kontak" },
+    ],
   },
   {
     name: "Manajemen Aset",
@@ -59,7 +77,7 @@ const navigation = [
   },
 ];
 
-const titleMap: Record<string, string> = {
+export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/dashboard": "Dashboard",
   "/bumdes/asset": "Asset",
   "/bumdes/marketplace/inventory": "Marketplace - Inventaris",
@@ -67,6 +85,15 @@ const titleMap: Record<string, string> = {
   "/bumdes/marketplace": "Marketplace",
   "/bumdes/pos": "Point of Sales",
   "/bumdes/rent": "Rent",
+  "/bumdes/landing-page": "Landing Page",
+  "/bumdes/landing-page/identitas-navigasi": "Landing Page - Identitas & Navigasi",
+  "/bumdes/landing-page/hero-section": "Landing Page - Hero Section",
+  "/bumdes/landing-page/tentang-bumdes": "Landing Page - Tentang BUMDes",
+  "/bumdes/landing-page/unit-usaha": "Landing Page - Unit Usaha",
+  "/bumdes/landing-page/produk-unggulan": "Landing Page - Produk Unggulan",
+  "/bumdes/landing-page/keunggulan": "Landing Page - Keunggulan",
+  "/bumdes/landing-page/testimoni": "Landing Page - Testimoni",
+  "/bumdes/landing-page/footer-kontak": "Landing Page - Footer & Kontak",
   "/bumdes/report": "Report",
   "/bumdes/report/ringkasan": "Report - Ringkasan",
   "/bumdes/report/laba-rugi": "Report - Laba/Rugi",
@@ -77,11 +104,11 @@ const titleMap: Record<string, string> = {
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const title = titleMap[pathname] ?? "BUMDes";
+  const title = bumdesTitleMap[pathname] ?? "BUMDes";
 
   return (
     <ProtectedRoute requiredRole="bumdes">
-      <DashboardLayout title={title} navigation={navigation}>
+      <DashboardLayout title={title} navigation={bumdesNavigation}>
         {children}
       </DashboardLayout>
     </ProtectedRoute>
