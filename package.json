@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "test:a11y": "vitest run src/__tests__/**/*a11y*.spec.*",
+    "test:visual": "vitest run src/__tests__/**/*visual*.spec.*",
+    "test:perf": "vitest run src/__tests__/**/*performance*.spec.*",
     "mock:api": "node mock-api/server.js"
   },
   "dependencies": {
