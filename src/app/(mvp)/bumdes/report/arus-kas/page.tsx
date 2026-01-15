@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-import { ReportFooter } from "../_components/report-footer";
-import { SegmentedControl } from "../_components/segmented-control";
+import { ReportFooter } from "@/modules/bumdes/report/components/report-footer";
+import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-control";
 import { ensureSuccess } from "@/lib/api";
 import { getBumdesCashFlowReport } from "@/services/api";
 import type { CashFlowReport } from "@/modules/bumdes/report/types";

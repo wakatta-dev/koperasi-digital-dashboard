@@ -25,9 +25,9 @@ import { ensureSuccess } from "@/lib/api";
 import { getBumdesOverviewReport } from "@/services/api";
 import type { OverviewReport, RevenueSegment } from "@/modules/bumdes/report/types";
 
-import { ReportFooter } from "../_components/report-footer";
-import { SegmentedControl } from "../_components/segmented-control";
-import { SummaryCard } from "../_components/summary-card";
+import { ReportFooter } from "@/modules/bumdes/report/components/report-footer";
+import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-control";
+import { SummaryCard } from "@/modules/bumdes/report/components/summary-card";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },

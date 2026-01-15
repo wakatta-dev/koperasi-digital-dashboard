@@ -13,8 +13,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { ReportFooter } from "../_components/report-footer";
-import { SegmentedControl } from "../_components/segmented-control";
+import { ReportFooter } from "@/modules/bumdes/report/components/report-footer";
+import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-control";
 import { ensureSuccess } from "@/lib/api";
 import { getBumdesBalanceSheetReport } from "@/services/api";
 import type { BalanceSheetReport } from "@/modules/bumdes/report/types";

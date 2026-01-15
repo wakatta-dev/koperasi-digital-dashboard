@@ -22,9 +22,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { ReportFooter } from "../_components/report-footer";
-import { SegmentedControl } from "../_components/segmented-control";
-import { SummaryCard } from "../_components/summary-card";
+import { ReportFooter } from "@/modules/bumdes/report/components/report-footer";
+import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-control";
+import { SummaryCard } from "@/modules/bumdes/report/components/summary-card";
 import { ensureSuccess } from "@/lib/api";
 import { getBumdesProfitLossReport } from "@/services/api";
 import type { ProfitLossReport } from "@/modules/bumdes/report/types";
