@@ -13,11 +13,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { ReportFooter } from "../_components/report-footer";
-import { SegmentedControl } from "../_components/segmented-control";
+import { ReportFooter } from "@/modules/bumdes/report/components/report-footer";
+import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-control";
 import { ensureSuccess } from "@/lib/api";
 import { getBumdesBalanceSheetReport } from "@/services/api";
 import type { BalanceSheetReport } from "@/modules/bumdes/report/types";
+import { withRowKeys } from "@/modules/bumdes/report/utils/report-keys";
 
 const periodPresets = [
   { label: "Bulanan", value: "month", active: false },
@@ -52,31 +53,46 @@ export default function NeracaReportPage() {
     };
   }, [activePeriod]);
 
-  const assets =
+  const assets = withRowKeys(
     report?.assets?.map((item) => ({
       label: item.label,
       value: item.value_display,
-    })) ?? [];
-  const liabilities =
+    })) ?? [],
+    (item) => [item.label, item.value],
+    "asset"
+  );
+  const liabilities = withRowKeys(
     report?.liabilities?.map((item) => ({
       label: item.label,
       value: item.value_display,
-    })) ?? [];
-  const equity =
+    })) ?? [],
+    (item) => [item.label, item.value],
+    "liability"
+  );
+  const equity = withRowKeys(
     report?.equity?.map((item) => ({
       label: item.label,
       value: item.value_display,
-    })) ?? [];
-  const assetInfo =
+    })) ?? [],
+    (item) => [item.label, item.value],
+    "equity"
+  );
+  const assetInfo = withRowKeys(
     report?.asset_info?.map((item) => ({
       label: item.label,
       value: item.value_display,
-    })) ?? [];
-  const liabilityInfo =
+    })) ?? [],
+    (item) => [item.label, item.value],
+    "asset-info"
+  );
+  const liabilityInfo = withRowKeys(
     report?.liability_info?.map((item) => ({
       label: item.label,
       value: item.value_display,
-    })) ?? [];
+    })) ?? [],
+    (item) => [item.label, item.value],
+    "liability-info"
+  );
 
   const totalAssetsDisplay = report?.asset_total_display ?? "";
   const totalLEDisplay = report?.liab_equity_total_display ?? "";
@@ -151,7 +167,7 @@ export default function NeracaReportPage() {
               <div className="space-y-4">
                 {assets.map((item) => (
                   <div
-                    key={item.label}
+                    key={item.rowKey}
                     className="flex justify-between items-center text-sm"
                   >
                     <span>{item.label}</span>
@@ -173,7 +189,7 @@ export default function NeracaReportPage() {
                 <div className="space-y-4">
                   {liabilities.map((item) => (
                     <div
-                      key={item.label}
+                      key={item.rowKey}
                       className="flex justify-between items-center text-sm"
                     >
                       <span>{item.label}</span>
@@ -194,7 +210,7 @@ export default function NeracaReportPage() {
                 <div className="space-y-4">
                   {equity.map((item) => (
                     <div
-                      key={item.label}
+                      key={item.rowKey}
                       className="flex justify-between items-center text-sm"
                     >
                       <span>{item.label}</span>
@@ -250,7 +266,7 @@ export default function NeracaReportPage() {
           <div className="space-y-3">
             {assetInfo.map((item) => (
               <div
-                key={item.label}
+                key={item.rowKey}
                 className="flex justify-between items-center text-sm"
               >
                 <span className="text-muted-foreground">
@@ -266,7 +282,7 @@ export default function NeracaReportPage() {
           <div className="space-y-3">
             {liabilityInfo.map((item) => (
               <div
-                key={item.label}
+                key={item.rowKey}
                 className="flex justify-between items-center text-sm"
               >
                 <span className="text-muted-foreground">

@@ -22,11 +22,12 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-import { ReportFooter } from "../_components/report-footer";
-import { SegmentedControl } from "../_components/segmented-control";
+import { ReportFooter } from "@/modules/bumdes/report/components/report-footer";
+import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-control";
 import { ensureSuccess } from "@/lib/api";
 import { getBumdesSalesDetailReport } from "@/services/api";
 import type { SalesDetailReport } from "@/modules/bumdes/report/types";
+import { withRowKeys } from "@/modules/bumdes/report/utils/report-keys";
 
 const presets = [
   { label: "Hari Ini", value: "today" },
@@ -65,35 +66,46 @@ export default function PenjualanRinciReportPage() {
     };
   }, [appliedPreset]);
 
-  const summaryCards = report?.summary_cards?.map((card) => ({
-    title: card.title,
-    value: card.value_display,
-    delta: card.delta_display ?? "",
-    icon:
-      card.title === "Omzet Total"
-        ? Wallet
-        : card.title === "Jumlah Transaksi"
-          ? ReceiptText
-          : BarChart3,
-  })) ?? [];
+  const summaryCards = withRowKeys(
+    report?.summary_cards?.map((card) => ({
+      title: card.title,
+      value: card.value_display,
+      delta: card.delta_display ?? "",
+      icon:
+        card.title === "Omzet Total"
+          ? Wallet
+          : card.title === "Jumlah Transaksi"
+            ? ReceiptText
+            : BarChart3,
+    })) ?? [],
+    (card) => [card.title, card.value, card.delta],
+    "summary-card"
+  );
 
-  const topProducts =
+  const topProducts = withRowKeys(
     report?.top_products?.map((product) => ({
       name: product.name,
       units: product.units_display,
       revenue: product.revenue_display,
       pct: product.pct,
-    })) ?? [];
+    })) ?? [],
+    (product) => [product.name, product.units, product.revenue],
+    "product"
+  );
 
   const channelBreakdown = report?.channel_breakdown ?? [];
-  const channelTable = channelBreakdown.map((row) => ({
-    label: row.label,
-    revenue: row.revenue_display,
-    pct: row.pct_display,
-    color: row.color_key ?? "",
-    transactions: row.transactions,
-    average: row.average_ticket_display,
-  }));
+  const channelTable = withRowKeys(
+    channelBreakdown.map((row) => ({
+      label: row.label,
+      revenue: row.revenue_display,
+      pct: row.pct_display,
+      color: row.color_key ?? "",
+      transactions: row.transactions,
+      average: row.average_ticket_display,
+    })),
+    (row) => [row.label, row.revenue, row.pct, row.transactions],
+    "channel"
+  );
 
   const comparisonItems = report?.channel_comparison ?? [];
   const comparisonMap = new Map(
@@ -154,7 +166,7 @@ export default function PenjualanRinciReportPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {summaryCards.map((card) => (
             <div
-              key={card.title}
+              key={card.rowKey}
               className="bg-card rounded-xl p-6 shadow-sm border border-border flex justify-between items-start"
             >
               <div>
@@ -209,7 +221,7 @@ export default function PenjualanRinciReportPage() {
             </TableHeader>
             <TableBody className="bg-card divide-y divide-border">
               {topProducts.map((product) => (
-                <TableRow key={product.name}>
+                <TableRow key={product.rowKey}>
                   <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     {product.name}
                   </TableCell>
@@ -321,7 +333,7 @@ export default function PenjualanRinciReportPage() {
                 </TableHeader>
                 <TableBody className="bg-card divide-y divide-border">
                   {channelTable.map((row) => (
-                    <TableRow key={row.label}>
+                    <TableRow key={row.rowKey}>
                       <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-2">
                         <div
                           className={cn("w-2.5 h-2.5 rounded-full", row.color)}
