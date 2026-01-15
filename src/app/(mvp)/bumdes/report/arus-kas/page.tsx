@@ -21,6 +21,7 @@ import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-c
 import { ensureSuccess } from "@/lib/api";
 import { getBumdesCashFlowReport } from "@/services/api";
 import type { CashFlowReport } from "@/modules/bumdes/report/types";
+import { withRowKeys } from "@/modules/bumdes/report/utils/report-keys";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -41,6 +42,7 @@ type CashFlowRow =
   | { type: "plainBold"; label: string; value: string }
   | { type: "finalPrimary"; label: string; value: string };
 
+type CashFlowRowWithKey = CashFlowRow & { rowKey: string };
 
 const indentClass: Record<number, string> = {
   0: "",
@@ -48,10 +50,10 @@ const indentClass: Record<number, string> = {
   2: "pl-10",
 };
 
-const renderCashFlowRow = (row: CashFlowRow) => {
+const renderCashFlowRow = (row: CashFlowRowWithKey) => {
   if (row.type === "section") {
     return (
-      <TableRow key={row.label} className="bg-muted/30">
+      <TableRow key={row.rowKey} className="bg-muted/30">
         <TableCell
           className="px-6 py-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider"
           colSpan={2}
@@ -64,7 +66,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "label") {
     return (
-      <TableRow key={row.label}>
+      <TableRow key={row.rowKey}>
         <TableCell
           className={cn(
             "px-6 py-3 whitespace-nowrap text-sm font-medium",
@@ -80,7 +82,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "item") {
     return (
-      <TableRow key={row.label}>
+      <TableRow key={row.rowKey}>
         <TableCell
           className={cn(
             "px-6 py-3 whitespace-nowrap text-sm",
@@ -98,7 +100,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "total") {
     return (
-      <TableRow key={row.label} className="bg-muted/30">
+      <TableRow key={row.rowKey} className="bg-muted/30">
         <TableCell
           className={cn(
             "px-6 py-3 whitespace-nowrap text-sm font-bold",
@@ -116,7 +118,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "netPrimary") {
     return (
-      <TableRow key={row.label} className="bg-muted/30">
+      <TableRow key={row.rowKey} className="bg-muted/30">
         <TableCell className="px-6 py-3 whitespace-nowrap text-sm font-bold text-primary">
           {row.label}
         </TableCell>
@@ -129,7 +131,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "summaryGray") {
     return (
-      <TableRow key={row.label} className="bg-muted/30">
+      <TableRow key={row.rowKey} className="bg-muted/30">
         <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </TableCell>
@@ -142,7 +144,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
 
   if (row.type === "plainBold") {
     return (
-      <TableRow key={row.label} className="bg-card">
+      <TableRow key={row.rowKey} className="bg-card">
         <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </TableCell>
@@ -154,7 +156,7 @@ const renderCashFlowRow = (row: CashFlowRow) => {
   }
 
   return (
-    <TableRow key={row.label} className="bg-primary text-primary-foreground">
+    <TableRow key={row.rowKey} className="bg-primary text-primary-foreground">
       <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold uppercase">
         {row.label}
       </TableCell>
@@ -189,8 +191,8 @@ export default function ArusKasReportPage() {
     };
   }, [activePreset]);
 
-  const rows: CashFlowRow[] =
-    report?.rows?.map((row) => {
+  const rows = withRowKeys(
+    report?.rows?.map((row): CashFlowRow => {
       switch (row.type) {
         case "section":
           return { type: "section", label: row.label };
@@ -235,9 +237,21 @@ export default function ArusKasReportPage() {
             value: row.value_display ?? "",
           };
       }
-    }) ?? [];
+    }) ?? [],
+    (row) => [
+      row.type,
+      row.label,
+      "value" in row ? row.value : undefined,
+      "indent" in row ? row.indent : undefined,
+    ],
+    "cash-flow"
+  );
 
-  const notes = report?.notes ?? [];
+  const notes = withRowKeys(
+    report?.notes?.map((note) => ({ note })) ?? [],
+    (item) => [item.note],
+    "note"
+  );
   const periodLabel = report?.period_label ?? "";
   const updatedLabel = report?.updated_at
     ? `Terakhir diperbarui: ${report.updated_at}${
@@ -329,7 +343,7 @@ export default function ArusKasReportPage() {
         <h3 className="text-base font-bold mb-3">Catatan Laporan Arus Kas</h3>
         <ol className="list-decimal pl-5 space-y-1 text-sm text-muted-foreground">
           {notes.map((note) => (
-            <li key={note}>{note}</li>
+            <li key={note.rowKey}>{note.note}</li>
           ))}
         </ol>
       </div>
