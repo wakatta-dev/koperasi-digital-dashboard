@@ -28,6 +28,7 @@ import type { OverviewReport, RevenueSegment } from "@/modules/bumdes/report/typ
 import { ReportFooter } from "@/modules/bumdes/report/components/report-footer";
 import { SegmentedControl } from "@/modules/bumdes/report/components/segmented-control";
 import { SummaryCard } from "@/modules/bumdes/report/components/summary-card";
+import { withRowKeys } from "@/modules/bumdes/report/utils/report-keys";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -67,46 +68,61 @@ export default function RingkasanReportPage() {
     };
   }, [appliedPreset]);
 
-  const summaryCards = report?.kpis?.map((kpi) => ({
-    title: kpi.title,
-    value: kpi.value_display,
-    delta: kpi.delta_display ?? "",
-    icon:
-      kpi.title === "Total Pendapatan"
-        ? Wallet
-        : kpi.title === "Total Pengeluaran"
-          ? ReceiptText
-          : kpi.title === "Laba Bersih"
-            ? TrendingUp
-            : FileText,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  })) ?? [];
+  const summaryCards = withRowKeys(
+    report?.kpis?.map((kpi) => ({
+      title: kpi.title,
+      value: kpi.value_display,
+      delta: kpi.delta_display ?? "",
+      icon:
+        kpi.title === "Total Pendapatan"
+          ? Wallet
+          : kpi.title === "Total Pengeluaran"
+            ? ReceiptText
+            : kpi.title === "Laba Bersih"
+              ? TrendingUp
+              : FileText,
+      badgeColor: "text-primary",
+      badgeBg: "bg-primary/10",
+    })) ?? [],
+    (card) => [card.title, card.value, card.delta],
+    "summary-card"
+  );
 
-  const monthlyPerformance =
+  const monthlyPerformance = withRowKeys(
     report?.monthly_performance?.map((item) => ({
       label: item.label,
       revenue: item.revenue_pct,
       expense: item.expense_pct,
-    })) ?? [];
+    })) ?? [],
+    (item) => [item.label, item.revenue, item.expense],
+    "month"
+  );
 
   const revenueSegments = report?.revenue_segments ?? [];
-  const positionedSegments = revenueSegments.map((segment, index) => ({
-    label: segment.label_display,
-    className: segmentPositions[index] ?? "text-muted-foreground",
-  }));
+  const positionedSegments = withRowKeys(
+    revenueSegments.map((segment, index) => ({
+      label: segment.label_display,
+      className: segmentPositions[index] ?? "text-muted-foreground",
+      pct: segment.pct,
+    })),
+    (segment) => [segment.label, segment.pct],
+    "segment"
+  );
   const revenueGradient = revenueSegments.length
     ? buildRevenueGradient(revenueSegments)
     : "";
 
-  const recentTransactions =
+  const recentTransactions = withRowKeys(
     report?.recent_transactions?.map((trx) => ({
       date: trx.date_display,
       description: trx.description,
       category: trx.category,
       amount: trx.amount_display,
       colorClass: trx.badge_class ?? "",
-    })) ?? [];
+    })) ?? [],
+    (trx) => [trx.date, trx.description, trx.amount, trx.category],
+    "trx"
+  );
 
   const updatedLabel = report?.updated_at
     ? `Terakhir diperbarui: ${report.updated_at}${
@@ -135,8 +151,8 @@ export default function RingkasanReportPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryCards.map((card) => (
-          <SummaryCard key={card.title} {...card} />
+        {summaryCards.map(({ rowKey, ...card }) => (
+          <SummaryCard key={rowKey} {...card} />
         ))}
       </div>
 
@@ -156,7 +172,7 @@ export default function RingkasanReportPage() {
           <div className="h-64 flex items-end justify-between gap-2 px-2 pb-2">
             {monthlyPerformance.map((month) => (
               <div
-                key={month.label}
+                key={month.rowKey}
                 className="flex flex-col items-center flex-1 gap-1 h-full justify-end"
               >
                 <div className="flex w-full gap-1 h-full items-end justify-center">
@@ -210,7 +226,7 @@ export default function RingkasanReportPage() {
             </div>
             {positionedSegments.map((segment) => (
               <div
-                key={segment.label}
+                key={segment.rowKey}
                 className={cn(
                   "absolute text-xs font-medium",
                   segment.className
@@ -254,7 +270,7 @@ export default function RingkasanReportPage() {
             </TableHeader>
             <TableBody className="bg-card divide-y divide-border">
               {recentTransactions.map((trx) => (
-                <TableRow key={trx.description + trx.date}>
+                <TableRow key={trx.rowKey}>
                   <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
                     {trx.date}
                   </TableCell>

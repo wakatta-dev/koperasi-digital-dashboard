@@ -28,6 +28,7 @@ import { SummaryCard } from "@/modules/bumdes/report/components/summary-card";
 import { ensureSuccess } from "@/lib/api";
 import { getBumdesProfitLossReport } from "@/services/api";
 import type { ProfitLossReport } from "@/modules/bumdes/report/types";
+import { withRowKeys } from "@/modules/bumdes/report/utils/report-keys";
 
 const presetOptions = [
   { label: "Hari Ini", value: "today" },
@@ -44,11 +45,12 @@ type ProfitRow =
   | { type: "gross"; label: string; value: string }
   | { type: "net"; label: string; value: string };
 
+type ProfitRowWithKey = ProfitRow & { rowKey: string };
 
-const renderProfitRow = (row: ProfitRow) => {
+const renderProfitRow = (row: ProfitRowWithKey) => {
   if (row.type === "section") {
     return (
-      <TableRow key={row.label} className="bg-muted/30">
+      <TableRow key={row.rowKey} className="bg-muted/30">
         <TableCell
           className="px-6 py-3 whitespace-nowrap text-sm font-bold"
           colSpan={2}
@@ -61,7 +63,7 @@ const renderProfitRow = (row: ProfitRow) => {
 
   if (row.type === "gross") {
     return (
-      <TableRow key={row.label} className="bg-muted/30">
+      <TableRow key={row.rowKey} className="bg-muted/30">
         <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </TableCell>
@@ -74,7 +76,7 @@ const renderProfitRow = (row: ProfitRow) => {
 
   if (row.type === "net") {
     return (
-      <TableRow key={row.label} className="bg-primary text-primary-foreground">
+      <TableRow key={row.rowKey} className="bg-primary text-primary-foreground">
         <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-bold">
           {row.label}
         </TableCell>
@@ -87,7 +89,7 @@ const renderProfitRow = (row: ProfitRow) => {
 
   if (row.type === "total") {
     return (
-      <TableRow key={row.label} className="bg-muted/30">
+      <TableRow key={row.rowKey} className="bg-muted/30">
         <TableCell className="px-6 py-3 whitespace-nowrap text-sm font-bold">
           {row.label}
         </TableCell>
@@ -99,7 +101,7 @@ const renderProfitRow = (row: ProfitRow) => {
   }
 
   return (
-    <TableRow key={row.label}>
+    <TableRow key={row.rowKey}>
       <TableCell className="px-6 py-3 pl-10 whitespace-nowrap text-sm">
         {row.label}
       </TableCell>
@@ -135,38 +137,50 @@ export default function LabaRugiReportPage() {
     };
   }, [appliedPreset]);
 
-  const summaryCards = report?.summary_cards?.map((card) => ({
-    title: card.title,
-    value: card.value_display,
-    delta: card.delta_display ?? "",
-    icon:
-      card.title === "Total Pendapatan"
-        ? Wallet
-        : card.title === "Total HPP"
-          ? DollarSign
-          : card.title === "Laba Kotor"
-            ? TrendingUp
-            : FileText,
-    badgeColor: "text-primary",
-    badgeBg: "bg-primary/10",
-  })) ?? [];
+  const summaryCards = withRowKeys(
+    report?.summary_cards?.map((card) => ({
+      title: card.title,
+      value: card.value_display,
+      delta: card.delta_display ?? "",
+      icon:
+        card.title === "Total Pendapatan"
+          ? Wallet
+          : card.title === "Total HPP"
+            ? DollarSign
+            : card.title === "Laba Kotor"
+              ? TrendingUp
+              : FileText,
+      badgeColor: "text-primary",
+      badgeBg: "bg-primary/10",
+    })) ?? [],
+    (card) => [card.title, card.value, card.delta],
+    "summary-card"
+  );
 
-  const profitRows: ProfitRow[] = report?.rows?.map((row) => {
-    switch (row.type) {
-      case "section":
-        return { type: "section", label: row.label };
-      case "row":
-        return { type: "row", label: row.label, value: row.value_display ?? "" };
-      case "total":
-        return { type: "total", label: row.label, value: row.value_display ?? "" };
-      case "gross":
-        return { type: "gross", label: row.label, value: row.value_display ?? "" };
-      default:
-        return { type: "net", label: row.label, value: row.value_display ?? "" };
-    }
-  }) ?? [];
+  const profitRows = withRowKeys(
+    report?.rows?.map((row) => {
+      switch (row.type) {
+        case "section":
+          return { type: "section", label: row.label };
+        case "row":
+          return { type: "row", label: row.label, value: row.value_display ?? "" };
+        case "total":
+          return { type: "total", label: row.label, value: row.value_display ?? "" };
+        case "gross":
+          return { type: "gross", label: row.label, value: row.value_display ?? "" };
+        default:
+          return { type: "net", label: row.label, value: row.value_display ?? "" };
+      }
+    }) ?? [],
+    (row) => [row.type, row.label, "value" in row ? row.value : undefined],
+    "profit-row"
+  );
 
-  const notes = report?.notes ?? [];
+  const notes = withRowKeys(
+    report?.notes?.map((note) => ({ note })) ?? [],
+    (item) => [item.note],
+    "note"
+  );
   const periodLabel = report?.period_label ?? "";
 
   const updatedLabel = report?.updated_at
@@ -199,9 +213,9 @@ export default function LabaRugiReportPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryCards.map((card) => (
+        {summaryCards.map(({ rowKey, ...card }) => (
           <SummaryCard
-            key={card.title}
+            key={rowKey}
             className="relative overflow-hidden"
             {...card}
           />
@@ -252,7 +266,7 @@ export default function LabaRugiReportPage() {
         <h3 className="text-sm font-bold mb-3">Catatan Laporan:</h3>
         <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
           {notes.map((note) => (
-            <li key={note}>{note}</li>
+            <li key={note.rowKey}>{note.note}</li>
           ))}
         </ul>
       </div>
