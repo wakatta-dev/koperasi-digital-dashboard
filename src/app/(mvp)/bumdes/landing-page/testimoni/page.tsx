@@ -12,7 +12,7 @@ import {
 import {
   createEmptyLandingConfig,
   type TestimonialItem,
-  type TestimonialSection,
+  type TestimonialSection as TestimonialSectionData,
 } from "@/types/landing-page";
 import { LandingEmptyState } from "@/components/landing-page/empty-state";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,8 @@ const emptyTestimonials = createEmptyLandingConfig().testimonials ?? {
 
 export default function TestimoniPage() {
   const [testimonials, setTestimonials] =
-    useState<TestimonialSection>(emptyTestimonials);
-  const [initial, setInitial] = useState<TestimonialSection>(emptyTestimonials);
+    useState<TestimonialSectionData>(emptyTestimonials);
+  const [initial, setInitial] = useState<TestimonialSectionData>(emptyTestimonials);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -52,7 +52,7 @@ export default function TestimoniPage() {
     };
   }, []);
 
-  const updateField = (field: keyof TestimonialSection, value: string) => {
+  const updateField = (field: keyof TestimonialSectionData, value: string) => {
     setTestimonials((prev) => ({ ...prev, [field]: value }));
   };
 

@@ -12,7 +12,7 @@ import {
 import {
   createEmptyLandingConfig,
   type AdvantageItem,
-  type AdvantagesSection,
+  type AdvantagesSection as AdvantagesSectionData,
 } from "@/types/landing-page";
 import { LandingEmptyState } from "@/components/landing-page/empty-state";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,8 @@ const emptyAdvantages = createEmptyLandingConfig().advantages ?? {
 };
 
 export default function KeunggulanPage() {
-  const [advantages, setAdvantages] = useState<AdvantagesSection>(emptyAdvantages);
-  const [initial, setInitial] = useState<AdvantagesSection>(emptyAdvantages);
+  const [advantages, setAdvantages] = useState<AdvantagesSectionData>(emptyAdvantages);
+  const [initial, setInitial] = useState<AdvantagesSectionData>(emptyAdvantages);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -52,7 +52,7 @@ export default function KeunggulanPage() {
     };
   }, []);
 
-  const updateField = (field: keyof AdvantagesSection, value: string) => {
+  const updateField = (field: keyof AdvantagesSectionData, value: string) => {
     setAdvantages((prev) => ({ ...prev, [field]: value }));
   };
 
