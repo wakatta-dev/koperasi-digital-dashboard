@@ -80,7 +80,7 @@ export async function verifySignedReservationToken(
       }
     }
     return { ok: true, payload };
-  } catch (err) {
+  } catch (_err) {
     return { ok: false, reason: "Gagal membaca token" };
   }
 }

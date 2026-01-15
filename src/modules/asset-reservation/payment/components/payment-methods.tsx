@@ -126,7 +126,7 @@ export function PaymentMethods({
     return () => {
       ignore = true;
     };
-  }, [mode, reservationId, selected, hasMethods]);
+  }, [mode, reservationId, selected, hasMethods, onSessionChange]);
 
   return (
     <section className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">

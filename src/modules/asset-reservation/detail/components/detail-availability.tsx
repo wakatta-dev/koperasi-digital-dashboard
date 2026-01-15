@@ -195,7 +195,6 @@ export function DetailAvailability({
   }, [onRangeChange, suggestedRange]);
 
   const baseRange = selectedRange ?? suggestedRange;
-  const hasBlocked = (blocked?.length ?? 0) > 0;
   const fallbackDate = viewMonth || new Date().toISOString().slice(0, 10);
   const startLabel = selectedRange?.start ?? suggestedRange?.start ?? fallbackDate;
   const endLabel = selectedRange?.end ?? suggestedRange?.end ?? fallbackDate;

@@ -1,8 +1,20 @@
 /** @format */
 
 import { Button } from "@/components/ui/button";
+import { DEFAULT_LANDING_CONTENT } from "../constants";
+import type { AboutSection } from "@/types/landing-page";
 
-export function LandingAbout() {
+type LandingAboutProps = {
+  about?: AboutSection;
+};
+
+export function LandingAbout({ about }: LandingAboutProps) {
+  const fallback = DEFAULT_LANDING_CONTENT.about;
+  const data = {
+    ...fallback,
+    ...about,
+    values: about?.values && about.values.length > 0 ? about.values : fallback.values,
+  };
   return (
     <section className="py-20 bg-white dark:bg-[#1e293b]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,7 +22,7 @@ export function LandingAbout() {
           <div className="relative order-2 lg:order-1">
             <div className="rounded-2xl overflow-hidden shadow-2xl h-[500px]">
               <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHyPaZ8erVbFoU4S58vllFA8bICr8Fp9rNrW2i_T96ezq-vq_cdt2LemjA4lXhZIZk0WGckkouFcku0yrzjQeDj1rlUhqS7zH48xhLL5DU4d2CDR-oexRglR8VeiYkTmAXS5JOBcV6tVVpfMEos9euRJl810Mnuy0AznGwsirOu2GMPnQwBFVMyErzRHvUX7WoCcHWftBD4CNZ6q--GPsVTJGMIRZYO-Fz1NxI29o9_diYi834A3BaggXdt7q7wd5iNpBXFjaOgR0"
+                src={data.image_url || fallback.image_url}
                 alt="Pemandangan desa pegunungan"
                 className="w-full h-full object-cover"
               />
@@ -19,41 +31,33 @@ export function LandingAbout() {
               <span className="material-icons-outlined text-4xl">landscape</span>
             </div>
           </div>
-          <div className="order-1 lg:order-2 space-y-8">
+            <div className="order-1 lg:order-2 space-y-8">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                Tentang BUMDes kami
+                {data.title}
               </h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
-                Kami adalah lembaga yang berkomitmen menggerakkan potensi ekonomi desa sukamaju
-                melalui unit usaha produktif dan berkelanjutan. Berdiri di atas asas gotong royong
-                untuk kemandirian ekonomi.
+                {data.body}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  Kekuatan bersama
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Kami adalah mitra penggerak ekonomi desa yang lahir dari semangat kemandirian dan
-                  gotong royong warga.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Visi kami</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Membangun desa yang mandiri, produktif, dan sejahtera melalui pengembangan potensi
-                  lokal yang otentik.
-                </p>
-              </div>
+              {data.values.map((item) => (
+                <div key={item.title}>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
             </div>
             <div className="flex gap-4 pt-4">
               <Button
                 variant="outline"
                 className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition font-medium"
               >
-                Pelajari
+                {data.cta_label || "Pelajari"}
               </Button>
               <Button
                 variant="ghost"

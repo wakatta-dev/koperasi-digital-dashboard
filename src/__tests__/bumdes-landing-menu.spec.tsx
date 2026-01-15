@@ -23,7 +23,8 @@ vi.mock("@/components/shared/dashboard-layout", () => ({
   ),
 }));
 
-import BumdesLayout, { bumdesNavigation } from "@/app/(mvp)/bumdes/layout";
+import BumdesLayout from "@/app/(mvp)/bumdes/layout";
+import { bumdesNavigation } from "@/app/(mvp)/bumdes/navigation";
 
 describe("BUMDes Landing Page menu", () => {
   it("defines the landing page submenu in the required order", () => {

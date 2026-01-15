@@ -1,19 +1,33 @@
 /** @format */
 
-import { TESTIMONIAL } from "../constants";
+import { DEFAULT_LANDING_CONTENT, TESTIMONIAL } from "../constants";
+import type { TestimonialSection as TestimonialSectionType } from "@/types/landing-page";
 
-export function TestimonialSection() {
+type TestimonialProps = {
+  testimonials?: TestimonialSectionType;
+};
+
+export function TestimonialSection({ testimonials }: TestimonialProps) {
+  const fallback = DEFAULT_LANDING_CONTENT.testimonials;
+  const data = {
+    ...fallback,
+    ...testimonials,
+    items:
+      testimonials?.items && testimonials.items.length > 0
+        ? testimonials.items
+        : fallback.items,
+  };
+  const active = data.items[0];
   return (
     <section className="py-20 bg-blue-50/50 dark:bg-[#0f172a]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Suara warga
+              {data.title}
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Pengalaman nyata dari masyarakat yang kami dampingi dan rasakan manfaatnya secara
-              langsung.
+              {data.description}
             </p>
             <div className="flex gap-4 mt-8">
               <div className="flex gap-2">
@@ -27,25 +41,29 @@ export function TestimonialSection() {
           </div>
           <div className="bg-white dark:bg-[#1e293b] p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 relative">
             <div className="flex items-center text-yellow-400 mb-4">
-              <span className="material-icons-outlined text-sm">star</span>
-              <span className="material-icons-outlined text-sm">star</span>
-              <span className="material-icons-outlined text-sm">star</span>
-              <span className="material-icons-outlined text-sm">star</span>
-              <span className="material-icons-outlined text-sm">star</span>
+              {Array.from({ length: active?.rating ?? 5 }).map((_, idx) => (
+                <span key={idx} className="material-icons-outlined text-sm">
+                  star
+                </span>
+              ))}
             </div>
             <p className="text-gray-700 dark:text-gray-300 text-lg italic mb-8">
-              &quot;{TESTIMONIAL.quote}&quot;
+              &quot;{active?.quote || TESTIMONIAL.quote}&quot;
             </p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <img
-                  src={TESTIMONIAL.avatar}
-                  alt={TESTIMONIAL.name}
+                  src={active?.photo_url || TESTIMONIAL.avatar}
+                  alt={active?.name || TESTIMONIAL.name}
                   className="w-12 h-12 rounded-full object-cover"
                 />
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white">{TESTIMONIAL.name}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{TESTIMONIAL.role}</p>
+                  <h4 className="font-bold text-gray-900 dark:text-white">
+                    {active?.name || TESTIMONIAL.name}
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {active?.role || TESTIMONIAL.role}
+                  </p>
                 </div>
               </div>
               <div className="flex gap-2">

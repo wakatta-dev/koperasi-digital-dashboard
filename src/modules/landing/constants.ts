@@ -134,3 +134,124 @@ export const HERO_TEXT = {
   description:
     "Kami menghadirkan berbagai unit usaha desa yang memberdayakan masyarakat, membuka lapangan kerja, dan meningkatkan kesejahteraan warga melalui inovasi dan kolaborasi.",
 };
+
+export const DEFAULT_LANDING_CONTENT = {
+  navigation: {
+    brand_name: "BUMDes Sukamaju",
+    logo_light_url: "",
+    logo_dark_url: "",
+    favicon_url: "",
+    cta_label: "Hubungi Kami",
+    cta_url: "/kontak",
+    items: NAV_LINKS.filter((item) => !item.requiresShortcut).map((item, index) => ({
+      label: item.label,
+      url: item.href,
+      order: index + 1,
+    })),
+  },
+  hero: {
+    headline: HERO_TEXT.title,
+    subheadline: HERO_TEXT.description,
+    cta_label: "Jelajahi Produk Desa",
+    cta_url: "#products",
+    background_image_url: HERO_IMAGES.main,
+    illustration_left_url: HERO_IMAGES.inset,
+    illustration_right_url: "",
+    is_active: true,
+  },
+  about: {
+    title: "Tentang BUMDes kami",
+    body: "Kami adalah lembaga yang berkomitmen menggerakkan potensi ekonomi desa sukamaju melalui unit usaha produktif dan berkelanjutan. Berdiri di atas asas gotong royong untuk kemandirian ekonomi.",
+    image_url:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuCHyPaZ8erVbFoU4S58vllFA8bICr8Fp9rNrW2i_T96ezq-vq_cdt2LemjA4lXhZIZk0WGckkouFcku0yrzjQeDj1rlUhqS7zH48xhLL5DU4d2CDR-oexRglR8VeiYkTmAXS5JOBcV6tVVpfMEos9euRJl810Mnuy0AznGwsirOu2GMPnQwBFVMyErzRHvUX7WoCcHWftBD4CNZ6q--GPsVTJGMIRZYO-Fz1NxI29o9_diYi834A3BaggXdt7q7wd5iNpBXFjaOgR0",
+    cta_label: "Pelajari",
+    cta_url: "#about",
+    values: [
+      {
+        icon: "groups",
+        title: "Kekuatan bersama",
+        description:
+          "Kami adalah mitra penggerak ekonomi desa yang lahir dari semangat kemandirian dan gotong royong warga.",
+        order: 1,
+      },
+      {
+        icon: "visibility",
+        title: "Visi kami",
+        description:
+          "Membangun desa yang mandiri, produktif, dan sejahtera melalui pengembangan potensi lokal yang otentik.",
+        order: 2,
+      },
+    ],
+  },
+  advantages: {
+    title: "Mengapa memilih BUMDes kami",
+    description:
+      "Kami membangun fondasi kekuatan desa melalui pendekatan yang unik dan berkelanjutan untuk masa depan yang lebih baik.",
+    image_url:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuBC8onBd71OyJVJWlZNfD5N4vq0KDkm2XXw6zNswGNnyjLsyE5kwMzTcxiQnESBTcqLGL4VZFCtGAuOrvfQX_8mxMxG65jnPFnQ4ZcvSs5VTqpS0fggQqNP4sEsCDB-iivBuicDPWydp5LQ7oTulsAOyYI99LM5eM_pWCaalRq3wOlaWQr1Lowuspy3b6RmT1FV2w22wKW234i0j6CTwmuuLjn08a9xnMjpEPz2NSHICPS5R69Q1v07DijrIgWp7sRP5dQd1oinWJU",
+    items: [...ADVANTAGES_LEFT, ...ADVANTAGES_RIGHT].map((item, index) => ({
+      icon: item.icon,
+      title: item.title,
+      description: item.description,
+      order: index + 1,
+    })),
+  },
+  featured_product: {
+    title: "Produk unggulan dari desa kami",
+    description: "Temukan kekayaan alam dan kerajinan tangan terbaik dari desa kami",
+    product_id: "",
+    display_title: PRODUCT_HIGHLIGHT.title,
+    display_price: "",
+    display_description: PRODUCT_HIGHLIGHT.description,
+    image_url: PRODUCT_HIGHLIGHT.image,
+    cta_label: "Beli sekarang",
+    cta_url: "#products",
+  },
+  business_units: {
+    items: BUSINESS_UNITS.map((unit, index) => ({
+      unit_id: String(index + 1),
+      order: index + 1,
+      label_override: unit.label,
+      image_url: unit.image,
+    })),
+  },
+  testimonials: {
+    title: "Suara warga",
+    description:
+      "Pengalaman nyata dari masyarakat yang kami dampingi dan rasakan manfaatnya secara langsung.",
+    items: [
+      {
+        name: TESTIMONIAL.name,
+        role: TESTIMONIAL.role,
+        rating: 5,
+        quote: TESTIMONIAL.quote,
+        photo_url: TESTIMONIAL.avatar,
+        order: 1,
+      },
+    ],
+  },
+  footer: {
+    contact_email: "info@bumdes.id",
+    contact_whatsapp: "+6281234567890",
+    address: "Jl. Raya Desa Sukamaju, Kab. Sejahtera",
+    hours: "Senin - Jumat, 08:00 - 16:00 WIB",
+    maps_url: "https://maps.google.com",
+    social_links: [
+      { platform: "facebook", url: "#", order: 1 },
+      { platform: "instagram", url: "#", order: 2 },
+      { platform: "email", url: "#", order: 3 },
+      { platform: "youtube", url: "#", order: 4 },
+    ],
+    columns: FOOTER_SECTIONS.map((section) => ({
+      title: section.title,
+      links: section.links.map((label, linkIndex) => ({
+        label,
+        url: "#",
+        order: linkIndex + 1,
+      })),
+    })),
+    copyright_text: "© 2024 Koperasi Anggota. Hak cipta dilindungi.",
+    privacy_url: "#",
+    terms_url: "#",
+  },
+};

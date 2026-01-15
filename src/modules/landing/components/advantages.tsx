@@ -1,8 +1,22 @@
 /** @format */
 
-import { ADVANTAGES_LEFT, ADVANTAGES_RIGHT } from "../constants";
+import { DEFAULT_LANDING_CONTENT } from "../constants";
+import type { AdvantagesSection as AdvantagesSectionType } from "@/types/landing-page";
 
-export function AdvantagesSection() {
+type AdvantagesProps = {
+  advantages?: AdvantagesSectionType;
+};
+
+export function AdvantagesSection({ advantages }: AdvantagesProps) {
+  const fallback = DEFAULT_LANDING_CONTENT.advantages;
+  const data = {
+    ...fallback,
+    ...advantages,
+    items:
+      advantages?.items && advantages.items.length > 0 ? advantages.items : fallback.items,
+  };
+  const leftItems = data.items.filter((_, idx) => idx % 2 === 0);
+  const rightItems = data.items.filter((_, idx) => idx % 2 === 1);
   return (
     <section className="py-24 bg-white dark:bg-[#1e293b]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,17 +25,16 @@ export function AdvantagesSection() {
             Keunggulan
           </span>
           <h2 className="text-3xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            Mengapa memilih <br /> BUMDes kami
+            {data.title}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Kami membangun fondasi kekuatan desa melalui pendekatan yang unik dan berkelanjutan
-            untuk masa depan yang lebih baik.
+            {data.description}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
           <div className="space-y-16">
-            {ADVANTAGES_LEFT.map((item) => (
+            {leftItems.map((item) => (
               <div
                 key={item.title}
                 className="text-center lg:text-right flex flex-col items-center lg:items-end"
@@ -43,7 +56,7 @@ export function AdvantagesSection() {
 
           <div className="h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl relative order-first lg:order-none mb-10 lg:mb-0">
             <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBC8onBd71OyJVJWlZNfD5N4vq0KDkm2XXw6zNswGNnyjLsyE5kwMzTcxiQnESBTcqLGL4VZFCtGAuOrvfQX_8mxMxG65jnPFnQ4ZcvSs5VTqpS0fggQqNP4sEsCDB-iivBuicDPWydp5LQ7oTulsAOyYI99LM5eM_pWCaalRq3wOlaWQr1Lowuspy3b6RmT1FV2w22wKW234i0j6CTwmuuLjn08a9xnMjpEPz2NSHICPS5R69Q1v07DijrIgWp7sRP5dQd1oinWJU"
+              src={data.image_url || fallback.image_url}
               alt="Jalan desa yang asri"
               className="w-full h-full object-cover"
             />
@@ -51,7 +64,7 @@ export function AdvantagesSection() {
           </div>
 
           <div className="space-y-16">
-            {ADVANTAGES_RIGHT.map((item) => (
+            {rightItems.map((item) => (
               <div
                 key={item.title}
                 className="text-center lg:text-left flex flex-col items-center lg:items-start"
