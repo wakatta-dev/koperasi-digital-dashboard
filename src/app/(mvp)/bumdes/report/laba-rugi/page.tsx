@@ -158,7 +158,7 @@ export default function LabaRugiReportPage() {
   );
 
   const profitRows = withRowKeys(
-    report?.rows?.map((row) => {
+    report?.rows?.map((row): ProfitRow => {
       switch (row.type) {
         case "section":
           return { type: "section", label: row.label };

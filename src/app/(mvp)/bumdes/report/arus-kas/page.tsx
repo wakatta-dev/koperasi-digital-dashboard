@@ -192,7 +192,7 @@ export default function ArusKasReportPage() {
   }, [activePreset]);
 
   const rows = withRowKeys(
-    report?.rows?.map((row) => {
+    report?.rows?.map((row): CashFlowRow => {
       switch (row.type) {
         case "section":
           return { type: "section", label: row.label };
