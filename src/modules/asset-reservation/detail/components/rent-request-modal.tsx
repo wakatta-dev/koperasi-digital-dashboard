@@ -16,7 +16,12 @@ type RentRequestModalProps = {
   statusHref?: string;
 };
 
-export function RentRequestModal({ open, onOpenChange, requestId, statusHref }: RentRequestModalProps) {
+export function RentRequestModal({
+  open,
+  onOpenChange,
+  requestId: _requestId,
+  statusHref,
+}: RentRequestModalProps) {
   const absoluteStatusHref = statusHref
     ? statusHref.startsWith("http")
       ? statusHref

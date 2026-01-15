@@ -202,7 +202,7 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
       }));
     }
     return [];
-  }, [reservation, displayStatus]);
+  }, [reservation]);
 
   useEffect(() => {
     let ignore = false;

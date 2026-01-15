@@ -37,6 +37,9 @@ type OptionFormState = {
   trackStock: boolean;
 };
 
+const EMPTY_GROUPS: InventoryVariantGroupResponse[] = [];
+const EMPTY_OPTIONS: InventoryVariantOptionResponse[] = [];
+
 const DEFAULT_GROUP_FORM: GroupFormState = {
   name: "",
   sortOrder: "0",
@@ -66,8 +69,8 @@ export function VariantManagement({ productId }: Props) {
   const [editOptionForm, setEditOptionForm] = useState<OptionFormState>(DEFAULT_OPTION_FORM);
   const [optionError, setOptionError] = useState<string | null>(null);
 
-  const groups = data?.variant_groups ?? [];
-  const options = data?.options ?? [];
+  const groups = data?.variant_groups ?? EMPTY_GROUPS;
+  const options = data?.options ?? EMPTY_OPTIONS;
 
   const groupMap = useMemo(() => {
     const map = new Map<number, InventoryVariantGroupResponse>();

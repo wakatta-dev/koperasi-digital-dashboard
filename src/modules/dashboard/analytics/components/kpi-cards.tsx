@@ -19,10 +19,7 @@ import {
   ErrorState,
   LoadingState,
 } from "@/components/shared/feedback/async-states";
-import {
-  KpiGridBase,
-  type KpiItem,
-} from "@/components/shared/data-display/KpiGridBase";
+import { KpiGridBase } from "@/components/shared/data-display/KpiGridBase";
 import type { KpiTrend } from "@/components/shared/data-display/KpiCardBase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
