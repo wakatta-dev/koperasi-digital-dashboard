@@ -3,6 +3,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -44,11 +45,12 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
     <div className="bg-card rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-border overflow-hidden flex flex-col group">
       <div className="relative h-48 overflow-hidden bg-muted" ref={imgRef}>
         {product.image ? (
-          <img
+          <Image
             alt={product.title}
             src={product.image}
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-            loading="lazy"
+            fill
+            sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover group-hover:scale-105 transition duration-500"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted text-xs font-semibold text-muted-foreground">

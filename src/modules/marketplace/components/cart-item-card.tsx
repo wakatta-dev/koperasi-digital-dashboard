@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { MarketplaceCartItemResponse } from "@/types/api/marketplace";
@@ -63,10 +64,12 @@ export function CartItemCard({
             >
               <div className="w-full sm:w-32 h-32 flex-shrink-0 bg-muted rounded-xl overflow-hidden border border-border relative group">
                 {imageSrc ? (
-                  <img
+                  <Image
                     alt={item.product_name}
                     src={imageSrc}
-                    className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(min-width: 768px) 8rem, 100vw"
+                    className="object-cover transition duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground">

@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { DEFAULT_LANDING_CONTENT } from "../constants";
 import type { AdvantagesSection as AdvantagesSectionType } from "@/types/landing-page";
 
@@ -55,10 +56,12 @@ export function AdvantagesSection({ advantages }: AdvantagesProps) {
           </div>
 
           <div className="h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl relative order-first lg:order-none mb-10 lg:mb-0">
-            <img
+            <Image
               src={data.image_url || fallback.image_url}
               alt="Jalan desa yang asri"
-              className="w-full h-full object-cover"
+              fill
+              sizes="(min-width: 1024px) 33vw, 100vw"
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           </div>

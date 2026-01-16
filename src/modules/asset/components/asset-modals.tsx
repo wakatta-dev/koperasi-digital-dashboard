@@ -4,6 +4,7 @@
 
 import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
 
 import {
   Dialog,
@@ -244,11 +245,15 @@ export function AddAssetDialog({ open, onOpenChange }: AddAssetDialogProps) {
           </div>
           <div className="mt-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
             {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Preview Foto Aset"
-                className="h-28 w-full rounded-md object-cover"
-              />
+              <div className="relative h-28 w-full overflow-hidden rounded-md">
+                <Image
+                  src={imagePreview}
+                  alt="Preview Foto Aset"
+                  fill
+                  sizes="(min-width: 768px) 28rem, 100vw"
+                  className="object-cover"
+                />
+              </div>
             ) : (
               <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-border text-muted-foreground">
                 Belum ada foto
@@ -277,6 +282,7 @@ export function EditAssetDialog({
   const [description, setDescription] = React.useState(asset?.description ?? "");
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string>("");
+  const previewSrc = imagePreview || asset?.image;
 
   React.useEffect(() => {
     setName(asset?.title ?? "");
@@ -449,12 +455,16 @@ export function EditAssetDialog({
               </p>
             </div>
             <div className="flex items-center justify-center rounded-lg border border-border bg-muted/40 p-2 shadow-sm">
-              {imagePreview || asset?.image ? (
-                <img
-                  src={imagePreview || asset?.image}
-                  alt={asset?.alt ?? "Preview Foto Aset"}
-                  className="h-28 w-full rounded-md object-cover"
-                />
+              {previewSrc ? (
+                <div className="relative h-28 w-full overflow-hidden rounded-md">
+                  <Image
+                    src={previewSrc}
+                    alt={asset?.alt ?? "Preview Foto Aset"}
+                    fill
+                    sizes="(min-width: 768px) 28rem, 100vw"
+                    className="object-cover"
+                  />
+                </div>
               ) : (
                 <div className="flex h-28 w-full items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
                   Belum ada foto

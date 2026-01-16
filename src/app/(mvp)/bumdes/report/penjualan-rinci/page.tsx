@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Download,
   TrendingUp,
@@ -35,16 +36,43 @@ const presets = [
   { label: "Bulan Ini", value: "month", active: true },
   { label: "Kustom", value: "custom" },
 ];
+const DEFAULT_PRESET =
+  presets.find((preset) => preset.active)?.value ?? presets[0].value;
+const resolvePresetParam = (value: string | null) =>
+  presets.some((preset) => preset.value === value)
+    ? (value as string)
+    : DEFAULT_PRESET;
 
 
 export default function PenjualanRinciReportPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [activePreset, setActivePreset] = useState(
-    presets.find((preset) => preset.active)?.value ?? presets[0].value
+    resolvePresetParam(searchParams.get("preset"))
   );
   const [appliedPreset, setAppliedPreset] = useState(
-    presets.find((preset) => preset.active)?.value ?? presets[0].value
+    resolvePresetParam(searchParams.get("preset"))
   );
   const [report, setReport] = useState<SalesDetailReport | null>(null);
+
+  useEffect(() => {
+    const preset = resolvePresetParam(searchParams.get("preset"));
+    setActivePreset(preset);
+    setAppliedPreset(preset);
+  }, [searchParams]);
+
+  const updatePresetParam = (preset: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (preset && preset !== DEFAULT_PRESET) {
+      params.set("preset", preset);
+    } else {
+      params.delete("preset");
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -154,7 +182,10 @@ export default function PenjualanRinciReportPage() {
           <Button
             type="button"
             className="inline-flex h-auto items-center px-4 py-2 text-sm font-medium shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
-            onClick={() => setAppliedPreset(activePreset)}
+            onClick={() => {
+              setAppliedPreset(activePreset);
+              updatePresetParam(activePreset);
+            }}
           >
             Terapkan
           </Button>

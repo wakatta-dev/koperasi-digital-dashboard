@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HERO_CONTENT } from "../constants";
@@ -18,10 +19,12 @@ export function AssetHeroSection({
   return (
     <div className="relative bg-white dark:bg-[#1e293b] border-b border-gray-200 dark:border-gray-800">
       <div className="absolute inset-0 z-0 opacity-10 dark:opacity-20 pointer-events-none">
-        <img
+        <Image
           src={HERO_CONTENT.backgroundPattern}
           alt="Background pattern"
-          className="w-full h-full object-cover grayscale"
+          fill
+          sizes="100vw"
+          className="object-cover grayscale"
         />
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 relative z-10">

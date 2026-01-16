@@ -1,6 +1,7 @@
 /** @format */
 
 import Link from "next/link";
+import Image from "next/image";
 
 import {
   CheckoutSummaryBase,
@@ -23,10 +24,12 @@ export function ReviewSummaryCard() {
   const headerSlot = (
     <div className="flex -space-x-3 overflow-hidden py-2">
       {REVIEW_SUMMARY.avatarImages.map((src, idx) => (
-        <img
+        <Image
           key={src + idx}
           alt=""
           src={src}
+          width={40}
+          height={40}
           className="inline-block h-10 w-10 rounded-full ring-2 ring-background object-cover"
         />
       ))}

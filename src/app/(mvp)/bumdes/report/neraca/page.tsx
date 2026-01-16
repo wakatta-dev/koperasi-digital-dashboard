@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   CheckCircle2,
@@ -25,13 +26,39 @@ const periodPresets = [
   { label: "Kuartalan", value: "quarter", active: true },
   { label: "Tahunan", value: "year", active: false },
 ];
+const DEFAULT_PERIOD =
+  periodPresets.find((preset) => preset.active)?.value ?? periodPresets[0].value;
+const resolvePeriodParam = (value: string | null) =>
+  periodPresets.some((preset) => preset.value === value)
+    ? (value as string)
+    : DEFAULT_PERIOD;
 
 
 export default function NeracaReportPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [activePeriod, setActivePeriod] = useState(
-    periodPresets.find((preset) => preset.active)?.value ?? periodPresets[0].value
+    resolvePeriodParam(searchParams.get("preset"))
   );
   const [report, setReport] = useState<BalanceSheetReport | null>(null);
+
+  useEffect(() => {
+    const preset = resolvePeriodParam(searchParams.get("preset"));
+    setActivePeriod(preset);
+  }, [searchParams]);
+
+  const updatePeriodParam = (preset: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (preset && preset !== DEFAULT_PERIOD) {
+      params.set("preset", preset);
+    } else {
+      params.delete("preset");
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -120,7 +147,10 @@ export default function NeracaReportPage() {
           <SegmentedControl
             options={periodPresets}
             activeValue={activePeriod}
-            onChange={setActivePeriod}
+            onChange={(value) => {
+              setActivePeriod(value);
+              updatePeriodParam(value);
+            }}
           />
           <Button
             type="button"

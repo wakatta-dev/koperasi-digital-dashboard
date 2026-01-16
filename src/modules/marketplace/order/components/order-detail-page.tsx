@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -313,9 +314,11 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                                   <div className="flex items-center">
                                     <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-border">
                                       {imageSrc ? (
-                                        <img
+                                        <Image
                                           alt={item.product_name}
                                           src={imageSrc}
+                                          width={40}
+                                          height={40}
                                           className="h-full w-full object-cover"
                                         />
                                       ) : (

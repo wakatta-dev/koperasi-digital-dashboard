@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { REVIEW_ITEMS } from "../constants";
 
 export function ReviewItemsCard() {
@@ -25,9 +26,11 @@ export function ReviewItemsCard() {
               className={`${index > 0 ? "pt-6 border-t border-border" : ""} flex gap-4`}
             >
               {item.image ? (
-                <img
+                <Image
                   alt={item.title}
                   src={item.image}
+                  width={80}
+                  height={80}
                   className="h-20 w-20 rounded-xl border border-border bg-muted object-cover"
                 />
               ) : (

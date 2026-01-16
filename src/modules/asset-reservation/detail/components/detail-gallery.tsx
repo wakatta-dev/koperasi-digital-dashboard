@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import type { AssetStatus } from "../../types";
 
 const STATUS_STYLES: Record<AssetStatus, { label: string; className: string }> = {
@@ -24,7 +25,13 @@ export function DetailGallery({ heroImage, thumbnails, status, title }: DetailGa
     <div className="space-y-4">
       <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
         {hasHero ? (
-          <img src={heroImage} alt={title} className="w-full h-full object-cover" />
+          <Image
+            src={heroImage}
+            alt={title}
+            fill
+            sizes="(min-width: 1024px) 66vw, 100vw"
+            className="object-cover"
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs text-gray-400 dark:text-gray-500">
             Tidak ada foto
@@ -77,7 +84,15 @@ export function DetailGallery({ heroImage, thumbnails, status, title }: DetailGa
               key={thumb}
               className="aspect-video rounded-xl overflow-hidden border-2 border-[#4338ca] ring-2 ring-[#4338ca]/20"
             >
-              <img src={thumb} alt="Thumbnail" className="w-full h-full object-cover" />
+              <div className="relative h-full w-full">
+                <Image
+                  src={thumb}
+                  alt="Thumbnail"
+                  fill
+                  sizes="(min-width: 1024px) 20vw, 25vw"
+                  className="object-cover"
+                />
+              </div>
             </button>
           );
         })}

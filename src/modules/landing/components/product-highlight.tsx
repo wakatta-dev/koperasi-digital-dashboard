@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_LANDING_CONTENT, PRODUCT_HIGHLIGHT } from "../constants";
 import type { FeaturedProductSection } from "@/types/landing-page";
@@ -25,10 +26,12 @@ export function ProductHighlight({ featuredProduct }: ProductHighlightProps) {
         <div className="bg-white dark:bg-[#1e293b] rounded-3xl overflow-hidden shadow-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="h-[400px] lg:h-auto relative">
-              <img
+              <Image
                 src={data.image_url || PRODUCT_HIGHLIGHT.image}
                 alt="Kopi Premium Biji"
-                className="absolute inset-0 w-full h-full object-cover"
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
               />
             </div>
             <div className="p-10 lg:p-20 flex flex-col justify-center">

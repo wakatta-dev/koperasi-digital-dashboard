@@ -9,7 +9,7 @@ import {
   ChevronRight,
   MoreVertical,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,10 +68,30 @@ export function AssetScheduleView({
   activeTab = "jadwal",
 }: AssetScheduleViewProps) {
   const router = useRouter();
-  const [statusFilter, setStatusFilter] = React.useState<string>("");
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [statusFilter, setStatusFilter] = React.useState<string>(
+    searchParams.get("status") ?? ""
+  );
   const [editOpen, setEditOpen] = React.useState(false);
   const [selectedSchedule, setSelectedSchedule] =
     React.useState<AssetSchedule | null>(null);
+
+  React.useEffect(() => {
+    const status = searchParams.get("status") ?? "";
+    setStatusFilter(status);
+  }, [searchParams]);
+
+  const updateStatusParam = (status: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status) {
+      params.set("status", status);
+    } else {
+      params.delete("status");
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
   const { data, isLoading, error } = useQuery({
     queryKey: QK.assetRental.bookings({ status: statusFilter || undefined }),
     queryFn: async (): Promise<AssetSchedule[]> => {
@@ -339,9 +359,11 @@ export function AssetScheduleView({
                 </Label>
                 <Select
                   value={statusFilter || "ALL"}
-                  onValueChange={(val) =>
-                    setStatusFilter(val === "ALL" ? "" : val)
-                  }
+                  onValueChange={(val) => {
+                    const next = val === "ALL" ? "" : val;
+                    setStatusFilter(next);
+                    updateStatusParam(next);
+                  }}
                 >
                   <SelectTrigger className="w-full rounded-lg border border-input bg-background px-4  text-sm text-foreground focus:ring-1 focus:ring-primary">
                     <SelectValue placeholder="Semua status" />
@@ -369,7 +391,10 @@ export function AssetScheduleView({
                   type="button"
                   variant="outline"
                   className="flex-1 rounded-lg bg-background text-sm font-medium text-foreground hover:bg-muted/40"
-                  onClick={() => setStatusFilter("")}
+                  onClick={() => {
+                    setStatusFilter("");
+                    updateStatusParam("");
+                  }}
                 >
                   Reset
                 </Button>

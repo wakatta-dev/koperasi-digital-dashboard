@@ -3,6 +3,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { useCartMutations } from "../hooks/useMarketplaceProducts";
@@ -133,10 +134,12 @@ export function ProductMainInfo({
         </h1>
         <div className="flex items-center gap-3 mt-4">
           <div className="h-10 w-10 rounded-full bg-muted overflow-hidden">
-            <img
+            <Image
               alt="Seller"
               className="h-full w-full object-cover"
               src={product.seller.avatar}
+              width={40}
+              height={40}
             />
           </div>
           <div>
@@ -203,9 +206,11 @@ export function ProductMainInfo({
                         }`}
                       >
                         {group.image_url ? (
-                          <img
+                          <Image
                             src={group.image_url}
                             alt={group.name}
+                            width={24}
+                            height={24}
                             className="h-6 w-6 rounded-full object-cover"
                           />
                         ) : null}

@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { DEFAULT_LANDING_CONTENT, TESTIMONIAL } from "../constants";
 import type { TestimonialSection as TestimonialSectionType } from "@/types/landing-page";
 
@@ -52,10 +53,12 @@ export function TestimonialSection({ testimonials }: TestimonialProps) {
             </p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src={active?.photo_url || TESTIMONIAL.avatar}
                   alt={active?.name || TESTIMONIAL.name}
-                  className="w-12 h-12 rounded-full object-cover"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 rounded-full object-cover"
                 />
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white">

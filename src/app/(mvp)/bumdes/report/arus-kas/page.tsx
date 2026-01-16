@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Calendar, Download, Filter, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -168,8 +169,35 @@ const renderCashFlowRow = (row: CashFlowRowWithKey) => {
 };
 
 export default function ArusKasReportPage() {
-  const [activePreset, setActivePreset] = useState("month");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const defaultPreset = "month";
+  const resolvePreset = (value: string | null) =>
+    presetOptions.some((preset) => preset.value === value)
+      ? (value as string)
+      : defaultPreset;
+
+  const [activePreset, setActivePreset] = useState(
+    resolvePreset(searchParams.get("preset"))
+  );
   const [report, setReport] = useState<CashFlowReport | null>(null);
+
+  useEffect(() => {
+    const preset = resolvePreset(searchParams.get("preset"));
+    setActivePreset(preset);
+  }, [searchParams]);
+
+  const updatePresetParam = (preset: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (preset && preset !== defaultPreset) {
+      params.set("preset", preset);
+    } else {
+      params.delete("preset");
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -281,7 +309,10 @@ export default function ArusKasReportPage() {
         <SegmentedControl
           options={presetOptions}
           activeValue={activePreset}
-          onChange={setActivePreset}
+          onChange={(value) => {
+            setActivePreset(value);
+            updatePresetParam(value);
+          }}
           className="overflow-x-auto"
         />
       </div>

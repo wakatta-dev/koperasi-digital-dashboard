@@ -3,6 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -363,9 +364,11 @@ export function VariantManagement({ productId }: Props) {
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 overflow-hidden rounded-lg border border-border bg-muted">
                         {group.image_url ? (
-                          <img
+                          <Image
                             src={group.image_url}
                             alt={group.name}
+                            width={64}
+                            height={64}
                             className="h-full w-full object-cover"
                           />
                         ) : (
