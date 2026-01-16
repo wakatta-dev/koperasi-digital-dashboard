@@ -11,15 +11,12 @@ import { NotificationsPanel } from "@/modules/dashboard/analytics/components/not
 import { QuickActions } from "@/modules/dashboard/analytics/components/quick-actions";
 import { useAnalytics } from "@/modules/dashboard/analytics/hooks/use-analytics";
 import type { AnalyticsRange } from "@/types/api";
-import { Skeleton } from "@/components/ui/skeleton";
 import { trackAnalyticsEvent } from "@/modules/dashboard/analytics/lib/telemetry";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export function AnalyticsDashboardPage() {
   const [range, setRange] = useState<AnalyticsRange>("today");
   const params = useMemo(() => ({ range }), [range]);
-  const { data, isLoading, isError, refetch, isFetching } =
-    useAnalytics(params);
+  const { data, isLoading, isError, refetch } = useAnalytics(params);
 
   const kpis = data?.kpis;
   const overview = data?.overview?.series;
