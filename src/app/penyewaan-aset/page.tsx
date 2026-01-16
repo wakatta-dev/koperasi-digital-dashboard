@@ -1,6 +1,7 @@
 /** @format */
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { AssetReservationPage } from "@/modules/asset-reservation";
 
@@ -11,5 +12,15 @@ export const metadata: Metadata = {
 };
 
 export default function PenyewaanAssetPage() {
-  return <AssetReservationPage />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">
+          Memuat…
+        </div>
+      }
+    >
+      <AssetReservationPage />
+    </Suspense>
+  );
 }

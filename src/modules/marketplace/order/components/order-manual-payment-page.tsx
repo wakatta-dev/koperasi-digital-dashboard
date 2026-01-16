@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -378,10 +379,12 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                       <div className="bg-muted/50 rounded-lg p-2 border border-dashed border-border flex justify-center items-center">
                         <div className="relative group w-full max-w-lg">
                           {manualPayment?.proof_url ? (
-                            <img
+                            <Image
                               alt="Bukti Transfer"
                               className="rounded shadow-sm w-full h-auto object-contain max-h-[500px]"
                               src={manualPayment.proof_url}
+                              width={800}
+                              height={600}
                             />
                           ) : (
                             <div className="h-64 flex items-center justify-center text-sm text-muted-foreground border border-dashed border-border rounded">

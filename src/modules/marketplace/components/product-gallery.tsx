@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { MarketplaceProductDetail } from "../constants";
 
 const PLACEHOLDER_ICONS = ["image", "image", "videocam"];
@@ -16,10 +17,12 @@ export function ProductGallery({
     <div className="space-y-4">
       <div className="aspect-square bg-card rounded-2xl overflow-hidden border border-border shadow-sm relative group">
         {mainImage ? (
-          <img
+          <Image
             alt={product.title}
             src={mainImage}
-            className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground">
@@ -47,11 +50,15 @@ export function ProductGallery({
                     : "border border-border hover:border-indigo-500 transition opacity-70 hover:opacity-100"
                 }`}
               >
-                <img
-                  alt={`Thumbnail ${index + 1}`}
-                  src={thumb}
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative h-full w-full">
+                  <Image
+                    alt={`Thumbnail ${index + 1}`}
+                    src={thumb}
+                    fill
+                    sizes="(min-width: 1024px) 10vw, 20vw"
+                    className="object-cover"
+                  />
+                </div>
               </button>
             );
           }

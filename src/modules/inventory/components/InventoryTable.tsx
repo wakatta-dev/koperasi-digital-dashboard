@@ -1,6 +1,7 @@
 /** @format */
 
 import Link from "next/link";
+import Image from "next/image";
 import { Archive, ArchiveRestore, MoreVertical } from "lucide-react";
 import type { ReactNode } from "react";
 import {
@@ -40,9 +41,11 @@ const buildColumns = ({
       <div className="flex items-center">
         <div className="h-10 w-10 flex-shrink-0">
           {row.image ? (
-            <img
+            <Image
               src={row.image}
               alt={row.name}
+              width={40}
+              height={40}
               className="h-10 w-10 rounded object-cover bg-muted"
             />
           ) : (

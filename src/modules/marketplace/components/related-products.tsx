@@ -4,6 +4,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { formatCurrency } from "@/lib/format";
 import { useMarketplaceProducts } from "../hooks/useMarketplaceProducts";
@@ -35,10 +36,12 @@ export function RelatedProducts({ currentProductId }: Props) {
           >
             <div className="relative h-48 overflow-hidden bg-muted">
               {product.display_image_url || product.photo_url ? (
-                <img
+                <Image
                   alt={product.name}
-                  src={product.display_image_url || product.photo_url}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                  src={product.display_image_url || product.photo_url!}
+                  fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+                  className="object-cover group-hover:scale-105 transition duration-500"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground">

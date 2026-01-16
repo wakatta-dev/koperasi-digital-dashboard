@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { REVIEW_PAYMENT } from "../constants";
 
 export function ReviewPaymentCard() {
@@ -18,7 +19,13 @@ export function ReviewPaymentCard() {
         <div className="ml-2 border-l-2 border-border pl-8">
           <div className="flex items-center gap-4">
             <div className="flex h-10 w-16 items-center justify-center rounded border border-border bg-background p-1">
-              <img alt="Bank BRI" src={REVIEW_PAYMENT.logo} className="h-full object-contain" />
+              <Image
+                alt="Bank BRI"
+                src={REVIEW_PAYMENT.logo}
+                width={64}
+                height={40}
+                className="h-full object-contain"
+              />
             </div>
             <div>
               <p className="font-bold text-foreground">{REVIEW_PAYMENT.bankName}</p>

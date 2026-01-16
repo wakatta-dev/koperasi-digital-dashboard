@@ -1,6 +1,7 @@
 /** @format */
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_LANDING_CONTENT } from "../constants";
 import type { HeroSection } from "@/types/landing-page";
@@ -39,17 +40,21 @@ export function LandingHero({ hero }: LandingHeroProps) {
           </div>
           <div className="relative h-[400px] lg:h-[600px] w-full mt-8 lg:mt-0">
             <div className="absolute right-0 top-0 w-3/4 h-[85%] rounded-2xl overflow-hidden shadow-2xl z-10 transform translate-x-4 lg:translate-x-0">
-              <img
+              <Image
                 src={data.background_image_url || fallback.background_image_url}
                 alt="Suasana pasar tradisional desa"
-                className="w-full h-full object-cover"
+                fill
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="object-cover"
               />
             </div>
             <div className="absolute left-0 bottom-0 w-1/2 h-1/2 rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-[#0f172a] z-20 transform -translate-y-8 lg:translate-y-0">
-              <img
+              <Image
                 src={data.illustration_left_url || fallback.illustration_left_url}
                 alt="Warga desa berdiskusi"
-                className="w-full h-full object-cover"
+                fill
+                sizes="(min-width: 1024px) 25vw, 100vw"
+                className="object-cover"
               />
             </div>
             <div className="absolute right-10 bottom-10 w-32 h-32 bg-yellow-400 rounded-full blur-3xl opacity-20 z-0" />

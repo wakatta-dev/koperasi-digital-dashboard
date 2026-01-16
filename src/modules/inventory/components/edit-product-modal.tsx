@@ -3,6 +3,7 @@
 "use client";
 
 import { type ChangeEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type Resolver, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -215,10 +216,12 @@ export function EditProductModal({
                   <div className="group relative mt-1 flex flex-col gap-3 rounded-md border-2 border-dashed border-border px-6 py-4">
                     <div className="relative h-48 w-full overflow-hidden rounded-md bg-muted">
                       {photoUrl ? (
-                        <img
+                        <Image
                           src={photoUrl}
                           alt={product?.name || "Produk"}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="(min-width: 768px) 20rem, 100vw"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted-foreground">

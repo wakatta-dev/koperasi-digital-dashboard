@@ -1,5 +1,6 @@
 /** @format */
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_LANDING_CONTENT } from "../constants";
 import type { AboutSection } from "@/types/landing-page";
@@ -20,11 +21,13 @@ export function LandingAbout({ about }: LandingAboutProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="relative order-2 lg:order-1">
-            <div className="rounded-2xl overflow-hidden shadow-2xl h-[500px]">
-              <img
+            <div className="relative h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+              <Image
                 src={data.image_url || fallback.image_url}
                 alt="Pemandangan desa pegunungan"
-                className="w-full h-full object-cover"
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
               />
             </div>
             <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-[#4338ca] rounded-full flex items-center justify-center text-white shadow-lg">

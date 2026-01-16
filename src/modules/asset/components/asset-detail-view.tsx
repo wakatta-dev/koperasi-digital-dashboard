@@ -1,6 +1,7 @@
 /** @format */
 
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -70,12 +71,14 @@ export function AssetDetailView({ asset }: AssetDetailViewProps) {
                 </div>
               </div>
 
-              <div className="mb-8 h-[400px] w-full overflow-hidden rounded-xl">
+              <div className="relative mb-8 h-[400px] w-full overflow-hidden rounded-xl">
                 {asset.image ? (
-                  <img
+                  <Image
                     src={asset.image}
                     alt={asset.alt}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="(min-width: 1024px) 66vw, 100vw"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-muted text-sm text-muted-foreground">

@@ -25,6 +25,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { EditProductModal } from "./edit-product-modal";
 import { VariantManagement } from "./variant-management";
+import Image from "next/image";
 import type { InventoryItem } from "../types";
 import { computeEligibility, mapInventoryProduct } from "../utils";
 
@@ -191,9 +192,11 @@ export function InventoryDetailPage({ id }: Props) {
               <div className="mt-1">
                 <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
                   {item.image ? (
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
+                      width={192}
+                      height={192}
                       className="h-full w-full object-cover"
                     />
                   ) : (

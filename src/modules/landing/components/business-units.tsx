@@ -1,6 +1,7 @@
 /** @format */
 
 import Link from "next/link";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { BUSINESS_UNITS, DEFAULT_LANDING_CONTENT } from "../constants";
 import type { BusinessUnitConfig } from "@/types/landing-page";
@@ -37,17 +38,26 @@ export function BusinessUnits({ businessUnits }: BusinessUnitsProps) {
             const fallbackUnit = BUSINESS_UNITS[index] ?? BUSINESS_UNITS[0];
             const title = fallbackUnit?.title ?? "Unit Usaha";
             const description = fallbackUnit?.description ?? "Deskripsi unit usaha.";
+            const imageSrc = unit.image_url || fallbackUnit?.image;
             return (
             <Card
               key={`${unit.unit_id}-${index}`}
               className="bg-white dark:bg-[#1e293b] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group border-0"
             >
-              <div className="h-48 overflow-hidden">
-                <img
-                  src={unit.image_url || fallbackUnit?.image}
-                  alt={title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                />
+              <div className="relative h-48 overflow-hidden">
+                {imageSrc ? (
+                  <Image
+                    src={imageSrc}
+                    alt={title}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+                    className="object-cover group-hover:scale-105 transition duration-500"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
+                    Tidak ada foto
+                  </div>
+                )}
               </div>
               <div className="p-6 flex flex-col flex-grow">
                 <span className="text-[#4338ca] text-xs font-bold uppercase tracking-wide mb-2">

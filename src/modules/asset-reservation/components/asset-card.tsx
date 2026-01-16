@@ -1,6 +1,7 @@
 /** @format */
 
 import Link from "next/link";
+import Image from "next/image";
 
 import type { AssetItem } from "../types";
 
@@ -28,10 +29,12 @@ export function AssetCard({ asset }: AssetCardProps) {
     >
       <div className="relative h-48 overflow-hidden">
         {hasImage ? (
-          <img
+          <Image
             src={asset.imageUrl}
             alt={asset.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            fill
+            sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover group-hover:scale-105 transition duration-500"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400 dark:bg-gray-800 dark:text-gray-500">

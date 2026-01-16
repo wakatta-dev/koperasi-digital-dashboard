@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Download,
   FileText,
@@ -44,9 +45,38 @@ const segmentPositions = [
 ];
 
 export default function RingkasanReportPage() {
-  const [activePreset, setActivePreset] = useState("month");
-  const [appliedPreset, setAppliedPreset] = useState("month");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const resolvePreset = (value: string | null) =>
+    presetOptions.some((preset) => preset.value === value)
+      ? (value as string)
+      : "month";
+
+  const [activePreset, setActivePreset] = useState(
+    resolvePreset(searchParams.get("preset"))
+  );
+  const [appliedPreset, setAppliedPreset] = useState(
+    resolvePreset(searchParams.get("preset"))
+  );
   const [report, setReport] = useState<OverviewReport | null>(null);
+
+  useEffect(() => {
+    const preset = resolvePreset(searchParams.get("preset"));
+    setActivePreset(preset);
+    setAppliedPreset(preset);
+  }, [searchParams]);
+
+  const updatePresetParam = (preset: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (preset && preset !== "month") {
+      params.set("preset", preset);
+    } else {
+      params.delete("preset");
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -143,7 +173,10 @@ export default function RingkasanReportPage() {
           <Button
             type="button"
             className="hidden sm:inline-flex h-auto px-4 py-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
-            onClick={() => setAppliedPreset(activePreset)}
+            onClick={() => {
+              setAppliedPreset(activePreset);
+              updatePresetParam(activePreset);
+            }}
           >
             Terapkan
           </Button>
