@@ -29,19 +29,7 @@ export function AnalyticsDashboardPage() {
   const lastUpdated = data?.meta?.last_updated;
 
   return (
-    <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark p-4 sm:p-6 rounded-xl border border-border/50 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">Dashboard BUMDes</span>
-          <span className="text-muted-foreground">/</span>
-          <span className="text-muted-foreground">Analytics</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {isFetching ? <Skeleton className="h-4 w-24" /> : null}
-          <ThemeToggle />
-        </div>
-      </div>
-
+    <div className="flex flex-col gap-6 bg-background-light dark:bg-background-dark">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <DateRangeSelector
           value={range}
