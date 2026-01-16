@@ -2,13 +2,14 @@
 
 "use client";
 
-import type { ReactNode } from "react";
+import * as React from "react";
 
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
+  SidebarMenuAction,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 
 export function NavMain({
   items,
@@ -23,15 +25,36 @@ export function NavMain({
   items: {
     title: string;
     url: string;
-    icon?: ReactNode;
+    icon?: React.ReactNode;
     items?: {
       title: string;
       url: string;
-      icon?: ReactNode;
+      icon?: React.ReactNode;
     }[];
   }[];
 }) {
   const pathname = usePathname();
+  const submenuIdPrefix = React.useId();
+  const [openItems, setOpenItems] = React.useState<Record<string, boolean>>(
+    {}
+  );
+
+  const setItemOpen = React.useCallback((key: string, nextOpen: boolean) => {
+    setOpenItems((prev) => {
+      if (prev[key] === nextOpen) {
+        return prev;
+      }
+      return { ...prev, [key]: nextOpen };
+    });
+  }, []);
+
+  const getSubmenuId = React.useCallback(
+    (value: string) => {
+      const sanitized = value.replace(/[^a-zA-Z0-9_-]/g, "-");
+      return `${submenuIdPrefix}-${sanitized}`;
+    },
+    [submenuIdPrefix]
+  );
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -48,6 +71,9 @@ export function NavMain({
                     pathname === child.url ||
                     pathname.startsWith(child.url + "/")
                 ));
+            const itemKey = item.url;
+            const isOpen = openItems[itemKey] ?? isParentActive;
+            const submenuId = getSubmenuId(itemKey);
 
             if (!hasChildren) {
               return (
@@ -72,13 +98,32 @@ export function NavMain({
                   asChild
                   tooltip={item.title}
                   isActive={isParentActive}
+                  data-state={isOpen ? "open" : "closed"}
                 >
                   <Link href={item.url}>
                     {item.icon}
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuSub>
+                <SidebarMenuAction
+                  type="button"
+                  aria-label={
+                    isOpen
+                      ? `Minimize ${item.title} menu`
+                      : `Expand ${item.title} menu`
+                  }
+                  aria-expanded={isOpen}
+                  aria-controls={submenuId}
+                  data-state={isOpen ? "open" : "closed"}
+                  onClick={() => setItemOpen(itemKey, !isOpen)}
+                >
+                  <ChevronDown
+                    className={`size-4 transition-transform ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </SidebarMenuAction>
+                <SidebarMenuSub id={submenuId} hidden={!isOpen}>
                   {item.items!.map((child) => {
                     const isChildActive =
                       pathname === child.url ||
