@@ -1,7 +1,13 @@
 /** @format */
 
-import { BarChart3, Package, FileText, ShoppingBag } from "lucide-react";
-import { IconUsersGroup } from "@tabler/icons-react";
+import {
+  BarChart3,
+  Calculator,
+  FileText,
+  Package,
+  Settings,
+  ShoppingBag,
+} from "lucide-react";
 
 // Sidebar navigation for BUMDes MVP section
 export const bumdesNavigation = [
@@ -29,23 +35,38 @@ export const bumdesNavigation = [
     ],
   },
   {
-    name: "Manajemen Aset",
-    href: "/bumdes/asset/manajemen",
+    name: "Asset & Rental",
+    href: "/bumdes/asset",
     icon: <Package className="h-4 w-4" />,
-  },
-  {
-    name: "Marketplace",
-    href: "/bumdes/marketplace",
-    icon: <ShoppingBag className="h-4 w-4" />,
     items: [
-      { name: "Inventaris", href: "/bumdes/marketplace/inventory" },
-      { name: "Pesanan", href: "/bumdes/marketplace/order" },
+      { name: "Daftar Aset", href: "/bumdes/asset/manajemen" },
+      { name: "Penyewaan", href: "/bumdes/asset/jadwal" },
     ],
   },
   {
-    name: "Team",
-    href: "/bumdes/team",
-    icon: <IconUsersGroup className="h-4 w-4" />,
+    name: "Penjualan",
+    href: "/bumdes/marketplace",
+    icon: <ShoppingBag className="h-4 w-4" />,
+    items: [
+      { name: "Produk", href: "/bumdes/marketplace/inventory" },
+      { name: "Pesanan", href: "/bumdes/marketplace/order" },
+      { name: "Pelanggan", href: "/bumdes/marketplace/pelanggan" },
+    ],
+  },
+  {
+    name: "Accounting",
+    href: "/bumdes/accounting/dashboard",
+    icon: <Calculator className="h-4 w-4" />,
+    items: [
+      { name: "Dashboard", href: "/bumdes/accounting/dashboard" },
+      { name: "Invoicing (AR)", href: "/bumdes/accounting/invoicing-ar" },
+      { name: "Vendor Bills (AP)", href: "/bumdes/accounting/vendor-bills-ap" },
+      { name: "Bank & Cash", href: "/bumdes/accounting/bank-cash" },
+      { name: "Journal", href: "/bumdes/accounting/journal" },
+      { name: "Tax", href: "/bumdes/accounting/tax" },
+      { name: "Reporting", href: "/bumdes/accounting/reporting" },
+      { name: "Settings", href: "/bumdes/accounting/settings" },
+    ],
   },
   {
     name: "Laporan Keuangan",
@@ -59,14 +80,36 @@ export const bumdesNavigation = [
       { name: "Penjualan Rinci", href: "/bumdes/report/penjualan-rinci" },
     ],
   },
+  {
+    name: "Pengaturan",
+    href: "/bumdes/settings/general",
+    icon: <Settings className="h-4 w-4" />,
+    items: [
+      { name: "General", href: "/bumdes/settings/general" },
+      { name: "Users & Roles", href: "/bumdes/settings/users-roles" },
+      { name: "Permissions", href: "/bumdes/settings/permissions" },
+      { name: "Company Profile", href: "/bumdes/settings/company-profile" },
+    ],
+  },
 ];
 
 export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/dashboard": "Dashboard",
-  "/bumdes/asset": "Asset",
-  "/bumdes/marketplace/inventory": "Marketplace - Inventaris",
-  "/bumdes/marketplace/order": "Marketplace - Pesanan",
-  "/bumdes/marketplace": "Marketplace",
+  "/bumdes/asset": "Asset & Rental",
+  "/bumdes/asset/manajemen": "Asset & Rental - Daftar Aset",
+  "/bumdes/asset/jadwal": "Asset & Rental - Penyewaan",
+  "/bumdes/marketplace/inventory": "Penjualan - Produk",
+  "/bumdes/marketplace/order": "Penjualan - Pesanan",
+  "/bumdes/marketplace/pelanggan": "Penjualan - Pelanggan",
+  "/bumdes/marketplace": "Penjualan",
+  "/bumdes/accounting/dashboard": "Accounting - Dashboard",
+  "/bumdes/accounting/invoicing-ar": "Accounting - Invoicing (AR)",
+  "/bumdes/accounting/vendor-bills-ap": "Accounting - Vendor Bills (AP)",
+  "/bumdes/accounting/bank-cash": "Accounting - Bank & Cash",
+  "/bumdes/accounting/journal": "Accounting - Journal",
+  "/bumdes/accounting/tax": "Accounting - Tax",
+  "/bumdes/accounting/reporting": "Accounting - Reporting",
+  "/bumdes/accounting/settings": "Accounting - Settings",
   "/bumdes/pos": "Point of Sales",
   "/bumdes/rent": "Rent",
   "/bumdes/landing-page": "Landing Page",
@@ -85,4 +128,8 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/report/arus-kas": "Report - Arus Kas",
   "/bumdes/report/neraca": "Report - Neraca",
   "/bumdes/report/penjualan-rinci": "Report - Penjualan Rinci",
+  "/bumdes/settings/general": "Pengaturan - General",
+  "/bumdes/settings/users-roles": "Pengaturan - Users & Roles",
+  "/bumdes/settings/permissions": "Pengaturan - Permissions",
+  "/bumdes/settings/company-profile": "Pengaturan - Company Profile",
 };
