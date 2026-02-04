@@ -7,19 +7,31 @@ import { sessionCookieName } from "@/constants/cookies";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const host = request.headers.get("host") ?? "";
+  const hostHeader = request.headers.get("host") ?? "";
+  const forwardedHost = request.headers.get("x-forwarded-host") ?? "";
+  const rawHost = forwardedHost || hostHeader;
+  // Keep port if present (e.g., localhost:3004); backend will normalize.
+  const lookupHost = rawHost.split(",")[0]?.trim().toLowerCase() ?? "";
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
 
-  let tenantId = request.cookies.get("tenantId")?.value;
+  const tenantCookie = request.cookies.get("tenantId")?.value;
+  let tenantId = tenantCookie?.trim();
+  let tenantResolved = Boolean(tenantId);
+  let tenantLookupStatus:
+    | "unattempted"
+    | "resolved"
+    | "not-found"
+    | "invalid"
+    | "error" = "unattempted";
   const isLanding = pathname === "/";
   const publicPrefixes = ["/penyewaan-aset", "/marketplace"];
   const isPublic = publicPrefixes.some((prefix) => pathname.startsWith(prefix));
 
   // lookup by domain kalau cookie kosong
-  if (!tenantId && apiBase && host) {
+  if (!tenantId && apiBase && lookupHost) {
     try {
-      const res = await fetch(`${apiBase}/api/get-by-domain/${host}`, {
+      const res = await fetch(`${apiBase}/api/get-by-domain/${lookupHost}`, {
         headers: { "Content-Type": "application/json" },
       });
       if (res.ok) {
@@ -30,17 +42,36 @@ export async function middleware(request: NextRequest) {
           resolvedId !== null && typeof resolvedId !== "undefined"
             ? String(resolvedId)
             : undefined;
+        tenantResolved = Boolean(tenantId);
+        tenantLookupStatus = tenantResolved ? "resolved" : "invalid";
+      } else if (res.status === 404) {
+        tenantLookupStatus = "not-found";
+      } else {
+        tenantLookupStatus = "error";
       }
     } catch (err: any) {
       console.error("Tenant lookup failed:", err?.message);
+      tenantLookupStatus = "error";
     }
   }
 
+  const lookupFailed =
+    tenantLookupStatus === "not-found" ||
+    tenantLookupStatus === "invalid" ||
+    tenantLookupStatus === "error";
+
   // helper: inject tenant ke response
   const withTenant = (res: NextResponse): NextResponse => {
-    if (tenantId) {
+    if (tenantResolved && tenantId) {
       res.headers.set("X-Tenant-ID", tenantId);
       res.cookies.set("tenantId", tenantId, { path: "/" });
+    }
+    return res;
+  };
+
+  const clearTenantCookie = (res: NextResponse): NextResponse => {
+    if (tenantCookie || lookupFailed) {
+      res.cookies.set("tenantId", "", { path: "/", maxAge: 0 });
     }
     return res;
   };
@@ -66,7 +97,10 @@ export async function middleware(request: NextRequest) {
     !isLanding &&
     !isPublic
   ) {
-    return NextResponse.redirect(new URL("/tenant-not-found", request.url));
+    const res = NextResponse.redirect(
+      new URL("/tenant-not-found", request.url),
+    );
+    return clearTenantCookie(res);
   }
 
   // Public routes: allow through without auth checks
@@ -94,7 +128,7 @@ export async function middleware(request: NextRequest) {
   } as const;
 
   const protectedRoute = Object.keys(routeRoleMap).find((route) =>
-    pathname.startsWith(route)
+    pathname.startsWith(route),
   );
 
   if (protectedRoute) {
@@ -109,7 +143,7 @@ export async function middleware(request: NextRequest) {
     if (userRole !== requiredRole) {
       const userDashboard = `/${userRole}/dashboard`;
       return withTenant(
-        NextResponse.redirect(new URL(userDashboard, request.url))
+        NextResponse.redirect(new URL(userDashboard, request.url)),
       );
     }
   }
@@ -117,7 +151,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/login" && token) {
     const userDashboard = `/${userRole}/dashboard`;
     return withTenant(
-      NextResponse.redirect(new URL(userDashboard, request.url))
+      NextResponse.redirect(new URL(userDashboard, request.url)),
     );
   }
 
@@ -125,7 +159,7 @@ export async function middleware(request: NextRequest) {
     if (token) {
       const userDashboard = `/${userRole}/dashboard`;
       return withTenant(
-        NextResponse.redirect(new URL(userDashboard, request.url))
+        NextResponse.redirect(new URL(userDashboard, request.url)),
       );
     }
     return withTenant(NextResponse.next());

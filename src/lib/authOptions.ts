@@ -68,7 +68,7 @@ export const authOptions: AuthOptions = {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "X-Tenant-ID": tenantId ?? "", // ✅ tenant ikut header
+                ...(tenantId ? { "X-Tenant-ID": tenantId } : {}), // ✅ kirim hanya bila tenant tersedia
               },
               body: JSON.stringify({
                 email: credentials?.email,
