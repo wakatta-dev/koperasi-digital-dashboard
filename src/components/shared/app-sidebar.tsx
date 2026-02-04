@@ -52,27 +52,36 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ data, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="px-4 pb-3 pt-6">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="!h-auto !p-0 hover:bg-transparent data-[active=true]:bg-transparent"
             >
               <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Digicorp</span>
+                <span className="flex size-10 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm">
+                  <IconInnerShadowTop className="size-5" />
+                </span>
+                <span className="flex flex-col leading-tight">
+                  <span className="text-base font-semibold text-slate-900 dark:text-white">
+                    Digicorp
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    Enterprise
+                  </span>
+                </span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="gap-6 px-3 pb-4">
         <NavMain items={data.navMain} />
         {/* <NavDocuments items={data.documents} /> */}
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-slate-200/80 px-4 py-3 dark:border-slate-800">
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
