@@ -8,10 +8,7 @@ import { ProductListHeader } from "./ProductListHeader";
 import { ProductTable } from "./ProductTable";
 import { ProductPagination } from "./ProductPagination";
 import { ProductFilterSheet } from "./ProductFilterSheet";
-import {
-  MOCK_PRODUCT_CATEGORIES,
-  MOCK_PRODUCT_STATUSES,
-} from "@/modules/marketplace/data/penjualan-mock";
+const DEFAULT_PRODUCT_STATUSES = ["Tersedia", "Menipis", "Habis"] as const;
 import type { ProductListItem } from "@/modules/marketplace/types";
 import { useInventoryActions, useInventoryProducts } from "@/hooks/queries/inventory";
 import { mapInventoryProduct } from "@/modules/inventory/utils";
@@ -67,18 +64,21 @@ export function ProductListPage() {
         .map((product) => product.category)
         .filter((category) => category && category !== "-")
     );
-    return (dynamic.size > 0 ? Array.from(dynamic) : MOCK_PRODUCT_CATEGORIES).map(
-      (label) => ({
-        label,
-        checked: selectedCategories.includes(label),
-      })
-    );
+    return Array.from(dynamic).map((label) => ({
+      label,
+      checked: selectedCategories.includes(label),
+    }));
   }, [products, selectedCategories]);
 
-  const statusOptions = MOCK_PRODUCT_STATUSES.map((label) => ({
-    label,
-    checked: selectedStatuses.includes(label),
-  }));
+  const statusOptions = useMemo(() => {
+    const dynamic = new Set(products.map((product) => product.status));
+    const labels =
+      dynamic.size > 0 ? Array.from(dynamic) : [...DEFAULT_PRODUCT_STATUSES];
+    return labels.map((label) => ({
+      label,
+      checked: selectedStatuses.includes(label),
+    }));
+  }, [products, selectedStatuses]);
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>

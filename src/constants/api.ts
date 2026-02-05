@@ -81,6 +81,8 @@ export const API_ENDPOINTS = {
     orderStatus: (id: string | number) => `/marketplace/orders/${id}/status`,
     orderManualPayment: (id: string | number) =>
       `/marketplace/orders/${id}/manual-payment`,
+    customers: "/marketplace/customers",
+    customer: (id: string | number) => `/marketplace/customers/${id}`,
   },
   assets: {
     list: "/asset-rental/assets",
