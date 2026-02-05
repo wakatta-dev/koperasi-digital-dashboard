@@ -65,7 +65,7 @@ export function CustomerRecentActivity({ activities }: CustomerRecentActivityPro
                   </div>
                   {activity.quote ? (
                     <div className="p-3 text-xs italic font-normal text-gray-500 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400">
-                      "{activity.quote}"
+                      &ldquo;{activity.quote}&rdquo;
                     </div>
                   ) : null}
                 </div>

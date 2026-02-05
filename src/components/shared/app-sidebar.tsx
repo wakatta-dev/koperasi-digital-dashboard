@@ -31,6 +31,11 @@ interface SidebarData {
       title: string;
       url: string;
       icon?: React.ReactNode;
+      items?: {
+        title: string;
+        url: string;
+        icon?: React.ReactNode;
+      }[];
     }[];
   }[];
   navSecondary: {

@@ -197,7 +197,11 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         onSubmit={handleSubmitStatus}
       />
 
-      <OrderInvoiceDialog open={invoiceOpen} onOpenChange={setInvoiceOpen} orderId={data.id} />
+      <OrderInvoiceDialog
+        open={invoiceOpen}
+        onOpenChange={setInvoiceOpen}
+        orderId={detail.orderId}
+      />
     </div>
   );
 }

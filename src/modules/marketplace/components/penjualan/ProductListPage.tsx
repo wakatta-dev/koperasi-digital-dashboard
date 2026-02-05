@@ -2,18 +2,22 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProductListHeader } from "./ProductListHeader";
 import { ProductTable } from "./ProductTable";
 import { ProductPagination } from "./ProductPagination";
 import { ProductFilterSheet } from "./ProductFilterSheet";
-const DEFAULT_PRODUCT_STATUSES = ["Tersedia", "Menipis", "Habis"] as const;
 import type { ProductListItem } from "@/modules/marketplace/types";
-import { useInventoryActions, useInventoryProducts } from "@/hooks/queries/inventory";
+import {
+  useInventoryActions,
+  useInventoryCategories,
+  useInventoryProducts,
+} from "@/hooks/queries/inventory";
 import { mapInventoryProduct } from "@/modules/inventory/utils";
 
 const PAGE_SIZE = 10;
+const DEFAULT_PRODUCT_STATUSES = ["Tersedia", "Menipis", "Habis"] as const;
 
 const resolveStockStatus = (stock: number, minStock?: number, trackStock?: boolean) => {
   if (!trackStock) return "Tersedia";
@@ -28,14 +32,52 @@ export function ProductListPage() {
   const [searchValue, setSearchValue] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [appliedFilters, setAppliedFilters] = useState(() => ({
+    categories: [] as string[],
+    statuses: [] as string[],
+    minPrice: "",
+    maxPrice: "",
+    dateFrom: "",
+    dateTo: "",
+  }));
+  const [draftFilters, setDraftFilters] = useState(appliedFilters);
   const [page, setPage] = useState(1);
+  const { data: categoriesData } = useInventoryCategories();
+
+  useEffect(() => {
+    if (filterOpen) {
+      setDraftFilters(appliedFilters);
+    }
+  }, [filterOpen, appliedFilters]);
+
+  const statusParam = useMemo(() => {
+    const map: Record<string, string> = {
+      Tersedia: "available",
+      Menipis: "low",
+      Habis: "out",
+    };
+    return appliedFilters.statuses
+      .map((status) => map[status])
+      .filter(Boolean)
+      .join(",");
+  }, [appliedFilters.statuses]);
+
+  const minPriceValue = Number(appliedFilters.minPrice);
+  const maxPriceValue = Number(appliedFilters.maxPrice);
 
   const { data, isLoading, isError } = useInventoryProducts({
     q: searchValue || undefined,
     limit: PAGE_SIZE,
     offset: (page - 1) * PAGE_SIZE,
+    categories:
+      appliedFilters.categories.length > 0
+        ? appliedFilters.categories.join(",")
+        : undefined,
+    stock_status: statusParam || undefined,
+    min_price: Number.isFinite(minPriceValue) ? minPriceValue : undefined,
+    max_price: Number.isFinite(maxPriceValue) ? maxPriceValue : undefined,
+    start_date: appliedFilters.dateFrom || undefined,
+    end_date: appliedFilters.dateTo || undefined,
   });
 
   const inventoryItems = useMemo(() => {
@@ -59,16 +101,20 @@ export function ProductListPage() {
   );
 
   const categoryOptions = useMemo(() => {
-    const dynamic = new Set(
-      products
-        .map((product) => product.category)
-        .filter((category) => category && category !== "-")
+    const fromApi = (categoriesData ?? [])
+      .map((category) => category.name)
+      .filter((name): name is string => Boolean(name));
+    const fromProducts = products
+      .map((product) => product.category)
+      .filter((category): category is string => Boolean(category && category !== "-"));
+    const labels = Array.from(
+      new Set([...fromApi, ...fromProducts, ...draftFilters.categories])
     );
-    return Array.from(dynamic).map((label) => ({
+    return labels.map((label) => ({
       label,
-      checked: selectedCategories.includes(label),
+      checked: draftFilters.categories.includes(label),
     }));
-  }, [products, selectedCategories]);
+  }, [categoriesData, products, draftFilters.categories]);
 
   const statusOptions = useMemo(() => {
     const dynamic = new Set(products.map((product) => product.status));
@@ -76,9 +122,9 @@ export function ProductListPage() {
       dynamic.size > 0 ? Array.from(dynamic) : [...DEFAULT_PRODUCT_STATUSES];
     return labels.map((label) => ({
       label,
-      checked: selectedStatuses.includes(label),
+      checked: draftFilters.statuses.includes(label),
     }));
-  }, [products, selectedStatuses]);
+  }, [products, draftFilters.statuses]);
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -91,20 +137,41 @@ export function ProductListPage() {
   };
 
   const handleToggleCategory = (label: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
-    );
+    setDraftFilters((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(label)
+        ? prev.categories.filter((item) => item !== label)
+        : [...prev.categories, label],
+    }));
   };
 
   const handleToggleStatus = (label: string) => {
-    setSelectedStatuses((prev) =>
-      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
-    );
+    setDraftFilters((prev) => ({
+      ...prev,
+      statuses: prev.statuses.includes(label)
+        ? prev.statuses.filter((item) => item !== label)
+        : [...prev.statuses, label],
+    }));
   };
 
   const handleResetFilters = () => {
-    setSelectedCategories([]);
-    setSelectedStatuses([]);
+    const reset = {
+      categories: [],
+      statuses: [],
+      minPrice: "",
+      maxPrice: "",
+      dateFrom: "",
+      dateTo: "",
+    };
+    setDraftFilters(reset);
+    setAppliedFilters(reset);
+    setPage(1);
+  };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters(draftFilters);
+    setFilterOpen(false);
+    setPage(1);
   };
 
   const total = data?.total ?? products.length;
@@ -178,10 +245,26 @@ export function ProductListPage() {
         onOpenChange={setFilterOpen}
         categories={categoryOptions}
         statuses={statusOptions}
+        minPrice={draftFilters.minPrice}
+        maxPrice={draftFilters.maxPrice}
+        dateFrom={draftFilters.dateFrom}
+        dateTo={draftFilters.dateTo}
         onToggleCategory={handleToggleCategory}
         onToggleStatus={handleToggleStatus}
+        onMinPriceChange={(value) =>
+          setDraftFilters((prev) => ({ ...prev, minPrice: value }))
+        }
+        onMaxPriceChange={(value) =>
+          setDraftFilters((prev) => ({ ...prev, maxPrice: value }))
+        }
+        onDateFromChange={(value) =>
+          setDraftFilters((prev) => ({ ...prev, dateFrom: value }))
+        }
+        onDateToChange={(value) =>
+          setDraftFilters((prev) => ({ ...prev, dateTo: value }))
+        }
         onReset={handleResetFilters}
-        onApply={() => setFilterOpen(false)}
+        onApply={handleApplyFilters}
       />
 
       {isLoading ? (

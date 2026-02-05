@@ -15,22 +15,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useInventoryActions } from "@/hooks/queries/inventory";
+import { useInventoryActions, useInventoryCategories } from "@/hooks/queries/inventory";
 
 export function ProductCreatePage() {
   const router = useRouter();
   const uploadId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
-  const { create, uploadImage } = useInventoryActions();
+  const { create, addImage } = useInventoryActions();
+  const { data: categoriesData } = useInventoryCategories();
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
-  const submitting = create.isPending || uploadImage.isPending;
+  const submitting = create.isPending || addImage.isPending;
 
   const resetForm = () => {
     setName("");
@@ -39,7 +40,7 @@ export function ProductCreatePage() {
     setCategory("");
     setWeight("");
     setDescription("");
-    setFile(null);
+    setFiles([]);
   };
 
   const handleCancel = () => {
@@ -56,19 +57,34 @@ export function ProductCreatePage() {
     };
 
     if (!payload.name) return;
+    const weightValue = weight.trim() ? Number(weight) : undefined;
+    const parsedWeight = Number.isFinite(weightValue as number) ? weightValue : undefined;
 
     try {
       const product = await create.mutateAsync({
         name: payload.name,
         sku: payload.sku || undefined,
         category: payload.category || undefined,
+        brand: brand.trim() || undefined,
+        weight_kg: parsedWeight,
         description: payload.description || undefined,
         price_sell: 0,
         track_stock: true,
         show_in_marketplace: false,
       });
-      if (file) {
-        await uploadImage.mutateAsync({ id: product.id, file });
+      if (files.length > 0) {
+        await addImage.mutateAsync({
+          id: product.id,
+          file: files[0],
+          primary: true,
+        });
+        if (files.length > 1) {
+          await Promise.all(
+            files.slice(1).map((fileItem) =>
+              addImage.mutateAsync({ id: product.id, file: fileItem })
+            )
+          );
+        }
       }
       resetForm();
       router.push("/bumdes/marketplace/inventory");
@@ -153,16 +169,23 @@ export function ProductCreatePage() {
               </label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600">
-                  <SelectValue placeholder="Pilih Kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Electronics">Electronics</SelectItem>
-                  <SelectItem value="Laptops">Laptops</SelectItem>
-                  <SelectItem value="Smartphones">Smartphones</SelectItem>
-                  <SelectItem value="Accessories">Accessories</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <SelectValue placeholder="Pilih Kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoriesData && categoriesData.length > 0 ? (
+                categoriesData.map((item) => (
+                  <SelectItem key={item.name} value={item.name}>
+                    {item.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="__empty" disabled>
+                  Tidak ada kategori
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Berat (kg)
@@ -198,6 +221,17 @@ export function ProductCreatePage() {
           <div
             className="p-12 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-center hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors cursor-pointer"
             onClick={() => fileRef.current?.click()}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              const dropped = Array.from(event.dataTransfer.files ?? []);
+              if (dropped.length > 0) {
+                setFiles((prev) => [...prev, ...dropped]);
+              }
+            }}
             role="button"
             tabIndex={0}
             onKeyDown={(event) => {
@@ -226,9 +260,21 @@ export function ProductCreatePage() {
               ref={fileRef}
               type="file"
               className="hidden"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              multiple
+              onChange={(event) => {
+                const selected = Array.from(event.target.files ?? []);
+                if (selected.length > 0) {
+                  setFiles((prev) => [...prev, ...selected]);
+                }
+                event.currentTarget.value = "";
+              }}
               accept="image/*"
             />
+            {files.length > 0 ? (
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                {files.length} gambar dipilih
+              </p>
+            ) : null}
           </div>
         </section>
 

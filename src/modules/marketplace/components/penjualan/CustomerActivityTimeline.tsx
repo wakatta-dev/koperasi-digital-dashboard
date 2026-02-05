@@ -99,7 +99,7 @@ export function CustomerActivityTimeline({ activities }: CustomerActivityTimelin
                 </p>
                 {activity.quote ? (
                   <div className="p-3 text-sm italic text-gray-600 bg-gray-50 border border-gray-200 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
-                    "{activity.quote}"
+                    &ldquo;{activity.quote}&rdquo;
                   </div>
                 ) : null}
                 {activity.type === "profile" && metaParts.length === 2 ? (

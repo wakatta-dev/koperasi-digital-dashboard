@@ -6,7 +6,7 @@ export type ProductBasicInfoCardProps = Readonly<{
   category: string;
   brand: string;
   description: string;
-  weightKg: number;
+  weightKg?: number | null;
 }>;
 
 export function ProductBasicInfoCard({
@@ -42,7 +42,9 @@ export function ProductBasicInfoCard({
         <div>
           <dt className="text-xs text-gray-500 dark:text-gray-400">Berat</dt>
           <dd className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-            {weightKg} kg
+            {typeof weightKg === "number" && !Number.isNaN(weightKg)
+              ? `${weightKg} kg`
+              : "-"}
           </dd>
         </div>
       </dl>

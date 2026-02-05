@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { Expand, Laptop } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export type ProductMediaCardProps = Readonly<{
   name: string;
@@ -12,6 +13,7 @@ export type ProductMediaCardProps = Readonly<{
 
 export function ProductMediaCard({ name, images }: ProductMediaCardProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const activeImage = images[activeIndex];
 
   return (
@@ -23,7 +25,14 @@ export function ProductMediaCard({ name, images }: ProductMediaCardProps) {
           <Laptop className="h-16 w-16 text-gray-400" />
         )}
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <button className="p-2 bg-white/90 rounded-full shadow-sm text-gray-600 hover:text-indigo-600 transition-colors" type="button">
+          <button
+            className="p-2 bg-white/90 rounded-full shadow-sm text-gray-600 hover:text-indigo-600 transition-colors disabled:opacity-50"
+            type="button"
+            onClick={() => {
+              if (activeImage) setPreviewOpen(true);
+            }}
+            disabled={!activeImage}
+          >
             <Expand className="h-4 w-4" />
           </button>
         </div>
@@ -63,6 +72,15 @@ export function ProductMediaCard({ name, images }: ProductMediaCardProps) {
           ))
         )}
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black">
+          <DialogTitle className="sr-only">Pratinjau {name}</DialogTitle>
+          {activeImage ? (
+            <img src={activeImage} alt={name} className="w-full h-auto" />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

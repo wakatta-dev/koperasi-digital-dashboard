@@ -7,8 +7,10 @@ import type {
   CreateInventoryProductRequest,
   CreateInventoryVariantGroupRequest,
   CreateInventoryVariantOptionRequest,
+  InventoryCategoryResponse,
   InventoryAdjustmentRequest,
   InventoryInitialStockRequest,
+  InventoryProductStatsResponse,
   InventoryProductListResponse,
   InventoryProductResponse,
   InventoryProductVariantsResponse,
@@ -29,6 +31,12 @@ export function listInventoryProducts(params?: {
   limit?: number;
   offset?: number;
   sort?: string;
+  categories?: string;
+  stock_status?: string;
+  min_price?: number;
+  max_price?: number;
+  start_date?: string;
+  end_date?: string;
 }): Promise<ApiResponse<InventoryProductListResponse>> {
   const search = new URLSearchParams();
   if (params?.q) search.set("q", params.q);
@@ -39,14 +47,57 @@ export function listInventoryProducts(params?: {
   if (params?.limit !== undefined) search.set("limit", String(params.limit));
   if (params?.offset !== undefined) search.set("offset", String(params.offset));
   if (params?.sort) search.set("sort", params.sort);
+  if (params?.categories) search.set("categories", params.categories);
+  if (params?.stock_status) search.set("stock_status", params.stock_status);
+  if (params?.min_price !== undefined) search.set("min_price", String(params.min_price));
+  if (params?.max_price !== undefined) search.set("max_price", String(params.max_price));
+  if (params?.start_date) search.set("start_date", params.start_date);
+  if (params?.end_date) search.set("end_date", params.end_date);
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<InventoryProductListResponse>(`${API_PREFIX}${E.products}${query}`);
+}
+
+export function listInventoryCategories(): Promise<
+  ApiResponse<InventoryCategoryResponse[]>
+> {
+  return api.get<InventoryCategoryResponse[]>(`${API_PREFIX}${E.categories}`);
+}
+
+export function createInventoryCategory(payload: {
+  name: string;
+}): Promise<ApiResponse<InventoryCategoryResponse>> {
+  return api.post<InventoryCategoryResponse>(
+    `${API_PREFIX}${E.categories}`,
+    payload
+  );
+}
+
+export function updateInventoryCategory(
+  id: string | number,
+  payload: { name: string }
+): Promise<ApiResponse<InventoryCategoryResponse>> {
+  return api.patch<InventoryCategoryResponse>(
+    `${API_PREFIX}${E.category(id)}`,
+    payload
+  );
+}
+
+export function deleteInventoryCategory(
+  id: string | number
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return api.delete<{ deleted: boolean }>(`${API_PREFIX}${E.category(id)}`);
 }
 
 export function getInventoryProduct(
   id: string | number
 ): Promise<ApiResponse<InventoryProductResponse>> {
   return api.get<InventoryProductResponse>(`${API_PREFIX}${E.product(id)}`);
+}
+
+export function getInventoryProductStats(
+  id: string | number
+): Promise<ApiResponse<InventoryProductStatsResponse>> {
+  return api.get<InventoryProductStatsResponse>(`${API_PREFIX}${E.stats(id)}`);
 }
 
 export function createInventoryProduct(
@@ -69,6 +120,33 @@ export function uploadInventoryProductImage(
   const formData = new FormData();
   formData.append("image", file);
   return api.post<InventoryProductResponse>(`${API_PREFIX}${E.image(id)}`, formData);
+}
+
+export function uploadInventoryProductGalleryImage(
+  id: string | number,
+  file: File,
+  primary?: boolean
+): Promise<ApiResponse<InventoryProductResponse>> {
+  const formData = new FormData();
+  formData.append("image", file);
+  const query = primary ? "?primary=true" : "";
+  return api.post<InventoryProductResponse>(`${API_PREFIX}${E.images(id)}${query}`, formData);
+}
+
+export function deleteInventoryProductImage(
+  id: string | number,
+  imageId: string | number
+): Promise<ApiResponse<InventoryProductResponse>> {
+  return api.delete<InventoryProductResponse>(`${API_PREFIX}${E.imageDetail(id, imageId)}`);
+}
+
+export function setInventoryProductPrimaryImage(
+  id: string | number,
+  imageId: string | number
+): Promise<ApiResponse<InventoryProductResponse>> {
+  return api.patch<InventoryProductResponse>(
+    `${API_PREFIX}${E.imagePrimary(id, imageId)}`
+  );
 }
 
 export function getInventoryProductVariants(
@@ -105,6 +183,28 @@ export function uploadInventoryVariantGroupImage(
   return api.post<InventoryVariantGroupResponse>(
     `${API_PREFIX}${E.variantGroupImage(id, groupId)}`,
     formData
+  );
+}
+
+export function uploadInventoryVariantOptionImage(
+  id: string | number,
+  optionId: string | number,
+  file: File
+): Promise<ApiResponse<InventoryVariantOptionResponse>> {
+  const formData = new FormData();
+  formData.append("image", file);
+  return api.post<InventoryVariantOptionResponse>(
+    `${API_PREFIX}${E.variantOptionImage(id, optionId)}`,
+    formData
+  );
+}
+
+export function deleteInventoryVariantOptionImage(
+  id: string | number,
+  optionId: string | number
+): Promise<ApiResponse<InventoryVariantOptionResponse>> {
+  return api.delete<InventoryVariantOptionResponse>(
+    `${API_PREFIX}${E.variantOptionImage(id, optionId)}`
   );
 }
 
@@ -171,7 +271,19 @@ export function adjustInventoryStock(
 }
 
 export function getInventoryStockHistory(
-  id: string | number
+  id: string | number,
+  params?: {
+    type?: string;
+    range?: string;
+    start_date?: string;
+    end_date?: string;
+  }
 ): Promise<ApiResponse<InventoryStockHistoryEntry[]>> {
-  return api.get<InventoryStockHistoryEntry[]>(`${API_PREFIX}${E.history(id)}`);
+  const search = new URLSearchParams();
+  if (params?.type) search.set("type", params.type);
+  if (params?.range) search.set("range", params.range);
+  if (params?.start_date) search.set("start_date", params.start_date);
+  if (params?.end_date) search.set("end_date", params.end_date);
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<InventoryStockHistoryEntry[]>(`${API_PREFIX}${E.history(id)}${query}`);
 }

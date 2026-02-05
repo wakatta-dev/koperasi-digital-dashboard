@@ -85,10 +85,13 @@ export const QK = {
       ["inventory", "products", params ?? {}] as const,
     detail: (id: string | number) =>
       ["inventory", "products", String(id)] as const,
-    history: (id: string | number) =>
-      ["inventory", "products", String(id), "history"] as const,
+    stats: (id: string | number) =>
+      ["inventory", "products", String(id), "stats"] as const,
+    history: (id: string | number, params?: Record<string, unknown>) =>
+      ["inventory", "products", String(id), "history", params ?? {}] as const,
     variants: (id: string | number) =>
       ["inventory", "products", String(id), "variants"] as const,
+    categories: () => ["inventory", "categories"] as const,
   },
 } as const;
 
@@ -127,6 +130,8 @@ export type QueryKey = ReturnType<
   | typeof QK.marketplace.customerDetail
   | typeof QK.inventory.list
   | typeof QK.inventory.detail
+  | typeof QK.inventory.stats
   | typeof QK.inventory.history
   | typeof QK.inventory.variants
+  | typeof QK.inventory.categories
 >;

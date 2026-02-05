@@ -2,10 +2,10 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar, ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -28,6 +28,7 @@ type HistoryRow = {
   id: string;
   date: string;
   time: string;
+  timestampValue?: number;
   type: "Penjualan" | "Restock" | "Penyesuaian";
   reference: string;
   delta: number;
@@ -65,6 +66,7 @@ const formatHistory = (entries: InventoryEvent[]): HistoryRow[] => {
       id: entry.id,
       date: date || entry.timestamp,
       time: time || "00:00 WIB",
+      timestampValue: entry.timestampValue,
       type,
       reference: entry.title,
       delta: entry.delta,
@@ -94,19 +96,49 @@ export function ProductInventoryHistoryModal({
   sku,
   entries,
 }: ProductInventoryHistoryModalProps) {
-  const [dateRange, setDateRange] = useState("01 Okt 2023 - 31 Okt 2023");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [activityType, setActivityType] = useState("Semua Aktivitas");
   const [searchValue, setSearchValue] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const rows = useMemo(() => {
     let data = formatHistory(entries);
+    if (dateFrom || dateTo) {
+      const from = dateFrom ? new Date(dateFrom).getTime() : null;
+      const to = dateTo ? new Date(dateTo).getTime() : null;
+      data = data.filter((row) => {
+        if (!row.timestampValue) return true;
+        if (from && row.timestampValue < from) return false;
+        if (to) {
+          const endOfDay = to + 24 * 60 * 60 * 1000 - 1;
+          if (row.timestampValue > endOfDay) return false;
+        }
+        return true;
+      });
+    }
     if (activityType !== "Semua Aktivitas") {
       data = data.filter((row) => row.type === activityType);
     }
     if (!searchValue.trim()) return data;
     const keyword = searchValue.toLowerCase();
     return data.filter((row) => row.reference.toLowerCase().includes(keyword));
-  }, [entries, searchValue, activityType]);
+  }, [entries, searchValue, activityType, dateFrom, dateTo]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const pagedRows = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return rows.slice(start, start + pageSize);
+  }, [rows, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [dateFrom, dateTo, activityType, searchValue, entries]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const handleExport = () => {
     const csvRows = [
@@ -136,6 +168,7 @@ export function ProductInventoryHistoryModal({
         className="bg-background-light dark:bg-background-dark w-full max-w-6xl rounded-xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700 p-0"
         showCloseButton={false}
       >
+        <DialogTitle className="sr-only">Riwayat Inventaris Lengkap</DialogTitle>
         <div className="max-h-[90vh] overflow-y-auto">
           <div className="p-8 space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -180,13 +213,25 @@ export function ProductInventoryHistoryModal({
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Rentang Tanggal
                   </label>
-                  <div className="relative">
-                    <Input
-                      value={dateRange}
-                      onChange={(event) => setDateRange(event.target.value)}
-                      className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm py-2.5 pl-10 focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
-                    />
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="relative">
+                      <Input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(event) => setDateFrom(event.target.value)}
+                        className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm py-2.5 pl-10 focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
+                      />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type="date"
+                        value={dateTo}
+                        onChange={(event) => setDateTo(event.target.value)}
+                        className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm py-2.5 pl-10 focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
+                      />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    </div>
                   </div>
                 </div>
                 <div className="w-48">
@@ -224,7 +269,8 @@ export function ProductInventoryHistoryModal({
                     type="button"
                     variant="ghost"
                     onClick={() => {
-                      setDateRange("01 Okt 2023 - 31 Okt 2023");
+                      setDateFrom("");
+                      setDateTo("");
                       setActivityType("Semua Aktivitas");
                       setSearchValue("");
                     }}
@@ -258,7 +304,7 @@ export function ProductInventoryHistoryModal({
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {rows.map((row) => (
+                  {pagedRows.map((row) => (
                     <TableRow
                       key={row.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
@@ -300,35 +346,38 @@ export function ProductInventoryHistoryModal({
                       </TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </Table>
-              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Menampilkan {rows.length} dari {rows.length} riwayat ditemukan
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
-                    disabled
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white px-3 py-1 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-md">
-                    1
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-indigo-600 transition-colors"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+              </TableBody>
+            </Table>
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Menampilkan {pagedRows.length} dari {rows.length} riwayat ditemukan
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                  disabled={page <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium text-gray-900 dark:text-white px-3 py-1 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-md">
+                  {page}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-400 hover:text-indigo-600 transition-colors"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
+            </div>
             </div>
           </div>
         </div>

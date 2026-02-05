@@ -104,10 +104,18 @@ export const API_ENDPOINTS = {
     guestVerify: "/asset-rental/guest-links/verify",
   },
   inventory: {
+    categories: "/inventory/categories",
+    category: (id: string | number) => `/inventory/categories/${id}`,
     products: "/inventory/products",
     product: (id: string | number) => `/inventory/products/${id}`,
     image: (id: string | number) => `/inventory/products/${id}/image`,
+    images: (id: string | number) => `/inventory/products/${id}/images`,
+    imageDetail: (id: string | number, imageId: string | number) =>
+      `/inventory/products/${id}/images/${imageId}`,
+    imagePrimary: (id: string | number, imageId: string | number) =>
+      `/inventory/products/${id}/images/${imageId}/primary`,
     variants: (id: string | number) => `/inventory/products/${id}/variants`,
+    stats: (id: string | number) => `/inventory/products/${id}/stats`,
     variantGroups: (id: string | number) =>
       `/inventory/products/${id}/variant-groups`,
     variantGroup: (id: string | number, groupId: string | number) =>
@@ -118,6 +126,8 @@ export const API_ENDPOINTS = {
       `/inventory/products/${id}/variant-groups/${groupId}/options`,
     variantOption: (id: string | number, optionId: string | number) =>
       `/inventory/products/${id}/options/${optionId}`,
+    variantOptionImage: (id: string | number, optionId: string | number) =>
+      `/inventory/products/${id}/options/${optionId}/image`,
     archive: (id: string | number) => `/inventory/products/${id}/archive`,
     unarchive: (id: string | number) => `/inventory/products/${id}/unarchive`,
     stockInitial: (id: string | number) => `/inventory/products/${id}/stock/initial`,
