@@ -5,14 +5,14 @@
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
-import { CartBreadcrumbs } from "./components/cart-breadcrumbs";
-import { CheckoutSteps } from "./components/checkout-steps";
-import { CartItemsSection } from "./components/cart-items-section";
-import { OrderSummaryCard } from "./components/order-summary-card";
-import { CartRecommendations } from "./components/cart-recommendations";
+import { CartBreadcrumbs } from "./components/cart/cart-breadcrumbs";
+import { CheckoutSteps } from "./components/checkout/checkout-steps";
+import { CartItemsSection } from "./components/cart/cart-items-section";
+import { OrderSummaryCard } from "./components/order/order-summary-card";
+import { CartRecommendations } from "./components/cart/cart-recommendations";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import Link from "next/link";
-import { CheckoutForm } from "./components/checkout-form";
+import { CheckoutForm } from "./components/checkout/checkout-form";
 import { useState } from "react";
 import type { MarketplaceOrderResponse } from "@/types/api/marketplace";
 import { formatCurrency } from "@/lib/format";

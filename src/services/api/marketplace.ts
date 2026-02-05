@@ -14,6 +14,8 @@ import type {
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
   MarketplaceProductVariantsResponse,
+  MarketplaceCustomerListResponse,
+  MarketplaceCustomerDetailResponse,
 } from "@/types/api/marketplace";
 
 const E = API_ENDPOINTS.marketplace;
@@ -114,6 +116,35 @@ export function listMarketplaceOrders(params?: {
   if (params?.sort) search.set("sort", params.sort);
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<MarketplaceOrderListResponse>(`${API_PREFIX}${E.orders}${query}`);
+}
+
+export function listMarketplaceCustomers(params?: {
+  q?: string;
+  status?: string;
+  min_orders?: number;
+  max_orders?: number;
+  limit?: number;
+  offset?: number;
+  sort?: string;
+}): Promise<ApiResponse<MarketplaceCustomerListResponse>> {
+  const search = new URLSearchParams();
+  if (params?.q) search.set("q", params.q);
+  if (params?.status) search.set("status", params.status);
+  if (params?.min_orders !== undefined)
+    search.set("min_orders", String(params.min_orders));
+  if (params?.max_orders !== undefined)
+    search.set("max_orders", String(params.max_orders));
+  if (params?.limit !== undefined) search.set("limit", String(params.limit));
+  if (params?.offset !== undefined) search.set("offset", String(params.offset));
+  if (params?.sort) search.set("sort", params.sort);
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<MarketplaceCustomerListResponse>(`${API_PREFIX}${E.customers}${query}`);
+}
+
+export function getMarketplaceCustomerDetail(
+  id: string | number
+): Promise<ApiResponse<MarketplaceCustomerDetailResponse>> {
+  return api.get<MarketplaceCustomerDetailResponse>(`${API_PREFIX}${E.customer(id)}`);
 }
 
 export function getMarketplaceOrderDetail(

@@ -1,6 +1,6 @@
 /** @format */
 
-import { OrderDetailPage } from "@/modules/marketplace/order/components/order-detail-page";
+import { OrderDetailPage } from "@/modules/marketplace/components/penjualan/OrderDetailPage";
 
 type PageProps = {
   params: Promise<{ id: string }>;

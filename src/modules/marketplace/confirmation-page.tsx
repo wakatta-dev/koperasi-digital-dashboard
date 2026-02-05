@@ -4,10 +4,10 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
-import { ConfirmationHero } from "./components/confirmation-hero";
-import { ConfirmationSummary } from "./components/confirmation-summary";
-import { ConfirmationActions } from "./components/confirmation-actions";
-import { ConfirmationFooterLink } from "./components/confirmation-footer-link";
+import { ConfirmationHero } from "./components/confirmation/confirmation-hero";
+import { ConfirmationSummary } from "./components/confirmation/confirmation-summary";
+import { ConfirmationActions } from "./components/confirmation/confirmation-actions";
+import { ConfirmationFooterLink } from "./components/confirmation/confirmation-footer-link";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],

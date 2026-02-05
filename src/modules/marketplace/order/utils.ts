@@ -13,7 +13,9 @@ type OrderBadge = {
 };
 
 export function normalizeOrderStatus(status?: string) {
-  return (status ?? "").toUpperCase();
+  const normalized = (status ?? "").toUpperCase();
+  if (normalized === "SHIPPED") return "PAID";
+  return normalized;
 }
 
 export function getPaymentBadge(status?: string): OrderBadge {

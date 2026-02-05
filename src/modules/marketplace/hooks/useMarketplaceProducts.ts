@@ -7,6 +7,8 @@ import { ensureSuccess } from "@/lib/api";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
   addMarketplaceCartItem,
+  getMarketplaceCustomerDetail,
+  listMarketplaceCustomers,
   getMarketplaceCart,
   getMarketplaceProductDetail,
   getMarketplaceProducts,
@@ -16,6 +18,8 @@ import {
 } from "@/services/api";
 import type {
   MarketplaceCartResponse,
+  MarketplaceCustomerDetailResponse,
+  MarketplaceCustomerListResponse,
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
   MarketplaceProductVariantsResponse,
@@ -68,6 +72,33 @@ export function useMarketplaceCart(options?: { enabled?: boolean }) {
     queryFn: async (): Promise<MarketplaceCartResponse> =>
       ensureSuccess(await getMarketplaceCart()),
     enabled: options?.enabled ?? true,
+  });
+}
+
+export type MarketplaceCustomerParams = {
+  q?: string;
+  status?: string;
+  min_orders?: number;
+  max_orders?: number;
+  limit?: number;
+  offset?: number;
+  sort?: "newest" | "oldest" | "orders_desc" | "spend_desc" | "spend_asc";
+};
+
+export function useMarketplaceCustomers(params?: MarketplaceCustomerParams) {
+  return useQuery({
+    queryKey: QK.marketplace.customers(params ?? {}),
+    queryFn: async (): Promise<MarketplaceCustomerListResponse> =>
+      ensureSuccess(await listMarketplaceCustomers(params)),
+  });
+}
+
+export function useMarketplaceCustomerDetail(id?: string | number) {
+  return useQuery({
+    queryKey: QK.marketplace.customerDetail(id ?? ""),
+    enabled: Boolean(id),
+    queryFn: async (): Promise<MarketplaceCustomerDetailResponse> =>
+      ensureSuccess(await getMarketplaceCustomerDetail(id as string | number)),
   });
 }
 

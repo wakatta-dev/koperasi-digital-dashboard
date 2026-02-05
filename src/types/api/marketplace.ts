@@ -180,3 +180,57 @@ export type MarketplaceProductVariantsResponse = {
   cover_image?: string;
   groups?: MarketplaceVariantGroupResponse[];
 };
+
+export type MarketplaceCustomerSummaryResponse = {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  member_since?: string;
+  total_orders: number;
+  total_spend: number;
+  avg_spend: number;
+  status: string;
+  initials: string;
+};
+
+export type MarketplaceCustomerOrderSummaryResponse = {
+  order_id: string;
+  date: number;
+  status: string;
+  total: number;
+};
+
+export type MarketplaceCustomerActivityResponse = {
+  id: string;
+  title: string;
+  timestamp: number;
+  description: string;
+  quote?: string;
+  metadata?: string;
+  type: string;
+};
+
+export type MarketplaceCustomerPaymentMethodResponse = {
+  id: string;
+  type: string;
+  label: string;
+  masked: string;
+  expiry?: string;
+  is_default: boolean;
+};
+
+export type MarketplaceCustomerDetailResponse = {
+  customer: MarketplaceCustomerSummaryResponse;
+  address?: string;
+  orders?: MarketplaceCustomerOrderSummaryResponse[];
+  activity?: MarketplaceCustomerActivityResponse[];
+  payment_methods?: MarketplaceCustomerPaymentMethodResponse[];
+};
+
+export type MarketplaceCustomerListResponse = {
+  items: MarketplaceCustomerSummaryResponse[];
+  total?: number;
+  limit?: number;
+  offset?: number;
+};

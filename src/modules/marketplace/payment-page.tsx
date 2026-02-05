@@ -7,8 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
-import { PaymentBreadcrumbs } from "./components/payment-breadcrumbs";
-import { PaymentSteps } from "./components/payment-steps";
+import { PaymentBreadcrumbs } from "./components/payment/payment-breadcrumbs";
+import { PaymentSteps } from "./components/payment/payment-steps";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { Button } from "@/components/ui/button";
 import {
