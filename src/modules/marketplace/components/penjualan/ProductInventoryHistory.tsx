@@ -8,11 +8,15 @@ import type { InventoryEvent } from "@/modules/marketplace/types";
 
 export type ProductInventoryHistoryProps = Readonly<{
   entries: InventoryEvent[];
+  range?: string;
+  onRangeChange?: (range: string) => void;
   onViewAll?: () => void;
 }>;
 
 export function ProductInventoryHistory({
   entries,
+  range,
+  onRangeChange,
   onViewAll,
 }: ProductInventoryHistoryProps) {
   return (
@@ -20,9 +24,13 @@ export function ProductInventoryHistory({
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="font-semibold text-gray-900 dark:text-white">Riwayat Inventaris</h3>
         <div className="flex gap-2 items-center">
-          <select className="text-xs border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 focus:ring-indigo-600/20 focus:border-indigo-600">
-            <option>7 Hari Terakhir</option>
-            <option>30 Hari Terakhir</option>
+          <select
+            value={range}
+            onChange={(event) => onRangeChange?.(event.target.value)}
+            className="text-xs border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 focus:ring-indigo-600/20 focus:border-indigo-600"
+          >
+            <option value="7d">7 Hari Terakhir</option>
+            <option value="30d">30 Hari Terakhir</option>
           </select>
           {onViewAll ? (
             <Button

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import {
   useInventoryProduct,
+  useInventoryVariantActions,
   useInventoryVariants,
 } from "@/hooks/queries/inventory";
 import { QK } from "@/hooks/queries/queryKeys";
@@ -51,6 +52,7 @@ type VariantRow = {
   price: number;
   stock: number;
   attributes: Record<string, string>;
+  imageUrl?: string;
 };
 
 export type ProductVariantPageProps = Readonly<{
@@ -155,6 +157,7 @@ const buildRowsFromVariants = (
       price: option.price_override ?? basePrice,
       stock: option.stock,
       attributes,
+      imageUrl: option.image_url,
     };
   });
 };
@@ -260,6 +263,7 @@ const mergeVariantRows = (
 export function ProductVariantPage({ id }: ProductVariantPageProps) {
   const router = useRouter();
   const qc = useQueryClient();
+  const variantActions = useInventoryVariantActions();
   const { data } = useInventoryProduct(id);
   const { data: variantsData } = useInventoryVariants(id);
   const product = useMemo(
@@ -498,6 +502,37 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     );
   };
 
+  const handleUploadVariantImage = async (row: VariantRow, file?: File | null) => {
+    if (!file) return;
+    if (!row.optionId) {
+      toast.error("Simpan varian terlebih dahulu sebelum menambah gambar.");
+      return;
+    }
+    try {
+      const updated = await variantActions.uploadOptionImage.mutateAsync({
+        productId: id,
+        optionId: row.optionId,
+        file,
+      });
+      updateRow(row.id, { imageUrl: updated.image_url });
+    } catch {
+      // handled by mutation
+    }
+  };
+
+  const handleDeleteVariantImage = async (row: VariantRow) => {
+    if (!row.optionId) return;
+    try {
+      await variantActions.deleteOptionImage.mutateAsync({
+        productId: id,
+        optionId: row.optionId,
+      });
+      updateRow(row.id, { imageUrl: undefined });
+    } catch {
+      // handled by mutation
+    }
+  };
+
   const handleApplyBulkPrice = () => {
     const value = Number(bulkPriceValue);
     if (Number.isNaN(value) || value < 0) {
@@ -593,6 +628,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             price: option.price_override ?? row.price,
             stock: option.stock,
             attributes: option.attributes ?? row.attributes,
+            imageUrl: option.image_url ?? row.imageUrl,
           };
         })
       );
@@ -830,8 +866,43 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                       className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     >
                       <TableCell className="px-6 py-4">
-                        <div className="w-12 h-12 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 cursor-pointer hover:border-indigo-600 dark:hover:border-indigo-600 transition-colors">
-                          <ImageIcon className="h-5 w-5 text-gray-400" />
+                        <div className="relative w-12 h-12">
+                          <label
+                            htmlFor={`variant-image-${row.id}`}
+                            className="w-12 h-12 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 cursor-pointer hover:border-indigo-600 dark:hover:border-indigo-600 transition-colors overflow-hidden"
+                          >
+                            {row.imageUrl ? (
+                              <img
+                                src={row.imageUrl}
+                                alt={row.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <ImageIcon className="h-5 w-5 text-gray-400" />
+                            )}
+                          </label>
+                          <input
+                            id={`variant-image-${row.id}`}
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0] ?? null;
+                              handleUploadVariantImage(row, file);
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                          {row.imageUrl ? (
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleDeleteVariantImage(row)}
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-white text-red-500 shadow-sm hover:bg-red-50"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          ) : null}
                         </div>
                       </TableCell>
                       <TableCell className="px-6 py-4">

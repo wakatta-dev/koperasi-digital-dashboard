@@ -36,6 +36,19 @@ export function computeEligibility(product: InventoryProductResponse) {
 
 export function mapInventoryProduct(product: InventoryProductResponse): InventoryItem {
   const eligibility = computeEligibility(product);
+  const images = product.images && product.images.length > 0
+    ? product.images
+    : product.photo_url
+      ? [
+          {
+            id: 0,
+            url: product.photo_url,
+            is_primary: true,
+            sort_order: 0,
+          },
+        ]
+      : [];
+  const primaryImage = images.find((img) => img.is_primary) ?? images[0];
   return {
     id: String(product.id),
     name: product.name,
@@ -45,7 +58,11 @@ export function mapInventoryProduct(product: InventoryProductResponse): Inventor
     categoryClassName: product.category ?? "",
     stock: product.stock,
     price: product.price_sell,
-    image: product.photo_url || undefined,
+    image: primaryImage?.url,
+    images,
+    brand: product.brand,
+    weightKg: product.weight_kg,
+    createdAt: product.created_at,
     status: product.status,
     showInMarketplace: product.show_in_marketplace,
     trackStock: product.track_stock,

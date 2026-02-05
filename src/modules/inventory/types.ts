@@ -13,6 +13,15 @@ export type InventoryItem = {
   trackStock: boolean;
   category?: string;
   image?: string;
+  images?: Array<{
+    id: number;
+    url: string;
+    is_primary: boolean;
+    sort_order: number;
+  }>;
+  brand?: string;
+  weightKg?: number;
+  createdAt?: number;
   description?: string;
   minStock?: number;
   costPrice?: number;

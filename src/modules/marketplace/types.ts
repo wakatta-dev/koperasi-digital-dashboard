@@ -41,6 +41,7 @@ export type InventoryEvent = {
   id: string;
   title: string;
   timestamp: string;
+  timestampValue?: number;
   delta: number;
   remainingStock: number;
   type: InventoryEventType;

@@ -15,6 +15,7 @@ import { ProductInventoryHistoryModal } from "./ProductInventoryHistoryModal";
 import {
   useInventoryActions,
   useInventoryProduct,
+  useInventoryProductStats,
   useInventoryStockHistory,
   useInventoryVariants,
 } from "@/hooks/queries/inventory";
@@ -49,8 +50,12 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
   const actions = useInventoryActions();
   const router = useRouter();
   const { data, isLoading, isError, error } = useInventoryProduct(id);
+  const { data: stats } = useInventoryProductStats(id);
   const { data: variantsData } = useInventoryVariants(id);
-  const { data: historyData } = useInventoryStockHistory(id);
+  const [historyRange, setHistoryRange] = useState("7d");
+  const { data: historyData } = useInventoryStockHistory(id, {
+    range: historyRange,
+  });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -80,6 +85,7 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
       id: String(entry.id),
       title: entry.reference || entry.note || "Perubahan stok",
       timestamp: formatHistoryTimestamp(entry.timestamp),
+      timestampValue: entry.timestamp ? entry.timestamp * 1000 : undefined,
       delta: entry.quantity,
       remainingStock: entry.balance,
       type: entry.quantity >= 0 ? "increase" : "decrease",
@@ -99,6 +105,18 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
   }
 
   const status = resolveStockStatus(item.stock, item.minStock, item.trackStock);
+  const mediaImages =
+    item.images && item.images.length > 0
+      ? [...item.images]
+          .sort(
+            (a, b) =>
+              Number(b.is_primary) - Number(a.is_primary) ||
+              a.sort_order - b.sort_order
+          )
+          .map((image) => image.url)
+      : item.image
+        ? [item.image]
+        : [];
 
   return (
     <div className="space-y-6">
@@ -112,12 +130,12 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <ProductMediaCard name={item.name} images={item.image ? [item.image] : []} />
+          <ProductMediaCard name={item.name} images={mediaImages} />
           <ProductBasicInfoCard
             category={item.category ?? "-"}
-            brand="-"
+            brand={item.brand ?? "-"}
             description={item.description ?? "-"}
-            weightKg={0}
+            weightKg={item.weightKg ?? undefined}
           />
         </div>
         <div className="lg:col-span-2 space-y-6">
@@ -125,16 +143,23 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
             price={item.price}
             stockCount={item.stock}
             minStockAlert={item.minStock ?? 0}
-            totalSold={0}
+            totalSold={stats?.total_sold ?? 0}
+            soldLast30Days={stats?.sold_last_30_days ?? undefined}
+            salesChangePercent={stats?.sales_change_percent ?? undefined}
           />
           <ProductVariantsTable
             variants={variants}
             onAddVariant={() =>
               router.push(`/bumdes/marketplace/inventory/${id}/variants`)
             }
+            onEditVariant={() =>
+              router.push(`/bumdes/marketplace/inventory/${id}/variants`)
+            }
           />
           <ProductInventoryHistory
             entries={history}
+            range={historyRange}
+            onRangeChange={setHistoryRange}
             onViewAll={() => setHistoryOpen(true)}
           />
         </div>

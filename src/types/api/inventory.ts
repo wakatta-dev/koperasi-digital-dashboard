@@ -1,5 +1,12 @@
 /** @format */
 
+export type InventoryProductImage = {
+  id: number;
+  url: string;
+  is_primary: boolean;
+  sort_order: number;
+};
+
 export type InventoryProductResponse = {
   id: number;
   name: string;
@@ -7,7 +14,10 @@ export type InventoryProductResponse = {
   price_sell: number;
   track_stock: boolean;
   category?: string;
+  brand?: string;
+  weight_kg?: number;
   photo_url?: string;
+  images?: InventoryProductImage[];
   cost_price?: number;
   status: string;
   stock: number;
@@ -19,6 +29,8 @@ export type InventoryProductResponse = {
   variant_in_stock?: boolean;
   variant_price_valid?: boolean;
   featured_variant_group_id?: number | null;
+  created_at?: number;
+  updated_at?: number;
 };
 
 export type InventoryProductListResponse = {
@@ -33,6 +45,8 @@ export type CreateInventoryProductRequest = {
   price_sell: number;
   track_stock: boolean;
   category?: string;
+  brand?: string;
+  weight_kg?: number;
   photo_url?: string;
   cost_price?: number;
   sku?: string;
@@ -46,6 +60,8 @@ export type UpdateInventoryProductRequest = {
   price_sell?: number;
   track_stock?: boolean;
   category?: string;
+  brand?: string;
+  weight_kg?: number;
   photo_url?: string;
   cost_price?: number;
   sku?: string;
@@ -95,6 +111,7 @@ export type InventoryVariantOptionResponse = {
   price_override?: number | null;
   stock: number;
   track_stock: boolean;
+  image_url?: string;
   status: string;
   created_at: number;
   updated_at: number;
@@ -125,6 +142,7 @@ export type CreateInventoryVariantOptionRequest = {
   price_override?: number | null;
   stock?: number;
   track_stock?: boolean;
+  image_url?: string;
 };
 
 export type UpdateInventoryVariantOptionRequest = {
@@ -134,4 +152,19 @@ export type UpdateInventoryVariantOptionRequest = {
   clear_price_override?: boolean;
   stock?: number;
   track_stock?: boolean;
+  image_url?: string;
+  clear_image_url?: boolean;
+};
+
+export type InventoryCategoryResponse = {
+  name: string;
+  count: number;
+};
+
+export type InventoryProductStatsResponse = {
+  product_id: number;
+  total_sold: number;
+  sold_last_30_days: number;
+  sold_previous_30_days: number;
+  sales_change_percent: number;
 };

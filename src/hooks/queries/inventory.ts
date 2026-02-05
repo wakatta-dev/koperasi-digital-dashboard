@@ -16,12 +16,19 @@ import {
   createInventoryProduct,
   getInventoryProduct,
   getInventoryProductVariants,
+  getInventoryProductStats,
   getInventoryStockHistory,
+  listInventoryCategories,
   listInventoryProducts,
   setInitialInventoryStock,
   unarchiveInventoryProduct,
+  uploadInventoryProductGalleryImage,
   uploadInventoryProductImage,
   uploadInventoryVariantGroupImage,
+  uploadInventoryVariantOptionImage,
+  deleteInventoryProductImage,
+  setInventoryProductPrimaryImage,
+  deleteInventoryVariantOptionImage,
   updateInventoryVariantGroup,
   updateInventoryVariantOption,
   updateInventoryProduct,
@@ -30,10 +37,12 @@ import type {
   CreateInventoryProductRequest,
   CreateInventoryVariantGroupRequest,
   CreateInventoryVariantOptionRequest,
+  InventoryCategoryResponse,
   InventoryAdjustmentRequest,
   InventoryInitialStockRequest,
   InventoryProductListResponse,
   InventoryProductResponse,
+  InventoryProductStatsResponse,
   InventoryProductVariantsResponse,
   InventoryStockHistoryEntry,
   UpdateInventoryVariantGroupRequest,
@@ -48,6 +57,19 @@ export type InventoryListParams = {
   limit?: number;
   offset?: number;
   sort?: string;
+  categories?: string;
+  stock_status?: string;
+  min_price?: number;
+  max_price?: number;
+  start_date?: string;
+  end_date?: string;
+};
+
+export type InventoryHistoryParams = {
+  type?: string;
+  range?: string;
+  start_date?: string;
+  end_date?: string;
 };
 
 export function useInventoryProducts(
@@ -78,6 +100,27 @@ export function useInventoryProduct(id?: string | number, options?: { enabled?: 
   });
 }
 
+export function useInventoryProductStats(
+  id?: string | number,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: QK.inventory.stats(id ?? ""),
+    enabled: Boolean(id) && (options?.enabled ?? true),
+    queryFn: async (): Promise<InventoryProductStatsResponse> =>
+      ensureSuccess(await getInventoryProductStats(id as string | number)),
+  });
+}
+
+export function useInventoryCategories(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: QK.inventory.categories(),
+    enabled: options?.enabled ?? true,
+    queryFn: async (): Promise<InventoryCategoryResponse[]> =>
+      ensureSuccess(await listInventoryCategories()),
+  });
+}
+
 export function useInventoryVariants(
   id?: string | number,
   options?: { enabled?: boolean }
@@ -92,13 +135,14 @@ export function useInventoryVariants(
 
 export function useInventoryStockHistory(
   id?: string | number,
+  params?: InventoryHistoryParams,
   options?: { enabled?: boolean }
 ) {
   return useQuery({
-    queryKey: QK.inventory.history(id ?? ""),
+    queryKey: QK.inventory.history(id ?? "", params ?? {}),
     enabled: Boolean(id) && (options?.enabled ?? true),
     queryFn: async (): Promise<InventoryStockHistoryEntry[]> =>
-      ensureSuccess(await getInventoryStockHistory(id as string | number)),
+      ensureSuccess(await getInventoryStockHistory(id as string | number, params)),
   });
 }
 
@@ -145,6 +189,39 @@ export function useInventoryActions() {
       toast.success("Foto produk diperbarui");
     },
     onError: (err: any) => toast.error(err?.message || "Gagal mengunggah foto produk"),
+  });
+
+  const addImage = useMutation({
+    mutationFn: async (vars: { id: string | number; file: File; primary?: boolean }) =>
+      ensureSuccess(await uploadInventoryProductGalleryImage(vars.id, vars.file, vars.primary)),
+    onSuccess: (_data, vars) => {
+      invalidateLists();
+      invalidateDetail(vars.id);
+      toast.success(vars.primary ? "Foto utama diperbarui" : "Foto produk ditambahkan");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengunggah foto produk"),
+  });
+
+  const deleteImage = useMutation({
+    mutationFn: async (vars: { id: string | number; imageId: string | number }) =>
+      ensureSuccess(await deleteInventoryProductImage(vars.id, vars.imageId)),
+    onSuccess: (_data, vars) => {
+      invalidateLists();
+      invalidateDetail(vars.id);
+      toast.success("Foto produk dihapus");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal menghapus foto produk"),
+  });
+
+  const setPrimaryImage = useMutation({
+    mutationFn: async (vars: { id: string | number; imageId: string | number }) =>
+      ensureSuccess(await setInventoryProductPrimaryImage(vars.id, vars.imageId)),
+    onSuccess: (_data, vars) => {
+      invalidateLists();
+      invalidateDetail(vars.id);
+      toast.success("Foto utama diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui foto utama"),
   });
 
   const archive = useMutation({
@@ -195,6 +272,9 @@ export function useInventoryActions() {
     create,
     update,
     uploadImage,
+    addImage,
+    deleteImage,
+    setPrimaryImage,
     archive,
     unarchive,
     initialStock,
@@ -298,6 +378,34 @@ export function useInventoryVariantActions() {
     onError: (err: any) => toast.error(err?.message || "Gagal mengarsipkan varian opsi"),
   });
 
+  const uploadOptionImage = useMutation({
+    mutationFn: async (vars: {
+      productId: string | number;
+      optionId: string | number;
+      file: File;
+    }) =>
+      ensureSuccess(
+        await uploadInventoryVariantOptionImage(vars.productId, vars.optionId, vars.file)
+      ),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Foto varian diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengunggah foto varian"),
+  });
+
+  const deleteOptionImage = useMutation({
+    mutationFn: async (vars: { productId: string | number; optionId: string | number }) =>
+      ensureSuccess(
+        await deleteInventoryVariantOptionImage(vars.productId, vars.optionId)
+      ),
+    onSuccess: (_data, vars) => {
+      invalidateVariants(vars.productId);
+      toast.success("Foto varian dihapus");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal menghapus foto varian"),
+  });
+
   return {
     createGroup,
     updateGroup,
@@ -306,5 +414,7 @@ export function useInventoryVariantActions() {
     createOption,
     updateOption,
     archiveOption,
+    uploadOptionImage,
+    deleteOptionImage,
   } as const;
 }

@@ -25,8 +25,16 @@ export type ProductFilterSheetProps = Readonly<{
   onOpenChange: (open: boolean) => void;
   categories: ProductFilterOption[];
   statuses: ProductFilterOption[];
+  minPrice?: string;
+  maxPrice?: string;
+  dateFrom?: string;
+  dateTo?: string;
   onToggleCategory?: (label: string) => void;
   onToggleStatus?: (label: string) => void;
+  onMinPriceChange?: (value: string) => void;
+  onMaxPriceChange?: (value: string) => void;
+  onDateFromChange?: (value: string) => void;
+  onDateToChange?: (value: string) => void;
   onReset?: () => void;
   onApply?: () => void;
 }>;
@@ -36,8 +44,16 @@ export function ProductFilterSheet({
   onOpenChange,
   categories,
   statuses,
+  minPrice,
+  maxPrice,
+  dateFrom,
+  dateTo,
   onToggleCategory,
   onToggleStatus,
+  onMinPriceChange,
+  onMaxPriceChange,
+  onDateFromChange,
+  onDateToChange,
   onReset,
   onApply,
 }: ProductFilterSheetProps) {
@@ -100,6 +116,8 @@ export function ProductFilterSheet({
                     </span>
                     <Input
                       placeholder="0"
+                      value={minPrice ?? ""}
+                      onChange={(event) => onMinPriceChange?.(event.target.value)}
                       className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
                     />
                   </div>
@@ -114,6 +132,8 @@ export function ProductFilterSheet({
                     </span>
                     <Input
                       placeholder="Max"
+                      value={maxPrice ?? ""}
+                      onChange={(event) => onMaxPriceChange?.(event.target.value)}
                       className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
                     />
                   </div>
@@ -161,6 +181,8 @@ export function ProductFilterSheet({
                     <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input
                       type="date"
+                      value={dateFrom ?? ""}
+                      onChange={(event) => onDateFromChange?.(event.target.value)}
                       className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
                     />
                   </div>
@@ -173,6 +195,8 @@ export function ProductFilterSheet({
                     <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input
                       type="date"
+                      value={dateTo ?? ""}
+                      onChange={(event) => onDateToChange?.(event.target.value)}
                       className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
                     />
                   </div>
