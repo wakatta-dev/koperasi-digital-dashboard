@@ -40,7 +40,9 @@ export function OrderListPage() {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [invoiceOrderId, setInvoiceOrderId] = useState<number | null>(null);
+  const [invoiceOrderId, setInvoiceOrderId] = useState<number | undefined>(
+    undefined,
+  );
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     id: number;

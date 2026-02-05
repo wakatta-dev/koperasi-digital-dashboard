@@ -78,6 +78,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
     });
   }, [variantsData, product?.price]);
 
+  const [category, setCategory] = useState("");
   const categoryOptions = useMemo(() => {
     const labels = new Set<string>();
     (categoriesData ?? []).forEach((item) => {
@@ -90,7 +91,6 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [brand, setBrand] = useState("");
-  const [category, setCategory] = useState("");
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);

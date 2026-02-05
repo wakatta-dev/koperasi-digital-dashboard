@@ -47,7 +47,7 @@ export function NavMain({
   );
 
   const isItemActive = React.useCallback(
-    (item: NavItem) => {
+    (item: NavItem): boolean => {
       if (pathname === item.url || pathname.startsWith(item.url + "/")) {
         return true;
       }
