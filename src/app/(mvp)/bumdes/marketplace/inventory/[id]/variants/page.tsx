@@ -3,9 +3,10 @@
 import { ProductVariantPage } from "@/modules/marketplace/components/penjualan/ProductVariantPage";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function InventoryVariantPage({ params }: PageProps) {
-  return <ProductVariantPage id={params.id} />;
+export default async function InventoryVariantPage({ params }: PageProps) {
+  const { id } = await params;
+  return <ProductVariantPage id={id} />;
 }

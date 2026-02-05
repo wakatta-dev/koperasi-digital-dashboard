@@ -32,232 +32,301 @@ import {
   archiveInventoryVariantOption,
   createInventoryVariantGroup,
   createInventoryVariantOption,
+  updateInventoryVariantGroup,
   updateInventoryVariantOption,
 } from "@/services/api";
 import type { InventoryProductVariantsResponse } from "@/types/api/inventory";
 
-type AttributeGroup = {
-  id?: number;
+type VariantValue = {
+  id: string;
   label: string;
-  values: string[];
-  inputValue: string;
+  code: string;
 };
 
-type VariantRow = {
+type VariantAttribute = {
   id: string;
-  optionId?: number;
+  backendId?: number;
   name: string;
-  description: string;
+  values: VariantValue[];
+};
+
+type VariantSelection = {
+  attributeId: string;
+  valueId: string;
+};
+
+type ProductVariant = {
+  id?: string;
+  optionId?: number;
+  signature: string;
+  displayName: string;
   sku: string;
   price: number;
   stock: number;
-  attributes: Record<string, string>;
-  imageUrl?: string;
+  image?: string;
+  selections: VariantSelection[];
 };
+
+type PendingDelete =
+  | { type: "attribute"; attributeId: string; removedCount: number }
+  | {
+      type: "value";
+      attributeId: string;
+      valueId: string;
+      removedCount: number;
+    }
+  | { type: "variant"; signature: string; name: string; optionId?: number }
+  | null;
 
 export type ProductVariantPageProps = Readonly<{
   id: string;
 }>;
 
-const fallbackAttributes: AttributeGroup[] = [];
+const SKU_MAX_LENGTH = 100;
 
-const resolveAttributeLabels = (
-  variantsData?: InventoryProductVariantsResponse,
-): string[] => {
-  const groups = variantsData?.variant_groups ?? [];
-  if (groups.length > 0) {
-    return [...groups]
-      .sort(
-        (a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name),
-      )
-      .map((group) => group.name);
-  }
-
-  const options = variantsData?.options ?? [];
-  const labels = new Set<string>();
-  options.forEach((option) => {
-    const attributes = option.attributes ?? {};
-    Object.keys(attributes).forEach((key) => labels.add(key));
-  });
-
-  if (labels.size > 0) {
-    return Array.from(labels);
-  }
-
-  return fallbackAttributes.map((attr) => attr.label);
+const normalizeCode = (value: string): string => {
+  const trimmed = value.trim().toUpperCase();
+  const replaced = trimmed.replace(/\s+/g, "-").replace(/[^A-Z0-9-]/g, "-");
+  return replaced.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
 };
 
-const buildAttributesFromVariants = (
-  variantsData?: InventoryProductVariantsResponse,
-): AttributeGroup[] => {
-  const labels = resolveAttributeLabels(variantsData);
-  const options = variantsData?.options ?? [];
-  const groups = variantsData?.variant_groups ?? [];
-  const groupMap = new Map<string, number>();
-  groups.forEach((group) => {
-    groupMap.set(group.name, group.id);
-  });
-
-  if (options.length === 0 && labels.length === 0) return [];
-
-  const map = new Map<string, Set<string>>();
-  labels.forEach((label) => map.set(label, new Set()));
-
-  options.forEach((option) => {
-    const attributes = option.attributes ?? {};
-    labels.forEach((label) => {
-      const value = resolveAttributeValue(attributes, label);
-      if (value) {
-        map.get(label)?.add(value);
-      }
-    });
-  });
-
-  const attributes = labels.map((label) => ({
-    id: groupMap.get(label),
-    label,
-    values: Array.from(map.get(label) ?? []),
-    inputValue: "",
-  }));
-
-  return attributes.length > 0 ? attributes : [];
-};
-
-const buildRowsFromVariants = (
-  variantsData?: InventoryProductVariantsResponse,
-  basePrice = 0,
-  attributeLabels?: string[],
-): VariantRow[] => {
-  const options = variantsData?.options ?? [];
-  if (options.length === 0) return [];
-  const labels =
-    attributeLabels && attributeLabels.length > 0
-      ? attributeLabels
-      : resolveAttributeLabels(variantsData);
-
-  return options.map((option) => {
-    const attributes = option.attributes ?? {};
-    const values = labels
-      .map((label) => resolveAttributeValue(attributes, label))
-      .filter(Boolean);
-    const name = values.length > 0 ? values.join(" / ") : option.sku;
-    const description = labels
-      .map((label) => {
-        const value = resolveAttributeValue(attributes, label);
-        return value ? `${label}: ${value}` : null;
-      })
-      .filter(Boolean)
-      .join(", ");
-    return {
-      id: String(option.id),
-      optionId: option.id,
-      name,
-      description,
-      sku: option.sku,
-      price: option.price_override ?? basePrice,
-      stock: option.stock,
-      attributes,
-      imageUrl: option.image_url,
-    };
-  });
-};
-
-const normalizeAttributeKey = (value: string) =>
+const normalizeKey = (value: string): string =>
   value
     .toLowerCase()
     .replace(/\(.*?\)/g, "")
     .replace(/\s+/g, "");
+
+const buildSignature = (
+  attributes: VariantAttribute[],
+  selections: VariantSelection[],
+): string => {
+  const selectionMap = new Map(
+    selections.map((selection) => [selection.attributeId, selection.valueId]),
+  );
+  return attributes
+    .map((attr) => `${attr.id}:${selectionMap.get(attr.id) ?? ""}`)
+    .join("|");
+};
+
+const cartesianProduct = (
+  attributes: VariantAttribute[],
+): VariantSelection[][] => {
+  if (attributes.length === 0) return [];
+  return attributes.reduce<VariantSelection[][]>((acc, attr) => {
+    if (attr.values.length === 0) return acc;
+    if (acc.length === 0) {
+      return attr.values.map((value) => [
+        { attributeId: attr.id, valueId: value.id },
+      ]);
+    }
+    return acc.flatMap((prev) =>
+      attr.values.map((value) => [
+        ...prev,
+        { attributeId: attr.id, valueId: value.id },
+      ]),
+    );
+  }, []);
+};
+
+const buildSku = (prefix: string, values: VariantValue[]): string => {
+  const codes = values.map((value) => value.code).filter(Boolean);
+  const normalizedPrefix = normalizeCode(prefix);
+  const joined = codes.join("-");
+  if (!normalizedPrefix) return joined;
+  if (!joined) return normalizedPrefix;
+  return `${normalizedPrefix}-${joined}`;
+};
+
+const getActiveAttributes = (
+  attributes: VariantAttribute[],
+): VariantAttribute[] => attributes.filter((attr) => attr.values.length > 0);
+
+const getOrderedValues = (
+  attributes: VariantAttribute[],
+  selections: VariantSelection[],
+): VariantValue[] => {
+  const selectionMap = new Map(
+    selections.map((selection) => [selection.attributeId, selection.valueId]),
+  );
+  const ordered: VariantValue[] = [];
+  attributes.forEach((attr) => {
+    const valueId = selectionMap.get(attr.id);
+    if (!valueId) return;
+    const value = attr.values.find((val) => val.id === valueId);
+    if (value) ordered.push(value);
+  });
+  return ordered;
+};
+
+const buildDisplayName = (values: VariantValue[]): string =>
+  values.map((value) => value.label).join(" / ");
+
+const buildAttributeMap = (
+  attributes: VariantAttribute[],
+  selections: VariantSelection[],
+): Record<string, string> => {
+  const selectionMap = new Map(
+    selections.map((selection) => [selection.attributeId, selection.valueId]),
+  );
+  const payload: Record<string, string> = {};
+  attributes.forEach((attr) => {
+    const valueId = selectionMap.get(attr.id);
+    if (!valueId) return;
+    const value = attr.values.find((val) => val.id === valueId);
+    if (value) payload[attr.name] = value.label;
+  });
+  return payload;
+};
+
+const mergePreserve = (
+  existing: ProductVariant[],
+  generated: ProductVariant[],
+): ProductVariant[] => {
+  const existingMap = new Map(
+    existing.map((variant) => [variant.signature, variant]),
+  );
+  return generated.map((variant) => {
+    const prev = existingMap.get(variant.signature);
+    if (!prev) return variant;
+    return {
+      ...variant,
+      id: prev.id,
+      optionId: prev.optionId,
+      sku: prev.sku || variant.sku,
+      price: prev.price,
+      stock: prev.stock,
+      image: prev.image,
+      selections: prev.selections,
+    };
+  });
+};
+
+const countVariants = (attributes: VariantAttribute[]): number => {
+  const active = getActiveAttributes(attributes);
+  if (active.length === 0) return 0;
+  return cartesianProduct(active).length;
+};
 
 const resolveAttributeValue = (
   attributes: Record<string, string>,
   label: string,
 ): string => {
   if (attributes[label]) return attributes[label];
-  const normalized = normalizeAttributeKey(label);
+  const normalized = normalizeKey(label);
   const match = Object.entries(attributes).find(
-    ([key]) => normalizeAttributeKey(key) === normalized,
+    ([key]) => normalizeKey(key) === normalized,
   );
   return match?.[1] ?? "";
 };
 
-const buildVariantKey = (
-  labels: string[],
-  attributes: Record<string, string>,
-): string =>
-  labels
-    .map((label) =>
-      resolveAttributeValue(attributes, label).trim().toLowerCase(),
-    )
-    .join("||");
-
-const buildCombinationRows = (
-  attributes: AttributeGroup[],
+const buildInitialState = (
+  variantsData: InventoryProductVariantsResponse | undefined,
   basePrice: number,
-): VariantRow[] => {
-  const labels = attributes.map((attr) => attr.label);
-  const valuesList = attributes.map((attr) => attr.values);
+  skuPrefix: string,
+): { attributes: VariantAttribute[]; variants: ProductVariant[] } => {
+  const groups = variantsData?.variant_groups ?? [];
+  const options = variantsData?.options ?? [];
+  const attributes: VariantAttribute[] = [];
+  const nameMap = new Map<string, VariantAttribute>();
+  const idSet = new Set<string>();
 
-  if (
-    valuesList.length === 0 ||
-    valuesList.some((values) => values.length === 0)
-  ) {
-    return [];
-  }
-
-  const combos: string[][] = valuesList.reduce(
-    (acc, values) =>
-      acc.flatMap((prev) => values.map((value) => [...prev, value])),
-    [[] as string[]],
-  );
-
-  return combos.map((values, index) => {
-    const attributeMap: Record<string, string> = {};
-    labels.forEach((label, idx) => {
-      attributeMap[label] = values[idx];
-    });
-    const name = values.join(" / ");
-    const description = labels
-      .map((label, idx) => `${label}: ${values[idx]}`)
-      .join(", ");
-    const sku = `SKU-AUTO-${String(index + 1).padStart(2, "0")}`;
-    return {
-      id: `combo-${index + 1}`,
-      name,
-      description,
-      sku,
-      price: basePrice,
-      stock: 0,
-      attributes: attributeMap,
+  const createAttribute = (name: string, backendId?: number) => {
+    const trimmed = name.trim();
+    const normalized = normalizeKey(trimmed);
+    if (nameMap.has(normalized)) return nameMap.get(normalized)!;
+    const baseId = backendId
+      ? `group-${backendId}`
+      : `attr-${normalizeCode(trimmed) || "ATTR"}`;
+    let id = baseId;
+    let counter = 1;
+    while (idSet.has(id)) {
+      id = `${baseId}-${counter++}`;
+    }
+    const attribute: VariantAttribute = {
+      id,
+      backendId,
+      name: trimmed,
+      values: [],
     };
+    attributes.push(attribute);
+    nameMap.set(normalized, attribute);
+    idSet.add(id);
+    return attribute;
+  };
+
+  const ensureValue = (attribute: VariantAttribute, label: string) => {
+    const trimmed = label.trim();
+    if (!trimmed) return null;
+    const normalized = trimmed.toLowerCase();
+    const existing = attribute.values.find(
+      (val) => val.label.toLowerCase() === normalized,
+    );
+    if (existing) return existing;
+    const existingIds = new Set(attribute.values.map((val) => val.id));
+    const baseId = `val-${normalizeCode(trimmed) || "VALUE"}`;
+    let id = baseId;
+    let counter = 1;
+    while (existingIds.has(id)) {
+      id = `${baseId}-${counter++}`;
+    }
+    const value: VariantValue = {
+      id,
+      label: trimmed,
+      code: normalizeCode(trimmed),
+    };
+    attribute.values.push(value);
+    return value;
+  };
+
+  [...groups]
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+    .forEach((group) => {
+      createAttribute(group.name, group.id);
+    });
+
+  options.forEach((option) => {
+    const attrs = option.attributes ?? {};
+    Object.entries(attrs).forEach(([key, value]) => {
+      const attribute = createAttribute(key);
+      ensureValue(attribute, String(value));
+    });
   });
-};
 
-const mergeVariantRows = (
-  currentRows: VariantRow[],
-  combinationRows: VariantRow[],
-  attributes: AttributeGroup[],
-): VariantRow[] => {
-  const labels = attributes.map((attr) => attr.label);
-  if (labels.length === 0) return currentRows;
+  const activeAttributes = getActiveAttributes(attributes);
+  const variants: ProductVariant[] = [];
+  const signatureSet = new Set<string>();
 
-  const existingMap = new Map<string, VariantRow>();
-  currentRows.forEach((row) => {
-    existingMap.set(buildVariantKey(labels, row.attributes), row);
+  options.forEach((option) => {
+    const attrs = option.attributes ?? {};
+    const selections: VariantSelection[] = [];
+    activeAttributes.forEach((attr) => {
+      const valueLabel = resolveAttributeValue(attrs, attr.name);
+      if (!valueLabel) return;
+      const value = ensureValue(attr, valueLabel);
+      if (value) {
+        selections.push({ attributeId: attr.id, valueId: value.id });
+      }
+    });
+    const signature = buildSignature(activeAttributes, selections);
+    if (!signature || signatureSet.has(signature)) return;
+    signatureSet.add(signature);
+    const orderedValues = getOrderedValues(activeAttributes, selections);
+    const displayName = buildDisplayName(orderedValues) || option.sku;
+    const sku = option.sku || buildSku(skuPrefix, orderedValues);
+    variants.push({
+      id: String(option.id),
+      optionId: option.id,
+      signature,
+      displayName,
+      sku,
+      price: option.price_override ?? basePrice,
+      stock: option.stock,
+      image: option.image_url,
+      selections,
+    });
   });
 
-  const merged = combinationRows.map((row) => {
-    const key = buildVariantKey(labels, row.attributes);
-    return existingMap.get(key) ?? row;
-  });
-
-  const mergedKeys = new Set(
-    merged.map((row) => buildVariantKey(labels, row.attributes)),
-  );
-  const extras = currentRows.filter(
-    (row) => !mergedKeys.has(buildVariantKey(labels, row.attributes)),
-  );
-
-  return [...merged, ...extras];
+  return { attributes, variants };
 };
 
 export function ProductVariantPage({ id }: ProductVariantPageProps) {
@@ -271,6 +340,12 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     [data],
   );
   const basePrice = product?.price ?? 0;
+  const skuPrefix = useMemo(() => {
+    if (product?.sku?.trim()) return normalizeCode(product.sku);
+    if (product?.name?.trim()) return normalizeCode(product.name);
+    return "SKU";
+  }, [product?.sku, product?.name]);
+
   const [saving, setSaving] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPriceValue, setBulkPriceValue] = useState("");
@@ -278,44 +353,53 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
   const [bulkStockValue, setBulkStockValue] = useState("");
   const [newAttributeOpen, setNewAttributeOpen] = useState(false);
   const [newAttributeName, setNewAttributeName] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
+  const [valueInputs, setValueInputs] = useState<Record<string, string>>({});
 
-  const initialAttributes = useMemo(
-    () => buildAttributesFromVariants(variantsData),
+  const [attributes, setAttributes] = useState<VariantAttribute[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+
+  const initialOptionIds = useMemo(
+    () => variantsData?.options?.map((option) => option.id) ?? [],
     [variantsData],
   );
-  const [attributes, setAttributes] =
-    useState<AttributeGroup[]>(initialAttributes);
-  const [deleteTarget, setDeleteTarget] = useState<VariantRow | null>(null);
-
-  const initialRows = useMemo(
-    () =>
-      buildRowsFromVariants(
-        variantsData,
-        basePrice,
-        initialAttributes.map((attr) => attr.label),
-      ),
-    [variantsData, basePrice, initialAttributes],
-  );
-  const [variantRows, setVariantRows] = useState<VariantRow[]>(initialRows);
 
   useEffect(() => {
-    const nextAttributes = buildAttributesFromVariants(variantsData);
-    setAttributes(nextAttributes);
-    setVariantRows(
-      buildRowsFromVariants(
-        variantsData,
-        basePrice,
-        nextAttributes.map((attr) => attr.label),
-      ),
-    );
-  }, [variantsData, basePrice]);
+    const initial = buildInitialState(variantsData, basePrice, skuPrefix);
+    setAttributes(initial.attributes);
+    setVariants(initial.variants);
+    setValueInputs({});
+  }, [variantsData, basePrice, skuPrefix]);
+
+  useEffect(() => {
+    setVariants((prev) => {
+      const activeAttributes = getActiveAttributes(attributes);
+      if (activeAttributes.length === 0) return [];
+      const combos = cartesianProduct(activeAttributes);
+      const generated = combos.map((selections, index) => {
+        const orderedValues = getOrderedValues(activeAttributes, selections);
+        const displayName = buildDisplayName(orderedValues);
+        const sku = buildSku(skuPrefix, orderedValues);
+        const signature = buildSignature(activeAttributes, selections);
+        return {
+          id: `combo-${index + 1}`,
+          signature,
+          displayName,
+          sku,
+          price: basePrice,
+          stock: 0,
+          selections,
+        };
+      });
+      return mergePreserve(prev, generated);
+    });
+  }, [attributes, basePrice, skuPrefix]);
 
   const createGroupMutation = useMutation({
     mutationFn: async (payload: { name: string; sort_order?: number }) =>
       ensureSuccess(await createInventoryVariantGroup(id, payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.inventory.variants(id) });
-      toast.success("Atribut berhasil ditambahkan");
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal menambahkan atribut");
@@ -327,207 +411,273 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       ensureSuccess(await archiveInventoryVariantGroup(id, groupId)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.inventory.variants(id) });
-      toast.success("Atribut berhasil dihapus");
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal menghapus atribut");
     },
   });
 
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    if (deleteTarget.optionId) {
-      try {
-        await ensureSuccess(
-          await archiveInventoryVariantOption(id, deleteTarget.optionId),
-        );
-        setVariantRows((prev) =>
-          prev.filter((row) => row.id !== deleteTarget.id),
-        );
-        qc.invalidateQueries({ queryKey: QK.inventory.variants(id) });
-        toast.success("Varian berhasil dihapus");
-      } catch (err: any) {
-        toast.error(err?.message || "Gagal menghapus varian");
-      } finally {
-        setDeleteTarget(null);
+  const validation = useMemo(() => {
+    const attributeErrors = new Map<string, string>();
+    const valueErrors = new Map<string, Map<string, string>>();
+    const variantErrors = new Map<
+      string,
+      { sku?: string; price?: string; stock?: string }
+    >();
+
+    const nameCount = new Map<string, number>();
+    attributes.forEach((attr) => {
+      const normalized = attr.name.trim().toLowerCase();
+      if (!normalized) return;
+      nameCount.set(normalized, (nameCount.get(normalized) ?? 0) + 1);
+    });
+
+    attributes.forEach((attr) => {
+      const trimmed = attr.name.trim();
+      if (!trimmed) {
+        attributeErrors.set(attr.id, "Nama atribut wajib diisi.");
+      } else if ((nameCount.get(trimmed.toLowerCase()) ?? 0) > 1) {
+        attributeErrors.set(attr.id, "Nama atribut harus unik.");
       }
-      return;
-    }
-    setVariantRows((prev) => prev.filter((row) => row.id !== deleteTarget.id));
-    setDeleteTarget(null);
-  };
-
-  const handleAddValue = (index: number) => {
-    let nextAttributes: AttributeGroup[] | null = null;
-    let hasNewValue = false;
-    setAttributes((prev) => {
-      const next = prev.map((attr, idx) => {
-        if (idx !== index) return attr;
-        const value = attr.inputValue.trim();
-        if (!value || attr.values.includes(value)) {
-          return { ...attr, inputValue: "" };
+      const valueMap = new Map<string, string>();
+      const counts = new Map<string, number>();
+      attr.values.forEach((value) => {
+        const normalized = value.label.trim().toLowerCase();
+        if (!normalized) return;
+        counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
+      });
+      attr.values.forEach((value) => {
+        const trimmedValue = value.label.trim();
+        if (!trimmedValue) {
+          valueMap.set(value.id, "Nilai wajib diisi.");
+        } else if ((counts.get(trimmedValue.toLowerCase()) ?? 0) > 1) {
+          valueMap.set(value.id, "Nilai harus unik.");
+        } else if (!normalizeCode(trimmedValue)) {
+          valueMap.set(value.id, "Nilai tidak valid.");
         }
-        hasNewValue = true;
-        return {
-          ...attr,
-          values: [...attr.values, value],
-          inputValue: "",
-        };
       });
-      nextAttributes = next;
-      return next;
+      if (valueMap.size > 0) valueErrors.set(attr.id, valueMap);
     });
 
-    if (!hasNewValue || !nextAttributes) return;
-
-    const combinationRows = buildCombinationRows(nextAttributes, basePrice);
-    let newRows: VariantRow[] = [];
-    setVariantRows((current) => {
-      const labels = nextAttributes?.map((attr) => attr.label) ?? [];
-      const existingKeys = new Set(
-        current.map((row) => buildVariantKey(labels, row.attributes)),
-      );
-      newRows = combinationRows.filter(
-        (row) => !existingKeys.has(buildVariantKey(labels, row.attributes)),
-      );
-      return mergeVariantRows(current, combinationRows, nextAttributes ?? []);
+    const skuCount = new Map<string, number>();
+    variants.forEach((variant) => {
+      const skuKey = variant.sku.trim().toUpperCase();
+      if (!skuKey) return;
+      skuCount.set(skuKey, (skuCount.get(skuKey) ?? 0) + 1);
     });
 
-    const attribute = nextAttributes[index];
-    if (attribute && !attribute.id) {
-      ensureAttributeGroup(attribute, index)
-        .then((groupId) => {
-          const updated = (nextAttributes ?? []).map((attr, idx) =>
-            idx === index ? { ...attr, id: groupId } : attr,
-          );
-          if (newRows.length > 0) {
-            createOptionsForRows(newRows, updated);
-          }
-        })
-        .catch(() => undefined);
-      return;
-    }
-    if (newRows.length > 0) {
-      createOptionsForRows(newRows, nextAttributes);
-    }
-  };
-
-  const handleRemoveValue = (index: number, value: string) => {
-    setAttributes((prev) => {
-      const next = prev.map((attr, idx) =>
-        idx === index
-          ? { ...attr, values: attr.values.filter((item) => item !== value) }
-          : attr,
-      );
-      const combinationRows = buildCombinationRows(next, basePrice);
-      setVariantRows((current) =>
-        mergeVariantRows(current, combinationRows, next),
-      );
-      return next;
+    variants.forEach((variant) => {
+      const errors: { sku?: string; price?: string; stock?: string } = {};
+      const skuValue = variant.sku.trim();
+      if (!skuValue) {
+        errors.sku = "SKU wajib diisi.";
+      } else if (skuValue.length > SKU_MAX_LENGTH) {
+        errors.sku = `SKU maksimal ${SKU_MAX_LENGTH} karakter.`;
+      } else if ((skuCount.get(skuValue.toUpperCase()) ?? 0) > 1) {
+        errors.sku = "SKU harus unik.";
+      }
+      if (Number.isNaN(variant.price) || variant.price < 0) {
+        errors.price = "Harga harus >= 0.";
+      }
+      if (!Number.isInteger(variant.stock) || variant.stock < 0) {
+        errors.stock = "Stok harus bilangan >= 0.";
+      }
+      if (Object.keys(errors).length > 0) {
+        variantErrors.set(variant.signature, errors);
+      }
     });
-  };
 
-  const handleRemoveAttribute = (index: number) => {
-    const target = attributes[index];
-    if (!target) return;
+    return { attributeErrors, valueErrors, variantErrors };
+  }, [attributes, variants]);
 
-    const removeLocal = () => {
-      setAttributes((prev) => {
-        const removed = prev[index];
-        const next = prev.filter((_, idx) => idx !== index);
-        if (!removed) return prev;
+  const hasErrors =
+    validation.attributeErrors.size > 0 ||
+    validation.valueErrors.size > 0 ||
+    validation.variantErrors.size > 0;
 
-        setVariantRows((current) => {
-          const cleaned = current.map((row) => {
-            const nextAttributes = { ...row.attributes };
-            delete nextAttributes[removed.label];
-            Object.keys(nextAttributes).forEach((key) => {
-              if (
-                normalizeAttributeKey(key) ===
-                normalizeAttributeKey(removed.label)
-              ) {
-                delete nextAttributes[key];
-              }
-            });
-
-            const labels = next.map((attr) => attr.label);
-            const values = labels
-              .map((label) => resolveAttributeValue(nextAttributes, label))
-              .filter(Boolean);
-            const name = values.length > 0 ? values.join(" / ") : row.sku;
-            const description = labels
-              .map((label) => {
-                const value = resolveAttributeValue(nextAttributes, label);
-                return value ? `${label}: ${value}` : null;
-              })
-              .filter(Boolean)
-              .join(", ");
-
-            return {
-              ...row,
-              attributes: nextAttributes,
-              name,
-              description,
-            };
-          });
-
-          const combinationRows = buildCombinationRows(next, basePrice);
-          return mergeVariantRows(cleaned, combinationRows, next);
-        });
-
-        return next;
-      });
-    };
-
-    if (target.id) {
-      archiveGroupMutation.mutate(target.id, {
-        onSuccess: removeLocal,
-      });
-      return;
-    }
-    removeLocal();
-  };
-
-  const handleChangeInput = (index: number, value: string) => {
+  const handleChangeAttributeName = (attributeId: string, value: string) => {
     setAttributes((prev) =>
-      prev.map((attr, idx) =>
-        idx === index ? { ...attr, inputValue: value } : attr,
+      prev.map((attr) =>
+        attr.id === attributeId ? { ...attr, name: value } : attr,
       ),
     );
   };
 
-  const updateRow = (rowId: string, patch: Partial<VariantRow>) => {
-    setVariantRows((prev) =>
-      prev.map((row) => (row.id === rowId ? { ...row, ...patch } : row)),
+  const handleAddValue = (attributeId: string) => {
+    const inputValue = (valueInputs[attributeId] ?? "").trim();
+    if (!inputValue) return;
+    setAttributes((prev) =>
+      prev.map((attr) => {
+        if (attr.id !== attributeId) return attr;
+        const exists = attr.values.some(
+          (value) => value.label.toLowerCase() === inputValue.toLowerCase(),
+        );
+        if (exists) return attr;
+        const valueIdBase = `val-${normalizeCode(inputValue) || "VALUE"}`;
+        let valueId = valueIdBase;
+        let counter = 1;
+        const existingIds = new Set(attr.values.map((value) => value.id));
+        while (existingIds.has(valueId)) {
+          valueId = `${valueIdBase}-${counter++}`;
+        }
+        const nextValue: VariantValue = {
+          id: valueId,
+          label: inputValue,
+          code: normalizeCode(inputValue),
+        };
+        return { ...attr, values: [...attr.values, nextValue] };
+      }),
+    );
+    setValueInputs((prev) => ({ ...prev, [attributeId]: "" }));
+  };
+
+  const handleUpdateValueLabel = (
+    attributeId: string,
+    valueId: string,
+    label: string,
+  ) => {
+    setAttributes((prev) =>
+      prev.map((attr) => {
+        if (attr.id !== attributeId) return attr;
+        return {
+          ...attr,
+          values: attr.values.map((value) =>
+            value.id === valueId
+              ? { ...value, label, code: normalizeCode(label) }
+              : value,
+          ),
+        };
+      }),
     );
   };
 
-  const handleUploadVariantImage = async (row: VariantRow, file?: File | null) => {
+  const requestRemoveAttribute = (attributeId: string) => {
+    const nextAttributes = attributes.filter((attr) => attr.id !== attributeId);
+    const removedCount = Math.max(
+      countVariants(attributes) - countVariants(nextAttributes),
+      0,
+    );
+    setPendingDelete({ type: "attribute", attributeId, removedCount });
+  };
+
+  const requestRemoveValue = (attributeId: string, valueId: string) => {
+    const nextAttributes = attributes.map((attr) => {
+      if (attr.id !== attributeId) return attr;
+      return {
+        ...attr,
+        values: attr.values.filter((val) => val.id !== valueId),
+      };
+    });
+    const removedCount = Math.max(
+      countVariants(attributes) - countVariants(nextAttributes),
+      0,
+    );
+    setPendingDelete({ type: "value", attributeId, valueId, removedCount });
+  };
+
+  const requestRemoveVariant = (variant: ProductVariant) => {
+    setPendingDelete({
+      type: "variant",
+      signature: variant.signature,
+      name: variant.displayName,
+      optionId: variant.optionId,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    if (pendingDelete.type === "attribute") {
+      const attribute = attributes.find(
+        (attr) => attr.id === pendingDelete.attributeId,
+      );
+      if (attribute?.backendId) {
+        try {
+          await archiveGroupMutation.mutateAsync(attribute.backendId);
+        } catch {
+          setPendingDelete(null);
+          return;
+        }
+      }
+      setAttributes((prev) =>
+        prev.filter((attr) => attr.id !== pendingDelete.attributeId),
+      );
+      toast.success("Atribut berhasil dihapus.");
+    }
+
+    if (pendingDelete.type === "value") {
+      setAttributes((prev) =>
+        prev.map((attr) =>
+          attr.id === pendingDelete.attributeId
+            ? {
+                ...attr,
+                values: attr.values.filter(
+                  (value) => value.id !== pendingDelete.valueId,
+                ),
+              }
+            : attr,
+        ),
+      );
+      toast.success("Nilai atribut berhasil dihapus.");
+    }
+
+    if (pendingDelete.type === "variant") {
+      if (pendingDelete.optionId) {
+        try {
+          await ensureSuccess(
+            await archiveInventoryVariantOption(id, pendingDelete.optionId),
+          );
+        } catch (err: any) {
+          toast.error(err?.message || "Gagal menghapus varian");
+          setPendingDelete(null);
+          return;
+        }
+      }
+      setVariants((prev) =>
+        prev.filter((variant) => variant.signature !== pendingDelete.signature),
+      );
+      toast.success("Varian berhasil dihapus.");
+    }
+
+    setPendingDelete(null);
+  };
+
+  const updateVariant = (signature: string, patch: Partial<ProductVariant>) => {
+    setVariants((prev) =>
+      prev.map((variant) =>
+        variant.signature === signature ? { ...variant, ...patch } : variant,
+      ),
+    );
+  };
+
+  const handleUploadVariantImage = async (
+    variant: ProductVariant,
+    file?: File | null,
+  ) => {
     if (!file) return;
-    if (!row.optionId) {
+    if (!variant.optionId) {
       toast.error("Simpan varian terlebih dahulu sebelum menambah gambar.");
       return;
     }
     try {
       const updated = await variantActions.uploadOptionImage.mutateAsync({
         productId: id,
-        optionId: row.optionId,
+        optionId: variant.optionId,
         file,
       });
-      updateRow(row.id, { imageUrl: updated.image_url });
+      updateVariant(variant.signature, { image: updated.image_url });
     } catch {
       // handled by mutation
     }
   };
 
-  const handleDeleteVariantImage = async (row: VariantRow) => {
-    if (!row.optionId) return;
+  const handleDeleteVariantImage = async (variant: ProductVariant) => {
+    if (!variant.optionId) return;
     try {
       await variantActions.deleteOptionImage.mutateAsync({
         productId: id,
-        optionId: row.optionId,
+        optionId: variant.optionId,
       });
-      updateRow(row.id, { imageUrl: undefined });
+      updateVariant(variant.signature, { image: undefined });
     } catch {
       // handled by mutation
     }
@@ -539,7 +689,10 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       toast.error("Harga harus berupa angka >= 0");
       return;
     }
-    setVariantRows((prev) => prev.map((row) => ({ ...row, price: value })));
+    setVariants((prev) =>
+      prev.map((variant) => ({ ...variant, price: value })),
+    );
+    toast.success("Harga berhasil diterapkan ke semua varian.");
     setBulkPriceOpen(false);
   };
 
@@ -549,7 +702,10 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       toast.error("Stok harus berupa angka >= 0");
       return;
     }
-    setVariantRows((prev) => prev.map((row) => ({ ...row, stock: value })));
+    setVariants((prev) =>
+      prev.map((variant) => ({ ...variant, stock: value })),
+    );
+    toast.success("Stok berhasil diterapkan ke semua varian.");
     setBulkStockOpen(false);
   };
 
@@ -559,127 +715,163 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       toast.error("Nama atribut wajib diisi");
       return;
     }
-    const group = await createGroupMutation.mutateAsync({
-      name,
-      sort_order: attributes.length,
-    });
-    setAttributes((prev) => [
-      ...prev,
-      { id: group.id, label: group.name, values: [], inputValue: "" },
-    ]);
-    setNewAttributeName("");
-    setNewAttributeOpen(false);
-  };
-
-  const ensureAttributeGroup = async (attribute: AttributeGroup, index: number) => {
-    if (attribute.id) return attribute.id;
-    const group = await createGroupMutation.mutateAsync({
-      name: attribute.label,
-      sort_order: index,
-    });
-    setAttributes((prev) =>
-      prev.map((attr, idx) =>
-        idx === index ? { ...attr, id: group.id, label: group.name } : attr
-      )
+    const exists = attributes.some(
+      (attr) => attr.name.trim().toLowerCase() === name.toLowerCase(),
     );
-    return group.id;
-  };
-
-  const createOptionsForRows = async (
-    rows: VariantRow[],
-    currentAttributes: AttributeGroup[]
-  ) => {
-    if (rows.length === 0) return;
-    const primaryGroupId = currentAttributes.find((attr) => attr.id)?.id;
-    if (!primaryGroupId) {
-      toast.error("Buat atribut terlebih dahulu sebelum menambah varian.");
+    if (exists) {
+      toast.error("Nama atribut harus unik.");
       return;
     }
-
     try {
-      const created = await Promise.all(
-        rows.map((row) =>
-          createInventoryVariantOption(id, primaryGroupId, {
-            sku: row.sku.trim(),
-            attributes: row.attributes,
-            price_override: row.price,
-            stock: row.stock,
-            track_stock: true,
-          }).then(ensureSuccess)
-        )
-      );
-      const labels = currentAttributes.map((attr) => attr.label);
-      const createdMap = new Map(
-        created.map((option) => [
-          buildVariantKey(labels, option.attributes ?? {}),
-          option,
-        ])
-      );
-      setVariantRows((prev) =>
-        prev.map((row) => {
-          const key = buildVariantKey(labels, row.attributes);
-          const option = createdMap.get(key);
-          if (!option) return row;
-          return {
-            ...row,
-            id: String(option.id),
-            optionId: option.id,
-            sku: option.sku,
-            price: option.price_override ?? row.price,
-            stock: option.stock,
-            attributes: option.attributes ?? row.attributes,
-            imageUrl: option.image_url ?? row.imageUrl,
-          };
-        })
-      );
-      qc.invalidateQueries({ queryKey: QK.inventory.variants(id) });
-    } catch (err: any) {
-      toast.error(err?.message || "Gagal menambahkan varian");
+      const created = await createGroupMutation.mutateAsync({
+        name,
+        sort_order: attributes.length,
+      });
+      const baseId = `attr-${normalizeCode(name) || "ATTR"}`;
+      let idValue = baseId;
+      let counter = 1;
+      const existingIds = new Set(attributes.map((attr) => attr.id));
+      while (existingIds.has(idValue)) {
+        idValue = `${baseId}-${counter++}`;
+      }
+      setAttributes((prev) => [
+        ...prev,
+        { id: idValue, backendId: created.id, name: created.name, values: [] },
+      ]);
+      setNewAttributeName("");
+      setNewAttributeOpen(false);
+      toast.success("Atribut berhasil ditambahkan.");
+    } catch {
+      // handled by mutation
     }
+  };
+
+  const ensureAttributeGroups = async (current: VariantAttribute[]) => {
+    const updated = [...current];
+    for (let index = 0; index < updated.length; index += 1) {
+      const attr = updated[index];
+      if (attr.backendId) continue;
+      const created = await ensureSuccess(
+        await createInventoryVariantGroup(id, {
+          name: attr.name.trim(),
+          sort_order: index,
+        }),
+      );
+      updated[index] = { ...attr, backendId: created.id };
+    }
+    return updated;
   };
 
   const handleSaveVariants = async () => {
-    const groupId = attributes.find((attr) => attr.id)?.id;
-    if (!groupId) {
-      toast.error(
-        "Tambahkan atribut terlebih dahulu sebelum menyimpan varian.",
-      );
+    if (hasErrors) {
+      toast.error("Periksa kembali isian atribut dan varian.");
       return;
     }
 
-    const invalidRow = variantRows.find(
-      (row) =>
-        row.sku.trim() === "" ||
-        Number.isNaN(row.price) ||
-        row.price < 0 ||
-        Number.isNaN(row.stock) ||
-        row.stock < 0,
-    );
-    if (invalidRow) {
-      toast.error("Periksa SKU, harga, dan stok pada daftar varian.");
+    const activeAttributes = getActiveAttributes(attributes);
+    if (activeAttributes.length === 0 || variants.length === 0) {
+      toast.error("Tambahkan atribut dan nilai terlebih dahulu.");
       return;
     }
 
     setSaving(true);
     try {
-      const tasks = variantRows.map((row) => {
+      const updatedAttributes = await ensureAttributeGroups(attributes);
+      setAttributes(updatedAttributes);
+
+      await Promise.all(
+        updatedAttributes
+          .filter((attr) => attr.backendId)
+          .map((attr, index) =>
+            updateInventoryVariantGroup(id, attr.backendId as number, {
+              name: attr.name.trim(),
+              sort_order: index,
+            }).then(ensureSuccess),
+          ),
+      );
+
+      const primaryGroupId = updatedAttributes.find(
+        (attr) => attr.backendId,
+      )?.backendId;
+      if (!primaryGroupId) {
+        toast.error("Atribut belum tersimpan dengan benar.");
+        setSaving(false);
+        return;
+      }
+
+      const tasks = variants.map((variant) => {
         const payload = {
-          sku: row.sku.trim(),
-          attributes: row.attributes,
-          price_override: row.price,
-          stock: row.stock,
+          sku: variant.sku.trim(),
+          attributes: buildAttributeMap(activeAttributes, variant.selections),
+          price_override: variant.price,
+          stock: variant.stock,
           track_stock: true,
+          variant_group_id: primaryGroupId,
         };
-        if (row.optionId) {
-          return updateInventoryVariantOption(id, row.optionId, payload).then(
-            ensureSuccess,
-          );
+        if (variant.optionId) {
+          return updateInventoryVariantOption(
+            id,
+            variant.optionId,
+            payload,
+          ).then(ensureSuccess);
         }
-        return createInventoryVariantOption(id, groupId, payload).then(
+        return createInventoryVariantOption(id, primaryGroupId, payload).then(
           ensureSuccess,
         );
       });
-      await Promise.all(tasks);
+
+      const savedOptions = await Promise.all(tasks);
+      const optionSignatureMap = new Map<
+        string,
+        (typeof savedOptions)[number]
+      >();
+      savedOptions.forEach((option) => {
+        const attrs = option.attributes ?? {};
+        const selections: VariantSelection[] = activeAttributes
+          .map((attr) => {
+            const valueLabel = resolveAttributeValue(attrs, attr.name);
+            if (!valueLabel) return null;
+            const value = attr.values.find(
+              (val) => val.label.toLowerCase() === valueLabel.toLowerCase(),
+            );
+            if (!value) return null;
+            return { attributeId: attr.id, valueId: value.id };
+          })
+          .filter(Boolean) as VariantSelection[];
+        const signature = buildSignature(activeAttributes, selections);
+        if (signature) optionSignatureMap.set(signature, option);
+      });
+
+      setVariants((prev) =>
+        prev.map((variant) => {
+          const option = optionSignatureMap.get(variant.signature);
+          if (!option) return variant;
+          return {
+            ...variant,
+            id: String(option.id),
+            optionId: option.id,
+            sku: option.sku,
+            price: option.price_override ?? variant.price,
+            stock: option.stock,
+            image: option.image_url ?? variant.image,
+          };
+        }),
+      );
+
+      const currentOptionIds = new Set(
+        variants.map((variant) => variant.optionId).filter(Boolean) as number[],
+      );
+      const removedOptionIds = initialOptionIds.filter(
+        (optionId) => !currentOptionIds.has(optionId),
+      );
+      if (removedOptionIds.length > 0) {
+        await Promise.all(
+          removedOptionIds.map((optionId) =>
+            archiveInventoryVariantOption(id, optionId).then(ensureSuccess),
+          ),
+        );
+      }
+
       qc.invalidateQueries({ queryKey: QK.inventory.variants(id) });
       toast.success("Varian berhasil disimpan");
     } catch (err: any) {
@@ -687,6 +879,26 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const getVariantDescription = (variant: ProductVariant) => {
+    const selectionMap = new Map(
+      variant.selections.map((selection) => [
+        selection.attributeId,
+        selection.valueId,
+      ]),
+    );
+    return attributes
+      .filter((attr) => attr.values.length > 0)
+      .map((attr) => {
+        const valueId = selectionMap.get(attr.id);
+        if (!valueId) return null;
+        const value = attr.values.find((val) => val.id === valueId);
+        if (!value) return null;
+        return `${attr.name}: ${value.label}`;
+      })
+      .filter(Boolean)
+      .join(", ");
   };
 
   return (
@@ -712,7 +924,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
           <Button
             type="button"
             onClick={handleSaveVariants}
-            disabled={saving}
+            disabled={saving || hasErrors}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm text-sm font-medium disabled:opacity-70"
           >
             <Save className="h-4 w-4" />
@@ -727,63 +939,113 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             Atribut Varian
           </h3>
           <div className="space-y-6">
-            {attributes.map((attribute, index) => (
-              <div
-                key={attribute.label}
-                className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700"
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
-                    {attribute.label}
-                  </label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => handleRemoveAttribute(index)}
-                    className="text-xs text-red-500 hover:text-red-600 font-medium h-auto px-0"
-                  >
-                    Hapus Atribut
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {attribute.values.map((value) => (
-                    <span
-                      key={value}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            {attributes.map((attribute) => {
+              const attributeError = validation.attributeErrors.get(
+                attribute.id,
+              );
+              const valueErrorMap = validation.valueErrors.get(attribute.id);
+              return (
+                <div
+                  key={attribute.id}
+                  className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Nama atribut
+                      </label>
+                      <Input
+                        value={attribute.name}
+                        onChange={(event) =>
+                          handleChangeAttributeName(
+                            attribute.id,
+                            event.target.value,
+                          )
+                        }
+                        placeholder="Nama atribut"
+                        className={`text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600 ${
+                          attributeError
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : ""
+                        }`}
+                      />
+                      {attributeError ? (
+                        <p className="text-xs text-red-500 mt-1">
+                          {attributeError}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => requestRemoveAttribute(attribute.id)}
+                      className="text-xs text-red-500 hover:text-red-600 font-medium h-auto px-0"
                     >
-                      {value}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveValue(index, value)}
-                        className="h-5 w-5 ml-1 text-gray-500 hover:text-red-500"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </span>
-                  ))}
+                      Hapus Atribut
+                    </Button>
+                  </div>
+                  <div className="flex flex-col gap-2 mb-3">
+                    {attribute.values.map((value) => {
+                      const valueError = valueErrorMap?.get(value.id);
+                      return (
+                        <div key={value.id} className="flex items-center gap-2">
+                          <Input
+                            value={value.label}
+                            onChange={(event) =>
+                              handleUpdateValueLabel(
+                                attribute.id,
+                                value.id,
+                                event.target.value,
+                              )
+                            }
+                            className={`text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600 ${
+                              valueError
+                                ? "border-red-500 focus-visible:ring-red-500"
+                                : ""
+                            }`}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              requestRemoveValue(attribute.id, value.id)
+                            }
+                            className="h-9 w-9 text-gray-500 hover:text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          {valueError ? (
+                            <p className="text-xs text-red-500">{valueError}</p>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={valueInputs[attribute.id] ?? ""}
+                      onChange={(event) =>
+                        setValueInputs((prev) => ({
+                          ...prev,
+                          [attribute.id]: event.target.value,
+                        }))
+                      }
+                      placeholder="Masukkan nilai baru (contoh: Gold)..."
+                      className="flex-1 text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleAddValue(attribute.id)}
+                      className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600"
+                    >
+                      Tambah
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Input
-                    value={attribute.inputValue}
-                    onChange={(event) =>
-                      handleChangeInput(index, event.target.value)
-                    }
-                    placeholder="Masukkan nilai baru (contoh: Gold)..."
-                    className="flex-1 text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleAddValue(index)}
-                    className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600"
-                  >
-                    Tambah
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <Button
               type="button"
               variant="ghost"
@@ -849,7 +1111,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {variantRows.length === 0 ? (
+                {variants.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={6}
@@ -860,119 +1122,155 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  variantRows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    >
-                      <TableCell className="px-6 py-4">
-                        <div className="relative w-12 h-12">
-                          <label
-                            htmlFor={`variant-image-${row.id}`}
-                            className="w-12 h-12 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 cursor-pointer hover:border-indigo-600 dark:hover:border-indigo-600 transition-colors overflow-hidden"
-                          >
-                            {row.imageUrl ? (
-                              <img
-                                src={row.imageUrl}
-                                alt={row.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <ImageIcon className="h-5 w-5 text-gray-400" />
-                            )}
-                          </label>
-                          <input
-                            id={`variant-image-${row.id}`}
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(event) => {
-                              const file = event.target.files?.[0] ?? null;
-                              handleUploadVariantImage(row, file);
-                              event.currentTarget.value = "";
-                            }}
-                          />
-                          {row.imageUrl ? (
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleDeleteVariantImage(row)}
-                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-white text-red-500 shadow-sm hover:bg-red-50"
+                  variants.map((variant) => {
+                    const errors = validation.variantErrors.get(
+                      variant.signature,
+                    );
+                    return (
+                      <TableRow
+                        key={variant.signature}
+                        className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                      >
+                        <TableCell className="px-6 py-4">
+                          <div className="relative w-12 h-12">
+                            <label
+                              htmlFor={`variant-image-${variant.signature}`}
+                              className="w-12 h-12 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 cursor-pointer hover:border-indigo-600 dark:hover:border-indigo-600 transition-colors overflow-hidden"
                             >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            {row.name}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {row.description}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <Input
-                          value={row.sku}
-                          onChange={(event) =>
-                            updateRow(row.id, { sku: event.target.value })
-                          }
-                          className="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5"
-                        />
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                            Rp
-                          </span>
+                              {variant.image ? (
+                                <img
+                                  src={variant.image}
+                                  alt={variant.displayName}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <ImageIcon className="h-5 w-5 text-gray-400" />
+                              )}
+                            </label>
+                            <input
+                              id={`variant-image-${variant.signature}`}
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0] ?? null;
+                                handleUploadVariantImage(variant, file);
+                                event.currentTarget.value = "";
+                              }}
+                            />
+                            {variant.image ? (
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                onClick={() =>
+                                  handleDeleteVariantImage(variant)
+                                }
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-white text-red-500 shadow-sm hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {variant.displayName}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {getVariantDescription(variant)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
                           <Input
-                            value={row.price}
+                            value={variant.sku}
                             onChange={(event) =>
-                              updateRow(row.id, {
-                                price: Number(event.target.value) || 0,
+                              updateVariant(variant.signature, {
+                                sku: event.target.value,
                               })
                             }
-                            className="w-full pl-9 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5"
+                            className={`w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5 ${
+                              errors?.sku
+                                ? "border-red-500 focus-visible:ring-red-500"
+                                : ""
+                            }`}
                           />
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <Input
-                          type="number"
-                          value={row.stock}
-                          onChange={(event) =>
-                            updateRow(row.id, {
-                              stock: Number(event.target.value) || 0,
-                            })
-                          }
-                          className="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5"
-                        />
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-right">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteTarget(row)}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                          {errors?.sku ? (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.sku}
+                            </p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                              Rp
+                            </span>
+                            <Input
+                              value={variant.price}
+                              onChange={(event) =>
+                                updateVariant(variant.signature, {
+                                  price: Number(event.target.value) || 0,
+                                })
+                              }
+                              className={`w-full pl-9 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5 ${
+                                errors?.price
+                                  ? "border-red-500 focus-visible:ring-red-500"
+                                  : ""
+                              }`}
+                            />
+                            {errors?.price ? (
+                              <p className="text-xs text-red-500 mt-1">
+                                {errors.price}
+                              </p>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Input
+                            type="number"
+                            value={variant.stock}
+                            onChange={(event) =>
+                              updateVariant(variant.signature, {
+                                stock: Number(event.target.value) || 0,
+                              })
+                            }
+                            className={`w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5 ${
+                              errors?.stock
+                                ? "border-red-500 focus-visible:ring-red-500"
+                                : ""
+                            }`}
+                          />
+                          {errors?.stock ? (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.stock}
+                            </p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => requestRemoveVariant(variant)}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
           </div>
           <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              Menampilkan {variantRows.length} kombinasi varian dari total{" "}
-              {variantRows.length} kombinasi.
+              Menampilkan {variants.length} kombinasi varian dari total{" "}
+              {variants.length} kombinasi.
             </p>
           </div>
         </section>
@@ -1090,23 +1388,39 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       </Dialog>
 
       <ConfirmActionDialog
-        open={Boolean(deleteTarget)}
+        open={Boolean(pendingDelete)}
         onOpenChange={(isOpen) => {
-          if (!isOpen) setDeleteTarget(null);
+          if (!isOpen) setPendingDelete(null);
         }}
-        title="Hapus Varian?"
+        title={
+          pendingDelete?.type === "attribute"
+            ? "Hapus Atribut?"
+            : pendingDelete?.type === "value"
+              ? "Hapus Nilai?"
+              : "Hapus Varian?"
+        }
         description={
-          deleteTarget ? (
+          pendingDelete?.type === "attribute" ? (
+            <>
+              Tindakan ini akan menghapus {pendingDelete.removedCount} kombinasi
+              varian.
+            </>
+          ) : pendingDelete?.type === "value" ? (
+            <>
+              Tindakan ini akan menghapus {pendingDelete.removedCount} kombinasi
+              varian.
+            </>
+          ) : pendingDelete ? (
             <>
               Apakah Anda yakin ingin menghapus{" "}
               <span className="font-semibold text-gray-900 dark:text-white">
-                {deleteTarget.name}
+                {pendingDelete.name}
               </span>
               ? Tindakan ini tidak dapat dibatalkan.
             </>
           ) : null
         }
-        confirmLabel="Hapus Varian"
+        confirmLabel="Hapus"
         onConfirm={handleConfirmDelete}
         tone="destructive"
       />
