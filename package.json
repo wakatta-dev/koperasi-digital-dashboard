@@ -65,6 +65,7 @@
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^1.6.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "jsdom": "^26.1.0",

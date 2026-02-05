@@ -16,6 +16,7 @@ import {
   createInventoryProduct,
   getInventoryProduct,
   getInventoryProductVariants,
+  getInventoryStockHistory,
   listInventoryProducts,
   setInitialInventoryStock,
   unarchiveInventoryProduct,
@@ -34,6 +35,7 @@ import type {
   InventoryProductListResponse,
   InventoryProductResponse,
   InventoryProductVariantsResponse,
+  InventoryStockHistoryEntry,
   UpdateInventoryVariantGroupRequest,
   UpdateInventoryVariantOptionRequest,
   UpdateInventoryProductRequest,
@@ -85,6 +87,18 @@ export function useInventoryVariants(
     enabled: Boolean(id) && (options?.enabled ?? true),
     queryFn: async (): Promise<InventoryProductVariantsResponse> =>
       ensureSuccess(await getInventoryProductVariants(id as string | number)),
+  });
+}
+
+export function useInventoryStockHistory(
+  id?: string | number,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: QK.inventory.history(id ?? ""),
+    enabled: Boolean(id) && (options?.enabled ?? true),
+    queryFn: async (): Promise<InventoryStockHistoryEntry[]> =>
+      ensureSuccess(await getInventoryStockHistory(id as string | number)),
   });
 }
 

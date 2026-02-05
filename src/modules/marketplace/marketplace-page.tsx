@@ -6,9 +6,9 @@ import { useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
-import { MarketplaceHeader } from "./components/header";
-import { FiltersSidebar } from "./components/filters-sidebar";
-import { ProductsSection } from "./components/products-section";
+import { MarketplaceHeader } from "./components/layout/header";
+import { FiltersSidebar } from "./components/filters/filters-sidebar";
+import { ProductsSection } from "./components/product/products-section";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { DEFAULT_MARKETPLACE_FILTERS, type MarketplaceFilters } from "./types";
 

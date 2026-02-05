@@ -4,13 +4,13 @@
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
-import { ProductBreadcrumbs } from "./components/product-breadcrumbs";
-import { ProductGallery } from "./components/product-gallery";
-import { ProductMainInfo } from "./components/product-main-info";
-import { ProductDetailsContent } from "./components/product-details-content";
-import { ProductSpecsCard } from "./components/product-specs-card";
-import { SafetyBanner } from "./components/safety-banner";
-import { RelatedProducts } from "./components/related-products";
+import { ProductBreadcrumbs } from "./components/product/product-breadcrumbs";
+import { ProductGallery } from "./components/product/product-gallery";
+import { ProductMainInfo } from "./components/product/product-main-info";
+import { ProductDetailsContent } from "./components/product/product-details-content";
+import { ProductSpecsCard } from "./components/product/product-specs-card";
+import { SafetyBanner } from "./components/shared/safety-banner";
+import { RelatedProducts } from "./components/product/related-products";
 import { PRODUCT_DETAIL } from "./constants";
 import {
   useMarketplaceCart,

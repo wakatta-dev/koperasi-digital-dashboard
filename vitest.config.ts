@@ -12,6 +12,19 @@ export default defineConfig({
     environment: "jsdom",
     globals: true, // biar bisa pake describe/it/expect tanpa import
     setupFiles: ["./src/setupTests.ts"], // opsional kalau kamu punya setup khusus
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      all: true,
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/__tests__/**", "src/setupTests.ts"],
+      thresholds: {
+        lines: 90,
+        statements: 90,
+        functions: 90,
+        branches: 90,
+      },
+    },
   },
   resolve: {
     alias: {

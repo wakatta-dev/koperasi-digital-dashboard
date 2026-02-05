@@ -1,6 +1,6 @@
 /** @format */
 
-import { OrderListPage } from "@/modules/marketplace/order/components/order-list-page";
+import { OrderListPage } from "@/modules/marketplace/components/penjualan/OrderListPage";
 
 export default function MarketplaceOrderPage() {
   return <OrderListPage />;

@@ -7,8 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
-import { ReviewBreadcrumbs } from "./components/review-breadcrumbs";
-import { ReviewSteps } from "./components/review-steps";
+import { ReviewBreadcrumbs } from "./components/review/review-breadcrumbs";
+import { ReviewSteps } from "./components/review/review-steps";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { formatCurrency } from "@/lib/format";
 import { checkoutMarketplace, submitMarketplaceManualPayment } from "@/services/api";
