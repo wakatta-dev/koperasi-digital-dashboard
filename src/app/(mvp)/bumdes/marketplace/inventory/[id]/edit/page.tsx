@@ -3,9 +3,10 @@
 import { ProductEditPage } from "@/modules/marketplace/components/penjualan/ProductEditPage";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function InventoryEditPage({ params }: PageProps) {
-  return <ProductEditPage id={params.id} />;
+export default async function InventoryEditPage({ params }: PageProps) {
+  const { id } = await params;
+  return <ProductEditPage id={id} />;
 }
