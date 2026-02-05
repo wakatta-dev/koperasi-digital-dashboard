@@ -48,7 +48,17 @@ export const bumdesNavigation = [
     href: "/bumdes/marketplace",
     icon: <ShoppingBag className="h-4 w-4" />,
     items: [
-      { name: "Produk", href: "/bumdes/marketplace/inventory" },
+      {
+        name: "Produk",
+        href: "/bumdes/marketplace/inventory",
+        items: [
+          { name: "Daftar Produk", href: "/bumdes/marketplace/inventory" },
+          {
+            name: "Kategori Produk",
+            href: "/bumdes/marketplace/inventory/categories",
+          },
+        ],
+      },
       { name: "Pesanan", href: "/bumdes/marketplace/order" },
       { name: "Pelanggan", href: "/bumdes/marketplace/pelanggan" },
     ],
@@ -99,6 +109,7 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/asset/manajemen": "Asset & Rental - Daftar Aset",
   "/bumdes/asset/jadwal": "Asset & Rental - Penyewaan",
   "/bumdes/marketplace/inventory": "Penjualan - Produk",
+  "/bumdes/marketplace/inventory/categories": "Penjualan - Kategori Produk",
   "/bumdes/marketplace/order": "Penjualan - Pesanan",
   "/bumdes/marketplace/pelanggan": "Penjualan - Pelanggan",
   "/bumdes/marketplace": "Penjualan",

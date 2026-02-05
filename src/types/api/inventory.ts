@@ -157,6 +157,7 @@ export type UpdateInventoryVariantOptionRequest = {
 };
 
 export type InventoryCategoryResponse = {
+  id: number;
   name: string;
   count: number;
 };

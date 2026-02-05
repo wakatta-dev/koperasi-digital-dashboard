@@ -63,6 +63,31 @@ export function listInventoryCategories(): Promise<
   return api.get<InventoryCategoryResponse[]>(`${API_PREFIX}${E.categories}`);
 }
 
+export function createInventoryCategory(payload: {
+  name: string;
+}): Promise<ApiResponse<InventoryCategoryResponse>> {
+  return api.post<InventoryCategoryResponse>(
+    `${API_PREFIX}${E.categories}`,
+    payload
+  );
+}
+
+export function updateInventoryCategory(
+  id: string | number,
+  payload: { name: string }
+): Promise<ApiResponse<InventoryCategoryResponse>> {
+  return api.patch<InventoryCategoryResponse>(
+    `${API_PREFIX}${E.category(id)}`,
+    payload
+  );
+}
+
+export function deleteInventoryCategory(
+  id: string | number
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return api.delete<{ deleted: boolean }>(`${API_PREFIX}${E.category(id)}`);
+}
+
 export function getInventoryProduct(
   id: string | number
 ): Promise<ApiResponse<InventoryProductResponse>> {

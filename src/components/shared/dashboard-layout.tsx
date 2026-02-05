@@ -20,19 +20,17 @@ import { AppSidebar } from "./app-sidebar";
 interface DashboardLayoutProps {
   children: ReactNode;
   title: string;
-  navigation: Array<{
-    name: string;
-    href: string;
-    icon?: ReactNode;
-    items?: Array<{
-      name: string;
-      href: string;
-      icon?: ReactNode;
-    }>;
-  }>;
+  navigation: Array<NavItem>;
   showHeader?: boolean;
   contentClassName?: string;
 }
+
+type NavItem = {
+  name: string;
+  href: string;
+  icon?: ReactNode;
+  items?: NavItem[];
+};
 
 export function DashboardLayout({
   children,
@@ -56,6 +54,11 @@ export function DashboardLayout({
         title: child.name,
         url: child.href,
         icon: child.icon,
+        items: child.items?.map((grandchild) => ({
+          title: grandchild.name,
+          url: grandchild.href,
+          icon: grandchild.icon,
+        })),
       })),
     })),
     navSecondary: [

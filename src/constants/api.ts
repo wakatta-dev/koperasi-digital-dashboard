@@ -105,6 +105,7 @@ export const API_ENDPOINTS = {
   },
   inventory: {
     categories: "/inventory/categories",
+    category: (id: string | number) => `/inventory/categories/${id}`,
     products: "/inventory/products",
     product: (id: string | number) => `/inventory/products/${id}`,
     image: (id: string | number) => `/inventory/products/${id}/image`,

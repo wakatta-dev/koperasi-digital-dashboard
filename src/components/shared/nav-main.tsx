@@ -23,16 +23,7 @@ import { ChevronDown } from "lucide-react";
 export function NavMain({
   items,
 }: {
-  items: {
-    title: string;
-    url: string;
-    icon?: React.ReactNode;
-    items?: {
-      title: string;
-      url: string;
-      icon?: React.ReactNode;
-    }[];
-  }[];
+  items: NavItem[];
 }) {
   const pathname = usePathname();
   const submenuIdPrefix = React.useId();
@@ -54,6 +45,63 @@ export function NavMain({
     },
     [submenuIdPrefix],
   );
+
+  const isItemActive = React.useCallback(
+    (item: NavItem) => {
+      if (pathname === item.url || pathname.startsWith(item.url + "/")) {
+        return true;
+      }
+      return (
+        Array.isArray(item.items) &&
+        item.items.some((child) => isItemActive(child))
+      );
+    },
+    [pathname],
+  );
+
+  const renderSubItems = React.useCallback(
+    (subItems: NavItem[], parentKey: string, level = 0) => {
+      if (!subItems || subItems.length === 0) return null;
+      return (
+        <SidebarMenuSub
+          id={level === 0 ? parentKey : undefined}
+          className={
+            level > 0
+              ? "mx-0 translate-x-0 gap-0.5 border-l border-slate-200/80 pl-3 ml-2"
+              : "mx-0 translate-x-0 border-0 px-3 pb-2 pt-1 gap-0.5"
+          }
+        >
+          {subItems.map((child) => {
+            const hasChildren =
+              Array.isArray(child.items) && child.items.length > 0;
+            const isChildActive = isItemActive(child);
+            return (
+              <SidebarMenuSubItem key={child.title}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={isChildActive}
+                  size={level > 0 ? "sm" : "md"}
+                  className={
+                    level > 0
+                      ? "!h-7 !text-xs text-slate-500"
+                      : "!h-8 !text-sm text-slate-500"
+                  }
+                >
+                  <Link href={child.url}>
+                    {child.icon}
+                    <span>{child.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+                {hasChildren ? renderSubItems(child.items!, `${parentKey}-${child.url}`, level + 1) : null}
+              </SidebarMenuSubItem>
+            );
+          })}
+        </SidebarMenuSub>
+      );
+    },
+    [isItemActive],
+  );
+
   return (
     <SidebarGroup className="p-0">
       <SidebarGroupLabel className="px-2 text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
@@ -64,15 +112,7 @@ export function NavMain({
           {items.map((item) => {
             const hasChildren =
               Array.isArray(item.items) && item.items.length > 0;
-            const isParentActive =
-              pathname === item.url ||
-              pathname.startsWith(item.url + "/") ||
-              (hasChildren &&
-                item.items!.some(
-                  (child) =>
-                    pathname === child.url ||
-                    pathname.startsWith(child.url + "/"),
-                ));
+            const isParentActive = isItemActive(item);
             const itemKey = item.url;
             const isOpen = openItems[itemKey] ?? isParentActive;
             const submenuId = getSubmenuId(itemKey);
@@ -128,31 +168,9 @@ export function NavMain({
                     }`}
                   />
                 </SidebarMenuAction>
-                <SidebarMenuSub
-                  id={submenuId}
-                  hidden={!isOpen}
-                  className="mx-0 translate-x-0 border-0 px-3 pb-2 pt-1 gap-0.5"
-                >
-                  {item.items!.map((child) => {
-                    const isChildActive =
-                      pathname === child.url ||
-                      pathname.startsWith(child.url + "/");
-                    return (
-                      <SidebarMenuSubItem key={child.title}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={isChildActive}
-                          className="!h-8 !rounded-md !px-3 !text-sm text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900 data-[active=true]:bg-indigo-50 data-[active=true]:text-indigo-700 data-[active=true]:font-semibold dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100 dark:data-[active=true]:bg-indigo-900/30 dark:data-[active=true]:text-indigo-200 [&>svg]:size-4 [&>svg]:text-slate-400 dark:[&>svg]:text-slate-500 data-[active=true]:[&>svg]:text-indigo-600 dark:data-[active=true]:[&>svg]:text-indigo-200"
-                        >
-                          <Link href={child.url}>
-                            {child.icon}
-                            <span>{child.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    );
-                  })}
-                </SidebarMenuSub>
+                {isOpen
+                  ? renderSubItems(item.items!, submenuId, 0)
+                  : null}
               </SidebarMenuItem>
             );
           })}
@@ -161,3 +179,10 @@ export function NavMain({
     </SidebarGroup>
   );
 }
+
+type NavItem = {
+  title: string;
+  url: string;
+  icon?: React.ReactNode;
+  items?: NavItem[];
+};
