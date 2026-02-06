@@ -62,19 +62,19 @@ export function OrderListPage() {
       offset: (page - 1) * PAGE_SIZE,
       sort: "newest",
     }),
-    [search, dateFilter, page]
+    [search, dateFilter, page],
   );
 
   const { data, isLoading, isError, error } = useMarketplaceOrders(queryParams);
   const { updateStatus } = useMarketplaceOrderActions();
 
-  const orders = data?.items ?? [];
+  const orders = useMemo(() => data?.items ?? [], [data]);
   const totalItems = data?.total ?? orders.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const orderMap = useMemo(
     () => new Map(orders.map((order) => [String(order.id), order])),
-    [orders]
+    [orders],
   );
 
   const orderRows: OrderListItem[] = useMemo(
@@ -88,7 +88,7 @@ export function OrderListPage() {
         total: order.total,
         status: mapStatusLabel(order.status),
       })),
-    [orders]
+    [orders],
   );
 
   const handleOpenInvoice = (orderId: number) => {
@@ -100,7 +100,7 @@ export function OrderListPage() {
     order: MarketplaceOrderSummaryResponse,
     nextStatus: string,
     actionKey: string,
-    reason?: string
+    reason?: string,
   ) => {
     setPendingAction({ id: order.id, action: actionKey });
     try {
@@ -121,7 +121,12 @@ export function OrderListPage() {
       confirmText: "Batalkan",
     });
     if (!ok) return;
-    await handleStatusUpdate(order, "CANCELED", "cancel", "Dibatalkan oleh admin");
+    await handleStatusUpdate(
+      order,
+      "CANCELED",
+      "cancel",
+      "Dibatalkan oleh admin",
+    );
   };
 
   const rangeStart = totalItems === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -138,7 +143,9 @@ export function OrderListPage() {
 
       <OrderTable
         orders={orderRows}
-        onRowClick={(order) => router.push(`/bumdes/marketplace/order/${order.id}`)}
+        onRowClick={(order) =>
+          router.push(`/bumdes/marketplace/order/${order.id}`)
+        }
         getActions={(row) => {
           const order = orderMap.get(row.id);
           if (!order) return [];
@@ -149,7 +156,8 @@ export function OrderListPage() {
           return [
             {
               label: "Lihat Detail",
-              onSelect: () => router.push(`/bumdes/marketplace/order/${order.id}`),
+              onSelect: () =>
+                router.push(`/bumdes/marketplace/order/${order.id}`),
             },
             {
               label: "Cetak Invoice",
@@ -183,7 +191,9 @@ export function OrderListPage() {
       />
 
       {isLoading ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">Memuat data pesanan...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Memuat data pesanan...
+        </p>
       ) : null}
       {isError ? (
         <p className="text-sm text-red-500">
