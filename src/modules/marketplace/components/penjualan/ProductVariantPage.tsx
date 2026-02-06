@@ -67,6 +67,16 @@ type ProductVariant = {
   selections: VariantSelection[];
 };
 
+type ServerVariantSnapshot = {
+  optionId: number;
+  sku: string;
+  price: number;
+  stock: number;
+  image?: string;
+  selections: VariantSelection[];
+  displayName: string;
+};
+
 type PendingDelete =
   | { type: "attribute"; attributeId: string; removedCount: number }
   | {
@@ -176,6 +186,50 @@ const buildAttributeMap = (
     if (value) payload[attr.name] = value.label;
   });
   return payload;
+};
+
+const buildServerVariantMaps = (
+  options: InventoryProductVariantsResponse["options"],
+  activeAttributes: VariantAttribute[],
+  basePrice: number,
+) => {
+  const bySignature = new Map<string, ServerVariantSnapshot>();
+  const bySku = new Map<string, ServerVariantSnapshot>();
+
+  options.forEach((option) => {
+    const attrs = option.attributes ?? {};
+    const selections: VariantSelection[] = activeAttributes
+      .map((attr) => {
+        const valueLabel = resolveAttributeValue(attrs, attr.name);
+        if (!valueLabel) return null;
+        const value = attr.values.find(
+          (val) => val.label.toLowerCase() === valueLabel.toLowerCase(),
+        );
+        if (!value) return null;
+        return { attributeId: attr.id, valueId: value.id };
+      })
+      .filter(Boolean) as VariantSelection[];
+
+    if (selections.length !== activeAttributes.length) return;
+    const orderedValues = getOrderedValues(activeAttributes, selections);
+    const signature = buildSignature(activeAttributes, selections);
+    if (!signature) return;
+
+    const snapshot: ServerVariantSnapshot = {
+      optionId: option.id,
+      sku: option.sku,
+      price: option.price_override ?? basePrice,
+      stock: option.stock,
+      image: option.image_url,
+      selections,
+      displayName: buildDisplayName(orderedValues),
+    };
+
+    bySignature.set(signature, snapshot);
+    bySku.set(option.sku.trim().toUpperCase(), snapshot);
+  });
+
+  return { bySignature, bySku };
 };
 
 const mergePreserve = (
@@ -358,6 +412,12 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
 
   const [attributes, setAttributes] = useState<VariantAttribute[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [isDirty, setIsDirty] = useState(false);
+  const serverVariantMaps = useMemo(() => {
+    const activeAttributes = getActiveAttributes(attributes);
+    if (!variantsData || activeAttributes.length === 0) return null;
+    return buildServerVariantMaps(variantsData.options ?? [], activeAttributes, basePrice);
+  }, [variantsData, attributes, basePrice]);
 
   const initialOptionIds = useMemo(
     () => variantsData?.options?.map((option) => option.id) ?? [],
@@ -365,11 +425,20 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
   );
 
   useEffect(() => {
+    // Reset local draft when opening another product variant page.
+    setAttributes([]);
+    setVariants([]);
+    setValueInputs({});
+    setIsDirty(false);
+  }, [id]);
+
+  useEffect(() => {
+    if (!variantsData || !product || isDirty) return;
     const initial = buildInitialState(variantsData, basePrice, skuPrefix);
     setAttributes(initial.attributes);
     setVariants(initial.variants);
     setValueInputs({});
-  }, [variantsData, basePrice, skuPrefix]);
+  }, [variantsData, product, basePrice, skuPrefix, isDirty]);
 
   useEffect(() => {
     setVariants((prev) => {
@@ -391,9 +460,29 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
           selections,
         };
       });
-      return mergePreserve(prev, generated);
+      const merged = mergePreserve(prev, generated);
+      if (isDirty || !serverVariantMaps) {
+        return merged;
+      }
+      return merged.map((variant) => {
+        const serverVariant =
+          serverVariantMaps.bySignature.get(variant.signature) ??
+          serverVariantMaps.bySku.get(variant.sku.trim().toUpperCase());
+        if (!serverVariant) return variant;
+        return {
+          ...variant,
+          id: String(serverVariant.optionId),
+          optionId: serverVariant.optionId,
+          sku: serverVariant.sku,
+          price: serverVariant.price,
+          stock: serverVariant.stock,
+          image: serverVariant.image,
+          selections: serverVariant.selections,
+          displayName: serverVariant.displayName || variant.displayName,
+        };
+      });
     });
-  }, [attributes, basePrice, skuPrefix]);
+  }, [attributes, basePrice, skuPrefix, isDirty, serverVariantMaps]);
 
   const createGroupMutation = useMutation({
     mutationFn: async (payload: { name: string; sort_order?: number }) =>
@@ -496,6 +585,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     validation.variantErrors.size > 0;
 
   const handleChangeAttributeName = (attributeId: string, value: string) => {
+    setIsDirty(true);
     setAttributes((prev) =>
       prev.map((attr) =>
         attr.id === attributeId ? { ...attr, name: value } : attr,
@@ -506,6 +596,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
   const handleAddValue = (attributeId: string) => {
     const inputValue = (valueInputs[attributeId] ?? "").trim();
     if (!inputValue) return;
+    setIsDirty(true);
     setAttributes((prev) =>
       prev.map((attr) => {
         if (attr.id !== attributeId) return attr;
@@ -536,6 +627,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     valueId: string,
     label: string,
   ) => {
+    setIsDirty(true);
     setAttributes((prev) =>
       prev.map((attr) => {
         if (attr.id !== attributeId) return attr;
@@ -598,6 +690,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
           return;
         }
       }
+      setIsDirty(true);
       setAttributes((prev) =>
         prev.filter((attr) => attr.id !== pendingDelete.attributeId),
       );
@@ -605,6 +698,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     }
 
     if (pendingDelete.type === "value") {
+      setIsDirty(true);
       setAttributes((prev) =>
         prev.map((attr) =>
           attr.id === pendingDelete.attributeId
@@ -632,6 +726,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
           return;
         }
       }
+      setIsDirty(true);
       setVariants((prev) =>
         prev.filter((variant) => variant.signature !== pendingDelete.signature),
       );
@@ -642,6 +737,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
   };
 
   const updateVariant = (signature: string, patch: Partial<ProductVariant>) => {
+    setIsDirty(true);
     setVariants((prev) =>
       prev.map((variant) =>
         variant.signature === signature ? { ...variant, ...patch } : variant,
@@ -689,6 +785,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       toast.error("Harga harus berupa angka >= 0");
       return;
     }
+    setIsDirty(true);
     setVariants((prev) =>
       prev.map((variant) => ({ ...variant, price: value })),
     );
@@ -702,6 +799,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       toast.error("Stok harus berupa angka >= 0");
       return;
     }
+    setIsDirty(true);
     setVariants((prev) =>
       prev.map((variant) => ({ ...variant, stock: value })),
     );
@@ -738,6 +836,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
         ...prev,
         { id: idValue, backendId: created.id, name: created.name, values: [] },
       ]);
+      setIsDirty(true);
       setNewAttributeName("");
       setNewAttributeOpen(false);
       toast.success("Atribut berhasil ditambahkan.");
@@ -799,6 +898,13 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
         return;
       }
 
+      const existingOptionBySku = new Map(
+        (variantsData?.options ?? []).map((option) => [
+          option.sku.trim().toUpperCase(),
+          option,
+        ]),
+      );
+
       const tasks = variants.map((variant) => {
         const payload = {
           sku: variant.sku.trim(),
@@ -808,10 +914,13 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
           track_stock: true,
           variant_group_id: primaryGroupId,
         };
-        if (variant.optionId) {
+        const fallbackOptionId =
+          variant.optionId ??
+          existingOptionBySku.get(payload.sku.toUpperCase())?.id;
+        if (fallbackOptionId) {
           return updateInventoryVariantOption(
             id,
-            variant.optionId,
+            fallbackOptionId,
             payload,
           ).then(ensureSuccess);
         }
@@ -825,7 +934,9 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
         string,
         (typeof savedOptions)[number]
       >();
+      const optionSkuMap = new Map<string, (typeof savedOptions)[number]>();
       savedOptions.forEach((option) => {
+        optionSkuMap.set(option.sku.trim().toUpperCase(), option);
         const attrs = option.attributes ?? {};
         const selections: VariantSelection[] = activeAttributes
           .map((attr) => {
@@ -844,7 +955,9 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
 
       setVariants((prev) =>
         prev.map((variant) => {
-          const option = optionSignatureMap.get(variant.signature);
+          const option =
+            optionSignatureMap.get(variant.signature) ??
+            optionSkuMap.get(variant.sku.trim().toUpperCase());
           if (!option) return variant;
           return {
             ...variant,
@@ -858,9 +971,13 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
         }),
       );
 
-      const currentOptionIds = new Set(
-        variants.map((variant) => variant.optionId).filter(Boolean) as number[],
-      );
+      const currentOptionIds = new Set<number>();
+      savedOptions.forEach((option) => currentOptionIds.add(option.id));
+      variants.forEach((variant) => {
+        if (variant.optionId) currentOptionIds.add(variant.optionId);
+        const existing = existingOptionBySku.get(variant.sku.trim().toUpperCase());
+        if (existing?.id) currentOptionIds.add(existing.id);
+      });
       const removedOptionIds = initialOptionIds.filter(
         (optionId) => !currentOptionIds.has(optionId),
       );
@@ -872,7 +989,11 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
         );
       }
 
-      qc.invalidateQueries({ queryKey: QK.inventory.variants(id) });
+      await qc.invalidateQueries({ queryKey: QK.inventory.variants(id) });
+      await qc.invalidateQueries({ queryKey: QK.inventory.detail(id) });
+      await qc.invalidateQueries({ queryKey: QK.inventory.stats(id) });
+      await qc.refetchQueries({ queryKey: QK.inventory.variants(id) });
+      setIsDirty(false);
       toast.success("Varian berhasil disimpan");
     } catch (err: any) {
       toast.error(err?.message || "Gagal menyimpan varian");

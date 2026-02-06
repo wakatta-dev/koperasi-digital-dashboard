@@ -3,7 +3,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -77,8 +83,10 @@ const formatHistory = (entries: InventoryEvent[]): HistoryRow[] => {
 
 const badgeClass: Record<HistoryRow["type"], string> = {
   Penjualan: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  Restock: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  Penyesuaian: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  Restock:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  Penyesuaian:
+    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
 };
 
 export type ProductInventoryHistoryModalProps = Readonly<{
@@ -142,7 +150,14 @@ export function ProductInventoryHistoryModal({
 
   const handleExport = () => {
     const csvRows = [
-      ["Tanggal", "Waktu", "Tipe Aktivitas", "Referensi", "Perubahan", "Stok Akhir"],
+      [
+        "Tanggal",
+        "Waktu",
+        "Tipe Aktivitas",
+        "Referensi",
+        "Perubahan",
+        "Stok Akhir",
+      ],
       ...rows.map((row) => [
         row.date,
         row.time,
@@ -164,13 +179,15 @@ export function ProductInventoryHistoryModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        overlayClassName="bg-gray-900/40 backdrop-blur-[2px]"
-        className="bg-background-light dark:bg-background-dark w-full max-w-6xl rounded-xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700 p-0"
+        overlayClassName="bg-slate-900/60 backdrop-blur-sm"
+        className="w-[min(100%-2rem,1100px)] max-w-none rounded-2xl border border-white/50 bg-white p-0 shadow-[0_30px_90px_rgba(2,6,23,0.5)] dark:border-slate-700 dark:bg-slate-900"
         showCloseButton={false}
       >
-        <DialogTitle className="sr-only">Riwayat Inventaris Lengkap</DialogTitle>
-        <div className="max-h-[90vh] overflow-y-auto">
-          <div className="p-8 space-y-6">
+        <DialogTitle className="sr-only">
+          Riwayat Inventaris Lengkap
+        </DialogTitle>
+        <div className="max-h-[88vh] overflow-y-auto">
+          <div className="space-y-6 p-8 md:p-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -178,7 +195,7 @@ export function ProductInventoryHistoryModal({
                     type="button"
                     variant="ghost"
                     onClick={() => onOpenChange(false)}
-                    className="text-indigo-600 hover:text-indigo-700 transition-colors inline-flex items-center text-sm font-medium h-auto px-0"
+                    className="inline-flex h-auto items-center px-0 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700"
                   >
                     <ChevronLeft className="h-4 w-4 mr-1" /> Kembali ke Detail
                   </Button>
@@ -199,7 +216,7 @@ export function ProductInventoryHistoryModal({
                   type="button"
                   variant="outline"
                   onClick={handleExport}
-                  className="px-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
+                  className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300 dark:hover:bg-slate-800"
                 >
                   <Download className="h-4 w-4" />
                   <span>Export CSV</span>
@@ -207,9 +224,9 @@ export function ProductInventoryHistoryModal({
               </div>
             </div>
 
-            <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[240px]">
+            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-900">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Rentang Tanggal
                   </label>
@@ -219,7 +236,7 @@ export function ProductInventoryHistoryModal({
                         type="date"
                         value={dateFrom}
                         onChange={(event) => setDateFrom(event.target.value)}
-                        className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm py-2.5 pl-10 focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
+                        className="w-full rounded-lg border-gray-200 bg-white py-2.5 pl-10 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
                       />
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                     </div>
@@ -228,29 +245,31 @@ export function ProductInventoryHistoryModal({
                         type="date"
                         value={dateTo}
                         onChange={(event) => setDateTo(event.target.value)}
-                        className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm py-2.5 pl-10 focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
+                        className="w-full rounded-lg border-gray-200 bg-white py-2.5 pl-10 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
                       />
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                     </div>
                   </div>
                 </div>
-                <div className="w-48">
+                <div>
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Tipe Aktivitas
                   </label>
                   <Select value={activityType} onValueChange={setActivityType}>
-                    <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm py-2.5 focus:ring-indigo-600 focus:border-indigo-600">
+                    <SelectTrigger className="w-full rounded-lg border-gray-200 bg-white py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Semua Aktivitas">Semua Aktivitas</SelectItem>
+                      <SelectItem value="Semua Aktivitas">
+                        Semua Aktivitas
+                      </SelectItem>
                       <SelectItem value="Penjualan">Penjualan</SelectItem>
                       <SelectItem value="Restock">Restock</SelectItem>
                       <SelectItem value="Penyesuaian">Penyesuaian</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-48">
+                <div>
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Cari Referensi
                   </label>
@@ -259,12 +278,12 @@ export function ProductInventoryHistoryModal({
                       value={searchValue}
                       onChange={(event) => setSearchValue(event.target.value)}
                       placeholder="ID Invoice / Gudang"
-                      className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm py-2.5 pl-10 focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
+                      className="w-full rounded-lg border-gray-200 bg-white py-2.5 pl-10 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
                     />
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                   </div>
                 </div>
-                <div className="flex items-end self-end h-[42px]">
+                <div className="flex items-end">
                   <Button
                     type="button"
                     variant="ghost"
@@ -274,7 +293,7 @@ export function ProductInventoryHistoryModal({
                       setActivityType("Semua Aktivitas");
                       setSearchValue("");
                     }}
-                    className="h-full px-5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="h-[42px] rounded-lg px-5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800"
                   >
                     Reset
                   </Button>
@@ -282,7 +301,7 @@ export function ProductInventoryHistoryModal({
               </div>
             </div>
 
-            <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
               <Table className="w-full text-left">
                 <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
                   <TableRow>
@@ -346,38 +365,41 @@ export function ProductInventoryHistoryModal({
                       </TableCell>
                     </TableRow>
                   ))}
-              </TableBody>
-            </Table>
-            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Menampilkan {pagedRows.length} dari {rows.length} riwayat ditemukan
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
-                  disabled={page <= 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm font-medium text-gray-900 dark:text-white px-3 py-1 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-md">
-                  {page}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-400 hover:text-indigo-600 transition-colors"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                </TableBody>
+              </Table>
+              <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Menampilkan {pagedRows.length} dari {rows.length} riwayat
+                  ditemukan
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                    disabled={page <= 1}
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-900 dark:border-gray-700 dark:bg-slate-900 dark:text-white">
+                    {page}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-400 hover:text-indigo-600 transition-colors"
+                    disabled={page >= totalPages}
+                    onClick={() =>
+                      setPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
             </div>
           </div>
         </div>
