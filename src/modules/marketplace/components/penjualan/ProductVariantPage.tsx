@@ -93,11 +93,28 @@ export type ProductVariantPageProps = Readonly<{
 }>;
 
 const SKU_MAX_LENGTH = 100;
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+]);
 
 const normalizeCode = (value: string): string => {
   const trimmed = value.trim().toUpperCase();
   const replaced = trimmed.replace(/\s+/g, "-").replace(/[^A-Z0-9-]/g, "-");
   return replaced.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+};
+
+const validateVariantImageFile = (file: File): string | null => {
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return "Format gambar tidak didukung. Gunakan PNG, JPG, atau WEBP.";
+  }
+  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE_BYTES) {
+    return "Ukuran gambar maksimal 5 MB.";
+  }
+  return null;
 };
 
 const normalizeKey = (value: string): string =>
@@ -752,6 +769,11 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     if (!file) return;
     if (!variant.optionId) {
       toast.error("Simpan varian terlebih dahulu sebelum menambah gambar.");
+      return;
+    }
+    const validationError = validateVariantImageFile(file);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
     try {

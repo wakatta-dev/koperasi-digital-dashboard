@@ -19,7 +19,18 @@ import { mapInventoryProduct } from "@/modules/inventory/utils";
 const PAGE_SIZE = 10;
 const DEFAULT_PRODUCT_STATUSES = ["Tersedia", "Menipis", "Habis"] as const;
 
-const resolveStockStatus = (stock: number, minStock?: number, trackStock?: boolean) => {
+const resolveStockStatus = (
+  stock: number,
+  minStock?: number,
+  trackStock?: boolean,
+  hasVariants?: boolean,
+  variantInStock?: boolean,
+  variantPriceValid?: boolean,
+) => {
+  if (hasVariants) {
+    if (!variantPriceValid || !variantInStock) return "Habis";
+    return "Tersedia";
+  }
   if (!trackStock) return "Tersedia";
   if (stock <= 0) return "Habis";
   if (typeof minStock === "number" && stock <= minStock) return "Menipis";
@@ -92,8 +103,15 @@ export function ProductListPage() {
         name: item.name,
         sku: item.sku,
         category: item.category ?? "-",
-        status: resolveStockStatus(item.stock, item.minStock, item.trackStock),
-        stockCount: item.trackStock ? item.stock : 0,
+        status: resolveStockStatus(
+          item.stock,
+          item.minStock,
+          item.trackStock,
+          item.product.has_variants,
+          item.product.variant_in_stock,
+          item.product.variant_price_valid,
+        ),
+        stockCount: item.product.has_variants ? item.stock : item.trackStock ? item.stock : 0,
         price: item.price,
         thumbnailUrl: item.image,
       })),

@@ -31,6 +31,8 @@ export const API_PREFIX = "/api";
 const MAX_CONCURRENT_REQUESTS = 5;
 const RATE_LIMIT_MAX_RETRIES = 3;
 const RATE_LIMIT_BASE_DELAY_MS = 750;
+const NETWORK_MAX_RETRIES = 1;
+const NETWORK_RETRY_DELAY_MS = 400;
 
 const requestQueue: Array<() => void> = [];
 let activeRequests = 0;
@@ -108,12 +110,18 @@ async function request<T>(
 
   let retries = 0;
   let authRetried = false;
+  let networkRetries = 0;
 
   while (true) {
     let res: Response;
     try {
       res = await limitedFetch(`${BASE_URL}${path}`, { ...options, headers, body });
     } catch (err) {
+      if (networkRetries < NETWORK_MAX_RETRIES) {
+        networkRetries += 1;
+        await wait(NETWORK_RETRY_DELAY_MS);
+        continue;
+      }
       console.error("request error:", err);
       return {
         success: false,
