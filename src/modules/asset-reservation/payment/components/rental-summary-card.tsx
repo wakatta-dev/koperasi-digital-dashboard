@@ -26,10 +26,10 @@ export function RentalSummaryCard({ reservation }: RentalSummaryCardProps) {
     : "-";
 
   return (
-    <section className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#4338ca] to-indigo-400" />
+    <section className="surface-form rounded-2xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-primary to-indigo-400" />
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-gray-800">
-        <span className="material-icons-outlined text-[#4338ca]">receipt_long</span>
+        <span className="material-icons-outlined text-brand-primary">receipt_long</span>
         Ringkasan Sewa
       </h2>
       <div className="flex flex-col md:flex-row gap-6">
@@ -69,7 +69,7 @@ export function RentalSummaryCard({ reservation }: RentalSummaryCardProps) {
             <p className="text-xs text-indigo-600 dark:text-indigo-300 font-medium mb-1">
               Pembayaran DP (30%)
             </p>
-            <p className="text-2xl font-extrabold text-[#4338ca]">
+            <p className="text-2xl font-extrabold text-brand-primary">
               Rp{reservation.amounts.dp.toLocaleString("id-ID")}
             </p>
           </div>

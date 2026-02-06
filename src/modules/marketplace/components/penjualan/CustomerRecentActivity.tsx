@@ -39,7 +39,7 @@ export function CustomerRecentActivity({ activities }: CustomerRecentActivityPro
       <h3 className="text-base font-semibold text-gray-900 dark:text-white px-1">
         Aktivitas Terkini
       </h3>
-      <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+      <div className="surface-card p-6">
         <ol className="relative border-l border-gray-200 dark:border-gray-700 ml-3">
           {activities.map((activity) => {
             const style = ACTIVITY_STYLE[activity.type];

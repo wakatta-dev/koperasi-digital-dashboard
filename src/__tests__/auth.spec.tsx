@@ -26,8 +26,7 @@ vi.mock("@/services/auth", async () => {
   };
 });
 
-let LoginForm: typeof import("@/components/shared/login-form").LoginForm;
-let LanguageProvider: typeof import("@/contexts/language-context").LanguageProvider;
+let AuthLoginForm: typeof import("@/modules/auth/components/login-form").AuthLoginForm;
 let refreshAccessToken: typeof import("@/lib/authOptions").refreshAccessToken;
 let logout: typeof import("@/services/auth").logout;
 let login: typeof import("@/services/auth").login;
@@ -41,9 +40,8 @@ beforeEach(async () => {
   process.env.NEXTAUTH_SECRET = "secret";
   process.env.NEXTAUTH_URL_INTERNAL = "http://localhost:3000";
   vi.resetModules();
-  LoginForm = (await import("@/components/shared/login-form")).LoginForm;
-  LanguageProvider = (await import("@/contexts/language-context"))
-    .LanguageProvider;
+  AuthLoginForm = (await import("@/modules/auth/components/login-form"))
+    .AuthLoginForm;
   refreshAccessToken = (await import("@/lib/authOptions")).refreshAccessToken;
   ({ logout, login, refreshToken } = await import("@/services/auth"));
   ({ getSession, signOut } = await import("next-auth/react"));
@@ -68,19 +66,17 @@ describe("auth flow", () => {
     (login as any).mockResolvedValue(loginFixture);
     (getSession as any).mockResolvedValue({ user: { jenis_tenant: "umkm" } });
 
-    const { getByLabelText, getByRole } = render(
-      <LanguageProvider>
-        <LoginForm />
-      </LanguageProvider>
+    const { getByLabelText, getByPlaceholderText, getByRole } = render(
+      <AuthLoginForm />
     );
 
     fireEvent.change(getByLabelText(/email/i), {
       target: { value: "user@example.com" },
     });
-    fireEvent.change(getByLabelText(/password/i), {
+    fireEvent.change(getByPlaceholderText(/masukkan kata sandi/i), {
       target: { value: "secret" },
     });
-    fireEvent.click(getByRole("button"));
+    fireEvent.click(getByRole("button", { name: /masuk/i }));
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith("/umkm/account");

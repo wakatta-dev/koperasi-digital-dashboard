@@ -29,7 +29,7 @@ export function DetailFacilities({
             key={facility.label}
             className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
           >
-            <span className="material-icons-outlined text-[#4338ca]">{facility.icon}</span>
+            <span className="material-icons-outlined text-brand-primary">{facility.icon}</span>
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {facility.label}
             </span>

@@ -18,7 +18,7 @@ export function LandingFooter({ footer, brandName }: LandingFooterProps) {
       footer?.columns && footer.columns.length > 0 ? footer.columns : fallback.columns,
   };
   return (
-    <footer className="bg-[#312e81] text-white pt-16 pb-8">
+    <footer className="bg-brand-deep text-white pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2 lg:col-span-1">

@@ -17,7 +17,7 @@ export function LandingHero({ hero }: LandingHeroProps) {
     return null;
   }
   return (
-    <header className="pt-32 pb-16 lg:pt-40 lg:pb-24 bg-[#f8fafc] dark:bg-[#0f172a] overflow-hidden">
+    <header className="pt-32 pb-16 lg:pt-40 lg:pb-24 bg-surface-subtle dark:bg-surface-dark overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 z-10 relative">
@@ -30,7 +30,7 @@ export function LandingHero({ hero }: LandingHeroProps) {
             <div className="flex flex-wrap gap-4">
               <Button
                 asChild
-                className="bg-[#4338ca] hover:bg-[#3730a3] text-white px-8 py-3.5 rounded-full font-semibold transition shadow-lg shadow-indigo-500/30"
+                className="bg-brand-primary hover:bg-brand-primary-hover text-white px-8 py-3.5 rounded-full font-semibold transition shadow-lg shadow-indigo-500/30"
               >
                 <Link href={data.cta_url || "#products"}>
                   {data.cta_label || "Jelajahi Produk Desa"}
@@ -48,7 +48,7 @@ export function LandingHero({ hero }: LandingHeroProps) {
                 className="object-cover"
               />
             </div>
-            <div className="absolute left-0 bottom-0 w-1/2 h-1/2 rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-[#0f172a] z-20 transform -translate-y-8 lg:translate-y-0">
+            <div className="absolute left-0 bottom-0 w-1/2 h-1/2 rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-surface-dark z-20 transform -translate-y-8 lg:translate-y-0">
               <Image
                 src={data.illustration_left_url || fallback.illustration_left_url}
                 alt="Warga desa berdiskusi"

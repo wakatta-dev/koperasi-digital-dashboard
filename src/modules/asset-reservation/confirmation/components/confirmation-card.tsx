@@ -31,7 +31,7 @@ export function ConfirmationCard({ reservation }: ConfirmationCardProps) {
       : "Tidak tersedia";
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100 dark:border-gray-700 text-center relative overflow-hidden">
+    <div className="bg-white dark:bg-surface-card-dark rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100 dark:border-gray-700 text-center relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-teal-400" />
       <div className="absolute -top-24 -right-24 w-64 h-64 bg-green-50 dark:bg-green-900/10 rounded-full blur-3xl opacity-60 pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/10 rounded-full blur-3xl opacity-60 pointer-events-none" />
@@ -58,11 +58,11 @@ export function ConfirmationCard({ reservation }: ConfirmationCardProps) {
           Nomor Reservasi Anda
         </p>
         <div className="flex items-center justify-center gap-3">
-          <span className="text-xl md:text-2xl font-mono font-bold text-[#4338ca] dark:text-indigo-400">
+          <span className="text-xl md:text-2xl font-mono font-bold text-brand-primary dark:text-indigo-400">
             {reservation.reservationId}
           </span>
           <button
-            className="text-gray-400 hover:text-[#4338ca] transition"
+            className="text-gray-400 hover:text-brand-primary transition"
             type="button"
             title="Salin Kode"
           >
@@ -73,7 +73,7 @@ export function ConfirmationCard({ reservation }: ConfirmationCardProps) {
 
       <div className="text-left bg-gray-50 dark:bg-gray-800/30 rounded-2xl p-6 mb-10 border border-gray-100 dark:border-gray-700">
         <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <span className="material-icons-outlined text-[#4338ca] text-lg">receipt_long</span>
+          <span className="material-icons-outlined text-brand-primary text-lg">receipt_long</span>
           Ringkasan Reservasi
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
@@ -108,7 +108,7 @@ export function ConfirmationCard({ reservation }: ConfirmationCardProps) {
       <div className="flex flex-col md:flex-row items-center justify-center gap-4">
         <Button
           asChild
-          className="w-full md:w-auto px-8 py-3.5 bg-[#4338ca] hover:bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 transition transform active:scale-[0.98] flex items-center justify-center gap-2"
+          className="w-full md:w-auto px-8 py-3.5 bg-brand-primary hover:bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 transition transform active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <Link href="/penyewaan-aset/status">
             <span className="material-icons-outlined">calendar_month</span>
@@ -126,7 +126,7 @@ export function ConfirmationCard({ reservation }: ConfirmationCardProps) {
 
       <div className="mt-8">
         <Link
-          className="text-sm text-[#4338ca] hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline inline-flex items-center gap-1"
+          className="text-sm text-brand-primary hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline inline-flex items-center gap-1"
           href="/penyewaan-aset"
         >
           <span className="material-icons-outlined text-base">arrow_back</span>

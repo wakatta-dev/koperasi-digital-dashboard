@@ -20,7 +20,7 @@ export function TestimonialSection({ testimonials }: TestimonialProps) {
   };
   const active = data.items[0];
   return (
-    <section className="py-20 bg-blue-50/50 dark:bg-[#0f172a]">
+    <section className="py-20 bg-blue-50/50 dark:bg-surface-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -40,7 +40,7 @@ export function TestimonialSection({ testimonials }: TestimonialProps) {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-[#1e293b] p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 relative">
+          <div className="bg-white dark:bg-surface-card-dark p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 relative">
             <div className="flex items-center text-yellow-400 mb-4">
               {Array.from({ length: active?.rating ?? 5 }).map((_, idx) => (
                 <span key={idx} className="material-icons-outlined text-sm">

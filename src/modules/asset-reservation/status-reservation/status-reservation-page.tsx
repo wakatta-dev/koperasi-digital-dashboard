@@ -38,7 +38,7 @@ export function StatusReservationPage({
 
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen flex flex-col">
+      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
         <LandingNavbar activeLabel="Penyewaan Aset" />
         <main className="flex-grow pt-20">
           <SecureInfoBar />
@@ -48,7 +48,7 @@ export function StatusReservationPage({
             {hasSignature ? (
               <>
                 {isLoading ? (
-                  <div className="rounded-3xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1e293b] p-8 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="rounded-3xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-surface-card-dark p-8 text-sm text-gray-500 dark:text-gray-400">
                     Memuat data reservasi...
                   </div>
                 ) : (
@@ -67,7 +67,7 @@ export function StatusReservationPage({
                 ) : null}
               </>
             ) : (
-              <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-md text-center">
+              <div className="bg-white dark:bg-surface-card-dark rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-md text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 mb-4">
                   <span className="material-icons-outlined text-amber-600 dark:text-amber-400 text-3xl">
                     lock

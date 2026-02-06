@@ -25,7 +25,7 @@ export function CustomerProfileCard({
   membershipLabel = "Gold Member",
 }: CustomerProfileCardProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+    <div className="surface-card p-6">
       <div className="flex flex-col items-center text-center">
         <div className="w-24 h-24 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-3xl font-bold mb-4 shadow-sm border-4 border-white dark:border-surface-dark">
           {customer.initials}

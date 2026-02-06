@@ -12,7 +12,7 @@ export type OrderNotesFormProps = Readonly<{
 
 export function OrderNotesForm({ value, onChange, onSave }: OrderNotesFormProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden p-6">
+    <div className="surface-table p-6">
       <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Catatan</h3>
       <Textarea
         value={value}

@@ -275,7 +275,7 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
 
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen flex flex-col">
+      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
         <LandingNavbar activeLabel="Penyewaan Aset" />
         <main className="flex-grow pt-20">
           <StatusBreadcrumb currentLabel="Detail Permintaan" />
@@ -379,7 +379,7 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
                             {asset.title || "Aset"}
                           </h2>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-[#4338ca]">
+                            <p className="text-2xl font-bold text-brand-primary">
                               {asset.price || "-"}
                               <span className="text-base font-normal text-gray-500 dark:text-gray-400">
                                 {asset.unit}

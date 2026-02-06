@@ -17,7 +17,7 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/components/ui/input-group";
+} from "@/components/shared/inputs/input-group";
 import { DataTable } from "@/components/shared/data-table";
 import Link from "next/link";
 import { InventoryItem } from "@/modules/inventory/types";

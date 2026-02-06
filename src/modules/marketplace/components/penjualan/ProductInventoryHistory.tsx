@@ -20,7 +20,7 @@ export function ProductInventoryHistory({
   onViewAll,
 }: ProductInventoryHistoryProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div className="surface-table">
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="font-semibold text-gray-900 dark:text-white">Riwayat Inventaris</h3>
         <div className="flex gap-2 items-center">

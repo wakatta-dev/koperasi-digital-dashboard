@@ -1077,7 +1077,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       </div>
 
       <div className="space-y-6 pb-12">
-        <section className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section className="surface-card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
             Atribut Varian
           </h3>
@@ -1201,7 +1201,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
           </div>
         </section>
 
-        <section className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <section className="surface-table">
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

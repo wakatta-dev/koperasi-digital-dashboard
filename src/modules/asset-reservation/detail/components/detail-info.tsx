@@ -15,7 +15,7 @@ export function DetailInfo({ title, price, unit, location }: DetailInfoProps) {
           {title}
         </h1>
         <div className="text-right">
-          <p className="text-2xl font-bold text-[#4338ca]">
+          <p className="text-2xl font-bold text-brand-primary">
             {price}
             <span className="text-base font-normal text-gray-500 dark:text-gray-400">{unit}</span>
           </p>

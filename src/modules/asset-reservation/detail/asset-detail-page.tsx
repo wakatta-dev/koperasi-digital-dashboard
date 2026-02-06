@@ -110,7 +110,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen flex flex-col">
+      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
         <LandingNavbar activeLabel="Penyewaan Aset" />
         <main className="flex-grow pt-20">
           <DetailBreadcrumb currentLabel="Detail Aset" />

@@ -23,7 +23,7 @@ export function ReservationSummaryCard({
 }: ReservationSummaryCardProps) {
   if (!reservation) {
     return (
-      <div className="bg-white dark:bg-[#1e293b] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-8 text-center text-sm text-gray-600 dark:text-gray-300">
+      <div className="bg-white dark:bg-surface-card-dark rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 p-8 text-center text-sm text-gray-600 dark:text-gray-300">
         Data reservasi tidak tersedia.
       </div>
     );
@@ -100,7 +100,7 @@ export function ReservationSummaryCard({
   const statusLabel = humanizeReservationStatus(reservation.status);
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
+    <div className="bg-white dark:bg-surface-card-dark rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
       <div className="bg-gradient-to-r from-emerald-500/10 to-teal-400/10 p-6 border-b border-emerald-500/10 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
         <div className="flex-shrink-0 bg-emerald-500 text-white rounded-full p-2">
           <span className="material-icons-outlined text-3xl">check</span>
@@ -119,10 +119,10 @@ export function ReservationSummaryCard({
             Nomor Reservasi Anda
           </p>
           <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 flex items-center gap-3">
-            <span className="text-xl md:text-2xl font-mono font-bold text-[#4338ca] dark:text-indigo-400">
+            <span className="text-xl md:text-2xl font-mono font-bold text-brand-primary dark:text-indigo-400">
               {secureId}
             </span>
-            <button className="text-gray-400 hover:text-[#4338ca] transition" title="Salin Kode">
+            <button className="text-gray-400 hover:text-brand-primary transition" title="Salin Kode">
               <span className="material-icons-outlined text-lg">content_copy</span>
             </button>
           </div>
@@ -130,7 +130,7 @@ export function ReservationSummaryCard({
 
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-8">
           <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
-            <span className="material-icons-outlined text-[#4338ca] text-lg">domain</span>
+            <span className="material-icons-outlined text-brand-primary text-lg">domain</span>
             Ringkasan Reservasi
           </h3>
           <div className="flex flex-col md:flex-row gap-6">
@@ -175,7 +175,7 @@ export function ReservationSummaryCard({
                 </span>
               </div>
               <div className="sm:col-span-2 mt-2">
-                <div className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm">
+                <div className="bg-white dark:bg-surface-card-dark border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm">
                   <div className="flex flex-col gap-2.5">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600 dark:text-gray-300">Total Biaya Sewa</span>
@@ -207,7 +207,7 @@ export function ReservationSummaryCard({
                       </span>
                     </div>
                     {typeof remainingAmount === "number" && paymentHref ? (
-                      <Button className="mt-3 w-full bg-[#4338ca] hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group" asChild>
+                      <Button className="mt-3 w-full bg-brand-primary hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group" asChild>
                         <Link href={paymentHref}>
                           <span>
                             {reservation.status === "awaiting_dp" ? "Bayar DP" : "Lanjutkan Pelunasan"}
@@ -228,7 +228,7 @@ export function ReservationSummaryCard({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
               <div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-              <span className="material-icons-outlined text-[#4338ca] text-lg">person</span>
+              <span className="material-icons-outlined text-brand-primary text-lg">person</span>
               Detail Penyewa
             </h3>
             <div className="space-y-3">
@@ -240,7 +240,7 @@ export function ReservationSummaryCard({
           </div>
           <div className="flex flex-col">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-              <span className="material-icons-outlined text-[#4338ca] text-lg">admin_panel_settings</span>
+              <span className="material-icons-outlined text-brand-primary text-lg">admin_panel_settings</span>
               Pesan dari Manajemen
             </h3>
             <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl p-4 flex-grow">
@@ -257,7 +257,7 @@ export function ReservationSummaryCard({
 
         <div className="mb-10">
           <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-          <span className="material-icons-outlined text-[#4338ca] text-lg">description</span>
+          <span className="material-icons-outlined text-brand-primary text-lg">description</span>
           Detail Aset
         </h3>
           <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
@@ -270,9 +270,9 @@ export function ReservationSummaryCard({
 
         {hasSignature ? (
           <div className="space-y-4">
-            <div className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+            <div className="bg-white dark:bg-surface-card-dark border border-gray-200 dark:border-gray-700 rounded-xl p-4">
               <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <span className="material-icons-outlined text-[#4338ca] text-lg">timeline</span>
+                <span className="material-icons-outlined text-brand-primary text-lg">timeline</span>
                 Linimasa Pembayaran
               </h4>
               <ol className="space-y-3 text-sm text-gray-700 dark:text-gray-200">
@@ -324,7 +324,7 @@ export function ReservationSummaryCard({
             {reservation.status === "confirmed_full" ? (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <Button
-                  className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-semibold shadow-sm transition flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-surface-card-dark border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-semibold shadow-sm transition flex items-center justify-center gap-2"
                   type="button"
                   onClick={proofAvailable ? onDownload : undefined}
                   disabled={!proofAvailable}
@@ -333,7 +333,7 @@ export function ReservationSummaryCard({
                   Unduh Bukti / Invoice
                 </Button>
                 <Button
-                  className="w-full sm:w-auto px-6 py-3 bg-[#4338ca] hover:bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-brand-primary hover:bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2"
                   asChild
                 >
                   <a href="#">Bagikan Tautan Aman</a>

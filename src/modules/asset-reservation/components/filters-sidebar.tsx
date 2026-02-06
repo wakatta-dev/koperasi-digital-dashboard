@@ -27,7 +27,7 @@ export function AssetFiltersSidebar({
           type="button"
           variant="link"
           onClick={onReset}
-          className="text-xs text-[#4338ca] font-medium hover:underline px-0 h-auto"
+          className="text-xs text-brand-primary font-medium hover:underline px-0 h-auto"
         >
           Reset
         </Button>
@@ -45,12 +45,12 @@ export function AssetFiltersSidebar({
           >
             <Checkbox
               checked={selectedCategory === category}
-              className="h-4 w-4 border-gray-300 dark:border-gray-600 data-[state=checked]:bg-[#4338ca] data-[state=checked]:border-[#4338ca]"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 data-[state=checked]:bg-brand-primary data-[state=checked]:border-brand-primary"
               onCheckedChange={(checked) =>
                 onCategoryChange?.(checked ? category : undefined)
               }
             />
-            <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-[#4338ca] transition">
+            <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-brand-primary transition">
               {category}
             </span>
           </label>

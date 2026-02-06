@@ -14,7 +14,7 @@ import {
   type BusinessUnitConfig,
   type BusinessUnitSelection,
 } from "@/types/landing-page";
-import { LandingEmptyState } from "@/components/landing-page/empty-state";
+import { LandingEmptyState } from "@/modules/landing/components/landing-empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,7 +155,7 @@ export default function UnitUsahaPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-12 space-y-6">
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="surface-table">
             <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center">
               <h2 className="text-sm font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">view_list</span>

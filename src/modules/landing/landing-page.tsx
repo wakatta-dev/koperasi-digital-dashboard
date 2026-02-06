@@ -102,7 +102,7 @@ export function LandingPage() {
   const navigation = useMemo(() => config.navigation, [config.navigation]);
 
   return (
-    <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen">
+    <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen">
       <LandingNavbar activeLabel="Beranda" navigation={navigation} />
       <main>
         <LandingHero hero={config.hero} />

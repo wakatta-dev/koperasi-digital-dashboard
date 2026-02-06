@@ -29,7 +29,7 @@ export function DetailRecommendations({ currentId }: DetailRecommendationsProps)
         </h2>
         <Link
           href="/penyewaan-aset"
-          className="text-[#4338ca] font-semibold hover:text-indigo-600 flex items-center gap-1 text-sm"
+          className="text-brand-primary font-semibold hover:text-indigo-600 flex items-center gap-1 text-sm"
         >
           Lihat Semua <span className="material-icons-outlined text-lg">arrow_forward</span>
         </Link>
@@ -39,7 +39,7 @@ export function DetailRecommendations({ currentId }: DetailRecommendationsProps)
           ? Array.from({ length: 3 }).map((_, idx) => (
               <div
                 key={`skeleton-${idx}`}
-                className="h-64 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#111827] animate-pulse"
+                className="h-64 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark animate-pulse"
               />
             ))
           : items.map((asset) => <AssetCard key={asset.id} asset={asset} />)}

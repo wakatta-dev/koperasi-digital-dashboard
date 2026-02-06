@@ -30,7 +30,7 @@ export function CancelRequestModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         overlayClassName="bg-gray-900/60 backdrop-blur-sm z-[100]"
-        className="max-w-lg p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-gray-700 shadow-2xl z-[101]"
+        className="max-w-lg surface-form rounded-2xl z-[101]"
         showCloseButton={false}
       >
         <button

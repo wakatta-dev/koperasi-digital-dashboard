@@ -13,7 +13,7 @@ export function ProductHighlight({ featuredProduct }: ProductHighlightProps) {
   const fallback = DEFAULT_LANDING_CONTENT.featured_product;
   const data = { ...fallback, ...featuredProduct };
   return (
-    <section className="py-20 bg-[#f8fafc] dark:bg-[#0f172a]" id="products">
+    <section className="py-20 bg-surface-subtle dark:bg-surface-dark" id="products">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -23,7 +23,7 @@ export function ProductHighlight({ featuredProduct }: ProductHighlightProps) {
             {data.description}
           </p>
         </div>
-        <div className="bg-white dark:bg-[#1e293b] rounded-3xl overflow-hidden shadow-2xl">
+        <div className="bg-white dark:bg-surface-card-dark rounded-3xl overflow-hidden shadow-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="h-[400px] lg:h-auto relative">
               <Image
@@ -35,7 +35,7 @@ export function ProductHighlight({ featuredProduct }: ProductHighlightProps) {
               />
             </div>
             <div className="p-10 lg:p-20 flex flex-col justify-center">
-              <span className="text-[#4338ca] font-bold tracking-wider uppercase mb-4 text-sm">
+              <span className="text-brand-primary font-bold tracking-wider uppercase mb-4 text-sm">
                 {PRODUCT_HIGHLIGHT.category}
               </span>
               <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">
@@ -53,7 +53,7 @@ export function ProductHighlight({ featuredProduct }: ProductHighlightProps) {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="flex items-center gap-2 text-gray-900 dark:text-white font-medium px-4 py-3 hover:text-[#4338ca] transition"
+                  className="flex items-center gap-2 text-gray-900 dark:text-white font-medium px-4 py-3 hover:text-brand-primary transition"
                 >
                   Detail <span className="material-icons-outlined">arrow_forward</span>
                 </Button>

@@ -148,7 +148,7 @@ export function ProductCategoryManagementPage() {
         </div>
       </div>
 
-      <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-4">
+      <div className="surface-card p-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="w-full sm:max-w-sm">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">

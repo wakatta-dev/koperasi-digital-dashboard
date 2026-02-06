@@ -55,7 +55,7 @@ export function StatusSidebar({
   })();
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none sticky top-24 overflow-hidden">
+    <div className="surface-card rounded-2xl sticky top-24 overflow-hidden">
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Status Permintaan</h3>
 
@@ -95,14 +95,14 @@ export function StatusSidebar({
           </div>
           <div className="flex justify-between items-center mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700">
             <span className="font-bold text-gray-900 dark:text-white">{content.summaryLabel}</span>
-            <span className="font-bold text-[#4338ca] text-xl">{price.total}</span>
+            <span className="font-bold text-brand-primary text-xl">{price.total}</span>
           </div>
         </div>
 
         <div className="space-y-3">
           {content.primaryCta ? (
             <Button
-              className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group"
+              className="w-full bg-brand-primary hover:bg-indigo-600 text-white py-3 rounded-xl font-semibold transition shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 group"
               asChild={Boolean(paymentHref)}
             >
               {paymentHref ? (
@@ -147,7 +147,7 @@ export function StatusSidebar({
 
           <Link
             href="/penyewaan-aset/status"
-            className="block w-full text-center py-3 text-sm font-medium text-gray-500 hover:text-[#4338ca] transition"
+            className="block w-full text-center py-3 text-sm font-medium text-gray-500 hover:text-brand-primary transition"
           >
             Kembali ke Permintaan Saya
           </Link>
@@ -156,14 +156,14 @@ export function StatusSidebar({
 
       <div className="bg-gray-50 dark:bg-gray-800/50 p-4 border-t border-gray-100 dark:border-gray-700">
         <div className="flex gap-3 items-start">
-          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0 text-[#4338ca]">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0 text-brand-primary">
             <span className="material-icons-outlined text-sm">support_agent</span>
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 leading-snug">
               Ada pertanyaan terkait pesanan ini?
             </p>
-            <Link href="#" className="text-xs font-bold text-[#4338ca] hover:underline">
+            <Link href="#" className="text-xs font-bold text-brand-primary hover:underline">
               Hubungi Admin BUMDes
             </Link>
           </div>

@@ -17,7 +17,7 @@ export function ProductMediaCard({ name, images }: ProductMediaCardProps) {
   const activeImage = images[activeIndex];
 
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden p-6">
+    <div className="surface-table p-6">
       <div className="aspect-square bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4 relative group">
         {activeImage ? (
           <img src={activeImage} alt={name} className="h-full w-full object-cover" />

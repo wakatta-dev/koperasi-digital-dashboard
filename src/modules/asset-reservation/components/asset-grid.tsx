@@ -101,7 +101,7 @@ export function AssetGrid({
           {Array.from({ length: 6 }).map((_, idx) => (
             <div
               key={idx}
-              className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#111827] p-4 animate-pulse space-y-3"
+              className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark p-4 animate-pulse space-y-3"
             >
               <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-xl" />
               <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />

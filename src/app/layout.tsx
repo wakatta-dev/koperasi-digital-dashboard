@@ -6,11 +6,11 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import "./globals.css";
-import SessionProviderWrapper from "@/components/session-provider";
+import SessionProviderWrapper from "@/components/shared/providers/session-provider";
 import { LanguageProvider } from "@/contexts/language-context";
-import QueryProvider from "@/components/query-provider";
+import QueryProvider from "@/components/shared/providers/query-provider";
 import { ConfirmDialogProvider } from "@/components/shared/confirm-dialog-provider";
-import FcmInitializer from "@/components/fcm-initializer";
+import FcmInitializer from "@/components/shared/providers/fcm-initializer";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {

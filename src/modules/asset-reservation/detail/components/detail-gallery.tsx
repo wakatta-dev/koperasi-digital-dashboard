@@ -54,7 +54,7 @@ export function DetailGallery({ heroImage, thumbnails, status, title }: DetailGa
             return (
               <button
                 key={`thumb-placeholder-${index}`}
-                className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-[#4338ca] dark:hover:border-[#4338ca] transition opacity-70 hover:opacity-100"
+                className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-brand-primary dark:hover:border-brand-primary transition opacity-70 hover:opacity-100"
               >
                 <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
                   <span className="material-icons-outlined">image</span>
@@ -67,7 +67,7 @@ export function DetailGallery({ heroImage, thumbnails, status, title }: DetailGa
             return (
               <button
                 key="thumb-more"
-                className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-[#4338ca] dark:hover:border-[#4338ca] transition opacity-70 hover:opacity-100 relative"
+                className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-brand-primary dark:hover:border-brand-primary transition opacity-70 hover:opacity-100 relative"
               >
                 <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
                   <span className="material-icons-outlined">image</span>
@@ -82,7 +82,7 @@ export function DetailGallery({ heroImage, thumbnails, status, title }: DetailGa
           return (
             <button
               key={thumb}
-              className="aspect-video rounded-xl overflow-hidden border-2 border-[#4338ca] ring-2 ring-[#4338ca]/20"
+              className="aspect-video rounded-xl overflow-hidden border-2 border-brand-primary ring-2 ring-brand-primary/20"
             >
               <div className="relative h-full w-full">
                 <Image

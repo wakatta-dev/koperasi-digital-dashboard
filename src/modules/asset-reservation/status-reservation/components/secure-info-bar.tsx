@@ -7,7 +7,7 @@ export function SecureInfoBar() {
         <span className="material-icons-outlined text-lg">lock</span>
         <span>Halaman Tamu Aman</span>
       </div>
-      <a className="text-sm font-medium text-[#4338ca] hover:text-indigo-600 transition ml-auto" href="#">
+      <a className="text-sm font-medium text-brand-primary hover:text-indigo-600 transition ml-auto" href="#">
         Bantuan?
       </a>
     </div>

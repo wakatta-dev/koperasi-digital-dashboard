@@ -16,7 +16,7 @@ export function ProductBasicInfoCard({
   weightKg,
 }: ProductBasicInfoCardProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+    <div className="surface-card p-6">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
         Informasi Dasar
       </h3>
