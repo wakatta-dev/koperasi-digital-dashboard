@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ProductDetailHeader } from "./ProductDetailHeader";
 import { ProductMediaCard } from "./ProductMediaCard";
 import { ProductBasicInfoCard } from "./ProductBasicInfoCard";
@@ -17,6 +18,7 @@ import {
   useInventoryProduct,
   useInventoryProductStats,
   useInventoryStockHistory,
+  useInventoryVariantActions,
   useInventoryVariants,
 } from "@/hooks/queries/inventory";
 import { mapInventoryProduct } from "@/modules/inventory/utils";
@@ -48,6 +50,7 @@ const formatHistoryTimestamp = (timestamp: number) => {
 
 export function ProductDetailPage({ id }: ProductDetailPageProps) {
   const actions = useInventoryActions();
+  const variantActions = useInventoryVariantActions();
   const router = useRouter();
   const { data, isLoading, isError, error } = useInventoryProduct(id);
   const { data: stats } = useInventoryProductStats(id);
@@ -58,6 +61,7 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
   });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [uploadingVariantId, setUploadingVariantId] = useState<number | null>(null);
 
   const item = useMemo(() => (data ? mapInventoryProduct(data) : null), [data]);
 
@@ -71,13 +75,45 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
       const attributes = option.attributes ?? {};
       const attributeLabel = Object.values(attributes).join(" / ");
       return {
+        optionId: option.id,
         name: attributeLabel ? `${groupName} / ${attributeLabel}` : groupName,
         sku: option.sku,
         stock: option.stock,
         price: option.price_override ?? item?.price ?? 0,
+        imageUrl: option.image_url,
       };
     });
   }, [variantsData, item?.price]);
+
+  const cardSummary = useMemo(() => {
+    if (!item) {
+      return {
+        price: 0,
+        stockCount: 0,
+      };
+    }
+
+    const options = variantsData?.options ?? [];
+    if (options.length === 0) {
+      return {
+        price: item.price,
+        stockCount: item.stock,
+      };
+    }
+
+    const validPrices = options
+      .map((option) => option.price_override)
+      .filter(
+        (price): price is number => typeof price === "number" && price > 0,
+      );
+    const totalStock = options.reduce((sum, option) => sum + option.stock, 0);
+
+    return {
+      // Use variant-level pricing/stock when variants exist so cards match service data.
+      price: validPrices.length > 0 ? Math.min(...validPrices) : item.price,
+      stockCount: totalStock,
+    };
+  }, [item, variantsData]);
 
   const history: InventoryEvent[] = useMemo(() => {
     if (!historyData) return [];
@@ -118,6 +154,50 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
         ? [item.image]
         : [];
 
+  const validateVariantImageFile = (file: File): string | null => {
+    const maxBytes = 5 * 1024 * 1024;
+    const allowed = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp"]);
+    if (!allowed.has(file.type)) {
+      return "Format gambar tidak didukung. Gunakan PNG, JPG, atau WEBP.";
+    }
+    if (file.size <= 0 || file.size > maxBytes) {
+      return "Ukuran gambar maksimal 5 MB.";
+    }
+    return null;
+  };
+
+  const handleUploadVariantImage = async (variant: ProductVariant, file: File) => {
+    if (!variant.optionId) return;
+    const validationError = validateVariantImageFile(file);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    try {
+      setUploadingVariantId(variant.optionId);
+      await variantActions.uploadOptionImage.mutateAsync({
+        productId: id,
+        optionId: variant.optionId,
+        file,
+      });
+    } finally {
+      setUploadingVariantId(null);
+    }
+  };
+
+  const handleDeleteVariantImage = async (variant: ProductVariant) => {
+    if (!variant.optionId) return;
+    try {
+      setUploadingVariantId(variant.optionId);
+      await variantActions.deleteOptionImage.mutateAsync({
+        productId: id,
+        optionId: variant.optionId,
+      });
+    } finally {
+      setUploadingVariantId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <ProductDetailHeader
@@ -140,8 +220,8 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
         </div>
         <div className="lg:col-span-2 space-y-6">
           <ProductStatsCards
-            price={item.price}
-            stockCount={item.stock}
+            price={cardSummary.price}
+            stockCount={cardSummary.stockCount}
             minStockAlert={item.minStock ?? 0}
             totalSold={stats?.total_sold ?? 0}
             soldLast30Days={stats?.sold_last_30_days ?? undefined}
@@ -155,6 +235,9 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
             onEditVariant={() =>
               router.push(`/bumdes/marketplace/inventory/${id}/variants`)
             }
+            onUploadVariantImage={handleUploadVariantImage}
+            onDeleteVariantImage={handleDeleteVariantImage}
+            uploadingVariantId={uploadingVariantId}
           />
           <ProductInventoryHistory
             entries={history}

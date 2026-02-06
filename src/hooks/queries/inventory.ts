@@ -391,7 +391,14 @@ export function useInventoryVariantActions() {
       invalidateVariants(vars.productId);
       toast.success("Foto varian diperbarui");
     },
-    onError: (err: any) => toast.error(err?.message || "Gagal mengunggah foto varian"),
+    onError: (err: any) => {
+      const message =
+        typeof err?.message === "string" &&
+        (err.message.includes("NetworkError") || err.message.includes("Failed to fetch"))
+          ? "Gagal mengunggah foto varian. Periksa koneksi, permission endpoint, atau ukuran file (maks 5 MB)."
+          : err?.message || "Gagal mengunggah foto varian";
+      toast.error(message);
+    },
   });
 
   const deleteOptionImage = useMutation({

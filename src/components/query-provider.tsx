@@ -17,14 +17,14 @@ export default function QueryProvider({ children }: Props) {
         defaultOptions: {
           queries: {
             staleTime: 60_000,
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: true,
             retry: 1,
           },
           mutations: {
             retry: 0,
           },
         },
-      })
+      }),
   );
 
   return (

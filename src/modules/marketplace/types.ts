@@ -31,10 +31,12 @@ export type ProductListItem = {
 };
 
 export type ProductVariant = {
+  optionId?: number;
   name: string;
   sku: string;
   stock: number;
   price: number;
+  imageUrl?: string;
 };
 
 export type InventoryEvent = {
