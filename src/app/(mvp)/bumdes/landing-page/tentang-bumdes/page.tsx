@@ -13,7 +13,7 @@ import {
   type AboutSection,
   type AboutValue,
 } from "@/types/landing-page";
-import { LandingEmptyState } from "@/components/landing-page/empty-state";
+import { LandingEmptyState } from "@/modules/landing/components/landing-empty-state";
 import { LandingLivePreview } from "@/modules/landing/components/live-preview";
 import { LandingAbout } from "@/modules/landing/components/about";
 import { Badge } from "@/components/ui/badge";

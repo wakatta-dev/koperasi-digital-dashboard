@@ -14,7 +14,7 @@ import {
   type BusinessUnitConfig,
   type BusinessUnitSelection,
 } from "@/types/landing-page";
-import { LandingEmptyState } from "@/components/landing-page/empty-state";
+import { LandingEmptyState } from "@/modules/landing/components/landing-empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
