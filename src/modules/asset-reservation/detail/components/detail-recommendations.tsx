@@ -39,7 +39,7 @@ export function DetailRecommendations({ currentId }: DetailRecommendationsProps)
           ? Array.from({ length: 3 }).map((_, idx) => (
               <div
                 key={`skeleton-${idx}`}
-                className="h-64 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#111827] animate-pulse"
+                className="h-64 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark animate-pulse"
               />
             ))
           : items.map((asset) => <AssetCard key={asset.id} asset={asset} />)}

@@ -22,7 +22,7 @@ export type OrderItemsTableProps = Readonly<{
 
 export function OrderItemsTable({ items, footer }: OrderItemsTableProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div className="surface-table">
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="font-semibold text-gray-900 dark:text-white">Rincian Barang</h3>
         <span className="text-sm text-gray-500 dark:text-gray-400">

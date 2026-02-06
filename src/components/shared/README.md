@@ -14,5 +14,6 @@ Suggested grouping:
 
 Rules:
 - Keep module-specific UI inside `src/modules/<module>/components`.
-- Move to `components/shared` only when API and visuals are stable and reused across modules.
+- Move to `components/shared` only when API and visuals are stable and reused by at least 2 modules.
 - Never place non-shadcn components under `components/ui`.
+- Run `npm run lint:ownership` before merging shared component changes.

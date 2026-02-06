@@ -8,6 +8,34 @@
 - Create React Query hooks in `frontend/src/hooks/queries` for each API use case.
 - Keep `frontend/src/components/ui` strictly for shadcn-owned components; move non-shadcn components to `frontend/src/components/shared`.
 
+## Design Tokens and Styling
+- Use semantic tokens as the only source of colors in application code:
+  - Brand: `brand-*`
+  - Surface: `surface-*`
+  - Foreground: `foreground-*`
+- Do not use hardcoded hex colors in `src/**/*.ts(x)` and non-token CSS declarations.
+- Use global layout/elevation utilities from `src/app/globals.css`:
+  - `surface-card`, `surface-table`, `surface-form`, `surface-form-lg`
+  - `layout-section`, `layout-stack`
+  - `elev-1`, `elev-2`
+- Prefer utility reuse over repeating long className bundles for card/table/form wrappers.
+
+## Ownership Rules (Strict)
+- `src/components/ui` is reserved for shadcn-owned components only.
+- `src/components/shared` is only for components reused by at least 2 modules.
+- If a component is used by 1 module only, keep it under `src/modules/<module>/components`.
+- Shared exceptions (infra/primitives) must be explicit and documented in ownership lint allowlist.
+
+## HTML to React Conversion Rules
+- When converting HTML into React:
+  - Start in `src/modules/<module>/components`.
+  - Split into composable components (avoid one monolithic conversion file).
+  - Replace hardcoded colors with semantic token classes.
+  - Normalize card/table/form wrappers using global utility classes.
+  - Use shadcn base primitives from `src/components/ui`.
+  - Promote to `src/components/shared` only after cross-module reuse is proven.
+- Do not copy utility-heavy HTML verbatim if equivalent shared primitives already exist.
+
 ## Data Fetching
 - Use React Query for all API calls in pages and modules.
 - Do not call APIs directly from components/pages without a dedicated hook.
@@ -21,6 +49,10 @@
 - Enforce the folder boundaries above when adding or moving code.
 - Propose refactors when there is overlap or redundancy.
 - Keep file structure consistent with the existing codebase conventions.
+- Run policy checks before finishing:
+  - `npm run lint:shadcn-ui`
+  - `npm run lint:design-tokens`
+  - `npm run lint:ownership`
 
 ## Agent Responsibilities (Do Not)
 - Do not add non-page logic to `frontend/src/app`.

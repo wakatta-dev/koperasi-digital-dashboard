@@ -297,7 +297,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
       </div>
 
       <div className="space-y-6 pb-12">
-        <section className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section className="surface-card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
             Informasi Dasar
           </h3>
@@ -381,7 +381,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
           </div>
         </section>
 
-        <section className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <section className="surface-card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
             Media
           </h3>
@@ -522,7 +522,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
           </div>
         </section>
 
-        <section className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <section className="surface-table">
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Varian & Harga

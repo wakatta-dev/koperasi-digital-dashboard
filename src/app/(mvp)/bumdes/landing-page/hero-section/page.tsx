@@ -129,7 +129,7 @@ export default function HeroSectionPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-12 space-y-6">
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="surface-card p-6">
             <div className="mb-5 pb-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">
@@ -179,7 +179,7 @@ export default function HeroSectionPage() {
             )}
           </div>
 
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="surface-card p-6">
             <div className="mb-5 pb-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">
@@ -218,7 +218,7 @@ export default function HeroSectionPage() {
             </div>
           </div>
 
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="surface-card p-6">
             <div className="mb-5 pb-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">
@@ -330,7 +330,7 @@ export default function HeroSectionPage() {
               </div>
             </div>
           </div>
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 flex items-center justify-between">
+          <div className="surface-card p-6 flex items-center justify-between">
             <div className="flex items-center">
               <div className="bg-primary/10 p-2 rounded-lg text-primary mr-4">
                 <span className="material-symbols-outlined">visibility</span>

@@ -46,6 +46,15 @@
   --surface-card-dark: #1e293b;
   --surface-text: #334155;
   --surface-text-dark: #cbd5e1;
+  --foreground-strong: #0f172a;
+  --foreground-muted: #334155;
+  --foreground-inverse: #f8fafc;
+  --layout-space-card: 1.5rem;
+  --layout-space-card-lg: 2rem;
+  --layout-space-section: 2.5rem;
+  --layout-space-gap: 1rem;
+  --shadow-elev-1: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-elev-2: 0 8px 24px rgb(15 23 42 / 0.12);
 }
 
 .dark {
@@ -81,6 +90,11 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+  --foreground-strong: #f8fafc;
+  --foreground-muted: #cbd5e1;
+  --foreground-inverse: #0f172a;
+  --shadow-elev-1: 0 1px 2px rgb(2 6 23 / 0.5);
+  --shadow-elev-2: 0 10px 30px rgb(2 6 23 / 0.6);
 }
 
 @theme inline {
@@ -129,6 +143,9 @@
   --color-surface-card-dark: var(--surface-card-dark);
   --color-surface-text: var(--surface-text);
   --color-surface-text-dark: var(--surface-text-dark);
+  --color-foreground-strong: var(--foreground-strong);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-inverse: var(--foreground-inverse);
 }
 
 @layer base {
@@ -137,6 +154,38 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-xl border border-gray-200 bg-surface-light shadow-sm dark:border-gray-700 dark:bg-surface-dark;
+    box-shadow: var(--shadow-elev-1);
+  }
+
+  .surface-table {
+    @apply rounded-xl border border-gray-200 bg-surface-light shadow-sm dark:border-gray-700 dark:bg-surface-dark overflow-hidden;
+    box-shadow: var(--shadow-elev-1);
+  }
+
+  .surface-form {
+    @apply rounded-xl border border-gray-200 bg-surface-light shadow-sm dark:border-gray-700 dark:bg-surface-dark;
+    box-shadow: var(--shadow-elev-1);
+    padding: var(--layout-space-card);
+  }
+
+  .surface-form-lg {
+    @apply rounded-xl border border-gray-200 bg-surface-light shadow-sm dark:border-gray-700 dark:bg-surface-dark;
+    box-shadow: var(--shadow-elev-1);
+    padding: var(--layout-space-card-lg);
+  }
+
+  .layout-section {
+    padding-block: var(--layout-space-section);
+  }
+
+  .layout-stack {
+    gap: var(--layout-space-gap);
   }
 }
 
@@ -154,5 +203,13 @@
 
   .animate-fade-in-down {
     animation: fade-in-down 0.2s ease-out;
+  }
+
+  .elev-1 {
+    box-shadow: var(--shadow-elev-1);
+  }
+
+  .elev-2 {
+    box-shadow: var(--shadow-elev-2);
   }
 }

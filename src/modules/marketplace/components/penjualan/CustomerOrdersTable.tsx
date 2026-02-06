@@ -42,7 +42,7 @@ export function CustomerOrdersTable({
   onViewOrder,
 }: CustomerOrdersTableProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div className="surface-table">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="text-base font-semibold text-gray-900 dark:text-white">
           Daftar Pesanan Terbaru

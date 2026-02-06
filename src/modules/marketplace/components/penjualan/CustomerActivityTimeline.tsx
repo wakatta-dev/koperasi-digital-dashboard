@@ -46,7 +46,7 @@ const ACTIVITY_STYLE: Record<
 
 export function CustomerActivityTimeline({ activities }: CustomerActivityTimelineProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 lg:p-8">
+    <div className="surface-card p-6 lg:p-8">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">
             Timeline Aktivitas

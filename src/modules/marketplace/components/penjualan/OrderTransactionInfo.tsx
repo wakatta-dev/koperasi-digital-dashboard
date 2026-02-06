@@ -20,7 +20,7 @@ export function OrderTransactionInfo({
   trackingNumber,
 }: OrderTransactionInfoProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden p-6">
+    <div className="surface-table p-6">
       <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Informasi Transaksi</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>

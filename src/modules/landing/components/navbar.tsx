@@ -348,7 +348,7 @@ export function LandingNavbar({
                         className={cn(
                           "group flex items-center justify-between rounded-lg px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-slate-900 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/60 transition",
                           isActive &&
-                            "bg-white dark:bg-slate-900 border-indigo-100 dark:border-indigo-900/60 text-brand-primary dark:text-[#c7d2fe]"
+                            "bg-white dark:bg-slate-900 border-indigo-100 dark:border-indigo-900/60 text-brand-primary dark:text-surface-text-dark"
                         )}
                       >
                         <span className="flex items-center gap-2">

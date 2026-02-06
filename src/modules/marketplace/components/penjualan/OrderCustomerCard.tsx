@@ -34,7 +34,7 @@ export function OrderCustomerCard({
   const initials = getInitials(name);
 
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden p-6">
+    <div className="surface-table p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-gray-900 dark:text-white">Pelanggan</h3>
         <button className="text-sm text-indigo-600 hover:text-indigo-700" type="button">

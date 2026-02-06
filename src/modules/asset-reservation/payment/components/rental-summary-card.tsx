@@ -26,7 +26,7 @@ export function RentalSummaryCard({ reservation }: RentalSummaryCardProps) {
     : "-";
 
   return (
-    <section className="bg-white dark:bg-surface-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
+    <section className="surface-form rounded-2xl relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-primary to-indigo-400" />
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-gray-800">
         <span className="material-icons-outlined text-brand-primary">receipt_long</span>

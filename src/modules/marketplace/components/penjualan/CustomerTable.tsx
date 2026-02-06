@@ -73,7 +73,7 @@ export function CustomerTable({
   getActions,
 }: CustomerTableProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div className="surface-table">
       <div className="overflow-x-auto">
         <Table className="w-full text-left border-collapse">
           <TableHeader>

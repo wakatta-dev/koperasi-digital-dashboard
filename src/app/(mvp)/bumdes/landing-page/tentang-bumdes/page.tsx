@@ -167,7 +167,7 @@ export default function TentangBumdesPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-12 space-y-8">
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="surface-card p-6">
             <div className="mb-5 pb-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">title</span>
@@ -253,7 +253,7 @@ export default function TentangBumdesPage() {
             )}
           </div>
 
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="surface-card p-6">
             <div className="mb-5 pb-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">image</span>
@@ -302,7 +302,7 @@ export default function TentangBumdesPage() {
             </div>
           </div>
 
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="surface-card p-6">
             <div className="mb-5 pb-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">stars</span>
@@ -417,7 +417,7 @@ export default function TentangBumdesPage() {
             </Button>
           </div>
 
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="surface-card p-6">
             <div className="mb-5 pb-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-text-main-light dark:text-text-main-dark flex items-center">
                 <span className="material-symbols-outlined mr-2 text-primary">touch_app</span>

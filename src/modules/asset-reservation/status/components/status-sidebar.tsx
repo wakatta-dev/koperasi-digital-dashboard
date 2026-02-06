@@ -55,7 +55,7 @@ export function StatusSidebar({
   })();
 
   return (
-    <div className="bg-white dark:bg-surface-card-dark rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none sticky top-24 overflow-hidden">
+    <div className="surface-card rounded-2xl sticky top-24 overflow-hidden">
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Status Permintaan</h3>
 

@@ -26,7 +26,7 @@ export function CustomerPaymentMethods({
   onDelete,
 }: CustomerPaymentMethodsProps) {
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 min-h-[400px]">
+    <div className="surface-card p-6 min-h-[400px]">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
