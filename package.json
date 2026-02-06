@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:shadcn-ui": "node scripts/check-shadcn-ui.mjs",
     "test": "vitest run",
     "test:a11y": "vitest run src/__tests__/**/*a11y*.spec.*",
     "test:visual": "vitest run src/__tests__/**/*visual*.spec.*",

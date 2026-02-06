@@ -6,6 +6,7 @@
 - Place module-specific components, utilities, constants, types, and assets in `frontend/src/modules/<module-name>`.
 - Keep all API/service clients in `frontend/src/services`.
 - Create React Query hooks in `frontend/src/hooks/queries` for each API use case.
+- Keep `frontend/src/components/ui` strictly for shadcn-owned components; move non-shadcn components to `frontend/src/components/shared`.
 
 ## Data Fetching
 - Use React Query for all API calls in pages and modules.
