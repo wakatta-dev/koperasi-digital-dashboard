@@ -19,10 +19,10 @@ export function ConfirmationHero() {
       <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-xl mx-auto">
         {CONFIRMATION_INFO.thankYouDescription}
       </p>
-      <div className="inline-flex items-center justify-center gap-2 bg-white dark:bg-[#1e293b] px-5 py-2.5 rounded-full mb-12 shadow-sm border border-gray-200 dark:border-gray-700 group cursor-pointer transition hover:border-[#4338ca]/50">
+      <div className="inline-flex items-center justify-center gap-2 bg-white dark:bg-surface-card-dark px-5 py-2.5 rounded-full mb-12 shadow-sm border border-gray-200 dark:border-gray-700 group cursor-pointer transition hover:border-brand-primary/50">
         <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Nomor Pesanan</span>
-        <span className="text-base font-bold text-[#4338ca] dark:text-indigo-400">{CONFIRMATION_INFO.orderNumber}</span>
-        <span className="material-icons-outlined text-gray-400 group-hover:text-[#4338ca] text-sm transition">
+        <span className="text-base font-bold text-brand-primary dark:text-indigo-400">{CONFIRMATION_INFO.orderNumber}</span>
+        <span className="material-icons-outlined text-gray-400 group-hover:text-brand-primary text-sm transition">
           content_copy
         </span>
       </div>

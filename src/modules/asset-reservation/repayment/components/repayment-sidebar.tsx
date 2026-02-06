@@ -23,7 +23,7 @@ export function RepaymentSidebar({ reservation, sessionPayBy }: RepaymentSidebar
 
   return (
     <div className="sticky top-28 space-y-6">
-      <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
           <h3 className="font-bold text-gray-900 dark:text-white text-lg">Ringkasan Pembayaran</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Detail tagihan pelunasan Anda</p>
@@ -53,7 +53,7 @@ export function RepaymentSidebar({ reservation, sessionPayBy }: RepaymentSidebar
             <div className="pt-4 border-t border-dashed border-gray-200 dark:border-gray-700 mt-2">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-base font-bold text-gray-900 dark:text-white">Sisa Pembayaran</span>
-                <span className="text-xl font-bold text-[#4338ca]">{remaining}</span>
+                <span className="text-xl font-bold text-brand-primary">{remaining}</span>
               </div>
               <p className="text-xs text-right text-gray-500 dark:text-gray-400">Harga sudah termasuk pajak</p>
             </div>
@@ -66,7 +66,7 @@ export function RepaymentSidebar({ reservation, sessionPayBy }: RepaymentSidebar
             </p>
           </div>
           <Button
-            className="w-full mt-4 bg-[#4338ca] hover:bg-indigo-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+            className="w-full mt-4 bg-brand-primary hover:bg-indigo-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
             disabled
           >
             <span>Selesaikan Pelunasan</span>
@@ -77,7 +77,7 @@ export function RepaymentSidebar({ reservation, sessionPayBy }: RepaymentSidebar
           <div className="text-center pt-2">
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Dengan membayar, Anda menyetujui{" "}
-              <a className="text-[#4338ca] hover:underline" href="#">
+              <a className="text-brand-primary hover:underline" href="#">
                 Syarat &amp; Ketentuan
               </a>{" "}
               BUMDes.

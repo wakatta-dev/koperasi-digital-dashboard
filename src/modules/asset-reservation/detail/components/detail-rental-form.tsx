@@ -192,7 +192,7 @@ export function DetailRentalForm({
   };
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg sticky top-24">
+    <div className="bg-white dark:bg-surface-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg sticky top-24">
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
         Ajukan Sewa
       </h3>
@@ -208,8 +208,8 @@ export function DetailRentalForm({
               onChange={(e) => handleDateUpdate("start", e.target.value)}
               name="start_date"
               className={`w-full text-sm rounded-lg ${
-                fieldErrors.start_date ? "border-red-500 focus-visible:ring-red-500" : "border-[#4338ca] focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
-              } dark:border-[#4338ca]/50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10`}
+                fieldErrors.start_date ? "border-red-500 focus-visible:ring-red-500" : "border-brand-primary focus-visible:border-brand-primary focus-visible:ring-brand-primary"
+              } dark:border-brand-primary/50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium bg-brand-primary/5 dark:bg-brand-primary/10`}
             />
             {fieldErrors.start_date ? (
               <p className="mt-1 text-[11px] text-red-500">{fieldErrors.start_date}</p>
@@ -225,8 +225,8 @@ export function DetailRentalForm({
               onChange={(e) => handleDateUpdate("end", e.target.value)}
               name="end_date"
               className={`w-full text-sm rounded-lg ${
-                fieldErrors.end_date ? "border-red-500 focus-visible:ring-red-500" : "border-[#4338ca] focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
-              } dark:border-[#4338ca]/50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium bg-[#4338ca]/5 dark:bg-[#4338ca]/10`}
+                fieldErrors.end_date ? "border-red-500 focus-visible:ring-red-500" : "border-brand-primary focus-visible:border-brand-primary focus-visible:ring-brand-primary"
+              } dark:border-brand-primary/50 dark:bg-gray-800 text-gray-900 dark:text-white font-medium bg-brand-primary/5 dark:bg-brand-primary/10`}
             />
             {fieldErrors.end_date ? (
               <p className="mt-1 text-[11px] text-red-500">{fieldErrors.end_date}</p>
@@ -262,7 +262,7 @@ export function DetailRentalForm({
             <span className="font-bold text-gray-900 dark:text-white">
               Total Estimasi
             </span>
-            <span className="font-bold text-[#4338ca] text-lg">
+            <span className="font-bold text-brand-primary text-lg">
               Rp{total.toLocaleString("id-ID")}
             </span>
           </div>
@@ -278,7 +278,7 @@ export function DetailRentalForm({
               placeholder="Nama Anda"
               name="full_name"
               className={`w-full text-sm rounded-lg ${
-                fieldErrors.full_name ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+                fieldErrors.full_name ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-brand-primary focus-visible:ring-brand-primary"
               } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white`}
             />
             {fieldErrors.full_name ? (
@@ -294,7 +294,7 @@ export function DetailRentalForm({
               placeholder="0812..."
               name="phone"
               className={`w-full text-sm rounded-lg ${
-                fieldErrors.phone ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+                fieldErrors.phone ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-brand-primary focus-visible:ring-brand-primary"
               } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white`}
             />
             {fieldErrors.phone ? (
@@ -310,7 +310,7 @@ export function DetailRentalForm({
               placeholder="email@contoh.com"
               name="email"
               className={`w-full text-sm rounded-lg ${
-                fieldErrors.email ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+                fieldErrors.email ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-brand-primary focus-visible:ring-brand-primary"
               } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white`}
             />
             {fieldErrors.email ? (
@@ -326,7 +326,7 @@ export function DetailRentalForm({
               rows={3}
               name="purpose"
               className={`w-full text-sm rounded-lg ${
-                fieldErrors.purpose ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-[#4338ca] focus-visible:ring-[#4338ca]"
+                fieldErrors.purpose ? "border-red-500 focus-visible:ring-red-500" : "border-gray-300 focus-visible:border-brand-primary focus-visible:ring-brand-primary"
               } dark:border-gray-600 dark:bg-gray-800 text-gray-900 dark:text-white resize-none`}
             />
             {fieldErrors.purpose ? (
@@ -338,7 +338,7 @@ export function DetailRentalForm({
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
+          className="w-full bg-brand-primary hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
         >
           <span className="material-icons-outlined">
             {isSubmitting ? "hourglass_top" : "send"}

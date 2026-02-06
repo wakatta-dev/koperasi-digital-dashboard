@@ -61,7 +61,7 @@ function DayCell({
         <div
           className={`absolute inset-y-0 ${isStart ? "right-0 left-1 rounded-l-full" : "left-0 right-1 rounded-r-full"} bg-indigo-50 dark:bg-indigo-900/40`}
         />
-        <div className="relative w-10 h-10 flex items-center justify-center bg-[#4338ca] text-white font-bold rounded-full shadow-md z-10 ring-2 ring-white dark:ring-[#1e293b]">
+        <div className="relative w-10 h-10 flex items-center justify-center bg-brand-primary text-white font-bold rounded-full shadow-md z-10 ring-2 ring-white dark:ring-surface-card-dark">
           {label}
         </div>
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition shadow-xl pointer-events-none whitespace-nowrap z-20">
@@ -74,7 +74,7 @@ function DayCell({
   if (type === "range") {
     return (
       <div className="aspect-square flex items-center justify-center relative cursor-pointer bg-indigo-50 dark:bg-indigo-900/40">
-        <span className="text-[#4338ca] dark:text-indigo-300 font-semibold">{label}</span>
+        <span className="text-brand-primary dark:text-indigo-300 font-semibold">{label}</span>
       </div>
     );
   }
@@ -251,10 +251,10 @@ export function DetailAvailability({
   return (
     <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Ketersediaan & Jadwal</h2>
-      <div className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-surface-card-dark border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-8">
           <div className="relative group">
-            <button className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white hover:text-[#4338ca] transition-colors">
+            <button className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white hover:text-brand-primary transition-colors">
               <span className="capitalize">{monthLabel}</span>
               <span className="material-icons-outlined text-gray-500">expand_more</span>
             </button>
@@ -284,7 +284,7 @@ export function DetailAvailability({
               type="date"
               value={startLabel}
               onChange={(e) => handleDateChange("start", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-[#4338ca] focus:ring-[#4338ca]"
+              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-brand-primary focus:ring-brand-primary"
             />
           </label>
           <label className="flex flex-col text-xs font-semibold text-gray-600 dark:text-gray-300">
@@ -293,7 +293,7 @@ export function DetailAvailability({
               type="date"
               value={endLabel}
               onChange={(e) => handleDateChange("end", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-[#4338ca] focus:ring-[#4338ca]"
+              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-brand-primary focus:ring-brand-primary"
             />
           </label>
         </div>
@@ -328,9 +328,9 @@ export function DetailAvailability({
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-[#4338ca] ring-1 ring-white dark:ring-[#1e293b] z-10" />
+              <div className="w-3 h-3 rounded-full bg-brand-primary ring-1 ring-white dark:ring-surface-card-dark z-10" />
               <div className="w-3 h-2 bg-indigo-100 dark:bg-indigo-900/40 -ml-1" />
-              <div className="w-3 h-3 rounded-full bg-[#4338ca] ring-1 ring-white dark:ring-[#1e293b] -ml-1 z-10" />
+              <div className="w-3 h-3 rounded-full bg-brand-primary ring-1 ring-white dark:ring-surface-card-dark -ml-1 z-10" />
             </div>
             <span className="text-xs text-gray-600 dark:text-gray-400">Dipilih</span>
           </div>
@@ -347,19 +347,19 @@ export function DetailAvailability({
           {error ? <span className="text-red-500"> {error}</span> : null}
         </div>
 
-        <div className="mt-6 bg-[#4338ca]/5 dark:bg-[#4338ca]/10 rounded-xl p-4 border border-[#4338ca]/10 dark:border-[#4338ca]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mt-6 bg-brand-primary/5 dark:bg-brand-primary/10 rounded-xl p-4 border border-brand-primary/10 dark:border-brand-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="mt-1 p-1.5 bg-white dark:bg-indigo-950 rounded-lg text-[#4338ca] shadow-sm">
+            <div className="mt-1 p-1.5 bg-white dark:bg-indigo-950 rounded-lg text-brand-primary shadow-sm">
               <span className="material-icons-outlined text-xl">date_range</span>
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#4338ca] uppercase tracking-wider mb-0.5">
+              <p className="text-xs font-semibold text-brand-primary uppercase tracking-wider mb-0.5">
                 Jadwal Dipilih
               </p>
               <p className="text-sm font-bold text-gray-900 dark:text-white">
                 {startLabel} - {endLabel}
                 <span className="font-normal text-gray-500 dark:text-gray-400 mx-1">•</span>
-                <span className="text-[#4338ca]">{durationLabel}</span>
+                <span className="text-brand-primary">{durationLabel}</span>
               </p>
             </div>
           </div>

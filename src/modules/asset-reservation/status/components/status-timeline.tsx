@@ -20,7 +20,7 @@ export function StatusTimeline({ items }: StatusTimelineProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+    <div className="bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
       <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Linimasa Status</h3>
       <div className="space-y-5 relative">
         {items.map((item, idx) => {

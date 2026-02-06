@@ -151,12 +151,12 @@ export function LandingNavbar({
             <Link
               href={link.href ?? "#"}
               className={cn(
-                "group flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#4338ca] dark:hover:text-[#4338ca] transition",
-                isActive && "text-[#4338ca] dark:text-[#4338ca]"
+                "group flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-primary dark:hover:text-brand-primary transition",
+                isActive && "text-brand-primary dark:text-brand-primary"
               )}
             >
               {link.label}
-              <Badge className="inline-flex items-center rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-500/10 group-hover:bg-[#4338ca]/10 group-hover:text-[#4338ca] transition">
+              <Badge className="inline-flex items-center rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-500/10 group-hover:bg-brand-primary/10 group-hover:text-brand-primary transition">
                 {link.badge}
               </Badge>
             </Link>
@@ -171,8 +171,8 @@ export function LandingNavbar({
           <Link
             href={link.href ?? "#"}
             className={cn(
-              "text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[#4338ca] dark:hover:text-[#4338ca] transition",
-              isActive && "text-[#4338ca] dark:text-[#4338ca]"
+              "text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-primary dark:hover:text-brand-primary transition",
+              isActive && "text-brand-primary dark:text-brand-primary"
             )}
           >
             {link.label}
@@ -188,7 +188,7 @@ export function LandingNavbar({
       content: (
         <Button
           asChild
-          className="bg-[#4338ca] hover:bg-[#3730a3] text-white px-5 py-2.5 rounded-full font-semibold text-sm transition shadow-lg shadow-indigo-500/30"
+          className="bg-brand-primary hover:bg-brand-primary-hover text-white px-5 py-2.5 rounded-full font-semibold text-sm transition shadow-lg shadow-indigo-500/30"
         >
           <Link href={ctaUrl}>{ctaLabel}</Link>
         </Button>
@@ -202,7 +202,7 @@ export function LandingNavbar({
         <Button
           asChild
           variant="outline"
-          className="border-indigo-200 text-[#4338ca] hover:border-indigo-400 hover:bg-indigo-50 px-5 py-2.5 rounded-full font-semibold text-sm transition"
+          className="border-indigo-200 text-brand-primary hover:border-indigo-400 hover:bg-indigo-50 px-5 py-2.5 rounded-full font-semibold text-sm transition"
         >
           <Link href={shortcutCta?.href ?? "/login"}>
             {shortcutCta?.label ?? "Login"}
@@ -215,7 +215,7 @@ export function LandingNavbar({
   return (
     <NavBarShell
       className={cn(
-        "bg-[#f8fafc]/90 dark:bg-[#0f172a]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800",
+        "bg-surface-subtle/90 dark:bg-surface-dark/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800",
         className
       )}
       left={
@@ -230,7 +230,7 @@ export function LandingNavbar({
                 className="h-8 w-8 object-contain"
               />
             ) : (
-              <span className="material-icons-outlined text-[#4338ca] text-3xl">
+              <span className="material-icons-outlined text-brand-primary text-3xl">
                 token
               </span>
             )
@@ -248,7 +248,7 @@ export function LandingNavbar({
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
               <Link
                 href={cartHref}
-                className="text-[#4338ca] transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                className="text-brand-primary transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
                 data-cart-target="marketplace"
                 title="Keranjang"
               >
@@ -270,7 +270,7 @@ export function LandingNavbar({
           {showCart ? (
             <Link
               href={cartHref}
-              className="text-[#4338ca] transition relative mr-2"
+              className="text-brand-primary transition relative mr-2"
               title="Keranjang"
               data-cart-target="marketplace"
             >
@@ -287,7 +287,7 @@ export function LandingNavbar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-700 dark:text-gray-300 hover:text-[#4338ca]"
+                className="text-gray-700 dark:text-gray-300 hover:text-brand-primary"
                 aria-label="Buka menu"
               >
                 <span className="material-icons-outlined text-3xl">menu</span>
@@ -296,7 +296,7 @@ export function LandingNavbar({
 
             <SheetContent
               side="right"
-              className="bg-[#f8fafc] dark:bg-[#0f172a] px-0 py-0 border-l border-gray-200/70 dark:border-gray-800"
+              className="bg-surface-subtle dark:bg-surface-dark px-0 py-0 border-l border-gray-200/70 dark:border-gray-800"
             >
               <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
               <SheetHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-4">
@@ -311,7 +311,7 @@ export function LandingNavbar({
                         className="h-8 w-8 object-contain"
                       />
                     ) : (
-                      <span className="material-icons-outlined text-[#4338ca] text-3xl">
+                      <span className="material-icons-outlined text-brand-primary text-3xl">
                         token
                       </span>
                     )
@@ -323,7 +323,7 @@ export function LandingNavbar({
                 {showCart ? (
                   <Link
                     href={cartHref}
-                    className="text-[#4338ca] transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                    className="text-brand-primary transition relative bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
                     title="Keranjang"
                   >
                     <span className="material-icons-outlined fill-current">
@@ -348,7 +348,7 @@ export function LandingNavbar({
                         className={cn(
                           "group flex items-center justify-between rounded-lg px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-slate-900 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/60 transition",
                           isActive &&
-                            "bg-white dark:bg-slate-900 border-indigo-100 dark:border-indigo-900/60 text-[#4338ca] dark:text-[#c7d2fe]"
+                            "bg-white dark:bg-slate-900 border-indigo-100 dark:border-indigo-900/60 text-brand-primary dark:text-[#c7d2fe]"
                         )}
                       >
                         <span className="flex items-center gap-2">
@@ -359,7 +359,7 @@ export function LandingNavbar({
                             </Badge>
                           ) : null}
                         </span>
-                        <span className="material-icons-outlined text-lg text-gray-400 group-hover:text-[#4338ca]">
+                        <span className="material-icons-outlined text-lg text-gray-400 group-hover:text-brand-primary">
                           chevron_right
                         </span>
                       </Link>
@@ -370,7 +370,7 @@ export function LandingNavbar({
                   <SheetClose asChild>
                     <Button
                       asChild
-                      className="w-full justify-center bg-[#4338ca] hover:bg-[#3730a3] text-white px-5 py-3 rounded-xl font-semibold text-sm transition shadow-lg shadow-indigo-500/20"
+                      className="w-full justify-center bg-brand-primary hover:bg-brand-primary-hover text-white px-5 py-3 rounded-xl font-semibold text-sm transition shadow-lg shadow-indigo-500/20"
                     >
                       <Link href={ctaUrl}>{ctaLabel}</Link>
                     </Button>
@@ -381,7 +381,7 @@ export function LandingNavbar({
                     <Button
                       asChild
                       variant="outline"
-                      className="w-full justify-center border-indigo-200 text-[#4338ca] hover:border-indigo-400 hover:bg-indigo-50 px-5 py-3 rounded-xl font-semibold text-sm transition"
+                      className="w-full justify-center border-indigo-200 text-brand-primary hover:border-indigo-400 hover:bg-indigo-50 px-5 py-3 rounded-xl font-semibold text-sm transition"
                     >
                       <Link href={shortcutCta?.href ?? "/login"}>
                         {shortcutCta?.label ?? "Login"}

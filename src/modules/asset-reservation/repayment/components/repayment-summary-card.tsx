@@ -44,10 +44,10 @@ export function RepaymentSummaryCard({ reservation }: RepaymentSummaryCardProps)
       : "-";
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 flex justify-between items-center">
         <h2 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
-          <span className="material-icons-outlined text-[#4338ca]">apartment</span>
+          <span className="material-icons-outlined text-brand-primary">apartment</span>
           Ringkasan Sewa Aset
         </h2>
         <span className="text-xs font-mono bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 px-2 py-1 rounded border border-indigo-100 dark:border-indigo-800">

@@ -17,7 +17,7 @@ export function LandingAbout({ about }: LandingAboutProps) {
     values: about?.values && about.values.length > 0 ? about.values : fallback.values,
   };
   return (
-    <section className="py-20 bg-white dark:bg-[#1e293b]">
+    <section className="py-20 bg-white dark:bg-surface-card-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="relative order-2 lg:order-1">
@@ -30,7 +30,7 @@ export function LandingAbout({ about }: LandingAboutProps) {
                 className="object-cover"
               />
             </div>
-            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-[#4338ca] rounded-full flex items-center justify-center text-white shadow-lg">
+            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-brand-primary rounded-full flex items-center justify-center text-white shadow-lg">
               <span className="material-icons-outlined text-4xl">landscape</span>
             </div>
           </div>
@@ -64,7 +64,7 @@ export function LandingAbout({ about }: LandingAboutProps) {
               </Button>
               <Button
                 variant="ghost"
-                className="flex items-center gap-1 text-[#4338ca] hover:text-[#3730a3] font-semibold px-4 py-2"
+                className="flex items-center gap-1 text-brand-primary hover:text-brand-primary-hover font-semibold px-4 py-2"
               >
                 Detail <span className="material-icons-outlined text-sm">arrow_forward</span>
               </Button>

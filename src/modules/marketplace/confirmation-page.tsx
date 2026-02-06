@@ -17,9 +17,9 @@ const plusJakarta = Plus_Jakarta_Sans({
 export function MarketplaceConfirmationPage() {
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen flex flex-col">
+      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
         <LandingNavbar activeLabel="Marketplace" showCart cartCount={0} />
-        <main className="flex-grow pt-28 pb-20 bg-[#f8fafc] dark:bg-[#0f172a] flex items-center justify-center">
+        <main className="flex-grow pt-28 pb-20 bg-surface-subtle dark:bg-surface-dark flex items-center justify-center">
           <div className="max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8">
             <ConfirmationHero />
             <ConfirmationSummary />

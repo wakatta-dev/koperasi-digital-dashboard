@@ -19,7 +19,7 @@ export function PaymentHeader({ backHref }: PaymentHeaderProps) {
       </div>
       <Link
         href={backHref}
-        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e293b] text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:border-gray-400 dark:hover:border-gray-500"
+        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-card-dark text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition hover:border-gray-400 dark:hover:border-gray-500"
       >
         <span className="material-icons-outlined text-lg">arrow_back</span>
         Kembali ke Detail Permintaan

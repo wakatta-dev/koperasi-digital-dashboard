@@ -26,7 +26,7 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
       : null;
 
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl sticky top-24 overflow-hidden ring-1 ring-gray-900/5">
+    <div className="bg-white dark:bg-surface-card-dark rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl sticky top-24 overflow-hidden ring-1 ring-gray-900/5">
       <div className="p-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
         <h3 className="font-bold text-gray-900 dark:text-white text-lg">Ringkasan Pembayaran</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -50,7 +50,7 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
           <div className="pt-3 border-t border-dashed border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center mb-1">
               <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">DP yang Harus Dibayar</span>
-              <span className="font-bold text-[#4338ca] text-xl">
+              <span className="font-bold text-brand-primary text-xl">
                 Rp{(dpDue + serviceFee).toLocaleString("id-ID")}
               </span>
             </div>
@@ -77,7 +77,7 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
           </p>
         </div>
         <Button
-          className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-[0.98] flex items-center justify-center gap-2 group"
+          className="w-full bg-brand-primary hover:bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-[0.98] flex items-center justify-center gap-2 group"
           disabled={!confirmationHref}
           asChild={Boolean(confirmationHref)}
         >
@@ -97,7 +97,7 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
       <div className="bg-gray-50 dark:bg-gray-800/50 p-4 border-t border-gray-100 dark:border-gray-800">
         <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
           Dengan membayar, Anda menyetujui{" "}
-          <a className="text-[#4338ca] hover:underline" href="#">
+          <a className="text-brand-primary hover:underline" href="#">
             Syarat &amp; Ketentuan
           </a>{" "}
           sewa aset BUMDes Sukamaju.

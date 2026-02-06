@@ -32,7 +32,7 @@ export function RentRequestModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         overlayClassName="bg-gray-900/60 backdrop-blur-sm z-[100]"
-        className="max-w-md p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-gray-700 shadow-2xl z-[101]"
+        className="max-w-md p-6 sm:p-8 rounded-2xl bg-white dark:bg-surface-card-dark border border-gray-100 dark:border-gray-700 shadow-2xl z-[101]"
         showCloseButton={false}
       >
         <button
@@ -73,7 +73,7 @@ export function RentRequestModal({
             </div>
           ) : null}
           <Button
-            className="w-full bg-[#4338ca] hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition transform active:scale-[0.98]"
+            className="w-full bg-brand-primary hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition transform active:scale-[0.98]"
             asChild
           >
             <a href={absoluteStatusHref ?? statusHref ?? "/penyewaan-aset/status/req-1"}>

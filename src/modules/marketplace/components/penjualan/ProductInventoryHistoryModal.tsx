@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toDayBounds } from "@/lib/datetime";
 import type { InventoryEvent } from "@/modules/marketplace/types";
 
 type HistoryRow = {
@@ -114,15 +115,12 @@ export function ProductInventoryHistoryModal({
   const rows = useMemo(() => {
     let data = formatHistory(entries);
     if (dateFrom || dateTo) {
-      const from = dateFrom ? new Date(dateFrom).getTime() : null;
-      const to = dateTo ? new Date(dateTo).getTime() : null;
+      const fromBounds = toDayBounds(dateFrom);
+      const toBounds = toDayBounds(dateTo);
       data = data.filter((row) => {
         if (!row.timestampValue) return true;
-        if (from && row.timestampValue < from) return false;
-        if (to) {
-          const endOfDay = to + 24 * 60 * 60 * 1000 - 1;
-          if (row.timestampValue > endOfDay) return false;
-        }
+        if (fromBounds.startMs && row.timestampValue < fromBounds.startMs) return false;
+        if (toBounds.endMs && row.timestampValue > toBounds.endMs) return false;
         return true;
       });
     }

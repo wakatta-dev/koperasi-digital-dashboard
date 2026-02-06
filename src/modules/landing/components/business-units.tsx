@@ -22,7 +22,7 @@ export function BusinessUnits({ businessUnits }: BusinessUnitsProps) {
           image_url: unit.image_url,
         }));
   return (
-    <section className="py-20 bg-blue-50/50 dark:bg-[#0f172a]">
+    <section className="py-20 bg-blue-50/50 dark:bg-surface-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -42,7 +42,7 @@ export function BusinessUnits({ businessUnits }: BusinessUnitsProps) {
             return (
             <Card
               key={`${unit.unit_id}-${index}`}
-              className="bg-white dark:bg-[#1e293b] rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group border-0"
+              className="bg-white dark:bg-surface-card-dark rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group border-0"
             >
               <div className="relative h-48 overflow-hidden">
                 {imageSrc ? (
@@ -60,7 +60,7 @@ export function BusinessUnits({ businessUnits }: BusinessUnitsProps) {
                 )}
               </div>
               <div className="p-6 flex flex-col flex-grow">
-                <span className="text-[#4338ca] text-xs font-bold uppercase tracking-wide mb-2">
+                <span className="text-brand-primary text-xs font-bold uppercase tracking-wide mb-2">
                   {unit.label_override || fallbackUnit?.label || "Unit Usaha"}
                 </span>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
@@ -71,7 +71,7 @@ export function BusinessUnits({ businessUnits }: BusinessUnitsProps) {
                 </p>
                 <Link
                   href="#"
-                  className="inline-flex items-center text-sm font-semibold text-gray-900 dark:text-white hover:text-[#4338ca] dark:hover:text-[#4338ca] transition"
+                  className="inline-flex items-center text-sm font-semibold text-gray-900 dark:text-white hover:text-brand-primary dark:hover:text-brand-primary transition"
                 >
                   Selengkapnya{" "}
                   <span className="material-icons-outlined text-sm ml-1">chevron_right</span>

@@ -29,13 +29,13 @@ export function AssetConfirmationPage({ reservationId }: AssetConfirmationPagePr
 
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-[#f8fafc] dark:bg-[#0f172a] text-[#334155] dark:text-[#cbd5e1] min-h-screen flex flex-col">
+      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
         <LandingNavbar activeLabel="Penyewaan Aset" />
         <main className="flex-grow pt-20">
           <ConfirmationBreadcrumb paymentHref={paymentHref} />
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
             {isLoading ? (
-              <div className="rounded-3xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1e293b] p-8 text-sm text-gray-500 dark:text-gray-400 text-center">
+              <div className="rounded-3xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-surface-card-dark p-8 text-sm text-gray-500 dark:text-gray-400 text-center">
                 Memuat data reservasi...
               </div>
             ) : reservation ? (

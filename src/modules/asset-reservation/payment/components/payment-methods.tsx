@@ -129,9 +129,9 @@ export function PaymentMethods({
   }, [mode, reservationId, selected, hasMethods, onSessionChange]);
 
   return (
-    <section className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+    <section className="bg-white dark:bg-surface-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-gray-800">
-        <span className="material-icons-outlined text-[#4338ca]">payments</span>
+        <span className="material-icons-outlined text-brand-primary">payments</span>
         {mode === "dp" ? "Pilih Metode Pembayaran DP" : "Pilih Metode Pelunasan"}
       </h2>
       {!hasMethods ? (
@@ -149,7 +149,7 @@ export function PaymentMethods({
               </span>
             ) : null}
           </div>
-          <span className="text-base font-bold text-[#4338ca]">{formattedAmount}</span>
+          <span className="text-base font-bold text-brand-primary">{formattedAmount}</span>
         </div>
       ) : null}
       {sessionError ? (
@@ -172,12 +172,12 @@ export function PaymentMethods({
                     <Label
                       key={option.value}
                       htmlFor={id}
-                      className="flex w-full items-center gap-0 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-[#4338ca] hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition group"
+                      className="flex w-full items-center gap-0 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-brand-primary hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition group"
                     >
                       <RadioGroupItem value={option.value} id={id} />
                       <div className="ml-4 flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-[#4338ca]">
+                          <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-brand-primary">
                             {option.label}
                           </span>
                           {option.badge ? (
@@ -206,7 +206,7 @@ export function PaymentMethods({
 
       <div className="mt-6 space-y-3 bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-100">
-          <span className="material-icons-outlined text-[#4338ca]">verified</span>
+          <span className="material-icons-outlined text-brand-primary">verified</span>
           Status Pembayaran:{" "}
           <span
             className={
@@ -256,7 +256,7 @@ export function PaymentMethods({
             <div className="flex gap-2">
               <button
                 type="button"
-                className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-[#4338ca] hover:text-[#4338ca]"
+                className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
                 onClick={() => handleStatusUpdate("pending_verification")}
                 disabled={actionsDisabled}
               >
@@ -302,7 +302,7 @@ export function PaymentMethods({
           <div className="flex gap-2">
             <button
               type="button"
-              className="px-4 py-2 text-sm rounded-lg bg-[#4338ca] text-white font-semibold shadow hover:bg-indigo-600 transition"
+              className="px-4 py-2 text-sm rounded-lg bg-brand-primary text-white font-semibold shadow hover:bg-indigo-600 transition"
               disabled={isLoading || status === "expired" || actionsDisabled}
               onClick={async () => {
                 if (session?.paymentId) {
@@ -319,7 +319,7 @@ export function PaymentMethods({
             </button>
             <button
               type="button"
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-[#4338ca] hover:text-[#4338ca]"
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
               disabled={status === "expired" || actionsDisabled}
               onClick={async () => {
                 if (session?.paymentId) {

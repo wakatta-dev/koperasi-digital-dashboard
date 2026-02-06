@@ -11,7 +11,7 @@ export function RepaymentHeader({ backHref }: RepaymentHeaderProps) {
     <div className="mb-8">
       <Link
         href={backHref}
-        className="inline-flex items-center text-sm text-gray-500 hover:text-[#4338ca] dark:text-gray-400 dark:hover:text-white transition gap-1 mb-2"
+        className="inline-flex items-center text-sm text-gray-500 hover:text-brand-primary dark:text-gray-400 dark:hover:text-white transition gap-1 mb-2"
       >
         <span className="material-icons-outlined text-lg">arrow_back</span>
         Kembali ke Detail Permintaan

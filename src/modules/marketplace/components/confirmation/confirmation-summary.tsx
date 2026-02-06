@@ -4,7 +4,7 @@ import { CONFIRMATION_INFO } from "../../constants";
 
 export function ConfirmationSummary() {
   return (
-    <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden text-left mb-10 max-w-2xl mx-auto">
+    <div className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden text-left mb-10 max-w-2xl mx-auto">
       <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="space-y-3">
           <h3 className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400">Dikirim ke</h3>
@@ -21,7 +21,7 @@ export function ConfirmationSummary() {
         </div>
         <div className="space-y-3">
           <h3 className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400">Total Pembayaran</h3>
-          <p className="font-extrabold text-2xl text-[#4338ca] dark:text-indigo-400">{CONFIRMATION_INFO.totalPayment}</p>
+          <p className="font-extrabold text-2xl text-brand-primary dark:text-indigo-400">{CONFIRMATION_INFO.totalPayment}</p>
           <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
             <span className="material-icons-outlined text-base">credit_card</span>
             <span>{CONFIRMATION_INFO.paymentMethod}</span>

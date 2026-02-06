@@ -19,7 +19,7 @@ export function AdvantagesSection({ advantages }: AdvantagesProps) {
   const leftItems = data.items.filter((_, idx) => idx % 2 === 0);
   const rightItems = data.items.filter((_, idx) => idx % 2 === 1);
   return (
-    <section className="py-24 bg-white dark:bg-[#1e293b]">
+    <section className="py-24 bg-white dark:bg-surface-card-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <span className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 block">
@@ -92,7 +92,7 @@ export function AdvantagesSection({ advantages }: AdvantagesProps) {
           <button className="px-6 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition">
             Pelajari
           </button>
-          <button className="flex items-center gap-1 text-sm font-medium text-gray-900 dark:text-white hover:text-[#4338ca] transition">
+          <button className="flex items-center gap-1 text-sm font-medium text-gray-900 dark:text-white hover:text-brand-primary transition">
             Detail <span className="material-icons-outlined text-sm">arrow_forward</span>
           </button>
         </div>

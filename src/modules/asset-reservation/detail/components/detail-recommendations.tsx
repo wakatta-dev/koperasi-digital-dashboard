@@ -29,7 +29,7 @@ export function DetailRecommendations({ currentId }: DetailRecommendationsProps)
         </h2>
         <Link
           href="/penyewaan-aset"
-          className="text-[#4338ca] font-semibold hover:text-indigo-600 flex items-center gap-1 text-sm"
+          className="text-brand-primary font-semibold hover:text-indigo-600 flex items-center gap-1 text-sm"
         >
           Lihat Semua <span className="material-icons-outlined text-lg">arrow_forward</span>
         </Link>
