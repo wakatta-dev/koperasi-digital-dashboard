@@ -27,8 +27,8 @@ import type {
   AssetMasterDataItem,
   AssetMasterDataKind,
 } from "@/types/api/asset-rental";
+import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental/AssetRentalFeatureShell";
 
-import { AssetRentalFeatureDemoShell } from "./stitch/AssetRentalFeatureDemoShell";
 import { useAssetMasterData } from "../hooks/use-asset-master-data";
 
 type SectionConfig = {
@@ -187,10 +187,9 @@ export function AssetMasterDataPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 text-foreground">
-      <AssetRentalFeatureDemoShell
+      <AssetRentalFeatureShell
         title="Master Data Asset & Rental"
         description="Kelola data referensi kategori, lokasi, dan status agar form aset konsisten dengan database."
-        activeItem="Master Data"
       >
         {masterDataQuery.isLoading ? (
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
@@ -348,7 +347,7 @@ export function AssetMasterDataPage() {
             })}
           </div>
         ) : null}
-      </AssetRentalFeatureDemoShell>
+      </AssetRentalFeatureShell>
     </div>
   );
 }

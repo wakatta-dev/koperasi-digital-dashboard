@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { AssetAvailabilityRange, AssetAvailabilityResponse } from "@/types/api/asset";
-import { SELECTED_RANGE } from "../constants";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 type CellType =
@@ -199,7 +198,7 @@ export function DetailAvailability({
   const startLabel = selectedRange?.start ?? suggestedRange?.start ?? fallbackDate;
   const endLabel = selectedRange?.end ?? suggestedRange?.end ?? fallbackDate;
   const durationDays = calculateDurationDays(baseRange?.start, baseRange?.end);
-  const durationLabel = durationDays ? `${durationDays} Hari` : SELECTED_RANGE.duration;
+  const durationLabel = durationDays ? `${durationDays} Hari` : "-";
   const monthLabel = useMemo(() => {
     const date = viewMonth ? new Date(`${viewMonth.slice(0, 7)}-01T00:00:00`) : new Date();
     return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(date);

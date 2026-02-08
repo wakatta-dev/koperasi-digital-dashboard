@@ -1,7 +1,7 @@
 /** @format */
 
 import type { AssetDetailModel } from "../types/stitch";
-import { AssetDetailFeature } from "./stitch/AssetDetailFeature";
+import { AssetDetailFeature } from "./features/AssetDetailFeature";
 
 type AssetDetailViewProps = {
   detail: AssetDetailModel;

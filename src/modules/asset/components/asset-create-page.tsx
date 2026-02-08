@@ -14,7 +14,7 @@ import { showToastError, showToastSuccess } from "@/lib/toast";
 import { createAsset, uploadAssetImage } from "@/services/api/assets";
 import type { CreateAssetRentalRequest } from "@/types/api/asset-rental";
 
-import { AssetCreateFormFeature } from "./stitch/AssetCreateFormFeature";
+import { AssetCreateFormFeature } from "./features/AssetCreateFormFeature";
 import { toFormOptionGroups, useAssetMasterData } from "../hooks/use-asset-master-data";
 import type { AssetFormModel } from "../types/stitch";
 

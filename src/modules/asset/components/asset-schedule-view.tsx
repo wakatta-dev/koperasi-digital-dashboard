@@ -2,7 +2,7 @@
 
 "use client";
 
-import { AssetRentalTablesShowcase } from "@/modules/asset-reservation/components/stitch/AssetRentalTablesShowcase";
+import { AssetRentalScheduleFeature } from "./asset-rental/AssetRentalScheduleFeature";
 
 type AssetRentalSection = "penyewaan" | "pengajuan" | "pengembalian";
 
@@ -15,7 +15,7 @@ export function AssetScheduleView({
 }: AssetScheduleViewProps) {
   return (
     <div className="mx-auto max-w-7xl space-y-6 text-foreground">
-      <AssetRentalTablesShowcase initialSection={activeSection} />
+      <AssetRentalScheduleFeature initialSection={activeSection} />
     </div>
   );
 }

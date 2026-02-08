@@ -74,11 +74,14 @@ export function RentRequestModal({
           ) : null}
           <Button
             className="w-full bg-brand-primary hover:bg-indigo-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition transform active:scale-[0.98]"
-            asChild
+            asChild={Boolean(statusHref)}
+            disabled={!statusHref}
           >
-            <a href={absoluteStatusHref ?? statusHref ?? "/penyewaan-aset/status/req-1"}>
-              Lihat Permintaan Saya
-            </a>
+            {statusHref ? (
+              <a href={absoluteStatusHref ?? statusHref}>Lihat Permintaan Saya</a>
+            ) : (
+              <span>Lihat Permintaan Saya</span>
+            )}
           </Button>
           <Button
             variant="ghost"

@@ -17,11 +17,11 @@ import { Input } from "@/components/ui/input";
 import { QK } from "@/hooks/queries/queryKeys";
 import { cn } from "@/lib/utils";
 import { getAssets } from "@/services/api/assets";
+import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental/AssetRentalFeatureShell";
 
 import type { AssetListItem } from "../../types/stitch";
 import { mapApiAssetToListItem } from "../../utils/stitch-contract-mappers";
 import { toFormOptionGroups, useAssetMasterData } from "../../hooks/use-asset-master-data";
-import { AssetRentalFeatureDemoShell } from "./AssetRentalFeatureDemoShell";
 
 const statusClassMap: Record<AssetListItem["status"], string> = {
   Tersedia:
@@ -94,10 +94,9 @@ export function AssetListFeature() {
   );
 
   return (
-    <AssetRentalFeatureDemoShell
+    <AssetRentalFeatureShell
       title="Daftar Aset"
       description="Kelola data aset utama tanpa elemen layout tambahan."
-      activeItem="Daftar Aset"
       actions={
         <Button asChild className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
           <Link href="/bumdes/asset/manajemen/tambah">
@@ -275,6 +274,6 @@ export function AssetListFeature() {
           </div>
         </div>
       </div>
-    </AssetRentalFeatureDemoShell>
+    </AssetRentalFeatureShell>
   );
 }

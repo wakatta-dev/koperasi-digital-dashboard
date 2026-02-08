@@ -2,7 +2,7 @@
 
 "use client";
 
-import { AssetListFeature } from "./stitch/AssetListFeature";
+import { AssetListFeature } from "./features/AssetListFeature";
 
 export function AssetManagementPage() {
   return (

@@ -1,29 +1,8 @@
 /** @format */
 
-import type { AssetItem, ReservationStatus as ReservationStatusType } from "../types";
-import { DETAIL_ASSET, type FacilityItem } from "../detail/constants";
-import { ASSET_ITEMS } from "../constants";
+import type { ReservationStatus as ReservationStatusType } from "../types";
 
 export type ReservationStatus = ReservationStatusType;
-
-export const REQUEST_INFO = {
-  id: "#REQ-ASSET-20231024-001",
-  submittedAt: "Diajukan pada 24 Okt 2024",
-  renterName: "Budi Santoso",
-  renterContact: "0812-3456-7890",
-  dateRange: {
-    start: "28 Okt 2024",
-    end: "30 Okt 2024",
-    duration: "2 Hari",
-  },
-  purpose: "Resepsi Pernikahan anak pertama dengan estimasi tamu 300 orang.",
-  costs: {
-    rentalLabel: "Sewa 2 Hari",
-    rentalTotal: "Rp700.000",
-    cleaning: "Rp50.000",
-    total: "Rp750.000",
-  },
-};
 
 export const STATUS_CONTENT: Record<
   ReservationStatus,
@@ -132,11 +111,3 @@ export const STATUS_CONTENT: Record<
     summaryLabel: "Status",
   },
 };
-
-export const STATUS_ASSET = {
-  ...DETAIL_ASSET,
-};
-
-export const STATUS_RECOMMENDATIONS: AssetItem[] = ASSET_ITEMS.slice(1, 4);
-
-export const STATUS_FACILITIES: FacilityItem[] = DETAIL_ASSET.facilities;

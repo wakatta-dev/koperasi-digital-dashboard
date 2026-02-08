@@ -3,15 +3,15 @@
 import type { AssetRentalBooking } from "@/types/api/asset-rental";
 
 import type {
-  RentalListItem,
-  RentalRequestItem,
-  ReturnListItem,
-} from "../types/stitch";
+  AssetRentalRentalsRow,
+  AssetRentalRequestsRow,
+  AssetRentalReturnsRow,
+} from "../types/asset-rental";
 
-type StitchBookingCollections = Readonly<{
-  rentalRows: RentalListItem[];
-  requestRows: RentalRequestItem[];
-  returnRows: ReturnListItem[];
+type AssetRentalBookingCollections = Readonly<{
+  rentalRows: AssetRentalRentalsRow[];
+  requestRows: AssetRentalRequestsRow[];
+  returnRows: AssetRentalReturnsRow[];
 }>;
 
 function toDateText(unixSeconds?: number) {
@@ -25,7 +25,7 @@ function toBookingStatus(status?: string) {
   return (status || "").toUpperCase();
 }
 
-function toRentalStatus(booking: AssetRentalBooking): RentalListItem["status"] {
+function toRentalStatus(booking: AssetRentalBooking): AssetRentalRentalsRow["status"] {
   const status = toBookingStatus(booking.status);
   if (status === "COMPLETED" || status === "CONFIRMED_FULL") return "Selesai";
   const endAt = new Date((booking.end_time || 0) * 1000).getTime();
@@ -33,14 +33,14 @@ function toRentalStatus(booking: AssetRentalBooking): RentalListItem["status"] {
   return isLate ? "Terlambat" : "Berjalan";
 }
 
-function toRequestStatus(status?: string): RentalRequestItem["status"] {
+function toRequestStatus(status?: string): AssetRentalRequestsRow["status"] {
   const normalized = toBookingStatus(status);
   if (normalized === "PENDING_REVIEW") return "Menunggu";
   if (normalized === "REJECTED" || normalized === "CANCELLED") return "Ditolak";
   return "Disetujui";
 }
 
-function toReturnStatus(status?: string): ReturnListItem["status"] {
+function toReturnStatus(status?: string): AssetRentalReturnsRow["status"] {
   const normalized = toBookingStatus(status);
   if (normalized === "COMPLETED") return "Selesai";
   if (normalized === "CONFIRMED_FULL") return "Diproses";
@@ -53,7 +53,7 @@ function toAssetTag(assetID: number) {
 
 export function mapContractBookingToRental(
   booking: AssetRentalBooking
-): RentalListItem {
+): AssetRentalRentalsRow {
   return {
     id: String(booking.id),
     assetName: booking.asset_name,
@@ -68,7 +68,7 @@ export function mapContractBookingToRental(
 
 export function mapContractBookingToRequest(
   booking: AssetRentalBooking
-): RentalRequestItem {
+): AssetRentalRequestsRow {
   return {
     id: String(booking.id),
     requesterName: booking.renter_name,
@@ -84,7 +84,7 @@ export function mapContractBookingToRequest(
 
 export function mapContractBookingToReturn(
   booking: AssetRentalBooking
-): ReturnListItem {
+): AssetRentalReturnsRow {
   return {
     id: String(booking.id),
     assetName: booking.asset_name,
@@ -95,12 +95,12 @@ export function mapContractBookingToReturn(
   };
 }
 
-export function splitBookingsForStitchTables(
+export function splitAssetRentalBookings(
   bookings: AssetRentalBooking[]
-): StitchBookingCollections {
-  const rentalRows: RentalListItem[] = [];
-  const requestRows: RentalRequestItem[] = [];
-  const returnRows: ReturnListItem[] = [];
+): AssetRentalBookingCollections {
+  const rentalRows: AssetRentalRentalsRow[] = [];
+  const requestRows: AssetRentalRequestsRow[] = [];
+  const returnRows: AssetRentalReturnsRow[] = [];
 
   for (const booking of bookings) {
     const normalized = toBookingStatus(booking.status);

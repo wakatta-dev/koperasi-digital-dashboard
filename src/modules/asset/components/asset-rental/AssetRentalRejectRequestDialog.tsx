@@ -11,17 +11,17 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { AssetRentalDialogShell } from "./AssetRentalDialogShell";
 
-type RejectRequestModalFeatureProps = Readonly<{
+type AssetRentalRejectRequestDialogProps = Readonly<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm?: (reason: string) => void;
 }>;
 
-export function RejectRequestModalFeature({
+export function AssetRentalRejectRequestDialog({
   open,
   onOpenChange,
   onConfirm,
-}: RejectRequestModalFeatureProps) {
+}: AssetRentalRejectRequestDialogProps) {
   const [reason, setReason] = useState("");
 
   return (
