@@ -8,8 +8,23 @@ export type AssetRentalAsset = {
   rate_type: "DAILY" | "HOURLY" | string;
   rate_amount: number;
   photo_url?: string;
+  category?: string;
+  availability_status?: string;
+  location?: string;
+  serial_number?: string;
+  assigned_to?: string;
+  purchase_date?: string;
+  vendor?: string;
+  purchase_price?: number;
+  warranty_end_date?: string;
+  specifications?: AssetSpecification[];
   description?: string;
   status: "ACTIVE" | "ARCHIVED" | string;
+};
+
+export type AssetSpecification = {
+  label: string;
+  value: string;
 };
 
 export type AssetRentalBooking = {
@@ -34,10 +49,43 @@ export type CreateAssetRentalRequest = {
   name: string;
   rate_type: "DAILY" | "HOURLY" | string;
   rate_amount: number;
+  category?: string;
+  availability_status?: string;
+  location?: string;
+  serial_number?: string;
+  assigned_to?: string;
+  purchase_date?: string;
+  vendor?: string;
+  purchase_price?: number;
+  warranty_end_date?: string;
+  specifications?: AssetSpecification[];
   description?: string;
 };
 
 export type UpdateAssetRentalRequest = Partial<CreateAssetRentalRequest>;
+
+export type AssetMasterDataKind = "CATEGORY" | "LOCATION" | "STATUS";
+
+export type AssetMasterDataItem = {
+  id: number;
+  kind: AssetMasterDataKind;
+  value: string;
+  sort_order: number;
+  is_active: boolean;
+};
+
+export type AssetMasterDataCollection = {
+  categories: AssetMasterDataItem[];
+  locations: AssetMasterDataItem[];
+  statuses: AssetMasterDataItem[];
+};
+
+export type AssetMasterDataRequest = {
+  kind: AssetMasterDataKind;
+  value: string;
+  sort_order?: number;
+  is_active?: boolean;
+};
 
 export type AssetRentalReservationSummary = {
   reservation_id: string;

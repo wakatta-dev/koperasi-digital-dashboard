@@ -9,6 +9,9 @@ import type {
 } from "@/types/api/asset";
 import type {
   AssetRentalAsset,
+  AssetMasterDataCollection,
+  AssetMasterDataItem,
+  AssetMasterDataRequest,
   CreateAssetRentalRequest,
   UpdateAssetRentalRequest,
 } from "@/types/api/asset-rental";
@@ -93,4 +96,31 @@ export function uploadAssetImage(
   const formData = new FormData();
   formData.append("image", file);
   return api.post<AssetRentalAsset>(`${API_PREFIX}${E.image(id)}`, formData);
+}
+
+export function getAssetCategories(): Promise<ApiResponse<string[]>> {
+  return api.get<string[]>(`${API_PREFIX}${E.categories}`);
+}
+
+export function getAssetMasterData(): Promise<ApiResponse<AssetMasterDataCollection>> {
+  return api.get<AssetMasterDataCollection>(`${API_PREFIX}${E.masterData}`);
+}
+
+export function createAssetMasterData(
+  payload: AssetMasterDataRequest
+): Promise<ApiResponse<AssetMasterDataItem>> {
+  return api.post<AssetMasterDataItem>(`${API_PREFIX}${E.masterData}`, payload);
+}
+
+export function updateAssetMasterData(
+  id: string | number,
+  payload: Partial<AssetMasterDataRequest>
+): Promise<ApiResponse<AssetMasterDataItem>> {
+  return api.patch<AssetMasterDataItem>(`${API_PREFIX}${E.masterDataItem(id)}`, payload);
+}
+
+export function deleteAssetMasterData(
+  id: string | number
+): Promise<ApiResponse<null>> {
+  return api.delete<null>(`${API_PREFIX}${E.masterDataItem(id)}`);
 }

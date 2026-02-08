@@ -89,6 +89,8 @@ export const API_ENDPOINTS = {
     detail: (id: string | number) => `/asset-rental/assets/${id}`,
     image: (id: string | number) => `/asset-rental/assets/${id}/image`,
     categories: "/asset-rental/assets/categories",
+    masterData: "/asset-rental/master-data",
+    masterDataItem: (id: string | number) => `/asset-rental/master-data/${id}`,
     availability: (id: string | number) => `/asset-rental/assets/${id}/availability`,
   },
   assetReservation: {
