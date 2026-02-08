@@ -1,5 +1,7 @@
 /** @format */
 
+"use client";
+
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
