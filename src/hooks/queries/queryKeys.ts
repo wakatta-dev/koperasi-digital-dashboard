@@ -57,6 +57,8 @@ export const QK = {
       ["asset-rental", "assets", params ?? {}] as const,
     detail: (id: string | number) =>
       ["asset-rental", "assets", "detail", String(id)] as const,
+    masterData: (params?: Record<string, unknown>) =>
+      ["asset-rental", "master-data", params ?? {}] as const,
     bookings: (params?: Record<string, unknown>) =>
       ["asset-rental", "bookings", params ?? {}] as const,
     reservation: (id: string | number) =>
@@ -118,6 +120,7 @@ export type QueryKey = ReturnType<
   | typeof QK.finance.balanceSheet
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
+  | typeof QK.assetRental.masterData
   | typeof QK.assetRental.bookings
   | typeof QK.assetRental.reservation
   | typeof QK.marketplace.list

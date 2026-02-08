@@ -10,7 +10,17 @@ import { bumdesNavigation, bumdesTitleMap } from "./navigation";
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const title = bumdesTitleMap[pathname] ?? "BUMDes";
+  const title =
+    bumdesTitleMap[pathname] ??
+    (pathname.startsWith("/bumdes/asset/manajemen/")
+      ? "Asset & Rental - Detail Aset"
+      : pathname.startsWith("/bumdes/asset/penyewaan/")
+        ? "Asset & Rental - Detail Penyewaan"
+        : pathname.startsWith("/bumdes/asset/pengajuan-sewa/")
+          ? "Asset & Rental - Detail Pengajuan Sewa"
+          : pathname.startsWith("/bumdes/asset/pengembalian/")
+            ? "Asset & Rental - Detail Pengembalian"
+            : "BUMDes");
 
   return (
     <ProtectedRoute requiredRole="bumdes">

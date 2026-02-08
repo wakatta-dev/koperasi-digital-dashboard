@@ -39,8 +39,26 @@ export const bumdesNavigation = [
     href: "/bumdes/asset",
     icon: <Package className="h-4 w-4" />,
     items: [
-      { name: "Daftar Aset", href: "/bumdes/asset/manajemen" },
-      { name: "Penyewaan", href: "/bumdes/asset/jadwal" },
+      {
+        name: "Daftar Aset",
+        href: "/bumdes/asset/manajemen",
+      },
+      {
+        name: "Penyewaan",
+        href: "/bumdes/asset/penyewaan",
+      },
+      {
+        name: "Pengajuan Sewa",
+        href: "/bumdes/asset/pengajuan-sewa",
+      },
+      {
+        name: "Pengembalian",
+        href: "/bumdes/asset/pengembalian",
+      },
+      {
+        name: "Master Data",
+        href: "/bumdes/asset/master-data",
+      },
     ],
   },
   {
@@ -107,6 +125,12 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/dashboard": "Dashboard",
   "/bumdes/asset": "Asset & Rental",
   "/bumdes/asset/manajemen": "Asset & Rental - Daftar Aset",
+  "/bumdes/asset/manajemen/tambah": "Asset & Rental - Tambah Aset",
+  "/bumdes/asset/manajemen/edit": "Asset & Rental - Edit Aset",
+  "/bumdes/asset/penyewaan": "Asset & Rental - Penyewaan",
+  "/bumdes/asset/pengajuan-sewa": "Asset & Rental - Pengajuan Sewa",
+  "/bumdes/asset/pengembalian": "Asset & Rental - Pengembalian",
+  "/bumdes/asset/master-data": "Asset & Rental - Master Data",
   "/bumdes/asset/jadwal": "Asset & Rental - Penyewaan",
   "/bumdes/marketplace/inventory": "Penjualan - Produk",
   "/bumdes/marketplace/inventory/categories": "Penjualan - Kategori Produk",
