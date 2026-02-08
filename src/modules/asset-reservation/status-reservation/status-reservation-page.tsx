@@ -9,7 +9,7 @@ import { LandingNavbar } from "@/modules/landing/components/navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
 import type { ReservationState } from "./constants";
 import { SecureInfoBar } from "./components/secure-info-bar";
-import { ConfirmationBreadcrumb } from "../confirmation/components/confirmation-breadcrumb";
+import { ConfirmationBreadcrumb } from "./components/confirmation-breadcrumb";
 import { ReservationSummaryCard } from "./components/reservation-summary-card";
 import { DownloadProofModal } from "./components/download-proof-modal";
 import { useReservation } from "../hooks";
