@@ -12,9 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental/AssetRentalFeatureShell";
 
 import type { AssetDetailModel } from "../../types/stitch";
-import { AssetRentalFeatureDemoShell } from "./AssetRentalFeatureDemoShell";
 
 type AssetDetailFeatureProps = Readonly<{
   detail: AssetDetailModel;
@@ -22,10 +22,9 @@ type AssetDetailFeatureProps = Readonly<{
 
 export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
   return (
-    <AssetRentalFeatureDemoShell
+    <AssetRentalFeatureShell
       title="Detail Aset"
       description="Struktur informasi aset utama dari desain Stitch."
-      activeItem="Daftar Aset"
     >
       <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {detail.summaryCards.map((card) => (
@@ -205,6 +204,6 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
           </section>
         </div>
       </div>
-    </AssetRentalFeatureDemoShell>
+    </AssetRentalFeatureShell>
   );
 }

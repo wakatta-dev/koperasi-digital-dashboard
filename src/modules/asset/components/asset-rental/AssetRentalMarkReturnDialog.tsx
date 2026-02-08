@@ -12,9 +12,11 @@ import { cn } from "@/lib/utils";
 
 import { AssetRentalDialogShell } from "./AssetRentalDialogShell";
 
-type MarkReturnModalFeatureProps = Readonly<{
+type AssetRentalMarkReturnDialogProps = Readonly<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  assetName?: string;
+  renterName?: string;
   onConfirm?: (payload: { condition: "baik" | "rusak" | "perbaikan"; notes: string }) => void;
 }>;
 
@@ -24,11 +26,13 @@ const options = [
   { label: "Perlu Perbaikan", value: "perbaikan", icon: Wrench },
 ] as const;
 
-export function MarkReturnModalFeature({
+export function AssetRentalMarkReturnDialog({
   open,
   onOpenChange,
+  assetName,
+  renterName,
   onConfirm,
-}: MarkReturnModalFeatureProps) {
+}: AssetRentalMarkReturnDialogProps) {
   const [selected, setSelected] = useState<(typeof options)[number]["value"]>(
     "baik"
   );
@@ -70,9 +74,10 @@ export function MarkReturnModalFeature({
       }
     >
       <div className="rounded-xl border border-blue-100 bg-blue-50/80 p-4">
-        <h4 className="text-sm font-semibold text-slate-900">MacBook Air M1</h4>
+        <h4 className="text-sm font-semibold text-slate-900">{assetName ?? "-"}</h4>
         <p className="mt-1 text-xs text-slate-500">
-          Dikembalikan oleh <span className="font-medium text-slate-700">Rina Kusuma</span>
+          Dikembalikan oleh{" "}
+          <span className="font-medium text-slate-700">{renterName ?? "-"}</span>
         </p>
       </div>
 

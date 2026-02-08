@@ -1,6 +1,6 @@
 /** @format */
 
-export type RentalListItem = Readonly<{
+export type AssetRentalRentalsRow = Readonly<{
   id: string;
   assetName: string;
   assetTag: string;
@@ -11,7 +11,7 @@ export type RentalListItem = Readonly<{
   status: "Berjalan" | "Terlambat" | "Selesai";
 }>;
 
-export type RentalRequestItem = Readonly<{
+export type AssetRentalRequestsRow = Readonly<{
   id: string;
   requesterName: string;
   requesterUnit: string;
@@ -23,25 +23,11 @@ export type RentalRequestItem = Readonly<{
   status: "Menunggu" | "Disetujui" | "Ditolak";
 }>;
 
-export type ReturnListItem = Readonly<{
+export type AssetRentalReturnsRow = Readonly<{
   id: string;
   assetName: string;
   borrowerName: string;
   dueDate: string;
   plannedReturnDate: string | null;
   status: "Menunggu Pengembalian" | "Diproses" | "Selesai";
-}>;
-
-export type RejectRequestModalState = Readonly<{
-  open: boolean;
-  bookingId: string | null;
-  reason: string;
-}>;
-
-export type ReturnConfirmationModalState = Readonly<{
-  open: boolean;
-  bookingId: string | null;
-  returnDateTime: string;
-  condition: "baik" | "rusak" | "perbaikan";
-  notes: string;
 }>;

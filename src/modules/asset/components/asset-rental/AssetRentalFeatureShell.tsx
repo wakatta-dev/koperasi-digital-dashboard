@@ -2,27 +2,19 @@
 
 import type { ReactNode } from "react";
 
-export type AssetRentalMenuItem =
-  | "Daftar Aset"
-  | "Penyewaan"
-  | "Pengajuan Sewa"
-  | "Pengembalian"
-  | "Master Data";
-
-type AssetRentalFeatureDemoShellProps = Readonly<{
+type AssetRentalFeatureShellProps = Readonly<{
   title: string;
   description?: string;
-  activeItem: AssetRentalMenuItem;
-  children: ReactNode;
   actions?: ReactNode;
+  children: ReactNode;
 }>;
 
-export function AssetRentalFeatureDemoShell({
+export function AssetRentalFeatureShell({
   title,
   description,
   actions,
   children,
-}: AssetRentalFeatureDemoShellProps) {
+}: AssetRentalFeatureShellProps) {
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -40,3 +32,4 @@ export function AssetRentalFeatureDemoShell({
     </div>
   );
 }
+

@@ -14,7 +14,7 @@ import { showToastError, showToastSuccess } from "@/lib/toast";
 import { getAssetById, updateAsset, uploadAssetImage } from "@/services/api/assets";
 import type { UpdateAssetRentalRequest } from "@/types/api/asset-rental";
 
-import { AssetEditFormFeature } from "./stitch/AssetEditFormFeature";
+import { AssetEditFormFeature } from "./features/AssetEditFormFeature";
 import { toFormOptionGroups, useAssetMasterData } from "../hooks/use-asset-master-data";
 import { mapContractAssetToFormModel } from "../utils/stitch-contract-mappers";
 import type { AssetFormModel } from "../types/stitch";

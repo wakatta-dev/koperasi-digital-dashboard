@@ -9,21 +9,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 import { AssetRentalDialogShell } from "./AssetRentalDialogShell";
 
-type ReturnConfirmationModalFeatureProps = Readonly<{
+type AssetRentalReturnConfirmationDialogProps = Readonly<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm?: () => void;
 }>;
 
-export function ReturnConfirmationModalFeature({
+function toLocalDateTimeInputValue(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function AssetRentalReturnConfirmationDialog({
   open,
   onOpenChange,
   onConfirm,
-}: ReturnConfirmationModalFeatureProps) {
-  const [returnTimestamp, setReturnTimestamp] = useState("2023-11-15T10:00");
+}: AssetRentalReturnConfirmationDialogProps) {
+  const [returnTimestamp, setReturnTimestamp] = useState(() =>
+    toLocalDateTimeInputValue(new Date())
+  );
   const [condition, setCondition] = useState("Baik / Normal");
   const [notes, setNotes] = useState("");
 
@@ -110,8 +118,4 @@ export function ReturnConfirmationModalFeature({
       </div>
     </AssetRentalDialogShell>
   );
-}
-
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
 }

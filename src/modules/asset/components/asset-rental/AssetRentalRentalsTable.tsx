@@ -26,10 +26,10 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-import type { RentalListItem } from "../../types/stitch";
+import type { AssetRentalRentalsRow } from "../../types/asset-rental";
 
-type RentalListFeatureProps = Readonly<{
-  rows: RentalListItem[];
+type AssetRentalRentalsTableProps = Readonly<{
+  rows: AssetRentalRentalsRow[];
   search: string;
   onSearchChange: (value: string) => void;
   status: string;
@@ -39,7 +39,7 @@ type RentalListFeatureProps = Readonly<{
   actionDisabled?: boolean;
 }>;
 
-const statusStyles: Record<RentalListItem["status"], string> = {
+const statusStyles: Record<AssetRentalRentalsRow["status"], string> = {
   Berjalan:
     "border border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   Terlambat:
@@ -48,7 +48,7 @@ const statusStyles: Record<RentalListItem["status"], string> = {
     "border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
 };
 
-export function RentalListFeature({
+export function AssetRentalRentalsTable({
   rows,
   search,
   onSearchChange,
@@ -57,7 +57,7 @@ export function RentalListFeature({
   onRowAction,
   buildDetailHref,
   actionDisabled = false,
-}: RentalListFeatureProps) {
+}: AssetRentalRentalsTableProps) {
   const [showStatusFilter, setShowStatusFilter] = useState(true);
   const [page, setPage] = useState(1);
   const pageSize = 5;

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { checkAvailability } from "../utils/availability";
 import { createReservation } from "@/services/api/reservations";
 import type { ReservationSummary } from "../../types";
+import { createSignedReservationLink } from "../../utils/signed-link";
 
 const rentalSchema = z.object({
   start_date: z.string().min(1, "Tanggal mulai wajib diisi."),
@@ -27,7 +28,9 @@ type DetailRentalFormProps = {
   startDate: string;
   endDate: string;
   onRangeChange?: (range: { start: string; end: string }) => void;
-  onSubmit?: (reservation: ReservationSummary) => Promise<void> | void;
+  onSubmit?: (
+    reservation: ReservationSummary & { statusHref?: string }
+  ) => Promise<void> | void;
 };
 
 export function DetailRentalForm({
@@ -143,24 +146,22 @@ export function DetailRentalForm({
       return;
     }
 
-    const result = checkAvailability({ start, end, assetId: numericAssetId });
-    const resolved = result instanceof Promise ? await result : result;
-
-    if (!resolved.ok) {
-      setError("Rentang tanggal bertabrakan dengan jadwal lain.");
-      setSuggestion(resolved.suggestion ?? null);
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
+      const availability = await checkAvailability({ start, end, assetId: numericAssetId });
+      if (!availability.ok) {
+        setError("Rentang tanggal bertabrakan dengan jadwal lain.");
+        setSuggestion(availability.suggestion ?? null);
+        setIsSubmitting(false);
+        return;
+      }
+
       const creation = await createReservation({
         asset_id: numericAssetId,
         start_date: start,
         end_date: end,
-        purpose: purpose || "Penggunaan umum",
-        renter_name: fullName || "Pemesan",
-        renter_contact: contact || "kontak tidak tersedia",
+        purpose,
+        renter_name: fullName,
+        renter_contact: contact,
       });
 
       if (!creation.success || !creation.data) {
@@ -169,19 +170,27 @@ export function DetailRentalForm({
 
       const { reservation_id, hold_expires_at, amounts, status } =
         creation.data;
+
+      const signed = await createSignedReservationLink({
+        reservationId: reservation_id,
+        status,
+        expiresAt: hold_expires_at,
+      });
+
       const info: ReservationSummary = {
         reservationId: reservation_id,
-        assetId: assetId ?? "asset-unknown",
+        assetId: numericAssetId,
         startDate: start,
         endDate: end,
         status: status === "pending_review" ? "pending_review" : "awaiting_dp",
         holdExpiresAt: hold_expires_at,
         amounts,
       };
+
       setReservationInfo(info);
       setError(null);
       setSuggestion(null);
-      await onSubmit?.(info);
+      await onSubmit?.({ ...info, statusHref: signed.url });
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : "Gagal memproses permintaan"

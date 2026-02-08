@@ -5,6 +5,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental/AssetRentalFeatureShell";
 import { Button } from "@/components/ui/button";
 import { QK } from "@/hooks/queries/queryKeys";
 import { showToastError, showToastSuccess, showToastWarning } from "@/lib/toast";
@@ -16,22 +17,16 @@ import {
 
 import { useAssetRentalFeatureFilters } from "../../hooks/use-asset-rental-feature-filters";
 import { useAssetRentalOverlays } from "../../hooks/use-asset-rental-overlays";
-import { splitBookingsForStitchTables } from "../../utils/stitch-contract-mappers";
-import { AssetRentalFeatureDemoShell } from "@/modules/asset/components/stitch/AssetRentalFeatureDemoShell";
-import { MarkReturnModalFeature } from "./MarkReturnModalFeature";
-import { RejectRequestModalFeature } from "./RejectRequestModalFeature";
-import { RentalListFeature } from "./RentalListFeature";
-import { RentalRequestListFeature } from "./RentalRequestListFeature";
-import { ReturnConfirmationModalFeature } from "./ReturnConfirmationModalFeature";
-import { ReturnListFeature } from "./ReturnListFeature";
+import { splitAssetRentalBookings } from "../../utils/asset-rental-booking-mappers";
+
+import { AssetRentalMarkReturnDialog } from "./AssetRentalMarkReturnDialog";
+import { AssetRentalRejectRequestDialog } from "./AssetRentalRejectRequestDialog";
+import { AssetRentalRentalsTable } from "./AssetRentalRentalsTable";
+import { AssetRentalRequestsTable } from "./AssetRentalRequestsTable";
+import { AssetRentalReturnConfirmationDialog } from "./AssetRentalReturnConfirmationDialog";
+import { AssetRentalReturnsTable } from "./AssetRentalReturnsTable";
 
 type SectionKey = "penyewaan" | "pengajuan" | "pengembalian";
-
-const sectionMenu: Record<SectionKey, "Penyewaan" | "Pengajuan Sewa" | "Pengembalian"> = {
-  penyewaan: "Penyewaan",
-  pengajuan: "Pengajuan Sewa",
-  pengembalian: "Pengembalian",
-};
 
 const sectionDetailBasePath: Record<SectionKey, string> = {
   penyewaan: "/bumdes/asset/penyewaan",
@@ -39,20 +34,20 @@ const sectionDetailBasePath: Record<SectionKey, string> = {
   pengembalian: "/bumdes/asset/pengembalian",
 };
 
-type AssetRentalTablesShowcaseProps = Readonly<{
+type AssetRentalScheduleFeatureProps = Readonly<{
   initialSection?: SectionKey;
 }>;
 
-export function AssetRentalTablesShowcase({
+export function AssetRentalScheduleFeature({
   initialSection = "penyewaan",
-}: AssetRentalTablesShowcaseProps) {
+}: AssetRentalScheduleFeatureProps) {
   const section = initialSection;
   const queryClient = useQueryClient();
   const { search, status, setSearch, setStatus } = useAssetRentalFeatureFilters();
   const overlays = useAssetRentalOverlays();
 
   const bookingsQuery = useQuery({
-    queryKey: QK.assetRental.bookings({ source: "asset-rental-tables" }),
+    queryKey: QK.assetRental.bookings({ source: "asset-rental-schedule" }),
     queryFn: async () => {
       const response = await getAssetRentalBookings();
       if (!response.success || !response.data) {
@@ -63,7 +58,7 @@ export function AssetRentalTablesShowcase({
   });
 
   const bookingCollections = useMemo(
-    () => splitBookingsForStitchTables(bookingsQuery.data ?? []),
+    () => splitAssetRentalBookings(bookingsQuery.data ?? []),
     [bookingsQuery.data]
   );
 
@@ -140,7 +135,8 @@ export function AssetRentalTablesShowcase({
       await statusMutation.mutateAsync({ bookingId, status: "AWAITING_DP" });
       showToastSuccess("Pengajuan disetujui", "Status pengajuan diperbarui.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menyetujui pengajuan";
+      const message =
+        error instanceof Error ? error.message : "Gagal menyetujui pengajuan";
       showToastError("Gagal menyetujui", message);
     }
   };
@@ -158,17 +154,32 @@ export function AssetRentalTablesShowcase({
   const completeReturn = async (bookingId: string) => {
     try {
       await completeMutation.mutateAsync(bookingId);
-      showToastSuccess("Pengembalian selesai", "Status booking diperbarui menjadi selesai.");
+      showToastSuccess(
+        "Pengembalian selesai",
+        "Status booking diperbarui menjadi selesai."
+      );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menyelesaikan pengembalian";
+      const message =
+        error instanceof Error ? error.message : "Gagal menyelesaikan pengembalian";
       showToastError("Gagal menyimpan pengembalian", message);
     }
   };
 
+  const selectedId = overlays.selectedId;
+  const selectedReturn = selectedId
+    ? returnRows.find((row) => row.id === selectedId)
+    : undefined;
+
+  const scheduleTitle =
+    section === "penyewaan"
+      ? "Penyewaan"
+      : section === "pengajuan"
+        ? "Pengajuan Sewa"
+        : "Pengembalian";
+
   return (
-    <AssetRentalFeatureDemoShell
-      title={section === "penyewaan" ? "Penyewaan" : section === "pengajuan" ? "Pengajuan Sewa" : "Pengembalian"}
-      activeItem={sectionMenu[section]}
+    <AssetRentalFeatureShell
+      title={scheduleTitle}
       actions={
         section === "pengembalian" ? (
           <Button
@@ -177,7 +188,10 @@ export function AssetRentalTablesShowcase({
             className="h-8 border-slate-200 bg-white text-slate-600"
             onClick={() => {
               if (filteredReturnRows.length === 0) {
-                showToastWarning("Tidak ada data", "Tidak ada pengembalian yang bisa diproses.");
+                showToastWarning(
+                  "Tidak ada data",
+                  "Tidak ada pengembalian yang bisa diproses."
+                );
                 return;
               }
               overlays.openMarkReturn(filteredReturnRows[0].id);
@@ -210,7 +224,7 @@ export function AssetRentalTablesShowcase({
       ) : null}
 
       {!bookingsQuery.isLoading && !bookingsQuery.isError && section === "penyewaan" ? (
-        <RentalListFeature
+        <AssetRentalRentalsTable
           rows={filteredRentalRows}
           search={search}
           onSearchChange={setSearch}
@@ -223,7 +237,10 @@ export function AssetRentalTablesShowcase({
           onRowAction={(id) => {
             const row = filteredRentalRows.find((item) => item.id === id);
             if (!row || row.status === "Selesai") {
-              showToastWarning("Aksi tidak tersedia", "Booking ini sudah selesai.");
+              showToastWarning(
+                "Aksi tidak tersedia",
+                "Booking ini sudah selesai."
+              );
               return;
             }
             overlays.openConfirm(id);
@@ -232,7 +249,7 @@ export function AssetRentalTablesShowcase({
       ) : null}
 
       {!bookingsQuery.isLoading && !bookingsQuery.isError && section === "pengajuan" ? (
-        <RentalRequestListFeature
+        <AssetRentalRequestsTable
           rows={filteredRequestRows}
           search={search}
           onSearchChange={setSearch}
@@ -248,7 +265,7 @@ export function AssetRentalTablesShowcase({
       ) : null}
 
       {!bookingsQuery.isLoading && !bookingsQuery.isError && section === "pengembalian" ? (
-        <ReturnListFeature
+        <AssetRentalReturnsTable
           rows={filteredReturnRows}
           search={search}
           onSearchChange={setSearch}
@@ -260,12 +277,12 @@ export function AssetRentalTablesShowcase({
         />
       ) : null}
 
-      <RejectRequestModalFeature
+      <AssetRentalRejectRequestDialog
         open={overlays.rejectOpen}
         onOpenChange={(open) => {
           if (!open) overlays.closeReject();
         }}
-        onConfirm={async () => {
+        onConfirm={async (_reason) => {
           if (!overlays.selectedId) {
             overlays.closeReject();
             return;
@@ -275,36 +292,39 @@ export function AssetRentalTablesShowcase({
         }}
       />
 
-      <ReturnConfirmationModalFeature
+      <AssetRentalReturnConfirmationDialog
         open={overlays.confirmOpen}
         onOpenChange={(open) => {
           if (!open) overlays.closeConfirm();
         }}
         onConfirm={() => {
-          const selectedId = overlays.selectedId;
-          if (!selectedId) {
+          const nextId = overlays.selectedId;
+          if (!nextId) {
             overlays.closeConfirm();
             return;
           }
           overlays.closeConfirm();
-          overlays.openMarkReturn(selectedId);
+          overlays.openMarkReturn(nextId);
         }}
       />
 
-      <MarkReturnModalFeature
+      <AssetRentalMarkReturnDialog
         open={overlays.markReturnOpen}
         onOpenChange={(open) => {
           if (!open) overlays.closeMarkReturn();
         }}
-        onConfirm={async () => {
-          if (!overlays.selectedId) {
+        assetName={selectedReturn?.assetName}
+        renterName={selectedReturn?.borrowerName}
+        onConfirm={async (_payload) => {
+          const bookingId = overlays.selectedId;
+          if (!bookingId) {
             overlays.closeMarkReturn();
             return;
           }
-          await completeReturn(overlays.selectedId);
+          await completeReturn(bookingId);
           overlays.closeMarkReturn();
         }}
       />
-    </AssetRentalFeatureDemoShell>
+    </AssetRentalFeatureShell>
   );
 }

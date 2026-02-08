@@ -1,6 +1,9 @@
 /** @format */
 
-import type { FacilityItem } from "../constants";
+export type FacilityItem = {
+  icon: string;
+  label: string;
+};
 
 type DetailFacilitiesProps = {
   facilities: FacilityItem[];
