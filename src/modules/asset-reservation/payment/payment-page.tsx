@@ -15,7 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { QK } from "@/hooks/queries/queryKeys";
 
 type AssetPaymentPageProps = {
-  reservationId?: string;
+  reservationId?: number;
   mode?: "dp" | "settlement";
 };
 

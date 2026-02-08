@@ -21,7 +21,7 @@ type MappedProduct = ProductPerformance & {
   low_stock: boolean;
 };
 
-export type AnalyticsViewModel = AnalyticsResponseData & {
+export type AnalyticsViewModel = Omit<AnalyticsResponseData, "top_products" | "kpis"> & {
   top_products: MappedProduct[];
   kpis: AnalyticsKpi[];
 };

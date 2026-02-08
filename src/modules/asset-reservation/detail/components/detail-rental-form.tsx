@@ -103,9 +103,10 @@ export function DetailRentalForm({
     const fullName = String(formData.get("full_name") ?? "").trim();
     const phone = String(formData.get("phone") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
-    const contact = [phone, email].filter(Boolean).join(" / ");
     const now = new Date().toISOString().slice(0, 10);
-    const numericAssetId = assetId && /^\d+$/.test(assetId) ? assetId : undefined;
+    const parsedAssetId = assetId ? Number.parseInt(assetId, 10) : Number.NaN;
+    const numericAssetId =
+      Number.isFinite(parsedAssetId) && parsedAssetId > 0 ? parsedAssetId : undefined;
 
     const validation = rentalSchema.safeParse({
       start_date: start,
@@ -161,7 +162,8 @@ export function DetailRentalForm({
         end_date: end,
         purpose,
         renter_name: fullName,
-        renter_contact: contact,
+        renter_contact: phone,
+        renter_email: email,
       });
 
       if (!creation.success || !creation.data) {

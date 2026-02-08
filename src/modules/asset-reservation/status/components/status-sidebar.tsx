@@ -16,7 +16,7 @@ type StatusSidebarProps = {
   amounts?: Amounts;
   onCancel?: () => void;
   onReschedule?: () => void;
-  reservationId?: string;
+  reservationId?: number;
 };
 
 function formatCurrency(value?: number) {
@@ -46,10 +46,10 @@ export function StatusSidebar({
   const paymentHref = (() => {
     if (!reservationId) return content.primaryHref;
     if (status === "awaiting_dp") {
-      return `/penyewaan-aset/payment?reservationId=${encodeURIComponent(reservationId)}&type=dp`;
+      return `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(reservationId))}&type=dp`;
     }
     if (status === "confirmed_dp" || status === "awaiting_settlement") {
-      return `/penyewaan-aset/payment?reservationId=${encodeURIComponent(reservationId)}&type=settlement`;
+      return `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(reservationId))}&type=settlement`;
     }
     return content.primaryHref;
   })();

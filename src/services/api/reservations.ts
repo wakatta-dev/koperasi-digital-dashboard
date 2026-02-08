@@ -32,8 +32,10 @@ export function createReservation(
   return api.post<CreateReservationResponse>(`${API_PREFIX}${E.reservations}`, payload);
 }
 
-export function getReservation(reservationId: string): Promise<ReservationDetailApiResponse> {
-  return api.get<ReservationDetailResponse>(`${API_PREFIX}${E.reservation(reservationId)}`);
+export function getReservation(
+  reservationId: string | number
+): Promise<ReservationDetailApiResponse> {
+  return api.get<ReservationDetailResponse>(`${API_PREFIX}${E.reservation(String(reservationId))}`);
 }
 
 export function createPaymentSession(
@@ -42,9 +44,14 @@ export function createPaymentSession(
   return api.post<PaymentSessionResponse>(`${API_PREFIX}${E.payments}`, payload);
 }
 
-export function uploadPaymentProof(paymentId: string, file: File): Promise<PaymentSessionApiResponse> {
+export function uploadPaymentProof(
+  paymentId: string,
+  file: File,
+  note?: string
+): Promise<PaymentSessionApiResponse> {
   const formData = new FormData();
   formData.append("file", file);
+  if (note && note.trim()) formData.append("note", note.trim());
   return api.post<PaymentSessionResponse>(`${API_PREFIX}${E.paymentProof(paymentId)}`, formData);
 }
 
@@ -58,12 +65,20 @@ export function finalizePayment(
 }
 
 export function verifyGuestLink(params: {
-  reservationId?: string;
+  reservationId?: number;
   token?: string;
 }): Promise<GuestLinkVerifyApiResponse> {
   const search = new URLSearchParams();
-  if (params.reservationId) search.set("reservationId", params.reservationId);
+  if (params.reservationId) search.set("reservationId", String(params.reservationId));
   if (params.token) search.set("token", params.token);
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<GuestLinkVerifyResponse>(`${API_PREFIX}${E.guestVerify}${query}`);
+}
+
+export function lookupReservationByTicket(ticket: string): Promise<ReservationDetailApiResponse> {
+  const search = new URLSearchParams();
+  search.set("ticket", ticket);
+  return api.get<ReservationDetailResponse>(
+    `${API_PREFIX}${E.reservationLookup}?${search.toString()}`
+  );
 }

@@ -28,7 +28,7 @@ type MethodGroup = {
 type PaymentMethodsProps = {
   mode: PaymentMode;
   methodGroups?: ReadonlyArray<MethodGroup>;
-  reservationId?: string;
+  reservationId?: number;
   onStatusChange?: (payload: { paymentId: string; status: PaymentStatus }) => void;
   onSessionChange?: (session: PaymentSession | null) => void;
 };

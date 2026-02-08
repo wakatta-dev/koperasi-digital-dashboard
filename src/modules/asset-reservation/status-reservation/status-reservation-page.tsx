@@ -22,7 +22,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 type StatusReservationPageProps = {
   state: ReservationState;
   hasSignature: boolean;
-  reservationId?: string;
+  reservationId?: number;
 };
 
 export function StatusReservationPage({

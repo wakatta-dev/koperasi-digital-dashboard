@@ -6,7 +6,7 @@ import type { AvailabilityCheckResult } from "../../types";
 type DateRange = {
   start: string; // ISO date
   end: string; // ISO date
-  assetId: string;
+  assetId: number;
 };
 
 export async function checkAvailability(request: DateRange): Promise<AvailabilityCheckResult> {

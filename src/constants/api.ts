@@ -100,6 +100,7 @@ export const API_ENDPOINTS = {
     bookingStatus: (id: string | number) => `/asset-rental/bookings/${id}/status`,
     reservations: "/asset-rental/reservations",
     reservation: (id: string) => `/asset-rental/reservations/${id}`,
+    reservationLookup: "/asset-rental/reservations/lookup",
     payments: "/asset-rental/payments",
     paymentProof: (id: string) => `/asset-rental/payments/${id}/proof`,
     paymentFinalize: (id: string) => `/asset-rental/payments/${id}/confirm`,

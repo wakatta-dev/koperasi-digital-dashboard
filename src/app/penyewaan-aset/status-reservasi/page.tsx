@@ -20,7 +20,10 @@ export default async function StatusReservasiPage({
   searchParams,
 }: StatusReservationRouteProps) {
   const searchParamsResolved = await searchParams;
-  const reservationId = searchParamsResolved?.id ?? "";
+  const rawReservationId = searchParamsResolved?.id ?? "";
+  const parsedReservationId = rawReservationId ? Number.parseInt(rawReservationId, 10) : Number.NaN;
+  const reservationId =
+    Number.isFinite(parsedReservationId) && parsedReservationId > 0 ? parsedReservationId : undefined;
   const signature = searchParamsResolved?.sig ?? "";
 
   const guestLink = reservationId

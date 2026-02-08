@@ -212,4 +212,21 @@
   .elev-2 {
     box-shadow: var(--shadow-elev-2);
   }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer base {
+  /* Scoped override so Stitch guest flow uses indigo-600 as the primary accent via semantic tokens. */
+  .asset-rental-guest {
+    --brand-primary: #4f46e5;
+    --brand-primary-hover: #4338ca;
+  }
 }

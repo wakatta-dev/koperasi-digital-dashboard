@@ -21,7 +21,7 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
   const confirmationHref =
     confirmationSig && reservation.reservationId
       ? `/penyewaan-aset/status-reservasi?state=done&id=${encodeURIComponent(
-          reservation.reservationId
+          String(reservation.reservationId)
         )}&sig=${encodeURIComponent(confirmationSig)}`
       : null;
 

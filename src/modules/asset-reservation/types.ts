@@ -54,8 +54,8 @@ export type AvailabilityCheckResult = {
 };
 
 export type ReservationSummary = {
-  reservationId: string;
-  assetId: string;
+  reservationId: number;
+  assetId: number;
   assetName?: string;
   status: ReservationStatus;
   startDate: string;
@@ -75,7 +75,7 @@ export type ReservationSummary = {
 
 export type PaymentSession = {
   paymentId: string;
-  reservationId: string;
+  reservationId: number;
   type: PaymentMode;
   method: string;
   amount: number;

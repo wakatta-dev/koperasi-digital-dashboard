@@ -15,7 +15,9 @@ type PaymentPageProps = {
 
 export default async function PenyewaanAsetPaymentPage({ searchParams }: PaymentPageProps) {
   const params = await searchParams;
-  const reservationId = params?.reservationId;
+  const rawReservationId = params?.reservationId;
+  const parsedReservationId = rawReservationId ? Number.parseInt(rawReservationId, 10) : Number.NaN;
+  const reservationId = Number.isFinite(parsedReservationId) && parsedReservationId > 0 ? parsedReservationId : undefined;
   const mode = params?.type === "settlement" ? "settlement" : "dp";
   return <AssetPaymentPage reservationId={reservationId} mode={mode} />;
 }

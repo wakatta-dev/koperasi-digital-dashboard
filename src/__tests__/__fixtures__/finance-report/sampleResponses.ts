@@ -13,7 +13,7 @@ export const sampleSummary = {
     transaction_count: 1234,
     average_ticket: 370_170,
     delta_label: "+12,5% dari bulan lalu",
-    delta_direction: "up",
+    delta_direction: "up" as const,
     comparison_period: "2022-12-01 to 2022-12-31",
     last_updated: "2023-01-31T15:30:00Z",
   },
