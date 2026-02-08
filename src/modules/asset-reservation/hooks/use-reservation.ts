@@ -6,7 +6,7 @@ import { QK } from "@/hooks/queries/queryKeys";
 import { getReservation } from "@/services/api/reservations";
 import type { ReservationSummary } from "../types";
 
-export function useReservation(reservationId?: string) {
+export function useReservation(reservationId?: string | number) {
   return useQuery({
     enabled: Boolean(reservationId),
     queryKey: QK.assetRental.reservation(reservationId ?? "unknown"),

@@ -4,14 +4,14 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
-import { AssetGrid } from "./components/asset-grid";
-import { AssetHeroSection } from "./components/hero-section";
-import { AssetFiltersSidebar } from "./components/filters-sidebar";
 import { AssetReservationFooter } from "./components/reservation-footer";
 import { useMemo, useState, useEffect } from "react";
 import type { AssetFilterQuery } from "@/types/api/asset";
-import { SORT_OPTIONS } from "./constants";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useAssetList } from "./hooks";
+import { STITCH_GUEST_CATEGORIES } from "./guest/data/stitch-dummy";
+import { AssetCatalogFeature } from "./guest/components/asset-catalog/AssetCatalogFeature";
+import type { GuestAssetCardItem } from "./guest/types";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -19,12 +19,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 const PAGE_SIZE = 9;
-type SortValue = (typeof SORT_OPTIONS)[number]["value"];
-const DEFAULT_SORT: SortValue = SORT_OPTIONS[0].value;
-const resolveSortParam = (value: string | null): SortValue =>
-  SORT_OPTIONS.some((option) => option.value === value)
-    ? (value as SortValue)
-    : DEFAULT_SORT;
+const DEFAULT_SORT = "newest" as const;
 
 export function AssetReservationPage() {
   const router = useRouter();
@@ -33,28 +28,26 @@ export function AssetReservationPage() {
 
   const initialSearch = searchParams.get("search") ?? "";
   const initialCategory = searchParams.get("category") ?? "";
-  const initialSort = resolveSortParam(searchParams.get("sort"));
   const initialCursor = searchParams.get("cursor") ?? undefined;
 
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [filters, setFilters] = useState<AssetFilterQuery>({
-    sort: initialSort,
+    sort: DEFAULT_SORT,
     category: initialCategory || undefined,
     search: initialSearch || undefined,
   });
   const [pageCursor, setPageCursor] = useState<string | number | undefined>(
-    initialCursor
+    initialCursor,
   );
 
   useEffect(() => {
     const search = searchParams.get("search") ?? "";
     const category = searchParams.get("category") ?? "";
-    const sort = resolveSortParam(searchParams.get("sort"));
     const cursor = searchParams.get("cursor") ?? undefined;
 
     setSearchTerm(search);
     setFilters({
-      sort,
+      sort: DEFAULT_SORT,
       category: category || undefined,
       search: search || undefined,
     });
@@ -64,7 +57,6 @@ export function AssetReservationPage() {
   const updateParams = (updates: {
     search?: string;
     category?: string;
-    sort?: string;
     cursor?: string | number;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -78,11 +70,12 @@ export function AssetReservationPage() {
 
     setOrDelete("search", updates.search);
     setOrDelete("category", updates.category);
-    setOrDelete("sort", updates.sort);
     setOrDelete("cursor", updates.cursor);
 
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   };
 
   const handleSearchSubmit = () => {
@@ -104,60 +97,107 @@ export function AssetReservationPage() {
     updateParams({ category: value, cursor: undefined });
   };
 
-  const handleSortChange = (sort: AssetFilterQuery["sort"]) => {
-    setFilters((prev) => ({
-      ...prev,
-      sort,
-    }));
-    setPageCursor(undefined);
-    updateParams({ sort, cursor: undefined });
-  };
-
-  const handleResetFilters = () => {
-    setSearchTerm("");
-    setFilters({ sort: DEFAULT_SORT });
-    setPageCursor(undefined);
-    updateParams({
-      search: undefined,
-      category: undefined,
-      sort: DEFAULT_SORT,
-      cursor: undefined,
-    });
-  };
+  // const handleResetFilters = () => {
+  //   setSearchTerm("");
+  //   setFilters({ sort: DEFAULT_SORT });
+  //   setPageCursor(undefined);
+  //   updateParams({
+  //     search: undefined,
+  //     category: undefined,
+  //     cursor: undefined,
+  //   });
+  // };
 
   const appliedFilters = useMemo(() => filters, [filters]);
+  const assetList = useAssetList({
+    ...appliedFilters,
+    cursor: pageCursor,
+    limit: PAGE_SIZE,
+  });
+
+  const items: GuestAssetCardItem[] = useMemo(() => {
+    const assets = assetList.data?.items ?? [];
+    return assets.map((asset, idx) => {
+      const rateType = (asset.rate_type || "").toUpperCase();
+      const unitLabel = rateType === "HOURLY" ? "/jam" : "/hari";
+      const amount = Number(asset.rate_amount ?? 0);
+      const priceLabel =
+        amount > 0 ? `Rp ${amount.toLocaleString("id-ID")}` : "Rp 0";
+      const availability = (asset.availability_status || "").toLowerCase();
+      const statusTone =
+        (asset.status || "").toUpperCase() === "ARCHIVED"
+          ? "maintenance"
+          : availability.includes("tersedia")
+            ? "available"
+            : availability.includes("maint")
+              ? "maintenance"
+              : "busy";
+      const statusLabel =
+        asset.availability_status?.trim() ||
+        (statusTone === "available"
+          ? "Tersedia"
+          : statusTone === "maintenance"
+            ? "Maintenance"
+            : "Tidak tersedia");
+      return {
+        id: asset.id,
+        category: asset.category?.trim() || "Aset Desa",
+        statusLabel,
+        statusTone,
+        title: asset.name,
+        description: asset.description?.trim() || "Deskripsi belum tersedia.",
+        priceLabel,
+        unitLabel,
+        imageUrl:
+          asset.photo_url?.trim() ||
+          "https://images.unsplash.com/photo-1559054663-e9b7f7a2b5b0?auto=format&fit=crop&w=1200&q=60",
+        featured: idx === 1,
+      };
+    });
+  }, [assetList.data?.items]);
+
+  const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+  useEffect(() => {
+    if (selectedAssetId !== null) return;
+    if (items.length > 0) setSelectedAssetId(items[0].id);
+  }, [items, selectedAssetId]);
 
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
+      <div className="asset-rental-guest bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
         <LandingNavbar activeLabel="Penyewaan Aset" />
         <main className="flex-grow pt-20">
-          <AssetHeroSection
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
+          <AssetCatalogFeature
+            badgeLabel="Layanan Desa"
+            title="Katalog Aset Desa"
+            description="Eksplorasi aset desa yang tersedia untuk menunjang aktivitas pertanian, acara komunitas, hingga transportasi darurat Anda."
+            statusHref="/penyewaan-aset/status"
+            searchValue={searchTerm}
+            onSearchValueChange={setSearchTerm}
             onSearchSubmit={handleSearchSubmit}
+            categories={STITCH_GUEST_CATEGORIES}
+            selectedCategoryKey={appliedFilters.category || "all"}
+            onCategoryChange={(key) => {
+              if (key === "all") {
+                handleCategoryChange(undefined);
+                return;
+              }
+              handleCategoryChange(key);
+            }}
+            assets={items}
+            selectedAssetId={selectedAssetId}
+            onSelectAsset={setSelectedAssetId}
+            pagination={assetList.data?.pagination}
+            cursor={
+              typeof pageCursor === "number"
+                ? pageCursor
+                : Number(pageCursor ?? 0)
+            }
+            onCursorChange={(cursor) => {
+              setPageCursor(cursor);
+              updateParams({ cursor });
+            }}
           />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="flex flex-col lg:flex-row gap-8">
-              <div className="w-full lg:w-64 flex-shrink-0 space-y-8">
-                <AssetFiltersSidebar
-                  selectedCategory={appliedFilters.category}
-                  onCategoryChange={handleCategoryChange}
-                  onReset={handleResetFilters}
-                />
-              </div>
-              <AssetGrid
-                filters={appliedFilters}
-                onSortChange={handleSortChange}
-                pageCursor={pageCursor}
-                pageSize={PAGE_SIZE}
-                onPageChange={(cursor) => {
-                  setPageCursor(cursor);
-                  updateParams({ cursor });
-                }}
-              />
-            </div>
-          </div>
         </main>
         <AssetReservationFooter />
       </div>

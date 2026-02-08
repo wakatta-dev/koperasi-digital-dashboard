@@ -18,9 +18,10 @@ describe("KPI delta reconciliation", () => {
   });
 
   it("keeps transaction delta direction aligned with label", () => {
-    const direction = sampleSummary.kpis.delta_direction;
+    const direction: "up" | "down" | "flat" | undefined = sampleSummary.kpis.delta_direction;
     const priorTransactions = 1133; // back-calculated within ~8.9% vs 1234 current
     const delta = percentDelta(sampleSummary.kpis.transaction_count, priorTransactions);
-    expect(delta > 0).toBe(direction !== "down");
+    expect(direction).toBe("up");
+    expect(delta).toBeGreaterThan(0);
   });
 });

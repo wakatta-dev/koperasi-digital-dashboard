@@ -41,13 +41,13 @@ function fromBase64(data: string) {
 }
 
 export async function createSignedReservationLink(args: {
-  reservationId: string;
+  reservationId: string | number;
   status?: string;
   expiresAt?: string;
   basePath?: string;
 }): Promise<{ url: string; token: string; signature: string }> {
   const payload: Payload = {
-    id: args.reservationId,
+    id: String(args.reservationId),
     status: args.status,
     exp: args.expiresAt,
   };

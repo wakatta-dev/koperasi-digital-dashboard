@@ -31,7 +31,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 type AssetStatusPageProps = {
   status: ReservationStatus;
-  reservationId?: string;
+  reservationId?: number;
   token?: string;
   signature?: string | null;
 };
@@ -214,10 +214,15 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
         setTokenError(result.reason || "Tautan tidak valid");
         return;
       }
+      const parsedId = Number.parseInt(result.payload.id, 10);
+      if (!Number.isFinite(parsedId) || parsedId <= 0) {
+        setTokenError("Payload tidak valid");
+        return;
+      }
       setTokenError(null);
       setDecoded({
-        reservationId: result.payload.id,
-        assetId: "",
+        reservationId: parsedId,
+        assetId: 0,
         status: (result.payload.status as any) || "pending_review",
         startDate: "",
         endDate: "",

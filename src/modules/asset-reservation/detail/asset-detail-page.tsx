@@ -4,21 +4,17 @@
 
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { useMemo, useState } from "react";
+import { z } from "zod";
 
 import { LandingNavbar } from "@/modules/landing/components/navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
-import { useAssetAvailability, useAssetDetail } from "../hooks";
-import type { AssetStatus } from "../types";
-
-import { DetailBreadcrumb } from "./components/detail-breadcrumb";
-import { DetailGallery } from "./components/detail-gallery";
-import { DetailInfo } from "./components/detail-info";
-import { DetailDescription } from "./components/detail-description";
-import { DetailAvailability } from "./components/detail-availability";
-import { DetailFacilities, type FacilityItem } from "./components/detail-facilities";
-import { DetailRentalForm } from "./components/detail-rental-form";
-import { DetailRecommendations } from "./components/detail-recommendations";
-import { RentRequestModal } from "./components/rent-request-modal";
+import { useAssetDetail, useCreateGuestReservation } from "../hooks";
+import { checkAvailability } from "./utils/availability";
+import { formatTicketFromReservationId } from "../guest/utils/ticket";
+import { GuestRentalApplicationFeature } from "../guest/components/application/GuestRentalApplicationFeature";
+import type { GuestRentalApplicationFormValues } from "../guest/components/application/GuestRentalApplicationForm";
+import type { SelectedAssetSummary } from "../guest/components/application/SelectedAssetSummaryCard";
+import { SubmissionSuccessCardFeature } from "../guest/components/success/SubmissionSuccessCardFeature";
 
 type AssetDetailPageProps = {
   assetId?: string;
@@ -29,166 +25,177 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-function formatCurrency(amount?: number) {
-  const safeAmount = typeof amount === "number" && Number.isFinite(amount) ? amount : 0;
-  return `Rp${safeAmount.toLocaleString("id-ID")}`;
-}
+const formSchema = z.object({
+  fullName: z.string().trim().min(1),
+  phone: z.string().trim().min(1),
+  email: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => !value || z.string().email().safeParse(value).success, {
+      message: "invalid",
+    }),
+  purpose: z.string().trim().min(1),
+  startDate: z.string().min(1),
+  endDate: z.string().min(1),
+});
 
 function resolveUnit(rateType?: string) {
-  return (rateType || "").toUpperCase() === "HOURLY" ? "/jam" : "/hari";
+  return (rateType || "").toUpperCase() === "HOURLY" ? "/ jam" : "/ hari";
 }
 
-function resolveStatus(asset?: { status?: string; availability_status?: string } | null): AssetStatus {
-  if (!asset) return "available";
+function resolveStatusTone(
+  asset?: { status?: string; availability_status?: string } | null,
+) {
+  if (!asset) return "available" as const;
   const rawStatus = (asset.status || "").toUpperCase();
-  if (rawStatus === "ARCHIVED") return "maintenance";
+  if (rawStatus === "ARCHIVED") return "maintenance" as const;
   const availability = (asset.availability_status || "").toLowerCase();
-  if (availability.includes("rent")) return "rented";
-  if (availability.includes("maint")) return "maintenance";
-  return "available";
+  if (availability.includes("maint")) return "maintenance" as const;
+  if (
+    availability.includes("tidak") ||
+    availability.includes("rent") ||
+    availability.includes("sibuk")
+  )
+    return "busy" as const;
+  return "available" as const;
 }
 
-function splitParagraphs(text?: string) {
-  const value = (text ?? "").trim();
-  if (!value) return [];
-  return value.split("\n").map((p) => p.trim()).filter(Boolean);
+function specLookup(
+  specs: Array<{ label: string; value: string }> | undefined,
+  key: string,
+) {
+  const normalizedKey = key.trim().toLowerCase();
+  const match = (specs || []).find(
+    (s) => (s.label || "").trim().toLowerCase() === normalizedKey,
+  );
+  return match?.value?.trim() || "";
+}
+
+function formatCurrency(amount?: number) {
+  const safeAmount =
+    typeof amount === "number" && Number.isFinite(amount) ? amount : 0;
+  return `Rp ${safeAmount.toLocaleString("id-ID")}`;
 }
 
 export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
-  const hasAssetId = Boolean(assetId && String(assetId).trim());
   const { data: asset, isLoading, error } = useAssetDetail(assetId);
-  const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
+  const errorMessage =
+    error instanceof Error ? error.message : error ? String(error) : null;
 
-  const [range, setRange] = useState(() => {
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    return { start: tomorrow, end: tomorrow };
+  const tomorrow = useMemo(
+    () => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    [],
+  );
+
+  const [values, setValues] = useState<GuestRentalApplicationFormValues>({
+    fullName: "",
+    phone: "",
+    email: "",
+    purpose: "",
+    startDate: tomorrow,
+    endDate: tomorrow,
   });
 
-  const availabilityQuery = useAssetAvailability(assetId);
-  const availabilityError =
-    availabilityQuery.error instanceof Error
-      ? availabilityQuery.error.message
-      : availabilityQuery.error
-        ? String(availabilityQuery.error)
-        : null;
+  const createReservation = useCreateGuestReservation();
+  const [ticket, setTicket] = useState<string | null>(null);
 
-  const [requestOpen, setRequestOpen] = useState(false);
-  const [statusHref, setStatusHref] = useState<string | undefined>(undefined);
-
-  const title = asset?.name ?? "Detail Aset";
-  const unit = resolveUnit(asset?.rate_type);
-  const price = formatCurrency(asset?.rate_amount);
-  const priceValue = Number(asset?.rate_amount ?? 0);
-  const location = asset?.location?.trim() ? asset.location.trim() : "-";
-  const status = resolveStatus(asset ?? null);
-  const heroImage = asset?.photo_url ?? "";
-  const thumbnails: string[] = [];
-  const paragraphs = splitParagraphs(asset?.description);
-  const facilities: FacilityItem[] = useMemo(() => {
-    const rawFacilities = (asset as any)?.facilities;
-    if (!Array.isArray(rawFacilities)) return [];
-    return rawFacilities
-      .map((item) => {
-        if (typeof item === "string" && item.trim()) {
-          return { icon: "check", label: item.trim() };
-        }
-        if (item && typeof item === "object" && "label" in item) {
-          const label = String((item as any).label || "").trim();
-          if (!label) return null;
-          const icon = typeof (item as any).icon === "string" ? (item as any).icon : "check";
-          return { icon, label };
-        }
-        return null;
-      })
-      .filter(Boolean) as FacilityItem[];
+  const selectedAsset: SelectedAssetSummary = useMemo(() => {
+    const priceLabel = formatCurrency(asset?.rate_amount);
+    const unitLabel = resolveUnit(asset?.rate_type);
+    const title = asset?.name?.trim() || "Aset Desa";
+    const statusTone = resolveStatusTone(asset ?? null);
+    const statusLabel =
+      asset?.availability_status?.trim() ||
+      (statusTone === "available"
+        ? "Tersedia"
+        : statusTone === "maintenance"
+          ? "Maintenance"
+          : "Tidak tersedia");
+    const capacity = specLookup(asset?.specifications, "Kapasitas") || "-";
+    const facilities = specLookup(asset?.specifications, "Fasilitas") || "-";
+    const location = asset?.location?.trim() || "-";
+    return {
+      title,
+      statusLabel,
+      statusTone,
+      priceLabel,
+      unitLabel,
+      imageUrl:
+        asset?.photo_url?.trim() ||
+        "https://images.unsplash.com/photo-1559054663-e9b7f7a2b5b0?auto=format&fit=crop&w=1200&q=60",
+      capacityLabel: capacity,
+      facilitiesLabel: facilities,
+      locationLabel: location,
+    };
   }, [asset]);
+
+  const handleSubmit = async () => {
+    if (!asset?.id) return;
+    const parsed = formSchema.safeParse(values);
+    if (!parsed.success) return;
+
+    const start = values.startDate;
+    const end = values.endDate;
+    if (start > end) return;
+
+    const availability = await checkAvailability({
+      start,
+      end,
+      assetId: asset.id,
+    });
+    if (!availability.ok) return;
+
+    const creation = await createReservation.mutateAsync({
+      asset_id: asset.id,
+      start_date: start,
+      end_date: end,
+      purpose: values.purpose.trim(),
+      renter_name: values.fullName.trim(),
+      renter_contact: values.phone.trim(),
+      renter_email: values.email.trim() ? values.email.trim() : undefined,
+    });
+
+    setTicket(formatTicketFromReservationId(creation.reservation_id));
+  };
 
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
+      <div className="asset-rental-guest bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
         <LandingNavbar activeLabel="Penyewaan Aset" />
         <main className="flex-grow pt-20">
-          <DetailBreadcrumb currentLabel={title} />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            {!hasAssetId ? (
-              <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-6 py-5 text-sm text-amber-700 dark:text-amber-200">
-                ID aset tidak ditemukan.
-              </div>
-            ) : null}
-
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {errorMessage ? (
-              <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-6 py-5 text-sm text-red-700 dark:text-red-200">
+              <div className="mt-10 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-6 py-5 text-sm text-red-700 dark:text-red-200">
                 {errorMessage}
               </div>
             ) : null}
 
             {isLoading ? (
-              <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-card-dark px-6 py-10 text-sm text-gray-500 dark:text-gray-400">
+              <div className="mt-10 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-card-dark px-6 py-10 text-sm text-gray-500 dark:text-gray-400">
                 Memuat detail aset...
               </div>
             ) : null}
-
-            {!isLoading && asset && hasAssetId ? (
-              <>
-                <div className="grid gap-8 lg:grid-cols-3">
-                  <div className="space-y-8 lg:col-span-2">
-                    <DetailGallery
-                      heroImage={heroImage}
-                      thumbnails={thumbnails}
-                      status={status}
-                      title={title}
-                    />
-                    <DetailInfo
-                      title={title}
-                      price={price}
-                      unit={unit}
-                      location={location}
-                    />
-
-                    <DetailDescription
-                      paragraphs={
-                        paragraphs.length > 0 ? paragraphs : ["Deskripsi belum tersedia."]
-                      }
-                    />
-
-                    <DetailAvailability
-                      blocked={availabilityQuery.data?.blocked}
-                      suggestion={availabilityQuery.data?.suggestion}
-                      isLoading={availabilityQuery.isLoading}
-                      error={availabilityError}
-                      selectedRange={range}
-                      onRangeChange={setRange}
-                    />
-
-                    <DetailFacilities facilities={facilities} />
-                    <DetailRecommendations currentId={String(assetId)} />
-                  </div>
-
-                  <div className="lg:col-span-1">
-                    <DetailRentalForm
-                      assetId={String(assetId)}
-                      price={price}
-                      priceValue={priceValue}
-                      unit={unit}
-                      startDate={range.start}
-                      endDate={range.end}
-                      onRangeChange={setRange}
-                      onSubmit={(reservation) => {
-                        if (reservation.statusHref) setStatusHref(reservation.statusHref);
-                        setRequestOpen(true);
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <RentRequestModal
-                  open={requestOpen}
-                  onOpenChange={setRequestOpen}
-                  statusHref={statusHref}
-                />
-              </>
-            ) : null}
           </div>
+
+          {!isLoading && asset ? (
+            ticket ? (
+              <SubmissionSuccessCardFeature
+                ticket={ticket}
+                homeHref="/penyewaan-aset"
+              />
+            ) : (
+              <GuestRentalApplicationFeature
+                title="Formulir Pengajuan Sewa"
+                description="Silakan lengkapi data diri dan detail penyewaan Anda di bawah ini."
+                values={values}
+                onValuesChange={setValues}
+                submitting={createReservation.isPending}
+                onSubmit={handleSubmit}
+                selectedAsset={selectedAsset}
+              />
+            )
+          ) : null}
         </main>
         <AssetReservationFooter />
       </div>

@@ -9,7 +9,7 @@ import type { ReservationSummary } from "../../types";
 type ReservationSummaryCardProps = {
   hasSignature?: boolean;
   onDownload?: () => void;
-  reservationId?: string;
+  reservationId?: number;
   reservation?: ReservationSummary | null;
   proofAvailable?: boolean;
 };
@@ -47,7 +47,7 @@ export function ReservationSummaryCard({
         minute: "2-digit",
       })
     : "-";
-  const secureId = reservation.reservationId || reservationId || "-";
+  const secureId = reservation.reservationId || reservationId || 0;
   const bannerText =
     reservation.status === "confirmed_full"
       ? "Reservasi Anda Telah Dikonfirmasi!"
@@ -90,9 +90,9 @@ export function ReservationSummaryCard({
           : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
   const paymentHref =
     reservation.status === "confirmed_dp" || reservation.status === "awaiting_settlement"
-      ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(secureId)}&type=settlement`
+      ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(secureId))}&type=settlement`
       : reservation.status === "awaiting_dp"
-        ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(secureId)}&type=dp`
+        ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(secureId))}&type=dp`
         : undefined;
   const totalCost = reservation.amounts?.total ?? null;
   const dpAmount = reservation.amounts?.dp ?? null;
@@ -120,7 +120,7 @@ export function ReservationSummaryCard({
           </p>
           <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 flex items-center gap-3">
             <span className="text-xl md:text-2xl font-mono font-bold text-brand-primary dark:text-indigo-400">
-              {secureId}
+              {secureId ? String(secureId) : "-"}
             </span>
             <button className="text-gray-400 hover:text-brand-primary transition" title="Salin Kode">
               <span className="material-icons-outlined text-lg">content_copy</span>

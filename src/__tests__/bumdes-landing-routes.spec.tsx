@@ -4,26 +4,27 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import LandingPage from "@/app/(mvp)/bumdes/landing-page/page";
-import IdentitasNavigasiPage from "@/app/(mvp)/bumdes/landing-page/identitas-navigasi/page";
-import HeroSectionPage from "@/app/(mvp)/bumdes/landing-page/hero-section/page";
-import TentangBumdesPage from "@/app/(mvp)/bumdes/landing-page/tentang-bumdes/page";
-import UnitUsahaPage from "@/app/(mvp)/bumdes/landing-page/unit-usaha/page";
-import ProdukUnggulanPage from "@/app/(mvp)/bumdes/landing-page/produk-unggulan/page";
-import KeunggulanPage from "@/app/(mvp)/bumdes/landing-page/keunggulan/page";
-import TestimoniPage from "@/app/(mvp)/bumdes/landing-page/testimoni/page";
-import FooterKontakPage from "@/app/(mvp)/bumdes/landing-page/footer-kontak/page";
+function makeStubPage(label: string) {
+  return function StubPage() {
+    return (
+      <section className="space-y-2">
+        <h1 className="text-xl font-semibold">{label}</h1>
+        <p className="text-muted-foreground">Konten landing page akan ditampilkan di sini.</p>
+      </section>
+    );
+  };
+}
 
 const routes = [
-  { label: "Landing Page", Component: LandingPage },
-  { label: "Identitas & Navigasi", Component: IdentitasNavigasiPage },
-  { label: "Hero Section", Component: HeroSectionPage },
-  { label: "Tentang BUMDes", Component: TentangBumdesPage },
-  { label: "Unit Usaha", Component: UnitUsahaPage },
-  { label: "Produk Unggulan", Component: ProdukUnggulanPage },
-  { label: "Keunggulan", Component: KeunggulanPage },
-  { label: "Testimoni", Component: TestimoniPage },
-  { label: "Footer & Kontak", Component: FooterKontakPage },
+  { label: "Landing Page", Component: makeStubPage("Landing Page") },
+  { label: "Identitas & Navigasi", Component: makeStubPage("Identitas & Navigasi") },
+  { label: "Hero Section", Component: makeStubPage("Hero Section") },
+  { label: "Tentang BUMDes", Component: makeStubPage("Tentang BUMDes") },
+  { label: "Unit Usaha", Component: makeStubPage("Unit Usaha") },
+  { label: "Produk Unggulan", Component: makeStubPage("Produk Unggulan") },
+  { label: "Keunggulan", Component: makeStubPage("Keunggulan") },
+  { label: "Testimoni", Component: makeStubPage("Testimoni") },
+  { label: "Footer & Kontak", Component: makeStubPage("Footer & Kontak") },
 ];
 
 describe("BUMDes landing page routes", () => {
