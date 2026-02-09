@@ -3,9 +3,9 @@
 "use client";
 
 import { CheckCircle2, Circle, X } from "lucide-react";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 
@@ -141,31 +141,25 @@ export function CustomerFilterSheet({
                 Total Pesanan
               </label>
               <div className="flex items-center gap-3">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-400 text-xs font-medium">Min</span>
-                  </div>
-                  <Input
-                    value={minOrders}
-                    onChange={(event) => onMinOrdersChange(event.target.value)}
-                    placeholder="0"
-                    type="number"
-                    className="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus-visible:ring-1 focus-visible:ring-indigo-600/50 focus-visible:border-indigo-600 shadow-sm"
-                  />
-                </div>
+                <InputField
+                  className="flex-1"
+                  ariaLabel="Total pesanan minimum"
+                  startIcon={<span className="text-xs font-medium">Min</span>}
+                  value={minOrders}
+                  onValueChange={onMinOrdersChange}
+                  placeholder="0"
+                  type="number"
+                />
                 <span className="text-gray-400 font-medium">-</span>
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-400 text-xs font-medium">Max</span>
-                  </div>
-                  <Input
-                    value={maxOrders}
-                    onChange={(event) => onMaxOrdersChange(event.target.value)}
-                    placeholder="100+"
-                    type="number"
-                    className="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus-visible:ring-1 focus-visible:ring-indigo-600/50 focus-visible:border-indigo-600 shadow-sm"
-                  />
-                </div>
+                <InputField
+                  className="flex-1"
+                  ariaLabel="Total pesanan maksimum"
+                  startIcon={<span className="text-xs font-medium">Max</span>}
+                  value={maxOrders}
+                  onValueChange={onMaxOrdersChange}
+                  placeholder="100+"
+                  type="number"
+                />
               </div>
             </div>
           </div>

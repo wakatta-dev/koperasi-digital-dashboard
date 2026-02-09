@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -66,13 +66,13 @@ export function AssetRentalReturnsTable({
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-        <div className="relative w-full sm:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input
+        <div className="w-full sm:max-w-sm">
+          <InputField
+            ariaLabel="Cari aset atau nama peminjam"
+            startIcon={<Search className="h-4 w-4" />}
             placeholder="Cari aset atau nama peminjam..."
             value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            className="h-10 border-slate-200 bg-white pl-9"
+            onValueChange={onSearchChange}
           />
         </div>
       </div>

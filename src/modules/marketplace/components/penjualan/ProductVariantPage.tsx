@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/shared/inputs/input-field";
 import {
   Table,
   TableBody,
@@ -1347,29 +1348,19 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                           ) : null}
                         </TableCell>
                         <TableCell className="px-6 py-4">
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                              Rp
-                            </span>
-                            <Input
-                              value={variant.price}
-                              onChange={(event) =>
-                                updateVariant(variant.signature, {
-                                  price: Number(event.target.value) || 0,
-                                })
-                              }
-                              className={`w-full pl-9 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5 ${
-                                errors?.price
-                                  ? "border-red-500 focus-visible:ring-red-500"
-                                  : ""
-                              }`}
-                            />
-                            {errors?.price ? (
-                              <p className="text-xs text-red-500 mt-1">
-                                {errors.price}
-                              </p>
-                            ) : null}
-                          </div>
+                          <InputField
+                            ariaLabel={`Harga varian ${variant.displayName}`}
+                            className="w-full"
+                            startIcon={<span className="text-sm">Rp</span>}
+                            type="number"
+                            value={variant.price}
+                            onValueChange={(value) =>
+                              updateVariant(variant.signature, {
+                                price: Number(value) || 0,
+                              })
+                            }
+                            errorText={errors?.price}
+                          />
                         </TableCell>
                         <TableCell className="px-6 py-4">
                           <Input

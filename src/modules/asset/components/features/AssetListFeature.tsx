@@ -7,13 +7,13 @@ import { Search, Funnel, Plus, EllipsisVertical } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import { InputField } from "@/components/shared/inputs/input-field";
 import { TableCell } from "@/components/shared/data-display/TableCell";
 import { TableHeader } from "@/components/shared/data-display/TableHeader";
 import { TableRow } from "@/components/shared/data-display/TableRow";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { QK } from "@/hooks/queries/queryKeys";
 import { cn } from "@/lib/utils";
 import { getAssets } from "@/services/api/assets";
@@ -108,16 +108,16 @@ export function AssetListFeature() {
     >
       <div className="space-y-4">
         <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input
+          <div className="w-full sm:max-w-sm">
+            <InputField
+              ariaLabel="Cari nama aset, kode"
+              startIcon={<Search className="h-4 w-4" />}
               value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
+              onValueChange={(next) => {
+                setSearch(next);
                 setPage(1);
               }}
               placeholder="Cari nama aset, kode..."
-              className="h-10 border-slate-200 bg-white pl-9"
             />
           </div>
           <Button

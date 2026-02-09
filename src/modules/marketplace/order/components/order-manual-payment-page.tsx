@@ -4,8 +4,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useMarketplaceOrder, useMarketplaceOrderActions } from "@/hooks/queries/marketplace-orders";
@@ -315,50 +315,37 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-muted-foreground mb-2">
-                            Tanggal Transfer (Estimasi)
-                          </label>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <span className="material-icons-outlined text-muted-foreground">
+                          <InputField
+                            label="Tanggal Transfer (Estimasi)"
+                            labelClassName="text-sm font-medium text-muted-foreground"
+                            startIcon={
+                              <span className="material-icons-outlined">
                                 calendar_today
                               </span>
-                            </div>
-                            <Input
-                              value={
-                                manualPayment?.transfer_date
-                                  ? manualPayment.transfer_date
-                                  : formatOrderDateTime(order.created_at)
-                              }
-                              readOnly
-                              className="pl-10"
-                            />
-                          </div>
+                            }
+                            value={
+                              manualPayment?.transfer_date
+                                ? manualPayment.transfer_date
+                                : formatOrderDateTime(order.created_at)
+                            }
+                            readOnly
+                          />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">
-                          Jumlah yang Ditransfer Pelanggan
-                        </label>
-                        <div className="relative rounded-md shadow-sm">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-muted-foreground sm:text-sm">
-                              Rp
-                            </span>
-                          </div>
-                          <Input
-                            value={formatCurrency(
-                              manualPayment?.transfer_amount ?? order.total
-                            ).replace("Rp", "").trim()}
-                            readOnly
-                            className="pl-10 pr-10 text-lg font-semibold"
-                          />
-                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span className="text-muted-foreground sm:text-xs">
-                              IDR
-                            </span>
-                          </div>
-                        </div>
+                        <InputField
+                          label="Jumlah yang Ditransfer Pelanggan"
+                          labelClassName="text-sm font-medium text-muted-foreground"
+                          startIcon={<span className="sm:text-sm">Rp</span>}
+                          endIcon={<span className="sm:text-xs">IDR</span>}
+                          value={formatCurrency(
+                            manualPayment?.transfer_amount ?? order.total
+                          )
+                            .replace("Rp", "")
+                            .trim()}
+                          readOnly
+                          controlClassName="text-lg font-semibold"
+                        />
                         <p className="mt-1 text-xs text-muted-foreground">
                           Pastikan jumlah ini sesuai dengan mutasi rekening.
                         </p>

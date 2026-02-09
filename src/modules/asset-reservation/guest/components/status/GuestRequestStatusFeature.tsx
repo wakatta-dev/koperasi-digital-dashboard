@@ -2,8 +2,8 @@
 
 "use client";
 
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 export type GuestRequestStatusVariant =
   | "verifying"
@@ -93,26 +93,19 @@ export function GuestRequestStatusFeature({
         <div className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
           <div className="p-8 md:p-10">
             <div className="flex flex-col gap-4 mb-8">
-              <label
-                className="text-sm font-semibold text-gray-900 dark:text-white"
-                htmlFor="ticket_number"
-              >
-                Nomor Tiket Pengajuan
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                  <span className="material-icons-outlined text-gray-400 text-xl">
+              <InputField
+                id="ticket_number"
+                label="Nomor Tiket Pengajuan"
+                size="lg"
+                startIcon={
+                  <span className="material-icons-outlined text-xl">
                     confirmation_number
                   </span>
-                </div>
-                <Input
-                  id="ticket_number"
-                  value={ticketValue}
-                  onChange={(e) => onTicketValueChange(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-lg rounded-xl focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:border-brand-primary block pl-12 p-4 placeholder-gray-400 dark:placeholder-gray-500"
-                  placeholder="Masukkan Nomor Pengajuan (Contoh: #SQ-99210)"
-                />
-              </div>
+                }
+                value={ticketValue}
+                onValueChange={onTicketValueChange}
+                placeholder="Masukkan Nomor Pengajuan (Contoh: #SQ-99210)"
+              />
               <Button
                 type="button"
                 disabled={Boolean(submitting)}

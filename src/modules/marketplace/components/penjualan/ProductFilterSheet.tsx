@@ -3,6 +3,7 @@
 "use client";
 
 import { Calendar, X } from "lucide-react";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -13,7 +14,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
 
 export type ProductFilterOption = Readonly<{
   label: string;
@@ -106,38 +106,24 @@ export function ProductFilterSheet({
                 Rentang Harga
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    Minimum
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm">
-                      Rp
-                    </span>
-                    <Input
-                      placeholder="0"
-                      value={minPrice ?? ""}
-                      onChange={(event) => onMinPriceChange?.(event.target.value)}
-                      className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    Maksimum
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm">
-                      Rp
-                    </span>
-                    <Input
-                      placeholder="Max"
-                      value={maxPrice ?? ""}
-                      onChange={(event) => onMaxPriceChange?.(event.target.value)}
-                      className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                </div>
+                <InputField
+                  label="Minimum"
+                  labelClassName="text-xs text-muted-foreground"
+                  size="sm"
+                  startIcon={<span className="text-sm">Rp</span>}
+                  placeholder="0"
+                  value={minPrice ?? ""}
+                  onValueChange={onMinPriceChange}
+                />
+                <InputField
+                  label="Maksimum"
+                  labelClassName="text-xs text-muted-foreground"
+                  size="sm"
+                  startIcon={<span className="text-sm">Rp</span>}
+                  placeholder="Max"
+                  value={maxPrice ?? ""}
+                  onValueChange={onMaxPriceChange}
+                />
               </div>
               <div className="mt-4 px-1">
                 <div className="relative h-1 bg-gray-200 dark:bg-gray-700 rounded-full">
@@ -173,34 +159,24 @@ export function ProductFilterSheet({
                 Tanggal Ditambahkan
               </h3>
               <div className="space-y-3">
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    Dari
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <Input
-                      type="date"
-                      value={dateFrom ?? ""}
-                      onChange={(event) => onDateFromChange?.(event.target.value)}
-                      className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    Sampai
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <Input
-                      type="date"
-                      value={dateTo ?? ""}
-                      onChange={(event) => onDateToChange?.(event.target.value)}
-                      className="block w-full rounded-lg border-gray-300 dark:border-gray-600 pl-10 py-2 text-sm focus-visible:ring-indigo-600/20 dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                </div>
+                <InputField
+                  label="Dari"
+                  labelClassName="text-xs text-muted-foreground"
+                  size="sm"
+                  startIcon={<Calendar className="h-4 w-4" />}
+                  type="date"
+                  value={dateFrom ?? ""}
+                  onValueChange={onDateFromChange}
+                />
+                <InputField
+                  label="Sampai"
+                  labelClassName="text-xs text-muted-foreground"
+                  size="sm"
+                  startIcon={<Calendar className="h-4 w-4" />}
+                  type="date"
+                  value={dateTo ?? ""}
+                  onValueChange={onDateToChange}
+                />
               </div>
             </div>
           </div>

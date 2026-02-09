@@ -3,7 +3,7 @@
 "use client";
 
 import { Calendar, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/shared/inputs/input-field";
 
 export type OrderListHeaderProps = Readonly<{
   searchValue: string;
@@ -27,24 +27,24 @@ export function OrderListHeader({
         </p>
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
-          <Input
+        <div className="w-full sm:w-64">
+          <InputField
+            ariaLabel="Cari pesanan"
+            size="lg"
+            startIcon={<Search className="h-4 w-4" />}
             value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onValueChange={onSearchChange}
             placeholder="Cari ID atau nama pelanggan..."
-            className="pl-10 pr-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-200 w-full sm:w-64 focus-visible:ring-2 focus-visible:ring-indigo-600/50 focus-visible:border-indigo-600 transition-all shadow-sm"
           />
         </div>
-        <div className="relative group">
-          <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
-          <Input
-            type="date"
-            value={dateValue}
-            onChange={(event) => onDateChange(event.target.value)}
-            className="pl-10 pr-4 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-200 focus-visible:ring-2 focus-visible:ring-indigo-600/50 focus-visible:border-indigo-600 transition-all shadow-sm"
-          />
-        </div>
+        <InputField
+          ariaLabel="Filter tanggal"
+          size="lg"
+          startIcon={<Calendar className="h-4 w-4" />}
+          type="date"
+          value={dateValue}
+          onValueChange={onDateChange}
+        />
       </div>
     </div>
   );

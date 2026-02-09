@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -118,19 +119,16 @@ export function OrderReturDialog({
                 </Label>
               </div>
               <div className="ml-7">
-                <div className="relative rounded-md shadow-sm">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <span className="text-muted-foreground sm:text-sm">Rp</span>
-                  </div>
-                  <Input
-                    className="h-auto rounded-md pl-10 text-sm"
-                    defaultValue={refundSuggestion}
-                    id="price"
-                    name="price"
-                    placeholder="0"
-                    type="text"
-                  />
-                </div>
+                <InputField
+                  id="price"
+                  name="price"
+                  ariaLabel="Nominal pengembalian dana"
+                  size="sm"
+                  startIcon={<span className="sm:text-sm">Rp</span>}
+                  defaultValue={refundSuggestion}
+                  placeholder="0"
+                  type="text"
+                />
               </div>
             </RadioGroup>
           </div>
