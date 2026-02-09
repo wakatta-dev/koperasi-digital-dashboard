@@ -1,6 +1,6 @@
 /** @format */
 
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/shared/inputs/input-field";
 import {
   Select,
   SelectContent,
@@ -24,22 +24,19 @@ export function MarketplaceHeader({
   onSubmit,
 }: Props) {
   const inputSlot = (
-    <>
-      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-        <span className="material-icons-outlined">search</span>
-      </span>
-      <Input
-        value={searchValue}
-        onChange={(e) => onSearchChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            onSubmit();
-          }
-        }}
-        placeholder={MARKETPLACE_HEADER.searchPlaceholder}
-        className="w-full pl-10 pr-4 py-2.5 rounded-lg h-11"
-      />
-    </>
+    <InputField
+      ariaLabel={MARKETPLACE_HEADER.searchPlaceholder}
+      size="lg"
+      startIcon={<span className="material-icons-outlined">search</span>}
+      value={searchValue}
+      onValueChange={onSearchChange}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          onSubmit();
+        }
+      }}
+      placeholder={MARKETPLACE_HEADER.searchPlaceholder}
+    />
   );
 
   const ctaSlot = (

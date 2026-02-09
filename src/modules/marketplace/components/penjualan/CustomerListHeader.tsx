@@ -3,8 +3,8 @@
 "use client";
 
 import { Filter, Download, Plus, Search } from "lucide-react";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 export type CustomerListHeaderProps = Readonly<{
   searchValue: string;
@@ -23,13 +23,14 @@ export function CustomerListHeader({
 }: CustomerListHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="relative w-full sm:w-96">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <Input
+      <div className="w-full sm:w-96">
+        <InputField
+          ariaLabel="Cari pelanggan berdasarkan nama atau email"
+          size="lg"
+          startIcon={<Search className="h-4 w-4" />}
           value={searchValue}
-          onChange={(event) => onSearchChange(event.target.value)}
+          onValueChange={onSearchChange}
           placeholder="Cari pelanggan berdasarkan nama, email..."
-          className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-lg text-sm text-gray-900 dark:text-white focus-visible:ring-2 focus-visible:ring-indigo-600/50 placeholder-gray-500"
         />
       </div>
       <div className="flex gap-3 w-full sm:w-auto">

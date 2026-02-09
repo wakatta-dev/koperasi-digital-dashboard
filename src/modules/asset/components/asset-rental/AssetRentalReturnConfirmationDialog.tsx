@@ -5,10 +5,10 @@
 import { Calendar, Info } from "lucide-react";
 import { useState } from "react";
 
+import { InputField } from "@/components/shared/inputs/input-field";
+import { TextareaField } from "@/components/shared/inputs/textarea-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 import { AssetRentalDialogShell } from "./AssetRentalDialogShell";
@@ -59,17 +59,14 @@ export function AssetRentalReturnConfirmationDialog({
       }
     >
       <div className="space-y-2">
-        <Label htmlFor="return-date">Timestamp Pengembalian</Label>
-        <div className="relative">
-          <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <Input
-            id="return-date"
-            type="datetime-local"
-            value={returnTimestamp}
-            onChange={(event) => setReturnTimestamp(event.target.value)}
-            className="border-slate-300 bg-white pl-9"
-          />
-        </div>
+        <InputField
+          id="return-date"
+          label="Timestamp Pengembalian"
+          startIcon={<Calendar className="h-4 w-4" />}
+          type="datetime-local"
+          value={returnTimestamp}
+          onValueChange={setReturnTimestamp}
+        />
       </div>
 
       <div className="space-y-2">
@@ -94,14 +91,13 @@ export function AssetRentalReturnConfirmationDialog({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="return-note">Catatan Pengembalian</Label>
-        <Textarea
+        <TextareaField
           id="return-note"
           rows={3}
           value={notes}
-          onChange={(event) => setNotes(event.target.value)}
+          onValueChange={setNotes}
+          label="Catatan Pengembalian"
           placeholder="Contoh: Lecet halus pada body bagian bawah..."
-          className="border-slate-300 bg-white"
         />
       </div>
 

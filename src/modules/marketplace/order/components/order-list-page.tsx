@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/shared/inputs/input-field";
 import {
   Select,
   SelectContent,
@@ -261,18 +262,14 @@ export function OrderListPage() {
         <h1 className="text-2xl font-bold">Manajemen Pesanan</h1>
       </div>
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative flex-1">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <span className="material-icons-outlined text-muted-foreground">
-              search
-            </span>
-          </div>
-          <Input
+        <div className="flex-1">
+          <InputField
+            ariaLabel="Cari pesanan"
+            startIcon={<span className="material-icons-outlined">search</span>}
             placeholder="Cari ID Pesanan, nama pelanggan, atau produk..."
             type="text"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="pl-10"
+            onValueChange={setSearch}
           />
         </div>
         <div className="relative group">

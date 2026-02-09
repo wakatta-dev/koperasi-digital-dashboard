@@ -2,8 +2,8 @@
 
 "use client";
 
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { Pagination } from "@/types/api/common";
 import type { GuestAssetCardItem, GuestAssetCategoryChip } from "../../types";
 import { AssetCategoryChips } from "./AssetCategoryChips";
@@ -83,22 +83,19 @@ export function AssetCatalogFeature({
           </Button>
 
           <div className="flex gap-2 w-full sm:w-auto">
-            <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <span className="material-icons-outlined text-gray-400">
-                  search
-                </span>
-              </span>
-              <Input
+            <div className="flex-grow sm:flex-grow-0 sm:w-64">
+              <InputField
+                ariaLabel="Cari nama aset"
+                size="lg"
+                startIcon={<span className="material-icons-outlined">search</span>}
                 value={searchValue}
-                onChange={(e) => onSearchValueChange(e.target.value)}
+                onValueChange={onSearchValueChange}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     onSearchSubmit();
                   }
                 }}
-                className="w-full bg-white dark:bg-surface-card-dark border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:border-transparent block pl-10 p-3.5 shadow-sm transition-shadow"
                 placeholder="Cari nama aset..."
               />
             </div>

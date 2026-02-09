@@ -4,8 +4,8 @@
 
 import React, { useMemo, useState } from "react";
 import { Filter, Plus, Search } from "lucide-react";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AddProductModal } from "./add-product-modal";
 import { EditProductModal } from "./edit-product-modal";
 import { InventoryTable } from "./InventoryTable";
@@ -46,14 +46,14 @@ export function InventoryPage() {
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <div className="flex-1">
+          <InputField
+            ariaLabel="Cari nama produk atau SKU"
+            startIcon={<Search className="h-4 w-4" />}
             type="text"
             placeholder="Cari nama produk atau SKU"
-            className="pl-10 pr-3 text-sm"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onValueChange={setSearch}
           />
         </div>
         <Button

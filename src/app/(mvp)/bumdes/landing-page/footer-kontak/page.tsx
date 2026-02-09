@@ -13,6 +13,7 @@ import {
   type SocialLink,
 } from "@/types/landing-page";
 import { LandingEmptyState } from "@/modules/landing/components/landing-empty-state";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -254,66 +255,52 @@ export default function FooterKontakPage() {
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <Label className="block text-sm font-medium text-text-main-light dark:text-text-main-dark mb-1">
-                      Email Instansi
-                    </Label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="material-symbols-outlined text-gray-400 text-lg">
+                    <InputField
+                      label="Email Instansi"
+                      labelClassName="text-sm font-medium text-text-main-light dark:text-text-main-dark"
+                      startIcon={
+                        <span className="material-symbols-outlined text-lg">
                           mail
                         </span>
-                      </div>
-                      <Input
-                        type="email"
-                        className="w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-sm focus:ring-primary focus:border-primary transition-colors"
-                        placeholder="contoh: info@bumdes.id"
-                        value={footer.contact_email ?? ""}
-                        onChange={(event) =>
-                          updateField("contact_email", event.target.value)
-                        }
-                      />
-                    </div>
+                      }
+                      type="email"
+                      placeholder="contoh: info@bumdes.id"
+                      value={footer.contact_email ?? ""}
+                      onValueChange={(value) => updateField("contact_email", value)}
+                    />
                   </div>
                   <div>
-                    <Label className="block text-sm font-medium text-text-main-light dark:text-text-main-dark mb-1">
-                      Nomor WhatsApp
-                    </Label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="material-symbols-outlined text-gray-400 text-lg">
+                    <InputField
+                      label="Nomor WhatsApp"
+                      labelClassName="text-sm font-medium text-text-main-light dark:text-text-main-dark"
+                      startIcon={
+                        <span className="material-symbols-outlined text-lg">
                           chat
                         </span>
-                      </div>
-                      <Input
-                        type="tel"
-                        className="w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-sm focus:ring-primary focus:border-primary transition-colors"
-                        placeholder="contoh: +628..."
-                        value={footer.contact_whatsapp ?? ""}
-                        onChange={(event) =>
-                          updateField("contact_whatsapp", event.target.value)
-                        }
-                      />
-                    </div>
+                      }
+                      type="tel"
+                      placeholder="contoh: +628..."
+                      value={footer.contact_whatsapp ?? ""}
+                      onValueChange={(value) =>
+                        updateField("contact_whatsapp", value)
+                      }
+                    />
                   </div>
                 </div>
                 <div>
-                  <Label className="block text-sm font-medium text-text-main-light dark:text-text-main-dark mb-1">
-                    Link Google Maps
-                  </Label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="material-symbols-outlined text-gray-400 text-lg">
+                  <InputField
+                    label="Link Google Maps"
+                    labelClassName="text-sm font-medium text-text-main-light dark:text-text-main-dark"
+                    startIcon={
+                      <span className="material-symbols-outlined text-lg">
                         map
                       </span>
-                    </div>
-                    <Input
-                      type="url"
-                      className="w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-sm focus:ring-primary focus:border-primary transition-colors"
-                      placeholder="https://maps.google.com/..."
-                      value={footer.maps_url ?? ""}
-                      onChange={(event) => updateField("maps_url", event.target.value)}
-                    />
-                  </div>
+                    }
+                    type="url"
+                    placeholder="https://maps.google.com/..."
+                    value={footer.maps_url ?? ""}
+                    onValueChange={(value) => updateField("maps_url", value)}
+                  />
                   <p className="mt-1 text-xs text-text-muted-light dark:text-text-muted-dark">
                     Tautan ini akan digunakan pada tombol &quot;Petunjuk Arah&quot;.
                   </p>

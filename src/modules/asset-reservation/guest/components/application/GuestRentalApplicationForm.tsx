@@ -3,8 +3,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { InputField } from "@/components/shared/inputs/input-field";
+import { TextareaField } from "@/components/shared/inputs/textarea-field";
 
 export type GuestRentalApplicationFormValues = {
   fullName: string;
@@ -38,161 +38,103 @@ export function GuestRentalApplicationForm({
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="col-span-2">
-          <label
-            className="block text-sm font-medium text-gray-900 dark:text-white mb-1"
-            htmlFor="full-name"
-          >
-            Nama Lengkap
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-gray-400 text-xl">
-                person
-              </span>
-            </div>
-            <Input
-              id="full-name"
-              name="full-name"
-              type="text"
-              value={values.fullName}
-              onChange={(e) =>
-                onValuesChange({ ...values, fullName: e.target.value })
-              }
-              className="pl-10 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-card-dark text-gray-900 dark:text-white shadow-sm focus-visible:ring-brand-primary focus-visible:ring-2 focus-visible:border-brand-primary sm:text-sm py-2.5"
-              placeholder="Masukkan nama lengkap Anda sesuai KTP"
-              autoComplete="name"
-            />
-          </div>
+          <InputField
+            id="full-name"
+            name="full-name"
+            type="text"
+            label="Nama Lengkap"
+            size="lg"
+            startIcon={
+              <span className="material-symbols-outlined text-xl">person</span>
+            }
+            value={values.fullName}
+            onValueChange={(next) => onValuesChange({ ...values, fullName: next })}
+            placeholder="Masukkan nama lengkap Anda sesuai KTP"
+            autoComplete="name"
+          />
         </div>
 
         <div>
-          <label
-            className="block text-sm font-medium text-gray-900 dark:text-white mb-1"
-            htmlFor="phone"
-          >
-            No. Handphone / WhatsApp
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-gray-400 text-xl">
-                call
-              </span>
-            </div>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              value={values.phone}
-              onChange={(e) =>
-                onValuesChange({ ...values, phone: e.target.value })
-              }
-              className="pl-10 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-card-dark text-gray-900 dark:text-white shadow-sm focus-visible:ring-brand-primary focus-visible:ring-2 focus-visible:border-brand-primary sm:text-sm py-2.5"
-              placeholder="Contoh: 08123456789"
-              autoComplete="tel"
-            />
-          </div>
+          <InputField
+            id="phone"
+            name="phone"
+            type="tel"
+            label="No. Handphone / WhatsApp"
+            size="lg"
+            startIcon={<span className="material-symbols-outlined text-xl">call</span>}
+            value={values.phone}
+            onValueChange={(next) => onValuesChange({ ...values, phone: next })}
+            placeholder="Contoh: 08123456789"
+            autoComplete="tel"
+          />
         </div>
 
         <div>
-          <label
-            className="block text-sm font-medium text-gray-900 dark:text-white mb-1"
-            htmlFor="email"
-          >
-            Alamat Email
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-gray-400 text-xl">
-                mail
-              </span>
-            </div>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={values.email}
-              onChange={(e) =>
-                onValuesChange({ ...values, email: e.target.value })
-              }
-              className="pl-10 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-card-dark text-gray-900 dark:text-white shadow-sm focus-visible:ring-brand-primary focus-visible:ring-2 focus-visible:border-brand-primary sm:text-sm py-2.5"
-              placeholder="Contoh: nama@email.com"
-              autoComplete="email"
-            />
-          </div>
+          <InputField
+            id="email"
+            name="email"
+            type="email"
+            label="Alamat Email"
+            size="lg"
+            startIcon={<span className="material-symbols-outlined text-xl">mail</span>}
+            value={values.email}
+            onValueChange={(next) => onValuesChange({ ...values, email: next })}
+            placeholder="Contoh: nama@email.com"
+            autoComplete="email"
+          />
         </div>
 
         <div className="col-span-2">
-          <label
-            className="block text-sm font-medium text-gray-900 dark:text-white mb-1"
-            htmlFor="purpose"
-          >
-            Tujuan Penggunaan
-          </label>
-          <div className="relative">
-            <div className="absolute top-3 left-3 pointer-events-none">
-              <span className="material-symbols-outlined text-gray-400 text-xl">
-                edit_note
-              </span>
-            </div>
-            <Textarea
-              id="purpose"
-              name="purpose"
-              value={values.purpose}
-              onChange={(e) =>
-                onValuesChange({ ...values, purpose: e.target.value })
-              }
-              className="pl-10 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-card-dark text-gray-900 dark:text-white shadow-sm focus-visible:ring-brand-primary focus-visible:ring-2 focus-visible:border-brand-primary sm:text-sm py-2.5"
-              placeholder="Jelaskan secara singkat kegiatan yang akan dilaksanakan..."
-              rows={3}
-            />
-          </div>
+          <TextareaField
+            id="purpose"
+            name="purpose"
+            label="Tujuan Penggunaan"
+            size="lg"
+            startIcon={
+              <span className="material-symbols-outlined text-xl">edit_note</span>
+            }
+            value={values.purpose}
+            onValueChange={(next) => onValuesChange({ ...values, purpose: next })}
+            placeholder="Jelaskan secara singkat kegiatan yang akan dilaksanakan..."
+            rows={3}
+          />
         </div>
 
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
-            Rentang Tanggal Sewa
-          </label>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="material-symbols-outlined text-gray-400 text-xl">
+        <div className="col-span-2 space-y-2">
+          <p className="text-sm font-medium">Rentang Tanggal Sewa</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <InputField
+              id="start-date"
+              name="start-date"
+              type="date"
+              ariaLabel="Mulai sewa"
+              size="lg"
+              startIcon={
+                <span className="material-symbols-outlined text-xl">
                   calendar_today
                 </span>
-              </div>
-              <Input
-                id="start-date"
-                name="start-date"
-                type="date"
-                value={values.startDate}
-                onChange={(e) =>
-                  onValuesChange({ ...values, startDate: e.target.value })
-                }
-                className="pl-10 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-card-dark text-gray-900 dark:text-white shadow-sm focus-visible:ring-brand-primary focus-visible:ring-2 focus-visible:border-brand-primary sm:text-sm py-2.5"
-              />
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
-                Mulai Sewa
-              </span>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="material-symbols-outlined text-gray-400 text-xl">
+              }
+              value={values.startDate}
+              onValueChange={(next) =>
+                onValuesChange({ ...values, startDate: next })
+              }
+              helperText="Mulai Sewa"
+            />
+            <InputField
+              id="end-date"
+              name="end-date"
+              type="date"
+              ariaLabel="Selesai sewa"
+              size="lg"
+              startIcon={
+                <span className="material-symbols-outlined text-xl">
                   event_busy
                 </span>
-              </div>
-              <Input
-                id="end-date"
-                name="end-date"
-                type="date"
-                value={values.endDate}
-                onChange={(e) =>
-                  onValuesChange({ ...values, endDate: e.target.value })
-                }
-                className="pl-10 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-card-dark text-gray-900 dark:text-white shadow-sm focus-visible:ring-brand-primary focus-visible:ring-2 focus-visible:border-brand-primary sm:text-sm py-2.5"
-              />
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
-                Selesai Sewa
-              </span>
-            </div>
+              }
+              value={values.endDate}
+              onValueChange={(next) => onValuesChange({ ...values, endDate: next })}
+              helperText="Selesai Sewa"
+            />
           </div>
         </div>
       </div>
@@ -209,4 +151,3 @@ export function GuestRentalApplicationForm({
     </form>
   );
 }
-

@@ -10,9 +10,9 @@ import {
   Download,
   Search,
 } from "lucide-react";
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -229,24 +229,22 @@ export function ProductInventoryHistoryModal({
                     Rentang Tanggal
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="relative">
-                      <Input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(event) => setDateFrom(event.target.value)}
-                        className="w-full rounded-lg border-gray-200 bg-white py-2.5 pl-10 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
-                      />
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    </div>
-                    <div className="relative">
-                      <Input
-                        type="date"
-                        value={dateTo}
-                        onChange={(event) => setDateTo(event.target.value)}
-                        className="w-full rounded-lg border-gray-200 bg-white py-2.5 pl-10 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
-                      />
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    </div>
+                    <InputField
+                      ariaLabel="Tanggal mulai"
+                      size="lg"
+                      startIcon={<Calendar className="h-4 w-4" />}
+                      type="date"
+                      value={dateFrom}
+                      onValueChange={setDateFrom}
+                    />
+                    <InputField
+                      ariaLabel="Tanggal akhir"
+                      size="lg"
+                      startIcon={<Calendar className="h-4 w-4" />}
+                      type="date"
+                      value={dateTo}
+                      onValueChange={setDateTo}
+                    />
                   </div>
                 </div>
                 <div>
@@ -268,18 +266,15 @@ export function ProductInventoryHistoryModal({
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
-                    Cari Referensi
-                  </label>
-                  <div className="relative">
-                    <Input
-                      value={searchValue}
-                      onChange={(event) => setSearchValue(event.target.value)}
-                      placeholder="ID Invoice / Gudang"
-                      className="w-full rounded-lg border-gray-200 bg-white py-2.5 pl-10 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
-                    />
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  </div>
+                  <InputField
+                    label="Cari Referensi"
+                    labelClassName="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider"
+                    size="lg"
+                    startIcon={<Search className="h-4 w-4" />}
+                    value={searchValue}
+                    onValueChange={setSearchValue}
+                    placeholder="ID Invoice / Gudang"
+                  />
                 </div>
                 <div className="flex items-end">
                   <Button

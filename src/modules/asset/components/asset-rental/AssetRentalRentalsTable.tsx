@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { EllipsisVertical, Funnel, Search } from "lucide-react";
 
+import { InputField } from "@/components/shared/inputs/input-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -111,13 +111,13 @@ export function AssetRentalRentalsTable({
       </div>
 
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full lg:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input
+        <div className="w-full lg:max-w-sm">
+          <InputField
+            ariaLabel="Cari aset, peminjam, atau ID"
+            startIcon={<Search className="h-4 w-4" />}
             placeholder="Cari aset, peminjam, atau ID..."
             value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            className="h-10 border-slate-200 bg-white pl-9"
+            onValueChange={onSearchChange}
           />
         </div>
 

@@ -187,6 +187,31 @@
   .layout-stack {
     gap: var(--layout-space-gap);
   }
+
+  /* Shared form field primitives (label + icon-leading control + helper/error). */
+  .form-field {
+    @apply grid gap-1.5;
+  }
+
+  .form-field__control {
+    @apply relative;
+  }
+
+  .form-field__start-icon {
+    @apply pointer-events-none absolute left-3 text-muted-foreground;
+  }
+
+  .form-field__end-icon {
+    @apply pointer-events-none absolute right-3 text-muted-foreground;
+  }
+
+  .form-field__helper {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .form-field__error {
+    @apply text-xs text-destructive;
+  }
 }
 
 @layer utilities {

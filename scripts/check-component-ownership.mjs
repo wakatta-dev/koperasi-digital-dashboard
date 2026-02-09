@@ -32,6 +32,7 @@ const exemptPatterns = [
   /^data-display\/KpiCardBase\.tsx$/,
   /^data-display\/item-card\.tsx$/,
   /^filters\/FilterActions\.tsx$/,
+  /^inputs\/field\.tsx$/,
   /^inputs\/input-group\.tsx$/,
 ];
 
