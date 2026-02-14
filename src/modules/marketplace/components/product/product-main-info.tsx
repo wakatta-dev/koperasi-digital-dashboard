@@ -320,7 +320,7 @@ export function ProductMainInfo({
             <span className="material-icons-outlined text-xl">
               add_shopping_cart
             </span>
-            + Keranjang
+            Keranjang
           </Button>
           <Button
             variant="outline"

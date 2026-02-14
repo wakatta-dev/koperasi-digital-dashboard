@@ -167,6 +167,8 @@ function sortToParam(label: string) {
       return "price_asc";
     case "Harga Tertinggi":
       return "price_desc";
+    case "Terlaris":
+      return "newest";
     case "Terbaru":
       return "newest";
     default:
