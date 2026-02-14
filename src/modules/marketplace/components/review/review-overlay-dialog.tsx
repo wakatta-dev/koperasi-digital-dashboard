@@ -43,17 +43,20 @@ function RatingStars({
       </legend>
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
-          <button
+          <Button
             key={star}
             type="button"
+            variant="ghost"
+            size="icon"
             aria-label={`Bintang ${star}`}
+            aria-pressed={value >= star}
             onClick={() => onChange(star)}
-            className={`material-icons-outlined text-2xl transition ${
+            className={`h-9 w-9 text-2xl transition ${
               value >= star ? "text-yellow-500" : "text-muted-foreground"
             }`}
           >
             star
-          </button>
+          </Button>
         ))}
       </div>
     </fieldset>

@@ -128,9 +128,11 @@ export function MarketplacePaymentPage() {
                             <span className="font-mono text-xl font-bold text-foreground tracking-wide">
                               {BANK_ACCOUNT}
                             </span>
-                            <button
-                              className="ml-auto text-indigo-600 dark:text-indigo-400 p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded transition"
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="ml-auto h-8 w-8 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                               title="Salin"
                               onClick={() =>
                                 handleCopy(BANK_ACCOUNT, "Nomor rekening")
@@ -139,7 +141,7 @@ export function MarketplacePaymentPage() {
                               <span className="material-icons-outlined text-lg">
                                 content_copy
                               </span>
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -153,15 +155,16 @@ export function MarketplacePaymentPage() {
                               <span className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
                                 {formatCurrency(totalPayment)}
                               </span>
-                              <button
-                                className="text-indigo-600 dark:text-indigo-400 text-sm font-semibold flex items-center gap-1"
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                className="h-auto p-0 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-transparent hover:text-indigo-700 dark:hover:text-indigo-300"
                                 onClick={() =>
                                   handleCopy(String(totalPayment), "Total transfer")
                                 }
                               >
                                 Salin
-                              </button>
+                              </Button>
                             </div>
                             <div className="text-xs text-indigo-700 dark:text-indigo-300 flex items-start gap-1.5">
                               <span className="material-icons-outlined text-sm mt-0.5">

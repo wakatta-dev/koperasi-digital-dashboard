@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { showToastSuccess } from "@/lib/toast";
 import { ReviewOverlayDialog } from "./components/review/review-overlay-dialog";
 
@@ -20,14 +21,14 @@ export function MarketplaceReviewPage() {
   return (
     <div className="relative min-h-screen bg-black/40">
       <div className="absolute inset-0 flex items-center justify-center p-6">
-        <button
+        <Button
           ref={triggerRef}
           type="button"
           className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
           onClick={() => setOpen(true)}
         >
           Buka Konfirmasi Pesanan
-        </button>
+        </Button>
       </div>
 
       <ReviewOverlayDialog

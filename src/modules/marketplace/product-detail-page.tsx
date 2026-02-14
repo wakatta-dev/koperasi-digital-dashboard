@@ -17,6 +17,7 @@ import {
   useMarketplaceProductDetail,
   useMarketplaceProductVariants,
 } from "./hooks/useMarketplaceProducts";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -155,12 +156,14 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
           {isError && !notFoundLike ? (
             <div className="py-12 text-center text-destructive space-y-3">
               <div>Gagal memuat produk.</div>
-              <button
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => refetch()}
-                className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted text-foreground"
+                className="text-sm text-foreground hover:bg-muted"
               >
                 Coba lagi
-              </button>
+              </Button>
             </div>
           ) : null}
           {!isLoading && !product && !isError ? (
