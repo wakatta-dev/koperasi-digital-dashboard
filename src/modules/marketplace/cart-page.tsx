@@ -16,6 +16,7 @@ import { CheckoutForm } from "./components/checkout/checkout-form";
 import { useState } from "react";
 import type { MarketplaceOrderResponse } from "@/types/api/marketplace";
 import { formatCurrency } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 
 export function MarketplaceCartPage() {
   const { data, isError, refetch } = useMarketplaceCart();
@@ -77,15 +78,16 @@ export function MarketplaceCartPage() {
                   >
                     Kembali ke Marketplace
                   </Link>
-                  <button
+                  <Button
                     onClick={() => {
                       setOrderResult(null);
                       refetch();
                     }}
-                    className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-border hover:bg-muted transition text-foreground"
+                    variant="outline"
+                    className="rounded-lg border-border text-foreground hover:bg-muted"
                   >
                     Lihat Keranjang
-                  </button>
+                  </Button>
                 </div>
             </div>
           ) : null}

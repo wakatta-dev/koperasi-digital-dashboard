@@ -1,174 +1,122 @@
 /** @format */
+
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
+import { showToastSuccess } from "@/lib/toast";
+import type { MarketplaceOrderStatus } from "@/types/api/marketplace";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
-import { ShippingBreadcrumbs } from "./components/shipping/shipping-breadcrumbs";
-import { ShippingSteps } from "./components/shipping/shipping-steps";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
-import { useCheckoutStore, isShippingValid } from "./state/checkout-store";
-import { showToastError } from "@/lib/toast";
+import { ReviewOverlayDialog } from "./components/review/review-overlay-dialog";
+import { StatusDetailFeature } from "./components/shipping/status-detail-feature";
+import { TrackingFormFeature } from "./components/shipping/tracking-form-feature";
+
+type TrackingView = "track" | "not-found" | "verification" | "delivery";
+
+const DEMO_ORDER_NUMBER = "INV-20231024-0001";
+const DEMO_CONTACT = "budi@email.com";
 
 export function MarketplaceShippingPage() {
-  const router = useRouter();
-  const { data: cart, isLoading, isError } = useMarketplaceCart();
+  const { data: cart } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;
-  const checkout = useCheckoutStore();
-  const setField = useCheckoutStore((s) => s.setField);
-  const shippingValid = useMemo(() => isShippingValid(checkout), [checkout]);
-  const [touched, setTouched] = useState(false);
 
-  useEffect(() => {
-    if (!isLoading && !cart?.items?.length) {
-      router.replace("/marketplace/keranjang");
-    }
-  }, [cart?.items?.length, isLoading, router]);
+  const [view, setView] = useState<TrackingView>("track");
+  const [orderNumber, setOrderNumber] = useState("");
+  const [contact, setContact] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [reviewOpen, setReviewOpen] = useState(false);
 
-  const handleNext = () => {
-    setTouched(true);
-    if (!shippingValid) {
-      showToastError(
-        "Lengkapi data pengiriman",
-        "Nama, telepon, email wajib diisi. Alamat wajib untuk delivery."
-      );
+  const shippingStatus: MarketplaceOrderStatus =
+    view === "delivery" ? "IN_DELIVERY" : "PAYMENT_VERIFICATION";
+
+  const detail = useMemo(
+    () => ({
+      orderNumber: `#${DEMO_ORDER_NUMBER}`,
+      status: shippingStatus,
+      shippingMethod: "JNE Regular",
+      trackingNumber: view === "delivery" ? "JNE1234567890" : undefined,
+      customerName: "Budi Santoso",
+      customerAddress: "Jl. Melati No. 12, Sukamaju",
+      totalLabel: "Rp 260.000",
+    }),
+    [shippingStatus, view],
+  );
+
+  const handleTrack = () => {
+    const orderValid = orderNumber.trim().toUpperCase() === DEMO_ORDER_NUMBER;
+    const contactValid =
+      contact.trim().toLowerCase() === DEMO_CONTACT ||
+      contact.trim().includes("0812");
+
+    if (orderValid && contactValid) {
+      setErrorMessage(undefined);
+      setView("verification");
       return;
     }
-    router.push("/marketplace/pembayaran");
+
+    setView("not-found");
+    setErrorMessage(
+      "Maaf, kami tidak dapat menemukan pesanan dengan kombinasi kode dan data tersebut. Silakan periksa kembali input Anda.",
+    );
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
-      <LandingNavbar
-        activeLabel="Marketplace"
-        showCart
-        cartCount={cartCount}
-      />
-      <main className="pt-28 pb-20 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ShippingBreadcrumbs />
-          <ShippingSteps />
+    <div className="min-h-screen bg-background text-foreground">
+      <LandingNavbar activeLabel="Marketplace" showCart cartCount={cartCount} />
 
-          <h1 className="text-3xl font-extrabold text-foreground mb-8">
-            Informasi Pengiriman
-          </h1>
+      <main className="min-h-screen px-4 pb-20 pt-28 sm:px-6 lg:px-8">
+        {view === "track" ? (
+          <TrackingFormFeature
+            title="Lacak Pesanan Anda"
+            description="Masukkan Kode Pesanan dan data verifikasi Anda untuk melihat status pengiriman terkini tanpa perlu login."
+            orderNumber={orderNumber}
+            contact={contact}
+            onOrderNumberChange={setOrderNumber}
+            onContactChange={setContact}
+            onSubmit={handleTrack}
+          />
+        ) : null}
 
-          {isError ? (
-            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-destructive">
-              Gagal memuat keranjang. Silakan kembali ke keranjang.
-            </div>
-          ) : null}
+        {view === "not-found" ? (
+          <TrackingFormFeature
+            title="Pesanan Tidak Ditemukan"
+            description="Maaf, kami tidak dapat menemukan pesanan dengan kombinasi kode dan data tersebut. Silakan periksa kembali input Anda."
+            orderNumber={orderNumber || DEMO_ORDER_NUMBER}
+            contact={contact || DEMO_CONTACT}
+            notFound
+            errorMessage={errorMessage}
+            onOrderNumberChange={setOrderNumber}
+            onContactChange={setContact}
+            onSubmit={handleTrack}
+          />
+        ) : null}
 
-          {!isLoading && !isError ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-              <div className="lg:col-span-8 space-y-6">
-                <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
-                  <div className="p-6 lg:p-8">
-                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
-                      <h2 className="font-bold text-xl text-foreground">
-                        Alamat & Kontak
-                      </h2>
-                      <RadioGroup
-                        className="flex gap-2 text-xs text-muted-foreground"
-                        value={checkout.fulfillment}
-                        onValueChange={(value) =>
-                          setField("fulfillment", value as "PICKUP" | "DELIVERY")
-                        }
-                      >
-                        <Label
-                          htmlFor="fulfillment-pickup"
-                          className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer"
-                        >
-                          <RadioGroupItem value="PICKUP" id="fulfillment-pickup" />
-                          Pickup
-                        </Label>
-                        <Label
-                          htmlFor="fulfillment-delivery"
-                          className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer"
-                        >
-                          <RadioGroupItem value="DELIVERY" id="fulfillment-delivery" />
-                          Delivery
-                        </Label>
-                      </RadioGroup>
-                    </div>
-
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Input
-                            placeholder="Nama lengkap"
-                            value={checkout.name}
-                            onChange={(e) => setField("name", e.target.value)}
-                          />
-                          <Input
-                            placeholder="No. HP"
-                            value={checkout.phone}
-                            onChange={(e) => setField("phone", e.target.value)}
-                          />
-                          <Input
-                            placeholder="Email"
-                            type="email"
-                            value={checkout.email}
-                            onChange={(e) => setField("email", e.target.value)}
-                          />
-                        </div>
-
-                        {checkout.fulfillment === "DELIVERY" ? (
-                          <Textarea
-                            placeholder="Alamat lengkap"
-                            value={checkout.address}
-                            onChange={(e) =>
-                              setField("address", e.target.value)
-                            }
-                          />
-                        ) : null}
-
-                        <Textarea
-                          placeholder="Catatan (opsional)"
-                          value={checkout.notes}
-                          onChange={(e) => setField("notes", e.target.value)}
-                        />
-
-                      {touched && !shippingValid ? (
-                        <div className="text-sm text-destructive">
-                          Lengkapi nama, telepon, email, dan alamat (untuk
-                          delivery).
-                        </div>
-                      ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Link
-                      href="/marketplace/keranjang"
-                      className="inline-flex items-center gap-2 text-muted-foreground font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition group"
-                    >
-                      <span className="material-icons-outlined text-lg group-hover:-translate-x-1 transition-transform">
-                        arrow_back
-                      </span>
-                      Kembali ke Keranjang
-                    </Link>
-                    <Button
-                      onClick={handleNext}
-                      disabled={!cart?.items?.length}
-                      className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-50"
-                    >
-                      Lanjut ke Pembayaran
-                    </Button>
-                  </div>
-                </div>
-            </div>
-          ) : null}
-        </div>
+        {view === "verification" || view === "delivery" ? (
+          <StatusDetailFeature
+            detail={detail}
+            onChangeVariant={(next) =>
+              setView(next === "delivery" ? "delivery" : "verification")
+            }
+            onOpenReview={() => setReviewOpen(true)}
+          />
+        ) : null}
       </main>
+
+      <ReviewOverlayDialog
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        items={[
+          { id: "p1", name: "Kopi Arabika Premium" },
+          { id: "p2", name: "Madu Hutan Sukamaju" },
+        ]}
+        onSubmit={() => {
+          setReviewOpen(false);
+          showToastSuccess("Terima kasih", "Ulasan pesanan berhasil dikirim.");
+        }}
+      />
+
       <LandingFooter />
     </div>
   );

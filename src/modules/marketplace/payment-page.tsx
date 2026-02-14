@@ -11,12 +11,6 @@ import { PaymentBreadcrumbs } from "./components/payment/payment-breadcrumbs";
 import { PaymentSteps } from "./components/payment/payment-steps";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { Button } from "@/components/ui/button";
-import {
-  useCheckoutStore,
-  isPaymentValid,
-  isShippingValid,
-} from "./state/checkout-store";
-import { useManualPaymentStore } from "./state/manual-payment-store";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import { formatCurrency } from "@/lib/format";
 
@@ -28,29 +22,17 @@ export function MarketplacePaymentPage() {
   const router = useRouter();
   const { data: cart, isLoading, isError } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;
-  const checkout = useCheckoutStore();
-  const setField = useCheckoutStore((s) => s.setField);
-  const proofFile = useManualPaymentStore((s) => s.proofFile);
-  const setProofFile = useManualPaymentStore((s) => s.setProofFile);
-  const paymentValid = isPaymentValid(checkout);
-  const shippingValid = isShippingValid(checkout);
-  const [touched, setTouched] = useState(false);
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofTouched, setProofTouched] = useState(false);
 
   const totalPayment = useMemo(() => cart?.total ?? 0, [cart?.total]);
   const orderLabel = cart?.id ? `#CART-${cart.id}` : "#ORD-DRAFT";
 
   useEffect(() => {
-    if (!shippingValid || (!isLoading && !cart?.items?.length)) {
-      router.replace("/marketplace/pengiriman");
+    if (!isLoading && !cart?.items?.length) {
+      router.replace("/marketplace/keranjang");
     }
-  }, [cart?.items?.length, isLoading, router, shippingValid]);
-
-  useEffect(() => {
-    if (checkout.paymentMethod !== "MANUAL_TRANSFER") {
-      setField("paymentMethod", "MANUAL_TRANSFER");
-    }
-  }, [checkout.paymentMethod, setField]);
+  }, [cart?.items?.length, isLoading, router]);
 
   const handleCopy = async (value: string, label: string) => {
     try {
@@ -62,12 +44,7 @@ export function MarketplacePaymentPage() {
   };
 
   const handleNext = () => {
-    setTouched(true);
     setProofTouched(true);
-    if (!paymentValid) {
-      showToastError("Metode pembayaran belum lengkap", "Silakan lanjutkan.");
-      return;
-    }
     if (!proofFile) {
       showToastError(
         "Bukti transfer diperlukan",
@@ -75,7 +52,7 @@ export function MarketplacePaymentPage() {
       );
       return;
     }
-    router.push("/marketplace/ulasan");
+    router.push("/marketplace/konfirmasi");
   };
 
   return (
@@ -151,9 +128,11 @@ export function MarketplacePaymentPage() {
                             <span className="font-mono text-xl font-bold text-foreground tracking-wide">
                               {BANK_ACCOUNT}
                             </span>
-                            <button
-                              className="ml-auto text-indigo-600 dark:text-indigo-400 p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded transition"
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="ml-auto h-8 w-8 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                               title="Salin"
                               onClick={() =>
                                 handleCopy(BANK_ACCOUNT, "Nomor rekening")
@@ -162,7 +141,7 @@ export function MarketplacePaymentPage() {
                               <span className="material-icons-outlined text-lg">
                                 content_copy
                               </span>
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -176,15 +155,16 @@ export function MarketplacePaymentPage() {
                               <span className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
                                 {formatCurrency(totalPayment)}
                               </span>
-                              <button
-                                className="text-indigo-600 dark:text-indigo-400 text-sm font-semibold flex items-center gap-1"
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                className="h-auto p-0 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-transparent hover:text-indigo-700 dark:hover:text-indigo-300"
                                 onClick={() =>
                                   handleCopy(String(totalPayment), "Total transfer")
                                 }
                               >
                                 Salin
-                              </button>
+                              </Button>
                             </div>
                             <div className="text-xs text-indigo-700 dark:text-indigo-300 flex items-start gap-1.5">
                               <span className="material-icons-outlined text-sm mt-0.5">
@@ -295,13 +275,13 @@ export function MarketplacePaymentPage() {
                 </div>
 
                 <Link
-                  href="/marketplace/pengiriman"
+                  href="/marketplace/keranjang"
                   className="inline-flex items-center gap-2 text-muted-foreground font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition group"
                 >
                   <span className="material-icons-outlined text-lg group-hover:-translate-x-1 transition-transform">
                     arrow_back
                   </span>
-                  Kembali ke Pengiriman
+                  Kembali ke Keranjang
                 </Link>
               </div>
 
@@ -332,15 +312,10 @@ export function MarketplacePaymentPage() {
                     <span>Total Tagihan</span>
                     <span>{formatCurrency(totalPayment)}</span>
                   </div>
-                  {touched && !paymentValid ? (
-                    <div className="text-sm text-destructive">
-                      Metode pembayaran belum lengkap.
-                    </div>
-                  ) : null}
                   <Button
                     type="button"
                     onClick={handleNext}
-                    disabled={!paymentValid || !proofFile}
+                    disabled={!proofFile}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 font-bold disabled:opacity-50"
                   >
                     Konfirmasi Pembayaran Saya

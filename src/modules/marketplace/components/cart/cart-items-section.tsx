@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { MarketplaceCartResponse } from "@/types/api/marketplace";
@@ -25,7 +25,13 @@ export function CartItemsSection({ cart }: Props) {
   const activeCart = cart ?? data;
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    const ids = activeCart?.items?.map((item) => item.id) ?? [];
+    setSelectedIds(ids);
+  }, [activeCart?.items]);
 
   const handleError = (title: string, err: any) => {
     showToastError(title, err);
@@ -72,6 +78,21 @@ export function CartItemsSection({ cart }: Props) {
               onError: (err) => handleError("Gagal menghapus produk", err),
               onSettled: () => setRemovingId(null),
             });
+          }}
+          selectedIds={selectedIds}
+          onToggleAll={() => {
+            if (!activeCart?.items?.length) return;
+            const ids = activeCart.items.map((item) => item.id);
+            setSelectedIds((prev) =>
+              prev.length === ids.length ? [] : ids
+            );
+          }}
+          onToggleItem={(itemId) => {
+            setSelectedIds((prev) =>
+              prev.includes(itemId)
+                ? prev.filter((id) => id !== itemId)
+                : [...prev, itemId]
+            );
           }}
         />
       ) : null}

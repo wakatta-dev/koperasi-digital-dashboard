@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
   useMarketplaceOrderActions,
@@ -17,28 +18,26 @@ import {
   formatOrderNumber,
   getStatusAction,
   normalizeOrderStatus,
+  normalizeOrderStatusFilter,
 } from "@/modules/marketplace/order/utils";
-import type { OrderListItem, OrderStatus } from "@/modules/marketplace/types";
+import type { OrderListItem } from "@/modules/marketplace/types";
+import {
+  getMarketplaceCanonicalStatusLabel,
+  isMarketplaceTransitionAllowed,
+  MARKETPLACE_ORDER_FILTER_OPTIONS,
+} from "@/modules/marketplace/utils/status";
 import { OrderListHeader } from "./OrderListHeader";
 import { OrderTable } from "./OrderTable";
 import { OrderPagination } from "./OrderPagination";
 
 const PAGE_SIZE = 10;
 
-const mapStatusLabel = (status?: string): OrderStatus => {
-  const normalized = normalizeOrderStatus(status);
-  if (normalized === "COMPLETED") return "Completed";
-  if (normalized === "PROCESSING") return "Processing";
-  if (normalized === "PAID") return "Shipped";
-  if (normalized === "CANCELED") return "Cancelled";
-  return "Processing";
-};
-
 export function OrderListPage() {
   const router = useRouter();
   const confirm = useConfirm();
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [invoiceOrderId, setInvoiceOrderId] = useState<number | undefined>(
     undefined,
@@ -51,18 +50,19 @@ export function OrderListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, dateFilter]);
+  }, [search, dateFilter, statusFilter]);
 
   const queryParams = useMemo(
     () => ({
       q: search || undefined,
+      status: normalizeOrderStatusFilter(statusFilter),
       from: dateFilter || undefined,
       to: dateFilter || undefined,
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
       sort: "newest",
     }),
-    [search, dateFilter, page],
+    [search, statusFilter, dateFilter, page],
   );
 
   const { data, isLoading, isError, error } = useMarketplaceOrders(queryParams);
@@ -86,7 +86,7 @@ export function OrderListPage() {
         customerEmail: order.customer_email,
         date: formatOrderDate(order.created_at),
         total: order.total,
-        status: mapStatusLabel(order.status),
+        status: normalizeOrderStatus(order.status),
       })),
     [orders],
   );
@@ -102,6 +102,11 @@ export function OrderListPage() {
     actionKey: string,
     reason?: string,
   ) => {
+    if (!isMarketplaceTransitionAllowed(order.status, nextStatus)) {
+      toast.error("Transisi status tidak valid untuk status saat ini.");
+      return;
+    }
+
     setPendingAction({ id: order.id, action: actionKey });
     try {
       await updateStatus.mutateAsync({
@@ -114,6 +119,11 @@ export function OrderListPage() {
   };
 
   const handleCancel = async (order: MarketplaceOrderSummaryResponse) => {
+    if (!canCancelOrder(order.status)) {
+      toast.error("Pesanan pada status ini tidak dapat dibatalkan.");
+      return;
+    }
+
     const ok = await confirm({
       variant: "delete",
       title: "Batalkan pesanan?",
@@ -137,8 +147,11 @@ export function OrderListPage() {
       <OrderListHeader
         searchValue={search}
         dateValue={dateFilter}
+        statusValue={statusFilter}
+        statusOptions={MARKETPLACE_ORDER_FILTER_OPTIONS}
         onSearchChange={setSearch}
         onDateChange={setDateFilter}
+        onStatusChange={setStatusFilter}
       />
 
       <OrderTable
@@ -152,6 +165,9 @@ export function OrderListPage() {
           const action = getStatusAction(order.status);
           const isRowLoading = pendingAction?.id === order.id;
           const canCancel = canCancelOrder(order.status);
+          const isActionAllowed =
+            !!action &&
+            isMarketplaceTransitionAllowed(order.status, action.nextStatus);
 
           return [
             {
@@ -166,10 +182,10 @@ export function OrderListPage() {
             {
               label: action?.label ?? "Update Status",
               onSelect: () => {
-                if (!action || isRowLoading) return;
+                if (!action || isRowLoading || !isActionAllowed) return;
                 void handleStatusUpdate(order, action.nextStatus, "status");
               },
-              disabled: !action || isRowLoading,
+              disabled: !action || isRowLoading || !isActionAllowed,
             },
             {
               label: "Batalkan Pesanan",
@@ -198,6 +214,12 @@ export function OrderListPage() {
       {isError ? (
         <p className="text-sm text-red-500">
           {error instanceof Error ? error.message : "Gagal memuat pesanan."}
+        </p>
+      ) : null}
+
+      {queryParams.status ? (
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Filter status aktif: {getMarketplaceCanonicalStatusLabel(queryParams.status)}
         </p>
       ) : null}
 

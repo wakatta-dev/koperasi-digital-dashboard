@@ -1,7 +1,5 @@
 /** @format */
 
-/** @format */
-
 import type { Metadata } from "next";
 import { MarketplacePage } from "@/modules/marketplace";
 

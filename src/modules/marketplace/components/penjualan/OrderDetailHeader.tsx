@@ -5,7 +5,10 @@
 import { Mail, Printer, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getOrderStatusBadgeClass } from "@/modules/marketplace/utils/status";
+import {
+  getOrderStatusBadgeClass,
+  getOrderStatusLabel,
+} from "@/modules/marketplace/utils/status";
 import type { OrderStatus } from "@/modules/marketplace/types";
 
 export type OrderDetailHeaderProps = Readonly<{
@@ -37,7 +40,7 @@ export function OrderDetailHeader({
               status
             )}`}
           >
-            {status}
+            {getOrderStatusLabel(status)}
           </Badge>
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">Dibuat pada {createdAt}</p>

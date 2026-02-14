@@ -49,12 +49,12 @@ const manualStatusOptions: Array<{
   {
     value: "WAITING_MANUAL_CONFIRMATION",
     label: "Menunggu Verifikasi",
-    orderStatus: "PENDING",
+    orderStatus: "PENDING_PAYMENT",
   },
   {
     value: "CONFIRMED",
     label: "Lunas",
-    orderStatus: "PAID",
+    orderStatus: "PAYMENT_VERIFICATION",
   },
   {
     value: "REJECTED",
