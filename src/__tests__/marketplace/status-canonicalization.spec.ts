@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 
+import { normalizeOrderStatus } from "@/modules/marketplace/order/utils";
 import {
   getMarketplaceCanonicalStatusLabel,
   isLegacyMarketplaceOrderStatus,
@@ -56,5 +57,10 @@ describe("marketplace status canonicalization", () => {
       const canonical = normalizeMarketplaceOrderStatus(status);
       expect(isLegacyMarketplaceOrderStatus(canonical)).toBe(false);
     });
+  });
+
+  it("keeps order runtime normalization aligned with canonical source", () => {
+    expect(normalizeOrderStatus("PAID")).toBe("PAYMENT_VERIFICATION");
+    expect(normalizeOrderStatus("SHIPPED")).toBe("IN_DELIVERY");
   });
 });

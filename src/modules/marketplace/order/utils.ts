@@ -1,7 +1,7 @@
 /** @format */
 
-import { normalizeMarketplaceOrderStatus } from "@/modules/marketplace/utils/order-status";
 import {
+  normalizeMarketplaceOrderStatus,
   getMarketplaceCanonicalStatusLabel,
   mapMarketplaceStatusFilterToQuery,
 } from "@/modules/marketplace/utils/status";
