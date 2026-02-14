@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,10 @@ import type {
   MarketplaceOrderResponse,
 } from "@/types/api/marketplace";
 import { QK } from "@/hooks/queries/queryKeys";
+import {
+  saveBuyerOrderContext,
+  type BuyerCheckoutSnapshot,
+} from "../../state/buyer-checkout-context";
 import { FeatureSectionCard } from "../shared/feature-section-card";
 import { FieldRow } from "../shared/field-row";
 import { OptionTile } from "../shared/option-tile";
@@ -39,60 +43,131 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
   const [paymentMethod, setPaymentMethod] = useState("TRANSFER_BANK");
   const [bankOption, setBankOption] = useState("BCA");
   const [submitting, setSubmitting] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
+  const submittingRef = useRef(false);
   const qc = useQueryClient();
 
-  const isValid = useMemo(() => {
-    const hasAddress =
-      recipientName.trim() &&
-      recipientPhone.trim() &&
-      address.trim() &&
-      province.trim() &&
-      city.trim() &&
-      district.trim() &&
-      postalCode.trim();
+  const checkoutSnapshot = useMemo<BuyerCheckoutSnapshot>(
+    () => ({
+      customerName: recipientName.trim(),
+      customerPhone: recipientPhone.trim(),
+      customerEmail: email.trim(),
+      customerAddress:
+        `${address.trim()}, ${district.trim()}, ${city.trim()}, ${province.trim()}, ${postalCode.trim()}`.trim(),
+      shippingOption,
+      paymentMethod,
+      bankOption: paymentMethod === "TRANSFER_BANK" ? bankOption : undefined,
+      submittedAt: Date.now(),
+    }),
+    [
+      address,
+      bankOption,
+      city,
+      district,
+      email,
+      paymentMethod,
+      postalCode,
+      province,
+      recipientName,
+      recipientPhone,
+      shippingOption,
+    ]
+  );
 
-    return (
-      Boolean(email.includes("@")) &&
-      Boolean(phone.trim()) &&
-      Boolean(hasAddress) &&
-      cart.items.length > 0
-    );
+  const validationErrors = useMemo(() => {
+    const errors: string[] = [];
+
+    if (!email.trim() || !email.includes("@")) {
+      errors.push("Email valid wajib diisi.");
+    }
+    if (!phone.trim()) {
+      errors.push("Nomor WhatsApp wajib diisi.");
+    }
+    if (!recipientName.trim()) {
+      errors.push("Nama penerima wajib diisi.");
+    }
+    if (!recipientPhone.trim()) {
+      errors.push("Nomor telepon penerima wajib diisi.");
+    }
+    if (!address.trim()) {
+      errors.push("Alamat lengkap wajib diisi.");
+    }
+    if (!province.trim()) {
+      errors.push("Provinsi wajib diisi.");
+    }
+    if (!city.trim()) {
+      errors.push("Kota/Kabupaten wajib diisi.");
+    }
+    if (!district.trim()) {
+      errors.push("Kecamatan wajib diisi.");
+    }
+    if (!postalCode.trim()) {
+      errors.push("Kode pos wajib diisi.");
+    }
+    if (!shippingOption.trim()) {
+      errors.push("Metode pengiriman wajib dipilih.");
+    }
+    if (!paymentMethod.trim()) {
+      errors.push("Metode pembayaran wajib dipilih.");
+    }
+    if (paymentMethod === "TRANSFER_BANK" && !bankOption.trim()) {
+      errors.push("Bank transfer wajib dipilih.");
+    }
+    if (!cart.items.length) {
+      errors.push("Keranjang belanja kosong.");
+    }
+
+    return errors;
   }, [
     address,
+    bankOption,
     cart.items.length,
     city,
     district,
     email,
+    paymentMethod,
     phone,
     postalCode,
     province,
     recipientName,
     recipientPhone,
+    shippingOption,
   ]);
 
+  const isValid = validationErrors.length === 0;
+
   const handleSubmit = async () => {
+    if (submittingRef.current || submitting) {
+      return;
+    }
+
+    setShowValidation(true);
     if (!isValid) {
       showToastError(
         "Data checkout belum lengkap",
-        "Lengkapi kontak, alamat, pengiriman, dan pembayaran.",
+        validationErrors.join(" ")
       );
       return;
     }
 
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const order = ensureSuccess(
         await checkoutMarketplace({
           fulfillment_method: "DELIVERY",
-          customer_name: recipientName.trim(),
-          customer_phone: recipientPhone.trim(),
-          customer_email: email.trim(),
-          customer_address:
-            `${address.trim()}, ${district.trim()}, ${city.trim()}, ${province.trim()}, ${postalCode.trim()}`.trim(),
+          customer_name: checkoutSnapshot.customerName,
+          customer_phone: checkoutSnapshot.customerPhone,
+          customer_email: checkoutSnapshot.customerEmail,
+          customer_address: checkoutSnapshot.customerAddress,
           notes: `shipping=${shippingOption}; payment=${paymentMethod}; bank=${bankOption}`,
-        }),
+        })
       );
 
+      saveBuyerOrderContext({
+        order,
+        checkout: checkoutSnapshot,
+      });
       showToastSuccess("Checkout berhasil", "Pesanan Anda telah dibuat");
       onSuccess(order);
       await qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
@@ -106,6 +181,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
         showToastError("Gagal checkout", err);
       }
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -127,6 +203,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
               placeholder="contoh@email.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              aria-invalid={showValidation && (!email.trim() || !email.includes("@"))}
             />
           </FieldRow>
 
@@ -136,6 +213,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
               placeholder="812-3456-7890"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
+              aria-invalid={showValidation && !phone.trim()}
             />
           </FieldRow>
         </div>
@@ -153,6 +231,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 placeholder="Nama Lengkap Penerima"
                 value={recipientName}
                 onChange={(event) => setRecipientName(event.target.value)}
+                aria-invalid={showValidation && !recipientName.trim()}
               />
             </FieldRow>
             <FieldRow label="Nomor Telepon Penerima">
@@ -160,6 +239,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 placeholder="0812xxxx"
                 value={recipientPhone}
                 onChange={(event) => setRecipientPhone(event.target.value)}
+                aria-invalid={showValidation && !recipientPhone.trim()}
               />
             </FieldRow>
           </div>
@@ -170,6 +250,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
               placeholder="Nama Jalan, No. Rumah, RT/RW, Patokan (Cth: Seberang Masjid Al-Ikhlas)"
               value={address}
               onChange={(event) => setAddress(event.target.value)}
+              aria-invalid={showValidation && !address.trim()}
             />
           </FieldRow>
 
@@ -179,6 +260,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 placeholder="Pilih Provinsi"
                 value={province}
                 onChange={(event) => setProvince(event.target.value)}
+                aria-invalid={showValidation && !province.trim()}
               />
             </FieldRow>
             <FieldRow label="Kota / Kabupaten">
@@ -186,6 +268,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 placeholder="Pilih Kota/Kabupaten"
                 value={city}
                 onChange={(event) => setCity(event.target.value)}
+                aria-invalid={showValidation && !city.trim()}
               />
             </FieldRow>
           </div>
@@ -196,6 +279,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 placeholder="Pilih Kecamatan"
                 value={district}
                 onChange={(event) => setDistrict(event.target.value)}
+                aria-invalid={showValidation && !district.trim()}
               />
             </FieldRow>
             <FieldRow label="Kode Pos">
@@ -203,6 +287,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 placeholder="Contoh: 16750"
                 value={postalCode}
                 onChange={(event) => setPostalCode(event.target.value)}
+                aria-invalid={showValidation && !postalCode.trim()}
               />
             </FieldRow>
           </div>
@@ -290,6 +375,17 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
           ) : null}
         </div>
       </FeatureSectionCard>
+
+      {showValidation && validationErrors.length > 0 ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <p className="font-semibold">Periksa data checkout Anda:</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {validationErrors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <Button
         type="button"

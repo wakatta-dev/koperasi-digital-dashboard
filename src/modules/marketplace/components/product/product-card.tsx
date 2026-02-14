@@ -8,7 +8,7 @@ import { useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useCartMutations } from "../../hooks/useMarketplaceProducts";
-import { showToastError } from "@/lib/toast";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 import { animateFlyToCart } from "../../utils/fly-to-cart";
 
 type MarketplaceCardProduct = {
@@ -36,7 +36,10 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
     addItem.mutate(
       { product_id: Number(product.id), quantity: 1 },
       {
-        onSuccess: () => animateFlyToCart(imgRef.current, product.image),
+        onSuccess: () => {
+          animateFlyToCart(imgRef.current, product.image);
+          showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang.");
+        },
         onError: (err: any) => showToastError("Gagal menambahkan ke keranjang", err),
       }
     );

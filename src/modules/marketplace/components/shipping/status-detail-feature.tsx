@@ -1,27 +1,27 @@
 /** @format */
 
 import { Button } from "@/components/ui/button";
-import type { MarketplaceOrderStatus } from "@/types/api/marketplace";
+import { formatCurrency } from "@/lib/format";
 import { getMarketplaceCanonicalStatusLabel } from "@/modules/marketplace/utils/status";
+import type {
+  MarketplaceGuestOrderStatusDetailResponse,
+  MarketplaceOrderStatus,
+} from "@/types/api/marketplace";
 
 type TimelineStep = {
   status: MarketplaceOrderStatus;
   done: boolean;
-};
-
-type ShippingStatusDetail = {
-  orderNumber: string;
-  status: MarketplaceOrderStatus;
-  shippingMethod: string;
-  trackingNumber?: string;
-  customerName: string;
-  customerAddress: string;
-  totalLabel: string;
+  timestamp?: number;
+  reason?: string;
 };
 
 type StatusDetailFeatureProps = {
-  detail: ShippingStatusDetail;
-  onChangeVariant: (next: "verification" | "delivery") => void;
+  detail: MarketplaceGuestOrderStatusDetailResponse;
+  orderNumber: string;
+  loading?: boolean;
+  reviewSubmitting?: boolean;
+  onRetry: () => void;
+  onReset: () => void;
   onOpenReview: () => void;
 };
 
@@ -33,8 +33,38 @@ const TIMELINE_STEPS: MarketplaceOrderStatus[] = [
   "COMPLETED",
 ];
 
-function buildTimeline(status: MarketplaceOrderStatus): TimelineStep[] {
-  const activeIndex = TIMELINE_STEPS.indexOf(status);
+function buildTimeline(detail: MarketplaceGuestOrderStatusDetailResponse): TimelineStep[] {
+  const history = detail.status_history ?? [];
+  if (history.length > 0) {
+    const normalized = history
+      .map((entry) => ({
+        status: entry.status as MarketplaceOrderStatus,
+        timestamp: entry.timestamp,
+        reason: entry.reason,
+      }))
+      .filter((entry) => TIMELINE_STEPS.includes(entry.status));
+
+    const seen = new Set<MarketplaceOrderStatus>();
+    const deduped = normalized.filter((entry) => {
+      if (seen.has(entry.status)) {
+        return false;
+      }
+      seen.add(entry.status);
+      return true;
+    });
+
+    return TIMELINE_STEPS.map((step) => {
+      const matched = deduped.find((entry) => entry.status === step);
+      return {
+        status: step,
+        done: Boolean(matched),
+        timestamp: matched?.timestamp,
+        reason: matched?.reason,
+      };
+    });
+  }
+
+  const activeIndex = TIMELINE_STEPS.indexOf(detail.status as MarketplaceOrderStatus);
   return TIMELINE_STEPS.map((step, index) => ({
     status: step,
     done: index <= Math.max(activeIndex, 0),
@@ -43,26 +73,57 @@ function buildTimeline(status: MarketplaceOrderStatus): TimelineStep[] {
 
 export function StatusDetailFeature({
   detail,
-  onChangeVariant,
+  orderNumber,
+  loading = false,
+  reviewSubmitting = false,
+  onRetry,
+  onReset,
   onOpenReview,
 }: StatusDetailFeatureProps) {
-  const timeline = buildTimeline(detail.status);
+  const timeline = buildTimeline(detail);
+
+  const reviewButton = (() => {
+    if (detail.review_state === "submitted") {
+      return (
+        <Button type="button" disabled className="bg-muted text-muted-foreground">
+          Ulasan Sudah Dikirim
+        </Button>
+      );
+    }
+    if (detail.review_state === "eligible") {
+      return (
+        <Button
+          type="button"
+          className="bg-indigo-600 text-white hover:bg-indigo-700"
+          onClick={onOpenReview}
+          disabled={reviewSubmitting}
+        >
+          {reviewSubmitting ? "Mengirim ulasan..." : "Konfirmasi Pesanan Diterima"}
+        </Button>
+      );
+    }
+    return (
+      <Button type="button" disabled className="bg-muted text-muted-foreground">
+        Belum Bisa Direview
+      </Button>
+    );
+  })();
 
   return (
     <section className="mx-auto w-full max-w-5xl space-y-6">
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-foreground">Status Pesanan</h2>
           <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">
-            {detail.orderNumber}
+            #{orderNumber}
           </span>
         </div>
 
         <ol className="space-y-3" aria-label="Timeline status pesanan">
           {timeline.map((step) => (
-            <li key={step.status} className="flex items-center gap-3">
+            <li key={step.status} className="flex items-start gap-3">
               <span
-                className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                className={`inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                   step.done
                     ? "bg-indigo-600 text-white"
                     : "bg-muted text-muted-foreground"
@@ -70,13 +131,25 @@ export function StatusDetailFeature({
               >
                 {step.done ? "✓" : "•"}
               </span>
-              <span
-                className={`text-sm ${
-                  step.done ? "font-semibold text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {getMarketplaceCanonicalStatusLabel(step.status)}
-              </span>
+              <div className="space-y-1">
+                <span
+                  className={`text-sm ${
+                    step.done
+                      ? "font-semibold text-foreground"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {getMarketplaceCanonicalStatusLabel(step.status)}
+                </span>
+                {step.timestamp ? (
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(step.timestamp * 1000).toLocaleString("id-ID")}
+                  </p>
+                ) : null}
+                {step.reason ? (
+                  <p className="text-xs text-muted-foreground">{step.reason}</p>
+                ) : null}
+              </div>
             </li>
           ))}
         </ol>
@@ -92,11 +165,15 @@ export function StatusDetailFeature({
             </p>
             <p>
               <span className="font-medium text-foreground">Kurir:</span>{" "}
-              {detail.shippingMethod}
+              {detail.shipping_method || "-"}
             </p>
             <p>
               <span className="font-medium text-foreground">Nomor Resi:</span>{" "}
-              {detail.trackingNumber ?? "Belum tersedia"}
+              {detail.shipping_tracking_number || "Belum tersedia"}
+            </p>
+            <p>
+              <span className="font-medium text-foreground">Metode Pembayaran:</span>{" "}
+              {detail.payment_method || "-"}
             </p>
           </div>
         </div>
@@ -104,16 +181,20 @@ export function StatusDetailFeature({
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h3 className="mb-3 text-base font-bold text-foreground">Ringkasan Pesanan</h3>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>
-              <span className="font-medium text-foreground">Nama:</span> {detail.customerName}
-            </p>
-            <p>
-              <span className="font-medium text-foreground">Alamat:</span> {detail.customerAddress}
-            </p>
-            <p>
-              <span className="font-medium text-foreground">Total Belanja:</span>{" "}
-              {detail.totalLabel}
-            </p>
+            {detail.items.map((item) => (
+              <div
+                key={`${item.order_item_id ?? item.product_id}`}
+                className="flex items-center justify-between gap-3"
+              >
+                <span>
+                  {item.product_name} x {item.quantity}
+                </span>
+                <span>{formatCurrency(item.subtotal)}</span>
+              </div>
+            ))}
+            <div className="pt-2 font-semibold text-foreground border-t border-border">
+              Total: {formatCurrency(detail.total)}
+            </div>
           </div>
         </div>
       </div>
@@ -123,21 +204,21 @@ export function StatusDetailFeature({
           type="button"
           variant="outline"
           className="border-border"
-          onClick={() => onChangeVariant("verification")}
+          onClick={onRetry}
+          disabled={loading}
         >
-          Lihat Verifikasi Pembayaran
+          {loading ? "Memuat..." : "Muat Ulang Status"}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="border-border"
-          onClick={() => onChangeVariant("delivery")}
+          onClick={onReset}
+          disabled={loading}
         >
-          Lihat Dalam Pengiriman
+          Lacak Pesanan Lain
         </Button>
-        <Button type="button" className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={onOpenReview}>
-          Konfirmasi Pesanan Diterima
-        </Button>
+        {reviewButton}
       </div>
     </section>
   );

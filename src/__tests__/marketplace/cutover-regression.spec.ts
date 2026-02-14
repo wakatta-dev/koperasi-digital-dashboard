@@ -35,7 +35,7 @@ describe("marketplace cutover regression", () => {
     const header = read("src/modules/marketplace/components/layout/header.tsx");
 
     expect(summaryCard).toContain('href="/marketplace/pembayaran"');
-    expect(paymentPage).toContain('router.push("/marketplace/konfirmasi")');
+    expect(paymentPage).toContain("/marketplace/konfirmasi?order_id=");
     expect(paymentPage).not.toContain('router.push("/marketplace/ulasan")');
     expect(header).toContain('href="/marketplace/pengiriman"');
   });

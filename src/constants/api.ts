@@ -77,7 +77,11 @@ export const API_ENDPOINTS = {
     cartItemById: (id: string | number) => `/marketplace/cart/items/${id}`,
     checkout: "/marketplace/checkout",
     orders: "/marketplace/orders",
+    orderTrack: "/marketplace/orders/track",
     order: (id: string | number) => `/marketplace/orders/${id}`,
+    orderGuestStatus: (id: string | number) =>
+      `/marketplace/orders/${id}/guest-status`,
+    orderReviews: (id: string | number) => `/marketplace/orders/${id}/reviews`,
     orderStatus: (id: string | number) => `/marketplace/orders/${id}/status`,
     orderManualPayment: (id: string | number) =>
       `/marketplace/orders/${id}/manual-payment`,

@@ -76,6 +76,8 @@ export const QK = {
       ["marketplace", "orders", params ?? {}] as const,
     orderDetail: (id: string | number) =>
       ["marketplace", "orders", String(id)] as const,
+    guestStatus: (id: string | number, trackingToken: string) =>
+      ["marketplace", "orders", String(id), "guest-status", trackingToken] as const,
     customers: (params?: Record<string, unknown>) =>
       ["marketplace", "customers", params ?? {}] as const,
     customerDetail: (id: string | number) =>
@@ -129,6 +131,7 @@ export type QueryKey = ReturnType<
   | typeof QK.marketplace.cart
   | typeof QK.marketplace.orders
   | typeof QK.marketplace.orderDetail
+  | typeof QK.marketplace.guestStatus
   | typeof QK.marketplace.customers
   | typeof QK.marketplace.customerDetail
   | typeof QK.inventory.list
