@@ -5,6 +5,10 @@ import type {
   OrderStatus,
   ProductStatus,
 } from "@/modules/marketplace/types";
+import type {
+  MarketplaceOrderStatus,
+  MarketplaceOrderStatusInput,
+} from "@/types/api/marketplace";
 
 export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {
   Tersedia: "Tersedia",
@@ -53,6 +57,77 @@ export const CUSTOMER_STATUS_DOT_CLASS: Record<CustomerStatus, string> = {
   Active: "bg-emerald-500",
   Inactive: "bg-gray-400",
 };
+
+export const MARKETPLACE_CANONICAL_STATUS_LABELS: Record<
+  MarketplaceOrderStatus,
+  string
+> = {
+  PENDING_PAYMENT: "Menunggu Pembayaran",
+  PAYMENT_VERIFICATION: "Verifikasi Pembayaran",
+  PROCESSING: "Diproses",
+  IN_DELIVERY: "Dalam Pengiriman",
+  COMPLETED: "Selesai",
+  CANCELED: "Dibatalkan",
+};
+
+const LEGACY_TO_CANONICAL_STATUS_MAP: Record<string, MarketplaceOrderStatus> = {
+  NEW: "PENDING_PAYMENT",
+  PENDING: "PENDING_PAYMENT",
+  PAID: "PAYMENT_VERIFICATION",
+  SHIPPED: "IN_DELIVERY",
+  DELIVERED: "COMPLETED",
+  CANCELLED: "CANCELED",
+};
+
+export const MARKETPLACE_ALLOWED_STATUS_TRANSITIONS: Record<
+  MarketplaceOrderStatus,
+  ReadonlyArray<MarketplaceOrderStatus>
+> = {
+  PENDING_PAYMENT: ["PAYMENT_VERIFICATION", "CANCELED"],
+  PAYMENT_VERIFICATION: ["PROCESSING", "CANCELED"],
+  PROCESSING: ["IN_DELIVERY", "CANCELED"],
+  IN_DELIVERY: ["COMPLETED"],
+  COMPLETED: [],
+  CANCELED: [],
+};
+
+export function normalizeMarketplaceOrderStatus(
+  status?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+): MarketplaceOrderStatus {
+  const normalized = (status ?? "").trim().toUpperCase();
+
+  if (!normalized) {
+    return "PENDING_PAYMENT";
+  }
+
+  if (normalized in MARKETPLACE_CANONICAL_STATUS_LABELS) {
+    return normalized as MarketplaceOrderStatus;
+  }
+
+  return LEGACY_TO_CANONICAL_STATUS_MAP[normalized] ?? "PENDING_PAYMENT";
+}
+
+export function isLegacyMarketplaceOrderStatus(status?: string | null) {
+  const normalized = (status ?? "").trim().toUpperCase();
+  return normalized in LEGACY_TO_CANONICAL_STATUS_MAP;
+}
+
+export function isMarketplaceTransitionAllowed(
+  fromStatus?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+  toStatus?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+) {
+  const from = normalizeMarketplaceOrderStatus(fromStatus);
+  const to = normalizeMarketplaceOrderStatus(toStatus);
+  return MARKETPLACE_ALLOWED_STATUS_TRANSITIONS[from].includes(to);
+}
+
+export function getMarketplaceCanonicalStatusLabel(
+  status?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+) {
+  return MARKETPLACE_CANONICAL_STATUS_LABELS[
+    normalizeMarketplaceOrderStatus(status)
+  ];
+}
 
 export function getProductStatusLabel(status: ProductStatus) {
   return PRODUCT_STATUS_LABELS[status];
