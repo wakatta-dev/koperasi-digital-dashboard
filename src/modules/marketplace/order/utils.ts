@@ -1,5 +1,7 @@
 /** @format */
 
+import { normalizeMarketplaceOrderStatus } from "@/modules/marketplace/utils/order-status";
+
 export type OrderStatusAction = {
   nextStatus: string;
   label: string;
@@ -13,9 +15,7 @@ type OrderBadge = {
 };
 
 export function normalizeOrderStatus(status?: string) {
-  const normalized = (status ?? "").toUpperCase();
-  if (normalized === "SHIPPED") return "PAID";
-  return normalized;
+  return normalizeMarketplaceOrderStatus(status);
 }
 
 export function getPaymentBadge(status?: string): OrderBadge {
@@ -26,13 +26,19 @@ export function getPaymentBadge(status?: string): OrderBadge {
       variant: "destructive",
     };
   }
-  if (normalized === "PENDING") {
+  if (normalized === "PENDING_PAYMENT") {
     return {
       label: "Menunggu Pembayaran",
       variant: "secondary",
     };
   }
-  if (["PAID", "PROCESSING", "COMPLETED"].includes(normalized)) {
+  if (normalized === "PAYMENT_VERIFICATION") {
+    return {
+      label: "Verifikasi Pembayaran",
+      variant: "secondary",
+    };
+  }
+  if (["PROCESSING", "IN_DELIVERY", "COMPLETED"].includes(normalized)) {
     return {
       label: "Lunas",
       variant: "default",
@@ -58,20 +64,20 @@ export function getShippingBadge(status?: string): OrderBadge {
       variant: "default",
     };
   }
-  if (normalized === "PROCESSING") {
+  if (normalized === "IN_DELIVERY") {
     return {
       label: "Dikirim",
       variant: "secondary",
     };
   }
-  if (normalized === "PAID") {
+  if (normalized === "PROCESSING") {
     return {
       label: "Diproses",
       variant: "secondary",
     };
   }
   return {
-    label: "Baru",
+    label: "Belum Diproses",
     variant: "outline",
   };
 }
@@ -79,14 +85,16 @@ export function getShippingBadge(status?: string): OrderBadge {
 export function getTimelineLabel(status?: string) {
   const normalized = normalizeOrderStatus(status);
   switch (normalized) {
-    case "PENDING":
+    case "PENDING_PAYMENT":
       return "Pesanan Dibuat";
-    case "PAID":
-      return "Pembayaran Diterima";
+    case "PAYMENT_VERIFICATION":
+      return "Pembayaran Diverifikasi";
     case "PROCESSING":
       return "Pesanan Diproses";
-    case "COMPLETED":
+    case "IN_DELIVERY":
       return "Pesanan Dikirim";
+    case "COMPLETED":
+      return "Pesanan Selesai";
     case "CANCELED":
       return "Pesanan Dibatalkan";
     default:
@@ -96,7 +104,14 @@ export function getTimelineLabel(status?: string) {
 
 export function getStatusAction(status?: string): OrderStatusAction | null {
   const normalized = normalizeOrderStatus(status);
-  if (["PENDING", "PAID"].includes(normalized)) {
+  if (normalized === "PENDING_PAYMENT") {
+    return {
+      nextStatus: "PAYMENT_VERIFICATION",
+      label: "Verifikasi Pembayaran",
+      icon: "payments",
+    };
+  }
+  if (normalized === "PAYMENT_VERIFICATION") {
     return {
       nextStatus: "PROCESSING",
       label: "Proses Pesanan",
@@ -104,6 +119,13 @@ export function getStatusAction(status?: string): OrderStatusAction | null {
     };
   }
   if (normalized === "PROCESSING") {
+    return {
+      nextStatus: "IN_DELIVERY",
+      label: "Kirim Pesanan",
+      icon: "local_shipping",
+    };
+  }
+  if (normalized === "IN_DELIVERY") {
     return {
       nextStatus: "COMPLETED",
       label: "Selesaikan Pesanan",
@@ -115,7 +137,11 @@ export function getStatusAction(status?: string): OrderStatusAction | null {
 
 export function canCancelOrder(status?: string) {
   const normalized = normalizeOrderStatus(status);
-  return normalized !== "CANCELED";
+  return (
+    normalized === "PENDING_PAYMENT" ||
+    normalized === "PAYMENT_VERIFICATION" ||
+    normalized === "PROCESSING"
+  );
 }
 
 export function formatOrderDate(timestamp?: number) {

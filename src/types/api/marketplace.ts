@@ -1,5 +1,32 @@
 /** @format */
 
+export const MARKETPLACE_CANONICAL_ORDER_STATUSES = [
+  "PENDING_PAYMENT",
+  "PAYMENT_VERIFICATION",
+  "PROCESSING",
+  "IN_DELIVERY",
+  "COMPLETED",
+  "CANCELED",
+] as const;
+
+export type MarketplaceOrderStatus =
+  (typeof MARKETPLACE_CANONICAL_ORDER_STATUSES)[number];
+
+export type MarketplaceLegacyOrderStatus =
+  | "NEW"
+  | "PENDING"
+  | "PAID"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "CANCELED";
+
+export type MarketplaceOrderStatusInput =
+  | MarketplaceOrderStatus
+  | MarketplaceLegacyOrderStatus;
+
+export type MarketplaceReviewState = "not_eligible" | "eligible" | "submitted";
+
 export type MarketplaceProductResponse = {
   id: number;
   name: string;
@@ -65,6 +92,7 @@ export type MarketplaceCheckoutRequest = {
 };
 
 export type MarketplaceOrderItemResponse = {
+  order_item_id?: number;
   product_id: number;
   product_name: string;
   product_sku: string;
@@ -83,7 +111,7 @@ export type MarketplaceOrderItemResponse = {
 export type MarketplaceOrderSummaryResponse = {
   id: number;
   order_number: string;
-  status: string;
+  status: MarketplaceOrderStatusInput;
   fulfillment_method: string;
   customer_name: string;
   customer_phone: string;
@@ -100,12 +128,13 @@ export type MarketplaceOrderListResponse = {
 };
 
 export type MarketplaceOrderStatusHistoryResponse = {
-  status: string;
+  status: MarketplaceOrderStatusInput;
   timestamp: number;
+  reason?: string;
 };
 
 export type MarketplaceOrderManualPaymentResponse = {
-  status: string;
+  status: MarketplaceOrderStatusInput;
   proof_url: string;
   proof_filename?: string;
   note?: string;
@@ -120,7 +149,7 @@ export type MarketplaceOrderManualPaymentResponse = {
 
 export type MarketplaceOrderResponse = {
   id: number;
-  status: string;
+  status: MarketplaceOrderStatusInput;
   fulfillment_method: string;
   customer_name: string;
   customer_phone: string;
@@ -135,7 +164,7 @@ export type MarketplaceOrderResponse = {
 export type MarketplaceOrderDetailResponse = {
   id: number;
   order_number: string;
-  status: string;
+  status: MarketplaceOrderStatusInput;
   fulfillment_method: string;
   customer_name: string;
   customer_phone: string;
@@ -152,11 +181,58 @@ export type MarketplaceOrderDetailResponse = {
   payment_reference?: string;
   shipping_method?: string;
   shipping_tracking_number?: string;
+  guest_tracking_enabled?: boolean;
+  tracking_token?: string;
+  review_state?: MarketplaceReviewState;
+  review_submitted_at?: number;
 };
 
 export type MarketplaceOrderStatusUpdateRequest = {
-  status: string;
+  status: MarketplaceOrderStatusInput;
   reason?: string;
+};
+
+export type MarketplaceGuestTrackRequest = {
+  order_number: string;
+  contact: string;
+};
+
+export type MarketplaceGuestTrackResponse = {
+  order_id: number;
+  order_number: string;
+  status: MarketplaceOrderStatusInput;
+  tracking_token: string;
+};
+
+export type MarketplaceGuestOrderStatusDetailResponse = {
+  id: number;
+  order_number: string;
+  status: MarketplaceOrderStatusInput;
+  total: number;
+  payment_method?: string;
+  shipping_method?: string;
+  shipping_tracking_number?: string;
+  items: MarketplaceOrderItemResponse[];
+  status_history: MarketplaceOrderStatusHistoryResponse[];
+  review_state: MarketplaceReviewState;
+};
+
+export type MarketplaceOrderReviewItemSubmitRequest = {
+  order_item_id: number;
+  rating: number;
+  comment?: string;
+};
+
+export type MarketplaceOrderReviewSubmitRequest = {
+  tracking_token: string;
+  overall_comment?: string;
+  items: MarketplaceOrderReviewItemSubmitRequest[];
+};
+
+export type MarketplaceOrderReviewResponse = {
+  order_id: number;
+  review_state: MarketplaceReviewState;
+  review_submitted_at: number;
 };
 
 export type MarketplaceVariantOptionResponse = {
