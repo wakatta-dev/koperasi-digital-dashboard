@@ -4,7 +4,12 @@
 
 import { Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -18,7 +23,11 @@ export type OrderStatusModalProps = Readonly<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
   orderNumber: string;
+  currentStatusLabel: string;
   status: string;
+  statusOptions: ReadonlyArray<{ value: string; label: string }>;
+  submitDisabled?: boolean;
+  isSubmitting?: boolean;
   note: string;
   onStatusChange: (value: string) => void;
   onNoteChange: (value: string) => void;
@@ -29,7 +38,11 @@ export function OrderStatusModal({
   open,
   onOpenChange,
   orderNumber,
+  currentStatusLabel,
   status,
+  statusOptions,
+  submitDisabled = false,
+  isSubmitting = false,
   note,
   onStatusChange,
   onNoteChange,
@@ -42,6 +55,10 @@ export function OrderStatusModal({
         className="bg-white dark:bg-surface-dark w-full max-w-md rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden p-0"
         showCloseButton={false}
       >
+        <DialogTitle className="sr-only">Update Status Pesanan</DialogTitle>
+        <DialogDescription className="sr-only">
+          Pilih status lanjutan untuk pesanan {orderNumber}.
+        </DialogDescription>
         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Update Status Pesanan
@@ -67,19 +84,29 @@ export function OrderStatusModal({
                   <SelectValue placeholder="Pilih status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Processing">Processing</SelectItem>
-                  <SelectItem value="Shipped">Shipped</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-              Pilih status terbaru untuk pesanan{" "}
+              Status saat ini:{" "}
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                {orderNumber}
+                {currentStatusLabel}
               </span>
             </p>
+            {statusOptions.length === 0 ? (
+              <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                Tidak ada transisi status lanjutan untuk pesanan{" "}
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {orderNumber}
+                </span>
+                .
+              </p>
+            ) : null}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -110,9 +137,10 @@ export function OrderStatusModal({
           <Button
             type="button"
             onClick={onSubmit}
+            disabled={submitDisabled || isSubmitting}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors shadow-sm"
           >
-            Perbarui Status
+            {isSubmitting ? "Menyimpan..." : "Perbarui Status"}
           </Button>
         </div>
       </DialogContent>

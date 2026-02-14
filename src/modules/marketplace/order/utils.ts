@@ -1,6 +1,11 @@
 /** @format */
 
 import { normalizeMarketplaceOrderStatus } from "@/modules/marketplace/utils/order-status";
+import {
+  getMarketplaceCanonicalStatusLabel,
+  mapMarketplaceStatusFilterToQuery,
+} from "@/modules/marketplace/utils/status";
+import type { MarketplaceOrderStatus } from "@/types/api/marketplace";
 
 export type OrderStatusAction = {
   nextStatus: string;
@@ -16,6 +21,16 @@ type OrderBadge = {
 
 export function normalizeOrderStatus(status?: string) {
   return normalizeMarketplaceOrderStatus(status);
+}
+
+export type OrderStatusFilterValue = "all" | MarketplaceOrderStatus;
+
+export function normalizeOrderStatusFilter(value?: string | null) {
+  return mapMarketplaceStatusFilterToQuery(value);
+}
+
+export function getOrderStatusDisplayLabel(status?: string) {
+  return getMarketplaceCanonicalStatusLabel(status);
 }
 
 export function getPaymentBadge(status?: string): OrderBadge {
@@ -66,7 +81,7 @@ export function getShippingBadge(status?: string): OrderBadge {
   }
   if (normalized === "IN_DELIVERY") {
     return {
-      label: "Dikirim",
+      label: "Dalam Pengiriman",
       variant: "secondary",
     };
   }

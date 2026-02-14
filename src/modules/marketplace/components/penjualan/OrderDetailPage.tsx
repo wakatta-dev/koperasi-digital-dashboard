@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useMarketplaceOrder, useMarketplaceOrderActions } from "@/hooks/queries/marketplace-orders";
 import { OrderDetailHeader } from "./OrderDetailHeader";
 import { OrderItemsTable } from "./OrderItemsTable";
@@ -12,21 +13,22 @@ import { OrderCustomerCard } from "./OrderCustomerCard";
 import { OrderNotesForm } from "./OrderNotesForm";
 import { OrderStatusModal } from "./OrderStatusModal";
 import type { OrderDetail, OrderItem, OrderStatus } from "@/modules/marketplace/types";
-import { formatOrderDateTime, normalizeOrderStatus } from "@/modules/marketplace/order/utils";
+import {
+  formatOrderDateTime,
+  getOrderStatusDisplayLabel,
+  normalizeOrderStatus,
+} from "@/modules/marketplace/order/utils";
+import {
+  getMarketplaceTransitionOptions,
+  isMarketplaceTransitionAllowed,
+} from "@/modules/marketplace/utils/status";
 import { OrderInvoiceDialog } from "@/modules/marketplace/order/components/order-invoice-dialog";
 
 export type OrderDetailPageProps = Readonly<{
   id: string;
 }>;
 
-const mapStatusLabel = (status?: string): OrderStatus => {
-  const normalized = normalizeOrderStatus(status);
-  if (normalized === "COMPLETED") return "Completed";
-  if (normalized === "PROCESSING") return "Processing";
-  if (normalized === "PAID") return "Shipped";
-  if (normalized === "CANCELED") return "Cancelled";
-  return "Processing";
-};
+const mapStatusLabel = (status?: string): OrderStatus => normalizeOrderStatus(status);
 
 const toOrderItems = (items: any[] | undefined): OrderItem[] => {
   if (!items) return [];
@@ -39,11 +41,20 @@ const toOrderItems = (items: any[] | undefined): OrderItem[] => {
   }));
 };
 
+const resolvePaymentStatusLabel = (status?: string) => {
+  const normalized = normalizeOrderStatus(status);
+
+  if (normalized === "PENDING_PAYMENT") return "Pending";
+  if (normalized === "PAYMENT_VERIFICATION") return "Verifikasi";
+  if (normalized === "CANCELED") return "Gagal";
+  return "Lunas";
+};
+
 export function OrderDetailPage({ id }: OrderDetailPageProps) {
   const { data, isLoading, isError, error } = useMarketplaceOrder(id);
   const { updateStatus } = useMarketplaceOrderActions();
   const [statusOpen, setStatusOpen] = useState(false);
-  const [statusValue, setStatusValue] = useState<OrderStatus>("Processing");
+  const [statusValue, setStatusValue] = useState<OrderStatus>("PENDING_PAYMENT");
   const [noteValue, setNoteValue] = useState("");
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [internalNotes, setInternalNotes] = useState("");
@@ -74,9 +85,19 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         expiry: null,
         isDefault: true,
       },
-      paymentStatus: "Lunas",
+      paymentStatus: resolvePaymentStatusLabel(data.status),
       shippingCourier: data.shipping_method ?? "JNE Regular",
       trackingNumber: data.shipping_tracking_number ?? null,
+      guestTrackingEnabled: data.guest_tracking_enabled,
+      trackingToken: data.tracking_token ?? null,
+      reviewState: data.review_state,
+      reviewSubmittedAt: data.review_submitted_at,
+      manualPaymentProofUrl: data.manual_payment?.proof_url,
+      manualPaymentNote: data.manual_payment?.note,
+      manualPaymentBankName: data.manual_payment?.bank_name,
+      manualPaymentAccountName: data.manual_payment?.account_name,
+      manualPaymentTransferAmount: data.manual_payment?.transfer_amount,
+      manualPaymentTransferDate: data.manual_payment?.transfer_date,
       customer: {
         name: data.customer_name,
         email: data.customer_email,
@@ -103,9 +124,26 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
     };
   }, [data]);
 
+  const statusOptions = useMemo(
+    () =>
+      getMarketplaceTransitionOptions(detail?.status).map((option) => ({
+        value: option.value,
+        label: option.label,
+      })),
+    [detail?.status],
+  );
+
   const handleOpenStatus = () => {
     if (!detail) return;
-    setStatusValue(detail.status);
+
+    setNoteValue("");
+
+    if (statusOptions.length > 0) {
+      setStatusValue(statusOptions[0].value);
+    } else {
+      setStatusValue(detail.status);
+    }
+
     setStatusOpen(true);
   };
 
@@ -115,16 +153,15 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
 
   const handleSubmitStatus = async () => {
     if (!data) return;
-    const statusMap: Record<OrderStatus, string> = {
-      Processing: "PROCESSING",
-      Shipped: "SHIPPED",
-      Completed: "COMPLETED",
-      Cancelled: "CANCELED",
-    };
+
+    if (!isMarketplaceTransitionAllowed(data.status, statusValue)) {
+      toast.error("Transisi status tidak valid untuk pesanan ini.");
+      return;
+    }
 
     await updateStatus.mutateAsync({
       id: data.id,
-      payload: { status: statusMap[statusValue], reason: noteValue || undefined },
+      payload: { status: statusValue, reason: noteValue || undefined },
     });
     setStatusOpen(false);
   };
@@ -171,6 +208,16 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             paymentStatus={detail.paymentStatus}
             shippingCourier={detail.shippingCourier}
             trackingNumber={detail.trackingNumber}
+            guestTrackingEnabled={detail.guestTrackingEnabled}
+            trackingToken={detail.trackingToken}
+            reviewState={detail.reviewState}
+            reviewSubmittedAt={detail.reviewSubmittedAt}
+            manualPaymentProofUrl={detail.manualPaymentProofUrl}
+            manualPaymentNote={detail.manualPaymentNote}
+            manualPaymentBankName={detail.manualPaymentBankName}
+            manualPaymentAccountName={detail.manualPaymentAccountName}
+            manualPaymentTransferAmount={detail.manualPaymentTransferAmount}
+            manualPaymentTransferDate={detail.manualPaymentTransferDate}
           />
         </div>
         <div className="space-y-6">
@@ -190,7 +237,11 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         open={statusOpen}
         onOpenChange={setStatusOpen}
         orderNumber={detail.orderCode}
+        currentStatusLabel={getOrderStatusDisplayLabel(detail.status)}
         status={statusValue}
+        statusOptions={statusOptions}
+        submitDisabled={statusOptions.length === 0 || updateStatus.isPending}
+        isSubmitting={updateStatus.isPending}
         note={noteValue}
         onStatusChange={(value) => setStatusValue(value as OrderStatus)}
         onNoteChange={setNoteValue}

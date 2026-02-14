@@ -17,10 +17,12 @@ export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {
 };
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  Completed: "Completed",
-  Processing: "Processing",
-  Shipped: "Shipped",
-  Cancelled: "Cancelled",
+  PENDING_PAYMENT: "Menunggu Pembayaran",
+  PAYMENT_VERIFICATION: "Verifikasi Pembayaran",
+  PROCESSING: "Diproses",
+  IN_DELIVERY: "Dalam Pengiriman",
+  COMPLETED: "Selesai",
+  CANCELED: "Dibatalkan",
 };
 
 export const CUSTOMER_STATUS_LABELS: Record<CustomerStatus, string> = {
@@ -37,13 +39,17 @@ export const PRODUCT_STATUS_BADGE_CLASS: Record<ProductStatus, string> = {
 };
 
 export const ORDER_STATUS_BADGE_CLASS: Record<OrderStatus, string> = {
-  Completed:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800/50",
-  Processing:
+  PENDING_PAYMENT:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50",
+  PAYMENT_VERIFICATION:
     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800/50",
-  Shipped:
+  PROCESSING:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50",
+  IN_DELIVERY:
     "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50",
-  Cancelled:
+  COMPLETED:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800/50",
+  CANCELED:
     "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800/50",
 };
 
@@ -91,6 +97,21 @@ export const MARKETPLACE_ALLOWED_STATUS_TRANSITIONS: Record<
   CANCELED: [],
 };
 
+export type MarketplaceOrderFilterValue = "all" | MarketplaceOrderStatus;
+
+export const MARKETPLACE_ORDER_FILTER_OPTIONS: ReadonlyArray<{
+  value: MarketplaceOrderFilterValue;
+  label: string;
+}> = [
+  { value: "all", label: "Semua Status" },
+  { value: "PENDING_PAYMENT", label: "Menunggu Pembayaran" },
+  { value: "PAYMENT_VERIFICATION", label: "Verifikasi Pembayaran" },
+  { value: "PROCESSING", label: "Diproses" },
+  { value: "IN_DELIVERY", label: "Dalam Pengiriman" },
+  { value: "COMPLETED", label: "Selesai" },
+  { value: "CANCELED", label: "Dibatalkan" },
+];
+
 export function normalizeMarketplaceOrderStatus(
   status?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
 ): MarketplaceOrderStatus {
@@ -127,6 +148,36 @@ export function getMarketplaceCanonicalStatusLabel(
   return MARKETPLACE_CANONICAL_STATUS_LABELS[
     normalizeMarketplaceOrderStatus(status)
   ];
+}
+
+export function getMarketplaceTransitionOptions(
+  status?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+) {
+  const canonical = normalizeMarketplaceOrderStatus(status);
+  return MARKETPLACE_ALLOWED_STATUS_TRANSITIONS[canonical].map((nextStatus) => ({
+    value: nextStatus,
+    label: getMarketplaceCanonicalStatusLabel(nextStatus),
+  }));
+}
+
+export function mapMarketplaceStatusFilterToQuery(
+  filterValue?: MarketplaceOrderFilterValue | string | null,
+) {
+  const raw = (filterValue ?? "").trim().toUpperCase();
+
+  if (!raw || raw === "ALL") {
+    return undefined;
+  }
+
+  if (raw in MARKETPLACE_CANONICAL_STATUS_LABELS) {
+    return raw as MarketplaceOrderStatus;
+  }
+
+  if (raw in LEGACY_TO_CANONICAL_STATUS_MAP) {
+    return LEGACY_TO_CANONICAL_STATUS_MAP[raw];
+  }
+
+  return undefined;
 }
 
 export function getProductStatusLabel(status: ProductStatus) {

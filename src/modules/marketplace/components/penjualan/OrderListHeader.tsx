@@ -8,15 +8,21 @@ import { InputField } from "@/components/shared/inputs/input-field";
 export type OrderListHeaderProps = Readonly<{
   searchValue: string;
   dateValue: string;
+  statusValue: string;
+  statusOptions: ReadonlyArray<{ value: string; label: string }>;
   onSearchChange: (value: string) => void;
   onDateChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
 }>;
 
 export function OrderListHeader({
   searchValue,
   dateValue,
+  statusValue,
+  statusOptions,
   onSearchChange,
   onDateChange,
+  onStatusChange,
 }: OrderListHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -45,6 +51,22 @@ export function OrderListHeader({
           value={dateValue}
           onValueChange={onDateChange}
         />
+        <label className="sr-only" htmlFor="order-status-filter">
+          Filter status
+        </label>
+        <select
+          id="order-status-filter"
+          aria-label="Filter status"
+          value={statusValue}
+          onChange={(event) => onStatusChange(event.target.value)}
+          className="h-11 rounded-md border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          {statusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
