@@ -57,9 +57,13 @@ export function ProductMainInfo({
       ) ?? null
     : null;
 
-  const maxQty = product.trackStock
-    ? Math.max(1, product.availableStock ?? 0)
-    : undefined;
+  const stockCap = Number(product.availableStock);
+  const maxQty =
+    Number.isFinite(stockCap) && stockCap > 0
+      ? Math.max(1, stockCap)
+      : product.trackStock
+      ? 1
+      : undefined;
   const clamp = (val: number) => {
     if (maxQty !== undefined) {
       return Math.min(Math.max(1, val), maxQty);

@@ -35,6 +35,9 @@ export type MarketplaceProductParams = {
   sort?: "newest" | "oldest" | "price_asc" | "price_desc";
 };
 
+const MARKETPLACE_QUERY_STALE_MS = 15_000;
+const MARKETPLACE_CART_STALE_MS = 3_000;
+
 export function useMarketplaceProducts(params?: MarketplaceProductParams) {
   const normalizedParams = {
     ...params,
@@ -45,6 +48,9 @@ export function useMarketplaceProducts(params?: MarketplaceProductParams) {
     queryKey: QK.marketplace.list(normalizedParams ?? {}),
     queryFn: async (): Promise<MarketplaceProductListResponse> =>
       ensureSuccess(await getMarketplaceProducts(normalizedParams)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -54,6 +60,9 @@ export function useMarketplaceProductDetail(id: string | number | undefined) {
     enabled: Boolean(id),
     queryFn: async (): Promise<MarketplaceProductResponse> =>
       ensureSuccess(await getMarketplaceProductDetail(id as string | number)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -63,6 +72,9 @@ export function useMarketplaceProductVariants(id: string | number | undefined) {
     enabled: Boolean(id),
     queryFn: async (): Promise<MarketplaceProductVariantsResponse> =>
       ensureSuccess(await getMarketplaceProductVariants(id as string | number)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -72,6 +84,9 @@ export function useMarketplaceCart(options?: { enabled?: boolean }) {
     queryFn: async (): Promise<MarketplaceCartResponse> =>
       ensureSuccess(await getMarketplaceCart()),
     enabled: options?.enabled ?? true,
+    retry: false,
+    staleTime: MARKETPLACE_CART_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -90,6 +105,9 @@ export function useMarketplaceCustomers(params?: MarketplaceCustomerParams) {
     queryKey: QK.marketplace.customers(params ?? {}),
     queryFn: async (): Promise<MarketplaceCustomerListResponse> =>
       ensureSuccess(await listMarketplaceCustomers(params)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -99,6 +117,9 @@ export function useMarketplaceCustomerDetail(id?: string | number) {
     enabled: Boolean(id),
     queryFn: async (): Promise<MarketplaceCustomerDetailResponse> =>
       ensureSuccess(await getMarketplaceCustomerDetail(id as string | number)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -106,10 +127,7 @@ export function useCartMutations() {
   const qc = useQueryClient();
 
   const refreshMarketplaceState = async () => {
-    await Promise.all([
-      qc.invalidateQueries({ queryKey: QK.marketplace.cart() }),
-      qc.invalidateQueries({ queryKey: ["marketplace", "products"] }),
-    ]);
+    await qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
   };
 
   const addItem = useMutation({

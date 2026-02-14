@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
 import { LandingNavbar } from "../landing/components/navbar";
@@ -19,8 +20,63 @@ import { Button } from "@/components/ui/button";
 export function MarketplaceCartPage() {
   const router = useRouter();
   const { data, isError, isLoading, refetch } = useMarketplaceCart();
+  const [emptySyncRetries, setEmptySyncRetries] = useState(0);
+  const [isSyncingEmptyCart, setIsSyncingEmptyCart] = useState(false);
   const cartCount = data?.item_count ?? 0;
-  const isEmpty = !isLoading && (!data || data.items.length === 0);
+  const hasItems = Boolean(data && data.items.length > 0);
+  const canShowEmptyState =
+    !isLoading && !isSyncingEmptyCart && emptySyncRetries >= 2;
+  const isEmpty = canShowEmptyState && !hasItems;
+
+  useEffect(() => {
+    if (isLoading || isError) {
+      return;
+    }
+
+    if (hasItems) {
+      if (emptySyncRetries !== 0) {
+        setEmptySyncRetries(0);
+      }
+      if (isSyncingEmptyCart) {
+        setIsSyncingEmptyCart(false);
+      }
+      return;
+    }
+
+    if (emptySyncRetries >= 2 || isSyncingEmptyCart) {
+      return;
+    }
+
+    setIsSyncingEmptyCart(true);
+    const timer = window.setTimeout(() => {
+      setEmptySyncRetries((count) => count + 1);
+      void refetch().finally(() => {
+        setIsSyncingEmptyCart(false);
+      });
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [
+    emptySyncRetries,
+    hasItems,
+    isError,
+    isLoading,
+    isSyncingEmptyCart,
+    refetch,
+  ]);
+
+  const syncHint = useMemo(() => {
+    if (!isSyncingEmptyCart || hasItems) {
+      return null;
+    }
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+        Menyinkronkan keranjang...
+      </div>
+    );
+  }, [hasItems, isSyncingEmptyCart]);
 
   return (
     <div className="bg-background text-foreground min-h-screen">
@@ -47,6 +103,8 @@ export function MarketplaceCartPage() {
               </Button>
             </div>
           ) : null}
+
+          {syncHint}
 
           {isEmpty && !isError ? (
             <div className="bg-card rounded-2xl shadow-sm border border-border p-8 text-center space-y-4">

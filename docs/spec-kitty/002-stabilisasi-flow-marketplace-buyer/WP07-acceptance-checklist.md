@@ -11,7 +11,7 @@ This checklist records WP07 subtasks T035-T039 outcomes for the frontend unit wo
 | `cd frontend && npm run test -- src/__tests__/marketplace` | PASS | 14 files passed, 35 tests passed. |
 | `cd frontend && npm run test` | PASS | 58 files passed, 127 tests passed. |
 | `cd frontend && npm run lint` | PASS with warnings | Lint passed; two pre-existing warnings in `src/modules/asset-reservation/...`. |
-| `cd e2e-frontend && npm run test:module -- --tenant bumdes --module marketplace` | PASS | 15 passed, 0 skipped. |
+| `cd e2e-frontend && E2E_RUN_REAL=true npm run test:module -- --tenant bumdes --module marketplace` | PASS | 15 passed, 0 skipped (latest rerun after F005 stabilization). |
 | `cd e2e-frontend && npm run test:critical` | PASS | 21 passed, 0 skipped. |
 | `cd e2e-frontend && npm run test:ci` | PASS | 54 passed, 0 skipped (CI-format reporters printed to stdout). |
 | `cd e2e-frontend && CI=1 npx playwright test` | PASS | 54 passed, 0 skipped; artifacts refreshed in `artifacts/`. |
@@ -27,7 +27,7 @@ Quickstart file: `/Users/faizalfakhri/Documents/koperasi/project/kitty-specs/002
 | Service reachability check | Done | HTTP probe returned `200` for `http://localhost:8080/`, `http://localhost:3004/`, and `http://localhost:3004/marketplace`. |
 | Frontend regression commands | Done | `npm run test -- src/__tests__/marketplace`, `npm run test`, `npm run lint` passed. |
 | Backend regression commands | Done | Marketplace package and full backend suite passed in local WP07 run. |
-| Playwright gate commands | Done | `test:module`, `test:critical`, `test:ci` passed with `skipped=0`. |
+| Playwright gate commands | Done | `E2E_RUN_REAL=true test:module` passed (`15 passed, 0 skipped`) after stock-conflict stabilization; `test:critical` and `test:ci` remain green in WP07 baseline with `skipped=0`. |
 | Artifact verification | Done | Verified `artifacts/junit.xml` (`tests="54"`, `skipped="0"`) and `artifacts/report.json` (`"expected": 54`, `"skipped": 0`). |
 
 ## T037 Scope Guard and Legacy Path Regression
