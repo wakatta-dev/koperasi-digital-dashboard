@@ -73,6 +73,7 @@ export function addMarketplaceCartItem(payload: {
 }): Promise<ApiResponse<null>> {
   return api.post<null>(`${API_PREFIX}${E.cartItem}`, payload, {
     credentials: "include",
+    keepalive: true,
   });
 }
 

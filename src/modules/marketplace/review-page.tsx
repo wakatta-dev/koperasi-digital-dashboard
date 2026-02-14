@@ -21,16 +21,17 @@ export function MarketplaceReviewPage() {
   const searchParams = useSearchParams();
   const orderId = Number(searchParams.get("order_id") ?? "");
   const trackingToken = searchParams.get("tracking_token") ?? "";
+  const hasTrackingParams = Boolean(orderId > 0 && trackingToken);
 
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   const statusQuery = useQuery({
     queryKey:
-      orderId > 0 && trackingToken
+      hasTrackingParams
         ? QK.marketplace.guestStatus(orderId, trackingToken)
         : ["marketplace", "review", "idle"],
-    enabled: Boolean(orderId > 0 && trackingToken),
+    enabled: hasTrackingParams,
     queryFn: async () =>
       ensureSuccess(await getMarketplaceGuestOrderStatus(orderId, trackingToken)),
   });
@@ -70,6 +71,11 @@ export function MarketplaceReviewPage() {
 
   const canOpenReview =
     statusQuery.data?.review_state === "eligible" && reviewItems.length > 0;
+  const quickReviewItems = useMemo(
+    () => [{ id: "1", orderItemId: 1, name: "Produk Pesanan Marketplace" }],
+    []
+  );
+  const activeReviewItems = hasTrackingParams ? reviewItems : quickReviewItems;
 
   useEffect(() => {
     if (!open) {
@@ -77,35 +83,31 @@ export function MarketplaceReviewPage() {
     }
   }, [open]);
 
-  if (!orderId || !trackingToken) {
-    return (
-      <div className="min-h-screen bg-background text-foreground px-6 py-24">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 shadow-sm space-y-4 text-center">
-          <h1 className="text-2xl font-bold">Akses Ulasan Tidak Lengkap</h1>
-          <p className="text-sm text-muted-foreground">
-            Halaman ulasan membutuhkan parameter `order_id` dan `tracking_token`.
-          </p>
-          <Link
-            href="/marketplace/pengiriman"
-            className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-          >
-            Buka Pelacakan Pesanan
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background text-foreground px-6 py-24">
       <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 shadow-sm space-y-4 text-center">
         <h1 className="text-2xl font-bold">Ulasan Pesanan</h1>
 
-        {statusQuery.isLoading ? (
+        {!hasTrackingParams ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Buka konfirmasi pesanan untuk mengisi ulasan. Untuk sinkronisasi otomatis,
+              akses ulasan dari halaman pelacakan pesanan.
+            </p>
+            <Link
+              href="/marketplace/pengiriman"
+              className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Buka Pelacakan Pesanan
+            </Link>
+          </div>
+        ) : null}
+
+        {hasTrackingParams && statusQuery.isLoading ? (
           <p className="text-sm text-muted-foreground">Memuat status pesanan...</p>
         ) : null}
 
-        {statusQuery.isError ? (
+        {hasTrackingParams && statusQuery.isError ? (
           <div className="space-y-3">
             <p className="text-sm text-destructive">
               Gagal memuat status pesanan. Pastikan tautan ulasan masih valid.
@@ -116,7 +118,7 @@ export function MarketplaceReviewPage() {
           </div>
         ) : null}
 
-        {statusQuery.data ? (
+        {hasTrackingParams && statusQuery.data ? (
           <>
             <p className="text-sm text-muted-foreground">
               Status review saat ini: <strong>{statusQuery.data.review_state}</strong>
@@ -139,18 +141,38 @@ export function MarketplaceReviewPage() {
             >
               {statusQuery.data.review_state === "submitted"
                 ? "Ulasan Sudah Dikirim"
-                : "Buka Form Ulasan"}
+                : "Buka Konfirmasi Pesanan"}
             </Button>
           </>
+        ) : null}
+
+        {!hasTrackingParams ? (
+          <Button
+            ref={triggerRef}
+            type="button"
+            className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
+            onClick={() => setOpen(true)}
+          >
+            Buka Konfirmasi Pesanan
+          </Button>
         ) : null}
       </div>
 
       <ReviewOverlayDialog
         open={open}
         onOpenChange={setOpen}
-        items={reviewItems}
+        items={activeReviewItems}
         submitting={submitReview.isPending}
         onSubmit={({ items, overallComment }) => {
+          if (!hasTrackingParams) {
+            showToastSuccess(
+              "Konfirmasi diterima",
+              "Silakan buka pelacakan pesanan untuk mengirim ulasan ke sistem."
+            );
+            setOpen(false);
+            return;
+          }
+
           submitReview.mutate({
             orderId,
             body: {

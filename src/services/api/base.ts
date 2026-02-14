@@ -21,11 +21,72 @@ export async function getTenantId(): Promise<string | null> {
 }
 
 const RAW_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
-// Normalize base URL to avoid double /api prefixes
-const STRIPPED = RAW_BASE_URL.replace(/\/+$/, "");
-const BASE_URL = STRIPPED.endsWith("/api")
-  ? STRIPPED.replace(/\/api$/, "")
-  : STRIPPED;
+
+function normalizeBaseUrl(rawBaseUrl: string): string {
+  const stripped = rawBaseUrl.replace(/\/+$/, "");
+  return stripped.endsWith("/api")
+    ? stripped.replace(/\/api$/, "")
+    : stripped;
+}
+
+function isLocalLikeHost(hostname: string): boolean {
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return true;
+  }
+  if (hostname.startsWith("10.")) {
+    return true;
+  }
+  if (hostname.startsWith("192.168.")) {
+    return true;
+  }
+  if (!hostname.startsWith("172.")) {
+    return false;
+  }
+
+  const octets = hostname.split(".");
+  if (octets.length < 2) {
+    return false;
+  }
+  const secondOctet = Number(octets[1]);
+  return Number.isFinite(secondOctet) && secondOctet >= 16 && secondOctet <= 31;
+}
+
+export function resolveApiBaseUrl(
+  rawBaseUrl: string,
+  runtime?: { origin?: string; nodeEnv?: string; isBrowser?: boolean }
+): string {
+  const normalized = normalizeBaseUrl(rawBaseUrl);
+  const nodeEnv = runtime?.nodeEnv ?? process.env.NODE_ENV;
+  const isBrowser =
+    runtime?.isBrowser ?? (typeof window !== "undefined");
+  const origin =
+    runtime?.origin ?? (typeof window !== "undefined" ? window.location.origin : undefined);
+
+  if (!isBrowser || !normalized || !origin) {
+    return normalized;
+  }
+
+  try {
+    const apiUrl = new URL(normalized);
+    const appUrl = new URL(origin);
+    if (apiUrl.hostname === appUrl.hostname) {
+      return normalized;
+    }
+
+    // Local E2E often runs FE at localhost and BE at LAN IP. Align hostname
+    // to keep guest-session cookies usable across different local ports.
+    if (nodeEnv !== "production" && isLocalLikeHost(appUrl.hostname)) {
+      apiUrl.hostname = appUrl.hostname;
+      return `${apiUrl.protocol}//${apiUrl.host}`;
+    }
+  } catch {
+    return normalized;
+  }
+
+  return normalized;
+}
+
+const BASE_URL = resolveApiBaseUrl(RAW_BASE_URL, { isBrowser: false });
 export const API_PREFIX = "/api";
 
 const MAX_CONCURRENT_REQUESTS = 5;
@@ -86,6 +147,7 @@ async function request<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
+  const baseUrl = resolveApiBaseUrl(RAW_BASE_URL);
   let accessToken = await getAccessToken();
   const hadToken = Boolean(accessToken);
 
@@ -115,7 +177,11 @@ async function request<T>(
   while (true) {
     let res: Response;
     try {
-      res = await limitedFetch(`${BASE_URL}${path}`, { ...options, headers, body });
+      res = await limitedFetch(`${baseUrl || BASE_URL}${path}`, {
+        ...options,
+        headers,
+        body,
+      });
     } catch (err) {
       if (networkRetries < NETWORK_MAX_RETRIES) {
         networkRetries += 1;

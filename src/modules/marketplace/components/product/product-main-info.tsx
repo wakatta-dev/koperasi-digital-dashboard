@@ -292,7 +292,6 @@ export function ProductMainInfo({
               <button
                 type="button"
                 onClick={increase}
-                disabled={maxQty !== undefined && quantity >= maxQty}
                 className="px-3 py-2 bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border disabled:opacity-50"
               >
                 <span className="material-icons-outlined text-sm">add</span>

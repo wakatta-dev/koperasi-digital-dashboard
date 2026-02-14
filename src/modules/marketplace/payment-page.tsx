@@ -168,9 +168,31 @@ export function MarketplacePaymentPage() {
           <PaymentBreadcrumbs />
           <PaymentSteps />
 
+          {hasOrderContext ? (
+            <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
+              <h2 className="text-xl font-bold">Checkout berhasil</h2>
+              <p className="mt-1 text-sm">
+                Order ID: {orderLabel}
+              </p>
+            </div>
+          ) : null}
+
           <h1 className="text-3xl font-extrabold text-foreground mb-8">
             Pembayaran Transfer Bank Manual
           </h1>
+
+          {hasOrderContext ? (
+            <div className="mb-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-border text-foreground hover:bg-muted"
+                onClick={() => router.push("/marketplace/keranjang")}
+              >
+                Bayar Sekarang
+              </Button>
+            </div>
+          ) : null}
 
           {!Number.isFinite(orderId) || orderId <= 0 ? (
             <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">

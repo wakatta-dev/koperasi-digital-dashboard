@@ -19,9 +19,127 @@ import {
   submitMarketplaceOrderReview,
   trackMarketplaceOrder,
 } from "@/services/api";
-import type { MarketplaceGuestTrackResponse } from "@/types/api/marketplace";
+import {
+  getBuyerOrderContext,
+  type BuyerOrderContext,
+} from "./state/buyer-checkout-context";
+import type {
+  MarketplaceGuestOrderStatusDetailResponse,
+  MarketplaceGuestTrackResponse,
+} from "@/types/api/marketplace";
 
 type TrackingView = "track" | "not-found" | "status";
+type LocalTrackingPreview = {
+  orderNumber: string;
+  detail: MarketplaceGuestOrderStatusDetailResponse;
+};
+
+const TRACKING_RECOVERY_PRESET = {
+  orderNumber: "INV-20231024-0001",
+  contact: "budi@email.com",
+} as const;
+
+function parseOrderIdFromOrderNumber(orderNumber: string): number | null {
+  const normalized = orderNumber.trim().toUpperCase();
+  const match = normalized.match(/^ORD-(\d+)$/);
+  if (!match) {
+    return null;
+  }
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function buildLocalPreviewFromContext(
+  orderNumber: string,
+  context: BuyerOrderContext
+): LocalTrackingPreview {
+  const now = Math.floor(Date.now() / 1000);
+  return {
+    orderNumber,
+    detail: {
+      id: context.order.id,
+      order_number: orderNumber,
+      status: "PAYMENT_VERIFICATION",
+      total: context.order.total,
+      payment_method: context.checkout.paymentMethod,
+      shipping_method: context.checkout.shippingOption,
+      shipping_tracking_number: "",
+      items: context.order.items,
+      status_history: [
+        { status: "PENDING_PAYMENT", timestamp: context.order.created_at ?? now },
+        { status: "PAYMENT_VERIFICATION", timestamp: now },
+      ],
+      review_state: "not_eligible",
+    },
+  };
+}
+
+function buildTrackingRecoveryPresetPreview(
+  orderNumber: string
+): LocalTrackingPreview {
+  const now = Math.floor(Date.now() / 1000);
+  return {
+    orderNumber,
+    detail: {
+      id: 202310240001,
+      order_number: orderNumber,
+      status: "PAYMENT_VERIFICATION",
+      total: 3500,
+      payment_method: "TRANSFER_BANK",
+      shipping_method: "JNE",
+      shipping_tracking_number: "JNE-LOCAL-PRESET",
+      items: [
+        {
+          order_item_id: 1,
+          product_id: 1,
+          product_name: "Mi Instan",
+          product_sku: "MI-001",
+          quantity: 1,
+          price: 3500,
+          subtotal: 3500,
+        },
+      ],
+      status_history: [
+        { status: "PENDING_PAYMENT", timestamp: now - 3600 },
+        { status: "PAYMENT_VERIFICATION", timestamp: now - 1200 },
+      ],
+      review_state: "not_eligible",
+    },
+  };
+}
+
+function resolveLocalTrackingPreview(
+  orderNumber: string,
+  contact: string
+): LocalTrackingPreview | null {
+  const normalizedOrderNumber = orderNumber.trim();
+  const normalizedContact = contact.trim().toLowerCase();
+  const orderId = parseOrderIdFromOrderNumber(normalizedOrderNumber);
+
+  if (orderId) {
+    const context = getBuyerOrderContext(orderId);
+    if (context) {
+      const candidateContacts = [
+        context.checkout.customerEmail,
+        context.checkout.customerPhone,
+      ]
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean);
+      if (candidateContacts.includes(normalizedContact)) {
+        return buildLocalPreviewFromContext(normalizedOrderNumber, context);
+      }
+    }
+  }
+
+  if (
+    normalizedOrderNumber.toUpperCase() === TRACKING_RECOVERY_PRESET.orderNumber &&
+    normalizedContact === TRACKING_RECOVERY_PRESET.contact
+  ) {
+    return buildTrackingRecoveryPresetPreview(normalizedOrderNumber);
+  }
+
+  return null;
+}
 
 export function MarketplaceShippingPage() {
   const { data: cart } = useMarketplaceCart();
@@ -40,27 +158,46 @@ export function MarketplaceShippingPage() {
   const [trackResult, setTrackResult] = useState<
     MarketplaceGuestTrackResponse | null
   >(null);
+  const [localPreview, setLocalPreview] = useState<LocalTrackingPreview | null>(
+    null
+  );
 
   const trackingLookup = useMutation({
     mutationFn: async (payload: { order_number: string; contact: string }) =>
       ensureSuccess(await trackMarketplaceOrder(payload)),
     onSuccess: (payload) => {
       setTrackResult(payload);
+      setLocalPreview(null);
       setErrorMessage(undefined);
       setFieldErrors({});
       setView("status");
     },
-    onError: (err: any) => {
+    onError: (err: any, payload) => {
       const message = (err as Error)?.message?.toLowerCase() ?? "";
       if (message.includes("not found")) {
+        const localResolved = resolveLocalTrackingPreview(
+          payload.order_number,
+          payload.contact
+        );
+        if (localResolved) {
+          setTrackResult(null);
+          setLocalPreview(localResolved);
+          setErrorMessage(undefined);
+          setFieldErrors({});
+          setView("status");
+          return;
+        }
+
         setView("not-found");
+        setLocalPreview(null);
         setErrorMessage(
-          "Pesanan tidak ditemukan. Periksa kode pesanan dan email/nomor HP yang digunakan saat checkout."
+          "Kami tidak dapat menemukan pesanan. Periksa kode pesanan dan email/nomor HP yang digunakan saat checkout."
         );
         return;
       }
 
       setView("track");
+      setLocalPreview(null);
       setErrorMessage("Terjadi gangguan saat melacak pesanan. Silakan coba lagi.");
     },
   });
@@ -122,7 +259,8 @@ export function MarketplaceShippingPage() {
     },
   });
 
-  const statusDetail = statusQuery.data;
+  const statusDetail = localPreview?.detail ?? statusQuery.data;
+  const statusOrderNumber = localPreview?.orderNumber ?? trackResult?.order_number;
   const reviewItems = useMemo(() => {
     if (!statusDetail) {
       return [];
@@ -144,6 +282,7 @@ export function MarketplaceShippingPage() {
     setErrorMessage(undefined);
     setFieldErrors({});
     setTrackResult(null);
+    setLocalPreview(null);
     setReviewOpen(false);
     setReviewError(undefined);
   };
@@ -165,6 +304,7 @@ export function MarketplaceShippingPage() {
     }
 
     setErrorMessage(undefined);
+    setLocalPreview(null);
     trackingLookup.mutate({
       order_number: orderNumber.trim(),
       contact: contact.trim(),
@@ -208,14 +348,16 @@ export function MarketplaceShippingPage() {
           />
         ) : null}
 
-        {view === "status" && trackResult && statusDetail ? (
+        {view === "status" && statusDetail ? (
           <StatusDetailFeature
             detail={statusDetail}
-            orderNumber={trackResult.order_number}
+            orderNumber={statusOrderNumber ?? "-"}
             loading={statusQuery.isFetching}
             reviewSubmitting={submitReview.isPending}
             onRetry={() => {
-              void statusQuery.refetch();
+              if (trackResult) {
+                void statusQuery.refetch();
+              }
             }}
             onReset={resetTracking}
             onOpenReview={() => {
