@@ -1,6 +1,7 @@
 /** @format */
 
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 
 type OptionTileProps = {
   title: string;
@@ -20,10 +21,11 @@ export function OptionTile({
   rightSlot,
 }: OptionTileProps) {
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
       onClick={() => onSelect(value)}
-      className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition ${
+      className={`h-auto w-full items-center justify-between rounded-xl border p-3 text-left transition ${
         selected
           ? "border-indigo-600 bg-indigo-50/60"
           : "border-border bg-card hover:border-indigo-300"
@@ -35,6 +37,6 @@ export function OptionTile({
         {subtitle ? <p className="text-xs text-muted-foreground">{subtitle}</p> : null}
       </div>
       {rightSlot}
-    </button>
+    </Button>
   );
 }

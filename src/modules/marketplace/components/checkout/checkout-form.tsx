@@ -266,18 +266,20 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
               <p className="mb-3 text-sm font-bold text-foreground">Pilih Bank</p>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {(["BCA", "Mandiri", "BNI", "BRI"] as const).map((bank) => (
-                  <button
+                  <Button
                     key={bank}
                     type="button"
+                    variant="outline"
                     onClick={() => setBankOption(bank)}
                     className={`h-11 rounded-lg border text-sm font-bold transition ${
                       bankOption === bank
                         ? "border-indigo-600 bg-indigo-50 text-indigo-600"
                         : "border-border bg-card text-foreground hover:border-indigo-300"
                     }`}
+                    aria-pressed={bankOption === bank}
                   >
                     {bank}
-                  </button>
+                  </Button>
                 ))}
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
