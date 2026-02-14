@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,13 +18,20 @@ import { Textarea } from "@/components/ui/textarea";
 type ReviewItem = {
   id: string;
   name: string;
+  orderItemId?: number;
 };
 
 type ReviewOverlayDialogProps = {
   open: boolean;
   items: ReviewItem[];
   onOpenChange: (open: boolean) => void;
-  onSubmit: (payload: { ratings: Record<string, number>; comment: string }) => void;
+  onSubmit: (payload: {
+    items: Array<{ order_item_id: number; rating: number; comment?: string }>;
+    overallComment?: string;
+    ratings: Record<string, number>;
+  }) => void | Promise<void>;
+  submitting?: boolean;
+  submitError?: string;
 };
 
 function RatingStars({
@@ -68,14 +75,46 @@ export function ReviewOverlayDialog({
   items,
   onOpenChange,
   onSubmit,
+  submitting = false,
+  submitError,
 }: ReviewOverlayDialogProps) {
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [comment, setComment] = useState("");
 
+  useEffect(() => {
+    if (!open) {
+      setRatings({});
+      setComment("");
+    }
+  }, [open]);
+
   const canSubmit = useMemo(
-    () => items.every((item) => (ratings[item.id] ?? 0) > 0),
-    [items, ratings],
+    () =>
+      items.length > 0 &&
+      items.every((item) => {
+        const rating = ratings[item.id] ?? 0;
+        const orderItemId = item.orderItemId ?? Number(item.id);
+        return rating > 0 && Number.isFinite(orderItemId) && orderItemId > 0;
+      }),
+    [items, ratings]
   );
+
+  const handleSubmit = () => {
+    const payloadItems = items.map((item) => {
+      const orderItemId = item.orderItemId ?? Number(item.id);
+      return {
+        order_item_id: Number(orderItemId),
+        rating: ratings[item.id] ?? 0,
+        comment: comment.trim() || undefined,
+      };
+    });
+
+    void onSubmit({
+      items: payloadItems,
+      overallComment: comment.trim() || undefined,
+      ratings,
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -87,8 +126,8 @@ export function ReviewOverlayDialog({
         <DialogHeader className="border-b border-border px-6 py-4 text-left">
           <DialogTitle>Konfirmasi Pesanan Diterima</DialogTitle>
           <DialogDescription>
-            Apakah Anda sudah menerima pesanan ini dengan baik? Konfirmasi ini
-            akan menyelesaikan status pesanan Anda.
+            Berikan rating untuk produk yang Anda terima. Ulasan membantu
+            penjual menjaga kualitas layanan.
           </DialogDescription>
         </DialogHeader>
 
@@ -124,19 +163,28 @@ export function ReviewOverlayDialog({
               onChange={(event) => setComment(event.target.value)}
             />
           </div>
+
+          {submitError ? (
+            <p className="text-sm text-destructive">{submitError}</p>
+          ) : null}
         </div>
 
         <DialogFooter className="border-t border-border bg-muted/30 px-6 py-4">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={submitting}
+          >
             Nanti Saja
           </Button>
           <Button
             type="button"
-            disabled={!canSubmit}
-            onClick={() => onSubmit({ ratings, comment })}
+            disabled={!canSubmit || submitting}
+            onClick={handleSubmit}
             className="bg-indigo-600 text-white hover:bg-indigo-700"
           >
-            Konfirmasi & Selesai
+            {submitting ? "Mengirim..." : "Konfirmasi & Selesai"}
           </Button>
         </DialogFooter>
       </DialogContent>

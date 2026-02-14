@@ -10,9 +10,16 @@ type TrackingFormFeatureProps = {
   contact: string;
   notFound?: boolean;
   errorMessage?: string;
+  fieldErrors?: {
+    orderNumber?: string;
+    contact?: string;
+  };
+  submitting?: boolean;
+  submitLabel?: string;
   onOrderNumberChange: (value: string) => void;
   onContactChange: (value: string) => void;
   onSubmit: () => void;
+  onReset?: () => void;
 };
 
 export function TrackingFormFeature({
@@ -22,9 +29,13 @@ export function TrackingFormFeature({
   contact,
   notFound = false,
   errorMessage,
+  fieldErrors,
+  submitting = false,
+  submitLabel = "Lacak Pesanan Saya",
   onOrderNumberChange,
   onContactChange,
   onSubmit,
+  onReset,
 }: TrackingFormFeatureProps) {
   const fieldClass = notFound
     ? "border-red-300 bg-red-50 placeholder:text-red-300 focus-visible:ring-red-500"
@@ -47,9 +58,13 @@ export function TrackingFormFeature({
             id="tracking-order-number"
             value={orderNumber}
             onChange={(event) => onOrderNumberChange(event.target.value)}
-            placeholder="Contoh: INV-20231024-0001"
+            placeholder="Contoh: ORD-2026-001"
             className={`h-12 ${fieldClass}`}
+            aria-invalid={Boolean(fieldErrors?.orderNumber)}
           />
+          {fieldErrors?.orderNumber ? (
+            <p className="text-xs text-destructive">{fieldErrors.orderNumber}</p>
+          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -65,20 +80,38 @@ export function TrackingFormFeature({
             onChange={(event) => onContactChange(event.target.value)}
             placeholder="Contoh: budi@email.com atau 0812..."
             className={`h-12 ${fieldClass}`}
+            aria-invalid={Boolean(fieldErrors?.contact)}
           />
+          {fieldErrors?.contact ? (
+            <p className="text-xs text-destructive">{fieldErrors.contact}</p>
+          ) : null}
         </div>
 
         {errorMessage ? (
           <p className="text-sm font-medium text-destructive">{errorMessage}</p>
         ) : null}
 
-        <Button
-          type="button"
-          onClick={onSubmit}
-          className="h-12 w-full rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
-        >
-          Lacak Pesanan Saya
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            onClick={onSubmit}
+            className="h-12 flex-1 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
+            disabled={submitting}
+          >
+            {submitting ? "Memuat status..." : submitLabel}
+          </Button>
+          {onReset ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 border-border text-foreground hover:bg-muted"
+              onClick={onReset}
+              disabled={submitting}
+            >
+              Reset
+            </Button>
+          ) : null}
+        </div>
       </div>
     </section>
   );

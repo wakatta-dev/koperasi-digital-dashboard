@@ -6,9 +6,13 @@ import type { ApiResponse } from "@/types/api";
 import type {
   MarketplaceCartResponse,
   MarketplaceCheckoutRequest,
+  MarketplaceGuestOrderStatusDetailResponse,
+  MarketplaceGuestTrackRequest,
+  MarketplaceGuestTrackResponse,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderManualPaymentResponse,
+  MarketplaceOrderReviewSubmitRequest,
   MarketplaceOrderResponse,
   MarketplaceOrderStatusUpdateRequest,
   MarketplaceProductListResponse,
@@ -116,6 +120,36 @@ export function listMarketplaceOrders(params?: {
   if (params?.sort) search.set("sort", params.sort);
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<MarketplaceOrderListResponse>(`${API_PREFIX}${E.orders}${query}`);
+}
+
+export function trackMarketplaceOrder(
+  payload: MarketplaceGuestTrackRequest
+): Promise<ApiResponse<MarketplaceGuestTrackResponse>> {
+  return api.post<MarketplaceGuestTrackResponse>(`${API_PREFIX}${E.orderTrack}`, payload, {
+    credentials: "include",
+  });
+}
+
+export function getMarketplaceGuestOrderStatus(
+  id: string | number,
+  trackingToken: string
+): Promise<ApiResponse<MarketplaceGuestOrderStatusDetailResponse>> {
+  const query = new URLSearchParams({ tracking_token: trackingToken });
+  return api.get<MarketplaceGuestOrderStatusDetailResponse>(
+    `${API_PREFIX}${E.orderGuestStatus(id)}?${query.toString()}`,
+    {
+      credentials: "include",
+    }
+  );
+}
+
+export function submitMarketplaceOrderReview(
+  id: string | number,
+  payload: MarketplaceOrderReviewSubmitRequest
+): Promise<ApiResponse<null>> {
+  return api.post<null>(`${API_PREFIX}${E.orderReviews(id)}`, payload, {
+    credentials: "include",
+  });
 }
 
 export function listMarketplaceCustomers(params?: {
