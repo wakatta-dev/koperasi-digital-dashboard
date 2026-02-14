@@ -22,7 +22,7 @@ describe("buyer core journey integration", () => {
   it("routes payment confirmation into replacement confirmation page", () => {
     const source = read("src/modules/marketplace/payment-page.tsx");
 
-    expect(source).toContain('router.push("/marketplace/konfirmasi")');
+    expect(source).toContain("/marketplace/konfirmasi?order_id=");
     expect(source).not.toContain('router.push("/marketplace/ulasan")');
   });
 

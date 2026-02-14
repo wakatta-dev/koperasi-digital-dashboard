@@ -7,7 +7,7 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { useCartMutations } from "../../hooks/useMarketplaceProducts";
-import { showToastError } from "@/lib/toast";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 import { MarketplaceProductDetail } from "../../constants";
 import type { MarketplaceVariantGroupResponse } from "@/types/api/marketplace";
 import { animateFlyToCart } from "../../utils/fly-to-cart";
@@ -108,7 +108,10 @@ export function ProductMainInfo({
     addItem.mutate(
       payload,
       {
-        onSuccess: () => animateFlyToCart(actionBtnRef.current),
+        onSuccess: () => {
+          animateFlyToCart(actionBtnRef.current);
+          showToastSuccess("Berhasil", "Produk ditambahkan ke keranjang.");
+        },
         onError: (err: any) =>
           showToastError("Gagal menambahkan ke keranjang", err),
       }

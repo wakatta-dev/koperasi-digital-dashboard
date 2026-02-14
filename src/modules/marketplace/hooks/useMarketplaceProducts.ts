@@ -105,8 +105,12 @@ export function useMarketplaceCustomerDetail(id?: string | number) {
 export function useCartMutations() {
   const qc = useQueryClient();
 
-  const refreshCart = () =>
-    qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
+  const refreshMarketplaceState = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: QK.marketplace.cart() }),
+      qc.invalidateQueries({ queryKey: ["marketplace", "products"] }),
+    ]);
+  };
 
   const addItem = useMutation({
     mutationFn: (payload: {
@@ -116,7 +120,8 @@ export function useCartMutations() {
       variant_option_id?: number;
     }) =>
       addMarketplaceCartItem(payload).then(ensureSuccess),
-    onSuccess: refreshCart,
+    onSuccess: refreshMarketplaceState,
+    onError: refreshMarketplaceState,
   });
 
   const updateItem = useMutation({
@@ -124,13 +129,15 @@ export function useCartMutations() {
       updateMarketplaceCartItem(payload.itemId, {
         quantity: payload.quantity,
       }).then(ensureSuccess),
-    onSuccess: refreshCart,
+    onSuccess: refreshMarketplaceState,
+    onError: refreshMarketplaceState,
   });
 
   const removeItem = useMutation({
     mutationFn: (itemId: number) =>
       removeMarketplaceCartItem(itemId).then(ensureSuccess),
-    onSuccess: refreshCart,
+    onSuccess: refreshMarketplaceState,
+    onError: refreshMarketplaceState,
   });
 
   return { addItem, updateItem, removeItem };
