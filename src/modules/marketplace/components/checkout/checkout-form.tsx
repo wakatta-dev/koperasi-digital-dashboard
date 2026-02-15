@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,12 @@ import {
   saveBuyerOrderContext,
   type BuyerCheckoutSnapshot,
 } from "../../state/buyer-checkout-context";
+import {
+  DEFAULT_PAYMENT_METHOD,
+  DEFAULT_SHIPPING_OPTION,
+  getCheckoutCostBreakdown,
+  type CheckoutCostBreakdown,
+} from "../../config/checkoutPricing.config";
 import { FeatureSectionCard } from "../shared/feature-section-card";
 import { FieldRow } from "../shared/field-row";
 import { OptionTile } from "../shared/option-tile";
@@ -27,9 +33,10 @@ import { OptionTile } from "../shared/option-tile";
 type Props = {
   cart: MarketplaceCartResponse;
   onSuccess: (order: MarketplaceOrderResponse) => void;
+  onCostChange?: (cost: CheckoutCostBreakdown) => void;
 };
 
-export function CheckoutForm({ cart, onSuccess }: Props) {
+export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [recipientName, setRecipientName] = useState("");
@@ -39,8 +46,8 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [shippingOption, setShippingOption] = useState("JNE_REGULER");
-  const [paymentMethod, setPaymentMethod] = useState("TRANSFER_BANK");
+  const [shippingOption, setShippingOption] = useState(DEFAULT_SHIPPING_OPTION);
+  const [paymentMethod, setPaymentMethod] = useState(DEFAULT_PAYMENT_METHOD);
   const [bankOption, setBankOption] = useState("BCA");
   const [submitting, setSubmitting] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
@@ -135,6 +142,15 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
   ]);
 
   const isValid = validationErrors.length === 0;
+
+  useEffect(() => {
+    onCostChange?.(
+      getCheckoutCostBreakdown({
+        shippingOption,
+        paymentMethod,
+      })
+    );
+  }, [onCostChange, paymentMethod, shippingOption]);
 
   const handleSubmit = async () => {
     if (submittingRef.current || submitting) {

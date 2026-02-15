@@ -67,7 +67,7 @@ export function CartItemsSection({ cart }: Props) {
                   showToastSuccess("Berhasil", "Jumlah diperbarui"),
                 onError: (err) => handleError("Gagal memperbarui jumlah", err),
                 onSettled: () => setUpdatingId(null),
-              }
+              },
             );
           }}
           onRemove={(itemId) => {
@@ -83,23 +83,21 @@ export function CartItemsSection({ cart }: Props) {
           onToggleAll={() => {
             if (!activeCart?.items?.length) return;
             const ids = activeCart.items.map((item) => item.id);
-            setSelectedIds((prev) =>
-              prev.length === ids.length ? [] : ids
-            );
+            setSelectedIds((prev) => (prev.length === ids.length ? [] : ids));
           }}
           onToggleItem={(itemId) => {
             setSelectedIds((prev) =>
               prev.includes(itemId)
                 ? prev.filter((id) => id !== itemId)
-                : [...prev, itemId]
+                : [...prev, itemId],
             );
           }}
         />
       ) : null}
-    <Link
-      href="/marketplace"
-      className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline transition group"
-    >
+      <Link
+        href="/marketplace"
+        className="mt-4 inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline transition group"
+      >
         <span className="material-icons-outlined text-lg group-hover:-translate-x-1 transition-transform">
           arrow_back
         </span>

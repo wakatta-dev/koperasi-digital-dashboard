@@ -16,13 +16,34 @@ import { CartRecommendations } from "./components/cart/cart-recommendations";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { CheckoutForm } from "./components/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
+import {
+  DEFAULT_PAYMENT_METHOD,
+  DEFAULT_SHIPPING_OPTION,
+  getCheckoutCostBreakdown,
+  type CheckoutCostBreakdown,
+} from "./config/checkoutPricing.config";
 
 export function MarketplaceCartPage() {
   const router = useRouter();
   const { data, isError, isLoading, refetch } = useMarketplaceCart();
   const [emptySyncRetries, setEmptySyncRetries] = useState(0);
   const [isSyncingEmptyCart, setIsSyncingEmptyCart] = useState(false);
+  const [checkoutCost, setCheckoutCost] = useState<CheckoutCostBreakdown>(() =>
+    getCheckoutCostBreakdown({
+      shippingOption: DEFAULT_SHIPPING_OPTION,
+      paymentMethod: DEFAULT_PAYMENT_METHOD,
+    })
+  );
   const cartCount = data?.item_count ?? 0;
+  const subtotal = useMemo(
+    () => data?.items.reduce((sum, item) => sum + item.subtotal, 0) ?? 0,
+    [data]
+  );
+  const total =
+    subtotal +
+    checkoutCost.shippingCost +
+    checkoutCost.serviceFee -
+    checkoutCost.itemDiscount;
   const hasItems = Boolean(data && data.items.length > 0);
   const canShowEmptyState =
     !isLoading && !isSyncingEmptyCart && emptySyncRetries >= 2;
@@ -129,15 +150,19 @@ export function MarketplaceCartPage() {
                 <CartItemsSection cart={data} />
                 <CheckoutForm
                   cart={data}
+                  onCostChange={setCheckoutCost}
                   onSuccess={(order) => {
                     router.push(`/marketplace/pembayaran?order_id=${order.id}`);
                   }}
                 />
               </div>
-              <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start space-y-6">
+              <div className="mt-4 lg:col-span-4 lg:sticky lg:top-28 lg:self-start space-y-6">
                 <OrderSummaryCard
-                  subtotal={data.total}
-                  total={data.total}
+                  subtotal={subtotal}
+                  total={total}
+                  shippingCost={checkoutCost.shippingCost}
+                  itemDiscount={checkoutCost.itemDiscount}
+                  serviceFee={checkoutCost.serviceFee}
                   itemCount={data.item_count}
                 />
               </div>
