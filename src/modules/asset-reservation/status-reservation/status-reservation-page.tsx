@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
 import type { ReservationState } from "./constants";
 import { SecureInfoBar } from "./components/secure-info-bar";

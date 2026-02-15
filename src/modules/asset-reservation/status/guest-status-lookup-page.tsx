@@ -5,7 +5,7 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { useMemo, useState } from "react";
 
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
 import {
   useCreateGuestPaymentSession,
@@ -134,9 +134,11 @@ export function GuestStatusLookupPage() {
   }, [reservation?.amounts?.total]);
 
   return (
-    <div className={plusJakarta.className}>
-      <div className="asset-rental-guest bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
-        <LandingNavbar activeLabel="Penyewaan Aset" />
+    <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
+      <LandingNavbar activeLabel="Penyewaan Aset" />
+      <div
+        className={`asset-rental-guest ${plusJakarta.className} flex min-h-0 flex-1 flex-col`}
+      >
         <main className="flex-grow pt-20">
           <GuestRequestStatusFeature
             ticketValue={ticket}
@@ -166,4 +168,3 @@ export function GuestStatusLookupPage() {
     </div>
   );
 }
-

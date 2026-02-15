@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import { ReviewOverlayDialog } from "./components/review/review-overlay-dialog";
 import { StatusDetailFeature } from "./components/shipping/status-detail-feature";

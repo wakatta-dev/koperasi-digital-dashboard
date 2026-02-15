@@ -3,7 +3,7 @@
 
 import { Plus_Jakarta_Sans } from "next/font/google";
 
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "./components/reservation-footer";
 import { useMemo, useState, useEffect } from "react";
 import type { AssetFilterQuery } from "@/types/api/asset";
@@ -163,9 +163,11 @@ export function AssetReservationPage() {
   }, [items, selectedAssetId]);
 
   return (
-    <div className={plusJakarta.className}>
-      <div className="asset-rental-guest bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
-        <LandingNavbar activeLabel="Penyewaan Aset" />
+    <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
+      <LandingNavbar activeLabel="Penyewaan Aset" />
+      <div
+        className={`asset-rental-guest ${plusJakarta.className} flex min-h-0 flex-1 flex-col`}
+      >
         <main className="flex-grow pt-20">
           <AssetCatalogFeature
             badgeLabel="Layanan Desa"

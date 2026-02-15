@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LandingNavbar } from "./components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { LandingHero } from "./components/hero";
 import { LandingAbout } from "./components/about";
 import { BusinessUnits } from "./components/business-units";

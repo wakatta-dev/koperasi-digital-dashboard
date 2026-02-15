@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { CartBreadcrumbs } from "./components/cart/cart-breadcrumbs";
 import { CheckoutSteps } from "./components/checkout/checkout-steps";
 import { CartItemsSection } from "./components/cart/cart-items-section";

@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { getBuyerOrderContext } from "./state/buyer-checkout-context";
 import { Button } from "@/components/ui/button";
 import { useMarketplaceOrder } from "@/hooks/queries/marketplace-orders";

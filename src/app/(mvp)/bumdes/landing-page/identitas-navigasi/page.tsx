@@ -15,7 +15,7 @@ import {
 } from "@/types/landing-page";
 import { LandingEmptyState } from "@/modules/landing/components/landing-empty-state";
 import { LandingLivePreview } from "@/modules/landing/components/live-preview";
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

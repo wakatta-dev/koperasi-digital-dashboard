@@ -3,7 +3,7 @@
 "use client";
 
 import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { ProductBreadcrumbs } from "./components/product/product-breadcrumbs";
 import { ProductGallery } from "./components/product/product-gallery";
 import { ProductMainInfo } from "./components/product/product-main-info";

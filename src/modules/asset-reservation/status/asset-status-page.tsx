@@ -4,7 +4,7 @@
 
 import { Plus_Jakarta_Sans } from "next/font/google";
 
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
 import { DetailDescription } from "../detail/components/detail-description";
 import { DetailFacilities } from "../detail/components/detail-facilities";

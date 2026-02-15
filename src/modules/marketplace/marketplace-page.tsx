@@ -5,7 +5,7 @@
 import { useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { MarketplaceHeader } from "./components/layout/header";
 import { FiltersSidebar } from "./components/filters/filters-sidebar";
 import { ProductsSection } from "./components/product/products-section";
