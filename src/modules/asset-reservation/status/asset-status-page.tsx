@@ -32,6 +32,7 @@ type AssetStatusPageProps = {
   status: ReservationStatus;
   reservationId?: number;
   token?: string;
+  accessToken?: string | null;
 };
 
 function formatDateLabel(date?: string) {
@@ -113,7 +114,12 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
   }
 }
 
-export function AssetStatusPage({ status, reservationId, token }: AssetStatusPageProps) {
+export function AssetStatusPage({
+  status,
+  reservationId,
+  token,
+  accessToken,
+}: AssetStatusPageProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [decoded, setDecoded] = useState<ReservationSummary | null>(null);
@@ -124,7 +130,7 @@ export function AssetStatusPage({ status, reservationId, token }: AssetStatusPag
     data: reservation,
     isLoading: loading,
     error,
-  } = useReservation(decoded?.reservationId || reservationId);
+  } = useReservation(decoded?.reservationId || reservationId, accessToken ?? undefined);
   const errorMessage = useMemo(() => (error instanceof Error ? error.message : error ? String(error) : null), [error]);
   const resolvedReservationId = reservation?.reservationId ?? decoded?.reservationId ?? reservationId;
   const displayStatus = reservation ? mapStatus(reservation.status) : decoded ? mapStatus(decoded.status) : status;
@@ -221,45 +227,23 @@ export function AssetStatusPage({ status, reservationId, token }: AssetStatusPag
   }, [token, status]);
 
   const handleCancel = async () => {
-    if (!resolvedReservationId) return;
     setActionLoading("cancel");
-    setActionMessage(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      setActionMessage({
-        text: "Permintaan pembatalan dikirim. Tim akan menindaklanjuti.",
-        tone: "success",
-      });
-    } catch (err) {
-      setActionMessage({
-        text: err instanceof Error ? err.message : "Gagal mengirim permintaan pembatalan.",
-        tone: "error",
-      });
-    } finally {
-      setActionLoading(null);
-      setCancelOpen(false);
-    }
+    setActionMessage({
+      text: "Pembatalan online belum tersedia. Hubungi admin BUMDes untuk memproses pembatalan.",
+      tone: "info",
+    });
+    setActionLoading(null);
+    setCancelOpen(false);
   };
 
   const handleReschedule = async () => {
-    if (!resolvedReservationId) return;
     setActionLoading("reschedule");
-    setActionMessage(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      setActionMessage({
-        text: "Permintaan penjadwalan ulang dikirim. Tim akan mengkonfirmasi jadwal baru.",
-        tone: "success",
-      });
-    } catch (err) {
-      setActionMessage({
-        text: err instanceof Error ? err.message : "Gagal mengirim permintaan penjadwalan ulang.",
-        tone: "error",
-      });
-    } finally {
-      setActionLoading(null);
-      setRescheduleOpen(false);
-    }
+    setActionMessage({
+      text: "Penjadwalan ulang online belum tersedia. Hubungi admin BUMDes untuk penjadwalan ulang.",
+      tone: "info",
+    });
+    setActionLoading(null);
+    setRescheduleOpen(false);
   };
 
   return (
@@ -322,6 +306,11 @@ export function AssetStatusPage({ status, reservationId, token }: AssetStatusPag
                     Gagal memuat reservasi: {errorMessage}
                   </div>
                 ) : null}
+              </div>
+            ) : null}
+            {!reservation && decoded ? (
+              <div className="mb-4 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                Menampilkan konteks lokal sementara. Status resmi akan tampil setelah verifikasi backend berhasil.
               </div>
             ) : null}
 
@@ -406,6 +395,7 @@ export function AssetStatusPage({ status, reservationId, token }: AssetStatusPag
                   status={displayStatus}
                   amounts={reservation?.amounts}
                   reservationId={resolvedReservationId}
+                  accessToken={accessToken ?? reservation?.guestToken}
                   onCancel={() => setCancelOpen(true)}
                   onReschedule={() => setRescheduleOpen(true)}
                 />

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 type PaymentPageProps = {
-  searchParams?: Promise<{ reservationId?: string; type?: string }>;
+  searchParams?: Promise<{ reservationId?: string; type?: string; sig?: string }>;
 };
 
 export default async function PenyewaanAsetPaymentPage({ searchParams }: PaymentPageProps) {
@@ -19,5 +19,6 @@ export default async function PenyewaanAsetPaymentPage({ searchParams }: Payment
   const parsedReservationId = rawReservationId ? Number.parseInt(rawReservationId, 10) : Number.NaN;
   const reservationId = Number.isFinite(parsedReservationId) && parsedReservationId > 0 ? parsedReservationId : undefined;
   const mode = params?.type === "settlement" ? "settlement" : "dp";
-  return <AssetPaymentPage reservationId={reservationId} mode={mode} />;
+  const ownershipToken = params?.sig;
+  return <AssetPaymentPage reservationId={reservationId} mode={mode} ownershipToken={ownershipToken} />;
 }

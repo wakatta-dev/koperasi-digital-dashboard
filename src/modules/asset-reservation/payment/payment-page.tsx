@@ -17,15 +17,23 @@ import { QK } from "@/hooks/queries/queryKeys";
 type AssetPaymentPageProps = {
   reservationId?: number;
   mode?: "dp" | "settlement";
+  ownershipToken?: string;
 };
 
-export function AssetPaymentPage({ reservationId, mode = "dp" }: AssetPaymentPageProps) {
+export function AssetPaymentPage({
+  reservationId,
+  mode = "dp",
+  ownershipToken,
+}: AssetPaymentPageProps) {
   const [sessionInfo, setSessionInfo] = React.useState<{
     amount?: number;
     payBy?: string;
   }>({});
   const queryClient = useQueryClient();
-  const { data: reservation, isLoading: loading, error } = useReservation(reservationId);
+  const { data: reservation, isLoading: loading, error } = useReservation(
+    reservationId,
+    ownershipToken
+  );
   const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
   const infoMissingReservation = !reservationId && !loading;
@@ -62,6 +70,7 @@ export function AssetPaymentPage({ reservationId, mode = "dp" }: AssetPaymentPag
           <PaymentMethods
             mode={paymentMode}
             reservationId={reservation?.reservationId}
+            ownershipToken={ownershipToken || reservation?.guestToken}
             onSessionChange={(session) => setSessionInfo({ amount: session?.amount, payBy: session?.payBy })}
             onStatusChange={() => {
               queryClient.invalidateQueries({ queryKey: QK.assetRental.bookings() });
@@ -78,6 +87,7 @@ export function AssetPaymentPage({ reservationId, mode = "dp" }: AssetPaymentPag
             reservation={reservation}
             sessionAmount={sessionInfo.amount}
             sessionPayBy={sessionInfo.payBy}
+            ownershipToken={ownershipToken || reservation?.guestToken}
           />
         ) : null
       }

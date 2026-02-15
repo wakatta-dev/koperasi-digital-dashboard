@@ -17,8 +17,11 @@ import type {
 
 export function useLookupReservationByTicket() {
   return useMutation({
-    mutationFn: async (ticket: string): Promise<ReservationDetailResponse> => {
-      const res = await lookupReservationByTicket(ticket);
+    mutationFn: async (args: {
+      ticket: string;
+      contact: string;
+    }): Promise<ReservationDetailResponse> => {
+      const res = await lookupReservationByTicket(args.ticket, args.contact);
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal memuat status pengajuan");
       }
@@ -53,8 +56,17 @@ export function useCreateGuestPaymentSession() {
 
 export function useUploadGuestPaymentProof() {
   return useMutation({
-    mutationFn: async (args: { paymentId: string; file: File; note?: string }) => {
-      const res = await uploadPaymentProof(args.paymentId, args.file, args.note);
+    mutationFn: async (args: {
+      paymentId: string;
+      file: File;
+      note?: string;
+      reservationId?: number;
+      ownershipToken?: string;
+    }) => {
+      const res = await uploadPaymentProof(args.paymentId, args.file, args.note, {
+        reservationId: args.reservationId,
+        ownershipToken: args.ownershipToken,
+      });
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal mengunggah bukti pembayaran");
       }
@@ -65,8 +77,16 @@ export function useUploadGuestPaymentProof() {
 
 export function useFinalizeGuestPayment() {
   return useMutation({
-    mutationFn: async (args: { paymentId: string; status: "succeeded" | "failed" }) => {
-      const res = await finalizePayment(args.paymentId, args.status);
+    mutationFn: async (args: {
+      paymentId: string;
+      status: "succeeded" | "failed";
+      reservationId?: number;
+      ownershipToken?: string;
+    }) => {
+      const res = await finalizePayment(args.paymentId, args.status, {
+        reservationId: args.reservationId,
+        ownershipToken: args.ownershipToken,
+      });
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal memproses pembayaran");
       }
@@ -74,4 +94,3 @@ export function useFinalizeGuestPayment() {
     },
   });
 }
-

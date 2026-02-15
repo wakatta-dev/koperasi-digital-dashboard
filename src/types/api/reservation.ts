@@ -42,6 +42,7 @@ export type PaymentSessionRequest = {
   reservation_id: number;
   type: "dp" | "settlement";
   method: string;
+  ownership_token?: string;
 };
 
 export type PaymentSessionResponse = {
@@ -104,6 +105,7 @@ export type ReservationDetailResponse = {
     | "expired"
     | "rejected";
   rejection_reason?: string | null;
+  guest_token?: string;
   amounts: { total: number; dp: number; remaining: number };
   hold_expires_at?: Rfc3339String;
   timeline?: ReservationTimelineItem[];

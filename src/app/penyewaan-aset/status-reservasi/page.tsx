@@ -52,6 +52,7 @@ export default async function StatusReservasiPage({
     <StatusReservationPage
       state={state}
       hasSignature={allowed}
+      accessToken={signature}
       reservationId={guestLink?.data?.reservation_id ?? reservationId}
     />
   );

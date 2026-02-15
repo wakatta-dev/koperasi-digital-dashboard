@@ -23,16 +23,19 @@ type StatusReservationPageProps = {
   state: ReservationState;
   hasSignature: boolean;
   reservationId?: number;
+  accessToken?: string;
 };
 
 export function StatusReservationPage({
   state: _state,
   hasSignature,
   reservationId,
+  accessToken,
 }: StatusReservationPageProps) {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const { data: reservation, isLoading, error } = useReservation(
-    hasSignature ? reservationId : undefined
+    hasSignature ? reservationId : undefined,
+    accessToken
   );
   const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
@@ -55,6 +58,7 @@ export function StatusReservationPage({
                   <ReservationSummaryCard
                     hasSignature={hasSignature}
                     reservationId={reservationId}
+                    accessToken={accessToken || reservation?.guestToken}
                     reservation={reservation ?? null}
                     proofAvailable={false}
                     onDownload={() => setDownloadOpen(true)}

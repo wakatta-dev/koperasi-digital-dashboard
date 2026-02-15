@@ -65,6 +65,7 @@ export type ReservationSummary = {
   purpose?: string;
   submittedAt?: string;
   holdExpiresAt?: string;
+  guestToken?: string;
   amounts: { total: number; dp: number; remaining: number };
   timeline?: Array<{
     event: string;

@@ -33,9 +33,15 @@ export function createReservation(
 }
 
 export function getReservation(
-  reservationId: string | number
+  reservationId: string | number,
+  ownershipToken?: string
 ): Promise<ReservationDetailApiResponse> {
-  return api.get<ReservationDetailResponse>(`${API_PREFIX}${E.reservation(String(reservationId))}`);
+  const search = new URLSearchParams();
+  if (ownershipToken) search.set("token", ownershipToken);
+  const query = search.toString() ? `?${search.toString()}` : "";
+  return api.get<ReservationDetailResponse>(
+    `${API_PREFIX}${E.reservation(String(reservationId))}${query}`
+  );
 }
 
 export function createPaymentSession(
@@ -47,20 +53,30 @@ export function createPaymentSession(
 export function uploadPaymentProof(
   paymentId: string,
   file: File,
-  note?: string
+  note?: string,
+  ownership?: { reservationId?: number; ownershipToken?: string }
 ): Promise<PaymentSessionApiResponse> {
   const formData = new FormData();
   formData.append("file", file);
   if (note && note.trim()) formData.append("note", note.trim());
+  if (ownership?.reservationId) {
+    formData.append("reservation_id", String(ownership.reservationId));
+  }
+  if (ownership?.ownershipToken) {
+    formData.append("ownership_token", ownership.ownershipToken);
+  }
   return api.post<PaymentSessionResponse>(`${API_PREFIX}${E.paymentProof(paymentId)}`, formData);
 }
 
 export function finalizePayment(
   paymentId: string,
-  result: "succeeded" | "failed"
+  result: "succeeded" | "failed",
+  ownership?: { reservationId?: number; ownershipToken?: string }
 ): Promise<PaymentSessionApiResponse> {
   return api.post<PaymentSessionResponse>(`${API_PREFIX}${E.paymentFinalize(paymentId)}`, {
     status: result,
+    reservation_id: ownership?.reservationId,
+    ownership_token: ownership?.ownershipToken,
   });
 }
 
@@ -75,9 +91,13 @@ export function verifyGuestLink(params: {
   return api.get<GuestLinkVerifyResponse>(`${API_PREFIX}${E.guestVerify}${query}`);
 }
 
-export function lookupReservationByTicket(ticket: string): Promise<ReservationDetailApiResponse> {
+export function lookupReservationByTicket(
+  ticket: string,
+  contact: string
+): Promise<ReservationDetailApiResponse> {
   const search = new URLSearchParams();
   search.set("ticket", ticket);
+  search.set("contact", contact);
   return api.get<ReservationDetailResponse>(
     `${API_PREFIX}${E.reservationLookup}?${search.toString()}`
   );

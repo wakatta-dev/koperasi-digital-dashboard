@@ -28,10 +28,15 @@ export function completeAssetBooking(
 
 export function updateAssetBookingStatus(
   bookingId: string | number,
-  status: string
+  status: string,
+  rejectionReason?: string
 ): Promise<ApiResponse<AssetRentalBooking>> {
+  const payload: Record<string, string> = { status };
+  if (rejectionReason && rejectionReason.trim()) {
+    payload.rejection_reason = rejectionReason.trim();
+  }
   return api.patch<AssetRentalBooking>(
     `${API_PREFIX}${API_ENDPOINTS.assetReservation.bookingStatus(bookingId)}`,
-    { status }
+    payload
   );
 }

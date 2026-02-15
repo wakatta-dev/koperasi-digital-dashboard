@@ -84,6 +84,7 @@ function badgeLabelForVariant(variant: GuestRequestStatusVariant) {
 
 export function GuestStatusLookupPage() {
   const [ticket, setTicket] = useState("");
+  const [contact, setContact] = useState("");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
@@ -113,10 +114,12 @@ export function GuestStatusLookupPage() {
         variant === "approved"
           ? async () => {
               try {
+                if (!reservation.guest_token) return;
                 const session = await createPayment.mutateAsync({
                   reservation_id: reservation.reservation_id,
                   type: "dp",
                   method: "transfer_bank",
+                  ownership_token: reservation.guest_token,
                 });
                 setPaymentId(session.payment_id);
                 setPaymentOpen(true);
@@ -143,10 +146,12 @@ export function GuestStatusLookupPage() {
           <GuestRequestStatusFeature
             ticketValue={ticket}
             onTicketValueChange={setTicket}
+            contactValue={contact}
+            onContactValueChange={setContact}
             submitting={lookup.isPending}
             onSubmit={() => {
-              if (!ticket.trim()) return;
-              lookup.mutate(ticket.trim());
+              if (!ticket.trim() || !contact.trim()) return;
+              lookup.mutate({ ticket: ticket.trim(), contact: contact.trim() });
             }}
             result={result}
           />
@@ -159,8 +164,14 @@ export function GuestStatusLookupPage() {
           totalLabel={totalLabel}
           submitting={uploadProof.isPending}
           onSubmit={async ({ file, note }) => {
-            if (!paymentId) return;
-            await uploadProof.mutateAsync({ paymentId, file, note });
+            if (!paymentId || !reservation?.reservation_id || !reservation.guest_token) return;
+            await uploadProof.mutateAsync({
+              paymentId,
+              file,
+              note,
+              reservationId: reservation.reservation_id,
+              ownershipToken: reservation.guest_token,
+            });
             setPaymentOpen(false);
           }}
         />

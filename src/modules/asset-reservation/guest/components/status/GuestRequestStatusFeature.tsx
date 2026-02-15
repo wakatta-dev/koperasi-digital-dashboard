@@ -31,6 +31,8 @@ export type GuestRequestStatusResult = {
 type GuestRequestStatusFeatureProps = Readonly<{
   ticketValue: string;
   onTicketValueChange: (value: string) => void;
+  contactValue: string;
+  onContactValueChange: (value: string) => void;
   onSubmit: () => void;
   submitting?: boolean;
   result?: GuestRequestStatusResult | null;
@@ -70,6 +72,8 @@ function progressStyle(variant: GuestRequestStatusVariant) {
 export function GuestRequestStatusFeature({
   ticketValue,
   onTicketValueChange,
+  contactValue,
+  onContactValueChange,
   onSubmit,
   submitting,
   result,
@@ -105,6 +109,19 @@ export function GuestRequestStatusFeature({
                 value={ticketValue}
                 onValueChange={onTicketValueChange}
                 placeholder="Masukkan Nomor Pengajuan (Contoh: #SQ-99210)"
+              />
+              <InputField
+                id="contact_lookup"
+                label="Kontak Pemohon (Nomor HP atau Email)"
+                size="lg"
+                startIcon={
+                  <span className="material-icons-outlined text-xl">
+                    person_search
+                  </span>
+                }
+                value={contactValue}
+                onValueChange={onContactValueChange}
+                placeholder="Masukkan kontak yang dipakai saat pengajuan"
               />
               <Button
                 type="button"

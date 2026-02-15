@@ -10,6 +10,7 @@ type ReservationSummaryCardProps = {
   hasSignature?: boolean;
   onDownload?: () => void;
   reservationId?: number;
+  accessToken?: string;
   reservation?: ReservationSummary | null;
   proofAvailable?: boolean;
 };
@@ -17,6 +18,7 @@ type ReservationSummaryCardProps = {
 export function ReservationSummaryCard({
   hasSignature,
   reservationId,
+  accessToken,
   onDownload,
   reservation,
   proofAvailable = false,
@@ -88,11 +90,12 @@ export function ReservationSummaryCard({
         : reservation.status === "awaiting_dp" || reservation.status === "pending_review"
           ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
           : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+  const tokenQuery = accessToken ? `&sig=${encodeURIComponent(accessToken)}` : "";
   const paymentHref =
     reservation.status === "confirmed_dp" || reservation.status === "awaiting_settlement"
-      ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(secureId))}&type=settlement`
+      ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(secureId))}&type=settlement${tokenQuery}`
       : reservation.status === "awaiting_dp"
-        ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(secureId))}&type=dp`
+        ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(String(secureId))}&type=dp${tokenQuery}`
         : undefined;
   const totalCost = reservation.amounts?.total ?? null;
   const dpAmount = reservation.amounts?.dp ?? null;

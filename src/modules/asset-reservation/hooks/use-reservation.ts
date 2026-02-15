@@ -6,12 +6,17 @@ import { QK } from "@/hooks/queries/queryKeys";
 import { getReservation } from "@/services/api/reservations";
 import type { ReservationSummary } from "../types";
 
-export function useReservation(reservationId?: string | number) {
+export function useReservation(
+  reservationId?: string | number,
+  ownershipToken?: string
+) {
   return useQuery({
     enabled: Boolean(reservationId),
-    queryKey: QK.assetRental.reservation(reservationId ?? "unknown"),
+    queryKey: QK.assetRental.reservation(
+      `${reservationId ?? "unknown"}:${ownershipToken ?? ""}`
+    ),
     queryFn: async (): Promise<ReservationSummary> => {
-      const res = await getReservation(reservationId ?? "");
+      const res = await getReservation(reservationId ?? "", ownershipToken);
       if (!res.success || !res.data) {
         throw new Error(res.message || "Gagal memuat reservasi");
       }
@@ -27,6 +32,7 @@ export function useReservation(reservationId?: string | number) {
         endDate: res.data.end_date,
         status: res.data.status,
         holdExpiresAt: res.data.hold_expires_at,
+        guestToken: res.data.guest_token,
         amounts: res.data.amounts,
         timeline: res.data.timeline?.map((t) => ({
           event: t.event,

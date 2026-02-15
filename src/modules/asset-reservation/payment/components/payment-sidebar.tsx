@@ -7,9 +7,15 @@ type PaymentSidebarProps = {
   reservation: ReservationSummary;
   sessionAmount?: number;
   sessionPayBy?: string;
+  ownershipToken?: string;
 };
 
-export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: PaymentSidebarProps) {
+export function PaymentSidebar({
+  reservation,
+  sessionAmount,
+  sessionPayBy,
+  ownershipToken,
+}: PaymentSidebarProps) {
   const serviceFee = 2500;
   const dpDue = sessionAmount ?? reservation.amounts.dp;
   const remaining = reservation.amounts.remaining;
@@ -21,7 +27,7 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
     reservation.reservationId
       ? `/penyewaan-aset/status/${encodeURIComponent(
           String(reservation.reservationId)
-        )}?status=confirmed_full`
+        )}?status=confirmed_full${ownershipToken ? `&sig=${encodeURIComponent(ownershipToken)}` : ""}`
       : null;
 
   return (

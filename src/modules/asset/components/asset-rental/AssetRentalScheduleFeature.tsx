@@ -67,8 +67,16 @@ export function AssetRentalScheduleFeature({
   const returnRows = bookingCollections.returnRows;
 
   const statusMutation = useMutation({
-    mutationFn: async (args: { bookingId: string; status: string }) => {
-      const response = await updateAssetBookingStatus(args.bookingId, args.status);
+    mutationFn: async (args: {
+      bookingId: string;
+      status: string;
+      rejectionReason?: string;
+    }) => {
+      const response = await updateAssetBookingStatus(
+        args.bookingId,
+        args.status,
+        args.rejectionReason
+      );
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memperbarui status booking");
       }
@@ -141,9 +149,13 @@ export function AssetRentalScheduleFeature({
     }
   };
 
-  const rejectRequest = async (bookingId: string) => {
+  const rejectRequest = async (bookingId: string, rejectionReason: string) => {
     try {
-      await statusMutation.mutateAsync({ bookingId, status: "REJECTED" });
+      await statusMutation.mutateAsync({
+        bookingId,
+        status: "REJECTED",
+        rejectionReason,
+      });
       showToastSuccess("Pengajuan ditolak", "Status pengajuan diperbarui.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Gagal menolak pengajuan";
@@ -282,12 +294,12 @@ export function AssetRentalScheduleFeature({
         onOpenChange={(open) => {
           if (!open) overlays.closeReject();
         }}
-        onConfirm={async (_reason) => {
+        onConfirm={async (reason) => {
           if (!overlays.selectedId) {
             overlays.closeReject();
             return;
           }
-          await rejectRequest(overlays.selectedId);
+          await rejectRequest(overlays.selectedId, reason);
           overlays.closeReject();
         }}
       />

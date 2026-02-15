@@ -7,7 +7,7 @@ import type { ReservationStatus } from "@/modules/asset-reservation/status";
 
 type StatusPageProps = {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ status?: string }>;
+  searchParams?: Promise<{ status?: string; sig?: string }>;
 };
 
 export const metadata: Metadata = {
@@ -30,7 +30,8 @@ export default async function PenyewaanAsetStatusPage({
       : rawStatus === "awaiting_dp"
         ? "awaiting_dp"
         : rawStatus === "awaiting_settlement"
-          ? "awaiting_settlement"
+        ? "awaiting_settlement"
           : "pending_review";
-  return <AssetStatusPage token={id} status={status} />;
+  const accessToken = searchParamsResolved?.sig;
+  return <AssetStatusPage token={id} accessToken={accessToken} status={status} />;
 }

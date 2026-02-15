@@ -127,7 +127,11 @@ export function AssetRentalAdminDetailPage({
       if (!booking) {
         throw new Error("Booking tidak ditemukan");
       }
-      const response = await updateAssetBookingStatus(booking.id, status);
+      const response = await updateAssetBookingStatus(
+        booking.id,
+        status,
+        status === "REJECTED" ? "Ditolak oleh admin" : undefined
+      );
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memperbarui status booking");
       }
