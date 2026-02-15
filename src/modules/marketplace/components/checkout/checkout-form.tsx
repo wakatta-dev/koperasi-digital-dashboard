@@ -71,7 +71,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
       recipientName,
       recipientPhone,
       shippingOption,
-    ]
+    ],
   );
 
   const validationErrors = useMemo(() => {
@@ -143,10 +143,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
 
     setShowValidation(true);
     if (!isValid) {
-      showToastError(
-        "Data checkout belum lengkap",
-        validationErrors.join(" ")
-      );
+      showToastError("Data checkout belum lengkap", validationErrors.join(" "));
       return;
     }
 
@@ -161,7 +158,7 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
           customer_email: checkoutSnapshot.customerEmail,
           customer_address: checkoutSnapshot.customerAddress,
           notes: `shipping=${shippingOption}; payment=${paymentMethod}; bank=${bankOption}`,
-        })
+        }),
       );
 
       saveBuyerOrderContext({
@@ -203,7 +200,9 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
               placeholder="contoh@email.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={showValidation && (!email.trim() || !email.includes("@"))}
+              aria-invalid={
+                showValidation && (!email.trim() || !email.includes("@"))
+              }
             />
           </FieldRow>
 
@@ -293,7 +292,9 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-bold text-foreground">Pilih Pengiriman</p>
+            <p className="text-sm font-bold text-foreground">
+              Pilih Pengiriman
+            </p>
             <div className="space-y-2">
               <OptionTile
                 title="Reguler (JNE)"
@@ -301,7 +302,11 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 value="JNE_REGULER"
                 selected={shippingOption === "JNE_REGULER"}
                 onSelect={setShippingOption}
-                rightSlot={<span className="text-sm font-bold text-indigo-600">Rp 9.000</span>}
+                rightSlot={
+                  <span className="text-sm font-bold text-indigo-600">
+                    Rp 9.000
+                  </span>
+                }
               />
               <OptionTile
                 title="Same Day (Gojek)"
@@ -309,7 +314,11 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
                 value="GOJEK_SAME_DAY"
                 selected={shippingOption === "GOJEK_SAME_DAY"}
                 onSelect={setShippingOption}
-                rightSlot={<span className="text-sm font-bold text-indigo-600">Rp 25.000</span>}
+                rightSlot={
+                  <span className="text-sm font-bold text-indigo-600">
+                    Rp 25.000
+                  </span>
+                }
               />
             </div>
           </div>
@@ -348,7 +357,9 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
 
           {paymentMethod === "TRANSFER_BANK" ? (
             <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-              <p className="mb-3 text-sm font-bold text-foreground">Pilih Bank</p>
+              <p className="mb-3 text-sm font-bold text-foreground">
+                Pilih Bank
+              </p>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {(["BCA", "Mandiri", "BNI", "BRI"] as const).map((bank) => (
                   <Button
@@ -389,11 +400,14 @@ export function CheckoutForm({ cart, onSuccess }: Props) {
 
       <Button
         type="button"
-        className="w-full rounded-xl bg-indigo-600 py-3 font-bold text-white hover:bg-indigo-700"
+        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-center font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-700"
         disabled={!isValid || submitting}
         onClick={handleSubmit}
       >
         {submitting ? "Memproses..." : "Bayar Sekarang"}
+        <span className="material-icons-outlined text-lg transition-transform group-hover:translate-x-1">
+          arrow_forward
+        </span>
       </Button>
     </div>
   );

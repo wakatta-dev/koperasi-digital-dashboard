@@ -1,7 +1,5 @@
 /** @format */
 
-import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/format";
@@ -13,7 +11,11 @@ type Props = {
   itemCount?: number;
 };
 
-export function OrderSummaryCard({ subtotal = 0, total = 0, itemCount = 0 }: Props) {
+export function OrderSummaryCard({
+  subtotal = 0,
+  total = 0,
+  itemCount = 0,
+}: Props) {
   const rows = [
     { label: "Subtotal", value: formatCurrency(subtotal) ?? "-" },
     { label: "Total Ongkos Kirim", value: "Rp 20.000" },
@@ -52,15 +54,6 @@ export function OrderSummaryCard({ subtotal = 0, total = 0, itemCount = 0 }: Pro
       <p className="text-right text-xs text-muted-foreground">
         {itemCount > 0 ? `${itemCount} item` : "0 item"}
       </p>
-      <Link
-        href="/marketplace/pembayaran"
-        className="group flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-center font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-700"
-      >
-        Bayar Sekarang
-        <span className="material-icons-outlined text-lg transition-transform group-hover:translate-x-1">
-          arrow_forward
-        </span>
-      </Link>
       <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/40 p-3 rounded-lg border border-border">
         <span className="material-icons-outlined text-base text-emerald-500">
           verified_user
