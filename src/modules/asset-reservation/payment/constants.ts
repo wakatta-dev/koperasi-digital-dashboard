@@ -3,7 +3,7 @@
 export const PAYMENT_BREADCRUMB = {
   backLabel: "Kembali ke Detail Permintaan",
   backHref: "/penyewaan-aset/status/asset-1",
-  confirmationHref: "/penyewaan-aset/status-reservasi?state=done&sig=secure-token",
+  confirmationHref: "/penyewaan-aset/status",
 };
 
 export const PAYMENT_SUMMARY = {

@@ -20,7 +20,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { StatusTimeline } from "./components/status-timeline";
 import type { ReservationSummary } from "../types";
 import { useAssetDetail, useReservation } from "../hooks";
-import { verifySignedReservationToken } from "../utils/signed-link";
 import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
 import { humanizeReservationStatus } from "../utils/status";
 
@@ -33,7 +32,6 @@ type AssetStatusPageProps = {
   status: ReservationStatus;
   reservationId?: number;
   token?: string;
-  signature?: string | null;
 };
 
 function formatDateLabel(date?: string) {
@@ -115,7 +113,7 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
   }
 }
 
-export function AssetStatusPage({ status, reservationId, token, signature }: AssetStatusPageProps) {
+export function AssetStatusPage({ status, reservationId, token }: AssetStatusPageProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [decoded, setDecoded] = useState<ReservationSummary | null>(null);
@@ -205,36 +203,22 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
   }, [reservation]);
 
   useEffect(() => {
-    let ignore = false;
-    async function run() {
-      if (!token) return;
-      const result = await verifySignedReservationToken(token, signature || undefined);
-      if (ignore) return;
-      if (!result.ok || !result.payload) {
-        setTokenError(result.reason || "Tautan tidak valid");
-        return;
-      }
-      const parsedId = Number.parseInt(result.payload.id, 10);
-      if (!Number.isFinite(parsedId) || parsedId <= 0) {
-        setTokenError("Payload tidak valid");
-        return;
-      }
-      setTokenError(null);
-      setDecoded({
-        reservationId: parsedId,
-        assetId: 0,
-        status: (result.payload.status as any) || "pending_review",
-        startDate: "",
-        endDate: "",
-        amounts: { total: 0, dp: 0, remaining: 0 },
-        holdExpiresAt: result.payload.exp,
-      });
+    if (!token) return;
+    const parsedId = Number.parseInt(token, 10);
+    if (!Number.isFinite(parsedId) || parsedId <= 0) {
+      setTokenError("Tautan tidak valid. Gunakan tautan status resmi dari sistem.");
+      return;
     }
-    run();
-    return () => {
-      ignore = true;
-    };
-  }, [token, signature]);
+    setTokenError(null);
+    setDecoded({
+      reservationId: parsedId,
+      assetId: 0,
+      status,
+      startDate: "",
+      endDate: "",
+      amounts: { total: 0, dp: 0, remaining: 0 },
+    });
+  }, [token, status]);
 
   const handleCancel = async () => {
     if (!resolvedReservationId) return;

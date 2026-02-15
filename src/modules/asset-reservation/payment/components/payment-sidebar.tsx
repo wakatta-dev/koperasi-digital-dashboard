@@ -17,12 +17,11 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
   const dueText = sessionPayBy
     ? `Bayar sebelum ${new Date(sessionPayBy).toLocaleString("id-ID")}`
     : "Segera selesaikan pembayaran sebelum batas waktu yang ditentukan.";
-  const confirmationSig = process.env.NEXT_PUBLIC_RESERVATION_SIG;
   const confirmationHref =
-    confirmationSig && reservation.reservationId
-      ? `/penyewaan-aset/status-reservasi?state=done&id=${encodeURIComponent(
+    reservation.reservationId
+      ? `/penyewaan-aset/status/${encodeURIComponent(
           String(reservation.reservationId)
-        )}&sig=${encodeURIComponent(confirmationSig)}`
+        )}?status=confirmed_full`
       : null;
 
   return (

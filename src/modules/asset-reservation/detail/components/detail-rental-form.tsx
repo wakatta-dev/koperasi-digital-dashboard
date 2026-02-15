@@ -170,13 +170,14 @@ export function DetailRentalForm({
         throw new Error(creation.message || "Gagal membuat reservasi");
       }
 
-      const { reservation_id, hold_expires_at, amounts, status } =
+      const { reservation_id, hold_expires_at, amounts, status, guest_token } =
         creation.data;
 
       const signed = await createSignedReservationLink({
         reservationId: reservation_id,
         status,
         expiresAt: hold_expires_at,
+        guestToken: guest_token,
       });
 
       const info: ReservationSummary = {

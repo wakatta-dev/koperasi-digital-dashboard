@@ -34,6 +34,7 @@ export type CreateReservationResponse = {
   reservation_id: number;
   status: "pending_review" | "awaiting_dp";
   hold_expires_at: Rfc3339String;
+  guest_token?: string;
   amounts: { total: number; dp: number; remaining: number };
 };
 
