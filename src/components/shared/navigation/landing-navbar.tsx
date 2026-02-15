@@ -71,10 +71,11 @@ export type LandingNavbarProps = {
 
 function isItemActive(params: {
   activeLabel?: string;
-  pathname: string;
+  pathname?: string | null;
   itemLabel: string;
   itemHref?: string;
 }) {
+  const pathname = params.pathname ?? "";
   const labelMatch = Boolean(
     params.activeLabel &&
       params.activeLabel.trim().toLowerCase() ===
@@ -87,9 +88,9 @@ function isItemActive(params: {
     return false;
   }
   if (params.itemHref === "/") {
-    return params.pathname === "/";
+    return pathname === "/";
   }
-  return params.pathname.startsWith(params.itemHref);
+  return pathname.startsWith(params.itemHref);
 }
 
 export function LandingNavbar({
@@ -103,6 +104,7 @@ export function LandingNavbar({
   const [showShortcutLinks, setShowShortcutLinks] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const safePathname = typeof pathname === "string" ? pathname : "";
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -187,7 +189,7 @@ export function LandingNavbar({
   const linkItems: NavLinkItem[] = navItems.map((item) => {
     const active = isItemActive({
       activeLabel,
-      pathname,
+      pathname: safePathname,
       itemLabel: item.label,
       itemHref: item.href,
     });

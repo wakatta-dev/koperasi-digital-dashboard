@@ -12,15 +12,17 @@ import { ReviewOverlayDialog } from "./components/review/review-overlay-dialog";
 import { StatusDetailFeature } from "./components/shipping/status-detail-feature";
 import { TrackingFormFeature } from "./components/shipping/tracking-form-feature";
 import { QK } from "@/hooks/queries/queryKeys";
-import { ensureSuccess } from "@/lib/api";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import {
+  classifyMarketplaceApiError,
+  ensureMarketplaceSuccess,
   getMarketplaceGuestOrderStatus,
   submitMarketplaceOrderReview,
   trackMarketplaceOrder,
+  withMarketplaceDenyReasonMessage,
 } from "@/services/api";
 import {
-  getBuyerOrderContext,
+  readBuyerOrderContext,
   type BuyerOrderContext,
 } from "./state/buyer-checkout-context";
 import type {
@@ -28,9 +30,16 @@ import type {
   MarketplaceGuestTrackResponse,
 } from "@/types/api/marketplace";
 
-type TrackingView = "track" | "not-found" | "status";
+type TrackingView =
+  | "track"
+  | "not-found"
+  | "deny"
+  | "conflict"
+  | "service-unavailable"
+  | "status";
 type LocalTrackingPreview = {
   orderNumber: string;
+  source: "context" | "development-preset";
   detail: MarketplaceGuestOrderStatusDetailResponse;
 };
 
@@ -56,6 +65,7 @@ function buildLocalPreviewFromContext(
   const now = Math.floor(Date.now() / 1000);
   return {
     orderNumber,
+    source: "context",
     detail: {
       id: context.order.id,
       order_number: orderNumber,
@@ -80,6 +90,7 @@ function buildTrackingRecoveryPresetPreview(
   const now = Math.floor(Date.now() / 1000);
   return {
     orderNumber,
+    source: "development-preset",
     detail: {
       id: 202310240001,
       order_number: orderNumber,
@@ -110,25 +121,30 @@ function buildTrackingRecoveryPresetPreview(
 
 function resolveLocalTrackingPreview(
   orderNumber: string,
-  contact: string
+  contact: string,
+  options?: { allowDevelopmentPreset?: boolean }
 ): LocalTrackingPreview | null {
   const normalizedOrderNumber = orderNumber.trim();
   const normalizedContact = contact.trim().toLowerCase();
   const orderId = parseOrderIdFromOrderNumber(normalizedOrderNumber);
 
   if (orderId) {
-    const context = getBuyerOrderContext(orderId);
-    if (context) {
+    const contextResult = readBuyerOrderContext(orderId);
+    if (contextResult.context) {
       const candidateContacts = [
-        context.checkout.customerEmail,
-        context.checkout.customerPhone,
+        contextResult.context.checkout.customerEmail,
+        contextResult.context.checkout.customerPhone,
       ]
         .map((value) => value.trim().toLowerCase())
         .filter(Boolean);
       if (candidateContacts.includes(normalizedContact)) {
-        return buildLocalPreviewFromContext(normalizedOrderNumber, context);
+        return buildLocalPreviewFromContext(normalizedOrderNumber, contextResult.context);
       }
     }
+  }
+
+  if (!options?.allowDevelopmentPreset) {
+    return null;
   }
 
   if (
@@ -144,6 +160,7 @@ function resolveLocalTrackingPreview(
 export function MarketplaceShippingPage() {
   const { data: cart } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;
+  const allowDevelopmentPreset = process.env.NODE_ENV !== "production";
 
   const [view, setView] = useState<TrackingView>("track");
   const [orderNumber, setOrderNumber] = useState("");
@@ -164,7 +181,7 @@ export function MarketplaceShippingPage() {
 
   const trackingLookup = useMutation({
     mutationFn: async (payload: { order_number: string; contact: string }) =>
-      ensureSuccess(await trackMarketplaceOrder(payload)),
+      ensureMarketplaceSuccess(await trackMarketplaceOrder(payload)),
     onSuccess: (payload) => {
       setTrackResult(payload);
       setLocalPreview(null);
@@ -173,11 +190,12 @@ export function MarketplaceShippingPage() {
       setView("status");
     },
     onError: (err: any, payload) => {
-      const message = (err as Error)?.message?.toLowerCase() ?? "";
-      if (message.includes("not found")) {
+      const classified = classifyMarketplaceApiError(err);
+      if (classified.kind === "not_found") {
         const localResolved = resolveLocalTrackingPreview(
           payload.order_number,
-          payload.contact
+          payload.contact,
+          { allowDevelopmentPreset }
         );
         if (localResolved) {
           setTrackResult(null);
@@ -192,6 +210,37 @@ export function MarketplaceShippingPage() {
         setLocalPreview(null);
         setErrorMessage(
           "Kami tidak dapat menemukan pesanan. Periksa kode pesanan dan email/nomor HP yang digunakan saat checkout."
+        );
+        return;
+      }
+
+      if (classified.kind === "deny") {
+        setView("deny");
+        setLocalPreview(null);
+        setErrorMessage(
+          withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Akses pelacakan ditolak oleh kebijakan marketplace. Pastikan data pelacakan valid dan berasal dari tenant yang benar.",
+            code: classified.code,
+          })
+        );
+        return;
+      }
+
+      if (classified.kind === "conflict") {
+        setView("conflict");
+        setLocalPreview(null);
+        setErrorMessage(
+          "Status pesanan belum konsisten untuk ditampilkan. Tunggu beberapa saat lalu coba lacak ulang."
+        );
+        return;
+      }
+
+      if (classified.kind === "service_unavailable") {
+        setView("service-unavailable");
+        setLocalPreview(null);
+        setErrorMessage(
+          "Layanan pelacakan sedang tidak tersedia. Coba lagi beberapa menit lagi."
         );
         return;
       }
@@ -212,7 +261,9 @@ export function MarketplaceShippingPage() {
         : ["marketplace", "orders", "guest-status", "idle"],
     enabled: Boolean(orderId && trackingToken),
     queryFn: async () =>
-      ensureSuccess(await getMarketplaceGuestOrderStatus(orderId as number, trackingToken as string)),
+      ensureMarketplaceSuccess(
+        await getMarketplaceGuestOrderStatus(orderId as number, trackingToken as string)
+      ),
   });
 
   useEffect(() => {
@@ -220,19 +271,49 @@ export function MarketplaceShippingPage() {
       return;
     }
 
-    const message =
-      ((statusQuery.error as Error | undefined)?.message ?? "").toLowerCase();
+    const classified = classifyMarketplaceApiError(statusQuery.error);
 
-    if (message.includes("invalid tracking token") || message.includes("forbidden")) {
+    if (classified.kind === "deny") {
       setErrorMessage(
-        "Tautan pelacakan tidak valid atau sudah kedaluwarsa. Silakan lacak ulang pesanan Anda."
+        withMarketplaceDenyReasonMessage({
+          fallbackMessage:
+            "Tautan pelacakan ditolak oleh kebijakan marketplace. Silakan lacak ulang pesanan Anda.",
+          code: classified.code,
+        })
       );
       setView("track");
       setTrackResult(null);
       return;
     }
 
+    if (classified.kind === "not_found") {
+      setErrorMessage(
+        "Pesanan tidak ditemukan. Silakan periksa ulang kode pesanan dan data kontak Anda."
+      );
+      setView("not-found");
+      setTrackResult(null);
+      return;
+    }
+
+    if (classified.kind === "service_unavailable") {
+      setErrorMessage(
+        "Layanan pelacakan sedang tidak tersedia. Silakan coba kembali beberapa menit lagi."
+      );
+      setView("service-unavailable");
+      return;
+    }
+
+    if (classified.kind === "conflict") {
+      setErrorMessage(
+        "Status pesanan sedang diperbarui dan belum dapat ditampilkan. Silakan coba lagi."
+      );
+      setView("conflict");
+      setTrackResult(null);
+      return;
+    }
+
     setErrorMessage("Gagal memuat status pesanan. Silakan coba lagi.");
+    setView("track");
   }, [statusQuery.error, statusQuery.isError, trackResult]);
 
   const submitReview = useMutation({
@@ -243,7 +324,10 @@ export function MarketplaceShippingPage() {
         overall_comment?: string;
         items: Array<{ order_item_id: number; rating: number; comment?: string }>;
       };
-    }) => ensureSuccess(await submitMarketplaceOrderReview(payload.orderId, payload.body)),
+    }) =>
+      ensureMarketplaceSuccess(
+        await submitMarketplaceOrderReview(payload.orderId, payload.body)
+      ),
     onSuccess: async () => {
       setReviewError(undefined);
       setReviewOpen(false);
@@ -251,9 +335,29 @@ export function MarketplaceShippingPage() {
       await statusQuery.refetch();
     },
     onError: (err: any) => {
-      const message =
-        (err as Error)?.message ||
-        "Gagal mengirim ulasan. Periksa kembali data ulasan Anda.";
+      const classified = classifyMarketplaceApiError(err);
+      const message = (() => {
+        if (classified.kind === "deny") {
+          return withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Akses ulasan ditolak. Pastikan token pelacakan dan status pesanan masih valid.",
+            code: classified.code,
+          });
+        }
+        if (classified.kind === "not_found") {
+          return "Pesanan tidak ditemukan. Lakukan pelacakan ulang sebelum mengirim ulasan.";
+        }
+        if (classified.kind === "conflict") {
+          return "Ulasan tidak dapat dikirim karena status pesanan belum memenuhi syarat atau sudah pernah direview.";
+        }
+        if (classified.kind === "service_unavailable") {
+          return "Layanan ulasan sedang terganggu. Silakan coba lagi beberapa saat lagi.";
+        }
+        return (
+          classified.message ||
+          "Gagal mengirim ulasan. Periksa kembali data ulasan Anda."
+        );
+      })();
       setReviewError(message);
       showToastError("Gagal mengirim ulasan", message);
     },
@@ -348,30 +452,94 @@ export function MarketplaceShippingPage() {
           />
         ) : null}
 
-        {view === "status" && statusDetail ? (
-          <StatusDetailFeature
-            detail={statusDetail}
-            orderNumber={statusOrderNumber ?? "-"}
-            loading={statusQuery.isFetching}
-            reviewSubmitting={submitReview.isPending}
-            onRetry={() => {
-              if (trackResult) {
-                void statusQuery.refetch();
-              }
-            }}
+        {view === "deny" ? (
+          <TrackingFormFeature
+            title="Akses Pelacakan Ditolak"
+            description="Sistem menolak akses pelacakan untuk kombinasi data yang Anda kirim."
+            orderNumber={orderNumber}
+            contact={contact}
+            fieldErrors={fieldErrors}
+            errorMessage={errorMessage}
+            submitting={trackingLookup.isPending}
+            onOrderNumberChange={setOrderNumber}
+            onContactChange={setContact}
+            onSubmit={handleTrack}
             onReset={resetTracking}
-            onOpenReview={() => {
-              if (statusDetail.review_state !== "eligible") {
-                showToastError(
-                  "Ulasan belum tersedia",
-                  "Pesanan harus berstatus selesai sebelum dapat direview."
-                );
-                return;
-              }
-              setReviewError(undefined);
-              setReviewOpen(true);
-            }}
           />
+        ) : null}
+
+        {view === "service-unavailable" ? (
+          <TrackingFormFeature
+            title="Pelacakan Sedang Tidak Tersedia"
+            description="Terjadi gangguan sementara pada layanan pelacakan marketplace."
+            orderNumber={orderNumber}
+            contact={contact}
+            fieldErrors={fieldErrors}
+            errorMessage={errorMessage}
+            submitting={trackingLookup.isPending}
+            onOrderNumberChange={setOrderNumber}
+            onContactChange={setContact}
+            onSubmit={handleTrack}
+            onReset={resetTracking}
+          />
+        ) : null}
+
+        {view === "conflict" ? (
+          <TrackingFormFeature
+            title="Status Pesanan Belum Siap"
+            description="Data pesanan masih diproses sehingga status belum konsisten. Silakan coba lacak ulang."
+            orderNumber={orderNumber}
+            contact={contact}
+            fieldErrors={fieldErrors}
+            errorMessage={errorMessage}
+            submitting={trackingLookup.isPending}
+            onOrderNumberChange={setOrderNumber}
+            onContactChange={setContact}
+            onSubmit={handleTrack}
+            onReset={resetTracking}
+          />
+        ) : null}
+
+        {view === "status" && statusDetail ? (
+          <div className="space-y-4">
+            {localPreview ? (
+              <div className="mx-auto w-full max-w-5xl rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {localPreview.source === "context"
+                  ? "Data pelacakan ini berasal dari context lokal sementara di perangkat Anda. Status backend belum terkonfirmasi."
+                  : "Anda sedang menggunakan preset pelacakan simulasi (development-only). Data ini tidak berasal dari backend produksi."}
+              </div>
+            ) : null}
+            <StatusDetailFeature
+              detail={statusDetail}
+              orderNumber={statusOrderNumber ?? "-"}
+              loading={statusQuery.isFetching}
+              reviewSubmitting={submitReview.isPending}
+              onRetry={() => {
+                if (trackResult) {
+                  void statusQuery.refetch();
+                }
+              }}
+              onReset={resetTracking}
+              onOpenReview={() => {
+                if (localPreview) {
+                  showToastError(
+                    "Ulasan tidak dapat dikirim dari data lokal",
+                    "Lacak ulang hingga data backend tersedia sebelum mengirim ulasan."
+                  );
+                  return;
+                }
+                if (statusDetail.review_state !== "eligible") {
+                  showToastError(
+                    "Ulasan belum tersedia",
+                    "Pesanan harus berstatus selesai sebelum dapat direview."
+                  );
+                  return;
+                }
+                setReviewError(undefined);
+                setReviewOpen(true);
+              }}
+            />
+          </div>
         ) : null}
       </main>
 

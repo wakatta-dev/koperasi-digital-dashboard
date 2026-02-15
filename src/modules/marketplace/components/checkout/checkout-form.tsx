@@ -8,9 +8,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ensureSuccess } from "@/lib/api";
 import { showToastError, showToastSuccess } from "@/lib/toast";
-import { checkoutMarketplace } from "@/services/api";
+import {
+  checkoutMarketplace,
+  classifyMarketplaceApiError,
+  ensureMarketplaceSuccess,
+} from "@/services/api";
 import type {
   MarketplaceCartResponse,
   MarketplaceOrderResponse,
@@ -166,7 +169,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
     submittingRef.current = true;
     setSubmitting(true);
     try {
-      const order = ensureSuccess(
+      const order = ensureMarketplaceSuccess(
         await checkoutMarketplace({
           fulfillment_method: "DELIVERY",
           customer_name: checkoutSnapshot.customerName,
@@ -185,13 +188,28 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
       onSuccess(order);
       await qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
     } catch (err: any) {
-      const msg = (err as Error)?.message?.toLowerCase() ?? "";
-      if (msg.includes("insufficient stock")) {
-        showToastError("Stok tidak cukup", err);
-      } else if (msg.includes("not available")) {
-        showToastError("Produk tidak tersedia", err);
+      const classified = classifyMarketplaceApiError(err);
+      if (classified.kind === "deny") {
+        showToastError(
+          "Akses checkout ditolak",
+          "Permintaan checkout ditolak kebijakan marketplace. Periksa akun atau coba ulang dari sesi yang valid."
+        );
+      } else if (classified.kind === "conflict") {
+        showToastError("Checkout bentrok", err);
+      } else if (classified.kind === "service_unavailable") {
+        showToastError(
+          "Layanan checkout sedang terganggu",
+          "Silakan coba beberapa saat lagi."
+        );
       } else {
-        showToastError("Gagal checkout", err);
+        const msg = (classified.message ?? "").toLowerCase();
+        if (msg.includes("insufficient stock")) {
+          showToastError("Stok tidak cukup", err);
+        } else if (msg.includes("not available")) {
+          showToastError("Produk tidak tersedia", err);
+        } else {
+          showToastError("Gagal checkout", err);
+        }
       }
     } finally {
       submittingRef.current = false;
@@ -421,7 +439,10 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
         onClick={handleSubmit}
       >
         {submitting ? "Memproses..." : "Bayar Sekarang"}
-        <span className="material-icons-outlined text-lg transition-transform group-hover:translate-x-1">
+        <span
+          aria-hidden="true"
+          className="material-icons-outlined text-lg transition-transform group-hover:translate-x-1"
+        >
           arrow_forward
         </span>
       </Button>

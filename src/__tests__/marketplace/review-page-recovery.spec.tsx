@@ -2,7 +2,7 @@
 
 // @vitest-environment jsdom
 import React from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -14,10 +14,14 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams,
 }));
 
-vi.mock("@/services/api", () => ({
-  getMarketplaceGuestOrderStatus: vi.fn(),
-  submitMarketplaceOrderReview: vi.fn(),
-}));
+vi.mock("@/services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/api")>();
+  return {
+    ...actual,
+    getMarketplaceGuestOrderStatus: vi.fn(),
+    submitMarketplaceOrderReview: vi.fn(),
+  };
+});
 
 vi.mock("@/lib/toast", () => ({
   showToastError: vi.fn(),
@@ -42,6 +46,10 @@ describe("marketplace review recovery page", () => {
   beforeEach(() => {
     searchParams.delete("order_id");
     searchParams.delete("tracking_token");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("supports quick review overlay flow when tracking params are absent", async () => {
@@ -71,5 +79,18 @@ describe("marketplace review recovery page", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).toBeNull();
     });
+  });
+
+  it("turns off development quick review flow in production mode", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    renderWithClient();
+
+    const actionButton = screen.getByRole("button", {
+      name: /Gunakan Pelacakan Pesanan/i,
+    }) as HTMLButtonElement;
+    expect(actionButton.disabled).toBe(true);
+    expect(
+      screen.getByText(/hanya tersedia di development/i)
+    ).toBeTruthy();
   });
 });

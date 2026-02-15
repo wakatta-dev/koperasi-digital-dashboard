@@ -9,12 +9,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { QK } from "@/hooks/queries/queryKeys";
-import { ensureSuccess } from "@/lib/api";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import { ReviewOverlayDialog } from "./components/review/review-overlay-dialog";
 import {
+  classifyMarketplaceApiError,
+  ensureMarketplaceSuccess,
   getMarketplaceGuestOrderStatus,
   submitMarketplaceOrderReview,
+  withMarketplaceDenyReasonMessage,
 } from "@/services/api";
 
 export function MarketplaceReviewPage() {
@@ -22,6 +24,7 @@ export function MarketplaceReviewPage() {
   const orderId = Number(searchParams.get("order_id") ?? "");
   const trackingToken = searchParams.get("tracking_token") ?? "";
   const hasTrackingParams = Boolean(orderId > 0 && trackingToken);
+  const allowDevelopmentQuickReview = process.env.NODE_ENV !== "production";
 
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -33,8 +36,34 @@ export function MarketplaceReviewPage() {
         : ["marketplace", "review", "idle"],
     enabled: hasTrackingParams,
     queryFn: async () =>
-      ensureSuccess(await getMarketplaceGuestOrderStatus(orderId, trackingToken)),
+      ensureMarketplaceSuccess(
+        await getMarketplaceGuestOrderStatus(orderId, trackingToken)
+      ),
   });
+
+  const statusQueryErrorMessage = useMemo(() => {
+    if (!statusQuery.isError) {
+      return null;
+    }
+    const classified = classifyMarketplaceApiError(statusQuery.error);
+    if (classified.kind === "deny") {
+      return withMarketplaceDenyReasonMessage({
+        fallbackMessage:
+          "Akses ulasan ditolak. Pastikan tautan berasal dari pelacakan pesanan yang valid.",
+        code: classified.code,
+      });
+    }
+    if (classified.kind === "not_found") {
+      return "Pesanan tidak ditemukan. Periksa ulang tautan ulasan Anda dari halaman pelacakan.";
+    }
+    if (classified.kind === "conflict") {
+      return "Ulasan belum dapat dibuka karena status pesanan belum memenuhi syarat.";
+    }
+    if (classified.kind === "service_unavailable") {
+      return "Layanan ulasan sedang tidak tersedia. Coba lagi beberapa menit lagi.";
+    }
+    return "Gagal memuat status pesanan. Pastikan tautan ulasan masih valid.";
+  }, [statusQuery.error, statusQuery.isError]);
 
   const submitReview = useMutation({
     mutationFn: async (payload: {
@@ -44,14 +73,37 @@ export function MarketplaceReviewPage() {
         overall_comment?: string;
         items: Array<{ order_item_id: number; rating: number; comment?: string }>;
       };
-    }) => ensureSuccess(await submitMarketplaceOrderReview(payload.orderId, payload.body)),
+    }) =>
+      ensureMarketplaceSuccess(
+        await submitMarketplaceOrderReview(payload.orderId, payload.body)
+      ),
     onSuccess: async () => {
       showToastSuccess("Ulasan terkirim", "Terima kasih atas ulasan Anda.");
       setOpen(false);
       await statusQuery.refetch();
     },
     onError: (err: any) => {
-      showToastError("Gagal mengirim ulasan", err);
+      const classified = classifyMarketplaceApiError(err);
+      const message = (() => {
+        if (classified.kind === "deny") {
+          return withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Akses ulasan ditolak. Pastikan token pelacakan masih valid.",
+            code: classified.code,
+          });
+        }
+        if (classified.kind === "not_found") {
+          return "Pesanan tidak ditemukan. Buka ulang dari halaman pelacakan.";
+        }
+        if (classified.kind === "conflict") {
+          return "Ulasan tidak dapat dikirim karena status pesanan belum eligible atau sudah pernah direview.";
+        }
+        if (classified.kind === "service_unavailable") {
+          return "Layanan ulasan sedang terganggu. Silakan coba kembali beberapa saat lagi.";
+        }
+        return classified.message || "Gagal mengirim ulasan.";
+      })();
+      showToastError("Gagal mengirim ulasan", message);
     },
   });
 
@@ -72,8 +124,11 @@ export function MarketplaceReviewPage() {
   const canOpenReview =
     statusQuery.data?.review_state === "eligible" && reviewItems.length > 0;
   const quickReviewItems = useMemo(
-    () => [{ id: "1", orderItemId: 1, name: "Produk Pesanan Marketplace" }],
-    []
+    () =>
+      allowDevelopmentQuickReview
+        ? [{ id: "1", orderItemId: 1, name: "Produk Pesanan Marketplace" }]
+        : [],
+    [allowDevelopmentQuickReview]
   );
   const activeReviewItems = hasTrackingParams ? reviewItems : quickReviewItems;
 
@@ -94,6 +149,12 @@ export function MarketplaceReviewPage() {
               Buka konfirmasi pesanan untuk mengisi ulasan. Untuk sinkronisasi otomatis,
               akses ulasan dari halaman pelacakan pesanan.
             </p>
+            {!allowDevelopmentQuickReview ? (
+              <p className="text-sm text-amber-700">
+                Mode pengisian ulasan tanpa token hanya tersedia di development.
+                Di production, ulasan wajib melalui data backend dari pelacakan.
+              </p>
+            ) : null}
             <Link
               href="/marketplace/pengiriman"
               className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
@@ -110,7 +171,7 @@ export function MarketplaceReviewPage() {
         {hasTrackingParams && statusQuery.isError ? (
           <div className="space-y-3">
             <p className="text-sm text-destructive">
-              Gagal memuat status pesanan. Pastikan tautan ulasan masih valid.
+              {statusQueryErrorMessage}
             </p>
             <Button type="button" variant="outline" onClick={() => statusQuery.refetch()}>
               Muat Ulang
@@ -151,9 +212,12 @@ export function MarketplaceReviewPage() {
             ref={triggerRef}
             type="button"
             className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
+            disabled={!allowDevelopmentQuickReview}
             onClick={() => setOpen(true)}
           >
-            Buka Konfirmasi Pesanan
+            {allowDevelopmentQuickReview
+              ? "Buka Konfirmasi Pesanan"
+              : "Gunakan Pelacakan Pesanan"}
           </Button>
         ) : null}
       </div>
@@ -165,9 +229,17 @@ export function MarketplaceReviewPage() {
         submitting={submitReview.isPending}
         onSubmit={({ items, overallComment }) => {
           if (!hasTrackingParams) {
+            if (!allowDevelopmentQuickReview) {
+              showToastError(
+                "Ulasan membutuhkan data backend",
+                "Silakan buka ulasan dari halaman pelacakan pesanan."
+              );
+              setOpen(false);
+              return;
+            }
             showToastSuccess(
-              "Konfirmasi diterima",
-              "Silakan buka pelacakan pesanan untuk mengirim ulasan ke sistem."
+              "Simulasi konfirmasi tersimpan",
+              "Mode ini hanya untuk development. Kirim ulasan production melalui pelacakan pesanan."
             );
             setOpen(false);
             return;

@@ -3,7 +3,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MarketplaceShippingPage } from "@/modules/marketplace/shipping-page";
 
@@ -17,13 +17,18 @@ vi.mock("@/modules/marketplace/hooks/useMarketplaceProducts", () => ({
   }),
 }));
 
-vi.mock("@/services/api", () => ({
-  trackMarketplaceOrder: (...args: any[]) => trackMarketplaceOrderMock(...args),
-  getMarketplaceGuestOrderStatus: (...args: any[]) =>
-    getMarketplaceGuestOrderStatusMock(...args),
-  submitMarketplaceOrderReview: (...args: any[]) =>
-    submitMarketplaceOrderReviewMock(...args),
-}));
+vi.mock("@/services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/api")>();
+  return {
+    ...actual,
+    trackMarketplaceOrder: (...args: any[]) =>
+      trackMarketplaceOrderMock(...args),
+    getMarketplaceGuestOrderStatus: (...args: any[]) =>
+      getMarketplaceGuestOrderStatusMock(...args),
+    submitMarketplaceOrderReview: (...args: any[]) =>
+      submitMarketplaceOrderReviewMock(...args),
+  };
+});
 
 vi.mock("@/lib/toast", () => ({
   showToastSuccess: vi.fn(),
@@ -43,7 +48,7 @@ function responseSuccess<T>(data: T) {
   };
 }
 
-function responseError(message: string) {
+function responseError(message: string, statusCode = 404) {
   return {
     success: false,
     message,
@@ -51,6 +56,7 @@ function responseError(message: string) {
     meta: {
       request_id: "req-2",
       timestamp: new Date().toISOString(),
+      status_code: statusCode,
     },
     errors: {
       error: [message],
@@ -74,6 +80,32 @@ describe("tracking and review overlay flow", () => {
     trackMarketplaceOrderMock.mockReset();
     getMarketplaceGuestOrderStatusMock.mockReset();
     submitMarketplaceOrderReviewMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("maps deny path to explicit deny UI and blocks success state", async () => {
+    trackMarketplaceOrderMock.mockResolvedValue(
+      responseError("FORBIDDEN_TENANT", 403)
+    );
+
+    renderWithClient(<MarketplaceShippingPage />);
+
+    fireEvent.change(screen.getByLabelText("Kode Pesanan"), {
+      target: { value: "ORD-2026-403" },
+    });
+    fireEvent.change(screen.getByLabelText("Email / Nomor HP"), {
+      target: { value: "buyer@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Lacak Pesanan Saya" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Akses Pelacakan Ditolak")).toBeTruthy();
+      expect(screen.getByText(/Alasan:/i)).toBeTruthy();
+      expect(screen.queryByText("Status Pesanan")).toBeNull();
+    });
   });
 
   it("validates tracking input and shows not-found branch from backend", async () => {
@@ -180,6 +212,28 @@ describe("tracking and review overlay flow", () => {
           },
         ],
       });
+    });
+  });
+
+  it("disables development preset fallback in production mode", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    trackMarketplaceOrderMock.mockResolvedValue(responseError("order not found"));
+
+    renderWithClient(<MarketplaceShippingPage />);
+
+    fireEvent.change(screen.getByLabelText("Kode Pesanan"), {
+      target: { value: "INV-20231024-0001" },
+    });
+    fireEvent.change(screen.getByLabelText("Email / Nomor HP"), {
+      target: { value: "budi@email.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Lacak Pesanan Saya" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Pesanan Tidak Ditemukan")).toBeTruthy();
+      expect(
+        screen.queryByText(/preset pelacakan simulasi/i)
+      ).toBeNull();
     });
   });
 });

@@ -30,11 +30,11 @@ describe("marketplace cutover regression", () => {
   });
 
   it("keeps CTA targets on replacement buyer routes", () => {
-    const summaryCard = read("src/modules/marketplace/components/order/order-summary-card.tsx");
+    const cartPage = read("src/modules/marketplace/cart-page.tsx");
     const paymentPage = read("src/modules/marketplace/payment-page.tsx");
     const header = read("src/modules/marketplace/components/layout/header.tsx");
 
-    expect(summaryCard).toContain('href="/marketplace/pembayaran"');
+    expect(cartPage).toContain("/marketplace/pembayaran?order_id=");
     expect(paymentPage).toContain("/marketplace/konfirmasi?order_id=");
     expect(paymentPage).not.toContain('router.push("/marketplace/ulasan")');
     expect(header).toContain('href="/marketplace/pengiriman"');

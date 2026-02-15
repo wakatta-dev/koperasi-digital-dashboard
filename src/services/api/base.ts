@@ -196,8 +196,10 @@ async function request<T>(
         meta: {
           request_id: "",
           timestamp: new Date().toISOString(),
+          status_code: 0,
         } as any,
         errors: null,
+        error: null,
       };
     }
 
@@ -220,8 +222,10 @@ async function request<T>(
         meta: {
           request_id: res.headers.get("x-request-id") ?? "",
           timestamp: new Date().toISOString(),
+          status_code: res.status,
         } as any,
         errors: null,
+        error: null,
       };
     }
 
@@ -239,6 +243,7 @@ async function request<T>(
         (json?.meta as Meta | undefined) ?? {
           request_id: res.headers.get("x-request-id") ?? "",
           timestamp: new Date().toISOString(),
+          status_code: res.status,
         };
 
       return {
@@ -247,6 +252,7 @@ async function request<T>(
         data: null as any,
         meta,
         errors: json?.errors ?? null,
+        error: json?.error ?? null,
       };
     }
 
@@ -254,6 +260,7 @@ async function request<T>(
       const meta: Meta = {
         request_id: res.headers.get("x-request-id") ?? "",
         timestamp: new Date().toISOString(),
+        status_code: res.status,
       };
       return {
         success: true,
@@ -261,6 +268,7 @@ async function request<T>(
         data: null,
         meta,
         errors: null,
+        error: null,
       };
     }
 
@@ -274,9 +282,19 @@ async function request<T>(
         meta: (json?.meta as any) ?? {
           request_id: res.headers.get("x-request-id") ?? "",
           timestamp: new Date().toISOString(),
+          status_code: res.status,
         },
         errors: json?.errors ?? null,
+        error: json?.error ?? null,
       };
+    }
+
+    json.meta = {
+      ...json.meta,
+      status_code: json.meta?.status_code ?? res.status,
+    };
+    if (json.error === undefined) {
+      json.error = null;
     }
 
     return json;
