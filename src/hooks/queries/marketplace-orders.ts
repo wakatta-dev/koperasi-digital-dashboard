@@ -4,9 +4,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 import {
+  ensureMarketplaceSuccess,
   getMarketplaceOrderDetail,
   listMarketplaceOrders,
   updateMarketplaceOrderStatus,
@@ -40,7 +40,7 @@ export function useMarketplaceOrders(
   return useQuery({
     queryKey: QK.marketplace.orders(normalized),
     queryFn: async (): Promise<MarketplaceOrderListResponse> =>
-      ensureSuccess(await listMarketplaceOrders(normalized)),
+      ensureMarketplaceSuccess(await listMarketplaceOrders(normalized)),
     ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
   });
 }
@@ -53,7 +53,7 @@ export function useMarketplaceOrder(
     queryKey: QK.marketplace.orderDetail(id ?? ""),
     enabled: Boolean(id) && (options?.enabled ?? true),
     queryFn: async (): Promise<MarketplaceOrderDetailResponse> =>
-      ensureSuccess(await getMarketplaceOrderDetail(id as string | number)),
+      ensureMarketplaceSuccess(await getMarketplaceOrderDetail(id as string | number)),
   });
 }
 
@@ -74,7 +74,7 @@ export function useMarketplaceOrderActions() {
     mutationFn: async (vars: {
       id: string | number;
       payload: MarketplaceOrderStatusUpdateRequest;
-    }) => ensureSuccess(await updateMarketplaceOrderStatus(vars.id, vars.payload)),
+    }) => ensureMarketplaceSuccess(await updateMarketplaceOrderStatus(vars.id, vars.payload)),
     onSuccess: (_data, vars) => {
       invalidateLists();
       invalidateDetail(vars.id);
