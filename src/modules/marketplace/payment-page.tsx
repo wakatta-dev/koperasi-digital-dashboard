@@ -13,14 +13,20 @@ import { PaymentSteps } from "./components/payment/payment-steps";
 import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
 import {
   attachBuyerManualPayment,
-  getBuyerOrderContext,
+  BUYER_ORDER_CONTEXT_TTL_MS,
+  readBuyerOrderContext,
+  type BuyerOrderContextReadResult,
 } from "./state/buyer-checkout-context";
 import { Button } from "@/components/ui/button";
 import { useMarketplaceOrder } from "@/hooks/queries/marketplace-orders";
-import { ensureSuccess } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { showToastError, showToastSuccess } from "@/lib/toast";
-import { submitMarketplaceManualPayment } from "@/services/api";
+import {
+  classifyMarketplaceApiError,
+  ensureMarketplaceSuccess,
+  submitMarketplaceManualPayment,
+  withMarketplaceDenyReasonMessage,
+} from "@/services/api";
 
 const BANK_ACCOUNT = "1234 5678 9012 3456";
 const BANK_NAME = "Bank BRI";
@@ -50,12 +56,14 @@ export function MarketplacePaymentPage() {
     data: orderDetail,
     isLoading: orderLoading,
     isError: orderError,
+    error: orderQueryError,
     refetch: refetchOrder,
   } = useMarketplaceOrder(orderId, { enabled: Number.isFinite(orderId) && orderId > 0 });
 
-  const [storedContext, setStoredContext] = useState<
-    ReturnType<typeof getBuyerOrderContext>
-  >(null);
+  const [contextResult, setContextResult] = useState<BuyerOrderContextReadResult>({
+    context: null,
+    state: "missing",
+  });
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofTouched, setProofTouched] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -63,11 +71,13 @@ export function MarketplacePaymentPage() {
 
   useEffect(() => {
     if (!Number.isFinite(orderId) || orderId <= 0) {
+      setContextResult({ context: null, state: "missing" });
       return;
     }
-    setStoredContext(getBuyerOrderContext(orderId));
+    setContextResult(readBuyerOrderContext(orderId));
   }, [orderId]);
 
+  const storedContext = contextResult.context;
   const orderItems = orderDetail?.items ?? storedContext?.order.items ?? [];
   const totalPayment = orderDetail?.total ?? storedContext?.order.total ?? 0;
   const orderLabel = useMemo(() => {
@@ -82,7 +92,66 @@ export function MarketplacePaymentPage() {
   const customerEmail =
     orderDetail?.customer_email ?? storedContext?.checkout.customerEmail ?? "";
 
+  const isBackendConfirmed = Boolean(orderDetail);
   const hasOrderContext = Boolean(orderId > 0 && (orderDetail || storedContext));
+
+  const orderErrorCopy = useMemo(() => {
+    if (!orderError) {
+      return null;
+    }
+    const classified = classifyMarketplaceApiError(orderQueryError);
+    if (classified.kind === "deny") {
+      return {
+        title: "Akses pembayaran ditolak",
+        message: withMarketplaceDenyReasonMessage({
+          fallbackMessage:
+            "Data pembayaran untuk pesanan ini ditolak oleh kebijakan marketplace.",
+          code: classified.code,
+        }),
+      };
+    }
+    if (classified.kind === "not_found") {
+      return {
+        title: "Pesanan tidak ditemukan",
+        message:
+          "Pesanan tidak tersedia di backend. Kembali ke keranjang atau lacak pesanan untuk mendapatkan tautan yang valid.",
+      };
+    }
+    if (classified.kind === "conflict") {
+      return {
+        title: "Status pesanan belum siap",
+        message:
+          "Status pesanan sedang berubah sehingga pembayaran manual belum dapat diproses. Silakan muat ulang beberapa saat lagi.",
+      };
+    }
+    if (classified.kind === "service_unavailable") {
+      return {
+        title: "Layanan pembayaran tidak tersedia",
+        message:
+          "Layanan marketplace sedang terganggu. Coba lagi dalam beberapa menit.",
+      };
+    }
+    return {
+      title: "Gagal memuat data pesanan",
+      message: "Terjadi gangguan saat memuat detail pesanan. Silakan coba lagi.",
+    };
+  }, [orderError, orderQueryError]);
+
+  const contextStateNotice = useMemo(() => {
+    if (orderDetail) {
+      return null;
+    }
+    if (contextResult.state === "stale") {
+      return `Konteks checkout lokal sudah kedaluwarsa (lebih dari ${Math.floor(
+        BUYER_ORDER_CONTEXT_TTL_MS / (60 * 60 * 1000)
+      )} jam). Lanjutkan melalui pelacakan pesanan atau checkout ulang.`;
+    }
+    if (contextResult.state === "invalid") {
+      return "Konteks checkout lokal tidak valid dan sudah dibersihkan. Buka kembali dari keranjang atau pelacakan pesanan.";
+    }
+    return null;
+  }, [contextResult.state, orderDetail]);
+  const isUsingLocalContext = Boolean(orderId > 0 && !orderDetail && storedContext);
 
   const handleCopy = async (value: string, label: string) => {
     try {
@@ -135,7 +204,7 @@ export function MarketplacePaymentPage() {
     setUploading(true);
     setUploadError(null);
     try {
-      const payment = ensureSuccess(
+      const payment = ensureMarketplaceSuccess(
         await submitMarketplaceManualPayment(orderId, {
           file: proofFile,
           note: "Upload dari halaman pembayaran buyer marketplace",
@@ -150,9 +219,29 @@ export function MarketplacePaymentPage() {
       showToastSuccess("Bukti pembayaran terkirim", "Lanjutkan ke halaman konfirmasi.");
       router.push(`/marketplace/konfirmasi?order_id=${orderId}`);
     } catch (err: any) {
-      const message =
-        (err as Error)?.message ||
-        "Gagal mengunggah bukti pembayaran. Silakan periksa file dan coba lagi.";
+      const classified = classifyMarketplaceApiError(err);
+      const message = (() => {
+        if (classified.kind === "deny") {
+          return withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Unggah bukti pembayaran ditolak oleh kebijakan marketplace.",
+            code: classified.code,
+          });
+        }
+        if (classified.kind === "not_found") {
+          return "Pesanan tidak ditemukan. Kembali ke keranjang dan lakukan checkout ulang.";
+        }
+        if (classified.kind === "conflict") {
+          return "Bukti pembayaran belum dapat diterima karena status pesanan belum sesuai.";
+        }
+        if (classified.kind === "service_unavailable") {
+          return "Layanan pembayaran sedang tidak tersedia. Silakan coba lagi beberapa menit lagi.";
+        }
+        return (
+          classified.message ||
+          "Gagal mengunggah bukti pembayaran. Silakan periksa file dan coba lagi."
+        );
+      })();
       setUploadError(message);
       showToastError("Gagal mengunggah bukti", message);
     } finally {
@@ -169,11 +258,33 @@ export function MarketplacePaymentPage() {
           <PaymentSteps />
 
           {hasOrderContext ? (
-            <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
-              <h2 className="text-xl font-bold">Checkout berhasil</h2>
+            <div
+              className={`mb-6 rounded-2xl p-5 ${
+                isBackendConfirmed
+                  ? "border border-emerald-200 bg-emerald-50 text-emerald-900"
+                  : "border border-amber-300 bg-amber-50 text-amber-900"
+              }`}
+            >
+              <h2 className="text-xl font-bold">
+                {isBackendConfirmed
+                  ? "Checkout berhasil"
+                  : "Data checkout lokal sementara"}
+              </h2>
               <p className="mt-1 text-sm">
                 Order ID: {orderLabel}
               </p>
+              {!isBackendConfirmed ? (
+                <p className="mt-2 text-sm">
+                  Detail ini berasal dari context lokal sementara di perangkat Anda.
+                  Status backend belum terkonfirmasi.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          {isUsingLocalContext ? (
+            <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              Anda melihat konteks pesanan lokal sementara. Status backend belum
+              terkonfirmasi penuh.
             </div>
           ) : null}
 
@@ -215,17 +326,36 @@ export function MarketplacePaymentPage() {
             </div>
           ) : null}
 
+          {contextStateNotice && !hasOrderContext ? (
+            <div className="bg-card rounded-2xl shadow-sm border border-amber-300 bg-amber-50 p-6 text-amber-900">
+              {contextStateNotice}
+            </div>
+          ) : null}
+
           {orderError && !storedContext ? (
-            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-destructive space-y-3">
-              <p>Gagal memuat detail pesanan. Silakan coba lagi.</p>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-border text-foreground hover:bg-muted"
-                onClick={() => refetchOrder()}
-              >
-                Muat Ulang
-              </Button>
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-3">
+              <p className="font-semibold text-destructive">
+                {orderErrorCopy?.title ?? "Gagal memuat detail pesanan"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {orderErrorCopy?.message ?? "Silakan coba lagi."}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-border text-foreground hover:bg-muted"
+                  onClick={() => refetchOrder()}
+                >
+                  Muat Ulang
+                </Button>
+                <Link
+                  href="/marketplace/pengiriman"
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+                >
+                  Ke Pelacakan
+                </Link>
+              </div>
             </div>
           ) : null}
 
@@ -462,7 +592,7 @@ export function MarketplacePaymentPage() {
                   <Button
                     type="button"
                     onClick={handleNext}
-                    disabled={!proofFile || uploading}
+                    disabled={!proofFile || uploading || !hasOrderContext}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 font-bold disabled:opacity-50"
                   >
                     {uploading ? "Mengirim bukti..." : "Konfirmasi Pembayaran Saya"}

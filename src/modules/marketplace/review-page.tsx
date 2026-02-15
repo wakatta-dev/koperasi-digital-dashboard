@@ -16,6 +16,7 @@ import {
   ensureMarketplaceSuccess,
   getMarketplaceGuestOrderStatus,
   submitMarketplaceOrderReview,
+  withMarketplaceDenyReasonMessage,
 } from "@/services/api";
 
 export function MarketplaceReviewPage() {
@@ -46,7 +47,11 @@ export function MarketplaceReviewPage() {
     }
     const classified = classifyMarketplaceApiError(statusQuery.error);
     if (classified.kind === "deny") {
-      return "Akses ulasan ditolak. Pastikan tautan berasal dari pelacakan pesanan yang valid.";
+      return withMarketplaceDenyReasonMessage({
+        fallbackMessage:
+          "Akses ulasan ditolak. Pastikan tautan berasal dari pelacakan pesanan yang valid.",
+        code: classified.code,
+      });
     }
     if (classified.kind === "not_found") {
       return "Pesanan tidak ditemukan. Periksa ulang tautan ulasan Anda dari halaman pelacakan.";
@@ -81,7 +86,14 @@ export function MarketplaceReviewPage() {
       const classified = classifyMarketplaceApiError(err);
       const message = (() => {
         if (classified.kind === "deny") {
-          return "Akses ulasan ditolak. Pastikan token pelacakan masih valid.";
+          return withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Akses ulasan ditolak. Pastikan token pelacakan masih valid.",
+            code: classified.code,
+          });
+        }
+        if (classified.kind === "not_found") {
+          return "Pesanan tidak ditemukan. Buka ulang dari halaman pelacakan.";
         }
         if (classified.kind === "conflict") {
           return "Ulasan tidak dapat dikirim karena status pesanan belum eligible atau sudah pernah direview.";

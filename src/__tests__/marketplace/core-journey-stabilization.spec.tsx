@@ -16,9 +16,13 @@ const checkoutMarketplaceMock = vi.fn();
 const saveBuyerOrderContextMock = vi.fn();
 const showToastErrorMock = vi.fn();
 
-vi.mock("@/services/api", () => ({
-  checkoutMarketplace: (...args: any[]) => checkoutMarketplaceMock(...args),
-}));
+vi.mock("@/services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/api")>();
+  return {
+    ...actual,
+    checkoutMarketplace: (...args: any[]) => checkoutMarketplaceMock(...args),
+  };
+});
 
 vi.mock("@/modules/marketplace/state/buyer-checkout-context", () => ({
   saveBuyerOrderContext: (...args: any[]) => saveBuyerOrderContextMock(...args),
@@ -120,7 +124,7 @@ describe("core buyer checkout stabilization", () => {
   it("keeps checkout submit disabled until required data is complete", async () => {
     renderWithClient(<CheckoutForm cart={makeCart()} onSuccess={vi.fn()} />);
 
-    const submitButton = screen.getByRole("button", { name: "Bayar Sekarang" });
+    const submitButton = screen.getByRole("button", { name: /Bayar Sekarang/i });
     expect((submitButton as HTMLButtonElement).disabled).toBe(true);
 
     fireEvent.click(submitButton);
@@ -144,7 +148,7 @@ describe("core buyer checkout stabilization", () => {
 
     fillCheckoutForm();
 
-    const submitButton = screen.getByRole("button", { name: "Bayar Sekarang" });
+    const submitButton = screen.getByRole("button", { name: /Bayar Sekarang/i });
     fireEvent.click(submitButton);
     fireEvent.click(submitButton);
 

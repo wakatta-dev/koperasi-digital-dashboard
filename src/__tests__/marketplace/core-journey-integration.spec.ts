@@ -11,12 +11,9 @@ function read(relPath: string) {
 }
 
 describe("buyer core journey integration", () => {
-  it("keeps checkout summary CTA on replacement payment route", () => {
-    const source = read(
-      "src/modules/marketplace/components/order/order-summary-card.tsx",
-    );
-
-    expect(source).toContain('href="/marketplace/pembayaran"');
+  it("keeps checkout route transition on replacement payment route", () => {
+    const source = read("src/modules/marketplace/cart-page.tsx");
+    expect(source).toContain("/marketplace/pembayaran?order_id=");
   });
 
   it("routes payment confirmation into replacement confirmation page", () => {

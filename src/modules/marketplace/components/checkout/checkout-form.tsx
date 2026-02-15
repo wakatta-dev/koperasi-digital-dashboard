@@ -439,7 +439,10 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
         onClick={handleSubmit}
       >
         {submitting ? "Memproses..." : "Bayar Sekarang"}
-        <span className="material-icons-outlined text-lg transition-transform group-hover:translate-x-1">
+        <span
+          aria-hidden="true"
+          className="material-icons-outlined text-lg transition-transform group-hover:translate-x-1"
+        >
           arrow_forward
         </span>
       </Button>

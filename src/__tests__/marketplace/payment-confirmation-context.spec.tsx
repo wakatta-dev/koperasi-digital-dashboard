@@ -30,13 +30,26 @@ vi.mock("@/hooks/queries/marketplace-orders", () => ({
   useMarketplaceOrder: (...args: any[]) => useMarketplaceOrderMock(...args),
 }));
 
-vi.mock("@/services/api", () => ({
-  submitMarketplaceManualPayment: (...args: any[]) =>
-    submitMarketplaceManualPaymentMock(...args),
-}));
+vi.mock("@/services/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/api")>();
+  return {
+    ...actual,
+    submitMarketplaceManualPayment: (...args: any[]) =>
+      submitMarketplaceManualPaymentMock(...args),
+  };
+});
 
 vi.mock("@/modules/marketplace/state/buyer-checkout-context", () => ({
   getBuyerOrderContext: (...args: any[]) => getBuyerOrderContextMock(...args),
+  readBuyerOrderContext: (...args: any[]) => {
+    const context = getBuyerOrderContextMock(...args);
+    return {
+      context,
+      state: context ? "fresh" : "missing",
+      ageMs: context ? 1000 : undefined,
+    };
+  },
+  BUYER_ORDER_CONTEXT_TTL_MS: 24 * 60 * 60 * 1000,
   attachBuyerManualPayment: (...args: any[]) => attachBuyerManualPaymentMock(...args),
 }));
 
@@ -167,5 +180,61 @@ describe("payment and confirmation context integrity", () => {
     expect(screen.getByText("Pesanan Berhasil Dibuat")).toBeTruthy();
     expect(screen.getByText("#ORD-2026-055")).toBeTruthy();
     expect(screen.getByText("Kopi Arabika x 1")).toBeTruthy();
+  });
+
+  it("shows local-context indicator when backend detail is unavailable", () => {
+    currentSearchParams = new URLSearchParams("order_id=77");
+
+    useMarketplaceOrderMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    getBuyerOrderContextMock.mockReturnValue({
+      order: {
+        id: 77,
+        status: "PENDING_PAYMENT",
+        fulfillment_method: "DELIVERY",
+        customer_name: "Sinta",
+        customer_phone: "081212300000",
+        customer_email: "buyer@example.com",
+        customer_address: "Jl. Melati No. 10",
+        notes: "-",
+        total: 50000,
+        items: [
+          {
+            order_item_id: 12,
+            product_id: 1,
+            product_name: "Kopi Arabika",
+            product_sku: "KOP-001",
+            quantity: 1,
+            price: 50000,
+            subtotal: 50000,
+          },
+        ],
+        created_at: 1739491200,
+      },
+      checkout: {
+        customerName: "Sinta",
+        customerPhone: "081212300000",
+        customerEmail: "buyer@example.com",
+        customerAddress: "Jl. Melati No. 10",
+        shippingOption: "REGULER",
+        paymentMethod: "TRANSFER_BANK",
+        submittedAt: Date.now(),
+      },
+    });
+
+    render(<MarketplacePaymentPage />);
+    expect(
+      screen.getByText(/detail ini berasal dari context lokal sementara/i)
+    ).toBeTruthy();
+
+    render(<MarketplaceConfirmationPage />);
+    expect(
+      screen.getByText(/konfirmasi backend belum tersedia/i)
+    ).toBeTruthy();
   });
 });

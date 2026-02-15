@@ -19,6 +19,7 @@ import {
   getMarketplaceGuestOrderStatus,
   submitMarketplaceOrderReview,
   trackMarketplaceOrder,
+  withMarketplaceDenyReasonMessage,
 } from "@/services/api";
 import {
   readBuyerOrderContext,
@@ -33,6 +34,7 @@ type TrackingView =
   | "track"
   | "not-found"
   | "deny"
+  | "conflict"
   | "service-unavailable"
   | "status";
 type LocalTrackingPreview = {
@@ -216,7 +218,20 @@ export function MarketplaceShippingPage() {
         setView("deny");
         setLocalPreview(null);
         setErrorMessage(
-          "Akses pelacakan ditolak oleh kebijakan marketplace. Pastikan data pelacakan valid dan berasal dari tenant yang benar."
+          withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Akses pelacakan ditolak oleh kebijakan marketplace. Pastikan data pelacakan valid dan berasal dari tenant yang benar.",
+            code: classified.code,
+          })
+        );
+        return;
+      }
+
+      if (classified.kind === "conflict") {
+        setView("conflict");
+        setLocalPreview(null);
+        setErrorMessage(
+          "Status pesanan belum konsisten untuk ditampilkan. Tunggu beberapa saat lalu coba lacak ulang."
         );
         return;
       }
@@ -260,7 +275,11 @@ export function MarketplaceShippingPage() {
 
     if (classified.kind === "deny") {
       setErrorMessage(
-        "Tautan pelacakan tidak valid atau sudah kedaluwarsa. Silakan lacak ulang pesanan Anda."
+        withMarketplaceDenyReasonMessage({
+          fallbackMessage:
+            "Tautan pelacakan ditolak oleh kebijakan marketplace. Silakan lacak ulang pesanan Anda.",
+          code: classified.code,
+        })
       );
       setView("track");
       setTrackResult(null);
@@ -281,6 +300,15 @@ export function MarketplaceShippingPage() {
         "Layanan pelacakan sedang tidak tersedia. Silakan coba kembali beberapa menit lagi."
       );
       setView("service-unavailable");
+      return;
+    }
+
+    if (classified.kind === "conflict") {
+      setErrorMessage(
+        "Status pesanan sedang diperbarui dan belum dapat ditampilkan. Silakan coba lagi."
+      );
+      setView("conflict");
+      setTrackResult(null);
       return;
     }
 
@@ -310,7 +338,14 @@ export function MarketplaceShippingPage() {
       const classified = classifyMarketplaceApiError(err);
       const message = (() => {
         if (classified.kind === "deny") {
-          return "Akses ulasan ditolak. Pastikan token pelacakan dan status pesanan masih valid.";
+          return withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Akses ulasan ditolak. Pastikan token pelacakan dan status pesanan masih valid.",
+            code: classified.code,
+          });
+        }
+        if (classified.kind === "not_found") {
+          return "Pesanan tidak ditemukan. Lakukan pelacakan ulang sebelum mengirim ulasan.";
         }
         if (classified.kind === "conflict") {
           return "Ulasan tidak dapat dikirim karena status pesanan belum memenuhi syarat atau sudah pernah direview.";
@@ -437,6 +472,22 @@ export function MarketplaceShippingPage() {
           <TrackingFormFeature
             title="Pelacakan Sedang Tidak Tersedia"
             description="Terjadi gangguan sementara pada layanan pelacakan marketplace."
+            orderNumber={orderNumber}
+            contact={contact}
+            fieldErrors={fieldErrors}
+            errorMessage={errorMessage}
+            submitting={trackingLookup.isPending}
+            onOrderNumberChange={setOrderNumber}
+            onContactChange={setContact}
+            onSubmit={handleTrack}
+            onReset={resetTracking}
+          />
+        ) : null}
+
+        {view === "conflict" ? (
+          <TrackingFormFeature
+            title="Status Pesanan Belum Siap"
+            description="Data pesanan masih diproses sehingga status belum konsisten. Silakan coba lacak ulang."
             orderNumber={orderNumber}
             contact={contact}
             fieldErrors={fieldErrors}

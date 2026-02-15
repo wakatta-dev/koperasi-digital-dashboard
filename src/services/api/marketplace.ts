@@ -47,6 +47,23 @@ const DENY_CODES = new Set([
   "INVALID_TRACKING_TOKEN",
 ]);
 
+const MARKETPLACE_DENY_REASON_MESSAGES: Partial<
+  Record<MarketplaceErrorCode, string>
+> = {
+  MARKETPLACE_DISABLED:
+    "Marketplace sedang dinonaktifkan untuk sementara oleh kebijakan sistem.",
+  MARKETPLACE_FLAG_UNAVAILABLE:
+    "Status feature flag marketplace tidak tersedia, sehingga akses dibatasi demi keamanan.",
+  FORBIDDEN_ROLE:
+    "Peran akun Anda tidak memiliki izin untuk aksi ini.",
+  FORBIDDEN_TENANT:
+    "Akses ditolak karena konteks tenant tidak sesuai.",
+  FORBIDDEN_OWNERSHIP:
+    "Akses ditolak karena pesanan ini tidak terkait dengan identitas pelacakan Anda.",
+  INVALID_TRACKING_TOKEN:
+    "Token pelacakan tidak valid atau sudah kedaluwarsa.",
+};
+
 export type MarketplaceErrorCode = keyof typeof MARKETPLACE_CODE_TO_STATUS;
 
 export type MarketplaceApiErrorKind =
@@ -56,6 +73,27 @@ export type MarketplaceApiErrorKind =
   | "service_unavailable"
   | "validation"
   | "unknown";
+
+export function getMarketplaceDenyReasonMessage(
+  code?: MarketplaceErrorCode
+): string | null {
+  if (!code || !DENY_CODES.has(code)) {
+    return null;
+  }
+
+  return MARKETPLACE_DENY_REASON_MESSAGES[code] ?? null;
+}
+
+export function withMarketplaceDenyReasonMessage(params: {
+  fallbackMessage: string;
+  code?: MarketplaceErrorCode;
+}): string {
+  const reason = getMarketplaceDenyReasonMessage(params.code);
+  if (!reason) {
+    return params.fallbackMessage;
+  }
+  return `${params.fallbackMessage} Alasan: ${reason}`;
+}
 
 export class MarketplaceApiError extends Error {
   readonly statusCode: number;
