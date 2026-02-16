@@ -26,6 +26,11 @@ export type MarketplaceOrderStatusInput =
   | MarketplaceLegacyOrderStatus;
 
 export type MarketplaceReviewState = "not_eligible" | "eligible" | "submitted";
+export type MarketplaceManualPaymentStatus =
+  | "MANUAL_PAYMENT_SUBMITTED"
+  | "WAITING_MANUAL_CONFIRMATION"
+  | "CONFIRMED"
+  | "REJECTED";
 
 export type MarketplaceProductResponse = {
   id: number;
@@ -134,7 +139,7 @@ export type MarketplaceOrderStatusHistoryResponse = {
 };
 
 export type MarketplaceOrderManualPaymentResponse = {
-  status: MarketplaceOrderStatusInput;
+  status: MarketplaceManualPaymentStatus;
   proof_url: string;
   proof_filename?: string;
   note?: string;

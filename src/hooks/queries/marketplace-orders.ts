@@ -7,11 +7,13 @@ import { toast } from "sonner";
 import { QK } from "./queryKeys";
 import {
   ensureMarketplaceSuccess,
+  getMarketplaceGuestOrderStatus,
   getMarketplaceOrderDetail,
   listMarketplaceOrders,
   updateMarketplaceOrderStatus,
 } from "@/services/api";
 import type {
+  MarketplaceGuestOrderStatusDetailResponse,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderStatusUpdateRequest,
@@ -54,6 +56,25 @@ export function useMarketplaceOrder(
     enabled: Boolean(id) && (options?.enabled ?? true),
     queryFn: async (): Promise<MarketplaceOrderDetailResponse> =>
       ensureMarketplaceSuccess(await getMarketplaceOrderDetail(id as string | number)),
+  });
+}
+
+export function useMarketplaceGuestOrderStatus(
+  id?: string | number,
+  trackingToken?: string,
+  options?: { enabled?: boolean }
+) {
+  const normalizedTrackingToken = (trackingToken ?? "").trim();
+  return useQuery({
+    queryKey: QK.marketplace.guestStatus(id ?? "", normalizedTrackingToken),
+    enabled:
+      Boolean(id) &&
+      normalizedTrackingToken.length > 0 &&
+      (options?.enabled ?? true),
+    queryFn: async (): Promise<MarketplaceGuestOrderStatusDetailResponse> =>
+      ensureMarketplaceSuccess(
+        await getMarketplaceGuestOrderStatus(id as string | number, normalizedTrackingToken)
+      ),
   });
 }
 

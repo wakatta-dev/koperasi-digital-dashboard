@@ -18,13 +18,14 @@ import {
   type BuyerOrderContextReadResult,
 } from "./state/buyer-checkout-context";
 import { Button } from "@/components/ui/button";
-import { useMarketplaceOrder } from "@/hooks/queries/marketplace-orders";
+import { useMarketplaceGuestOrderStatus } from "@/hooks/queries/marketplace-orders";
 import { formatCurrency } from "@/lib/format";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import {
   classifyMarketplaceApiError,
   ensureMarketplaceSuccess,
   submitMarketplaceManualPayment,
+  trackMarketplaceOrder,
   withMarketplaceDenyReasonMessage,
 } from "@/services/api";
 
@@ -48,17 +49,20 @@ export function MarketplacePaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = Number(searchParams.get("order_id") ?? "");
+  const trackingTokenFromQuery = (searchParams.get("tracking_token") ?? "").trim();
 
   const { data: cart } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;
 
   const {
-    data: orderDetail,
+    data: guestStatusDetail,
     isLoading: orderLoading,
     isError: orderError,
     error: orderQueryError,
     refetch: refetchOrder,
-  } = useMarketplaceOrder(orderId, { enabled: Number.isFinite(orderId) && orderId > 0 });
+  } = useMarketplaceGuestOrderStatus(orderId, trackingTokenFromQuery, {
+    enabled: Number.isFinite(orderId) && orderId > 0 && trackingTokenFromQuery.length > 0,
+  });
 
   const [contextResult, setContextResult] = useState<BuyerOrderContextReadResult>({
     context: null,
@@ -78,22 +82,31 @@ export function MarketplacePaymentPage() {
   }, [orderId]);
 
   const storedContext = contextResult.context;
-  const orderItems = orderDetail?.items ?? storedContext?.order.items ?? [];
-  const totalPayment = orderDetail?.total ?? storedContext?.order.total ?? 0;
+  const orderItems = guestStatusDetail?.items ?? storedContext?.order.items ?? [];
+  const totalPayment = guestStatusDetail?.total ?? storedContext?.order.total ?? 0;
   const orderLabel = useMemo(() => {
-    if (orderDetail?.order_number) {
-      return `#${orderDetail.order_number}`;
+    if (guestStatusDetail?.order_number) {
+      return `#${guestStatusDetail.order_number}`;
     }
     if (storedContext?.order.id) {
       return `#ORD-${storedContext.order.id}`;
     }
     return "-";
-  }, [orderDetail?.order_number, storedContext?.order.id]);
-  const customerEmail =
-    orderDetail?.customer_email ?? storedContext?.checkout.customerEmail ?? "";
+  }, [guestStatusDetail?.order_number, storedContext?.order.id]);
+  const customerEmail = storedContext?.checkout.customerEmail ?? "";
+  const customerPhone = storedContext?.checkout.customerPhone ?? "";
+  const trackingOrderNumber = useMemo(() => {
+    if (guestStatusDetail?.order_number) {
+      return guestStatusDetail.order_number.trim();
+    }
+    if (storedContext?.order.id) {
+      return String(storedContext.order.id);
+    }
+    return "";
+  }, [guestStatusDetail?.order_number, storedContext?.order.id]);
 
-  const isBackendConfirmed = Boolean(orderDetail);
-  const hasOrderContext = Boolean(orderId > 0 && (orderDetail || storedContext));
+  const isBackendConfirmed = Boolean(guestStatusDetail);
+  const hasOrderContext = Boolean(orderId > 0 && (guestStatusDetail || storedContext));
 
   const orderErrorCopy = useMemo(() => {
     if (!orderError) {
@@ -138,8 +151,11 @@ export function MarketplacePaymentPage() {
   }, [orderError, orderQueryError]);
 
   const contextStateNotice = useMemo(() => {
-    if (orderDetail) {
+    if (guestStatusDetail) {
       return null;
+    }
+    if (!trackingTokenFromQuery && !storedContext) {
+      return "Token pelacakan belum tersedia. Lacak pesanan dulu dari halaman pelacakan untuk membuka detail pembayaran backend yang aman.";
     }
     if (contextResult.state === "stale") {
       return `Konteks checkout lokal sudah kedaluwarsa (lebih dari ${Math.floor(
@@ -150,8 +166,8 @@ export function MarketplacePaymentPage() {
       return "Konteks checkout lokal tidak valid dan sudah dibersihkan. Buka kembali dari keranjang atau pelacakan pesanan.";
     }
     return null;
-  }, [contextResult.state, orderDetail]);
-  const isUsingLocalContext = Boolean(orderId > 0 && !orderDetail && storedContext);
+  }, [contextResult.state, guestStatusDetail, storedContext, trackingTokenFromQuery]);
+  const isUsingLocalContext = Boolean(orderId > 0 && !guestStatusDetail && storedContext);
 
   const handleCopy = async (value: string, label: string) => {
     try {
@@ -204,9 +220,32 @@ export function MarketplacePaymentPage() {
     setUploading(true);
     setUploadError(null);
     try {
+      let trackingToken = trackingTokenFromQuery;
+      if (!trackingToken) {
+        const contact = customerEmail.trim() || customerPhone.trim();
+        if (!trackingOrderNumber || !contact) {
+          const message =
+            "Token pelacakan belum tersedia. Lacak pesanan terlebih dulu dari halaman pelacakan sebelum upload bukti pembayaran.";
+          setUploadError(message);
+          showToastError("Token pelacakan diperlukan", message);
+          return;
+        }
+        const tracking = ensureMarketplaceSuccess(
+          await trackMarketplaceOrder({
+            order_number: trackingOrderNumber,
+            contact,
+          })
+        );
+        trackingToken = (tracking.tracking_token ?? "").trim();
+        if (!trackingToken) {
+          throw new Error("tracking token tidak tersedia");
+        }
+      }
+
       const payment = ensureMarketplaceSuccess(
         await submitMarketplaceManualPayment(orderId, {
           file: proofFile,
+          tracking_token: trackingToken,
           note: "Upload dari halaman pembayaran buyer marketplace",
           bank_name: BANK_NAME,
           account_name: BANK_HOLDER,
@@ -217,7 +256,12 @@ export function MarketplacePaymentPage() {
 
       attachBuyerManualPayment(orderId, payment);
       showToastSuccess("Bukti pembayaran terkirim", "Lanjutkan ke halaman konfirmasi.");
-      router.push(`/marketplace/konfirmasi?order_id=${orderId}`);
+      const nextPath = `/marketplace/konfirmasi?order_id=${orderId}`;
+      router.push(
+        trackingToken
+          ? `${nextPath}&tracking_token=${encodeURIComponent(trackingToken)}`
+          : nextPath
+      );
     } catch (err: any) {
       const classified = classifyMarketplaceApiError(err);
       const message = (() => {

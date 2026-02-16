@@ -1,6 +1,7 @@
 /** @format */
 
 import type {
+  MarketplaceManualPaymentStatus,
   MarketplaceOrderManualPaymentResponse,
   MarketplaceOrderResponse,
 } from "@/types/api/marketplace";
@@ -22,7 +23,7 @@ export type BuyerOrderContext = {
   order: MarketplaceOrderResponse;
   checkout: BuyerCheckoutSnapshot;
   manualPayment?: {
-    status: string;
+    status: MarketplaceManualPaymentStatus;
     proofUrl?: string;
     proofFilename?: string;
     submittedAt: number;

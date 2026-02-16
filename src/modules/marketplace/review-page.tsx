@@ -24,7 +24,9 @@ export function MarketplaceReviewPage() {
   const orderId = Number(searchParams.get("order_id") ?? "");
   const trackingToken = searchParams.get("tracking_token") ?? "";
   const hasTrackingParams = Boolean(orderId > 0 && trackingToken);
-  const allowDevelopmentQuickReview = process.env.NODE_ENV !== "production";
+  const allowDevelopmentQuickReview =
+    process.env.NODE_ENV !== "production" &&
+    process.env.NEXT_PUBLIC_MARKETPLACE_DEV_QUICK_REVIEW !== "false";
 
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);

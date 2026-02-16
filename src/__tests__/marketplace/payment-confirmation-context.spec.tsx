@@ -9,8 +9,9 @@ import { MarketplacePaymentPage } from "@/modules/marketplace/payment-page";
 const pushMock = vi.fn();
 let currentSearchParams = new URLSearchParams();
 
-const useMarketplaceOrderMock = vi.fn();
+const useMarketplaceGuestOrderStatusMock = vi.fn();
 const submitMarketplaceManualPaymentMock = vi.fn();
+const trackMarketplaceOrderMock = vi.fn();
 const attachBuyerManualPaymentMock = vi.fn();
 const getBuyerOrderContextMock = vi.fn();
 
@@ -27,7 +28,8 @@ vi.mock("@/modules/marketplace/hooks/useMarketplaceProducts", () => ({
 }));
 
 vi.mock("@/hooks/queries/marketplace-orders", () => ({
-  useMarketplaceOrder: (...args: any[]) => useMarketplaceOrderMock(...args),
+  useMarketplaceGuestOrderStatus: (...args: any[]) =>
+    useMarketplaceGuestOrderStatusMock(...args),
 }));
 
 vi.mock("@/services/api", async (importOriginal) => {
@@ -36,6 +38,7 @@ vi.mock("@/services/api", async (importOriginal) => {
     ...actual,
     submitMarketplaceManualPayment: (...args: any[]) =>
       submitMarketplaceManualPaymentMock(...args),
+    trackMarketplaceOrder: (...args: any[]) => trackMarketplaceOrderMock(...args),
   };
 });
 
@@ -74,8 +77,9 @@ function successResponse<T>(data: T) {
 describe("payment and confirmation context integrity", () => {
   beforeEach(() => {
     pushMock.mockReset();
-    useMarketplaceOrderMock.mockReset();
+    useMarketplaceGuestOrderStatusMock.mockReset();
     submitMarketplaceManualPaymentMock.mockReset();
+    trackMarketplaceOrderMock.mockReset();
     attachBuyerManualPaymentMock.mockReset();
     getBuyerOrderContextMock.mockReset();
     currentSearchParams = new URLSearchParams();
@@ -84,13 +88,12 @@ describe("payment and confirmation context integrity", () => {
   it("submits manual payment proof with real order id and navigates to confirmation", async () => {
     currentSearchParams = new URLSearchParams("order_id=55");
 
-    useMarketplaceOrderMock.mockReturnValue({
+    useMarketplaceGuestOrderStatusMock.mockReturnValue({
       data: {
         id: 55,
         order_number: "ORD-2026-055",
         status: "PENDING_PAYMENT",
         total: 50000,
-        customer_email: "buyer@example.com",
         items: [
           {
             order_item_id: 12,
@@ -108,11 +111,52 @@ describe("payment and confirmation context integrity", () => {
       refetch: vi.fn(),
     });
 
-    getBuyerOrderContextMock.mockReturnValue(null);
+    getBuyerOrderContextMock.mockReturnValue({
+      order: {
+        id: 55,
+        status: "PENDING_PAYMENT",
+        fulfillment_method: "DELIVERY",
+        customer_name: "Budi Santoso",
+        customer_phone: "081212300000",
+        customer_email: "buyer@example.com",
+        customer_address: "Jl. Melati No. 10",
+        notes: "-",
+        total: 50000,
+        items: [
+          {
+            order_item_id: 12,
+            product_id: 1,
+            product_name: "Kopi Arabika",
+            product_sku: "KOP-001",
+            quantity: 1,
+            price: 50000,
+            subtotal: 50000,
+          },
+        ],
+        created_at: 1739491200,
+      },
+      checkout: {
+        customerName: "Budi Santoso",
+        customerPhone: "081212300000",
+        customerEmail: "buyer@example.com",
+        customerAddress: "Jl. Melati No. 10",
+        shippingOption: "REGULER",
+        paymentMethod: "TRANSFER_BANK",
+        submittedAt: Date.now(),
+      },
+    });
+    trackMarketplaceOrderMock.mockResolvedValue(
+      successResponse({
+        order_id: 55,
+        order_number: "ORD-2026-055",
+        status: "PENDING_PAYMENT",
+        tracking_token: "track-55",
+      })
+    );
 
     submitMarketplaceManualPaymentMock.mockResolvedValue(
       successResponse({
-        status: "PAYMENT_VERIFICATION",
+        status: "MANUAL_PAYMENT_SUBMITTED",
         proof_url: "https://example.com/proof.png",
         proof_filename: "proof.png",
         created_at: 1739491200,
@@ -131,30 +175,35 @@ describe("payment and confirmation context integrity", () => {
     );
 
     await waitFor(() => {
+      expect(trackMarketplaceOrderMock).toHaveBeenCalledWith({
+        order_number: "ORD-2026-055",
+        contact: "buyer@example.com",
+      });
       expect(submitMarketplaceManualPaymentMock).toHaveBeenCalledWith(
         55,
         expect.objectContaining({
           file,
+          tracking_token: "track-55",
           bank_name: "Bank BRI",
           account_name: "BUMDes Sukamaju",
           transfer_amount: 50000,
         })
       );
       expect(attachBuyerManualPaymentMock).toHaveBeenCalledTimes(1);
-      expect(pushMock).toHaveBeenCalledWith("/marketplace/konfirmasi?order_id=55");
+      expect(pushMock).toHaveBeenCalledWith(
+        "/marketplace/konfirmasi?order_id=55&tracking_token=track-55"
+      );
     });
   });
 
   it("renders confirmation page from backend-backed order context", () => {
-    currentSearchParams = new URLSearchParams("order_id=55");
+    currentSearchParams = new URLSearchParams("order_id=55&tracking_token=track-55");
 
-    useMarketplaceOrderMock.mockReturnValue({
+    useMarketplaceGuestOrderStatusMock.mockReturnValue({
       data: {
         id: 55,
         order_number: "ORD-2026-055",
         status: "PAYMENT_VERIFICATION",
-        customer_name: "Budi Santoso",
-        customer_address: "Jl. Melati No. 10",
         total: 50000,
         items: [
           {
@@ -185,7 +234,7 @@ describe("payment and confirmation context integrity", () => {
   it("shows local-context indicator when backend detail is unavailable", () => {
     currentSearchParams = new URLSearchParams("order_id=77");
 
-    useMarketplaceOrderMock.mockReturnValue({
+    useMarketplaceGuestOrderStatusMock.mockReturnValue({
       data: undefined,
       isLoading: false,
       isError: false,

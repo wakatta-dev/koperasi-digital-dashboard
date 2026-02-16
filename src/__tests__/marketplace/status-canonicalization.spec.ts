@@ -36,8 +36,14 @@ describe("marketplace status canonicalization", () => {
     expect(
       isMarketplaceTransitionAllowed("PENDING_PAYMENT", "PAYMENT_VERIFICATION"),
     ).toBe(true);
+    expect(isMarketplaceTransitionAllowed("PENDING_PAYMENT", "PROCESSING")).toBe(
+      true,
+    );
     expect(isMarketplaceTransitionAllowed("PROCESSING", "COMPLETED")).toBe(
-      false,
+      true,
+    );
+    expect(isMarketplaceTransitionAllowed("IN_DELIVERY", "CANCELED")).toBe(
+      true,
     );
     expect(isMarketplaceTransitionAllowed("IN_DELIVERY", "COMPLETED")).toBe(
       true,

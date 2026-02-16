@@ -122,8 +122,12 @@ function buildTrackingRecoveryPresetPreview(
 function resolveLocalTrackingPreview(
   orderNumber: string,
   contact: string,
-  options?: { allowDevelopmentPreset?: boolean }
+  options?: { allowLocalFallback?: boolean; allowDevelopmentPreset?: boolean }
 ): LocalTrackingPreview | null {
+  if (!options?.allowLocalFallback) {
+    return null;
+  }
+
   const normalizedOrderNumber = orderNumber.trim();
   const normalizedContact = contact.trim().toLowerCase();
   const orderId = parseOrderIdFromOrderNumber(normalizedOrderNumber);
@@ -160,7 +164,10 @@ function resolveLocalTrackingPreview(
 export function MarketplaceShippingPage() {
   const { data: cart } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;
-  const allowDevelopmentPreset = process.env.NODE_ENV !== "production";
+  const allowLocalTrackingFallback =
+    process.env.NODE_ENV !== "production" &&
+    process.env.NEXT_PUBLIC_MARKETPLACE_LOCAL_FALLBACK_ENABLED !== "false";
+  const allowDevelopmentPreset = allowLocalTrackingFallback;
 
   const [view, setView] = useState<TrackingView>("track");
   const [orderNumber, setOrderNumber] = useState("");
@@ -195,7 +202,10 @@ export function MarketplaceShippingPage() {
         const localResolved = resolveLocalTrackingPreview(
           payload.order_number,
           payload.contact,
-          { allowDevelopmentPreset }
+          {
+            allowLocalFallback: allowLocalTrackingFallback,
+            allowDevelopmentPreset,
+          }
         );
         if (localResolved) {
           setTrackResult(null);
