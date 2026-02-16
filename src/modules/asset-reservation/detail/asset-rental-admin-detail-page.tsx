@@ -29,7 +29,7 @@ import {
   getAssetRentalBookings,
   updateAssetBookingStatus,
 } from "@/services/api/asset-rental";
-
+import { finalizePayment } from "@/services/api/reservations";
 
 type AssetRentalAdminDetailPageProps = Readonly<{
   bookingId: string;
@@ -145,7 +145,7 @@ function isImageProofUrl(url?: string) {
   if (!url) return false;
   const normalized = url.toLowerCase();
   return [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"].some((ext) =>
-    normalized.includes(ext)
+    normalized.includes(ext),
   );
 }
 
@@ -156,7 +156,10 @@ export function AssetRentalAdminDetailPage({
   const queryClient = useQueryClient();
 
   const bookingsQuery = useQuery({
-    queryKey: QK.assetRental.bookings({ source: "asset-rental-detail", bookingId }),
+    queryKey: QK.assetRental.bookings({
+      source: "asset-rental-detail",
+      bookingId,
+    }),
     queryFn: async () => {
       const response = await getAssetRentalBookings();
       if (!response.success || !response.data) {
@@ -167,8 +170,9 @@ export function AssetRentalAdminDetailPage({
   });
 
   const booking = useMemo(
-    () => bookingsQuery.data?.find((item) => String(item.id) === bookingId) ?? null,
-    [bookingsQuery.data, bookingId]
+    () =>
+      bookingsQuery.data?.find((item) => String(item.id) === bookingId) ?? null,
+    [bookingsQuery.data, bookingId],
   );
 
   const assetQuery = useQuery({
@@ -191,7 +195,7 @@ export function AssetRentalAdminDetailPage({
       const response = await updateAssetBookingStatus(
         booking.id,
         status,
-        status === "REJECTED" ? "Ditolak oleh admin" : undefined
+        status === "REJECTED" ? "Ditolak oleh admin" : undefined,
       );
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memperbarui status booking");
@@ -199,7 +203,9 @@ export function AssetRentalAdminDetailPage({
       return response.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["asset-rental", "bookings"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["asset-rental", "bookings"],
+      });
     },
   });
 
@@ -215,35 +221,69 @@ export function AssetRentalAdminDetailPage({
       return response.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["asset-rental", "bookings"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["asset-rental", "bookings"],
+      });
     },
   });
 
-  const resolvedBookingStatus = resolveAssetRentalBookingStatus(booking ?? undefined);
+  const paymentDecisionMutation = useMutation({
+    mutationFn: async (decision: "succeeded" | "failed") => {
+      const paymentID = booking?.latest_payment?.id?.trim();
+      if (!paymentID) {
+        throw new Error("Pembayaran belum tersedia");
+      }
+      const response = await finalizePayment(paymentID, decision);
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal memverifikasi pembayaran");
+      }
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["asset-rental", "bookings"],
+      });
+    },
+  });
+
+  const resolvedBookingStatus = resolveAssetRentalBookingStatus(
+    booking ?? undefined,
+  );
   const statusMeta = toStatusMeta(resolvedBookingStatus);
-  const isBusy = updateStatusMutation.isPending || completeMutation.isPending;
+  const isBusy =
+    updateStatusMutation.isPending ||
+    completeMutation.isPending ||
+    paymentDecisionMutation.isPending;
 
   const canApprove = (booking?.status || "").toUpperCase() === "PENDING_REVIEW";
   const canReject = ["PENDING_REVIEW", "BOOKED"].includes(
-    (booking?.status || "").toUpperCase()
+    (booking?.status || "").toUpperCase(),
   );
   const canComplete = ["AWAITING_SETTLEMENT", "CONFIRMED_FULL"].includes(
-    (booking?.status || "").toUpperCase()
+    (booking?.status || "").toUpperCase(),
   );
   const latestPayment = booking?.latest_payment;
+  const latestPaymentStatus = (latestPayment?.status || "")
+    .trim()
+    .toLowerCase();
+  const canConfirmPayment = latestPaymentStatus === "pending_verification";
   const rejectionReason = booking?.rejection_reason?.trim() || "-";
   const returnConditionLabel = toReturnConditionLabel(
     booking?.return_condition,
-    booking?.status
+    booking?.status,
   );
   const returnConditionNotes = booking?.return_condition_notes?.trim() || "-";
 
   const handleApprove = async () => {
     try {
       await updateStatusMutation.mutateAsync("AWAITING_DP");
-      showToastSuccess("Pengajuan disetujui", "Status booking berhasil diperbarui.");
+      showToastSuccess(
+        "Pengajuan disetujui",
+        "Status booking berhasil diperbarui.",
+      );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menyetujui pengajuan";
+      const message =
+        error instanceof Error ? error.message : "Gagal menyetujui pengajuan";
       showToastError("Gagal menyetujui", message);
     }
   };
@@ -251,9 +291,13 @@ export function AssetRentalAdminDetailPage({
   const handleReject = async () => {
     try {
       await updateStatusMutation.mutateAsync("REJECTED");
-      showToastSuccess("Pengajuan ditolak", "Status booking berhasil diperbarui.");
+      showToastSuccess(
+        "Pengajuan ditolak",
+        "Status booking berhasil diperbarui.",
+      );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menolak pengajuan";
+      const message =
+        error instanceof Error ? error.message : "Gagal menolak pengajuan";
       showToastError("Gagal menolak", message);
     }
   };
@@ -261,10 +305,46 @@ export function AssetRentalAdminDetailPage({
   const handleComplete = async () => {
     try {
       await completeMutation.mutateAsync();
-      showToastSuccess("Penyewaan diselesaikan", "Status booking telah ditandai selesai.");
+      showToastSuccess(
+        "Penyewaan diselesaikan",
+        "Status booking telah ditandai selesai.",
+      );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menyelesaikan penyewaan";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menyelesaikan penyewaan";
       showToastError("Gagal menyelesaikan", message);
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    try {
+      await paymentDecisionMutation.mutateAsync("succeeded");
+      showToastSuccess(
+        "Pembayaran terkonfirmasi",
+        "Status pembayaran dan penyewaan berhasil diperbarui.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal mengonfirmasi pembayaran";
+      showToastError("Gagal konfirmasi pembayaran", message);
+    }
+  };
+
+  const handleRejectPayment = async () => {
+    try {
+      await paymentDecisionMutation.mutateAsync("failed");
+      showToastSuccess(
+        "Pembayaran ditolak",
+        "Penyewa dapat mengunggah ulang bukti pembayaran.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Gagal menolak pembayaran";
+      showToastError("Gagal menolak pembayaran", message);
     }
   };
 
@@ -275,7 +355,9 @@ export function AssetRentalAdminDetailPage({
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-xl font-semibold text-slate-800">Detail Penyewaan</h3>
+            <h3 className="text-xl font-semibold text-slate-800">
+              Detail Penyewaan
+            </h3>
             <p className="mt-1 text-sm text-slate-500">
               Ringkasan transaksi penyewaan untuk ID {bookingId}
             </p>
@@ -309,8 +391,12 @@ export function AssetRentalAdminDetailPage({
         {booking ? (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className={statusMeta.badgeClass}>{statusMeta.label}</Badge>
-              <span className="text-xs text-slate-500">Booking ID: {booking.id}</span>
+              <Badge className={statusMeta.badgeClass}>
+                {statusMeta.label}
+              </Badge>
+              <span className="text-xs text-slate-500">
+                Booking ID: {booking.id}
+              </span>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -319,18 +405,36 @@ export function AssetRentalAdminDetailPage({
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Informasi Aset
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-slate-900">{booking.asset_name}</p>
-                  <p className="text-sm text-slate-500">AST-{String(booking.asset_id).padStart(3, "0")}</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">
+                    {booking.asset_name}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    AST-{String(booking.asset_id).padStart(3, "0")}
+                  </p>
                 </div>
 
                 <div className="space-y-2 text-sm text-slate-600">
                   <div className="flex items-start gap-2">
                     <MapPin className="mt-0.5 h-4 w-4 text-indigo-600" />
-                    <span>{parseLocation(assetQuery.data?.location, assetQuery.data?.description)}</span>
+                    <span>
+                      {parseLocation(
+                        assetQuery.data?.location,
+                        assetQuery.data?.description,
+                      )}
+                    </span>
                   </div>
                   <p>
-                    Tarif: <span className="font-medium text-slate-900">{formatCurrency(assetQuery.data?.rate_amount)}</span>
-                    <span className="text-slate-500">/{(assetQuery.data?.rate_type || "DAILY").toUpperCase() === "HOURLY" ? "jam" : "hari"}</span>
+                    Tarif:{" "}
+                    <span className="font-medium text-slate-900">
+                      {formatCurrency(assetQuery.data?.rate_amount)}
+                    </span>
+                    <span className="text-slate-500">
+                      /
+                      {(assetQuery.data?.rate_type || "DAILY").toUpperCase() ===
+                      "HOURLY"
+                        ? "jam"
+                        : "hari"}
+                    </span>
                   </p>
                 </div>
               </section>
@@ -343,15 +447,21 @@ export function AssetRentalAdminDetailPage({
                   <div className="mt-2 flex items-start gap-2 text-sm text-slate-700">
                     <UserRound className="mt-0.5 h-4 w-4 text-indigo-600" />
                     <div>
-                      <p className="font-medium text-slate-900">{booking.renter_name || "-"}</p>
+                      <p className="font-medium text-slate-900">
+                        {booking.renter_name || "-"}
+                      </p>
                       <p>{booking.renter_contact || "Kontak belum diisi"}</p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tujuan</p>
-                  <p className="mt-1 text-sm text-slate-700">{booking.purpose || "-"}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Tujuan
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {booking.purpose || "-"}
+                  </p>
                 </div>
               </section>
             </div>
@@ -363,15 +473,21 @@ export function AssetRentalAdminDetailPage({
               <div className="grid gap-3 md:grid-cols-3">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs text-slate-500">Mulai</p>
-                  <p className="mt-1 text-sm font-medium text-slate-900">{formatDateTime(booking.start_time)}</p>
+                  <p className="mt-1 text-sm font-medium text-slate-900">
+                    {formatDateTime(booking.start_time)}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs text-slate-500">Selesai</p>
-                  <p className="mt-1 text-sm font-medium text-slate-900">{formatDateTime(booking.end_time)}</p>
+                  <p className="mt-1 text-sm font-medium text-slate-900">
+                    {formatDateTime(booking.end_time)}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs text-slate-500">Total</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">{formatCurrency(booking.total_amount)}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {formatCurrency(booking.total_amount)}
+                  </p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -429,7 +545,12 @@ export function AssetRentalAdminDetailPage({
                           className="max-h-56 w-full rounded-md border border-slate-200 object-cover"
                         />
                       ) : null}
-                      <Button asChild type="button" variant="outline" className="border-slate-300">
+                      <Button
+                        asChild
+                        type="button"
+                        variant="outline"
+                        className="border-slate-300"
+                      >
                         <a
                           href={latestPayment.proof_url}
                           target="_blank"
@@ -445,7 +566,9 @@ export function AssetRentalAdminDetailPage({
                       </p>
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-500">Belum ada bukti pembayaran diunggah.</p>
+                    <p className="text-sm text-slate-500">
+                      Belum ada bukti pembayaran diunggah.
+                    </p>
                   )}
                 </div>
 
@@ -455,7 +578,10 @@ export function AssetRentalAdminDetailPage({
                   </p>
                   <div className="mt-3 grid gap-2 text-sm text-slate-700">
                     <p>
-                      ID Pembayaran: <span className="font-medium text-slate-900">{latestPayment?.id || "-"}</span>
+                      ID Pembayaran:{" "}
+                      <span className="font-medium text-slate-900">
+                        {latestPayment?.id || "-"}
+                      </span>
                     </p>
                     <p>
                       Status:{" "}
@@ -464,16 +590,23 @@ export function AssetRentalAdminDetailPage({
                       </span>
                     </p>
                     <p>
-                      Tipe: <span className="font-medium text-slate-900">{toReadableLabel(latestPayment?.type)}</span>
+                      Tipe:{" "}
+                      <span className="font-medium text-slate-900">
+                        {toReadableLabel(latestPayment?.type)}
+                      </span>
                     </p>
                     <p>
                       Metode:{" "}
-                      <span className="font-medium text-slate-900">{toReadableLabel(latestPayment?.method)}</span>
+                      <span className="font-medium text-slate-900">
+                        {toReadableLabel(latestPayment?.method)}
+                      </span>
                     </p>
                     <p>
                       Nominal:{" "}
                       <span className="font-medium text-slate-900">
-                        {latestPayment ? formatCurrency(latestPayment.amount) : "-"}
+                        {latestPayment
+                          ? formatCurrency(latestPayment.amount)
+                          : "-"}
                       </span>
                     </p>
                     <p>
@@ -489,6 +622,27 @@ export function AssetRentalAdminDetailPage({
                       </span>
                     </p>
                   </div>
+                  {canConfirmPayment ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        className="bg-emerald-600 text-white hover:bg-emerald-700"
+                        onClick={handleConfirmPayment}
+                        disabled={isBusy}
+                      >
+                        Konfirmasi Pembayaran
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-red-200 text-red-600 hover:bg-red-50"
+                        onClick={handleRejectPayment}
+                        disabled={isBusy}
+                      >
+                        Tolak Pembayaran
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </section>
@@ -502,22 +656,36 @@ export function AssetRentalAdminDetailPage({
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Alasan Penolakan
                   </p>
-                  <p className="mt-2 text-sm text-slate-700">{rejectionReason}</p>
+                  <p className="mt-2 text-sm text-slate-700">
+                    {rejectionReason}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Kondisi Pengembalian
                   </p>
-                  <p className="mt-2 text-sm font-medium text-slate-900">{returnConditionLabel}</p>
-                  <p className="mt-2 text-xs text-slate-500">Catatan: {returnConditionNotes}</p>
+                  <p className="mt-2 text-sm font-medium text-slate-900">
+                    {returnConditionLabel}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Catatan: {returnConditionNotes}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Detail Audit
                   </p>
                   <div className="mt-2 space-y-1 text-sm text-slate-700">
-                    <p>Dibuat: {formatDateTime(booking.created_at || booking.start_time)}</p>
-                    <p>Diperbarui: {formatDateTime(booking.updated_at || booking.completed_at)}</p>
+                    <p>
+                      Dibuat:{" "}
+                      {formatDateTime(booking.created_at || booking.start_time)}
+                    </p>
+                    <p>
+                      Diperbarui:{" "}
+                      {formatDateTime(
+                        booking.updated_at || booking.completed_at,
+                      )}
+                    </p>
                     <p>Selesai: {formatDateTime(booking.completed_at)}</p>
                   </div>
                 </div>
@@ -528,20 +696,23 @@ export function AssetRentalAdminDetailPage({
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <CalendarClock className="h-4 w-4 text-indigo-600" />
                 <span>
-                  Penyewa: {booking.renter_name || "-"} • Kontak: {booking.renter_contact || "-"} • Email:{" "}
+                  Penyewa: {booking.renter_name || "-"} • Kontak:{" "}
+                  {booking.renter_contact || "-"} • Email:{" "}
                   {booking.renter_email || "-"}
                 </span>
               </div>
               <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
                 <ShieldAlert className="h-4 w-4 text-indigo-600" />
                 <span>
-                  Status saat ini: {statusMeta.label} • Pembayaran: {toReadableLabel(latestPayment?.status)}
+                  Status saat ini: {statusMeta.label} • Pembayaran:{" "}
+                  {toReadableLabel(latestPayment?.status)}
                 </span>
               </div>
               <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
                 <FileText className="h-4 w-4 text-indigo-600" />
                 <span>
-                  Catatan bukti pembayaran: {latestPayment?.proof_note?.trim() || "-"}
+                  Catatan bukti pembayaran:{" "}
+                  {latestPayment?.proof_note?.trim() || "-"}
                 </span>
               </div>
             </section>
