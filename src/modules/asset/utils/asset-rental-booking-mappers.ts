@@ -27,7 +27,8 @@ function toBookingStatus(status?: string) {
 
 function toRentalStatus(booking: AssetRentalBooking): AssetRentalRentalsRow["status"] {
   const status = toBookingStatus(booking.status);
-  if (status === "COMPLETED" || status === "CONFIRMED_FULL") return "Selesai";
+  if (status === "AWAITING_DP") return "Menunggu Pembayaran";
+  if (status === "COMPLETED") return "Selesai";
   const endAt = new Date((booking.end_time || 0) * 1000).getTime();
   const isLate = endAt > 0 && endAt < Date.now();
   return isLate ? "Terlambat" : "Berjalan";
@@ -122,6 +123,9 @@ export function splitAssetRentalBookings(
       normalized === "COMPLETED"
     ) {
       rentalRows.push(mapContractBookingToRental(booking));
+    }
+
+    if (normalized === "CONFIRMED_FULL" || normalized === "COMPLETED") {
       returnRows.push(mapContractBookingToReturn(booking));
     }
   }

@@ -25,9 +25,9 @@ export function PaymentSidebar({
     : "Segera selesaikan pembayaran sebelum batas waktu yang ditentukan.";
   const confirmationHref =
     reservation.reservationId
-      ? `/penyewaan-aset/status/${encodeURIComponent(
-          String(reservation.reservationId)
-        )}?status=confirmed_full${ownershipToken ? `&sig=${encodeURIComponent(ownershipToken)}` : ""}`
+      ? `/penyewaan-aset/status/${encodeURIComponent(String(reservation.reservationId))}${
+          ownershipToken ? `?sig=${encodeURIComponent(ownershipToken)}` : ""
+        }`
       : null;
 
   return (

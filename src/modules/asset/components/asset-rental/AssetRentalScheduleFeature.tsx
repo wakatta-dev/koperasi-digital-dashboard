@@ -248,10 +248,16 @@ export function AssetRentalScheduleFeature({
           actionDisabled={isMutating}
           onRowAction={(id) => {
             const row = filteredRentalRows.find((item) => item.id === id);
-            if (!row || row.status === "Selesai") {
+            if (
+              !row ||
+              row.status === "Selesai" ||
+              row.status === "Menunggu Pembayaran"
+            ) {
               showToastWarning(
                 "Aksi tidak tersedia",
-                "Booking ini sudah selesai."
+                row?.status === "Menunggu Pembayaran"
+                  ? "Booking ini masih menunggu pembayaran."
+                  : "Booking ini sudah selesai."
               );
               return;
             }

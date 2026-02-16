@@ -10,6 +10,7 @@ import { PaymentSidebar } from "./components/payment-sidebar";
 import { PaymentShell } from "./shared/payment-shell";
 import { useReservation } from "../hooks";
 import { humanizeReservationStatus } from "../utils/status";
+import { PAYMENT_METHOD_GROUPS } from "./constants";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QK } from "@/hooks/queries/queryKeys";
@@ -69,6 +70,7 @@ export function AssetPaymentPage({
         reservation ? (
           <PaymentMethods
             mode={paymentMode}
+            methodGroups={PAYMENT_METHOD_GROUPS}
             reservationId={reservation?.reservationId}
             ownershipToken={ownershipToken || reservation?.guestToken}
             onSessionChange={(session) => setSessionInfo({ amount: session?.amount, payBy: session?.payBy })}

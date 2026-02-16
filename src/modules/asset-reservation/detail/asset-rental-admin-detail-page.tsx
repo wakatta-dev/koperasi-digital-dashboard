@@ -4,7 +4,15 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowLeft, CalendarClock, MapPin, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  FileText,
+  Link2,
+  MapPin,
+  ShieldAlert,
+  UserRound,
+} from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
@@ -70,13 +78,19 @@ function toStatusMeta(status?: string) {
       badgeClass: "border border-amber-200 bg-amber-50 text-amber-700",
     };
   }
+  if (normalized === "AWAITING_DP") {
+    return {
+      label: "Menunggu Pembayaran",
+      badgeClass: "border border-amber-200 bg-amber-50 text-amber-700",
+    };
+  }
   if (normalized === "REJECTED" || normalized === "CANCELLED") {
     return {
       label: "Ditolak",
       badgeClass: "border border-red-200 bg-red-50 text-red-700",
     };
   }
-  if (normalized === "COMPLETED" || normalized === "CONFIRMED_FULL") {
+  if (normalized === "COMPLETED") {
     return {
       label: "Selesai",
       badgeClass: "border border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -86,6 +100,34 @@ function toStatusMeta(status?: string) {
     label: "Berjalan",
     badgeClass: "border border-indigo-200 bg-indigo-50 text-indigo-700",
   };
+}
+
+function toReadableLabel(value?: string) {
+  const normalized = (value ?? "").trim();
+  if (!normalized) return "-";
+  return normalized
+    .split("_")
+    .join(" ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function toReturnConditionLabel(value?: string, status?: string) {
+  const normalized = (value ?? "").trim().toLowerCase();
+  if (normalized === "baik" || normalized === "normal") return "Baik";
+  if (normalized === "rusak") return "Rusak";
+  if (normalized === "perbaikan") return "Perlu Perbaikan";
+  if (normalized) return toReadableLabel(normalized);
+  if ((status ?? "").toUpperCase() === "COMPLETED") return "Belum dicatat";
+  return "-";
+}
+
+function isImageProofUrl(url?: string) {
+  if (!url) return false;
+  const normalized = url.toLowerCase();
+  return [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"].some((ext) =>
+    normalized.includes(ext)
+  );
 }
 
 export function AssetRentalAdminDetailPage({
@@ -162,12 +204,19 @@ export function AssetRentalAdminDetailPage({
   const isBusy = updateStatusMutation.isPending || completeMutation.isPending;
 
   const canApprove = (booking?.status || "").toUpperCase() === "PENDING_REVIEW";
-  const canReject = ["PENDING_REVIEW", "AWAITING_DP", "AWAITING_SETTLEMENT"].includes(
+  const canReject = ["PENDING_REVIEW", "BOOKED"].includes(
     (booking?.status || "").toUpperCase()
   );
-  const canComplete = ["AWAITING_DP", "AWAITING_SETTLEMENT", "BOOKED"].includes(
+  const canComplete = ["AWAITING_SETTLEMENT", "CONFIRMED_FULL"].includes(
     (booking?.status || "").toUpperCase()
   );
+  const latestPayment = booking?.latest_payment;
+  const rejectionReason = booking?.rejection_reason?.trim() || "-";
+  const returnConditionLabel = toReturnConditionLabel(
+    booking?.return_condition,
+    booking?.status
+  );
+  const returnConditionNotes = booking?.return_condition_notes?.trim() || "-";
 
   const handleApprove = async () => {
     try {
@@ -341,11 +390,138 @@ export function AssetRentalAdminDetailPage({
               </div>
             </section>
 
+            <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Pembayaran & Verifikasi
+              </p>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Bukti Pembayaran
+                  </p>
+                  {latestPayment?.proof_url ? (
+                    <div className="space-y-3">
+                      {isImageProofUrl(latestPayment.proof_url) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={latestPayment.proof_url}
+                          alt={`Bukti pembayaran booking ${booking.id}`}
+                          className="max-h-56 w-full rounded-md border border-slate-200 object-cover"
+                        />
+                      ) : null}
+                      <Button asChild type="button" variant="outline" className="border-slate-300">
+                        <a
+                          href={latestPayment.proof_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2"
+                        >
+                          <Link2 className="h-4 w-4" />
+                          Lihat Bukti Pembayaran
+                        </a>
+                      </Button>
+                      <p className="text-xs text-slate-500">
+                        Catatan: {latestPayment.proof_note?.trim() || "-"}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">Belum ada bukti pembayaran diunggah.</p>
+                  )}
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Detail Pembayaran Terakhir
+                  </p>
+                  <div className="mt-3 grid gap-2 text-sm text-slate-700">
+                    <p>
+                      ID Pembayaran: <span className="font-medium text-slate-900">{latestPayment?.id || "-"}</span>
+                    </p>
+                    <p>
+                      Status:{" "}
+                      <span className="font-medium text-slate-900">
+                        {toReadableLabel(latestPayment?.status)}
+                      </span>
+                    </p>
+                    <p>
+                      Tipe: <span className="font-medium text-slate-900">{toReadableLabel(latestPayment?.type)}</span>
+                    </p>
+                    <p>
+                      Metode:{" "}
+                      <span className="font-medium text-slate-900">{toReadableLabel(latestPayment?.method)}</span>
+                    </p>
+                    <p>
+                      Nominal:{" "}
+                      <span className="font-medium text-slate-900">
+                        {latestPayment ? formatCurrency(latestPayment.amount) : "-"}
+                      </span>
+                    </p>
+                    <p>
+                      Batas Bayar:{" "}
+                      <span className="font-medium text-slate-900">
+                        {formatDateTime(latestPayment?.pay_by)}
+                      </span>
+                    </p>
+                    <p>
+                      Update Pembayaran:{" "}
+                      <span className="font-medium text-slate-900">
+                        {formatDateTime(latestPayment?.updated_at)}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Penolakan & Pengembalian
+              </p>
+              <div className="grid gap-4 lg:grid-cols-3">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Alasan Penolakan
+                  </p>
+                  <p className="mt-2 text-sm text-slate-700">{rejectionReason}</p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Kondisi Pengembalian
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-slate-900">{returnConditionLabel}</p>
+                  <p className="mt-2 text-xs text-slate-500">Catatan: {returnConditionNotes}</p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Detail Audit
+                  </p>
+                  <div className="mt-2 space-y-1 text-sm text-slate-700">
+                    <p>Dibuat: {formatDateTime(booking.created_at || booking.start_time)}</p>
+                    <p>Diperbarui: {formatDateTime(booking.updated_at || booking.completed_at)}</p>
+                    <p>Selesai: {formatDateTime(booking.completed_at)}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <section className="rounded-xl border border-slate-200 bg-white p-5">
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <CalendarClock className="h-4 w-4 text-indigo-600" />
                 <span>
-                  Dibuat: {formatDateTime(booking.start_time)} • Diperbarui status: {statusMeta.label}
+                  Penyewa: {booking.renter_name || "-"} • Kontak: {booking.renter_contact || "-"} • Email:{" "}
+                  {booking.renter_email || "-"}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                <ShieldAlert className="h-4 w-4 text-indigo-600" />
+                <span>
+                  Status saat ini: {statusMeta.label} • Pembayaran: {toReadableLabel(latestPayment?.status)}
+                </span>
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                <FileText className="h-4 w-4 text-indigo-600" />
+                <span>
+                  Catatan bukti pembayaran: {latestPayment?.proof_note?.trim() || "-"}
                 </span>
               </div>
             </section>

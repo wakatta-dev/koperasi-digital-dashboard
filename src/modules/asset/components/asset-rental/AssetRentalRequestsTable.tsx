@@ -154,23 +154,27 @@ export function AssetRentalRequestsTable({
                 </TableCell>
                 <TableCell className="px-4 text-sm text-slate-600">{row.purpose}</TableCell>
                 <TableCell className="px-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      className="h-7 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
-                      onClick={() => onApprove(row.id)}
-                      disabled={actionDisabled}
-                    >
-                      Setujui
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-7 border-red-200 bg-transparent px-3 text-xs text-red-600 hover:bg-red-50"
-                      onClick={() => onReject(row.id)}
-                      disabled={actionDisabled}
-                    >
-                      Tolak
-                    </Button>
-                  </div>
+                  {row.status === "Menunggu" ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        className="h-7 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
+                        onClick={() => onApprove(row.id)}
+                        disabled={actionDisabled}
+                      >
+                        Setujui
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-7 border-red-200 bg-transparent px-3 text-xs text-red-600 hover:bg-red-50"
+                        onClick={() => onReject(row.id)}
+                        disabled={actionDisabled}
+                      >
+                        Tolak
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400">Tidak ada aksi</span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

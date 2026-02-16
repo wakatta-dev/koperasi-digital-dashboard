@@ -40,6 +40,8 @@ type AssetRentalRentalsTableProps = Readonly<{
 }>;
 
 const statusStyles: Record<AssetRentalRentalsRow["status"], string> = {
+  "Menunggu Pembayaran":
+    "border border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
   Berjalan:
     "border border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   Terlambat:
@@ -92,7 +94,8 @@ export function AssetRentalRentalsTable({
     window.URL.revokeObjectURL(url);
   };
 
-  const activeCount = rows.filter((row) => row.status === "Berjalan").length;
+  const activeCount = rows.filter((row) => row.status === "Berjalan" || row.status === "Terlambat")
+    .length;
   const dueSoonCount = rows.filter((row) => row.status !== "Selesai").length;
 
   return (
@@ -129,6 +132,7 @@ export function AssetRentalRentalsTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Semua">Semua Status</SelectItem>
+                <SelectItem value="Menunggu Pembayaran">Menunggu Pembayaran</SelectItem>
                 <SelectItem value="Berjalan">Berjalan</SelectItem>
                 <SelectItem value="Terlambat">Terlambat</SelectItem>
                 <SelectItem value="Selesai">Selesai</SelectItem>

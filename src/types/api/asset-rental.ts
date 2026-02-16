@@ -27,18 +27,38 @@ export type AssetSpecification = {
   value: string;
 };
 
+export type AssetRentalBookingPayment = {
+  id: string;
+  type?: string;
+  method?: string;
+  amount: number;
+  status?: string;
+  proof_url?: string;
+  proof_note?: string;
+  pay_by?: number;
+  created_at?: number;
+  updated_at?: number;
+};
+
 export type AssetRentalBooking = {
   id: number;
   asset_id: number;
   asset_name: string;
   renter_name: string;
   renter_contact?: string;
+  renter_email?: string;
   purpose?: string;
   start_time: number;
   end_time: number;
   status: "BOOKED" | "COMPLETED" | string;
+  rejection_reason?: string;
   total_amount: number;
   completed_at?: number;
+  created_at?: number;
+  updated_at?: number;
+  return_condition?: string;
+  return_condition_notes?: string;
+  latest_payment?: AssetRentalBookingPayment;
 };
 
 export type AssetRentalAssetListResponse = ApiResponse<AssetRentalAsset[]>;
