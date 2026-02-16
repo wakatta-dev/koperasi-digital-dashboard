@@ -19,10 +19,22 @@ export function getAssetRentalBookings(params?: {
 }
 
 export function completeAssetBooking(
-  bookingId: string | number
+  bookingId: string | number,
+  payload?: {
+    return_condition?: string;
+    return_condition_notes?: string;
+  }
 ): Promise<ApiResponse<AssetRentalBooking>> {
+  const body: Record<string, string> = {};
+  if (payload?.return_condition?.trim()) {
+    body.return_condition = payload.return_condition.trim();
+  }
+  if (payload?.return_condition_notes?.trim()) {
+    body.return_condition_notes = payload.return_condition_notes.trim();
+  }
   return api.patch<AssetRentalBooking>(
-    `${API_PREFIX}${API_ENDPOINTS.assetReservation.bookingComplete(bookingId)}`
+    `${API_PREFIX}${API_ENDPOINTS.assetReservation.bookingComplete(bookingId)}`,
+    Object.keys(body).length > 0 ? body : undefined
   );
 }
 

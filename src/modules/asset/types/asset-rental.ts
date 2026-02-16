@@ -8,7 +8,12 @@ export type AssetRentalRentalsRow = Readonly<{
   borrowerUnit: string;
   startDate: string;
   returnDate: string;
-  status: "Menunggu Pembayaran" | "Berjalan" | "Terlambat" | "Selesai";
+  status:
+    | "Menunggu Pembayaran"
+    | "Menunggu Verifikasi Pembayaran"
+    | "Berjalan"
+    | "Terlambat"
+    | "Selesai";
 }>;
 
 export type AssetRentalRequestsRow = Readonly<{

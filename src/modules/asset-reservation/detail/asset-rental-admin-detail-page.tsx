@@ -18,6 +18,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QK } from "@/hooks/queries/queryKeys";
+import {
+  ASSET_RENTAL_BOOKING_STATUS,
+  resolveAssetRentalBookingStatus,
+} from "@/lib/asset-rental-booking-status";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import { getAssetById } from "@/services/api/assets";
 import {
@@ -72,25 +76,40 @@ function parseLocation(location?: string, description?: string) {
 
 function toStatusMeta(status?: string) {
   const normalized = (status || "").toUpperCase();
-  if (normalized === "PENDING_REVIEW") {
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.pendingReview) {
     return {
       label: "Menunggu",
       badgeClass: "border border-amber-200 bg-amber-50 text-amber-700",
     };
   }
-  if (normalized === "AWAITING_DP") {
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingDP) {
     return {
       label: "Menunggu Pembayaran",
       badgeClass: "border border-amber-200 bg-amber-50 text-amber-700",
     };
   }
-  if (normalized === "REJECTED" || normalized === "CANCELLED") {
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification) {
+    return {
+      label: "Menunggu Verifikasi Pembayaran",
+      badgeClass: "border border-orange-200 bg-orange-50 text-orange-700",
+    };
+  }
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement) {
+    return {
+      label: "Menunggu Pelunasan",
+      badgeClass: "border border-amber-200 bg-amber-50 text-amber-700",
+    };
+  }
+  if (
+    normalized === ASSET_RENTAL_BOOKING_STATUS.rejected ||
+    normalized === ASSET_RENTAL_BOOKING_STATUS.cancelled
+  ) {
     return {
       label: "Ditolak",
       badgeClass: "border border-red-200 bg-red-50 text-red-700",
     };
   }
-  if (normalized === "COMPLETED") {
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.completed) {
     return {
       label: "Selesai",
       badgeClass: "border border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -200,7 +219,8 @@ export function AssetRentalAdminDetailPage({
     },
   });
 
-  const statusMeta = toStatusMeta(booking?.status);
+  const resolvedBookingStatus = resolveAssetRentalBookingStatus(booking ?? undefined);
+  const statusMeta = toStatusMeta(resolvedBookingStatus);
   const isBusy = updateStatusMutation.isPending || completeMutation.isPending;
 
   const canApprove = (booking?.status || "").toUpperCase() === "PENDING_REVIEW";

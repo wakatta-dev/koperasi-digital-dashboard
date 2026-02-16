@@ -5,6 +5,10 @@ import type {
   AssetRentalBooking,
   AssetSpecification,
 } from "@/types/api/asset-rental";
+import {
+  ASSET_RENTAL_BOOKING_STATUS,
+  resolveAssetRentalBookingStatus,
+} from "@/lib/asset-rental-booking-status";
 
 import type { AssetDetailModel, AssetFormModel, AssetListItem } from "../types/stitch";
 
@@ -118,12 +122,23 @@ function toDurationLabel(startUnix?: number, endUnix?: number) {
   return `${days} Hari`;
 }
 
-function toBookingBadgeStatus(status?: string) {
-  const key = (status || "").toUpperCase();
-  if (key === "COMPLETED" || key === "CONFIRMED_FULL") return "Selesai";
-  if (key === "REJECTED" || key === "CANCELLED") return "Ditolak";
-  if (key === "PENDING_REVIEW") return "Menunggu";
-  if (key === "BOOKED" || key === "AWAITING_SETTLEMENT" || key === "AWAITING_DP") {
+function toBookingBadgeStatus(booking: AssetRentalBooking) {
+  const key = resolveAssetRentalBookingStatus(booking);
+  if (key === ASSET_RENTAL_BOOKING_STATUS.completed || key === ASSET_RENTAL_BOOKING_STATUS.confirmedFull) {
+    return "Selesai";
+  }
+  if (key === ASSET_RENTAL_BOOKING_STATUS.rejected || key === ASSET_RENTAL_BOOKING_STATUS.cancelled) {
+    return "Ditolak";
+  }
+  if (key === ASSET_RENTAL_BOOKING_STATUS.pendingReview) return "Menunggu";
+  if (key === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification) {
+    return "Menunggu Verifikasi Pembayaran";
+  }
+  if (
+    key === ASSET_RENTAL_BOOKING_STATUS.booked ||
+    key === ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement ||
+    key === ASSET_RENTAL_BOOKING_STATUS.awaitingDP
+  ) {
     return "Berjalan";
   }
   return "Berjalan";
@@ -267,7 +282,7 @@ export function mapContractAssetToDetailWithBookings(
         startDate: toReadableDate(booking.start_time),
         endDate: toReadableDate(booking.end_time),
         duration: toDurationLabel(booking.start_time, booking.end_time),
-        status: toBookingBadgeStatus(booking.status),
+        status: toBookingBadgeStatus(booking),
       })),
   };
 }

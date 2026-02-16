@@ -65,6 +65,7 @@ function humanizeEvent(event: string) {
     reservation_created: "Permintaan dikirim",
     pending_review: "Menunggu persetujuan",
     awaiting_dp: "Disetujui - menunggu DP",
+    awaiting_payment_verification: "Menunggu verifikasi pembayaran",
     confirmed_dp: "DP diterima",
     awaiting_settlement: "Menunggu pelunasan",
     confirmed_full: "Reservasi terkonfirmasi",
@@ -97,6 +98,8 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
     return "pending_review";
   case "awaiting_dp":
     return "awaiting_dp";
+  case "awaiting_payment_verification":
+    return "awaiting_payment_verification";
   case "confirmed_dp":
     return "confirmed_dp";
   case "awaiting_settlement":

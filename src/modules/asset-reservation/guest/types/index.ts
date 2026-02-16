@@ -32,10 +32,10 @@ export type GuestAssetCardItem = {
 export type GuestReservationStatus =
   | "pending_review"
   | "awaiting_dp"
+  | "awaiting_payment_verification"
   | "confirmed_dp"
   | "awaiting_settlement"
   | "confirmed_full"
   | "cancelled"
   | "rejected"
   | "expired";
-

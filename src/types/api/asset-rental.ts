@@ -50,7 +50,7 @@ export type AssetRentalBooking = {
   purpose?: string;
   start_time: number;
   end_time: number;
-  status: "BOOKED" | "COMPLETED" | string;
+  status: "BOOKED" | "COMPLETED" | "AWAITING_PAYMENT_VERIFICATION" | string;
   rejection_reason?: string;
   total_amount: number;
   completed_at?: number;

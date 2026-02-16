@@ -44,6 +44,16 @@ export const STATUS_CONTENT: Record<
     primaryHref: "/penyewaan-aset/payment?type=dp",
     secondaryVariant: "danger",
   },
+  awaiting_payment_verification: {
+    badgeBg: "bg-orange-50 dark:bg-orange-900/10",
+    border: "border-orange-200 dark:border-orange-800/50",
+    icon: "verified",
+    iconBg: "bg-orange-100 dark:bg-orange-900/30",
+    iconColor: "text-orange-600 dark:text-orange-400",
+    title: "Menunggu Verifikasi Pembayaran",
+    text: "Bukti pembayaran Anda sudah diterima dan sedang diverifikasi admin BUMDes.",
+    summaryLabel: "Status Pembayaran",
+  },
   confirmed_dp: {
     badgeBg: "bg-indigo-50 dark:bg-indigo-900/10",
     border: "border-indigo-200 dark:border-indigo-800/50",

@@ -17,6 +17,7 @@ export type AssetItem = {
 export type ReservationStatus =
   | "pending_review"
   | "awaiting_dp"
+  | "awaiting_payment_verification"
   | "confirmed_dp"
   | "awaiting_settlement"
   | "confirmed_full"

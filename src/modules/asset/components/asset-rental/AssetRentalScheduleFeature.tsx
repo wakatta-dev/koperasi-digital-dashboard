@@ -90,8 +90,15 @@ export function AssetRentalScheduleFeature({
   });
 
   const completeMutation = useMutation({
-    mutationFn: async (bookingId: string) => {
-      const response = await completeAssetBooking(bookingId);
+    mutationFn: async (args: {
+      bookingId: string;
+      returnCondition?: string;
+      returnConditionNotes?: string;
+    }) => {
+      const response = await completeAssetBooking(args.bookingId, {
+        return_condition: args.returnCondition,
+        return_condition_notes: args.returnConditionNotes,
+      });
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal menyelesaikan pengembalian");
       }
@@ -163,9 +170,13 @@ export function AssetRentalScheduleFeature({
     }
   };
 
-  const completeReturn = async (bookingId: string) => {
+  const completeReturn = async (payload: {
+    bookingId: string;
+    returnCondition?: string;
+    returnConditionNotes?: string;
+  }) => {
     try {
-      await completeMutation.mutateAsync(bookingId);
+      await completeMutation.mutateAsync(payload);
       showToastSuccess(
         "Pengembalian selesai",
         "Status booking diperbarui menjadi selesai."
@@ -339,7 +350,11 @@ export function AssetRentalScheduleFeature({
             overlays.closeMarkReturn();
             return;
           }
-          await completeReturn(bookingId);
+          await completeReturn({
+            bookingId,
+            returnCondition: _payload.condition,
+            returnConditionNotes: _payload.notes,
+          });
           overlays.closeMarkReturn();
         }}
       />

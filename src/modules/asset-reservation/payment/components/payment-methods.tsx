@@ -232,7 +232,7 @@ export function PaymentMethods({
             {status === "initiated"
               ? "Menunggu tindakan"
               : status === "pending_verification"
-              ? "Menunggu verifikasi"
+              ? "Menunggu Verifikasi Pembayaran"
               : status === "succeeded"
               ? "Berhasil"
               : status === "expired"

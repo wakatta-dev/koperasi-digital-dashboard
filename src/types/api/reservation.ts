@@ -64,6 +64,7 @@ export type GuestLinkVerifyResponse = {
   status?:
     | "pending_review"
     | "awaiting_dp"
+    | "awaiting_payment_verification"
     | "confirmed_dp"
     | "awaiting_settlement"
     | "confirmed_full"
@@ -98,6 +99,7 @@ export type ReservationDetailResponse = {
   status:
     | "pending_review"
     | "awaiting_dp"
+    | "awaiting_payment_verification"
     | "confirmed_dp"
     | "awaiting_settlement"
     | "confirmed_full"
