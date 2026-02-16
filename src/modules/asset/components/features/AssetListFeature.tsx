@@ -3,10 +3,11 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Funnel, Plus, EllipsisVertical } from "lucide-react";
+import { Search, Funnel, Plus, SquarePen, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import { InputField } from "@/components/shared/inputs/input-field";
 import { TableCell } from "@/components/shared/data-display/TableCell";
 import { TableHeader } from "@/components/shared/data-display/TableHeader";
@@ -15,8 +16,9 @@ import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QK } from "@/hooks/queries/queryKeys";
+import { showToastError, showToastSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { getAssets } from "@/services/api/assets";
+import { deleteAsset, getAssets } from "@/services/api/assets";
 import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental/AssetRentalFeatureShell";
 
 import type { AssetListItem } from "../../types/stitch";
@@ -35,6 +37,8 @@ const statusClassMap: Record<AssetListItem["status"], string> = {
 };
 
 export function AssetListFeature() {
+  const confirm = useConfirm();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [quickFilter, setQuickFilter] = useState<string>("Semua");
   const [showQuickFilters, setShowQuickFilters] = useState(true);
@@ -65,6 +69,21 @@ export function AssetListFeature() {
     },
   });
 
+  const archiveMutation = useMutation({
+    mutationFn: async (assetId: number) => {
+      const response = await deleteAsset(assetId);
+      if (!response.success) {
+        throw new Error(response.message || "Gagal menghapus aset");
+      }
+      return true;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: QK.assetRental.list({ source: "asset-management" }),
+      });
+    },
+  });
+
   const sourceItems: AssetListItem[] = useMemo(
     () => assetsQuery.data ?? [],
     [assetsQuery.data]
@@ -92,6 +111,32 @@ export function AssetListFeature() {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+
+  const handleDeleteAsset = async (item: AssetListItem) => {
+    const assetId = Number.parseInt(item.id, 10);
+    if (Number.isNaN(assetId)) {
+      showToastError("Gagal menghapus aset", "ID aset tidak valid.");
+      return;
+    }
+
+    const confirmed = await confirm({
+      variant: "delete",
+      title: "Hapus aset ini?",
+      description: `Aset "${item.name}" akan diarsipkan dan tidak dapat dipakai untuk penyewaan baru.`,
+      confirmText: "Hapus",
+      cancelText: "Batal",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await archiveMutation.mutateAsync(assetId);
+      showToastSuccess("Aset dihapus", "Aset berhasil diarsipkan.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Gagal menghapus aset";
+      showToastError("Gagal menghapus aset", message);
+    }
+  };
 
   return (
     <AssetRentalFeatureShell
@@ -233,12 +278,32 @@ export function AssetListFeature() {
                   </TableCell>
                   <TableCell className="px-4 text-sm text-slate-600">{item.location}</TableCell>
                   <TableCell className="px-4 text-right">
-                    <Button asChild variant="ghost" size="icon" className="text-slate-500 hover:text-indigo-600">
-                      <Link href={`/bumdes/asset/manajemen/edit?assetId=${encodeURIComponent(item.id)}`}>
-                        <EllipsisVertical className="h-4 w-4" />
-                        <span className="sr-only">Aksi</span>
-                      </Link>
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        className="text-slate-500 hover:text-indigo-600"
+                        title="Edit aset"
+                      >
+                        <Link href={`/bumdes/asset/manajemen/edit?assetId=${encodeURIComponent(item.id)}`}>
+                          <SquarePen className="h-4 w-4" />
+                          <span className="sr-only">Edit aset</span>
+                        </Link>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-slate-500 hover:text-red-600"
+                        title="Hapus aset"
+                        disabled={archiveMutation.isPending}
+                        onClick={() => void handleDeleteAsset(item)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Hapus aset</span>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
                   ))

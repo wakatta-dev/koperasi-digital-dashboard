@@ -89,6 +89,10 @@ export function updateAsset(
   return api.patch<AssetRentalAsset>(`${API_PREFIX}${E.detail(id)}`, payload);
 }
 
+export function deleteAsset(id: string | number): Promise<ApiResponse<null>> {
+  return api.delete<null>(`${API_PREFIX}${E.detail(id)}`);
+}
+
 export function uploadAssetImage(
   id: string | number,
   file: File
