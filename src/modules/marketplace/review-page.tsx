@@ -1,252 +1,274 @@
 /** @format */
+
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
-import { ReviewBreadcrumbs } from "./components/review/review-breadcrumbs";
-import { ReviewSteps } from "./components/review/review-steps";
-import { useMarketplaceCart } from "./hooks/useMarketplaceProducts";
-import { formatCurrency } from "@/lib/format";
-import { checkoutMarketplace, submitMarketplaceManualPayment } from "@/services/api";
-import { ensureSuccess } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { QK } from "@/hooks/queries/queryKeys";
 import { showToastError, showToastSuccess } from "@/lib/toast";
+import { ReviewOverlayDialog } from "./components/review/review-overlay-dialog";
 import {
-  useCheckoutStore,
-  isPaymentValid,
-  isShippingValid,
-} from "./state/checkout-store";
-import { useManualPaymentStore } from "./state/manual-payment-store";
-import type { MarketplaceOrderResponse } from "@/types/api/marketplace";
+  classifyMarketplaceApiError,
+  ensureMarketplaceSuccess,
+  getMarketplaceGuestOrderStatus,
+  submitMarketplaceOrderReview,
+  withMarketplaceDenyReasonMessage,
+} from "@/services/api";
 
 export function MarketplaceReviewPage() {
-  const router = useRouter();
-  const { data: cart, isLoading, isError, refetch } = useMarketplaceCart();
-  const cartCount = cart?.item_count ?? 0;
-  const checkout = useCheckoutStore();
-  const resetCheckout = useCheckoutStore((s) => s.reset);
-  const proofFile = useManualPaymentStore((s) => s.proofFile);
-  const resetProof = useManualPaymentStore((s) => s.reset);
-  const shippingValid = isShippingValid(checkout);
-  const paymentValid = isPaymentValid(checkout);
-  const [submitting, setSubmitting] = useState(false);
-  const [orderResult, setOrderResult] =
-    useState<MarketplaceOrderResponse | null>(null);
+  const searchParams = useSearchParams();
+  const orderId = Number(searchParams.get("order_id") ?? "");
+  const trackingToken = searchParams.get("tracking_token") ?? "";
+  const hasTrackingParams = Boolean(orderId > 0 && trackingToken);
+  const allowDevelopmentQuickReview = process.env.NODE_ENV !== "production";
+
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const statusQuery = useQuery({
+    queryKey:
+      hasTrackingParams
+        ? QK.marketplace.guestStatus(orderId, trackingToken)
+        : ["marketplace", "review", "idle"],
+    enabled: hasTrackingParams,
+    queryFn: async () =>
+      ensureMarketplaceSuccess(
+        await getMarketplaceGuestOrderStatus(orderId, trackingToken)
+      ),
+  });
+
+  const statusQueryErrorMessage = useMemo(() => {
+    if (!statusQuery.isError) {
+      return null;
+    }
+    const classified = classifyMarketplaceApiError(statusQuery.error);
+    if (classified.kind === "deny") {
+      return withMarketplaceDenyReasonMessage({
+        fallbackMessage:
+          "Akses ulasan ditolak. Pastikan tautan berasal dari pelacakan pesanan yang valid.",
+        code: classified.code,
+      });
+    }
+    if (classified.kind === "not_found") {
+      return "Pesanan tidak ditemukan. Periksa ulang tautan ulasan Anda dari halaman pelacakan.";
+    }
+    if (classified.kind === "conflict") {
+      return "Ulasan belum dapat dibuka karena status pesanan belum memenuhi syarat.";
+    }
+    if (classified.kind === "service_unavailable") {
+      return "Layanan ulasan sedang tidak tersedia. Coba lagi beberapa menit lagi.";
+    }
+    return "Gagal memuat status pesanan. Pastikan tautan ulasan masih valid.";
+  }, [statusQuery.error, statusQuery.isError]);
+
+  const submitReview = useMutation({
+    mutationFn: async (payload: {
+      orderId: number;
+      body: {
+        tracking_token: string;
+        overall_comment?: string;
+        items: Array<{ order_item_id: number; rating: number; comment?: string }>;
+      };
+    }) =>
+      ensureMarketplaceSuccess(
+        await submitMarketplaceOrderReview(payload.orderId, payload.body)
+      ),
+    onSuccess: async () => {
+      showToastSuccess("Ulasan terkirim", "Terima kasih atas ulasan Anda.");
+      setOpen(false);
+      await statusQuery.refetch();
+    },
+    onError: (err: any) => {
+      const classified = classifyMarketplaceApiError(err);
+      const message = (() => {
+        if (classified.kind === "deny") {
+          return withMarketplaceDenyReasonMessage({
+            fallbackMessage:
+              "Akses ulasan ditolak. Pastikan token pelacakan masih valid.",
+            code: classified.code,
+          });
+        }
+        if (classified.kind === "not_found") {
+          return "Pesanan tidak ditemukan. Buka ulang dari halaman pelacakan.";
+        }
+        if (classified.kind === "conflict") {
+          return "Ulasan tidak dapat dikirim karena status pesanan belum eligible atau sudah pernah direview.";
+        }
+        if (classified.kind === "service_unavailable") {
+          return "Layanan ulasan sedang terganggu. Silakan coba kembali beberapa saat lagi.";
+        }
+        return classified.message || "Gagal mengirim ulasan.";
+      })();
+      showToastError("Gagal mengirim ulasan", message);
+    },
+  });
+
+  const reviewItems = useMemo(() => {
+    const detail = statusQuery.data;
+    if (!detail) {
+      return [];
+    }
+    return detail.items
+      .filter((item) => (item.order_item_id ?? 0) > 0)
+      .map((item) => ({
+        id: String(item.order_item_id),
+        orderItemId: item.order_item_id,
+        name: item.product_name,
+      }));
+  }, [statusQuery.data]);
+
+  const canOpenReview =
+    statusQuery.data?.review_state === "eligible" && reviewItems.length > 0;
+  const quickReviewItems = useMemo(
+    () =>
+      allowDevelopmentQuickReview
+        ? [{ id: "1", orderItemId: 1, name: "Produk Pesanan Marketplace" }]
+        : [],
+    [allowDevelopmentQuickReview]
+  );
+  const activeReviewItems = hasTrackingParams ? reviewItems : quickReviewItems;
 
   useEffect(() => {
-    if (
-      !shippingValid ||
-      !paymentValid ||
-      (!isLoading && !cart?.items?.length)
-    ) {
-      router.replace("/marketplace/pembayaran");
+    if (!open) {
+      triggerRef.current?.focus();
     }
-  }, [cart?.items?.length, isLoading, paymentValid, router, shippingValid]);
-
-  const subtotal = useMemo(
-    () => cart?.items?.reduce((acc, i) => acc + i.subtotal, 0) ?? 0,
-    [cart?.items]
-  );
-
-  const handleSubmit = async () => {
-    if (!shippingValid || !paymentValid || !cart?.items?.length) {
-      showToastError(
-        "Data belum lengkap",
-        "Lengkapi pengiriman dan pembayaran"
-      );
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const order = ensureSuccess(
-        await checkoutMarketplace({
-          fulfillment_method: checkout.fulfillment,
-          customer_name: checkout.name,
-          customer_phone: checkout.phone,
-          customer_email: checkout.email,
-          customer_address:
-            checkout.fulfillment === "DELIVERY" ? checkout.address : "",
-          notes: checkout.notes,
-        })
-      );
-      setOrderResult(order);
-      if (checkout.paymentMethod === "MANUAL_TRANSFER" && proofFile) {
-        try {
-          await ensureSuccess(
-            await submitMarketplaceManualPayment(order.id, { file: proofFile })
-          );
-          showToastSuccess(
-            "Bukti transfer terkirim",
-            "Kami akan memverifikasi pembayaran Anda."
-          );
-        } catch (err) {
-          showToastError("Gagal mengunggah bukti transfer", err);
-        }
-      }
-      resetCheckout();
-      resetProof();
-      await refetch();
-      showToastSuccess("Pesanan dibuat", "Checkout berhasil");
-    } catch (err: any) {
-      const msg = (err as Error)?.message?.toLowerCase() ?? "";
-      if (msg.includes("insufficient stock")) {
-        showToastError("Stok tidak cukup", err);
-        router.replace("/marketplace/keranjang");
-      } else if (msg.includes("variant selection required")) {
-        showToastError("Pilih varian", "Silakan pilih varian di keranjang");
-        router.replace("/marketplace/keranjang");
-      } else if (msg.includes("not available")) {
-        showToastError("Produk tidak tersedia", err);
-        router.replace("/marketplace/keranjang");
-      } else {
-        showToastError("Checkout gagal", err);
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  }, [open]);
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
-      <LandingNavbar
-        activeLabel="Marketplace"
-        showCart
-        cartCount={cartCount}
-      />
-      <main className="pt-28 pb-20 bg-background min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ReviewBreadcrumbs />
-          <ReviewSteps />
+    <div
+      className="min-h-screen bg-background text-foreground px-6 py-24"
+      data-testid="marketplace-review-page-root"
+    >
+      <div
+        className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 shadow-sm space-y-4 text-center"
+        data-testid="marketplace-review-page-main"
+      >
+        <h1 className="text-2xl font-bold">Ulasan Pesanan</h1>
 
-          <h1 className="text-3xl font-extrabold text-foreground mb-8">
-            Ulasan Pesanan &amp; Konfirmasi
-          </h1>
-
-          {orderResult ? (
-            <div className="bg-card rounded-2xl shadow-sm border border-border p-8 space-y-4">
-              <h2 className="text-2xl font-bold text-foreground">
-                Checkout berhasil
-              </h2>
-              <p className="text-muted-foreground">
-                Order ID: #{orderResult.id}
+        {!hasTrackingParams ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Buka konfirmasi pesanan untuk mengisi ulasan. Untuk sinkronisasi otomatis,
+              akses ulasan dari halaman pelacakan pesanan.
+            </p>
+            {!allowDevelopmentQuickReview ? (
+              <p className="text-sm text-amber-700">
+                Mode pengisian ulasan tanpa token hanya tersedia di development.
+                Di production, ulasan wajib melalui data backend dari pelacakan.
               </p>
-                <div className="space-y-2">
-                  {orderResult.items.map((item) => (
-                    <div
-                      key={`${item.product_id}-${item.variant_option_id ?? "base"}`}
-                      className="flex justify-between text-sm text-muted-foreground"
-                    >
-                      <span>
-                        {item.product_name} x {item.quantity}
-                      </span>
-                      <span>{formatCurrency(item.subtotal)}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="font-semibold text-foreground">
-                  Total: {formatCurrency(orderResult.total)}
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <Link
-                    href="/marketplace"
-                    className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
-                  >
-                    Kembali ke Marketplace
-                  </Link>
-                  <button
-                    onClick={() => {
-                      router.replace("/marketplace/keranjang");
-                    }}
-                    className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-border hover:bg-muted transition text-foreground"
-                  >
-                    Lihat Keranjang
-                  </button>
-                </div>
-            </div>
-          ) : null}
+            ) : null}
+            <Link
+              data-testid="marketplace-review-open-tracking-link"
+              href="/marketplace/pengiriman"
+              className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Buka Pelacakan Pesanan
+            </Link>
+          </div>
+        ) : null}
 
-          {!orderResult && !isError ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-              <div className="lg:col-span-8 space-y-6">
-                <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-3">
-                  <h3 className="font-bold text-lg text-foreground">
-                    Alamat & Kontak
-                  </h3>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <div>{checkout.name}</div>
-                    <div>{checkout.phone}</div>
-                    <div>{checkout.email}</div>
-                    {checkout.fulfillment === "DELIVERY" ? (
-                      <div>{checkout.address}</div>
-                    ) : (
-                      <div>Pickup di lokasi</div>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-3">
-                  <h3 className="font-bold text-lg text-foreground">
-                    Metode Pembayaran
-                  </h3>
-                  <div className="text-sm text-muted-foreground">
-                    {checkout.paymentMethod || "Belum dipilih"}
-                  </div>
-                </div>
-                <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-3">
-                  <h3 className="font-bold text-lg text-foreground">
-                    Ringkasan Barang
-                  </h3>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    {cart?.items?.map?.((item) => (
-                      <div key={item.id} className="flex justify-between">
-                        <span>
-                          {item.product_name} x {item.quantity}
-                        </span>
-                        <span>{formatCurrency(item.subtotal)}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between font-semibold text-foreground">
-                    <span>Subtotal</span>
-                    <span>{formatCurrency(subtotal)}</span>
-                  </div>
-                </div>
-                <Link
-                  href="/marketplace/pembayaran"
-                  className="inline-flex items-center gap-2 text-muted-foreground font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition group"
-                >
-                  <span className="material-icons-outlined text-lg group-hover:-translate-x-1 transition-transform">
-                    arrow_back
-                  </span>
-                  Kembali ke Pembayaran
-                </Link>
-              </div>
+        {hasTrackingParams && statusQuery.isLoading ? (
+          <p className="text-sm text-muted-foreground">Memuat status pesanan...</p>
+        ) : null}
 
-              <div className="lg:col-span-4 lg:sticky lg:top-28 space-y-4">
-                <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-3">
-                  <h3 className="font-bold text-lg text-foreground">
-                    Total Pembayaran
-                  </h3>
-                  <div className="flex justify-between font-semibold text-foreground">
-                    <span>Total</span>
-                    <span>{formatCurrency(cart?.total ?? subtotal)}</span>
-                  </div>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 font-bold disabled:opacity-50"
-                  >
-                    {submitting ? "Memproses..." : "Konfirmasi & Bayar"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </main>
-      <LandingFooter />
+        {hasTrackingParams && statusQuery.isError ? (
+          <div className="space-y-3">
+            <p className="text-sm text-destructive">
+              {statusQueryErrorMessage}
+            </p>
+            <Button
+              data-testid="marketplace-review-reload-status-button"
+              type="button"
+              variant="outline"
+              onClick={() => statusQuery.refetch()}
+            >
+              Muat Ulang
+            </Button>
+          </div>
+        ) : null}
+
+        {hasTrackingParams && statusQuery.data ? (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Status review saat ini: <strong>{statusQuery.data.review_state}</strong>
+            </p>
+            <Button
+              data-testid="marketplace-review-open-dialog-button"
+              ref={triggerRef}
+              type="button"
+              className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
+              onClick={() => {
+                if (!canOpenReview) {
+                  showToastError(
+                    "Ulasan belum dapat dikirim",
+                    "Pesanan belum eligible atau sudah pernah direview."
+                  );
+                  return;
+                }
+                setOpen(true);
+              }}
+              disabled={statusQuery.data.review_state === "submitted"}
+            >
+              {statusQuery.data.review_state === "submitted"
+                ? "Ulasan Sudah Dikirim"
+                : "Buka Konfirmasi Pesanan"}
+            </Button>
+          </>
+        ) : null}
+
+        {!hasTrackingParams ? (
+          <Button
+            data-testid="marketplace-review-open-dialog-dev-button"
+            ref={triggerRef}
+            type="button"
+            className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
+            disabled={!allowDevelopmentQuickReview}
+            onClick={() => setOpen(true)}
+          >
+            {allowDevelopmentQuickReview
+              ? "Buka Konfirmasi Pesanan"
+              : "Gunakan Pelacakan Pesanan"}
+          </Button>
+        ) : null}
+      </div>
+
+      <ReviewOverlayDialog
+        open={open}
+        onOpenChange={setOpen}
+        items={activeReviewItems}
+        submitting={submitReview.isPending}
+        onSubmit={({ items, overallComment }) => {
+          if (!hasTrackingParams) {
+            if (!allowDevelopmentQuickReview) {
+              showToastError(
+                "Ulasan membutuhkan data backend",
+                "Silakan buka ulasan dari halaman pelacakan pesanan."
+              );
+              setOpen(false);
+              return;
+            }
+            showToastSuccess(
+              "Simulasi konfirmasi tersimpan",
+              "Mode ini hanya untuk development. Kirim ulasan production melalui pelacakan pesanan."
+            );
+            setOpen(false);
+            return;
+          }
+
+          submitReview.mutate({
+            orderId,
+            body: {
+              tracking_token: trackingToken,
+              overall_comment: overallComment,
+              items,
+            },
+          });
+        }}
+      />
     </div>
   );
 }

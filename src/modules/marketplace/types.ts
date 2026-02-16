@@ -1,5 +1,10 @@
 /** @format */
 
+import type {
+  MarketplaceOrderStatus,
+  MarketplaceReviewState,
+} from "@/types/api/marketplace";
+
 export type MarketplaceFilters = {
   categories: string[];
   priceMin?: number;
@@ -13,9 +18,9 @@ export const DEFAULT_MARKETPLACE_FILTERS: MarketplaceFilters = {
 };
 
 export type ProductStatus = "Tersedia" | "Menipis" | "Habis";
-export type OrderStatus = "Completed" | "Processing" | "Shipped" | "Cancelled";
+export type OrderStatus = MarketplaceOrderStatus;
 export type CustomerStatus = "Active" | "Inactive";
-export type PaymentStatus = "Lunas" | "Pending" | "Gagal";
+export type PaymentStatus = "Lunas" | "Pending" | "Gagal" | "Verifikasi";
 export type PaymentMethodType = "card" | "bank";
 export type InventoryEventType = "increase" | "decrease";
 
@@ -125,6 +130,16 @@ export type OrderDetail = {
   paymentStatus: PaymentStatus;
   shippingCourier: string;
   trackingNumber?: string | null;
+  guestTrackingEnabled?: boolean;
+  trackingToken?: string | null;
+  reviewState?: MarketplaceReviewState;
+  reviewSubmittedAt?: number;
+  manualPaymentProofUrl?: string;
+  manualPaymentNote?: string;
+  manualPaymentBankName?: string;
+  manualPaymentAccountName?: string;
+  manualPaymentTransferAmount?: number;
+  manualPaymentTransferDate?: string;
   customer: CustomerSummary;
   shippingAddress: Address;
   billingAddress: Address;

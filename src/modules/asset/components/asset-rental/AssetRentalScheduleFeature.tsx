@@ -67,8 +67,16 @@ export function AssetRentalScheduleFeature({
   const returnRows = bookingCollections.returnRows;
 
   const statusMutation = useMutation({
-    mutationFn: async (args: { bookingId: string; status: string }) => {
-      const response = await updateAssetBookingStatus(args.bookingId, args.status);
+    mutationFn: async (args: {
+      bookingId: string;
+      status: string;
+      rejectionReason?: string;
+    }) => {
+      const response = await updateAssetBookingStatus(
+        args.bookingId,
+        args.status,
+        args.rejectionReason
+      );
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memperbarui status booking");
       }
@@ -82,8 +90,15 @@ export function AssetRentalScheduleFeature({
   });
 
   const completeMutation = useMutation({
-    mutationFn: async (bookingId: string) => {
-      const response = await completeAssetBooking(bookingId);
+    mutationFn: async (args: {
+      bookingId: string;
+      returnCondition?: string;
+      returnConditionNotes?: string;
+    }) => {
+      const response = await completeAssetBooking(args.bookingId, {
+        return_condition: args.returnCondition,
+        return_condition_notes: args.returnConditionNotes,
+      });
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal menyelesaikan pengembalian");
       }
@@ -141,9 +156,13 @@ export function AssetRentalScheduleFeature({
     }
   };
 
-  const rejectRequest = async (bookingId: string) => {
+  const rejectRequest = async (bookingId: string, rejectionReason: string) => {
     try {
-      await statusMutation.mutateAsync({ bookingId, status: "REJECTED" });
+      await statusMutation.mutateAsync({
+        bookingId,
+        status: "REJECTED",
+        rejectionReason,
+      });
       showToastSuccess("Pengajuan ditolak", "Status pengajuan diperbarui.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Gagal menolak pengajuan";
@@ -151,9 +170,13 @@ export function AssetRentalScheduleFeature({
     }
   };
 
-  const completeReturn = async (bookingId: string) => {
+  const completeReturn = async (payload: {
+    bookingId: string;
+    returnCondition?: string;
+    returnConditionNotes?: string;
+  }) => {
     try {
-      await completeMutation.mutateAsync(bookingId);
+      await completeMutation.mutateAsync(payload);
       showToastSuccess(
         "Pengembalian selesai",
         "Status booking diperbarui menjadi selesai."
@@ -236,10 +259,16 @@ export function AssetRentalScheduleFeature({
           actionDisabled={isMutating}
           onRowAction={(id) => {
             const row = filteredRentalRows.find((item) => item.id === id);
-            if (!row || row.status === "Selesai") {
+            if (
+              !row ||
+              row.status === "Selesai" ||
+              row.status === "Menunggu Pembayaran"
+            ) {
               showToastWarning(
                 "Aksi tidak tersedia",
-                "Booking ini sudah selesai."
+                row?.status === "Menunggu Pembayaran"
+                  ? "Booking ini masih menunggu pembayaran."
+                  : "Booking ini sudah selesai."
               );
               return;
             }
@@ -282,12 +311,12 @@ export function AssetRentalScheduleFeature({
         onOpenChange={(open) => {
           if (!open) overlays.closeReject();
         }}
-        onConfirm={async (_reason) => {
+        onConfirm={async (reason) => {
           if (!overlays.selectedId) {
             overlays.closeReject();
             return;
           }
-          await rejectRequest(overlays.selectedId);
+          await rejectRequest(overlays.selectedId, reason);
           overlays.closeReject();
         }}
       />
@@ -321,7 +350,11 @@ export function AssetRentalScheduleFeature({
             overlays.closeMarkReturn();
             return;
           }
-          await completeReturn(bookingId);
+          await completeReturn({
+            bookingId,
+            returnCondition: _payload.condition,
+            returnConditionNotes: _payload.notes,
+          });
           overlays.closeMarkReturn();
         }}
       />

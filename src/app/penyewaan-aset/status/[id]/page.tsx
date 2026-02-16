@@ -30,9 +30,8 @@ export default async function PenyewaanAsetStatusPage({
       : rawStatus === "awaiting_dp"
         ? "awaiting_dp"
         : rawStatus === "awaiting_settlement"
-          ? "awaiting_settlement"
+        ? "awaiting_settlement"
           : "pending_review";
-  const signature = searchParamsResolved?.sig;
-
-  return <AssetStatusPage token={id} signature={signature} status={status} />;
+  const accessToken = searchParamsResolved?.sig;
+  return <AssetStatusPage token={id} accessToken={accessToken} status={status} />;
 }

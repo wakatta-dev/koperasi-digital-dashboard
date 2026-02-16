@@ -48,8 +48,7 @@ export function FiltersSidebar({ filters, onChange, onApply }: Props) {
           <Button
             type="button"
             onClick={onApply}
-            variant="outline"
-            className="w-full py-2 bg-muted hover:bg-muted/80 text-foreground text-sm font-medium rounded transition border-border"
+            className="w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
           >
             Terapkan
           </Button>

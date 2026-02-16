@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
 import type { ReservationState } from "./constants";
 import { SecureInfoBar } from "./components/secure-info-bar";
@@ -23,16 +23,19 @@ type StatusReservationPageProps = {
   state: ReservationState;
   hasSignature: boolean;
   reservationId?: number;
+  accessToken?: string;
 };
 
 export function StatusReservationPage({
   state: _state,
   hasSignature,
   reservationId,
+  accessToken,
 }: StatusReservationPageProps) {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const { data: reservation, isLoading, error } = useReservation(
-    hasSignature ? reservationId : undefined
+    hasSignature ? reservationId : undefined,
+    accessToken
   );
   const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
 
@@ -55,6 +58,7 @@ export function StatusReservationPage({
                   <ReservationSummaryCard
                     hasSignature={hasSignature}
                     reservationId={reservationId}
+                    accessToken={accessToken || reservation?.guestToken}
                     reservation={reservation ?? null}
                     proofAvailable={false}
                     onDownload={() => setDownloadOpen(true)}

@@ -7,9 +7,15 @@ type PaymentSidebarProps = {
   reservation: ReservationSummary;
   sessionAmount?: number;
   sessionPayBy?: string;
+  ownershipToken?: string;
 };
 
-export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: PaymentSidebarProps) {
+export function PaymentSidebar({
+  reservation,
+  sessionAmount,
+  sessionPayBy,
+  ownershipToken,
+}: PaymentSidebarProps) {
   const serviceFee = 2500;
   const dpDue = sessionAmount ?? reservation.amounts.dp;
   const remaining = reservation.amounts.remaining;
@@ -17,12 +23,11 @@ export function PaymentSidebar({ reservation, sessionAmount, sessionPayBy }: Pay
   const dueText = sessionPayBy
     ? `Bayar sebelum ${new Date(sessionPayBy).toLocaleString("id-ID")}`
     : "Segera selesaikan pembayaran sebelum batas waktu yang ditentukan.";
-  const confirmationSig = process.env.NEXT_PUBLIC_RESERVATION_SIG;
   const confirmationHref =
-    confirmationSig && reservation.reservationId
-      ? `/penyewaan-aset/status-reservasi?state=done&id=${encodeURIComponent(
-          String(reservation.reservationId)
-        )}&sig=${encodeURIComponent(confirmationSig)}`
+    reservation.reservationId
+      ? `/penyewaan-aset/status/${encodeURIComponent(String(reservation.reservationId))}${
+          ownershipToken ? `?sig=${encodeURIComponent(ownershipToken)}` : ""
+        }`
       : null;
 
   return (

@@ -44,6 +44,16 @@ export const STATUS_CONTENT: Record<
     primaryHref: "/penyewaan-aset/payment?type=dp",
     secondaryVariant: "danger",
   },
+  awaiting_payment_verification: {
+    badgeBg: "bg-orange-50 dark:bg-orange-900/10",
+    border: "border-orange-200 dark:border-orange-800/50",
+    icon: "verified",
+    iconBg: "bg-orange-100 dark:bg-orange-900/30",
+    iconColor: "text-orange-600 dark:text-orange-400",
+    title: "Menunggu Verifikasi Pembayaran",
+    text: "Bukti pembayaran Anda sudah diterima dan sedang diverifikasi admin BUMDes.",
+    summaryLabel: "Status Pembayaran",
+  },
   confirmed_dp: {
     badgeBg: "bg-indigo-50 dark:bg-indigo-900/10",
     border: "border-indigo-200 dark:border-indigo-800/50",
@@ -79,6 +89,16 @@ export const STATUS_CONTENT: Record<
     text: "Pembayaran selesai. Reservasi Anda telah dikonfirmasi penuh.",
     summaryLabel: "Total Tagihan",
     secondaryVariant: "danger",
+  },
+  completed: {
+    badgeBg: "bg-emerald-50 dark:bg-emerald-900/20",
+    border: "border-emerald-200 dark:border-emerald-800/60",
+    icon: "task_alt",
+    iconBg: "bg-emerald-100 dark:bg-emerald-900/40",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    title: "Sewa Selesai",
+    text: "Siklus penyewaan ditutup admin dan kondisi aset sudah dicatat.",
+    summaryLabel: "Status",
   },
   cancelled: {
     badgeBg: "bg-gray-50 dark:bg-gray-900/20",

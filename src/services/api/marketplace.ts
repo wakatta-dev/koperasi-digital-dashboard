@@ -6,9 +6,13 @@ import type { ApiResponse } from "@/types/api";
 import type {
   MarketplaceCartResponse,
   MarketplaceCheckoutRequest,
+  MarketplaceGuestOrderStatusDetailResponse,
+  MarketplaceGuestTrackRequest,
+  MarketplaceGuestTrackResponse,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderManualPaymentResponse,
+  MarketplaceOrderReviewSubmitRequest,
   MarketplaceOrderResponse,
   MarketplaceOrderStatusUpdateRequest,
   MarketplaceProductListResponse,
@@ -19,6 +23,206 @@ import type {
 } from "@/types/api/marketplace";
 
 const E = API_ENDPOINTS.marketplace;
+
+const MARKETPLACE_CODE_TO_STATUS: Record<string, number> = {
+  MARKETPLACE_DISABLED: 403,
+  MARKETPLACE_FLAG_UNAVAILABLE: 503,
+  FORBIDDEN_ROLE: 403,
+  FORBIDDEN_TENANT: 403,
+  FORBIDDEN_OWNERSHIP: 403,
+  INVALID_TRACKING_TOKEN: 403,
+  REVIEW_NOT_ELIGIBLE: 409,
+  VALIDATION_ERROR: 400,
+  RESOURCE_NOT_FOUND: 404,
+  STATE_CONFLICT: 409,
+  SERVICE_UNAVAILABLE: 503,
+};
+
+const DENY_CODES = new Set([
+  "MARKETPLACE_DISABLED",
+  "MARKETPLACE_FLAG_UNAVAILABLE",
+  "FORBIDDEN_ROLE",
+  "FORBIDDEN_TENANT",
+  "FORBIDDEN_OWNERSHIP",
+  "INVALID_TRACKING_TOKEN",
+]);
+
+const MARKETPLACE_DENY_REASON_MESSAGES: Partial<
+  Record<MarketplaceErrorCode, string>
+> = {
+  MARKETPLACE_DISABLED:
+    "Marketplace sedang dinonaktifkan untuk sementara oleh kebijakan sistem.",
+  MARKETPLACE_FLAG_UNAVAILABLE:
+    "Status feature flag marketplace tidak tersedia, sehingga akses dibatasi demi keamanan.",
+  FORBIDDEN_ROLE:
+    "Peran akun Anda tidak memiliki izin untuk aksi ini.",
+  FORBIDDEN_TENANT:
+    "Akses ditolak karena konteks tenant tidak sesuai.",
+  FORBIDDEN_OWNERSHIP:
+    "Akses ditolak karena pesanan ini tidak terkait dengan identitas pelacakan Anda.",
+  INVALID_TRACKING_TOKEN:
+    "Token pelacakan tidak valid atau sudah kedaluwarsa.",
+};
+
+export type MarketplaceErrorCode = keyof typeof MARKETPLACE_CODE_TO_STATUS;
+
+export type MarketplaceApiErrorKind =
+  | "deny"
+  | "not_found"
+  | "conflict"
+  | "service_unavailable"
+  | "validation"
+  | "unknown";
+
+export function getMarketplaceDenyReasonMessage(
+  code?: MarketplaceErrorCode
+): string | null {
+  if (!code || !DENY_CODES.has(code)) {
+    return null;
+  }
+
+  return MARKETPLACE_DENY_REASON_MESSAGES[code] ?? null;
+}
+
+export function withMarketplaceDenyReasonMessage(params: {
+  fallbackMessage: string;
+  code?: MarketplaceErrorCode;
+}): string {
+  const reason = getMarketplaceDenyReasonMessage(params.code);
+  if (!reason) {
+    return params.fallbackMessage;
+  }
+  return `${params.fallbackMessage} Alasan: ${reason}`;
+}
+
+export class MarketplaceApiError extends Error {
+  readonly statusCode: number;
+  readonly code?: MarketplaceErrorCode;
+  readonly isDeny: boolean;
+  readonly response?: ApiResponse<unknown>;
+
+  constructor(params: {
+    message: string;
+    statusCode: number;
+    code?: MarketplaceErrorCode;
+    response?: ApiResponse<unknown>;
+  }) {
+    super(params.message);
+    this.name = "MarketplaceApiError";
+    this.statusCode = params.statusCode;
+    this.code = params.code;
+    this.isDeny = Boolean(params.code && DENY_CODES.has(params.code));
+    this.response = params.response;
+  }
+}
+
+function normalizeMarketplaceErrorCode(raw: unknown): MarketplaceErrorCode | undefined {
+  if (typeof raw !== "string") {
+    return undefined;
+  }
+  const normalized = raw.trim().toUpperCase();
+  if (!normalized) {
+    return undefined;
+  }
+  return normalized in MARKETPLACE_CODE_TO_STATUS
+    ? (normalized as MarketplaceErrorCode)
+    : undefined;
+}
+
+function extractMarketplaceErrorCode<T>(res: ApiResponse<T>): MarketplaceErrorCode | undefined {
+  const fromPayload = normalizeMarketplaceErrorCode(res.error?.code);
+  if (fromPayload) {
+    return fromPayload;
+  }
+
+  const fromErrors = Object.keys(res.errors ?? {})
+    .map((key) => normalizeMarketplaceErrorCode(key))
+    .find(Boolean);
+  if (fromErrors) {
+    return fromErrors;
+  }
+
+  return normalizeMarketplaceErrorCode(res.message);
+}
+
+function inferMarketplaceStatusCode<T>(
+  res: ApiResponse<T>,
+  code?: MarketplaceErrorCode
+): number {
+  if (typeof res.meta?.status_code === "number" && res.meta.status_code > 0) {
+    return res.meta.status_code;
+  }
+  if (code) {
+    return MARKETPLACE_CODE_TO_STATUS[code];
+  }
+  return 500;
+}
+
+function buildMarketplaceErrorMessage<T>(res: ApiResponse<T>): string {
+  const flattened =
+    Object.entries(res.errors ?? {})
+      .flatMap(([, errs]) => errs)
+      .filter(Boolean)
+      .join("; ") || "";
+  return flattened || res.message || "Marketplace request failed.";
+}
+
+export function ensureMarketplaceSuccess<T>(res: ApiResponse<T>): T {
+  if (res.success) {
+    return res.data as T;
+  }
+
+  const code = extractMarketplaceErrorCode(res);
+  throw new MarketplaceApiError({
+    message: buildMarketplaceErrorMessage(res),
+    statusCode: inferMarketplaceStatusCode(res, code),
+    code,
+    response: res as ApiResponse<unknown>,
+  });
+}
+
+export function toMarketplaceApiError(err: unknown): MarketplaceApiError {
+  if (err instanceof MarketplaceApiError) {
+    return err;
+  }
+  if (err instanceof Error) {
+    return new MarketplaceApiError({
+      message: err.message,
+      statusCode: 500,
+    });
+  }
+  return new MarketplaceApiError({
+    message: "Marketplace request failed.",
+    statusCode: 500,
+  });
+}
+
+export function classifyMarketplaceApiError(err: unknown): {
+  kind: MarketplaceApiErrorKind;
+  statusCode: number;
+  code?: MarketplaceErrorCode;
+  message: string;
+  isDeny: boolean;
+} {
+  const parsed = toMarketplaceApiError(err);
+
+  const kind: MarketplaceApiErrorKind = (() => {
+    if (parsed.isDeny || parsed.statusCode === 403) return "deny";
+    if (parsed.statusCode === 404) return "not_found";
+    if (parsed.statusCode === 409) return "conflict";
+    if (parsed.statusCode === 503) return "service_unavailable";
+    if (parsed.statusCode === 400) return "validation";
+    return "unknown";
+  })();
+
+  return {
+    kind,
+    statusCode: parsed.statusCode,
+    code: parsed.code,
+    message: parsed.message,
+    isDeny: parsed.isDeny || parsed.statusCode === 403,
+  };
+}
 
 export function getMarketplaceProducts(params?: {
   q?: string;
@@ -69,6 +273,7 @@ export function addMarketplaceCartItem(payload: {
 }): Promise<ApiResponse<null>> {
   return api.post<null>(`${API_PREFIX}${E.cartItem}`, payload, {
     credentials: "include",
+    keepalive: true,
   });
 }
 
@@ -116,6 +321,36 @@ export function listMarketplaceOrders(params?: {
   if (params?.sort) search.set("sort", params.sort);
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<MarketplaceOrderListResponse>(`${API_PREFIX}${E.orders}${query}`);
+}
+
+export function trackMarketplaceOrder(
+  payload: MarketplaceGuestTrackRequest
+): Promise<ApiResponse<MarketplaceGuestTrackResponse>> {
+  return api.post<MarketplaceGuestTrackResponse>(`${API_PREFIX}${E.orderTrack}`, payload, {
+    credentials: "include",
+  });
+}
+
+export function getMarketplaceGuestOrderStatus(
+  id: string | number,
+  trackingToken: string
+): Promise<ApiResponse<MarketplaceGuestOrderStatusDetailResponse>> {
+  const query = new URLSearchParams({ tracking_token: trackingToken });
+  return api.get<MarketplaceGuestOrderStatusDetailResponse>(
+    `${API_PREFIX}${E.orderGuestStatus(id)}?${query.toString()}`,
+    {
+      credentials: "include",
+    }
+  );
+}
+
+export function submitMarketplaceOrderReview(
+  id: string | number,
+  payload: MarketplaceOrderReviewSubmitRequest
+): Promise<ApiResponse<null>> {
+  return api.post<null>(`${API_PREFIX}${E.orderReviews(id)}`, payload, {
+    credentials: "include",
+  });
 }
 
 export function listMarketplaceCustomers(params?: {

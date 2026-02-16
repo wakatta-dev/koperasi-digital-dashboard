@@ -3,7 +3,7 @@
 "use client";
 
 import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { ProductBreadcrumbs } from "./components/product/product-breadcrumbs";
 import { ProductGallery } from "./components/product/product-gallery";
 import { ProductMainInfo } from "./components/product/product-main-info";
@@ -17,6 +17,7 @@ import {
   useMarketplaceProductDetail,
   useMarketplaceProductVariants,
 } from "./hooks/useMarketplaceProducts";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -134,13 +135,19 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
     : null;
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
+    <div
+      className="bg-background text-foreground min-h-screen"
+      data-testid="marketplace-product-detail-page-root"
+    >
       <LandingNavbar
         activeLabel="Marketplace"
         showCart
         cartCount={cart?.item_count ?? 0}
       />
-      <main className="pt-28 pb-20 bg-background min-h-screen">
+      <main
+        className="pt-28 pb-20 bg-background min-h-screen"
+        data-testid="marketplace-product-detail-page-main"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ProductBreadcrumbs
             category={product?.categoryTag ?? "Marketplace"}
@@ -155,12 +162,15 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
           {isError && !notFoundLike ? (
             <div className="py-12 text-center text-destructive space-y-3">
               <div>Gagal memuat produk.</div>
-              <button
+              <Button
+                data-testid="marketplace-product-detail-retry-button"
+                type="button"
+                variant="outline"
                 onClick={() => refetch()}
-                className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted text-foreground"
+                className="text-sm text-foreground hover:bg-muted"
               >
                 Coba lagi
-              </button>
+              </Button>
             </div>
           ) : null}
           {!isLoading && !product && !isError ? (

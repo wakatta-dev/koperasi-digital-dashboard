@@ -5,7 +5,7 @@
 import { useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
-import { LandingNavbar } from "../landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { MarketplaceHeader } from "./components/layout/header";
 import { FiltersSidebar } from "./components/filters/filters-sidebar";
 import { ProductsSection } from "./components/product/products-section";
@@ -30,13 +30,19 @@ export function MarketplacePage() {
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
+    <div
+      className="bg-background text-foreground min-h-screen"
+      data-testid="marketplace-catalog-page-root"
+    >
       <LandingNavbar
         activeLabel="Marketplace"
         showCart
         cartCount={cartCount}
       />
-      <main className="pt-28 pb-20 bg-background min-h-screen">
+      <main
+        className="pt-28 pb-20 bg-background min-h-screen"
+        data-testid="marketplace-catalog-page-main"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <MarketplaceHeader
             searchValue={search}
@@ -44,7 +50,7 @@ export function MarketplacePage() {
             onSubmit={handleSubmitSearch}
           />
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1" data-testid="marketplace-catalog-filters-section">
               <FiltersSidebar
                 filters={filtersDraft}
                 onChange={setFiltersDraft}

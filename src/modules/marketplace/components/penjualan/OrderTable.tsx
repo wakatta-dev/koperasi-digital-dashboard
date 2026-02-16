@@ -19,7 +19,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { OrderListItem } from "@/modules/marketplace/types";
-import { getOrderStatusBadgeClass } from "@/modules/marketplace/utils/status";
+import {
+  getOrderStatusBadgeClass,
+  getOrderStatusLabel,
+} from "@/modules/marketplace/utils/status";
 import { formatCurrency } from "@/lib/format";
 
 export type OrderTableAction = Readonly<{
@@ -118,7 +121,7 @@ export function OrderTable({ orders, onRowClick, getActions }: OrderTableProps) 
                         order.status
                       )}`}
                     >
-                      {order.status}
+                      {getOrderStatusLabel(order.status)}
                     </Badge>
                   </TableCell>
                   <TableCell
@@ -129,6 +132,7 @@ export function OrderTable({ orders, onRowClick, getActions }: OrderTableProps) 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
+                            aria-label={`Aksi pesanan ${order.orderCode}`}
                             className="text-gray-400 hover:text-indigo-600 transition-colors p-1"
                             type="button"
                           >

@@ -187,10 +187,9 @@ export const MARKETPLACE_NAV_LINKS: MarketplaceNavLink[] = [
 ];
 
 export const MARKETPLACE_HEADER = {
-  title: "Marketplace Desa",
-  description:
-    "Temukan produk lokal berkualitas langsung dari petani dan pengrajin desa Sukamaju. Dukung ekonomi lokal dengan berbelanja di sini.",
-  searchPlaceholder: "Cari produk (kopi, beras, kerajinan)...",
+  title: "Pasar Desa Digital",
+  description: "Temukan produk asli desa berkualitas langsung dari tangan warga.",
+  searchPlaceholder: "Cari produk desa...",
 };
 
 export const CATEGORY_FILTERS = [
@@ -217,8 +216,8 @@ export const PRODUCER_FILTERS = [
 ];
 
 export const SORT_OPTIONS = [
-  "Terpopuler",
   "Terbaru",
+  "Terlaris",
   "Harga Terendah",
   "Harga Tertinggi",
 ];

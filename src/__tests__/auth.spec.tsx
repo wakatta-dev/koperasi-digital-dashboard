@@ -6,6 +6,7 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react";
 
 const push = vi.fn();
+let mockSearchParams = new URLSearchParams("");
 
 vi.mock("next-auth/react", () => ({
   getSession: vi.fn(),
@@ -15,7 +16,7 @@ vi.mock("next-auth/react", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
   // emulate Next.js useSearchParams hook
-  useSearchParams: () => new URLSearchParams(""),
+  useSearchParams: () => mockSearchParams,
 }));
 
 vi.mock("@/services/auth", async () => {
@@ -39,6 +40,7 @@ beforeEach(async () => {
   process.env.NEXTAUTH_URL = "http://localhost:3000";
   process.env.NEXTAUTH_SECRET = "secret";
   process.env.NEXTAUTH_URL_INTERNAL = "http://localhost:3000";
+  mockSearchParams = new URLSearchParams("");
   vi.resetModules();
   AuthLoginForm = (await import("@/modules/auth/components/login-form"))
     .AuthLoginForm;
@@ -80,6 +82,31 @@ describe("auth flow", () => {
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith("/umkm/account");
+    });
+  });
+
+  it("keeps password input discoverable by label for browser automation", async () => {
+    const { getByLabelText } = render(<AuthLoginForm />);
+    const passwordInput = getByLabelText(/kata sandi/i) as HTMLInputElement;
+    expect(passwordInput).toBeTruthy();
+    expect(passwordInput.id).toBe("auth-login-password");
+  });
+
+  it("allows marketplace redirect fallback in development when login fails", async () => {
+    mockSearchParams = new URLSearchParams("redirect=/marketplace");
+    (login as any).mockRejectedValue(new Error("invalid credentials"));
+
+    const { getByLabelText, getByRole } = render(<AuthLoginForm />);
+    fireEvent.change(getByLabelText(/email/i), {
+      target: { value: "invalid@example.com" },
+    });
+    fireEvent.change(getByLabelText(/kata sandi/i), {
+      target: { value: "invalid" },
+    });
+    fireEvent.click(getByRole("button", { name: /masuk/i }));
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith("/marketplace");
     });
   });
 

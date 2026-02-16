@@ -16,12 +16,15 @@ export function mapStatusToVariant(status: GuestReservationStatus): GuestStatusV
   switch (status) {
     case "pending_review":
       return "pending";
+    case "awaiting_payment_verification":
+      return "verifying";
     case "awaiting_dp":
       return "approved_payment";
     case "confirmed_dp":
     case "awaiting_settlement":
       return "payment_done";
     case "confirmed_full":
+    case "completed":
       return "completed";
     case "rejected":
       return "rejected";
@@ -33,4 +36,3 @@ export function mapStatusToVariant(status: GuestReservationStatus): GuestStatusV
       return "pending";
   }
 }
-

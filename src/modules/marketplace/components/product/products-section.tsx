@@ -64,7 +64,7 @@ export function ProductsSection({ search, filters }: Props) {
   };
 
   return (
-    <div className="lg:col-span-3">
+    <div className="lg:col-span-3" data-testid="marketplace-products-section">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <span className="text-sm text-muted-foreground">
           Menampilkan{" "}
@@ -76,7 +76,10 @@ export function ProductsSection({ search, filters }: Props) {
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Urutkan:</span>
           <Select value={sort} onValueChange={handleChangeSort}>
-            <SelectTrigger className="text-sm border-none bg-transparent font-medium text-foreground focus-visible:ring-0 h-auto px-0">
+            <SelectTrigger
+              data-testid="marketplace-products-sort-trigger"
+              className="text-sm border-none bg-transparent font-medium text-foreground focus-visible:ring-0 h-auto px-0"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover text-foreground border border-border">
@@ -97,6 +100,7 @@ export function ProductsSection({ search, filters }: Props) {
         <div className="text-center text-destructive py-10 space-y-3">
           <div>Gagal memuat produk.</div>
           <button
+            data-testid="marketplace-products-retry-button"
             onClick={() => refetch()}
             className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted text-foreground"
           >
@@ -167,6 +171,8 @@ function sortToParam(label: string) {
       return "price_asc";
     case "Harga Tertinggi":
       return "price_desc";
+    case "Terlaris":
+      return "newest";
     case "Terbaru":
       return "newest";
     default:

@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { MarketplaceCartResponse } from "@/types/api/marketplace";
@@ -25,7 +25,13 @@ export function CartItemsSection({ cart }: Props) {
   const activeCart = cart ?? data;
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    const ids = activeCart?.items?.map((item) => item.id) ?? [];
+    setSelectedIds(ids);
+  }, [activeCart?.items]);
 
   const handleError = (title: string, err: any) => {
     showToastError(title, err);
@@ -36,7 +42,7 @@ export function CartItemsSection({ cart }: Props) {
   };
 
   return (
-    <div className="lg:col-span-8 space-y-6">
+    <div className="lg:col-span-8 space-y-6" data-testid="marketplace-cart-items-section">
       {isLoading ? (
         <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-muted-foreground">
           Memuat keranjang...
@@ -61,7 +67,7 @@ export function CartItemsSection({ cart }: Props) {
                   showToastSuccess("Berhasil", "Jumlah diperbarui"),
                 onError: (err) => handleError("Gagal memperbarui jumlah", err),
                 onSettled: () => setUpdatingId(null),
-              }
+              },
             );
           }}
           onRemove={(itemId) => {
@@ -73,12 +79,26 @@ export function CartItemsSection({ cart }: Props) {
               onSettled: () => setRemovingId(null),
             });
           }}
+          selectedIds={selectedIds}
+          onToggleAll={() => {
+            if (!activeCart?.items?.length) return;
+            const ids = activeCart.items.map((item) => item.id);
+            setSelectedIds((prev) => (prev.length === ids.length ? [] : ids));
+          }}
+          onToggleItem={(itemId) => {
+            setSelectedIds((prev) =>
+              prev.includes(itemId)
+                ? prev.filter((id) => id !== itemId)
+                : [...prev, itemId],
+            );
+          }}
         />
       ) : null}
-    <Link
-      href="/marketplace"
-      className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline transition group"
-    >
+      <Link
+        data-testid="marketplace-cart-continue-shopping-link"
+        href="/marketplace"
+        className="mt-4 inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline transition group"
+      >
         <span className="material-icons-outlined text-lg group-hover:-translate-x-1 transition-transform">
           arrow_back
         </span>

@@ -3,7 +3,7 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "../../components/reservation-footer";
 import type { PaymentMode } from "../../types";
 

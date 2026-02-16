@@ -1,6 +1,10 @@
 /** @format */
 
 import type { AssetRentalBooking } from "@/types/api/asset-rental";
+import {
+  ASSET_RENTAL_BOOKING_STATUS,
+  resolveAssetRentalBookingStatus,
+} from "@/lib/asset-rental-booking-status";
 
 import type {
   AssetRentalRentalsRow,
@@ -26,8 +30,12 @@ function toBookingStatus(status?: string) {
 }
 
 function toRentalStatus(booking: AssetRentalBooking): AssetRentalRentalsRow["status"] {
-  const status = toBookingStatus(booking.status);
-  if (status === "COMPLETED" || status === "CONFIRMED_FULL") return "Selesai";
+  const status = resolveAssetRentalBookingStatus(booking);
+  if (status === ASSET_RENTAL_BOOKING_STATUS.awaitingDP) return "Menunggu Pembayaran";
+  if (status === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification) {
+    return "Menunggu Verifikasi Pembayaran";
+  }
+  if (status === ASSET_RENTAL_BOOKING_STATUS.completed) return "Selesai";
   const endAt = new Date((booking.end_time || 0) * 1000).getTime();
   const isLate = endAt > 0 && endAt < Date.now();
   return isLate ? "Terlambat" : "Berjalan";
@@ -35,15 +43,20 @@ function toRentalStatus(booking: AssetRentalBooking): AssetRentalRentalsRow["sta
 
 function toRequestStatus(status?: string): AssetRentalRequestsRow["status"] {
   const normalized = toBookingStatus(status);
-  if (normalized === "PENDING_REVIEW") return "Menunggu";
-  if (normalized === "REJECTED" || normalized === "CANCELLED") return "Ditolak";
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.pendingReview) return "Menunggu";
+  if (
+    normalized === ASSET_RENTAL_BOOKING_STATUS.rejected ||
+    normalized === ASSET_RENTAL_BOOKING_STATUS.cancelled
+  ) {
+    return "Ditolak";
+  }
   return "Disetujui";
 }
 
 function toReturnStatus(status?: string): AssetRentalReturnsRow["status"] {
   const normalized = toBookingStatus(status);
-  if (normalized === "COMPLETED") return "Selesai";
-  if (normalized === "CONFIRMED_FULL") return "Diproses";
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.completed) return "Selesai";
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedFull) return "Diproses";
   return "Menunggu Pengembalian";
 }
 
@@ -103,25 +116,33 @@ export function splitAssetRentalBookings(
   const returnRows: AssetRentalReturnsRow[] = [];
 
   for (const booking of bookings) {
-    const normalized = toBookingStatus(booking.status);
+    const normalized = resolveAssetRentalBookingStatus(booking);
     if (
-      normalized === "PENDING_REVIEW" ||
-      normalized === "AWAITING_DP" ||
-      normalized === "AWAITING_SETTLEMENT" ||
-      normalized === "REJECTED" ||
-      normalized === "CANCELLED"
+      normalized === ASSET_RENTAL_BOOKING_STATUS.pendingReview ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingDP ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.rejected ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.cancelled
     ) {
       requestRows.push(mapContractBookingToRequest(booking));
     }
 
     if (
-      normalized === "AWAITING_DP" ||
-      normalized === "AWAITING_SETTLEMENT" ||
-      normalized === "CONFIRMED_FULL" ||
-      normalized === "BOOKED" ||
-      normalized === "COMPLETED"
+      normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingDP ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedFull ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.booked ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.completed
     ) {
       rentalRows.push(mapContractBookingToRental(booking));
+    }
+
+    if (
+      normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedFull ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.completed
+    ) {
       returnRows.push(mapContractBookingToReturn(booking));
     }
   }

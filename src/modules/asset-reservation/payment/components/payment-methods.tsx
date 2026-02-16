@@ -5,7 +5,10 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { PaymentMode } from "../../types";
-import { createPaymentSession, finalizePayment } from "@/services/api/reservations";
+import {
+  createPaymentSession,
+  uploadPaymentProof,
+} from "@/services/api/reservations";
 import type { PaymentSession } from "../../types";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -29,6 +32,7 @@ type PaymentMethodsProps = {
   mode: PaymentMode;
   methodGroups?: ReadonlyArray<MethodGroup>;
   reservationId?: number;
+  ownershipToken?: string;
   onStatusChange?: (payload: { paymentId: string; status: PaymentStatus }) => void;
   onSessionChange?: (session: PaymentSession | null) => void;
 };
@@ -39,17 +43,18 @@ export function PaymentMethods({
   mode,
   methodGroups,
   reservationId,
+  ownershipToken,
   onStatusChange,
   onSessionChange,
 }: PaymentMethodsProps) {
   const hasMethods = Boolean(methodGroups && methodGroups.length > 0);
   const [selected, setSelected] = useState<string>(() => methodGroups?.[0]?.options?.[0]?.value ?? "");
   const [status, setStatus] = useState<PaymentStatus>("initiated");
-  const [proof, setProof] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [session, setSession] = useState<PaymentSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
-  const actionsDisabled = !hasMethods || !reservationId;
+  const actionsDisabled = !hasMethods || !reservationId || !ownershipToken;
 
   const payByText = useMemo(() => {
     if (!session?.payBy) return null;
@@ -80,6 +85,10 @@ export function PaymentMethods({
         setSessionError("ID reservasi wajib diisi sebelum membuat sesi pembayaran.");
         return;
       }
+      if (!ownershipToken) {
+        setSessionError("Token kepemilikan reservasi tidak tersedia. Gunakan tautan resmi terbaru.");
+        return;
+      }
       setIsLoading(true);
       setSessionError(null);
       try {
@@ -87,6 +96,7 @@ export function PaymentMethods({
           reservation_id: reservationId,
           type: mode,
           method: methodValue,
+          ownership_token: ownershipToken,
         });
         if (ignore) return;
         if (res.success && res.data) {
@@ -126,7 +136,7 @@ export function PaymentMethods({
     return () => {
       ignore = true;
     };
-  }, [mode, reservationId, selected, hasMethods, onSessionChange]);
+  }, [mode, reservationId, selected, hasMethods, onSessionChange, ownershipToken]);
 
   return (
     <section className="bg-white dark:bg-surface-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -222,7 +232,7 @@ export function PaymentMethods({
             {status === "initiated"
               ? "Menunggu tindakan"
               : status === "pending_verification"
-              ? "Menunggu verifikasi"
+              ? "Menunggu Verifikasi Pembayaran"
               : status === "succeeded"
               ? "Berhasil"
               : status === "expired"
@@ -231,111 +241,63 @@ export function PaymentMethods({
           </span>
         </div>
 
-        {selected.includes("bank_") ? (
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              Unggah bukti transfer (jpg/png/pdf)
-            </label>
-            <input
-              type="file"
-              accept=".jpg,.jpeg,.png,.pdf"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setProof(file.name);
-                  handleStatusUpdate("pending_verification");
-                }
-              }}
-              className="text-xs"
-            />
-            {proof ? (
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Bukti diunggah: <strong>{proof}</strong> — menunggu verifikasi.
-              </p>
-            ) : null}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
-                onClick={() => handleStatusUpdate("pending_verification")}
-                disabled={actionsDisabled}
-              >
-                Tandai menunggu verifikasi
-              </button>
-              <button
-                type="button"
-                className="px-3 py-2 text-xs rounded-lg border border-green-500 bg-green-50 text-green-700 hover:bg-green-100"
-                onClick={async () => {
-                  if (session?.paymentId) {
-                    const res = await finalizePayment(session.paymentId, "succeeded");
-                    if (res.success && res.data) {
-                      handleStatusUpdate(res.data.status as PaymentStatus);
-                      return;
-                    }
-                  }
-                  handleStatusUpdate("succeeded");
-                }}
-                disabled={actionsDisabled}
-              >
-                Verifikasi & konfirmasi
-              </button>
-              <button
-                type="button"
-                className="px-3 py-2 text-xs rounded-lg border border-red-500 bg-red-50 text-red-700 hover:bg-red-100"
-                onClick={async () => {
-                  if (session?.paymentId) {
-                    const res = await finalizePayment(session.paymentId, "failed");
-                    if (res.success && res.data) {
-                      handleStatusUpdate(res.data.status as PaymentStatus);
-                      return;
-                    }
-                  }
-                  handleStatusUpdate("failed");
-                }}
-                disabled={actionsDisabled}
-              >
-                Tandai gagal
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+            Unggah bukti pembayaran (jpg/png/pdf)
+          </label>
+          <input
+            type="file"
+            accept=".jpg,.jpeg,.png,.pdf"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setProofFile(file);
+              }
+            }}
+            className="text-xs"
+          />
+          {proofFile ? (
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              Bukti dipilih: <strong>{proofFile.name}</strong>
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="px-4 py-2 text-sm rounded-lg bg-brand-primary text-white font-semibold shadow hover:bg-indigo-600 transition"
-              disabled={isLoading || status === "expired" || actionsDisabled}
+              className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
+              disabled={actionsDisabled || !proofFile || isLoading}
               onClick={async () => {
-                if (session?.paymentId) {
-                  const res = await finalizePayment(session.paymentId, "succeeded");
+                if (!session?.paymentId || !proofFile || !reservationId || !ownershipToken) return;
+                setIsLoading(true);
+                setSessionError(null);
+                try {
+                  const res = await uploadPaymentProof(
+                    session.paymentId,
+                    proofFile,
+                    undefined,
+                    { reservationId, ownershipToken }
+                  );
                   if (res.success && res.data) {
                     handleStatusUpdate(res.data.status as PaymentStatus);
                     return;
                   }
+                  setSessionError(res.message || "Tidak dapat mengunggah bukti pembayaran.");
+                } catch (err) {
+                  setSessionError(
+                    err instanceof Error ? err.message : "Tidak dapat mengunggah bukti pembayaran."
+                  );
+                } finally {
+                  setIsLoading(false);
                 }
-                handleStatusUpdate("succeeded");
               }}
             >
-              {isLoading ? "Mempersiapkan..." : "Bayar sekarang"}
+              {isLoading ? "Memproses..." : "Kirim bukti pembayaran"}
             </button>
-            <button
-              type="button"
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
-              disabled={status === "expired" || actionsDisabled}
-              onClick={async () => {
-                if (session?.paymentId) {
-                  const res = await finalizePayment(session.paymentId, "failed");
-                  if (res.success && res.data) {
-                    handleStatusUpdate(res.data.status as PaymentStatus);
-                    return;
-                  }
-                }
-                handleStatusUpdate("failed");
-              }}
-            >
-              Simulasikan gagal
-            </button>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Bukti akan diverifikasi admin sebelum status sewa berjalan.
+            </p>
           </div>
-        )}
+        </div>
       </div>
     </section>
   );

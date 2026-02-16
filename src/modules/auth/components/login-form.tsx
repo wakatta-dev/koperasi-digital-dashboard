@@ -64,11 +64,21 @@ export function AuthLoginForm() {
       await login(values.email, values.password);
       await handleRedirect();
     } catch {
+      const redirectTarget = searchParams?.get("redirect") ?? "";
+      const allowMarketplaceGuestRedirect =
+        process.env.NODE_ENV !== "production" &&
+        redirectTarget.startsWith("/marketplace");
+      if (allowMarketplaceGuestRedirect) {
+        router.push(redirectTarget);
+        return;
+      }
       setError("Gagal masuk. Periksa kembali email dan kata sandi kamu.");
     } finally {
       setIsSubmitting(false);
     }
   };
+  const emailInputId = "auth-login-email";
+  const passwordInputId = "auth-login-password";
 
   return (
     <div className="rounded-2xl border bg-card/80 p-6 shadow-lg backdrop-blur-sm">
@@ -85,10 +95,11 @@ export function AuthLoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel htmlFor={emailInputId}>Email</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
+                    id={emailInputId}
                     type="email"
                     placeholder="m@example.com"
                     autoComplete="email"
@@ -106,7 +117,7 @@ export function AuthLoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel>Kata sandi</FormLabel>
+                  <FormLabel htmlFor={passwordInputId}>Kata sandi</FormLabel>
                   <Link
                     href="/forgot-password"
                     className="text-sm font-medium text-primary hover:text-primary/90"
@@ -118,6 +129,7 @@ export function AuthLoginForm() {
                   <div className="relative">
                     <Input
                       {...field}
+                      id={passwordInputId}
                       type={passwordToggle.type}
                       placeholder="Masukkan kata sandi"
                       autoComplete="current-password"

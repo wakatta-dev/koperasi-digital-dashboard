@@ -4,7 +4,7 @@
 
 import { Plus_Jakarta_Sans } from "next/font/google";
 
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
 import { DetailDescription } from "../detail/components/detail-description";
 import { DetailFacilities } from "../detail/components/detail-facilities";
@@ -20,7 +20,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { StatusTimeline } from "./components/status-timeline";
 import type { ReservationSummary } from "../types";
 import { useAssetDetail, useReservation } from "../hooks";
-import { verifySignedReservationToken } from "../utils/signed-link";
 import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
 import { humanizeReservationStatus } from "../utils/status";
 
@@ -33,7 +32,7 @@ type AssetStatusPageProps = {
   status: ReservationStatus;
   reservationId?: number;
   token?: string;
-  signature?: string | null;
+  accessToken?: string | null;
 };
 
 function formatDateLabel(date?: string) {
@@ -66,10 +65,13 @@ function humanizeEvent(event: string) {
     reservation_created: "Permintaan dikirim",
     pending_review: "Menunggu persetujuan",
     awaiting_dp: "Disetujui - menunggu DP",
+    awaiting_payment_verification: "Menunggu verifikasi pembayaran",
     confirmed_dp: "DP diterima",
     awaiting_settlement: "Menunggu pelunasan",
     confirmed_full: "Reservasi terkonfirmasi",
+    completed: "Selesai",
     payment_completed: "Pembayaran selesai",
+    reservation_completed: "Penyewaan selesai",
     cancelled: "Reservasi dibatalkan",
     rejected: "Permintaan ditolak",
     expired: "Reservasi kedaluwarsa",
@@ -98,12 +100,16 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
     return "pending_review";
   case "awaiting_dp":
     return "awaiting_dp";
+  case "awaiting_payment_verification":
+    return "awaiting_payment_verification";
   case "confirmed_dp":
     return "confirmed_dp";
   case "awaiting_settlement":
     return "awaiting_settlement";
   case "confirmed_full":
     return "confirmed_full";
+  case "completed":
+    return "completed";
   case "cancelled":
     return "cancelled";
   case "expired":
@@ -115,7 +121,12 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
   }
 }
 
-export function AssetStatusPage({ status, reservationId, token, signature }: AssetStatusPageProps) {
+export function AssetStatusPage({
+  status,
+  reservationId,
+  token,
+  accessToken,
+}: AssetStatusPageProps) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [decoded, setDecoded] = useState<ReservationSummary | null>(null);
@@ -126,7 +137,7 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
     data: reservation,
     isLoading: loading,
     error,
-  } = useReservation(decoded?.reservationId || reservationId);
+  } = useReservation(decoded?.reservationId || reservationId, accessToken ?? undefined);
   const errorMessage = useMemo(() => (error instanceof Error ? error.message : error ? String(error) : null), [error]);
   const resolvedReservationId = reservation?.reservationId ?? decoded?.reservationId ?? reservationId;
   const displayStatus = reservation ? mapStatus(reservation.status) : decoded ? mapStatus(decoded.status) : status;
@@ -205,77 +216,41 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
   }, [reservation]);
 
   useEffect(() => {
-    let ignore = false;
-    async function run() {
-      if (!token) return;
-      const result = await verifySignedReservationToken(token, signature || undefined);
-      if (ignore) return;
-      if (!result.ok || !result.payload) {
-        setTokenError(result.reason || "Tautan tidak valid");
-        return;
-      }
-      const parsedId = Number.parseInt(result.payload.id, 10);
-      if (!Number.isFinite(parsedId) || parsedId <= 0) {
-        setTokenError("Payload tidak valid");
-        return;
-      }
-      setTokenError(null);
-      setDecoded({
-        reservationId: parsedId,
-        assetId: 0,
-        status: (result.payload.status as any) || "pending_review",
-        startDate: "",
-        endDate: "",
-        amounts: { total: 0, dp: 0, remaining: 0 },
-        holdExpiresAt: result.payload.exp,
-      });
+    if (!token) return;
+    const parsedId = Number.parseInt(token, 10);
+    if (!Number.isFinite(parsedId) || parsedId <= 0) {
+      setTokenError("Tautan tidak valid. Gunakan tautan status resmi dari sistem.");
+      return;
     }
-    run();
-    return () => {
-      ignore = true;
-    };
-  }, [token, signature]);
+    setTokenError(null);
+    setDecoded({
+      reservationId: parsedId,
+      assetId: 0,
+      status,
+      startDate: "",
+      endDate: "",
+      amounts: { total: 0, dp: 0, remaining: 0 },
+    });
+  }, [token, status]);
 
   const handleCancel = async () => {
-    if (!resolvedReservationId) return;
     setActionLoading("cancel");
-    setActionMessage(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      setActionMessage({
-        text: "Permintaan pembatalan dikirim. Tim akan menindaklanjuti.",
-        tone: "success",
-      });
-    } catch (err) {
-      setActionMessage({
-        text: err instanceof Error ? err.message : "Gagal mengirim permintaan pembatalan.",
-        tone: "error",
-      });
-    } finally {
-      setActionLoading(null);
-      setCancelOpen(false);
-    }
+    setActionMessage({
+      text: "Pembatalan online belum tersedia. Hubungi admin BUMDes untuk memproses pembatalan.",
+      tone: "info",
+    });
+    setActionLoading(null);
+    setCancelOpen(false);
   };
 
   const handleReschedule = async () => {
-    if (!resolvedReservationId) return;
     setActionLoading("reschedule");
-    setActionMessage(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      setActionMessage({
-        text: "Permintaan penjadwalan ulang dikirim. Tim akan mengkonfirmasi jadwal baru.",
-        tone: "success",
-      });
-    } catch (err) {
-      setActionMessage({
-        text: err instanceof Error ? err.message : "Gagal mengirim permintaan penjadwalan ulang.",
-        tone: "error",
-      });
-    } finally {
-      setActionLoading(null);
-      setRescheduleOpen(false);
-    }
+    setActionMessage({
+      text: "Penjadwalan ulang online belum tersedia. Hubungi admin BUMDes untuk penjadwalan ulang.",
+      tone: "info",
+    });
+    setActionLoading(null);
+    setRescheduleOpen(false);
   };
 
   return (
@@ -338,6 +313,11 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
                     Gagal memuat reservasi: {errorMessage}
                   </div>
                 ) : null}
+              </div>
+            ) : null}
+            {!reservation && decoded ? (
+              <div className="mb-4 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                Menampilkan konteks lokal sementara. Status resmi akan tampil setelah verifikasi backend berhasil.
               </div>
             ) : null}
 
@@ -422,6 +402,7 @@ export function AssetStatusPage({ status, reservationId, token, signature }: Ass
                   status={displayStatus}
                   amounts={reservation?.amounts}
                   reservationId={resolvedReservationId}
+                  accessToken={accessToken ?? reservation?.guestToken}
                   onCancel={() => setCancelOpen(true)}
                   onReschedule={() => setRescheduleOpen(true)}
                 />

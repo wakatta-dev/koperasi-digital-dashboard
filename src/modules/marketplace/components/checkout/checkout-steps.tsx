@@ -5,9 +5,8 @@ import { CHECKOUT_STEPS } from "../../config/checkoutSteps.config";
 
 const iconMap: Record<string, string> = {
   cart: "shopping_cart",
-  shipping: "local_shipping",
   payment: "payments",
-  review: "rate_review",
+  confirmation: "task_alt",
 };
 
 export function CheckoutSteps() {

@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { CART_BADGE } from "../../constants";
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { LandingFooter } from "@/modules/landing/components/footer";
 
 function FilterCardSkeleton() {

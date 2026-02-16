@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { MarketplaceCartItemResponse } from "@/types/api/marketplace";
 import { formatCurrency } from "@/lib/format";
 
@@ -12,6 +13,9 @@ type Props = {
   onRemove: (itemId: number) => void;
   updatingId?: number | null;
   removingId?: number | null;
+  selectedIds: number[];
+  onToggleItem: (itemId: number) => void;
+  onToggleAll: () => void;
 };
 
 const formatVariantLabel = (item: MarketplaceCartItemResponse) => {
@@ -38,6 +42,9 @@ export function CartItemCard({
   onRemove,
   updatingId,
   removingId,
+  selectedIds,
+  onToggleItem,
+  onToggleAll,
 }: Props) {
   const clampQty = (item: MarketplaceCartItemResponse, next: number) => {
     const min = 1;
@@ -45,13 +52,32 @@ export function CartItemCard({
     const target = Math.max(min, next);
     return Math.min(target, max);
   };
+  const allSelected = items.length > 0 && selectedIds.length === items.length;
 
   return (
-    <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+    <div
+      className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden"
+      data-testid="marketplace-cart-item-card"
+    >
       <div className="p-6">
         <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
-          <h2 className="font-bold text-lg text-foreground">Daftar Produk</h2>
-          <span className="text-sm text-muted-foreground">{items.length} Item Terpilih</span>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              data-testid="marketplace-cart-select-all-checkbox"
+              id="cart-select-all"
+              checked={allSelected}
+              onCheckedChange={onToggleAll}
+            />
+            <label
+              htmlFor="cart-select-all"
+              className="text-sm font-semibold text-foreground"
+            >
+              Pilih Semua ({items.length})
+            </label>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {selectedIds.length} Item Terpilih
+          </span>
         </div>
 
         {items.map((item) => {
@@ -60,8 +86,17 @@ export function CartItemCard({
           return (
             <div
               key={item.id}
+              data-testid={`marketplace-cart-item-row-${item.id}`}
               className="flex flex-col sm:flex-row gap-6 pb-8 border-b border-border last:border-0 last:pb-0 mb-8 last:mb-0"
             >
+              <div className="pt-1">
+                <Checkbox
+                  data-testid={`marketplace-cart-item-select-${item.id}`}
+                  id={`cart-item-${item.id}`}
+                  checked={selectedIds.includes(item.id)}
+                  onCheckedChange={() => onToggleItem(item.id)}
+                />
+              </div>
               <div className="w-full sm:w-32 h-32 flex-shrink-0 bg-muted rounded-xl overflow-hidden border border-border relative group">
                 {imageSrc ? (
                   <Image
@@ -81,6 +116,7 @@ export function CartItemCard({
                 <div className="flex justify-between items-start gap-4">
                   <div>
                     <a
+                      data-testid={`marketplace-cart-item-name-${item.id}`}
                       className="font-bold text-lg text-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition line-clamp-2"
                       href="#"
                     >
@@ -117,6 +153,7 @@ export function CartItemCard({
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-border rounded-lg overflow-hidden h-9">
                       <Button
+                        data-testid={`marketplace-cart-item-qty-decrease-${item.id}`}
                         type="button"
                         variant="ghost"
                         className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-r border-border transition rounded-none"
@@ -128,6 +165,7 @@ export function CartItemCard({
                         <span className="material-icons-outlined text-sm">remove</span>
                       </Button>
                       <Input
+                        data-testid={`marketplace-cart-item-qty-value-${item.id}`}
                         readOnly
                         tabIndex={-1}
                         type="text"
@@ -135,6 +173,7 @@ export function CartItemCard({
                         className="w-10 h-full text-center border-none focus-visible:ring-0 bg-card text-foreground font-medium text-sm p-0"
                       />
                       <Button
+                        data-testid={`marketplace-cart-item-qty-increase-${item.id}`}
                         type="button"
                         variant="ghost"
                         className="px-3 h-full bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border transition rounded-none"
@@ -150,6 +189,7 @@ export function CartItemCard({
                       </Button>
                     </div>
                     <Button
+                      data-testid={`marketplace-cart-item-remove-${item.id}`}
                       type="button"
                       variant="ghost"
                       className="text-muted-foreground hover:text-destructive transition flex items-center gap-1 text-sm font-medium h-auto px-0"

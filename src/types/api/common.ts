@@ -15,7 +15,13 @@ export interface Pagination {
 export interface Meta {
   request_id: string;
   timestamp: Rfc3339String;
+  status_code?: number;
   pagination?: Pagination;
+}
+
+export interface ApiErrorPayload {
+  code?: string;
+  details?: unknown;
 }
 
 export interface ApiResponse<T> {
@@ -24,6 +30,7 @@ export interface ApiResponse<T> {
   data: T | null;
   meta: Meta;
   errors: Record<string, string[]> | null;
+  error?: ApiErrorPayload | null;
 }
 
 // Alias to match docs naming

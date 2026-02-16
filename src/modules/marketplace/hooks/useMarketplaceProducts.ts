@@ -3,10 +3,10 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ensureSuccess } from "@/lib/api";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
   addMarketplaceCartItem,
+  ensureMarketplaceSuccess,
   getMarketplaceCustomerDetail,
   listMarketplaceCustomers,
   getMarketplaceCart,
@@ -35,6 +35,9 @@ export type MarketplaceProductParams = {
   sort?: "newest" | "oldest" | "price_asc" | "price_desc";
 };
 
+const MARKETPLACE_QUERY_STALE_MS = 15_000;
+const MARKETPLACE_CART_STALE_MS = 3_000;
+
 export function useMarketplaceProducts(params?: MarketplaceProductParams) {
   const normalizedParams = {
     ...params,
@@ -44,7 +47,10 @@ export function useMarketplaceProducts(params?: MarketplaceProductParams) {
   return useQuery({
     queryKey: QK.marketplace.list(normalizedParams ?? {}),
     queryFn: async (): Promise<MarketplaceProductListResponse> =>
-      ensureSuccess(await getMarketplaceProducts(normalizedParams)),
+      ensureMarketplaceSuccess(await getMarketplaceProducts(normalizedParams)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -53,7 +59,10 @@ export function useMarketplaceProductDetail(id: string | number | undefined) {
     queryKey: QK.marketplace.detail(id ?? ""),
     enabled: Boolean(id),
     queryFn: async (): Promise<MarketplaceProductResponse> =>
-      ensureSuccess(await getMarketplaceProductDetail(id as string | number)),
+      ensureMarketplaceSuccess(await getMarketplaceProductDetail(id as string | number)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -62,7 +71,10 @@ export function useMarketplaceProductVariants(id: string | number | undefined) {
     queryKey: QK.marketplace.variants(id ?? ""),
     enabled: Boolean(id),
     queryFn: async (): Promise<MarketplaceProductVariantsResponse> =>
-      ensureSuccess(await getMarketplaceProductVariants(id as string | number)),
+      ensureMarketplaceSuccess(await getMarketplaceProductVariants(id as string | number)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -70,8 +82,11 @@ export function useMarketplaceCart(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: QK.marketplace.cart(),
     queryFn: async (): Promise<MarketplaceCartResponse> =>
-      ensureSuccess(await getMarketplaceCart()),
+      ensureMarketplaceSuccess(await getMarketplaceCart()),
     enabled: options?.enabled ?? true,
+    retry: false,
+    staleTime: MARKETPLACE_CART_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -89,7 +104,10 @@ export function useMarketplaceCustomers(params?: MarketplaceCustomerParams) {
   return useQuery({
     queryKey: QK.marketplace.customers(params ?? {}),
     queryFn: async (): Promise<MarketplaceCustomerListResponse> =>
-      ensureSuccess(await listMarketplaceCustomers(params)),
+      ensureMarketplaceSuccess(await listMarketplaceCustomers(params)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -98,15 +116,19 @@ export function useMarketplaceCustomerDetail(id?: string | number) {
     queryKey: QK.marketplace.customerDetail(id ?? ""),
     enabled: Boolean(id),
     queryFn: async (): Promise<MarketplaceCustomerDetailResponse> =>
-      ensureSuccess(await getMarketplaceCustomerDetail(id as string | number)),
+      ensureMarketplaceSuccess(await getMarketplaceCustomerDetail(id as string | number)),
+    retry: false,
+    staleTime: MARKETPLACE_QUERY_STALE_MS,
+    refetchOnWindowFocus: false,
   });
 }
 
 export function useCartMutations() {
   const qc = useQueryClient();
 
-  const refreshCart = () =>
-    qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
+  const refreshMarketplaceState = async () => {
+    await qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
+  };
 
   const addItem = useMutation({
     mutationFn: (payload: {
@@ -115,22 +137,25 @@ export function useCartMutations() {
       variant_group_id?: number;
       variant_option_id?: number;
     }) =>
-      addMarketplaceCartItem(payload).then(ensureSuccess),
-    onSuccess: refreshCart,
+      addMarketplaceCartItem(payload).then(ensureMarketplaceSuccess),
+    onSuccess: refreshMarketplaceState,
+    onError: refreshMarketplaceState,
   });
 
   const updateItem = useMutation({
     mutationFn: (payload: { itemId: number; quantity: number }) =>
       updateMarketplaceCartItem(payload.itemId, {
         quantity: payload.quantity,
-      }).then(ensureSuccess),
-    onSuccess: refreshCart,
+      }).then(ensureMarketplaceSuccess),
+    onSuccess: refreshMarketplaceState,
+    onError: refreshMarketplaceState,
   });
 
   const removeItem = useMutation({
     mutationFn: (itemId: number) =>
-      removeMarketplaceCartItem(itemId).then(ensureSuccess),
-    onSuccess: refreshCart,
+      removeMarketplaceCartItem(itemId).then(ensureMarketplaceSuccess),
+    onSuccess: refreshMarketplaceState,
+    onError: refreshMarketplaceState,
   });
 
   return { addItem, updateItem, removeItem };

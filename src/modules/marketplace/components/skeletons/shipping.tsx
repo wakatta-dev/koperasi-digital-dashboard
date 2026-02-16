@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { LandingFooter } from "@/modules/landing/components/footer";
-import { LandingNavbar } from "@/modules/landing/components/navbar";
+import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { CART_BADGE } from "../../constants";
 
 function StepSkeleton() {

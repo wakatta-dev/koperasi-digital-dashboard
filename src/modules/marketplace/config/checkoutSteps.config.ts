@@ -1,8 +1,7 @@
 /** @format */
 
 export const CHECKOUT_STEPS = [
-  { id: "cart", label: "Cart" },
-  { id: "shipping", label: "Shipping" },
-  { id: "payment", label: "Payment" },
-  { id: "review", label: "Review" },
-];
+  { id: "cart", label: "Keranjang" },
+  { id: "payment", label: "Pembayaran" },
+  { id: "confirmation", label: "Konfirmasi" },
+] as const;
