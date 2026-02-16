@@ -5,8 +5,10 @@
 import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -21,23 +23,33 @@ export function ProductCreatePage() {
   const router = useRouter();
   const uploadId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
-  const { create, addImage } = useInventoryActions();
+  const { create, addImage, initialStock } = useInventoryActions();
   const { data: categoriesData } = useInventoryCategories();
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
+  const [priceSell, setPriceSell] = useState("");
+  const [trackStock, setTrackStock] = useState(true);
+  const [initialStockQty, setInitialStockQty] = useState("");
+  const [minStock, setMinStock] = useState("");
+  const [showInMarketplace, setShowInMarketplace] = useState(true);
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
 
-  const submitting = create.isPending || addImage.isPending;
+  const submitting = create.isPending || addImage.isPending || initialStock.isPending;
 
   const resetForm = () => {
     setName("");
     setSku("");
     setBrand("");
     setCategory("");
+    setPriceSell("");
+    setTrackStock(true);
+    setInitialStockQty("");
+    setMinStock("");
+    setShowInMarketplace(true);
     setWeight("");
     setDescription("");
     setFiles([]);
@@ -56,9 +68,31 @@ export function ProductCreatePage() {
       description: description.trim(),
     };
 
-    if (!payload.name) return;
+    if (!payload.name) {
+      toast.error("Nama produk wajib diisi.");
+      return;
+    }
     const weightValue = weight.trim() ? Number(weight) : undefined;
     const parsedWeight = Number.isFinite(weightValue as number) ? weightValue : undefined;
+    const parsedPriceSell = Number(priceSell);
+    if (!Number.isFinite(parsedPriceSell) || parsedPriceSell <= 0) {
+      toast.error("Harga jual wajib diisi dan harus lebih dari 0.");
+      return;
+    }
+    const parsedMinStock = minStock.trim() ? Number(minStock) : 0;
+    if (!Number.isFinite(parsedMinStock) || parsedMinStock < 0) {
+      toast.error("Minimum stok harus bernilai 0 atau lebih.");
+      return;
+    }
+    const parsedInitialStock = initialStockQty.trim() ? Number(initialStockQty) : 0;
+    if (!Number.isFinite(parsedInitialStock) || parsedInitialStock < 0) {
+      toast.error("Stok awal harus bernilai 0 atau lebih.");
+      return;
+    }
+    if (showInMarketplace && trackStock && parsedInitialStock <= 0) {
+      toast.error("Isi stok awal lebih dari 0 jika produk langsung ditampilkan di marketplace.");
+      return;
+    }
 
     try {
       const product = await create.mutateAsync({
@@ -68,10 +102,17 @@ export function ProductCreatePage() {
         brand: brand.trim() || undefined,
         weight_kg: parsedWeight,
         description: payload.description || undefined,
-        price_sell: 0,
-        track_stock: true,
-        show_in_marketplace: false,
+        price_sell: Math.round(parsedPriceSell),
+        track_stock: trackStock,
+        min_stock: Math.round(parsedMinStock),
+        show_in_marketplace: showInMarketplace,
       });
+      if (trackStock && parsedInitialStock > 0) {
+        await initialStock.mutateAsync({
+          id: product.id,
+          payload: { quantity: Math.round(parsedInitialStock), note: "Initial stock" },
+        });
+      }
       if (files.length > 0) {
         await addImage.mutateAsync({
           id: product.id,
@@ -169,23 +210,36 @@ export function ProductCreatePage() {
               </label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600">
-              <SelectValue placeholder="Pilih Kategori" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoriesData && categoriesData.length > 0 ? (
-                categoriesData.map((item) => (
-                  <SelectItem key={item.name} value={item.name}>
-                    {item.name}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="__empty" disabled>
-                  Tidak ada kategori
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+                  <SelectValue placeholder="Pilih Kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoriesData && categoriesData.length > 0 ? (
+                    categoriesData.map((item) => (
+                      <SelectItem key={item.name} value={item.name}>
+                        {item.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="__empty" disabled>
+                      Tidak ada kategori
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Harga Jual
+              </label>
+              <Input
+                type="number"
+                min={1}
+                value={priceSell}
+                onChange={(event) => setPriceSell(event.target.value)}
+                placeholder="Contoh: 15000"
+                className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Berat (kg)
@@ -198,6 +252,61 @@ export function ProductCreatePage() {
                 step="0.1"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Stok Awal
+              </label>
+              <Input
+                type="number"
+                min={0}
+                value={initialStockQty}
+                onChange={(event) => setInitialStockQty(event.target.value)}
+                placeholder={trackStock ? "Contoh: 10" : "Tidak dilacak"}
+                disabled={!trackStock}
+                className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600 disabled:opacity-60"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Minimum Stok
+              </label>
+              <Input
+                type="number"
+                min={0}
+                value={minStock}
+                onChange={(event) => setMinStock(event.target.value)}
+                placeholder={trackStock ? "Contoh: 3" : "Tidak dilacak"}
+                disabled={!trackStock}
+                className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600 disabled:opacity-60"
+              />
+            </div>
+            <div className="md:col-span-2 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Lacak Stok Produk
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Matikan jika produk tidak memiliki batas stok.
+                  </p>
+                </div>
+                <Switch checked={trackStock} onCheckedChange={setTrackStock} />
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Tampilkan di Marketplace
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Jika aktif, pembeli dapat melihat produk ini.
+                  </p>
+                </div>
+                <Switch
+                  checked={showInMarketplace}
+                  onCheckedChange={setShowInMarketplace}
+                />
+              </div>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
