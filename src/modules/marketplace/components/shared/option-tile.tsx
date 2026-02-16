@@ -10,6 +10,7 @@ type OptionTileProps = {
   selected: boolean;
   onSelect: (value: string) => void;
   rightSlot?: ReactNode;
+  testId?: string;
 };
 
 export function OptionTile({
@@ -19,9 +20,11 @@ export function OptionTile({
   selected,
   onSelect,
   rightSlot,
+  testId,
 }: OptionTileProps) {
   return (
     <Button
+      data-testid={testId}
       type="button"
       variant="outline"
       onClick={() => onSelect(value)}

@@ -19,6 +19,7 @@ export function MarketplaceHeader({
 }: Props) {
   const inputSlot = (
     <InputField
+      data-testid="marketplace-header-search-input"
       ariaLabel={MARKETPLACE_HEADER.searchPlaceholder}
       size="lg"
       startIcon={<span className="material-icons-outlined">search</span>}
@@ -36,12 +37,14 @@ export function MarketplaceHeader({
   const ctaSlot = (
     <>
       <Link
+        data-testid="marketplace-header-track-order-link"
         href="/marketplace/pengiriman"
         className="inline-flex h-11 items-center rounded-xl border border-indigo-100 bg-indigo-50 px-4 text-sm font-medium text-indigo-600 transition hover:bg-indigo-100"
       >
         Lacak Pesanan
       </Link>
       <Button
+        data-testid="marketplace-header-search-submit-button"
         onClick={onSubmit}
         className="h-11 rounded-xl bg-indigo-600 px-6 py-2.5 font-medium text-white shadow-md shadow-indigo-500/20 transition hover:bg-indigo-700"
       >

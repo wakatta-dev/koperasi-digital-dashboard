@@ -45,7 +45,10 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
     );
 
   return (
-    <div className="bg-card rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-border overflow-hidden flex flex-col group">
+    <div
+      className="bg-card rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-border overflow-hidden flex flex-col group"
+      data-testid={`marketplace-product-card-${product.id}`}
+    >
       <div className="relative h-48 overflow-hidden bg-muted" ref={imgRef}>
         {product.image ? (
           <Image
@@ -93,6 +96,7 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
 
         <div className="mt-4 pt-4 border-t border-border flex gap-2">
           <Button
+            data-testid={`marketplace-product-card-open-detail-${product.id}`}
             asChild
             className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded-lg transition h-auto"
             disabled={!product.inStock}
@@ -100,6 +104,7 @@ export function ProductCard({ product }: { product: MarketplaceCardProduct }) {
             <Link href={detailHref}>{ctaLabel}</Link>
           </Button>
           <Button
+            data-testid={`marketplace-product-card-secondary-action-${product.id}`}
             variant="outline"
             className="px-3 py-2 border border-border rounded-lg hover:bg-muted text-muted-foreground transition h-auto"
             title={requiresVariant ? "Pilih Varian" : "Tambah ke Keranjang"}

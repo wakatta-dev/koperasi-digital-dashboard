@@ -135,13 +135,19 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
     : null;
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
+    <div
+      className="bg-background text-foreground min-h-screen"
+      data-testid="marketplace-product-detail-page-root"
+    >
       <LandingNavbar
         activeLabel="Marketplace"
         showCart
         cartCount={cart?.item_count ?? 0}
       />
-      <main className="pt-28 pb-20 bg-background min-h-screen">
+      <main
+        className="pt-28 pb-20 bg-background min-h-screen"
+        data-testid="marketplace-product-detail-page-main"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ProductBreadcrumbs
             category={product?.categoryTag ?? "Marketplace"}
@@ -157,6 +163,7 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
             <div className="py-12 text-center text-destructive space-y-3">
               <div>Gagal memuat produk.</div>
               <Button
+                data-testid="marketplace-product-detail-retry-button"
                 type="button"
                 variant="outline"
                 onClick={() => refetch()}

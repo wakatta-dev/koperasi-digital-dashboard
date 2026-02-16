@@ -250,9 +250,15 @@ export function MarketplacePaymentPage() {
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
+    <div
+      className="bg-background text-foreground min-h-screen"
+      data-testid="marketplace-payment-page-root"
+    >
       <LandingNavbar activeLabel="Marketplace" showCart cartCount={cartCount} />
-      <main className="pt-28 pb-20 bg-background min-h-screen">
+      <main
+        className="pt-28 pb-20 bg-background min-h-screen"
+        data-testid="marketplace-payment-page-main"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <PaymentBreadcrumbs />
           <PaymentSteps />
@@ -295,6 +301,7 @@ export function MarketplacePaymentPage() {
           {hasOrderContext ? (
             <div className="mb-6">
               <Button
+                data-testid="marketplace-payment-pay-now-button"
                 type="button"
                 variant="outline"
                 className="border-border text-foreground hover:bg-muted"
@@ -312,6 +319,7 @@ export function MarketplacePaymentPage() {
                 Mulai checkout dari keranjang agar konteks pesanan tersimpan dengan benar.
               </p>
               <Link
+                data-testid="marketplace-payment-invalid-back-to-cart-link"
                 href="/marketplace/keranjang"
                 className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
               >
@@ -342,6 +350,7 @@ export function MarketplacePaymentPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button
+                  data-testid="marketplace-payment-reload-order-button"
                   type="button"
                   variant="outline"
                   className="border-border text-foreground hover:bg-muted"
@@ -350,6 +359,7 @@ export function MarketplacePaymentPage() {
                   Muat Ulang
                 </Button>
                 <Link
+                  data-testid="marketplace-payment-go-to-tracking-link"
                   href="/marketplace/pengiriman"
                   className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
                 >
@@ -411,6 +421,7 @@ export function MarketplacePaymentPage() {
                               {BANK_ACCOUNT}
                             </span>
                             <Button
+                              data-testid="marketplace-payment-copy-bank-account-button"
                               type="button"
                               variant="ghost"
                               size="icon"
@@ -436,6 +447,7 @@ export function MarketplacePaymentPage() {
                                 {formatCurrency(totalPayment)}
                               </span>
                               <Button
+                                data-testid="marketplace-payment-copy-total-transfer-button"
                                 type="button"
                                 variant="ghost"
                                 className="h-auto p-0 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-transparent hover:text-indigo-700 dark:hover:text-indigo-300"
@@ -514,6 +526,7 @@ export function MarketplacePaymentPage() {
                     </p>
                     <div className="relative border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 hover:border-indigo-500 transition-all cursor-pointer group">
                       <input
+                        data-testid="marketplace-payment-proof-file-input"
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         type="file"
                         accept=".jpg,.jpeg,.png"
@@ -554,6 +567,7 @@ export function MarketplacePaymentPage() {
                 </div>
 
                 <Link
+                  data-testid="marketplace-payment-back-to-cart-link"
                   href="/marketplace/keranjang"
                   className="inline-flex items-center gap-2 text-muted-foreground font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition group"
                 >
@@ -590,6 +604,7 @@ export function MarketplacePaymentPage() {
                     <span>{formatCurrency(totalPayment)}</span>
                   </div>
                   <Button
+                    data-testid="marketplace-payment-submit-button"
                     type="button"
                     onClick={handleNext}
                     disabled={!proofFile || uploading || !hasOrderContext}

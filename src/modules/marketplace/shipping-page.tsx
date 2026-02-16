@@ -416,10 +416,16 @@ export function MarketplaceShippingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div
+      className="min-h-screen bg-background text-foreground"
+      data-testid="marketplace-tracking-page-root"
+    >
       <LandingNavbar activeLabel="Marketplace" showCart cartCount={cartCount} />
 
-      <main className="min-h-screen px-4 pb-20 pt-28 sm:px-6 lg:px-8">
+      <main
+        className="min-h-screen px-4 pb-20 pt-28 sm:px-6 lg:px-8"
+        data-testid="marketplace-tracking-page-main"
+      >
         {view === "track" ? (
           <TrackingFormFeature
             title="Lacak Pesanan Anda"

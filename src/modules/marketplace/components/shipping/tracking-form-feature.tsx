@@ -42,7 +42,10 @@ export function TrackingFormFeature({
     : "border-border bg-card";
 
   return (
-    <section className="mx-auto w-full max-w-3xl rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8">
+    <section
+      className="mx-auto w-full max-w-3xl rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8"
+      data-testid="marketplace-tracking-form"
+    >
       <h1 className="mb-2 text-2xl font-bold text-foreground">{title}</h1>
       <p className="mb-6 text-sm text-muted-foreground">{description}</p>
 
@@ -55,6 +58,7 @@ export function TrackingFormFeature({
             Kode Pesanan
           </label>
           <Input
+            data-testid="marketplace-tracking-order-number-input"
             id="tracking-order-number"
             value={orderNumber}
             onChange={(event) => onOrderNumberChange(event.target.value)}
@@ -75,6 +79,7 @@ export function TrackingFormFeature({
             Email / Nomor HP
           </label>
           <Input
+            data-testid="marketplace-tracking-contact-input"
             id="tracking-contact"
             value={contact}
             onChange={(event) => onContactChange(event.target.value)}
@@ -88,11 +93,17 @@ export function TrackingFormFeature({
         </div>
 
         {errorMessage ? (
-          <p className="text-sm font-medium text-destructive">{errorMessage}</p>
+          <p
+            className="text-sm font-medium text-destructive"
+            data-testid="marketplace-tracking-error-message"
+          >
+            {errorMessage}
+          </p>
         ) : null}
 
         <div className="flex flex-wrap gap-3">
           <Button
+            data-testid="marketplace-tracking-submit-button"
             type="button"
             onClick={onSubmit}
             className="h-12 flex-1 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
@@ -102,6 +113,7 @@ export function TrackingFormFeature({
           </Button>
           {onReset ? (
             <Button
+              data-testid="marketplace-tracking-reset-button"
               type="button"
               variant="outline"
               className="h-12 border-border text-foreground hover:bg-muted"

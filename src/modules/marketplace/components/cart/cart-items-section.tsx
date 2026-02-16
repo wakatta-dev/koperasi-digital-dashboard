@@ -42,7 +42,7 @@ export function CartItemsSection({ cart }: Props) {
   };
 
   return (
-    <div className="lg:col-span-8 space-y-6">
+    <div className="lg:col-span-8 space-y-6" data-testid="marketplace-cart-items-section">
       {isLoading ? (
         <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-muted-foreground">
           Memuat keranjang...
@@ -95,6 +95,7 @@ export function CartItemsSection({ cart }: Props) {
         />
       ) : null}
       <Link
+        data-testid="marketplace-cart-continue-shopping-link"
         href="/marketplace"
         className="mt-4 inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold hover:underline transition group"
       >

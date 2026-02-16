@@ -100,9 +100,15 @@ export function MarketplaceCartPage() {
   }, [hasItems, isSyncingEmptyCart]);
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
+    <div
+      className="bg-background text-foreground min-h-screen"
+      data-testid="marketplace-cart-page-root"
+    >
       <LandingNavbar activeLabel="Marketplace" showCart cartCount={cartCount} />
-      <main className="pt-28 pb-20 bg-background min-h-screen">
+      <main
+        className="pt-28 pb-20 bg-background min-h-screen"
+        data-testid="marketplace-cart-page-main"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <CartBreadcrumbs />
           <CheckoutSteps />
@@ -115,6 +121,7 @@ export function MarketplaceCartPage() {
             <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-destructive space-y-3">
               <p>Gagal memuat keranjang. Silakan coba lagi.</p>
               <Button
+                data-testid="marketplace-cart-retry-button"
                 type="button"
                 variant="outline"
                 className="border-border text-foreground hover:bg-muted"
@@ -136,6 +143,7 @@ export function MarketplaceCartPage() {
                 Ayo temukan produk di marketplace.
               </p>
               <Link
+                data-testid="marketplace-cart-empty-back-to-marketplace-link"
                 href="/marketplace"
                 className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
               >

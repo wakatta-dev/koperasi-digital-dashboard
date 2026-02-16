@@ -139,8 +139,14 @@ export function MarketplaceReviewPage() {
   }, [open]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground px-6 py-24">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 shadow-sm space-y-4 text-center">
+    <div
+      className="min-h-screen bg-background text-foreground px-6 py-24"
+      data-testid="marketplace-review-page-root"
+    >
+      <div
+        className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 shadow-sm space-y-4 text-center"
+        data-testid="marketplace-review-page-main"
+      >
         <h1 className="text-2xl font-bold">Ulasan Pesanan</h1>
 
         {!hasTrackingParams ? (
@@ -156,6 +162,7 @@ export function MarketplaceReviewPage() {
               </p>
             ) : null}
             <Link
+              data-testid="marketplace-review-open-tracking-link"
               href="/marketplace/pengiriman"
               className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
             >
@@ -173,7 +180,12 @@ export function MarketplaceReviewPage() {
             <p className="text-sm text-destructive">
               {statusQueryErrorMessage}
             </p>
-            <Button type="button" variant="outline" onClick={() => statusQuery.refetch()}>
+            <Button
+              data-testid="marketplace-review-reload-status-button"
+              type="button"
+              variant="outline"
+              onClick={() => statusQuery.refetch()}
+            >
               Muat Ulang
             </Button>
           </div>
@@ -185,6 +197,7 @@ export function MarketplaceReviewPage() {
               Status review saat ini: <strong>{statusQuery.data.review_state}</strong>
             </p>
             <Button
+              data-testid="marketplace-review-open-dialog-button"
               ref={triggerRef}
               type="button"
               className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
@@ -209,6 +222,7 @@ export function MarketplaceReviewPage() {
 
         {!hasTrackingParams ? (
           <Button
+            data-testid="marketplace-review-open-dialog-dev-button"
             ref={triggerRef}
             type="button"
             className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"

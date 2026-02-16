@@ -218,7 +218,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="marketplace-checkout-form">
       <FeatureSectionCard
         title="Informasi Kontak"
         description="Data ini digunakan untuk update pesanan"
@@ -230,6 +230,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
             hint="Struk digital akan dikirim ke email ini."
           >
             <Input
+              data-testid="marketplace-checkout-contact-email-input"
               type="email"
               placeholder="contoh@email.com"
               value={email}
@@ -242,6 +243,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
 
           <FieldRow label="Nomor WhatsApp">
             <Input
+              data-testid="marketplace-checkout-contact-phone-input"
               type="tel"
               placeholder="812-3456-7890"
               value={phone}
@@ -261,6 +263,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <FieldRow label="Nama Penerima">
               <Input
+                data-testid="marketplace-checkout-recipient-name-input"
                 placeholder="Nama Lengkap Penerima"
                 value={recipientName}
                 onChange={(event) => setRecipientName(event.target.value)}
@@ -269,6 +272,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
             </FieldRow>
             <FieldRow label="Nomor Telepon Penerima">
               <Input
+                data-testid="marketplace-checkout-recipient-phone-input"
                 placeholder="0812xxxx"
                 value={recipientPhone}
                 onChange={(event) => setRecipientPhone(event.target.value)}
@@ -279,6 +283,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
 
           <FieldRow label="Alamat Lengkap">
             <Textarea
+              data-testid="marketplace-checkout-address-textarea"
               className="h-24 resize-none"
               placeholder="Nama Jalan, No. Rumah, RT/RW, Patokan (Cth: Seberang Masjid Al-Ikhlas)"
               value={address}
@@ -290,6 +295,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <FieldRow label="Provinsi">
               <Input
+                data-testid="marketplace-checkout-province-input"
                 placeholder="Pilih Provinsi"
                 value={province}
                 onChange={(event) => setProvince(event.target.value)}
@@ -298,6 +304,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
             </FieldRow>
             <FieldRow label="Kota / Kabupaten">
               <Input
+                data-testid="marketplace-checkout-city-input"
                 placeholder="Pilih Kota/Kabupaten"
                 value={city}
                 onChange={(event) => setCity(event.target.value)}
@@ -309,6 +316,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <FieldRow label="Kecamatan">
               <Input
+                data-testid="marketplace-checkout-district-input"
                 placeholder="Pilih Kecamatan"
                 value={district}
                 onChange={(event) => setDistrict(event.target.value)}
@@ -317,6 +325,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
             </FieldRow>
             <FieldRow label="Kode Pos">
               <Input
+                data-testid="marketplace-checkout-postal-code-input"
                 placeholder="Contoh: 16750"
                 value={postalCode}
                 onChange={(event) => setPostalCode(event.target.value)}
@@ -336,6 +345,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 value="JNE_REGULER"
                 selected={shippingOption === "JNE_REGULER"}
                 onSelect={setShippingOption}
+                testId="marketplace-checkout-shipping-option-jne"
                 rightSlot={
                   <span className="text-sm font-bold text-indigo-600">
                     Rp 9.000
@@ -348,6 +358,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 value="GOJEK_SAME_DAY"
                 selected={shippingOption === "GOJEK_SAME_DAY"}
                 onSelect={setShippingOption}
+                testId="marketplace-checkout-shipping-option-gojek"
                 rightSlot={
                   <span className="text-sm font-bold text-indigo-600">
                     Rp 25.000
@@ -372,6 +383,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               value="QRIS"
               selected={paymentMethod === "QRIS"}
               onSelect={setPaymentMethod}
+              testId="marketplace-checkout-payment-option-qris"
             />
             <OptionTile
               title="Transfer Bank"
@@ -379,6 +391,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               value="TRANSFER_BANK"
               selected={paymentMethod === "TRANSFER_BANK"}
               onSelect={setPaymentMethod}
+              testId="marketplace-checkout-payment-option-transfer"
             />
             <OptionTile
               title="E-Wallet"
@@ -386,6 +399,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               value="EWALLET"
               selected={paymentMethod === "EWALLET"}
               onSelect={setPaymentMethod}
+              testId="marketplace-checkout-payment-option-ewallet"
             />
           </div>
 
@@ -398,6 +412,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 {(["BCA", "Mandiri", "BNI", "BRI"] as const).map((bank) => (
                   <Button
                     key={bank}
+                    data-testid={`marketplace-checkout-bank-option-${bank.toLowerCase()}`}
                     type="button"
                     variant="outline"
                     onClick={() => setBankOption(bank)}
@@ -422,7 +437,10 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
       </FeatureSectionCard>
 
       {showValidation && validationErrors.length > 0 ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        <div
+          className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+          data-testid="marketplace-checkout-validation-errors"
+        >
           <p className="font-semibold">Periksa data checkout Anda:</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {validationErrors.map((error) => (
@@ -433,6 +451,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
       ) : null}
 
       <Button
+        data-testid="marketplace-checkout-submit-button"
         type="button"
         className="group flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-center font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-700"
         disabled={!isValid || submitting}

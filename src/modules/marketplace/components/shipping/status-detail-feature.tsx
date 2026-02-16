@@ -85,7 +85,12 @@ export function StatusDetailFeature({
   const reviewButton = (() => {
     if (detail.review_state === "submitted") {
       return (
-        <Button type="button" disabled className="bg-muted text-muted-foreground">
+        <Button
+          data-testid="marketplace-tracking-review-submitted-button"
+          type="button"
+          disabled
+          className="bg-muted text-muted-foreground"
+        >
           Ulasan Sudah Dikirim
         </Button>
       );
@@ -93,6 +98,7 @@ export function StatusDetailFeature({
     if (detail.review_state === "eligible") {
       return (
         <Button
+          data-testid="marketplace-tracking-open-review-button"
           type="button"
           className="bg-indigo-600 text-white hover:bg-indigo-700"
           onClick={onOpenReview}
@@ -103,14 +109,22 @@ export function StatusDetailFeature({
       );
     }
     return (
-      <Button type="button" disabled className="bg-muted text-muted-foreground">
+      <Button
+        data-testid="marketplace-tracking-review-disabled-button"
+        type="button"
+        disabled
+        className="bg-muted text-muted-foreground"
+      >
         Belum Bisa Direview
       </Button>
     );
   })();
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-6">
+    <section
+      className="mx-auto w-full max-w-5xl space-y-6"
+      data-testid="marketplace-tracking-status-detail"
+    >
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         <div className="mb-5 flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-foreground">Status Pesanan</h2>
@@ -121,7 +135,11 @@ export function StatusDetailFeature({
 
         <ol className="space-y-3" aria-label="Timeline status pesanan">
           {timeline.map((step) => (
-            <li key={step.status} className="flex items-start gap-3">
+            <li
+              key={step.status}
+              className="flex items-start gap-3"
+              data-testid={`marketplace-tracking-timeline-step-${step.status.toLowerCase()}`}
+            >
               <span
                 className={`inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                   step.done
@@ -185,6 +203,7 @@ export function StatusDetailFeature({
               <div
                 key={`${item.order_item_id ?? item.product_id}`}
                 className="flex items-center justify-between gap-3"
+                data-testid={`marketplace-tracking-summary-item-${item.order_item_id ?? item.product_id}`}
               >
                 <span>
                   {item.product_name} x {item.quantity}
@@ -201,6 +220,7 @@ export function StatusDetailFeature({
 
       <div className="flex flex-wrap gap-3">
         <Button
+          data-testid="marketplace-tracking-retry-status-button"
           type="button"
           variant="outline"
           className="border-border"
@@ -210,6 +230,7 @@ export function StatusDetailFeature({
           {loading ? "Memuat..." : "Muat Ulang Status"}
         </Button>
         <Button
+          data-testid="marketplace-tracking-reset-form-button"
           type="button"
           variant="outline"
           className="border-border"

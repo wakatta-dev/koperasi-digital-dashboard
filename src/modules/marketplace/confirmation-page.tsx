@@ -133,9 +133,15 @@ export function MarketplaceConfirmationPage() {
   }, [contextResult.state, orderDetail]);
 
   return (
-    <div className="bg-background text-foreground min-h-screen flex flex-col">
+    <div
+      className="bg-background text-foreground min-h-screen flex flex-col"
+      data-testid="marketplace-confirmation-page-root"
+    >
       <LandingNavbar activeLabel="Marketplace" showCart cartCount={0} />
-      <main className="flex-1 pt-28 pb-20 bg-background">
+      <main
+        className="flex-1 pt-28 pb-20 bg-background"
+        data-testid="marketplace-confirmation-page-main"
+      >
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           {!Number.isFinite(orderId) || orderId <= 0 ? (
             <div className="bg-card rounded-2xl shadow-sm border border-border p-8 space-y-4 text-center">
@@ -144,6 +150,7 @@ export function MarketplaceConfirmationPage() {
                 Halaman konfirmasi membutuhkan ID pesanan yang valid.
               </p>
               <Link
+                data-testid="marketplace-confirmation-invalid-back-to-cart-link"
                 href="/marketplace/keranjang"
                 className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
               >
@@ -169,6 +176,7 @@ export function MarketplaceConfirmationPage() {
               </p>
               <div className="flex items-center justify-center gap-3">
                 <Button
+                  data-testid="marketplace-confirmation-retry-button"
                   type="button"
                   variant="outline"
                   className="border-border text-foreground hover:bg-muted"
@@ -177,6 +185,7 @@ export function MarketplaceConfirmationPage() {
                   Muat Ulang
                 </Button>
                 <Link
+                  data-testid="marketplace-confirmation-go-to-tracking-link"
                   href="/marketplace/pengiriman"
                   className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
                 >
@@ -273,12 +282,14 @@ export function MarketplaceConfirmationPage() {
 
               <section className="flex flex-col sm:flex-row gap-3">
                 <Link
+                  data-testid="marketplace-confirmation-track-order-link"
                   href="/marketplace/pengiriman"
                   className="flex-1 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700"
                 >
                   Lacak Pesanan
                 </Link>
                 <Link
+                  data-testid="marketplace-confirmation-continue-shopping-link"
                   href="/marketplace"
                   className="flex-1 inline-flex items-center justify-center rounded-xl border border-border px-5 py-3 font-semibold text-foreground hover:bg-muted"
                 >

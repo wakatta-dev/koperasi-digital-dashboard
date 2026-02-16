@@ -123,7 +123,10 @@ export function ProductMainInfo({
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-sm border border-border p-6 lg:p-8 flex-grow">
+    <div
+      className="bg-card rounded-2xl shadow-sm border border-border p-6 lg:p-8 flex-grow"
+      data-testid="marketplace-product-detail-main-info"
+    >
       <div className="mb-6 border-b border-border pb-6">
         <div className="flex flex-wrap items-center gap-2 mb-2">
           <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 text-xs font-bold px-2.5 py-1 rounded-md">
@@ -161,6 +164,7 @@ export function ProductMainInfo({
             </div>
           </div>
           <Button
+            data-testid="marketplace-product-detail-visit-store-button"
             variant="outline"
             className="ml-auto text-indigo-600 dark:text-indigo-400 border-indigo-500 px-3 py-1 rounded-full hover:bg-indigo-500/10 transition h-auto"
           >
@@ -204,6 +208,7 @@ export function ProductMainInfo({
                     return (
                       <button
                         key={group.id}
+                        data-testid={`marketplace-product-detail-variant-group-${group.id}`}
                         type="button"
                         onClick={() => activeVariantState.onSelectGroup(group.id)}
                         className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
@@ -243,6 +248,7 @@ export function ProductMainInfo({
                       return (
                         <button
                           key={option.id}
+                          data-testid={`marketplace-product-detail-variant-option-${option.id}`}
                           type="button"
                           onClick={() => activeVariantState.onSelectOption(option.id)}
                           disabled={isOutOfStock}
@@ -281,6 +287,7 @@ export function ProductMainInfo({
             </label>
             <div className="flex items-center border border-border rounded-lg w-fit overflow-hidden">
               <button
+                data-testid="marketplace-product-detail-quantity-decrease-button"
                 type="button"
                 onClick={decrease}
                 className="px-3 py-2 bg-muted/40 hover:bg-muted text-muted-foreground border-r border-border"
@@ -288,12 +295,14 @@ export function ProductMainInfo({
                 <span className="material-icons-outlined text-sm">remove</span>
               </button>
               <input
+                data-testid="marketplace-product-detail-quantity-input"
                 type="text"
                 value={quantity}
                 readOnly
                 className="w-12 text-center border-none focus:ring-0 bg-card text-foreground font-medium"
               />
               <button
+                data-testid="marketplace-product-detail-quantity-increase-button"
                 type="button"
                 onClick={increase}
                 className="px-3 py-2 bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border disabled:opacity-50"
@@ -307,6 +316,7 @@ export function ProductMainInfo({
 
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button
+            data-testid="marketplace-product-detail-buy-now-button"
             className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 h-auto"
             ref={actionBtnRef}
             disabled={!canAddToCart}
@@ -318,6 +328,7 @@ export function ProductMainInfo({
             Beli Sekarang
           </Button>
           <Button
+            data-testid="marketplace-product-detail-add-to-cart-button"
             variant="outline"
             className="flex-1 border border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-6 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 h-auto"
             disabled={!canAddToCart}
@@ -329,6 +340,7 @@ export function ProductMainInfo({
             Keranjang
           </Button>
           <Button
+            data-testid="marketplace-product-detail-add-to-wishlist-button"
             variant="outline"
             className="px-4 py-3 border border-border rounded-xl hover:bg-muted transition text-muted-foreground hover:text-destructive h-auto"
             title="Tambah ke Wishlist"

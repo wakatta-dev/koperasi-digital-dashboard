@@ -52,6 +52,7 @@ function RatingStars({
         {[1, 2, 3, 4, 5].map((star) => (
           <Button
             key={star}
+            data-testid={`marketplace-review-star-${itemId}-${star}`}
             type="button"
             variant="ghost"
             size="icon"
@@ -119,6 +120,7 @@ export function ReviewOverlayDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        data-testid="marketplace-review-overlay-dialog"
         showCloseButton={false}
         overlayClassName="bg-black/55 backdrop-blur-sm"
         className="max-w-2xl rounded-2xl border border-border bg-card p-0"
@@ -135,6 +137,7 @@ export function ReviewOverlayDialog({
           {items.map((item) => (
             <div
               key={item.id}
+              data-testid={`marketplace-review-item-${item.id}`}
               className="rounded-xl border border-border bg-muted/30 p-4"
             >
               <p className="mb-2 text-sm font-semibold text-foreground">{item.name}</p>
@@ -156,6 +159,7 @@ export function ReviewOverlayDialog({
               Tulis Ulasan Anda
             </label>
             <Textarea
+              data-testid="marketplace-review-comment-textarea"
               id="review-comment"
               rows={3}
               placeholder="Bagaimana kualitas produk yang Anda terima?"
@@ -171,6 +175,7 @@ export function ReviewOverlayDialog({
 
         <DialogFooter className="border-t border-border bg-muted/30 px-6 py-4">
           <Button
+            data-testid="marketplace-review-cancel-button"
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -179,6 +184,7 @@ export function ReviewOverlayDialog({
             Nanti Saja
           </Button>
           <Button
+            data-testid="marketplace-review-submit-button"
             type="button"
             disabled={!canSubmit || submitting}
             onClick={handleSubmit}
