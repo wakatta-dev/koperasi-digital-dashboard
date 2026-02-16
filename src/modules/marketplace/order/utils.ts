@@ -8,7 +8,7 @@ import {
 import type { MarketplaceOrderStatus } from "@/types/api/marketplace";
 
 export type OrderStatusAction = {
-  nextStatus: string;
+  nextStatus: MarketplaceOrderStatus;
   label: string;
   icon: string;
 };

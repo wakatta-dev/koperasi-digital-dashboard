@@ -20,7 +20,7 @@ export const DEFAULT_MARKETPLACE_FILTERS: MarketplaceFilters = {
 export type ProductStatus = "Tersedia" | "Menipis" | "Habis";
 export type OrderStatus = MarketplaceOrderStatus;
 export type CustomerStatus = "Active" | "Inactive";
-export type PaymentStatus = "Lunas" | "Pending" | "Gagal";
+export type PaymentStatus = "Lunas" | "Pending" | "Gagal" | "Verifikasi";
 export type PaymentMethodType = "card" | "bank";
 export type InventoryEventType = "increase" | "decrease";
 

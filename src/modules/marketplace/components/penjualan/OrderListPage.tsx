@@ -10,7 +10,10 @@ import {
   useMarketplaceOrderActions,
   useMarketplaceOrders,
 } from "@/hooks/queries/marketplace-orders";
-import type { MarketplaceOrderSummaryResponse } from "@/types/api/marketplace";
+import type {
+  MarketplaceOrderStatusInput,
+  MarketplaceOrderSummaryResponse,
+} from "@/types/api/marketplace";
 import { OrderInvoiceDialog } from "@/modules/marketplace/order/components/order-invoice-dialog";
 import {
   canCancelOrder,
@@ -98,7 +101,7 @@ export function OrderListPage() {
 
   const handleStatusUpdate = async (
     order: MarketplaceOrderSummaryResponse,
-    nextStatus: string,
+    nextStatus: MarketplaceOrderStatusInput,
     actionKey: string,
     reason?: string,
   ) => {

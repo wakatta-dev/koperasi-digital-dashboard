@@ -34,7 +34,10 @@ import {
   getShippingBadge,
   getStatusAction,
 } from "../utils";
-import type { MarketplaceOrderSummaryResponse } from "@/types/api/marketplace";
+import type {
+  MarketplaceOrderStatusInput,
+  MarketplaceOrderSummaryResponse,
+} from "@/types/api/marketplace";
 
 const PAGE_SIZE = 10;
 
@@ -94,7 +97,7 @@ export function OrderListPage() {
 
   const handleStatusUpdate = async (
     order: MarketplaceOrderSummaryResponse,
-    nextStatus: string,
+    nextStatus: MarketplaceOrderStatusInput,
     actionKey: string,
     reason?: string
   ) => {

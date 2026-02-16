@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMarketplaceOrder, useMarketplaceOrderActions } from "@/hooks/queries/marketplace-orders";
 import { formatCurrency } from "@/lib/format";
 import { formatOrderDateTime, formatOrderNumber, normalizeOrderStatus } from "../utils";
+import type { MarketplaceOrderStatusInput } from "@/types/api/marketplace";
 
 type OrderManualPaymentPageProps = {
   id: string;
@@ -44,7 +45,7 @@ type ManualPaymentStatus = "WAITING_MANUAL_CONFIRMATION" | "CONFIRMED" | "REJECT
 const manualStatusOptions: Array<{
   value: ManualPaymentStatus;
   label: string;
-  orderStatus: string;
+  orderStatus: MarketplaceOrderStatusInput;
 }> = [
   {
     value: "WAITING_MANUAL_CONFIRMATION",
@@ -98,7 +99,7 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
   const selectedOption = manualStatusOptions.find(
     (option) => option.value === selectedStatus
   );
-  const targetOrderStatus = selectedOption?.orderStatus ?? "";
+  const targetOrderStatus = selectedOption?.orderStatus;
   const currentOrderStatus = normalizeOrderStatus(order?.status);
   const isSubmitting = updateStatus.isPending;
   const isStatusUnchanged =

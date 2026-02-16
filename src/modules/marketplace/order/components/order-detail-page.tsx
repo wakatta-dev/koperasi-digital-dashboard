@@ -32,7 +32,10 @@ import {
   getStatusAction,
   getTimelineLabel,
 } from "../utils";
-import type { MarketplaceOrderItemResponse } from "@/types/api/marketplace";
+import type {
+  MarketplaceOrderItemResponse,
+  MarketplaceOrderStatusInput,
+} from "@/types/api/marketplace";
 const DEFAULT_PAYMENT_METHOD = "-";
 
 type OrderDetailPageProps = {
@@ -89,7 +92,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
   }, [order?.status_history]);
 
   const handleStatusUpdate = async (
-    nextStatus: string,
+    nextStatus: MarketplaceOrderStatusInput,
     actionKey: string,
     reason?: string
   ) => {
