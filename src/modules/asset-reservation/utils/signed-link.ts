@@ -13,7 +13,8 @@ export async function createSignedReservationLink(args: {
   if (args.guestToken) {
     params.set("sig", args.guestToken);
   }
-  if ((args.status ?? "").toLowerCase() === "confirmed_full") {
+  const normalizedStatus = (args.status ?? "").toLowerCase();
+  if (normalizedStatus === "confirmed_full" || normalizedStatus === "completed") {
     params.set("state", "done");
   } else {
     params.set("state", "dp");

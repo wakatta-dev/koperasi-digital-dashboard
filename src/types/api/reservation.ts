@@ -57,6 +57,19 @@ export type PaymentSessionResponse = {
   proof_note?: string | null;
 };
 
+export type ReservationLatestPayment = {
+  id: string;
+  type?: "dp" | "settlement" | string;
+  method?: string;
+  amount: number;
+  status?: "initiated" | "pending_verification" | "succeeded" | "failed" | "expired" | string;
+  proof_url?: string | null;
+  proof_note?: string | null;
+  pay_by?: number;
+  created_at?: number;
+  updated_at?: number;
+};
+
 export type GuestLinkVerifyResponse = {
   allowed: boolean;
   expires_at?: Rfc3339String;
@@ -68,6 +81,7 @@ export type GuestLinkVerifyResponse = {
     | "confirmed_dp"
     | "awaiting_settlement"
     | "confirmed_full"
+    | "completed"
     | "cancelled"
     | "expired"
     | "rejected";
@@ -103,12 +117,15 @@ export type ReservationDetailResponse = {
     | "confirmed_dp"
     | "awaiting_settlement"
     | "confirmed_full"
+    | "completed"
     | "cancelled"
     | "expired"
     | "rejected";
   rejection_reason?: string | null;
   guest_token?: string;
   amounts: { total: number; dp: number; remaining: number };
+  latest_payment?: ReservationLatestPayment | null;
+  payment_flow?: "dp" | "settlement_direct" | "pending_decision" | string;
   hold_expires_at?: Rfc3339String;
   timeline?: ReservationTimelineItem[];
 };

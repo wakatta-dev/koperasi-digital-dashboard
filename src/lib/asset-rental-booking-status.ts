@@ -6,6 +6,7 @@ export const ASSET_RENTAL_BOOKING_STATUS = {
   pendingReview: "PENDING_REVIEW",
   awaitingDP: "AWAITING_DP",
   awaitingPaymentVerification: "AWAITING_PAYMENT_VERIFICATION",
+  confirmedDP: "CONFIRMED_DP",
   awaitingSettlement: "AWAITING_SETTLEMENT",
   confirmedFull: "CONFIRMED_FULL",
   booked: "BOOKED",
@@ -26,6 +27,7 @@ export function resolveAssetRentalBookingStatus(
   if (
     paymentStatus === "pending_verification" &&
     (baseStatus === ASSET_RENTAL_BOOKING_STATUS.awaitingDP ||
+      baseStatus === ASSET_RENTAL_BOOKING_STATUS.confirmedDP ||
       baseStatus === ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement ||
       baseStatus === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification)
   ) {
@@ -43,6 +45,8 @@ export function toAssetRentalBookingStatusLabel(status?: string): string {
       return "Menunggu Pembayaran";
     case ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification:
       return "Menunggu Verifikasi Pembayaran";
+    case ASSET_RENTAL_BOOKING_STATUS.confirmedDP:
+      return "Menunggu Hari Pakai";
     case ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement:
       return "Menunggu Pelunasan";
     case ASSET_RENTAL_BOOKING_STATUS.confirmedFull:

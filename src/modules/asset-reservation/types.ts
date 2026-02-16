@@ -21,6 +21,7 @@ export type ReservationStatus =
   | "confirmed_dp"
   | "awaiting_settlement"
   | "confirmed_full"
+  | "completed"
   | "cancelled"
   | "rejected"
   | "expired";
@@ -67,6 +68,19 @@ export type ReservationSummary = {
   submittedAt?: string;
   holdExpiresAt?: string;
   guestToken?: string;
+  latestPayment?: {
+    id: string;
+    type?: string;
+    method?: string;
+    amount: number;
+    status?: string;
+    proofUrl?: string;
+    proofNote?: string;
+    payBy?: number;
+    createdAt?: number;
+    updatedAt?: number;
+  };
+  paymentFlow?: "dp" | "settlement_direct" | "pending_decision" | string;
   amounts: { total: number; dp: number; remaining: number };
   timeline?: Array<{
     event: string;

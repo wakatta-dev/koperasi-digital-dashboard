@@ -94,6 +94,12 @@ function toStatusMeta(status?: string) {
       badgeClass: "border border-orange-200 bg-orange-50 text-orange-700",
     };
   }
+  if (normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedDP) {
+    return {
+      label: "Menunggu Hari Pakai",
+      badgeClass: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+    };
+  }
   if (normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement) {
     return {
       label: "Menunggu Pelunasan",
@@ -259,7 +265,7 @@ export function AssetRentalAdminDetailPage({
   const canReject = ["PENDING_REVIEW", "BOOKED"].includes(
     (booking?.status || "").toUpperCase(),
   );
-  const canComplete = ["AWAITING_SETTLEMENT", "CONFIRMED_FULL"].includes(
+  const canComplete = ["CONFIRMED_FULL"].includes(
     (booking?.status || "").toUpperCase(),
   );
   const latestPayment = booking?.latest_payment;
@@ -538,7 +544,6 @@ export function AssetRentalAdminDetailPage({
                   {latestPayment?.proof_url ? (
                     <div className="space-y-3">
                       {isImageProofUrl(latestPayment.proof_url) ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={latestPayment.proof_url}
                           alt={`Bukti pembayaran booking ${booking.id}`}

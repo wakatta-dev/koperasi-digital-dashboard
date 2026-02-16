@@ -112,9 +112,11 @@ export type AssetRentalReservationSummary = {
   status:
     | "pending_review"
     | "awaiting_dp"
+    | "awaiting_payment_verification"
     | "confirmed_dp"
     | "awaiting_settlement"
     | "confirmed_full"
+    | "completed"
     | "cancelled"
     | "expired";
   hold_expires_at?: Rfc3339String;

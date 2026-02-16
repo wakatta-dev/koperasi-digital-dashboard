@@ -33,6 +33,21 @@ export function useReservation(
         status: res.data.status,
         holdExpiresAt: res.data.hold_expires_at,
         guestToken: res.data.guest_token,
+        latestPayment: res.data.latest_payment
+          ? {
+              id: res.data.latest_payment.id,
+              type: res.data.latest_payment.type,
+              method: res.data.latest_payment.method,
+              amount: res.data.latest_payment.amount,
+              status: res.data.latest_payment.status,
+              proofUrl: res.data.latest_payment.proof_url ?? undefined,
+              proofNote: res.data.latest_payment.proof_note ?? undefined,
+              payBy: res.data.latest_payment.pay_by,
+              createdAt: res.data.latest_payment.created_at,
+              updatedAt: res.data.latest_payment.updated_at,
+            }
+          : undefined,
+        paymentFlow: res.data.payment_flow,
         amounts: res.data.amounts,
         timeline: res.data.timeline?.map((t) => ({
           event: t.event,

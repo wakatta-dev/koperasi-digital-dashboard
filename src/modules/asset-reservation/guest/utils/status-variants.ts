@@ -24,6 +24,7 @@ export function mapStatusToVariant(status: GuestReservationStatus): GuestStatusV
     case "awaiting_settlement":
       return "payment_done";
     case "confirmed_full":
+    case "completed":
       return "completed";
     case "rejected":
       return "rejected";

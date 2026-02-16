@@ -61,6 +61,7 @@ function toReservationStatus(status: string): ReservationStatus {
     case "confirmed_dp":
     case "awaiting_settlement":
     case "confirmed_full":
+    case "completed":
     case "cancelled":
     case "rejected":
     case "expired":
@@ -74,8 +75,10 @@ function mapVariant(status: ReservationStatus): GuestRequestStatusVariant {
   switch (status) {
     case "awaiting_dp":
     case "awaiting_settlement":
-      return "approved";
+    case "confirmed_dp":
     case "confirmed_full":
+      return "approved";
+    case "completed":
       return "completed";
     case "rejected":
     case "cancelled":
@@ -83,7 +86,6 @@ function mapVariant(status: ReservationStatus): GuestRequestStatusVariant {
       return "rejected";
     case "pending_review":
     case "awaiting_payment_verification":
-    case "confirmed_dp":
     default:
       return "verifying";
   }
@@ -102,7 +104,9 @@ function badgeLabelForStatus(status: ReservationStatus) {
     case "awaiting_settlement":
       return "Menunggu Pelunasan";
     case "confirmed_full":
-      return "Reservasi Terkonfirmasi";
+      return "Masa Penggunaan";
+    case "completed":
+      return "Selesai";
     case "rejected":
       return "Ditolak";
     case "cancelled":
@@ -123,11 +127,13 @@ function statusDescriptionForStatus(status: ReservationStatus) {
     case "awaiting_payment_verification":
       return "Bukti pembayaran sudah diunggah dan menunggu verifikasi admin.";
     case "confirmed_dp":
-      return "DP sudah dikonfirmasi. Tahap berikutnya adalah pelunasan.";
+      return "DP sudah dikonfirmasi. Menunggu hari pakai/pengambilan sebelum pelunasan.";
     case "awaiting_settlement":
       return "Silakan lakukan pelunasan sesuai nominal sisa tagihan.";
     case "confirmed_full":
-      return "Semua pembayaran sudah selesai dan reservasi aktif.";
+      return "Pembayaran tervalidasi. Anda sedang dalam masa penggunaan aset.";
+    case "completed":
+      return "Penyewaan selesai. Kondisi pengembalian aset sudah dicatat admin.";
     case "rejected":
       return "Pengajuan tidak dapat diproses. Silakan cek alasan penolakan.";
     case "cancelled":
@@ -141,6 +147,7 @@ function statusDescriptionForStatus(status: ReservationStatus) {
 
 function paymentInstructionForStatus(
   status: ReservationStatus,
+  paymentFlow: "dp" | "settlement_direct" | "pending_decision",
   amounts?: {
     total: number;
     dp: number;
@@ -158,15 +165,52 @@ function paymentInstructionForStatus(
     };
   }
   if (status === "awaiting_settlement") {
+    const isDirectSettlement = paymentFlow === "settlement_direct";
     return {
       mode: "settlement",
       modeLabel: "Pelunasan",
-      amountLabel: formatCurrency(amounts.remaining),
-      description: "Lakukan pelunasan dan unggah bukti pembayaran.",
+      amountLabel: formatCurrency(isDirectSettlement ? amounts.total : amounts.remaining),
+      description: isDirectSettlement
+        ? "Lakukan pembayaran penuh (tanpa DP) lalu unggah bukti pembayaran."
+        : "Lakukan pelunasan sisa tagihan dan unggah bukti pembayaran.",
       ctaLabel: "Unggah Bukti Pelunasan",
     };
   }
   return undefined;
+}
+
+function resolveLatestPaymentType(rawType?: string | null): "dp" | "settlement" | undefined {
+  const normalized = (rawType || "").trim().toLowerCase();
+  if (normalized === "dp") return "dp";
+  if (normalized === "settlement") return "settlement";
+  return undefined;
+}
+
+function resolvePaymentFlow(input: {
+  status: ReservationStatus;
+  backendFlow?: string;
+  latestPaymentType?: "dp" | "settlement";
+}): "dp" | "settlement_direct" | "pending_decision" {
+  const normalizedFlow = (input.backendFlow || "").trim().toLowerCase();
+  if (normalizedFlow === "dp" || normalizedFlow === "settlement_direct" || normalizedFlow === "pending_decision") {
+    return normalizedFlow;
+  }
+  if (input.status === "pending_review") return "pending_decision";
+  if (input.status === "awaiting_dp" || input.status === "confirmed_dp") return "dp";
+  if (input.status === "awaiting_payment_verification") {
+    return input.latestPaymentType === "dp" ? "dp" : "settlement_direct";
+  }
+  if (input.status === "awaiting_settlement") {
+    return input.latestPaymentType === "dp" ? "dp" : "settlement_direct";
+  }
+  return "settlement_direct";
+}
+
+function shouldForceSettlementBySchedule(startDate?: string): boolean {
+  if (!startDate) return false;
+  const start = new Date(startDate);
+  if (Number.isNaN(start.getTime())) return false;
+  return start.getTime() <= Date.now() + 72 * 60 * 60 * 1000;
 }
 
 export function GuestStatusLookupPage() {
@@ -182,24 +226,43 @@ export function GuestStatusLookupPage() {
 
   const reservation = lookup.data ?? null;
   const status = reservation ? toReservationStatus(reservation.status) : null;
+  const effectiveStatus = useMemo(() => {
+    if (!status) return null;
+    if (status === "awaiting_dp" && shouldForceSettlementBySchedule(reservation?.start_date)) {
+      return "awaiting_settlement" as ReservationStatus;
+    }
+    return status;
+  }, [reservation?.start_date, status]);
+  const latestPaymentType = useMemo(
+    () => resolveLatestPaymentType(reservation?.latest_payment?.type),
+    [reservation?.latest_payment?.type]
+  );
+  const paymentFlow = useMemo(() => {
+    if (!effectiveStatus) return "pending_decision" as const;
+    return resolvePaymentFlow({
+      status: effectiveStatus,
+      backendFlow: reservation?.payment_flow,
+      latestPaymentType,
+    });
+  }, [effectiveStatus, latestPaymentType, reservation?.payment_flow]);
 
   const paymentInstruction = useMemo(() => {
-    if (!reservation || !status) return undefined;
-    return paymentInstructionForStatus(status, reservation.amounts);
-  }, [reservation, status]);
+    if (!reservation || !effectiveStatus) return undefined;
+    return paymentInstructionForStatus(effectiveStatus, paymentFlow, reservation.amounts);
+  }, [effectiveStatus, paymentFlow, reservation]);
 
   const result: GuestRequestStatusResult | null = useMemo(() => {
-    if (!reservation || !status) return null;
+    if (!reservation || !effectiveStatus) return null;
     const titleAsset = reservation.asset_name?.trim() || "Aset";
-    const variant = mapVariant(status);
+    const variant = mapVariant(effectiveStatus);
 
     return {
       requestTitle: `Pengajuan Sewa ${titleAsset}`,
       ticketLabel: formatTicketFromReservationId(reservation.reservation_id),
-      badgeLabel: badgeLabelForStatus(status),
+      badgeLabel: badgeLabelForStatus(effectiveStatus),
       variant,
-      status,
-      statusDescription: statusDescriptionForStatus(status),
+      status: effectiveStatus,
+      statusDescription: statusDescriptionForStatus(effectiveStatus),
       details: {
         renterName: reservation.renter_name || "-",
         assetKind: reservation.asset_name || "-",
@@ -211,6 +274,8 @@ export function GuestStatusLookupPage() {
       },
       rejectionReason: reservation.rejection_reason || undefined,
       paymentInstruction,
+      paymentFlow,
+      latestPaymentType,
       onOpenUploadProof: paymentInstruction
         ? async () => {
             try {
@@ -230,7 +295,7 @@ export function GuestStatusLookupPage() {
           }
         : undefined,
     };
-  }, [createPayment, paymentInstruction, reservation, status]);
+  }, [createPayment, effectiveStatus, latestPaymentType, paymentFlow, paymentInstruction, reservation]);
 
   const modalAmountLabel =
     paymentAmountLabel || formatCurrency(reservation?.amounts?.total);

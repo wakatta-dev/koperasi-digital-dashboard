@@ -37,7 +37,7 @@ export function StatusSidebar({
   const statusTextClass =
     status === "pending_review" || status === "awaiting_dp" || status === "awaiting_settlement"
       ? "text-amber-900/70 dark:text-amber-100/70"
-      : status === "confirmed_full" || status === "confirmed_dp"
+      : status === "confirmed_full" || status === "confirmed_dp" || status === "completed"
         ? "text-green-900/70 dark:text-green-100/70"
         : "text-gray-700 dark:text-gray-300";
   const price = {

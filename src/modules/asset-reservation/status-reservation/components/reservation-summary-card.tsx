@@ -51,7 +51,9 @@ export function ReservationSummaryCard({
     : "-";
   const secureId = reservation.reservationId || reservationId || 0;
   const bannerText =
-    reservation.status === "confirmed_full"
+    reservation.status === "completed"
+      ? "Penyewaan Selesai"
+      : reservation.status === "confirmed_full"
       ? "Reservasi Anda Telah Dikonfirmasi!"
       : reservation.status === "confirmed_dp"
         ? "DP Sudah Diterima"
@@ -67,7 +69,9 @@ export function ReservationSummaryCard({
                   ? "Reservasi Kedaluwarsa"
                   : "Permintaan Sedang Ditinjau";
   const bannerSubtext =
-    reservation.status === "confirmed_full"
+    reservation.status === "completed"
+      ? "Proses sewa ditutup admin dan kondisi aset sudah dicatat."
+      : reservation.status === "confirmed_full"
       ? "Pembayaran selesai. Reservasi Anda aktif."
       : reservation.status === "confirmed_dp"
         ? "DP diterima. Silakan lakukan pelunasan sebelum jadwal."
@@ -83,7 +87,9 @@ export function ReservationSummaryCard({
                   ? "Reservasi Anda telah kedaluwarsa."
                   : "Permintaan Anda sedang dalam proses review.";
   const statusBadgeClasses =
-    reservation.status === "confirmed_full"
+    reservation.status === "completed"
+      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+      : reservation.status === "confirmed_full"
       ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
       : reservation.status === "confirmed_dp" || reservation.status === "awaiting_settlement"
         ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
@@ -172,7 +178,7 @@ export function ReservationSummaryCard({
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadgeClasses}`}
                 >
                   <span className="material-icons-outlined text-sm">
-                    {reservation.status === "confirmed_full" ? "verified" : "schedule"}
+                    {reservation.status === "confirmed_full" || reservation.status === "completed" ? "verified" : "schedule"}
                   </span>
                   {statusLabel}
                 </span>
@@ -201,7 +207,9 @@ export function ReservationSummaryCard({
                     <div className="h-px bg-gray-100 dark:bg-gray-700 my-1" />
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-gray-900 dark:text-white">
-                        {reservation.status === "confirmed_full" ? "LUNAS" : "Sisa Pembayaran"}
+                        {reservation.status === "confirmed_full" || reservation.status === "completed"
+                          ? "LUNAS"
+                          : "Sisa Pembayaran"}
                       </span>
                       <span className="font-bold text-lg text-amber-600 dark:text-amber-400">
                         {typeof remainingAmount === "number"
@@ -293,7 +301,7 @@ export function ReservationSummaryCard({
                     </p>
                   </div>
                 </li>
-                {reservation.status === "confirmed_full" ? (
+                {reservation.status === "confirmed_full" || reservation.status === "completed" ? (
                   <li className="flex items-start gap-2">
                     <span className="material-icons-outlined text-green-500 text-base mt-0.5">
                       check_circle
@@ -324,7 +332,7 @@ export function ReservationSummaryCard({
               </ol>
             </div>
 
-            {reservation.status === "confirmed_full" ? (
+            {reservation.status === "confirmed_full" || reservation.status === "completed" ? (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                 <Button
                   className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-surface-card-dark border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-semibold shadow-sm transition flex items-center justify-center gap-2"

@@ -37,7 +37,7 @@ export default async function StatusReservasiPage({
 
   const state: ReservationState = (() => {
     const backendStatus = guestLink?.data?.status?.toLowerCase();
-    if (backendStatus === "confirmed_full") return "done";
+    if (backendStatus === "confirmed_full" || backendStatus === "completed") return "done";
     if (
       backendStatus === "confirmed_dp" ||
       backendStatus === "awaiting_settlement"

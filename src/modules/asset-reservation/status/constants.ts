@@ -90,6 +90,16 @@ export const STATUS_CONTENT: Record<
     summaryLabel: "Total Tagihan",
     secondaryVariant: "danger",
   },
+  completed: {
+    badgeBg: "bg-emerald-50 dark:bg-emerald-900/20",
+    border: "border-emerald-200 dark:border-emerald-800/60",
+    icon: "task_alt",
+    iconBg: "bg-emerald-100 dark:bg-emerald-900/40",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    title: "Sewa Selesai",
+    text: "Siklus penyewaan ditutup admin dan kondisi aset sudah dicatat.",
+    summaryLabel: "Status",
+  },
   cancelled: {
     badgeBg: "bg-gray-50 dark:bg-gray-900/20",
     border: "border-gray-200 dark:border-gray-700",

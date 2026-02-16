@@ -69,7 +69,9 @@ function humanizeEvent(event: string) {
     confirmed_dp: "DP diterima",
     awaiting_settlement: "Menunggu pelunasan",
     confirmed_full: "Reservasi terkonfirmasi",
+    completed: "Selesai",
     payment_completed: "Pembayaran selesai",
+    reservation_completed: "Penyewaan selesai",
     cancelled: "Reservasi dibatalkan",
     rejected: "Permintaan ditolak",
     expired: "Reservasi kedaluwarsa",
@@ -106,6 +108,8 @@ function mapStatus(status: ReservationSummary["status"]): ReservationStatus {
     return "awaiting_settlement";
   case "confirmed_full":
     return "confirmed_full";
+  case "completed":
+    return "completed";
   case "cancelled":
     return "cancelled";
   case "expired":

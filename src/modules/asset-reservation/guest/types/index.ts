@@ -36,6 +36,7 @@ export type GuestReservationStatus =
   | "confirmed_dp"
   | "awaiting_settlement"
   | "confirmed_full"
+  | "completed"
   | "cancelled"
   | "rejected"
   | "expired";

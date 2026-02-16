@@ -27,6 +27,18 @@ export type GuestRequestPaymentInstruction = {
   ctaLabel: string;
 };
 
+type GuestRequestPaymentFlow = "dp" | "settlement_direct" | "pending_decision";
+type PaymentType = "dp" | "settlement";
+
+type StepTone = "done" | "active" | "pending" | "failed";
+
+type StepItem = {
+  key: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+};
+
 export type GuestRequestStatusResult = {
   requestTitle: string;
   ticketLabel: string;
@@ -37,6 +49,8 @@ export type GuestRequestStatusResult = {
   details: GuestRequestStatusDetails;
   rejectionReason?: string;
   paymentInstruction?: GuestRequestPaymentInstruction;
+  paymentFlow?: GuestRequestPaymentFlow;
+  latestPaymentType?: PaymentType;
   onOpenUploadProof?: () => void;
 };
 
@@ -50,7 +64,113 @@ type GuestRequestStatusFeatureProps = Readonly<{
   result?: GuestRequestStatusResult | null;
 }>;
 
-type StepTone = "done" | "active" | "pending" | "failed";
+const DP_STEPS: StepItem[] = [
+  {
+    key: "submitted",
+    title: "Pengajuan Terkirim",
+    subtitle: "Tiket sewa berhasil dibuat",
+    icon: "check",
+  },
+  {
+    key: "review_admin",
+    title: "Review Admin",
+    subtitle: "Admin meninjau kelayakan pengajuan",
+    icon: "manage_search",
+  },
+  {
+    key: "payment_dp",
+    title: "Pembayaran DP",
+    subtitle: "Penyewa melakukan pembayaran DP",
+    icon: "payments",
+  },
+  {
+    key: "verify_dp",
+    title: "Verifikasi DP Admin",
+    subtitle: "Admin memverifikasi bukti DP",
+    icon: "verified",
+  },
+  {
+    key: "waiting_pickup",
+    title: "Menunggu Hari Pakai/Pengambilan",
+    subtitle: "DP valid, menunggu jadwal penggunaan",
+    icon: "event_available",
+  },
+  {
+    key: "payment_settlement",
+    title: "Pembayaran Pelunasan",
+    subtitle: "Penyewa melakukan pelunasan",
+    icon: "request_quote",
+  },
+  {
+    key: "verify_settlement",
+    title: "Verifikasi Pelunasan Admin",
+    subtitle: "Admin memverifikasi bukti pelunasan",
+    icon: "task_alt",
+  },
+  {
+    key: "usage",
+    title: "Masa Penggunaan Aset",
+    subtitle: "Aset digunakan sesuai jadwal",
+    icon: "calendar_month",
+  },
+  {
+    key: "return_by_tenant",
+    title: "Pengembalian oleh Penyewa",
+    subtitle: "Penyewa mengembalikan aset",
+    icon: "assignment_return",
+  },
+  {
+    key: "finalization",
+    title: "Verifikasi Pengembalian Admin",
+    subtitle: "Admin verifikasi akhir + kondisi aset",
+    icon: "fact_check",
+  },
+];
+
+const DIRECT_SETTLEMENT_STEPS: StepItem[] = [
+  {
+    key: "submitted",
+    title: "Pengajuan Terkirim",
+    subtitle: "Tiket sewa berhasil dibuat",
+    icon: "check",
+  },
+  {
+    key: "review_admin",
+    title: "Review Admin",
+    subtitle: "Admin meninjau kelayakan pengajuan",
+    icon: "manage_search",
+  },
+  {
+    key: "payment_settlement",
+    title: "Pembayaran Pelunasan",
+    subtitle: "Penyewa melakukan pelunasan",
+    icon: "payments",
+  },
+  {
+    key: "verify_settlement",
+    title: "Verifikasi Pelunasan Admin",
+    subtitle: "Admin memverifikasi bukti pelunasan",
+    icon: "verified",
+  },
+  {
+    key: "usage",
+    title: "Masa Penggunaan Aset",
+    subtitle: "Aset digunakan sesuai jadwal",
+    icon: "calendar_month",
+  },
+  {
+    key: "return_by_tenant",
+    title: "Pengembalian oleh Penyewa",
+    subtitle: "Penyewa mengembalikan aset",
+    icon: "assignment_return",
+  },
+  {
+    key: "finalization",
+    title: "Verifikasi Pengembalian Admin",
+    subtitle: "Admin verifikasi akhir + kondisi aset",
+    icon: "fact_check",
+  },
+];
 
 function badgeClasses(variant: GuestRequestStatusVariant) {
   switch (variant) {
@@ -63,26 +183,6 @@ function badgeClasses(variant: GuestRequestStatusVariant) {
     case "verifying":
     default:
       return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800";
-  }
-}
-
-function stepTones(status: ReservationStatus): StepTone[] {
-  switch (status) {
-    case "pending_review":
-      return ["done", "active", "pending", "pending"];
-    case "awaiting_dp":
-    case "awaiting_payment_verification":
-    case "confirmed_dp":
-    case "awaiting_settlement":
-      return ["done", "done", "active", "pending"];
-    case "confirmed_full":
-      return ["done", "done", "done", "done"];
-    case "cancelled":
-    case "expired":
-    case "rejected":
-      return ["done", "done", "pending", "failed"];
-    default:
-      return ["done", "active", "pending", "pending"];
   }
 }
 
@@ -114,20 +214,133 @@ function stepTitleClasses(tone: StepTone) {
   }
 }
 
-function paymentStepSubtitle(result: GuestRequestStatusResult) {
-  if (result.status === "awaiting_payment_verification") {
-    return "Bukti pembayaran sedang diverifikasi admin";
+function resolveStepperFlow(result: GuestRequestStatusResult): Exclude<GuestRequestPaymentFlow, "pending_decision"> {
+  if (result.paymentFlow === "dp") return "dp";
+  return "settlement_direct";
+}
+
+function resolveActiveStepIndex(
+  result: GuestRequestStatusResult,
+  flow: Exclude<GuestRequestPaymentFlow, "pending_decision">
+): number {
+  const { status, latestPaymentType } = result;
+  if (flow === "dp") {
+    switch (status) {
+      case "pending_review":
+        return 2;
+      case "awaiting_dp":
+        return 3;
+      case "awaiting_payment_verification":
+        return latestPaymentType === "dp" ? 4 : 7;
+      case "confirmed_dp":
+        return 5;
+      case "awaiting_settlement":
+        return 6;
+      case "confirmed_full":
+        return 8;
+      case "completed":
+        return 10;
+      case "rejected":
+      case "cancelled":
+      case "expired":
+        if (latestPaymentType === "settlement") return 7;
+        if (latestPaymentType === "dp") return 4;
+        return 2;
+      default:
+        return 2;
+    }
   }
-  if (result.paymentInstruction) {
-    return `Aksi sekarang: ${result.paymentInstruction.modeLabel}`;
+
+  switch (status) {
+    case "pending_review":
+      return 2;
+    case "awaiting_settlement":
+      return 3;
+    case "awaiting_payment_verification":
+      return 4;
+    case "confirmed_full":
+      return 5;
+    case "completed":
+      return 7;
+    case "rejected":
+    case "cancelled":
+    case "expired":
+      return latestPaymentType === "settlement" ? 4 : 2;
+    default:
+      return 2;
   }
-  if (result.status === "confirmed_full") {
-    return "Pembayaran sudah lunas";
+}
+
+function resolveStepTone(
+  idx: number,
+  activeIdx: number,
+  result: GuestRequestStatusResult
+): StepTone {
+  if (result.status === "completed") {
+    return "done";
   }
-  if (result.status === "confirmed_dp") {
-    return "Tahap berikutnya: Pelunasan";
+  const isTerminal =
+    result.status === "rejected" ||
+    result.status === "cancelled" ||
+    result.status === "expired";
+
+  const stepNo = idx + 1;
+  if (isTerminal) {
+    if (stepNo < activeIdx) return "done";
+    if (stepNo === activeIdx) return "failed";
+    return "pending";
   }
-  return "Belum ada aksi pembayaran";
+
+  if (stepNo < activeIdx) return "done";
+  if (stepNo === activeIdx) return "active";
+  return "pending";
+}
+
+function resolveStepSubtitle(step: StepItem, result: GuestRequestStatusResult): string {
+  const status = result.status;
+  if (step.key === "review_admin") {
+    if (status === "pending_review") {
+      return "Admin sedang meninjau pengajuan dan menentukan jalur pembayaran";
+    }
+    if (status === "rejected") {
+      return "Pengajuan ditolak oleh admin";
+    }
+    return "Review admin selesai";
+  }
+
+  if (step.key === "payment_dp" && result.paymentInstruction?.mode === "dp") {
+    return `Aksi sekarang: ${result.paymentInstruction.modeLabel} (${result.paymentInstruction.amountLabel})`;
+  }
+
+  if (step.key === "payment_settlement" && result.paymentInstruction?.mode === "settlement") {
+    return `Aksi sekarang: ${result.paymentInstruction.modeLabel} (${result.paymentInstruction.amountLabel})`;
+  }
+
+  if (step.key === "verify_dp" && status === "awaiting_payment_verification" && result.latestPaymentType === "dp") {
+    return "Bukti pembayaran DP sedang diverifikasi admin";
+  }
+
+  if (
+    step.key === "verify_settlement" &&
+    status === "awaiting_payment_verification" &&
+    result.latestPaymentType === "settlement"
+  ) {
+    return "Bukti pembayaran pelunasan sedang diverifikasi admin";
+  }
+
+  if (step.key === "waiting_pickup" && status === "confirmed_dp") {
+    return "Tunggu hari pakai/pengambilan sebelum pelunasan";
+  }
+
+  if (step.key === "usage" && status === "confirmed_full") {
+    return "Pembayaran tervalidasi, aset dapat digunakan sesuai jadwal";
+  }
+
+  if (step.key === "finalization" && status === "completed") {
+    return "Penyewaan selesai, kondisi aset sudah dicatat admin";
+  }
+
+  return step.subtitle;
 }
 
 export function GuestRequestStatusFeature({
@@ -139,8 +352,9 @@ export function GuestRequestStatusFeature({
   submitting,
   result,
 }: GuestRequestStatusFeatureProps) {
-  const status = result?.status ?? "pending_review";
-  const tones = stepTones(status);
+  const stepperFlow = result ? resolveStepperFlow(result) : "settlement_direct";
+  const stepItems = stepperFlow === "dp" ? DP_STEPS : DIRECT_SETTLEMENT_STEPS;
+  const activeStepIndex = result ? resolveActiveStepIndex(result, stepperFlow) : 2;
 
   return (
     <section className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 w-full">
@@ -236,61 +450,22 @@ export function GuestRequestStatusFeature({
                 </div>
 
                 <div className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 p-5">
-                  <h4 className="font-bold text-gray-900 dark:text-white mb-4">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-1">
                     Stepper Status
                   </h4>
+                  <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+                    Jalur proses: {stepperFlow === "dp" ? "DP + Pelunasan" : "Pelunasan Langsung"}
+                  </p>
                   <div className="space-y-4">
-                    {[
-                      {
-                        title: "Pengajuan",
-                        subtitle: "Tiket sewa berhasil dibuat",
-                        icon: "check",
-                      },
-                      {
-                        title: "Review Admin",
-                        subtitle:
-                          status === "pending_review"
-                            ? "Admin sedang meninjau pengajuan"
-                            : "Review admin selesai",
-                        icon: "manage_search",
-                      },
-                      {
-                        title: "Pembayaran",
-                        subtitle: paymentStepSubtitle(result),
-                        icon: "payments",
-                      },
-                      {
-                        title:
-                          status === "rejected" ||
-                          status === "cancelled" ||
-                          status === "expired"
-                            ? "Ditutup"
-                            : "Selesai",
-                        subtitle:
-                          status === "confirmed_full"
-                            ? "Reservasi terkonfirmasi penuh"
-                            : status === "rejected"
-                              ? "Pengajuan ditolak"
-                              : status === "cancelled"
-                                ? "Reservasi dibatalkan"
-                                : status === "expired"
-                                  ? "Reservasi kedaluwarsa"
-                                  : "Menunggu penyelesaian",
-                        icon:
-                          status === "rejected" ||
-                          status === "cancelled" ||
-                          status === "expired"
-                            ? "close"
-                            : "flag",
-                      },
-                    ].map((step, idx) => {
-                      const tone = tones[idx];
+                    {stepItems.map((step, idx) => {
+                      const tone = resolveStepTone(
+                        idx,
+                        activeStepIndex,
+                        result,
+                      );
                       const icon = tone === "done" ? "check" : step.icon;
                       return (
-                        <div
-                          key={step.title}
-                          className="flex items-start gap-3"
-                        >
+                        <div key={step.key} className="flex items-start gap-3">
                           <div
                             className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${stepCircleClasses(tone)}`}
                           >
@@ -299,13 +474,11 @@ export function GuestRequestStatusFeature({
                             </span>
                           </div>
                           <div>
-                            <p
-                              className={`font-semibold ${stepTitleClasses(tone)}`}
-                            >
+                            <p className={`font-semibold ${stepTitleClasses(tone)}`}>
                               {step.title}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {step.subtitle}
+                              {resolveStepSubtitle(step, result)}
                             </p>
                           </div>
                         </div>
@@ -409,9 +582,8 @@ export function GuestRequestStatusFeature({
 
                 {result.status === "awaiting_payment_verification" ? (
                   <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-700 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-200">
-                    Bukti pembayaran Anda sudah diterima. Saat ini admin sedang
-                    melakukan verifikasi. Tidak perlu mengunggah ulang kecuali
-                    diminta.
+                    Bukti pembayaran {result.latestPaymentType === "dp" ? "DP" : "pelunasan"} sudah diterima.
+                    Saat ini admin sedang melakukan verifikasi.
                   </div>
                 ) : null}
               </div>
