@@ -1,6 +1,7 @@
 /** @format */
 
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 
 import { bumdesNavigation, bumdesTitleMap } from "@/app/(mvp)/bumdes/navigation";
 import { resolveBumdesTitle } from "@/app/(mvp)/bumdes/title-resolver";
@@ -12,16 +13,18 @@ import {
   JournalNewEntryPage,
 } from "@/modules/accounting";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
 describe("journal foundation", () => {
   it("renders all journal route page containers", () => {
     const list = render(<JournalEntriesManagementPage />);
     expect(screen.getByRole("heading", { name: "Journal Entries" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Audit Log" }).getAttribute("href")).toBe(
-      "/bumdes/accounting/journal/audit-log"
-    );
-    expect(screen.getByRole("link", { name: "New Journal Entry" }).getAttribute("href")).toBe(
-      "/bumdes/accounting/journal/new"
-    );
+    expect(screen.getByRole("button", { name: "Audit Log" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "New Journal Entry" })).toBeTruthy();
     list.unmount();
 
     const create = render(<JournalNewEntryPage />);

@@ -67,6 +67,11 @@ export { FeatureBankAccountTransactionFilters } from "./components/features/Feat
 export { FeatureBankAccountTransactionsTable } from "./components/features/FeatureBankAccountTransactionsTable";
 export { FeatureAddBankAccountModal } from "./components/features/FeatureAddBankAccountModal";
 export { FeatureImportBankStatementModal } from "./components/features/FeatureImportBankStatementModal";
+export { FeatureJournalEntriesActionBar } from "./components/features/FeatureJournalEntriesActionBar";
+export { FeatureJournalEntriesSummaryCards } from "./components/features/FeatureJournalEntriesSummaryCards";
+export { FeatureJournalEntriesFilterBar } from "./components/features/FeatureJournalEntriesFilterBar";
+export { FeatureJournalEntriesTable } from "./components/features/FeatureJournalEntriesTable";
+export { FeatureLockAccountingPeriodModal } from "./components/features/FeatureLockAccountingPeriodModal";
 export { FeatureAccountingSettingsCards } from "./components/features/FeatureAccountingSettingsCards";
 export { FeatureCoaTable } from "./components/features/FeatureCoaTable";
 export { FeatureTaxesTable } from "./components/features/FeatureTaxesTable";
@@ -129,6 +134,13 @@ export {
   ACCOUNTING_JOURNAL_FLOW_ORDER,
   ACCOUNTING_JOURNAL_ROUTES,
 } from "./constants/journal-routes";
+export {
+  JOURNAL_ENTRIES_BASE_PAGINATION,
+  JOURNAL_ENTRIES_DEFAULT_FILTERS,
+  JOURNAL_ENTRIES_DEFAULT_LOCK_PERIOD,
+  JOURNAL_ENTRIES_ROWS,
+  JOURNAL_ENTRIES_SUMMARY_CARDS,
+} from "./constants/journal-seed";
 export {
   DUMMY_BANK_CASH_SUMMARY_CARDS,
   DUMMY_BANK_ACCOUNTS,
@@ -199,6 +211,16 @@ export type {
   OcrExtractionSession,
   PaymentConfirmationModel,
 } from "./types/vendor-bills-ap";
+export type {
+  JournalEntriesFilterValue,
+  JournalEntriesPagination,
+  JournalEntriesSummaryCard,
+  JournalEntriesTableRow,
+  JournalEntryStatus,
+  JournalEntryType,
+  JournalPeriodLockSelection,
+  JournalSummaryCardTone,
+} from "./types/journal";
 
 export { BankCashManagementFeatureDemo } from "./components/demo/BankCashManagementFeatureDemo";
 export { BankReconciliationFeatureDemo } from "./components/demo/BankReconciliationFeatureDemo";
