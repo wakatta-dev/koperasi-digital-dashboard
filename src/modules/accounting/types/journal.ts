@@ -44,3 +44,32 @@ export type JournalPeriodLockSelection = {
   month: string;
   year: string;
 };
+
+export type ManualJournalMetadata = {
+  reference_number: string;
+  journal_reference: string;
+  journal_date: string;
+};
+
+export type ManualJournalLineItem = {
+  line_id: string;
+  account_code: string;
+  label_description: string;
+  debit_amount: number;
+  credit_amount: number;
+};
+
+export type ManualJournalAccountOption = {
+  value: string;
+  label: string;
+};
+
+export type JournalInlineAuditAction = "Edited" | "Draft Saved" | "Created";
+
+export type JournalInlineAuditItem = {
+  timestamp: string;
+  user_initial: string;
+  user_name: string;
+  action: JournalInlineAuditAction;
+  details: string;
+};

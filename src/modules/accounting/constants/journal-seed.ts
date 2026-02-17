@@ -1,9 +1,13 @@
 /** @format */
 
 import type {
+  JournalInlineAuditItem,
   JournalEntriesFilterValue,
   JournalEntriesSummaryCard,
   JournalEntriesTableRow,
+  ManualJournalAccountOption,
+  ManualJournalLineItem,
+  ManualJournalMetadata,
   JournalPeriodLockSelection,
 } from "../types/journal";
 
@@ -108,3 +112,58 @@ export const JOURNAL_ENTRIES_BASE_PAGINATION = {
   per_page: 5,
   total_items: 1260,
 } as const;
+
+export const JOURNAL_NEW_ENTRY_DEFAULT_METADATA: ManualJournalMetadata = {
+  reference_number: "JE-2023-0089",
+  journal_reference: "",
+  journal_date: "",
+};
+
+export const JOURNAL_NEW_ENTRY_ACCOUNT_OPTIONS: ManualJournalAccountOption[] = [
+  { value: "6001", label: "6001 - Office Expenses" },
+  { value: "1001", label: "1001 - Cash on Hand" },
+  { value: "2001", label: "2001 - Accounts Payable" },
+  { value: "1002", label: "1002 - Bank BCA" },
+];
+
+export const JOURNAL_NEW_ENTRY_DEFAULT_LINES: ManualJournalLineItem[] = [
+  {
+    line_id: "line-1",
+    account_code: "6001",
+    label_description: "",
+    debit_amount: 1500000,
+    credit_amount: 0,
+  },
+  {
+    line_id: "line-2",
+    account_code: "1002",
+    label_description: "",
+    debit_amount: 0,
+    credit_amount: 1500000,
+  },
+];
+
+export const JOURNAL_NEW_ENTRY_INLINE_AUDIT: JournalInlineAuditItem[] = [
+  {
+    timestamp: "Nov 14, 2023 10:45 AM",
+    user_initial: "AS",
+    user_name: "Admin Staff",
+    action: "Edited",
+    details:
+      "Changed amount for Line 1 from Rp 1,200,000 to Rp 1,500,000",
+  },
+  {
+    timestamp: "Nov 14, 2023 09:30 AM",
+    user_initial: "FM",
+    user_name: "Finance Manager",
+    action: "Draft Saved",
+    details: "Saved draft version. Total: Rp 1,200,000",
+  },
+  {
+    timestamp: "Nov 14, 2023 09:15 AM",
+    user_initial: "AS",
+    user_name: "Admin Staff",
+    action: "Created",
+    details: "Initial creation of journal entry JE-2023-0089",
+  },
+];

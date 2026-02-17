@@ -72,6 +72,10 @@ export { FeatureJournalEntriesSummaryCards } from "./components/features/Feature
 export { FeatureJournalEntriesFilterBar } from "./components/features/FeatureJournalEntriesFilterBar";
 export { FeatureJournalEntriesTable } from "./components/features/FeatureJournalEntriesTable";
 export { FeatureLockAccountingPeriodModal } from "./components/features/FeatureLockAccountingPeriodModal";
+export { FeatureManualJournalHeaderActions } from "./components/features/FeatureManualJournalHeaderActions";
+export { FeatureManualJournalMetadataForm } from "./components/features/FeatureManualJournalMetadataForm";
+export { FeatureManualJournalLinesTable } from "./components/features/FeatureManualJournalLinesTable";
+export { FeatureJournalInlineAuditLogTable } from "./components/features/FeatureJournalInlineAuditLogTable";
 export { FeatureAccountingSettingsCards } from "./components/features/FeatureAccountingSettingsCards";
 export { FeatureCoaTable } from "./components/features/FeatureCoaTable";
 export { FeatureTaxesTable } from "./components/features/FeatureTaxesTable";
@@ -140,6 +144,10 @@ export {
   JOURNAL_ENTRIES_DEFAULT_LOCK_PERIOD,
   JOURNAL_ENTRIES_ROWS,
   JOURNAL_ENTRIES_SUMMARY_CARDS,
+  JOURNAL_NEW_ENTRY_ACCOUNT_OPTIONS,
+  JOURNAL_NEW_ENTRY_DEFAULT_LINES,
+  JOURNAL_NEW_ENTRY_DEFAULT_METADATA,
+  JOURNAL_NEW_ENTRY_INLINE_AUDIT,
 } from "./constants/journal-seed";
 export {
   DUMMY_BANK_CASH_SUMMARY_CARDS,
@@ -218,6 +226,11 @@ export type {
   JournalEntriesTableRow,
   JournalEntryStatus,
   JournalEntryType,
+  JournalInlineAuditAction,
+  JournalInlineAuditItem,
+  ManualJournalAccountOption,
+  ManualJournalLineItem,
+  ManualJournalMetadata,
   JournalPeriodLockSelection,
   JournalSummaryCardTone,
 } from "./types/journal";
