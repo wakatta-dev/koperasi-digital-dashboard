@@ -76,6 +76,14 @@ export { FeatureManualJournalHeaderActions } from "./components/features/Feature
 export { FeatureManualJournalMetadataForm } from "./components/features/FeatureManualJournalMetadataForm";
 export { FeatureManualJournalLinesTable } from "./components/features/FeatureManualJournalLinesTable";
 export { FeatureJournalInlineAuditLogTable } from "./components/features/FeatureJournalInlineAuditLogTable";
+export { FeatureJournalDetailHeader } from "./components/features/FeatureJournalDetailHeader";
+export { FeatureJournalDetailGeneralInfo } from "./components/features/FeatureJournalDetailGeneralInfo";
+export { FeatureJournalDetailItemsTable } from "./components/features/FeatureJournalDetailItemsTable";
+export { FeatureJournalDetailIntegrityFooter } from "./components/features/FeatureJournalDetailIntegrityFooter";
+export { FeatureAuditLogHeaderActions } from "./components/features/FeatureAuditLogHeaderActions";
+export { FeatureAuditLogFilterBar } from "./components/features/FeatureAuditLogFilterBar";
+export { FeatureAuditLogTable } from "./components/features/FeatureAuditLogTable";
+export { FeatureAuditLogSummaryCounters } from "./components/features/FeatureAuditLogSummaryCounters";
 export { FeatureAccountingSettingsCards } from "./components/features/FeatureAccountingSettingsCards";
 export { FeatureCoaTable } from "./components/features/FeatureCoaTable";
 export { FeatureTaxesTable } from "./components/features/FeatureTaxesTable";
@@ -148,6 +156,14 @@ export {
   JOURNAL_NEW_ENTRY_DEFAULT_LINES,
   JOURNAL_NEW_ENTRY_DEFAULT_METADATA,
   JOURNAL_NEW_ENTRY_INLINE_AUDIT,
+  JOURNAL_DETAIL_HEADER,
+  JOURNAL_DETAIL_GENERAL_INFORMATION,
+  JOURNAL_DETAIL_ITEMS,
+  JOURNAL_DETAIL_TOTALS,
+  JOURNAL_DETAIL_INTEGRITY,
+  JOURNAL_AUDIT_LOG_DEFAULT_FILTERS,
+  JOURNAL_AUDIT_LOG_ROWS,
+  JOURNAL_AUDIT_LOG_SUMMARY_COUNTERS,
 } from "./constants/journal-seed";
 export {
   DUMMY_BANK_CASH_SUMMARY_CARDS,
@@ -226,6 +242,16 @@ export type {
   JournalEntriesTableRow,
   JournalEntryStatus,
   JournalEntryType,
+  JournalDetailGeneralInformation,
+  JournalDetailHeader,
+  JournalDetailIntegrity,
+  JournalDetailItem,
+  JournalDetailStatus,
+  JournalAuditAction,
+  JournalAuditLogFilterValue,
+  JournalAuditLogRow,
+  JournalAuditModule,
+  JournalAuditSummaryCounter,
   JournalInlineAuditAction,
   JournalInlineAuditItem,
   ManualJournalAccountOption,

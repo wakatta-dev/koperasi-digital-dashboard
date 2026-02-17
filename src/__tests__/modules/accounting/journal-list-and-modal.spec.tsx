@@ -5,19 +5,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { JournalEntriesManagementPage } from "@/modules/accounting";
 
-const { pushMock } = vi.hoisted(() => ({
+const { pushMock, replaceMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
+  replaceMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
+    replace: replaceMock,
   }),
+  usePathname: () => "/bumdes/accounting/journal",
+  useSearchParams: () => new URLSearchParams("sort=journal_date.desc&page=1&per_page=5"),
 }));
 
 describe("journal list and modal", () => {
   beforeEach(() => {
     pushMock.mockReset();
+    replaceMock.mockReset();
   });
 
   it("renders list feature blocks with table baseline", () => {

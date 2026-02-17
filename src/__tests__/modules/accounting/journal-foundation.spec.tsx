@@ -16,7 +16,10 @@ import {
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
+    replace: vi.fn(),
   }),
+  usePathname: () => "/bumdes/accounting/journal",
+  useSearchParams: () => new URLSearchParams("sort=journal_date.desc&page=1&per_page=5"),
 }));
 
 describe("journal foundation", () => {
@@ -40,9 +43,7 @@ describe("journal foundation", () => {
 
     render(<JournalAuditLogPage journalNumber="JE-2023-0089" />);
     expect(screen.getByRole("heading", { name: "Riwayat Lengkap Audit Log" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Kembali ke Journal" }).getAttribute("href")).toBe(
-      "/bumdes/accounting/journal"
-    );
+    expect(screen.getByRole("button", { name: "Kembali ke Journal" })).toBeTruthy();
   });
 
   it("keeps accounting journal menu as a single sidebar entry without journal submenu", () => {

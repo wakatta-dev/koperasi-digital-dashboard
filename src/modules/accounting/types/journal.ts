@@ -73,3 +73,63 @@ export type JournalInlineAuditItem = {
   action: JournalInlineAuditAction;
   details: string;
 };
+
+export type JournalDetailStatus = "Draft" | "Posted" | "Locked" | "Reversed";
+
+export type JournalDetailHeader = {
+  journal_number: string;
+  status: JournalDetailStatus;
+  posted_label: string;
+};
+
+export type JournalDetailGeneralInformation = {
+  reference_number: string;
+  journal_date: string;
+  partner_entity: string;
+  journal_name: string;
+};
+
+export type JournalDetailItem = {
+  account_name: string;
+  account_category: string;
+  label: string;
+  debit_amount: string;
+  credit_amount: string;
+};
+
+export type JournalDetailIntegrity = {
+  balanced_label: string;
+  immutable_label: string;
+  last_modified_label: string;
+};
+
+export type JournalAuditModule = "Journal" | "Invoice" | "Vendor Bill" | "Payment" | "Setting";
+
+export type JournalAuditAction = "Posted" | "Edited" | "Created" | "Deleted" | "Locked";
+
+export type JournalAuditLogRow = {
+  timestamp_date: string;
+  timestamp_time: string;
+  user_initial: string;
+  user_name: string;
+  module: JournalAuditModule;
+  action: JournalAuditAction;
+  reference_no: string;
+  change_details: string;
+};
+
+export type JournalAuditLogFilterValue = {
+  q: string;
+  user: "all" | "shadcn" | "jdoe" | "system";
+  module: "all" | "journal" | "invoice" | "bill" | "payment" | "setting";
+  date_from: string;
+  date_to: string;
+  journal_number: string;
+};
+
+export type JournalAuditSummaryCounter = {
+  key: "created" | "edited" | "deleted" | "posted";
+  label: string;
+  value: string;
+  tone: "emerald" | "amber" | "red" | "blue";
+};

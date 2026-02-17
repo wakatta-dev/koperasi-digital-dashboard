@@ -2,9 +2,14 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import {
+  JOURNAL_DEFAULT_SORT,
+  buildJournalListQueryString,
+  parseJournalListQueryState,
+} from "../../utils/journal-query-state";
 import {
   JOURNAL_ENTRIES_BASE_PAGINATION,
   JOURNAL_ENTRIES_DEFAULT_FILTERS,
@@ -22,14 +27,46 @@ import { FeatureLockAccountingPeriodModal } from "../features/FeatureLockAccount
 
 export function JournalEntriesManagementPage() {
   const router = useRouter();
-  const [filters, setFilters] = useState<JournalEntriesFilterValue>(JOURNAL_ENTRIES_DEFAULT_FILTERS);
-  const [pagination, setPagination] = useState<JournalEntriesPagination>({
-    ...JOURNAL_ENTRIES_BASE_PAGINATION,
-  });
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const initialQueryState = useMemo(
+    () =>
+      parseJournalListQueryState(searchParams, {
+        filters: JOURNAL_ENTRIES_DEFAULT_FILTERS,
+        pagination: JOURNAL_ENTRIES_BASE_PAGINATION,
+        sort: JOURNAL_DEFAULT_SORT,
+      }),
+    [searchParams],
+  );
+
+  const [filters, setFilters] = useState<JournalEntriesFilterValue>(
+    initialQueryState.filters,
+  );
+  const [pagination, setPagination] = useState<JournalEntriesPagination>(
+    initialQueryState.pagination,
+  );
+  const [sort] = useState(initialQueryState.sort);
   const [lockPeriodOpen, setLockPeriodOpen] = useState(false);
   const [lockPeriodSelection, setLockPeriodSelection] = useState({
     ...JOURNAL_ENTRIES_DEFAULT_LOCK_PERIOD,
   });
+
+  useEffect(() => {
+    const nextQuery = buildJournalListQueryString({
+      filters,
+      pagination,
+      sort,
+    });
+    const currentQuery = searchParams.toString();
+    if (nextQuery === currentQuery) {
+      return;
+    }
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  }, [filters, pagination, pathname, router, searchParams, sort]);
 
   const filteredRows = useMemo(() => {
     return JOURNAL_ENTRIES_ROWS.filter((row) => {
@@ -85,6 +122,11 @@ export function JournalEntriesManagementPage() {
   }, [filteredRows.length, isFiltering, pagination]);
 
   const visibleRows = isFiltering ? filteredRows : JOURNAL_ENTRIES_ROWS;
+  const listQuery = buildJournalListQueryString({
+    filters,
+    pagination,
+    sort,
+  });
 
   return (
     <div className="space-y-6">
@@ -106,7 +148,13 @@ export function JournalEntriesManagementPage() {
       <FeatureJournalEntriesTable
         rows={visibleRows}
         pagination={resolvedPagination}
-        onReferenceClick={(journalNumber) => router.push(ACCOUNTING_JOURNAL_ROUTES.detail(journalNumber))}
+        onReferenceClick={(journalNumber) => {
+          const detailHref = ACCOUNTING_JOURNAL_ROUTES.detail(journalNumber);
+          const withReturnContext = listQuery
+            ? `${detailHref}?from=${encodeURIComponent(listQuery)}`
+            : detailHref;
+          router.push(withReturnContext);
+        }}
         onPageChange={(nextPage) =>
           setPagination((current) => ({
             ...current,
