@@ -1,6 +1,11 @@
 /** @format */
 
 export { InvoicingArFeatureDemo } from "./components/demo/InvoicingArFeatureDemo";
+export { FeatureInvoiceSummaryCards } from "./components/features/FeatureInvoiceSummaryCards";
+export { FeatureInvoiceTable } from "./components/features/FeatureInvoiceTable";
+export { FeatureCreditNotesTable } from "./components/features/FeatureCreditNotesTable";
+export { FeaturePaymentsTable } from "./components/features/FeaturePaymentsTable";
+export { FeatureInvoiceDetailView } from "./components/features/FeatureInvoiceDetailView";
 
 export type {
   CreditNoteDraftForm,
