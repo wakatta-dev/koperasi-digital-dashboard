@@ -13,3 +13,4 @@ export * from "./analytics";
 export * from "./reservation";
 export * from "./asset";
 export * from "./inventory";
+export * from "./accounting-ar";

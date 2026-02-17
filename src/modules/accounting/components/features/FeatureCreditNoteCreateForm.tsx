@@ -50,6 +50,7 @@ type FeatureCreditNoteCreateFormProps = {
   onSubmit?: (payload: FeatureCreditNoteCreateSubmitPayload) => void;
   submitLabel?: string;
   isSubmitting?: boolean;
+  errorMessage?: string | null;
 };
 
 export function FeatureCreditNoteCreateForm({
@@ -57,6 +58,7 @@ export function FeatureCreditNoteCreateForm({
   onSubmit,
   submitLabel = "Create Credit Note",
   isSubmitting = false,
+  errorMessage,
 }: FeatureCreditNoteCreateFormProps) {
   const [customer, setCustomer] = useState(DUMMY_CREDIT_NOTE_DRAFT.customer);
   const [creditNoteDate, setCreditNoteDate] = useState(DUMMY_CREDIT_NOTE_DRAFT.credit_note_date);
@@ -272,6 +274,9 @@ export function FeatureCreditNoteCreateForm({
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            {errorMessage ? (
+              <p className="mr-auto text-sm font-medium text-red-600">{errorMessage}</p>
+            ) : null}
             <Button type="button" variant="ghost" onClick={onCancel}>
               Cancel
             </Button>

@@ -60,6 +60,7 @@ type FeaturePaymentCreateFormProps = {
   onSubmit?: (payload: FeaturePaymentCreateSubmitPayload) => void;
   submitLabel?: string;
   isSubmitting?: boolean;
+  errorMessage?: string | null;
 };
 
 export function FeaturePaymentCreateForm({
@@ -67,6 +68,7 @@ export function FeaturePaymentCreateForm({
   onSubmit,
   submitLabel = "Record Payment",
   isSubmitting = false,
+  errorMessage,
 }: FeaturePaymentCreateFormProps) {
   const [customer, setCustomer] = useState(DUMMY_PAYMENT_DRAFT.customer);
   const [paymentDate, setPaymentDate] = useState(DUMMY_PAYMENT_DRAFT.payment_date);
@@ -278,6 +280,9 @@ export function FeaturePaymentCreateForm({
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            {errorMessage ? (
+              <p className="mr-auto text-sm font-medium text-red-600">{errorMessage}</p>
+            ) : null}
             <Button type="button" variant="ghost" onClick={onCancel}>
               Cancel
             </Button>

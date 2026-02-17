@@ -41,6 +41,7 @@ type FeatureCreateInvoiceFormProps = {
   onSubmit?: (payload: FeatureCreateInvoiceSubmitPayload) => void;
   submitLabel?: string;
   isSubmitting?: boolean;
+  errorMessage?: string | null;
 };
 
 export function FeatureCreateInvoiceForm({
@@ -48,6 +49,7 @@ export function FeatureCreateInvoiceForm({
   onSubmit,
   submitLabel = "Create Invoice",
   isSubmitting = false,
+  errorMessage,
 }: FeatureCreateInvoiceFormProps) {
   const [customerQuery, setCustomerQuery] = useState(DUMMY_INVOICE_DRAFT.customer_query);
   const [invoiceDate, setInvoiceDate] = useState(DUMMY_INVOICE_DRAFT.invoice_date);
@@ -330,6 +332,9 @@ export function FeatureCreateInvoiceForm({
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+            {errorMessage ? (
+              <p className="mr-auto text-sm font-medium text-red-600">{errorMessage}</p>
+            ) : null}
             <Button type="button" variant="ghost" onClick={onCancel}>
               Cancel
             </Button>

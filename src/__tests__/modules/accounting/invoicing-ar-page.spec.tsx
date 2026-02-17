@@ -1,6 +1,7 @@
 /** @format */
 
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 
 import {
   InvoicingArCreditNoteCreatePage,
@@ -9,6 +10,77 @@ import {
   InvoicingArInvoiceDetailPage,
   InvoicingArPaymentCreatePage,
 } from "@/modules/accounting";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
+vi.mock("@/hooks/queries", () => ({
+  useAccountingArInvoices: () => ({
+    data: {
+      items: [],
+      pagination: {
+        page: 1,
+        per_page: 20,
+        total_items: 0,
+        total_pages: 0,
+      },
+    },
+    error: null,
+  }),
+  useAccountingArCreditNotes: () => ({
+    data: {
+      items: [],
+      pagination: {
+        page: 1,
+        per_page: 20,
+        total_items: 0,
+        total_pages: 0,
+      },
+    },
+    error: null,
+  }),
+  useAccountingArPayments: () => ({
+    data: {
+      items: [],
+      pagination: {
+        page: 1,
+        per_page: 20,
+        total_items: 0,
+        total_pages: 0,
+      },
+    },
+    error: null,
+  }),
+  useAccountingArInvoiceDetail: () => ({
+    data: null,
+    error: null,
+  }),
+  useAccountingArInvoiceMutations: () => ({
+    createInvoice: {
+      isPending: false,
+      mutateAsync: vi.fn(),
+    },
+    sendInvoice: {
+      isPending: false,
+      mutateAsync: vi.fn(),
+    },
+  }),
+  useAccountingArCreditNoteMutations: () => ({
+    createCreditNote: {
+      isPending: false,
+      mutateAsync: vi.fn(),
+    },
+  }),
+  useAccountingArPaymentMutations: () => ({
+    createPayment: {
+      isPending: false,
+      mutateAsync: vi.fn(),
+    },
+  }),
+}));
 
 describe("invoicing-ar page wiring", () => {
   it("renders index page feature-only sections for invoicing AR", () => {

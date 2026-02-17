@@ -2,9 +2,9 @@
 
 export type InvoiceStatus = "Draft" | "Sent" | "Paid" | "Overdue";
 
-export type CreditNoteStatus = "Open" | "Applied" | "Cancelled";
+export type CreditNoteStatus = "Open" | "Used" | "Refunded";
 
-export type PaymentStatus = "Completed" | "Pending" | "Failed";
+export type PaymentStatus = "Pending" | "Cleared";
 
 export type InvoiceStepperStatus = "Draft" | "Sent" | "Paid";
 

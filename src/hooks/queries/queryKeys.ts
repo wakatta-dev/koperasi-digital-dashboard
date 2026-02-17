@@ -52,6 +52,16 @@ export const QK = {
     balanceSheet: (params?: Record<string, unknown>) =>
       ["finance", "balance-sheet", params ?? {}] as const,
   },
+  accountingAr: {
+    invoices: (params?: Record<string, unknown>) =>
+      ["accounting-ar", "invoices", params ?? {}] as const,
+    invoiceDetail: (invoiceNumber: string | number) =>
+      ["accounting-ar", "invoice", String(invoiceNumber)] as const,
+    creditNotes: (params?: Record<string, unknown>) =>
+      ["accounting-ar", "credit-notes", params ?? {}] as const,
+    payments: (params?: Record<string, unknown>) =>
+      ["accounting-ar", "payments", params ?? {}] as const,
+  },
   assetRental: {
     list: (params?: Record<string, unknown>) =>
       ["asset-rental", "assets", params ?? {}] as const,
@@ -120,6 +130,10 @@ export type QueryKey = ReturnType<
   | typeof QK.finance.profitLoss
   | typeof QK.finance.cashFlow
   | typeof QK.finance.balanceSheet
+  | typeof QK.accountingAr.invoices
+  | typeof QK.accountingAr.invoiceDetail
+  | typeof QK.accountingAr.creditNotes
+  | typeof QK.accountingAr.payments
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.masterData

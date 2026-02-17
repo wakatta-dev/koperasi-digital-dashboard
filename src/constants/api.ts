@@ -61,6 +61,17 @@ export const API_ENDPOINTS = {
     cashFlow: "/finance/cash-flow",
     balanceSheet: "/finance/balance-sheet",
   },
+  accountingAr: {
+    invoices: "/accounting/ar/invoices",
+    invoiceDetail: (invoiceNumber: string) =>
+      `/accounting/ar/invoices/${encodeURIComponent(invoiceNumber)}`,
+    invoiceSend: (invoiceNumber: string) =>
+      `/accounting/ar/invoices/${encodeURIComponent(invoiceNumber)}/send`,
+    invoicePdf: (invoiceNumber: string) =>
+      `/accounting/ar/invoices/${encodeURIComponent(invoiceNumber)}/pdf`,
+    creditNotes: "/accounting/ar/credit-notes",
+    payments: "/accounting/ar/payments",
+  },
   bumdesReport: {
     overview: "/finance/reports/overview",
     profitLoss: "/finance/reports/profit-loss",

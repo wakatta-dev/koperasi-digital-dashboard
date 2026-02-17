@@ -61,7 +61,7 @@ export const DUMMY_CREDIT_NOTES: CreditNoteListItem[] = [
     invoice_number: "INV-2023-101",
     customer: "CV. Abadi Jaya",
     amount: "Rp 1.200.000",
-    status: "Applied",
+    status: "Used",
   },
 ];
 
@@ -73,7 +73,7 @@ export const DUMMY_PAYMENTS: PaymentListItem[] = [
     customer: "PT. Maju Bersama",
     method: "Bank Transfer",
     amount: "Rp 25.000.000",
-    status: "Completed",
+    status: "Cleared",
   },
   {
     date: "Nov 12, 2023",

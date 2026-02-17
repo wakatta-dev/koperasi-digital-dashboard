@@ -18,11 +18,23 @@ import type { InvoiceDetailModel, InvoiceStepperStatus } from "../../types/invoi
 
 type FeatureInvoiceDetailViewProps = {
   detail?: InvoiceDetailModel;
+  onSendViaEmail?: () => void;
+  onDownloadPdf?: () => void;
+  onRegisterPayment?: () => void;
+  actionErrorMessage?: string | null;
+  actionLoading?: boolean;
 };
 
 const STEPS: InvoiceStepperStatus[] = ["Draft", "Sent", "Paid"];
 
-export function FeatureInvoiceDetailView({ detail = DUMMY_INVOICE_DETAIL }: FeatureInvoiceDetailViewProps) {
+export function FeatureInvoiceDetailView({
+  detail = DUMMY_INVOICE_DETAIL,
+  onSendViaEmail,
+  onDownloadPdf,
+  onRegisterPayment,
+  actionErrorMessage,
+  actionLoading = false,
+}: FeatureInvoiceDetailViewProps) {
   const activeIndex = STEPS.indexOf(detail.current_step);
 
   return (
@@ -72,20 +84,42 @@ export function FeatureInvoiceDetailView({ detail = DUMMY_INVOICE_DETAIL }: Feat
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2 border-gray-200 dark:border-gray-700">
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2 border-gray-200 dark:border-gray-700"
+            disabled={actionLoading}
+            onClick={onSendViaEmail}
+          >
             <Mail className="h-4 w-4" />
             Send via Email
           </Button>
-          <Button variant="outline" className="gap-2 border-gray-200 dark:border-gray-700">
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2 border-gray-200 dark:border-gray-700"
+            disabled={actionLoading}
+            onClick={onDownloadPdf}
+          >
             <FileText className="h-4 w-4" />
             Download PDF
           </Button>
         </div>
-        <Button className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+        <Button
+          type="button"
+          className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
+          onClick={onRegisterPayment}
+        >
           <Coins className="h-4 w-4" />
           Register Payment
         </Button>
       </div>
+
+      {actionErrorMessage ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {actionErrorMessage}
+        </div>
+      ) : null}
 
       <Card className="overflow-hidden border-gray-200 shadow-sm dark:border-gray-700">
         <CardContent className="space-y-0 p-0">
