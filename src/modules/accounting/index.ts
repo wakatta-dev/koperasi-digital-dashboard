@@ -57,6 +57,7 @@ export { FeatureReconciliationBalanceCards } from "./components/features/Feature
 export { FeatureBankStatementMatchTable } from "./components/features/FeatureBankStatementMatchTable";
 export { FeatureSystemTransactionsMatchTable } from "./components/features/FeatureSystemTransactionsMatchTable";
 export { FeatureReconciliationActions } from "./components/features/FeatureReconciliationActions";
+export { FeatureReconciliationSelectionBar } from "./components/features/FeatureReconciliationSelectionBar";
 export { FeatureBankAccountTransactionSummaryCards } from "./components/features/FeatureBankAccountTransactionSummaryCards";
 export { FeatureBankAccountTransactionFilters } from "./components/features/FeatureBankAccountTransactionFilters";
 export { FeatureBankAccountTransactionsTable } from "./components/features/FeatureBankAccountTransactionsTable";

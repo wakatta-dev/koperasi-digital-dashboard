@@ -14,6 +14,7 @@ import {
   FeatureReconciliationActions,
   FeatureReconciliationBalanceCards,
   FeatureReconciliationDifferenceBanner,
+  FeatureReconciliationSelectionBar,
   FeatureSystemTransactionsMatchTable,
   FeatureUnreconciledTransactionsTable,
 } from "@/modules/accounting";
@@ -28,6 +29,11 @@ describe("bank-cash core features", () => {
         <FeatureCashRegistersGrid />
         <FeatureReconciliationDifferenceBanner />
         <FeatureReconciliationBalanceCards />
+        <FeatureReconciliationSelectionBar
+          selectedBankLinesCount={2}
+          selectedSystemLinesCount={2}
+          netDifferenceLabel="Rp 0"
+        />
       </div>
     );
 
@@ -37,6 +43,10 @@ describe("bank-cash core features", () => {
     expect(screen.getByRole("heading", { name: "Rekening Bank" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Unreconciled Transactions" })).toBeTruthy();
     expect(screen.getByText("Difference to Reconcile")).toBeTruthy();
+    expect(screen.getByText("Selected:")).toBeTruthy();
+    expect(screen.getByText("2 Bank Lines")).toBeTruthy();
+    expect(screen.getByText("2 System Lines")).toBeTruthy();
+    expect(screen.getByText("Net Difference")).toBeTruthy();
   });
 
   it("renders table/filter placeholders and pagination controls", () => {

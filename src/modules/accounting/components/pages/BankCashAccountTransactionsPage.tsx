@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
+  useAccountingBankCashAccounts,
   useAccountingBankCashAccountTransactions,
   useAccountingBankCashMutations,
 } from "@/hooks/queries";
@@ -24,6 +25,7 @@ import type {
 import {
   formatBankCashCurrency,
   formatBankCashDateLabel,
+  resolveBankCashAccountId,
   formatBankCashSignedAmount,
 } from "../../utils/bank-cash-formatters";
 import { FeatureBankAccountTransactionFilters } from "../features/FeatureBankAccountTransactionFilters";
@@ -38,6 +40,11 @@ export function BankCashAccountTransactionsPage({
   accountId,
 }: BankCashAccountTransactionsPageProps) {
   const router = useRouter();
+  const accountsQuery = useAccountingBankCashAccounts({ page: 1, per_page: 50 });
+  const resolvedAccountId = useMemo(
+    () => resolveBankCashAccountId(accountId, accountsQuery.data?.items),
+    [accountId, accountsQuery.data?.items]
+  );
   const [filters, setFilters] = useState<BankCashTransactionFilters>(
     DUMMY_BANK_ACCOUNT_TRANSACTION_FILTERS
   );
@@ -60,10 +67,14 @@ export function BankCashAccountTransactionsPage({
     };
   }, [filters]);
 
-  const transactionsQuery = useAccountingBankCashAccountTransactions(accountId, queryParams);
+  const transactionsQuery = useAccountingBankCashAccountTransactions(resolvedAccountId, queryParams);
   const mutations = useAccountingBankCashMutations();
 
   const accountTitle = useMemo(() => {
+    const account = accountsQuery.data?.items.find((item) => item.account_id === resolvedAccountId);
+    if (account?.account_name) {
+      return `Detail Transaksi: ${account.account_name}`;
+    }
     if (accountId === "mandiri-business") {
       return "Detail Transaksi: Mandiri Business";
     }
@@ -71,7 +82,7 @@ export function BankCashAccountTransactionsPage({
       return "Detail Transaksi: BRI Payroll";
     }
     return "Detail Transaksi: BCA Corporate";
-  }, [accountId]);
+  }, [accountId, accountsQuery.data?.items, resolvedAccountId]);
 
   const rows = useMemo<BankAccountTransactionItem[]>(() => {
     if (!transactionsQuery.data?.items) {
@@ -106,9 +117,13 @@ export function BankCashAccountTransactionsPage({
     : null;
 
   const handleExport = async () => {
+    if (!resolvedAccountId) {
+      toast.error("Bank account is required");
+      return;
+    }
     try {
       const payload = await mutations.exportTransactions.mutateAsync({
-        accountId,
+        accountId: resolvedAccountId,
         params: {
           ...queryParams,
           format: "csv",
@@ -121,9 +136,13 @@ export function BankCashAccountTransactionsPage({
   };
 
   const handleManualEntry = async () => {
+    if (!resolvedAccountId) {
+      toast.error("Bank account is required");
+      return;
+    }
     try {
       await mutations.createManualTransaction.mutateAsync({
-        accountId,
+        accountId: resolvedAccountId,
         payload: {
           transaction_date: new Date().toISOString().slice(0, 10),
           description: "Manual Adjustment Entry",
@@ -155,7 +174,9 @@ export function BankCashAccountTransactionsPage({
           type="button"
           className="w-fit bg-indigo-600 text-white hover:bg-indigo-700"
           onClick={() =>
-            router.push(`${BANK_CASH_ROUTES.index}?accountId=${encodeURIComponent(accountId)}`)
+            router.push(
+              `${BANK_CASH_ROUTES.index}?accountId=${encodeURIComponent(resolvedAccountId ?? accountId)}`
+            )
           }
         >
           Back to Reconciliation
@@ -174,7 +195,9 @@ export function BankCashAccountTransactionsPage({
             size="icon"
             className="border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
             onClick={() =>
-              router.push(`${BANK_CASH_ROUTES.index}?accountId=${encodeURIComponent(accountId)}`)
+              router.push(
+                `${BANK_CASH_ROUTES.index}?accountId=${encodeURIComponent(resolvedAccountId ?? accountId)}`
+              )
             }
           >
             <span aria-hidden>{"<-"}</span>

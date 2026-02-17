@@ -89,7 +89,17 @@ export const bumdesNavigation = [
       { name: "Dashboard", href: "/bumdes/accounting/dashboard" },
       { name: "Invoicing (AR)", href: "/bumdes/accounting/invoicing-ar" },
       { name: "Vendor Bills (AP)", href: "/bumdes/accounting/vendor-bills-ap" },
-      { name: "Bank & Cash", href: "/bumdes/accounting/bank-cash" },
+      {
+        name: "Bank & Cash",
+        href: "/bumdes/accounting/bank-cash",
+        items: [
+          { name: "Overview", href: "/bumdes/accounting/bank-cash/overview" },
+          {
+            name: "Rekonsiliasi",
+            href: "/bumdes/accounting/bank-cash/reconciliation",
+          },
+        ],
+      },
       { name: "Journal", href: "/bumdes/accounting/journal" },
       { name: "Tax", href: "/bumdes/accounting/tax" },
       { name: "Reporting", href: "/bumdes/accounting/reporting" },

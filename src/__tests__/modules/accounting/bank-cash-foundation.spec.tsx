@@ -122,12 +122,18 @@ describe("bank-cash foundation", () => {
     ).toBeTruthy();
   });
 
-  it("keeps bank-cash as a single sidebar entry without submenu", () => {
+  it("registers bank-cash submenu entries under accounting", () => {
     const accountingItem = bumdesNavigation.find((item) => item.name === "Accounting");
     expect(accountingItem).toBeTruthy();
     const bankCashItem = accountingItem?.items?.find((item) => item.name === "Bank & Cash");
     expect(bankCashItem).toBeTruthy();
-    expect(bankCashItem?.items).toBeUndefined();
+    expect(bankCashItem?.items).toEqual([
+      { name: "Overview", href: "/bumdes/accounting/bank-cash/overview" },
+      {
+        name: "Rekonsiliasi",
+        href: "/bumdes/accounting/bank-cash/reconciliation",
+      },
+    ]);
   });
 
   it("registers title map entries for bank-cash child routes", () => {
