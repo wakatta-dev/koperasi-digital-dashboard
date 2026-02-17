@@ -62,7 +62,7 @@ export function FeatureDeleteTaxModal({
           </div>
           <DialogDescription className="pt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
             Apakah Anda yakin ingin menghapus pajak{" "}
-            <span className="font-semibold text-gray-900 dark:text-white">"{taxName}"</span>?
+            <span className="font-semibold text-gray-900 dark:text-white">&quot;{taxName}&quot;</span>?
             Transaksi yang sudah menggunakan pajak ini tidak akan terpengaruh, namun Anda tidak
             dapat menggunakannya lagi untuk transaksi baru.
           </DialogDescription>
@@ -85,4 +85,3 @@ export function FeatureDeleteTaxModal({
     </Dialog>
   );
 }
-

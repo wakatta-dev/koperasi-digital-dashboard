@@ -26,7 +26,7 @@ export function FeatureAnalyticBudgetSuccessToast({
         </div>
         <div className="ms-3 text-sm font-normal">
           <span className="font-semibold text-gray-900 dark:text-white">Success!</span>
-          <div className="text-xs">Budget "Q4 Sales Kickoff" has been created.</div>
+          <div className="text-xs">Budget &quot;Q4 Sales Kickoff&quot; has been created.</div>
         </div>
         <Button
           type="button"
@@ -42,4 +42,3 @@ export function FeatureAnalyticBudgetSuccessToast({
     </div>
   );
 }
-

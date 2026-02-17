@@ -53,7 +53,7 @@ export function AccountingSettingsCurrenciesPage() {
   const handleUpdateRates = async () => {
     setActionError(null);
     try {
-      await updateRates.mutateAsync();
+      await updateRates.mutateAsync(undefined);
     } catch (err) {
       setActionError(toAccountingSettingsApiError(err).message);
     }

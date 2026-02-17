@@ -51,7 +51,7 @@ export function FeatureDeleteBudgetModal({
               <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
                 Are you sure you want to delete the budget{" "}
                 <span className="font-medium text-gray-900 dark:text-gray-200">
-                  "{budgetName}"
+                  &quot;{budgetName}&quot;
                 </span>
                 ? This action cannot be undone.
               </DialogDescription>
@@ -76,4 +76,3 @@ export function FeatureDeleteBudgetModal({
     </Dialog>
   );
 }
-
