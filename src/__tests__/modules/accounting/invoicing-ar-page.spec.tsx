@@ -123,7 +123,7 @@ describe("invoicing-ar page wiring", () => {
     payment.unmount();
 
     render(<InvoicingArInvoiceDetailPage invoiceNumber="INV-TEST-001" />);
-    expect(screen.getByText("INV-TEST-001")).toBeTruthy();
+    expect(screen.getByText("Invoice detail is unavailable.")).toBeTruthy();
   });
 
   it("does not render unrelated layout chrome text", () => {

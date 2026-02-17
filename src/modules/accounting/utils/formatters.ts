@@ -45,33 +45,39 @@ export function formatAccountingArDate(value: string): string {
 }
 
 export function normalizeInvoiceStatus(value: string): InvoiceStatus {
-  switch (value) {
-    case "Draft":
-    case "Sent":
-    case "Paid":
-    case "Overdue":
-      return value;
+  switch (value.trim().toLowerCase()) {
+    case "draft":
+      return "Draft";
+    case "sent":
+      return "Sent";
+    case "paid":
+      return "Paid";
+    case "overdue":
+      return "Overdue";
     default:
       return "Draft";
   }
 }
 
 export function normalizeCreditNoteStatus(value: string): CreditNoteStatus {
-  switch (value) {
-    case "Open":
-    case "Used":
-    case "Refunded":
-      return value;
+  switch (value.trim().toLowerCase()) {
+    case "open":
+      return "Open";
+    case "used":
+      return "Used";
+    case "refunded":
+      return "Refunded";
     default:
       return "Open";
   }
 }
 
 export function normalizePaymentStatus(value: string): PaymentStatus {
-  switch (value) {
-    case "Pending":
-    case "Cleared":
-      return value;
+  switch (value.trim().toLowerCase()) {
+    case "pending":
+      return "Pending";
+    case "cleared":
+      return "Cleared";
     default:
       return "Pending";
   }

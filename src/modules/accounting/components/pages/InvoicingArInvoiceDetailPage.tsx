@@ -16,7 +16,6 @@ import {
   toAccountingArApiError,
 } from "@/services/api/accounting-ar";
 
-import { DUMMY_INVOICE_DETAIL } from "../../constants/dummy-data";
 import { INVOICING_AR_ROUTES } from "../../constants/routes";
 import {
   formatAccountingArCurrency,
@@ -42,45 +41,38 @@ export function InvoicingArInvoiceDetailPage({
 
   const invoiceMutations = useAccountingArInvoiceMutations();
 
-  const detail = useMemo(() => {
-    if (!detailQuery.data) {
-      if (normalizedInvoiceNumber.length > 0) {
-        return {
-          ...DUMMY_INVOICE_DETAIL,
-          invoice_number: normalizedInvoiceNumber,
-        };
-      }
-
-      return DUMMY_INVOICE_DETAIL;
-    }
-
-    return {
-      current_step: detailQuery.data.current_step,
-      invoice_number: detailQuery.data.invoice_number,
-      invoice_date: formatAccountingArDate(detailQuery.data.invoice_date),
-      due_date: formatAccountingArDate(detailQuery.data.due_date),
-      customer_identity: {
-        name: detailQuery.data.customer.customer_name,
-        address_lines: detailQuery.data.customer.address_lines ?? [],
-      },
-      detail_rows: detailQuery.data.line_items.map((item, index) => ({
-        id: `${detailQuery.data.invoice_number}-${index}`,
-        product_or_service: item.product_or_service,
-        description: item.description ?? "",
-        qty: item.qty,
-        price: formatAccountingArCurrency(item.price),
-        tax: `${item.tax_percent}%`,
-        line_total: formatAccountingArCurrency(item.line_total),
-      })),
-      summary_totals: {
-        subtotal: formatAccountingArCurrency(detailQuery.data.totals.subtotal),
-        tax: formatAccountingArCurrency(detailQuery.data.totals.tax_amount),
-        total: formatAccountingArCurrency(detailQuery.data.totals.grand_total),
-      },
-      status: normalizeInvoiceStatus(detailQuery.data.status),
-      notes: detailQuery.data.notes,
-    };
-  }, [detailQuery.data, normalizedInvoiceNumber]);
+  const detail = useMemo(
+    () =>
+      detailQuery.data
+        ? {
+            current_step: detailQuery.data.current_step,
+            invoice_number: detailQuery.data.invoice_number,
+            invoice_date: formatAccountingArDate(detailQuery.data.invoice_date),
+            due_date: formatAccountingArDate(detailQuery.data.due_date),
+            customer_identity: {
+              name: detailQuery.data.customer.customer_name,
+              address_lines: detailQuery.data.customer.address_lines ?? [],
+            },
+            detail_rows: detailQuery.data.line_items.map((item, index) => ({
+              id: `${detailQuery.data.invoice_number}-${index}`,
+              product_or_service: item.product_or_service,
+              description: item.description ?? "",
+              qty: item.qty,
+              price: formatAccountingArCurrency(item.price),
+              tax: `${item.tax_percent}%`,
+              line_total: formatAccountingArCurrency(item.line_total),
+            })),
+            summary_totals: {
+              subtotal: formatAccountingArCurrency(detailQuery.data.totals.subtotal),
+              tax: formatAccountingArCurrency(detailQuery.data.totals.tax_amount),
+              total: formatAccountingArCurrency(detailQuery.data.totals.grand_total),
+            },
+            status: normalizeInvoiceStatus(detailQuery.data.status),
+            notes: detailQuery.data.notes,
+          }
+        : null,
+    [detailQuery.data]
+  );
 
   const handleSendViaEmail = async () => {
     if (!normalizedInvoiceNumber) return;
@@ -130,20 +122,40 @@ export function InvoicingArInvoiceDetailPage({
 
   return (
     <div className="space-y-4">
+      {!normalizedInvoiceNumber ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Invoice number is required.
+        </div>
+      ) : null}
+
+      {detailQuery.isPending ? (
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+          Loading invoice detail...
+        </div>
+      ) : null}
+
       {detailQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {toAccountingArApiError(detailQuery.error).message}
         </div>
       ) : null}
 
-      <FeatureInvoiceDetailView
-        detail={detail}
-        onSendViaEmail={handleSendViaEmail}
-        onDownloadPdf={handleDownloadPdf}
-        onRegisterPayment={() => router.push(INVOICING_AR_ROUTES.createPayment)}
-        actionErrorMessage={actionErrorMessage}
-        actionLoading={invoiceMutations.sendInvoice.isPending}
-      />
+      {!detailQuery.isPending && !detailQuery.error && !detail ? (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+          Invoice detail is unavailable.
+        </div>
+      ) : null}
+
+      {detail ? (
+        <FeatureInvoiceDetailView
+          detail={detail}
+          onSendViaEmail={handleSendViaEmail}
+          onDownloadPdf={handleDownloadPdf}
+          onRegisterPayment={() => router.push(INVOICING_AR_ROUTES.createPayment)}
+          actionErrorMessage={actionErrorMessage}
+          actionLoading={invoiceMutations.sendInvoice.isPending}
+        />
+      ) : null}
     </div>
   );
 }
