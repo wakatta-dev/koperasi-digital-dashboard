@@ -5,10 +5,11 @@ import type {
   BudgetRow,
   CoaAccountRow,
   CurrencyRow,
+  SettingsCardItem,
   TaxRow,
 } from "../types/settings";
 
-export const SETTINGS_CARDS = [
+export const SETTINGS_CARDS: SettingsCardItem[] = [
   {
     key: "coa",
     title: "Chart of Accounts (COA)",
@@ -328,4 +329,3 @@ export const ANALYTIC_ACCOUNT_CARDS: AnalyticAccountCard[] = [
     balance_class: "text-green-600 dark:text-green-400",
   },
 ];
-

@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { SETTINGS_CARDS } from "../../constants/settings-dummy";
 import { ACCOUNTING_SETTINGS_ROUTES } from "../../constants/settings-routes";
+import type { SettingsCardItem } from "../../types/settings";
 
 const ICON_BY_KEY = {
   coa: FileSpreadsheet,
@@ -31,11 +32,19 @@ const HREF_BY_KEY = {
   "analytic-budgets": ACCOUNTING_SETTINGS_ROUTES.analyticBudgets,
 } as const;
 
-export function FeatureAccountingSettingsCards() {
+type FeatureAccountingSettingsCardsProps = {
+  items?: SettingsCardItem[];
+};
+
+export function FeatureAccountingSettingsCards({
+  items = SETTINGS_CARDS,
+}: FeatureAccountingSettingsCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      {SETTINGS_CARDS.map((item) => {
-        const Icon = ICON_BY_KEY[item.key];
+      {items.map((item) => {
+        const iconKey = item.key as keyof typeof ICON_BY_KEY;
+        const Icon = ICON_BY_KEY[iconKey] ?? FileSpreadsheet;
+        const href = item.href ?? HREF_BY_KEY[iconKey] ?? ACCOUNTING_SETTINGS_ROUTES.index;
         return (
           <Card
             key={item.key}
@@ -55,7 +64,7 @@ export function FeatureAccountingSettingsCards() {
                 variant="outline"
                 className="w-full gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/20"
               >
-                <Link href={HREF_BY_KEY[item.key]}>
+                <Link href={href}>
                   {item.action_label}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -67,4 +76,3 @@ export function FeatureAccountingSettingsCards() {
     </div>
   );
 }
-

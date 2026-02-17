@@ -1,5 +1,13 @@
 /** @format */
 
+export type SettingsCardItem = {
+  key: string;
+  title: string;
+  description: string;
+  action_label: string;
+  href?: string;
+};
+
 export type CoaAccountRow = {
   account_code: string;
   account_name: string;
@@ -58,4 +66,3 @@ export type AnalyticAccountCard = {
   icon_class: string;
   balance_class: string;
 };
-

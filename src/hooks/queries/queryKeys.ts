@@ -62,6 +62,19 @@ export const QK = {
     payments: (params?: Record<string, unknown>) =>
       ["accounting-ar", "payments", params ?? {}] as const,
   },
+  accountingSettings: {
+    overview: () => ["accounting-settings", "overview"] as const,
+    coa: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "coa", params ?? {}] as const,
+    taxes: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "taxes", params ?? {}] as const,
+    currencies: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "currencies", params ?? {}] as const,
+    analyticAccounts: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "analytic-accounts", params ?? {}] as const,
+    budgets: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "budgets", params ?? {}] as const,
+  },
   assetRental: {
     list: (params?: Record<string, unknown>) =>
       ["asset-rental", "assets", params ?? {}] as const,
@@ -134,6 +147,12 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingAr.invoiceDetail
   | typeof QK.accountingAr.creditNotes
   | typeof QK.accountingAr.payments
+  | typeof QK.accountingSettings.overview
+  | typeof QK.accountingSettings.coa
+  | typeof QK.accountingSettings.taxes
+  | typeof QK.accountingSettings.currencies
+  | typeof QK.accountingSettings.analyticAccounts
+  | typeof QK.accountingSettings.budgets
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.masterData

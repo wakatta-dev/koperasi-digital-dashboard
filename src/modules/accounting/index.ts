@@ -81,5 +81,6 @@ export type {
   BudgetRow,
   CoaAccountRow,
   CurrencyRow,
+  SettingsCardItem,
   TaxRow,
 } from "./types/settings";

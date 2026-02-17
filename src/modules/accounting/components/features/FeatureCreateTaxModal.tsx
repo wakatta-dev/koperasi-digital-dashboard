@@ -28,7 +28,14 @@ import { Switch } from "@/components/ui/switch";
 type FeatureCreateTaxModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave?: () => void;
+  onSave?: (payload: {
+    tax_name: string;
+    tax_type: "Sales" | "Purchase" | "Both" | "None";
+    rate_percent: number;
+    tax_account_code: string;
+    description?: string;
+    is_active: boolean;
+  }) => void;
 };
 
 export function FeatureCreateTaxModal({
@@ -43,7 +50,14 @@ export function FeatureCreateTaxModal({
   const [isActive, setIsActive] = useState(true);
 
   const handleSave = () => {
-    onSave?.();
+    onSave?.({
+      tax_name: taxName.trim(),
+      tax_type: taxType as "Sales" | "Purchase" | "Both" | "None",
+      rate_percent: Number(taxRate || 0),
+      tax_account_code: taxAccount === "none" ? "" : taxAccount,
+      description: undefined,
+      is_active: isActive,
+    });
     onOpenChange(false);
     setTaxName("");
     setTaxType("Sales");
@@ -178,4 +192,3 @@ export function FeatureCreateTaxModal({
     </Dialog>
   );
 }
-

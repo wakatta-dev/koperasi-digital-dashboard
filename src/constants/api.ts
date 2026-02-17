@@ -72,6 +72,31 @@ export const API_ENDPOINTS = {
     creditNotes: "/accounting/ar/credit-notes",
     payments: "/accounting/ar/payments",
   },
+  accountingSettings: {
+    overview: "/accounting/settings/overview",
+    coa: "/accounting/settings/coa",
+    coaItem: (accountCode: string) =>
+      `/accounting/settings/coa/${encodeURIComponent(accountCode)}`,
+    taxes: "/accounting/settings/taxes",
+    taxItem: (taxId: string | number) =>
+      `/accounting/settings/taxes/${encodeURIComponent(String(taxId))}`,
+    taxStatus: (taxId: string | number) =>
+      `/accounting/settings/taxes/${encodeURIComponent(String(taxId))}/status`,
+    taxDuplicate: (taxId: string | number) =>
+      `/accounting/settings/taxes/${encodeURIComponent(String(taxId))}/duplicate`,
+    currencies: "/accounting/settings/currencies",
+    currencyItem: (currencyCode: string) =>
+      `/accounting/settings/currencies/${encodeURIComponent(currencyCode)}`,
+    currencyUpdateRates: "/accounting/settings/currencies/update-rates",
+    currencyAutoRate: (currencyCode: string) =>
+      `/accounting/settings/currencies/${encodeURIComponent(currencyCode)}/auto-rate`,
+    analyticAccounts: "/accounting/settings/analytic-accounts",
+    analyticAccountItem: (analyticAccountId: string | number) =>
+      `/accounting/settings/analytic-accounts/${encodeURIComponent(String(analyticAccountId))}`,
+    budgets: "/accounting/settings/budgets",
+    budgetItem: (budgetId: string | number) =>
+      `/accounting/settings/budgets/${encodeURIComponent(String(budgetId))}`,
+  },
   bumdesReport: {
     overview: "/finance/reports/overview",
     profitLoss: "/finance/reports/profit-loss",

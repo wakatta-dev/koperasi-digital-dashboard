@@ -27,7 +27,14 @@ import {
 type FeatureCreateBudgetModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave?: () => void;
+  onSave?: (payload: {
+    budget_name: string;
+    analytic_account_id: string;
+    start_date: string;
+    end_date: string;
+    currency_code: string;
+    target_amount: number;
+  }) => void;
 };
 
 export function FeatureCreateBudgetModal({
@@ -43,7 +50,14 @@ export function FeatureCreateBudgetModal({
   const [currency, setCurrency] = useState("USD");
 
   const handleSave = () => {
-    onSave?.();
+    onSave?.({
+      budget_name: budgetName.trim(),
+      analytic_account_id: analyticAccount.trim(),
+      start_date: startDate,
+      end_date: endDate,
+      currency_code: currency,
+      target_amount: Number(targetAmount || 0),
+    });
     onOpenChange(false);
     setBudgetName("");
     setAnalyticAccount("");
@@ -196,4 +210,3 @@ export function FeatureCreateBudgetModal({
     </Dialog>
   );
 }
-

@@ -31,7 +31,14 @@ type FeatureEditTaxModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tax?: TaxRow | null;
-  onSave?: (tax: TaxRow | null | undefined) => void;
+  onSave?: (payload: {
+    tax_name: string;
+    tax_type: "Sales" | "Purchase" | "Both" | "None";
+    rate_percent: number;
+    tax_account_code: string;
+    description?: string;
+    is_active?: boolean;
+  }) => void;
 };
 
 export function FeatureEditTaxModal({
@@ -56,7 +63,14 @@ export function FeatureEditTaxModal({
   }, [tax]);
 
   const handleSave = () => {
-    onSave?.(tax);
+    onSave?.({
+      tax_name: taxName.trim(),
+      tax_type: taxType as "Sales" | "Purchase" | "Both" | "None",
+      rate_percent: Number(taxRate || 0),
+      tax_account_code: taxAccount,
+      description: description.trim() || undefined,
+      is_active: tax?.is_active,
+    });
     onOpenChange(false);
   };
 
@@ -180,4 +194,3 @@ export function FeatureEditTaxModal({
     </Dialog>
   );
 }
-

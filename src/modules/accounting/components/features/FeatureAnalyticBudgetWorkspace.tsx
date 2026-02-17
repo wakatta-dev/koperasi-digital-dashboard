@@ -19,14 +19,19 @@ import {
 } from "@/components/ui/table";
 
 import { ANALYTIC_ACCOUNT_CARDS, BUDGET_ROWS } from "../../constants/settings-dummy";
+import type { AnalyticAccountCard, BudgetRow } from "../../types/settings";
 
 type FeatureAnalyticBudgetWorkspaceProps = {
+  budgetRows?: BudgetRow[];
+  analyticAccountCards?: AnalyticAccountCard[];
   onCreateBudget?: () => void;
   onAddAnalyticAccount?: () => void;
   onEditBudget?: (budgetId: string) => void;
 };
 
 export function FeatureAnalyticBudgetWorkspace({
+  budgetRows = BUDGET_ROWS,
+  analyticAccountCards = ANALYTIC_ACCOUNT_CARDS,
   onCreateBudget,
   onAddAnalyticAccount,
   onEditBudget,
@@ -137,7 +142,7 @@ export function FeatureAnalyticBudgetWorkspace({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {BUDGET_ROWS.map((row) => (
+                  {budgetRows.map((row) => (
                     <TableRow key={row.budget_id} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <TableCell className="px-6 py-4">
                         <div className="flex items-center">
@@ -210,7 +215,7 @@ export function FeatureAnalyticBudgetWorkspace({
               </Button>
             </div>
             <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
-              {ANALYTIC_ACCOUNT_CARDS.map((card) => (
+              {analyticAccountCards.map((card) => (
                 <div
                   key={card.analytic_account_id}
                   className="group cursor-pointer rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-indigo-400 dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-indigo-600"

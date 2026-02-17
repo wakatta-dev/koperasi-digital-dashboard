@@ -21,7 +21,13 @@ import { Switch } from "@/components/ui/switch";
 type FeatureAddCurrencyModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCurrency?: () => void;
+  onAddCurrency?: (payload: {
+    currency_name: string;
+    currency_code: string;
+    symbol: string;
+    exchange_rate: number;
+    auto_rate_update_enabled: boolean;
+  }) => void;
 };
 
 export function FeatureAddCurrencyModal({
@@ -36,7 +42,13 @@ export function FeatureAddCurrencyModal({
   const [autoRateUpdate, setAutoRateUpdate] = useState(true);
 
   const handleAddCurrency = () => {
-    onAddCurrency?.();
+    onAddCurrency?.({
+      currency_name: currencyName.trim(),
+      currency_code: currencyCode.trim().toUpperCase(),
+      symbol: symbol.trim(),
+      exchange_rate: Number(exchangeRate || 0),
+      auto_rate_update_enabled: autoRateUpdate,
+    });
     onOpenChange(false);
     setCurrencyName("");
     setCurrencyCode("");
@@ -166,4 +178,3 @@ export function FeatureAddCurrencyModal({
     </Dialog>
   );
 }
-

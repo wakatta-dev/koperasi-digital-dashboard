@@ -27,7 +27,13 @@ import { Textarea } from "@/components/ui/textarea";
 type FeatureAddCoaAccountModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave?: () => void;
+  onSave?: (payload: {
+    account_code: string;
+    account_name: string;
+    account_type: string;
+    parent_account_code?: string;
+    description?: string;
+  }) => void;
 };
 
 export function FeatureAddCoaAccountModal({
@@ -42,7 +48,14 @@ export function FeatureAddCoaAccountModal({
   const [description, setDescription] = useState("");
 
   const handleSave = () => {
-    onSave?.();
+    onSave?.({
+      account_code: accountCode.trim(),
+      account_name: accountName.trim(),
+      account_type: accountType,
+      parent_account_code:
+        parentAccount === "root" || parentAccount.trim() === "" ? undefined : parentAccount,
+      description: description.trim() || undefined,
+    });
     onOpenChange(false);
     setAccountCode("");
     setAccountName("");
@@ -160,4 +173,3 @@ export function FeatureAddCoaAccountModal({
     </Dialog>
   );
 }
-

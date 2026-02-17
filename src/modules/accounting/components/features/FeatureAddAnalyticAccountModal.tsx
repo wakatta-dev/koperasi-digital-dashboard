@@ -27,7 +27,11 @@ import {
 type FeatureAddAnalyticAccountModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave?: () => void;
+  onSave?: (payload: {
+    account_name: string;
+    reference_code: string;
+    parent_analytic_account_id?: string;
+  }) => void;
 };
 
 export function FeatureAddAnalyticAccountModal({
@@ -40,7 +44,12 @@ export function FeatureAddAnalyticAccountModal({
   const [parentAccount, setParentAccount] = useState("root");
 
   const handleSave = () => {
-    onSave?.();
+    onSave?.({
+      account_name: accountName.trim(),
+      reference_code: referenceCode.trim(),
+      parent_analytic_account_id:
+        parentAccount === "root" || parentAccount.trim() === "" ? undefined : parentAccount,
+    });
     onOpenChange(false);
     setAccountName("");
     setReferenceCode("");
@@ -130,4 +139,3 @@ export function FeatureAddAnalyticAccountModal({
     </Dialog>
   );
 }
-

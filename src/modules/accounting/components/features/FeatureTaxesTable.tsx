@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { MoreVertical, Plus } from "lucide-react";
 
@@ -26,6 +26,7 @@ type FeatureTaxesTableProps = {
   onCreateTax?: () => void;
   onOpenActions?: (tax: TaxRow) => void;
   renderActions?: (tax: TaxRow) => ReactNode;
+  onToggleStatus?: (tax: TaxRow, next: boolean) => void;
 };
 
 const TAX_TYPE_CLASS: Record<TaxRow["tax_type"], string> = {
@@ -44,6 +45,7 @@ export function FeatureTaxesTable({
   onCreateTax,
   onOpenActions,
   renderActions,
+  onToggleStatus,
 }: FeatureTaxesTableProps) {
   const [statusByTaxId, setStatusByTaxId] = useState<Record<string, boolean>>(() =>
     rows.reduce<Record<string, boolean>>((acc, row) => {
@@ -51,6 +53,15 @@ export function FeatureTaxesTable({
       return acc;
     }, {})
   );
+
+  useEffect(() => {
+    setStatusByTaxId(
+      rows.reduce<Record<string, boolean>>((acc, row) => {
+        acc[row.tax_id] = row.is_active;
+        return acc;
+      }, {})
+    );
+  }, [rows]);
 
   const normalizedRows = useMemo(
     () =>
@@ -118,12 +129,13 @@ export function FeatureTaxesTable({
                   <TableCell className="px-6 py-4 text-center">
                     <Switch
                       checked={row.is_active}
-                      onCheckedChange={(next) =>
+                      onCheckedChange={(next) => {
                         setStatusByTaxId((prev) => ({
                           ...prev,
                           [row.tax_id]: next,
-                        }))
-                      }
+                        }));
+                        onToggleStatus?.(row, next);
+                      }}
                       className="data-[state=checked]:bg-indigo-600"
                       aria-label={`Toggle status for ${row.tax_name}`}
                     />

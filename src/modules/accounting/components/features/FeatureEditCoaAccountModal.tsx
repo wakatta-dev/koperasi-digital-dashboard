@@ -30,7 +30,12 @@ type FeatureEditCoaAccountModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   account?: CoaAccountRow | null;
-  onSave?: (account: CoaAccountRow | null | undefined) => void;
+  onSave?: (payload: {
+    account_code: string;
+    account_name: string;
+    account_type: string;
+    parent_account_code?: string;
+  }) => void;
 };
 
 export function FeatureEditCoaAccountModal({
@@ -53,7 +58,13 @@ export function FeatureEditCoaAccountModal({
   }, [account]);
 
   const handleSave = () => {
-    onSave?.(account);
+    onSave?.({
+      account_code: accountCode.trim(),
+      account_name: accountName.trim(),
+      account_type: accountType,
+      parent_account_code:
+        parentAccount === "root" || parentAccount.trim() === "" ? undefined : parentAccount,
+    });
     onOpenChange(false);
   };
 
@@ -167,4 +178,3 @@ export function FeatureEditCoaAccountModal({
     </Dialog>
   );
 }
-
