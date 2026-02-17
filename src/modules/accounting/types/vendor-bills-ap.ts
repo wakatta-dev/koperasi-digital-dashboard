@@ -66,7 +66,7 @@ export type VendorBillPaymentHistoryItem = {
   payment_reference: string;
   payment_method: string;
   amount_paid: string;
-  status: "SUCCESS";
+  status: "SUCCESS" | "PENDING" | "FAILED";
 };
 
 export type VendorBillDetailModel = {

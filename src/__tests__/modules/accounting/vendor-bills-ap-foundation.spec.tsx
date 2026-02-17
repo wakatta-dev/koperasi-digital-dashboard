@@ -18,6 +18,56 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+vi.mock("@/hooks/queries", () => ({
+  useAccountingApOverview: () => ({
+    data: { cards: [] },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingApBills: () => ({
+    data: {
+      items: [],
+      pagination: { page: 1, per_page: 24, total_items: 0, total_pages: 0 },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingApBillMutations: () => ({
+    createBill: { isPending: false, mutateAsync: vi.fn() },
+    updateBill: { isPending: false, mutateAsync: vi.fn() },
+    updateBillStatus: { isPending: false, mutateAsync: vi.fn() },
+  }),
+  useAccountingApBillDetail: () => ({
+    data: null,
+    error: null,
+    isPending: false,
+  }),
+  useAccountingApBillPayments: () => ({
+    data: { items: [] },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingApVendorCredits: () => ({
+    data: { items: [] },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingApBatchMutations: () => ({
+    previewBatchPayment: { isPending: false, mutateAsync: vi.fn() },
+    confirmBatchPayment: { isPending: false, mutateAsync: vi.fn() },
+  }),
+  useAccountingApOcrMutations: () => ({
+    createOcrSession: { isPending: false, mutateAsync: vi.fn() },
+    saveOcrProgress: { isPending: false, mutateAsync: vi.fn() },
+    confirmOcrSession: { isPending: false, mutateAsync: vi.fn() },
+  }),
+  useAccountingApBatchDetail: () => ({
+    data: null,
+    error: null,
+    isPending: false,
+  }),
+}));
+
 describe("vendor-bills-ap foundation", () => {
   it("renders all AP route page containers", () => {
     const index = render(<VendorBillsApIndexPage />);

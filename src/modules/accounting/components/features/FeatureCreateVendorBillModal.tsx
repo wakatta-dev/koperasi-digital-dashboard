@@ -41,12 +41,16 @@ type FeatureCreateVendorBillModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit?: (draft: CreateVendorBillDraft) => void;
+  isSubmitting?: boolean;
+  errorMessage?: string | null;
 };
 
 export function FeatureCreateVendorBillModal({
   open,
   onOpenChange,
   onSubmit,
+  isSubmitting = false,
+  errorMessage,
 }: FeatureCreateVendorBillModalProps) {
   const [draft, setDraft] = useState<CreateVendorBillDraft>(DUMMY_CREATE_VENDOR_BILL_DRAFT);
 
@@ -347,20 +351,27 @@ export function FeatureCreateVendorBillModal({
         </div>
 
         <DialogFooter className="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50 px-8 py-5 dark:border-gray-700 dark:bg-gray-800/50">
+          {errorMessage ? (
+            <p className="mr-auto rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {errorMessage}
+            </p>
+          ) : null}
           <Button
             type="button"
             variant="ghost"
             onClick={() => onOpenChange(false)}
             className="text-sm font-medium text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700"
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button
             type="button"
             onClick={() => onSubmit?.(draft)}
+            disabled={isSubmitting}
             className="bg-indigo-600 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700"
           >
-            Save Bill
+            {isSubmitting ? "Saving..." : "Save Bill"}
           </Button>
         </DialogFooter>
       </DialogContent>

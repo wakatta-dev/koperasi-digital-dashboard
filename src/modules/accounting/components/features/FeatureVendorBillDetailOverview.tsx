@@ -14,6 +14,16 @@ type FeatureVendorBillDetailOverviewProps = {
   onPayNow?: () => void;
 };
 
+const STATUS_BADGE_CLASS: Record<VendorBillDetailOverviewModel["status"], string> = {
+  Draft:
+    "border-gray-200 bg-gray-100 text-gray-700 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300",
+  Approved:
+    "border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-900/50 dark:bg-blue-900/40 dark:text-blue-300",
+  Paid: "border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-900/40 dark:text-emerald-300",
+  Overdue:
+    "border-red-200 bg-red-100 text-red-700 dark:border-red-900/50 dark:bg-red-900/40 dark:text-red-400",
+};
+
 export function FeatureVendorBillDetailOverview({
   detail = DUMMY_VENDOR_BILL_DETAIL.overview,
   onPayNow,
@@ -26,8 +36,10 @@ export function FeatureVendorBillDetailOverview({
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {detail.bill_number}
             </h1>
-            <Badge className="rounded-full border border-red-200 bg-red-100 px-3 py-1 text-xs font-bold text-red-700 dark:border-red-900/50 dark:bg-red-900/40 dark:text-red-400">
-              OVERDUE
+            <Badge
+              className={`rounded-full border px-3 py-1 text-xs font-bold ${STATUS_BADGE_CLASS[detail.status]}`}
+            >
+              {detail.status.toUpperCase()}
             </Badge>
           </div>
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">

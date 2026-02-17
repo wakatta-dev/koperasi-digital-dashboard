@@ -5,6 +5,7 @@ import type {
   InvoiceStatus,
   PaymentStatus,
 } from "../types/invoicing-ar";
+import type { VendorBillStatus } from "../types/vendor-bills-ap";
 
 const currencyFormatter = new Intl.NumberFormat("id-ID");
 
@@ -80,5 +81,56 @@ export function normalizePaymentStatus(value: string): PaymentStatus {
       return "Cleared";
     default:
       return "Pending";
+  }
+}
+
+export function formatAccountingApCurrency(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === "") {
+    return "Rp 0";
+  }
+
+  if (typeof value === "string") {
+    if (value.trim().startsWith("Rp")) {
+      return value;
+    }
+    const numeric = Number(value.replace(/[^\d.-]/g, ""));
+    if (Number.isNaN(numeric)) {
+      return value;
+    }
+    return `Rp ${currencyFormatter.format(numeric)}`;
+  }
+
+  return `Rp ${currencyFormatter.format(value)}`;
+}
+
+export function formatAccountingApDate(value: string): string {
+  if (!value) {
+    return "-";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+export function normalizeVendorBillStatus(value: string): VendorBillStatus {
+  switch (value.trim().toLowerCase()) {
+    case "draft":
+      return "Draft";
+    case "approved":
+      return "Approved";
+    case "paid":
+      return "Paid";
+    case "overdue":
+      return "Overdue";
+    default:
+      return "Draft";
   }
 }

@@ -62,6 +62,19 @@ export const QK = {
     payments: (params?: Record<string, unknown>) =>
       ["accounting-ar", "payments", params ?? {}] as const,
   },
+  accountingAp: {
+    overview: () => ["accounting-ap", "overview"] as const,
+    bills: (params?: Record<string, unknown>) =>
+      ["accounting-ap", "bills", params ?? {}] as const,
+    billDetail: (billNumber: string | number) =>
+      ["accounting-ap", "bill-detail", String(billNumber)] as const,
+    billPayments: (billNumber: string | number) =>
+      ["accounting-ap", "bill-payments", String(billNumber)] as const,
+    vendorCredits: (params?: Record<string, unknown>) =>
+      ["accounting-ap", "vendor-credits", params ?? {}] as const,
+    batchDetail: (batchReference: string | number) =>
+      ["accounting-ap", "batch-detail", String(batchReference)] as const,
+  },
   accountingSettings: {
     overview: () => ["accounting-settings", "overview"] as const,
     coa: (params?: Record<string, unknown>) =>
@@ -147,6 +160,12 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingAr.invoiceDetail
   | typeof QK.accountingAr.creditNotes
   | typeof QK.accountingAr.payments
+  | typeof QK.accountingAp.overview
+  | typeof QK.accountingAp.bills
+  | typeof QK.accountingAp.billDetail
+  | typeof QK.accountingAp.billPayments
+  | typeof QK.accountingAp.vendorCredits
+  | typeof QK.accountingAp.batchDetail
   | typeof QK.accountingSettings.overview
   | typeof QK.accountingSettings.coa
   | typeof QK.accountingSettings.taxes

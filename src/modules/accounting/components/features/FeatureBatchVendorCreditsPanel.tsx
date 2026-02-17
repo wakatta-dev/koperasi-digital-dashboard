@@ -10,10 +10,12 @@ import type { VendorCreditNoteItem } from "../../types/vendor-bills-ap";
 
 type FeatureBatchVendorCreditsPanelProps = {
   credits?: VendorCreditNoteItem[];
+  onCreditsChange?: (nextCredits: VendorCreditNoteItem[]) => void;
 };
 
 export function FeatureBatchVendorCreditsPanel({
   credits = DUMMY_VENDOR_CREDIT_NOTES,
+  onCreditsChange,
 }: FeatureBatchVendorCreditsPanelProps) {
   return (
     <section className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
@@ -36,6 +38,15 @@ export function FeatureBatchVendorCreditsPanel({
             <div className="pt-1">
               <Checkbox
                 checked={credit.is_selected}
+                onCheckedChange={(checked) =>
+                  onCreditsChange?.(
+                    credits.map((item) =>
+                      item.credit_note_number === credit.credit_note_number
+                        ? { ...item, is_selected: Boolean(checked) }
+                        : item
+                    )
+                  )
+                }
                 aria-label={`Select ${credit.credit_note_number}`}
               />
             </div>

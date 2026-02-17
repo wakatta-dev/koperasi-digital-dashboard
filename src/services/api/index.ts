@@ -17,4 +17,5 @@ export * from "./marketplace";
 export * from "./inventory";
 export * from "./bumdes-report";
 export * from "./accounting-ar";
+export * from "./accounting-ap";
 export * from "./accounting-settings";

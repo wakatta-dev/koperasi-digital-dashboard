@@ -134,7 +134,7 @@ const BILL_2023_089_DETAIL: VendorBillDetailModel = {
     {
       id: "line-1",
       item_description: "Raw Material - Grade A Silicon",
-      detail: "Batch #8829-X, sourced from internal mining",
+      detail: "Batch No. 8829-X, sourced from internal mining",
       qty: "500 kg",
       unit_price: "Rp 15.000",
       total: "Rp 7.500.000",

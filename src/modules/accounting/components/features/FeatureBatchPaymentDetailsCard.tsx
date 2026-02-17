@@ -17,12 +17,20 @@ import type { BatchPaymentDraft } from "../../types/vendor-bills-ap";
 
 type FeatureBatchPaymentDetailsCardProps = {
   draft?: BatchPaymentDraft;
+  onDraftChange?: (nextDraft: BatchPaymentDraft) => void;
   onConfirm?: () => void;
+  isConfirming?: boolean;
+  confirmationDisabled?: boolean;
+  errorMessage?: string | null;
 };
 
 export function FeatureBatchPaymentDetailsCard({
   draft = DUMMY_BATCH_PAYMENT_DRAFT,
+  onDraftChange,
   onConfirm,
+  isConfirming = false,
+  confirmationDisabled = false,
+  errorMessage,
 }: FeatureBatchPaymentDetailsCardProps) {
   return (
     <section className="sticky top-0 flex flex-col rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
@@ -38,7 +46,15 @@ export function FeatureBatchPaymentDetailsCard({
           <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
             Pay From
           </label>
-          <Select defaultValue={draft.pay_from}>
+          <Select
+            value={draft.pay_from}
+            onValueChange={(value) =>
+              onDraftChange?.({
+                ...draft,
+                pay_from: value,
+              })
+            }
+          >
             <SelectTrigger className="w-full border-gray-300 bg-gray-50 text-sm focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800">
               <SelectValue />
             </SelectTrigger>
@@ -62,7 +78,13 @@ export function FeatureBatchPaymentDetailsCard({
             </label>
             <Input
               type="date"
-              defaultValue={draft.payment_date}
+              value={draft.payment_date}
+              onChange={(event) =>
+                onDraftChange?.({
+                  ...draft,
+                  payment_date: event.target.value,
+                })
+              }
               className="border-gray-300 bg-gray-50 text-sm focus-visible:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800"
             />
           </div>
@@ -72,7 +94,13 @@ export function FeatureBatchPaymentDetailsCard({
             </label>
             <Input
               type="text"
-              defaultValue={draft.reference_number}
+              value={draft.reference_number}
+              onChange={(event) =>
+                onDraftChange?.({
+                  ...draft,
+                  reference_number: event.target.value,
+                })
+              }
               className="border-gray-300 bg-gray-50 text-sm focus-visible:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800"
             />
           </div>
@@ -95,12 +123,18 @@ export function FeatureBatchPaymentDetailsCard({
       </div>
 
       <div className="rounded-b-xl border-t border-gray-100 bg-gray-50 p-5 dark:border-gray-700 dark:bg-gray-800/50">
+        {errorMessage ? (
+          <p className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {errorMessage}
+          </p>
+        ) : null}
         <Button
           type="button"
           onClick={onConfirm}
+          disabled={confirmationDisabled || isConfirming}
           className="w-full gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700"
         >
-          Confirm Batch Payment
+          {isConfirming ? "Processing..." : "Confirm Batch Payment"}
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>

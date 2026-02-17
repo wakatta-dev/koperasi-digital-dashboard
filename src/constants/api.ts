@@ -72,6 +72,26 @@ export const API_ENDPOINTS = {
     creditNotes: "/accounting/ar/credit-notes",
     payments: "/accounting/ar/payments",
   },
+  accountingAp: {
+    overview: "/accounting/ap/overview",
+    bills: "/accounting/ap/bills",
+    billDetail: (billNumber: string) =>
+      `/accounting/ap/bills/${encodeURIComponent(billNumber)}`,
+    billStatus: (billNumber: string) =>
+      `/accounting/ap/bills/${encodeURIComponent(billNumber)}/status`,
+    billPayments: (billNumber: string) =>
+      `/accounting/ap/bills/${encodeURIComponent(billNumber)}/payments`,
+    vendorCredits: "/accounting/ap/vendor-credits",
+    batchPreview: "/accounting/ap/batch-payments/preview",
+    batchPayments: "/accounting/ap/batch-payments",
+    batchPaymentDetail: (batchReference: string) =>
+      `/accounting/ap/batch-payments/${encodeURIComponent(batchReference)}`,
+    ocrSessions: "/accounting/ap/ocr/sessions",
+    ocrSession: (sessionId: string) =>
+      `/accounting/ap/ocr/sessions/${encodeURIComponent(sessionId)}`,
+    ocrConfirm: (sessionId: string) =>
+      `/accounting/ap/ocr/sessions/${encodeURIComponent(sessionId)}/confirm`,
+  },
   accountingSettings: {
     overview: "/accounting/settings/overview",
     coa: "/accounting/settings/coa",

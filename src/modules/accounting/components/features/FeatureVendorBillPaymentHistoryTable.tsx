@@ -20,6 +20,13 @@ type FeatureVendorBillPaymentHistoryTableProps = {
   rows?: VendorBillPaymentHistoryItem[];
 };
 
+const PAYMENT_HISTORY_STATUS_CLASS: Record<VendorBillPaymentHistoryItem["status"], string> = {
+  SUCCESS:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
+  PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
+  FAILED: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400",
+};
+
 export function FeatureVendorBillPaymentHistoryTable({
   rows = DUMMY_VENDOR_BILL_DETAIL.payment_history,
 }: FeatureVendorBillPaymentHistoryTableProps) {
@@ -68,7 +75,9 @@ export function FeatureVendorBillPaymentHistoryTable({
                     {row.amount_paid}
                   </TableCell>
                   <TableCell className="px-8 py-4 text-center">
-                    <Badge className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                    <Badge
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${PAYMENT_HISTORY_STATUS_CLASS[row.status]}`}
+                    >
                       {row.status}
                     </Badge>
                   </TableCell>
