@@ -2,14 +2,21 @@
 
 "use client";
 
+import { useState } from "react";
+
+import { FeatureCurrenciesSuccessToast } from "../features/FeatureCurrenciesSuccessToast";
+import { FeatureCurrenciesTable } from "../features/FeatureCurrenciesTable";
+
 export function AccountingSettingsCurrenciesPage() {
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+
   return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Currencies</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        Manage currencies and their exchange rates for multi-currency transactions.
-      </p>
-    </div>
+    <>
+      <FeatureCurrenciesTable onAddCurrency={() => setShowSuccessToast(true)} />
+      <FeatureCurrenciesSuccessToast
+        open={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+      />
+    </>
   );
 }
-

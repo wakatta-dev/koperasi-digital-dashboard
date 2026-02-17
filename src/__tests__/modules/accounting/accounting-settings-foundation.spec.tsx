@@ -14,8 +14,8 @@ import { bumdesNavigation, bumdesTitleMap } from "@/app/(mvp)/bumdes/navigation"
 describe("accounting-settings foundation", () => {
   it("renders settings hub and child page containers", () => {
     const hub = render(<AccountingSettingsIndexPage />);
-    expect(screen.getByRole("heading", { name: "Accounting Settings" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Chart of Accounts/i }).getAttribute("href")).toBe(
+    expect(screen.getByRole("heading", { name: "Pengaturan Akuntansi" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Manage Accounts" }).getAttribute("href")).toBe(
       "/bumdes/accounting/settings/chart-of-accounts"
     );
     hub.unmount();
@@ -67,4 +67,3 @@ describe("accounting-settings foundation", () => {
     );
   });
 });
-

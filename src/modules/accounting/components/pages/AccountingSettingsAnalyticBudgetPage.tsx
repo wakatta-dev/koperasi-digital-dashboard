@@ -2,14 +2,21 @@
 
 "use client";
 
+import { useState } from "react";
+
+import { FeatureAnalyticBudgetSuccessToast } from "../features/FeatureAnalyticBudgetSuccessToast";
+import { FeatureAnalyticBudgetWorkspace } from "../features/FeatureAnalyticBudgetWorkspace";
+
 export function AccountingSettingsAnalyticBudgetPage() {
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+
   return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytic &amp; Budget</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        Manage analytic accounts (cost centers) and monitor budgets.
-      </p>
-    </div>
+    <>
+      <FeatureAnalyticBudgetWorkspace onCreateBudget={() => setShowSuccessToast(true)} />
+      <FeatureAnalyticBudgetSuccessToast
+        open={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+      />
+    </>
   );
 }
-
