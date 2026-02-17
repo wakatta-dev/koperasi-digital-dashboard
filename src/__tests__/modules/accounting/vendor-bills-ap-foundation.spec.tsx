@@ -38,7 +38,40 @@ vi.mock("@/hooks/queries", () => ({
     updateBillStatus: { isPending: false, mutateAsync: vi.fn() },
   }),
   useAccountingApBillDetail: () => ({
-    data: null,
+    data: {
+      bill_number: "BILL-2023-089",
+      status: "Approved",
+      created_label: "Created on Oct 25, 2023 by System OCR",
+      vendor: {
+        name: "PT. Pemasok Jaya",
+        address_lines: ["Jl. Industri Raya No. 45"],
+        email: "billing@pemasokjaya.co.id",
+      },
+      meta: {
+        bill_date: "2023-10-25",
+        due_date: "2023-11-24",
+        due_note: "",
+        reference_number: "INV/PJ/2023/1029",
+        currency: "IDR - Indonesian Rupiah",
+      },
+      line_items: [
+        {
+          item_description: "Raw Material - Grade A Silicon",
+          detail: "Batch #8829-X",
+          qty: "500 kg",
+          unit_price: 15000,
+          total: 7500000,
+        },
+      ],
+      totals: {
+        subtotal: 7500000,
+        tax_amount: 825000,
+        total_amount: 8325000,
+        paid_to_date: 0,
+        balance_due: 8325000,
+      },
+      internal_note: "",
+    },
     error: null,
     isPending: false,
   }),
@@ -62,7 +95,16 @@ vi.mock("@/hooks/queries", () => ({
     confirmOcrSession: { isPending: false, mutateAsync: vi.fn() },
   }),
   useAccountingApBatchDetail: () => ({
-    data: null,
+    data: {
+      batch_reference: "BATCH-001",
+      status: "Scheduled",
+      totals: {
+        total_bills_amount: 1000000,
+        credits_applied_amount: 0,
+        total_to_pay_amount: 1000000,
+      },
+      bill_breakdowns: [],
+    },
     error: null,
     isPending: false,
   }),

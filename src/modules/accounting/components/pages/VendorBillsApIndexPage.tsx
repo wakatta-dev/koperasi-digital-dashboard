@@ -15,7 +15,6 @@ import {
 } from "@/hooks/queries";
 import { toAccountingApApiError } from "@/services/api/accounting-ap";
 
-import { DUMMY_VENDOR_BILLS } from "../../constants/vendor-bills-ap-dummy";
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
 import type { CreateVendorBillDraft, VendorBillListItem } from "../../types/vendor-bills-ap";
 import {
@@ -172,11 +171,11 @@ export function VendorBillsApIndexPage() {
       ) : null}
 
       <FeatureVendorBillsTable
-        rows={tableRows.length > 0 ? tableRows : DUMMY_VENDOR_BILLS}
+        rows={tableRows}
         selectedBillNumbers={selectedBillNumbers}
         onSelectionChange={setSelectedBillNumbers}
         onRowOpen={(row) => router.push(VENDOR_BILLS_AP_ROUTES.detail(row.bill_number))}
-        totalResults={billsQuery.data?.pagination.total_items ?? 24}
+        totalResults={billsQuery.data?.pagination.total_items ?? tableRows.length}
       />
 
       <FeatureCreateVendorBillModal

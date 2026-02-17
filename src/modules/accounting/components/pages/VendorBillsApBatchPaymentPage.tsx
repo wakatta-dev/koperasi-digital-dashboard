@@ -7,10 +7,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { useAccountingApBatchMutations, useAccountingApVendorCredits } from "@/hooks/queries";
+import {
+  useAccountingApBatchMutations,
+  useAccountingApBills,
+  useAccountingApVendorCredits,
+} from "@/hooks/queries";
 import { toAccountingApApiError } from "@/services/api/accounting-ap";
 
-import { DUMMY_BATCH_PAYMENT_BILLS } from "../../constants/vendor-bills-ap-dummy";
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
 import type { BatchPaymentBillItem, BatchPaymentDraft, VendorCreditNoteItem } from "../../types/vendor-bills-ap";
 import { formatAccountingApCurrency, formatAccountingApDate } from "../../utils/formatters";
@@ -23,20 +26,40 @@ type VendorBillsApBatchPaymentPageProps = {
   preselectedBillNumbers?: string[];
 };
 
+function buildDueState(dueDateRaw: string, status: string): {
+  label: string;
+  tone: BatchPaymentBillItem["due_state_tone"];
+} {
+  const normalizedStatus = status.trim().toLowerCase();
+  if (normalizedStatus === "overdue") {
+    return { label: "Overdue", tone: "danger" };
+  }
+
+  const dueDate = new Date(`${dueDateRaw}T00:00:00`);
+  if (Number.isNaN(dueDate.getTime())) {
+    return { label: "Due date unavailable", tone: "normal" };
+  }
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const dueTime = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate()).getTime();
+  const dayDiff = Math.floor((dueTime - startOfToday.getTime()) / (24 * 60 * 60 * 1000));
+
+  if (dayDiff < 0) {
+    return { label: "Overdue", tone: "danger" };
+  }
+  if (dayDiff <= 3) {
+    return { label: `Due in ${dayDiff} day${dayDiff === 1 ? "" : "s"}`, tone: "warning" };
+  }
+  return { label: `Due in ${dayDiff} days`, tone: "normal" };
+}
+
 export function VendorBillsApBatchPaymentPage({
   preselectedBillNumbers = [],
 }: VendorBillsApBatchPaymentPageProps) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [bills, setBills] = useState<BatchPaymentBillItem[]>(() =>
-    DUMMY_BATCH_PAYMENT_BILLS.map((row) => ({
-      ...row,
-      is_selected:
-        preselectedBillNumbers.length === 0
-          ? row.is_selected
-          : preselectedBillNumbers.includes(row.bill_number),
-    }))
-  );
+  const [bills, setBills] = useState<BatchPaymentBillItem[]>([]);
   const [credits, setCredits] = useState<VendorCreditNoteItem[]>([]);
   const [draft, setDraft] = useState<BatchPaymentDraft>({
     pay_from: "BCA Corporate - 8821xxxx",
@@ -52,9 +75,71 @@ export function VendorBillsApBatchPaymentPage({
     per_page: 25,
     active_only: true,
   });
+  const billsQuery = useAccountingApBills({
+    page: 1,
+    per_page: 50,
+  });
   const batchMutations = useAccountingApBatchMutations();
+  const preselectedBillSignature = useMemo(
+    () => preselectedBillNumbers.map((item) => item.trim()).filter(Boolean).join("|"),
+    [preselectedBillNumbers]
+  );
 
   const selectedRows = useMemo(() => bills.filter((row) => row.is_selected), [bills]);
+
+  useEffect(() => {
+    if (!billsQuery.data?.items) return;
+    const preselectedBillSet = new Set(
+      preselectedBillSignature ? preselectedBillSignature.split("|") : []
+    );
+
+    setBills((currentRows) => {
+      const currentRowsByBillNumber = new Map(
+        currentRows.map((row) => [row.bill_number, row] as const)
+      );
+
+      const nextRows = billsQuery.data.items
+        .filter((item) => item.status !== "Paid")
+        .map((item) => {
+          const amountLabel = formatAccountingApCurrency(item.amount);
+          const dueState = buildDueState(item.due_date, item.status);
+          const existing = currentRowsByBillNumber.get(item.bill_number);
+
+          return {
+            bill_number: item.bill_number,
+            vendor_name: item.vendor_name,
+            vendor_id_label: `Bill ${item.bill_number}`,
+            reference: `Ref ${item.bill_number}`,
+            due_state: dueState.label,
+            due_state_tone: dueState.tone,
+            amount_due: amountLabel,
+            payment_amount: existing?.payment_amount ?? amountLabel,
+            is_selected: existing?.is_selected ?? preselectedBillSet.has(item.bill_number),
+          };
+        });
+
+      if (
+        currentRows.length === nextRows.length &&
+        currentRows.every((row, index) => {
+          const next = nextRows[index];
+          return (
+            row.bill_number === next.bill_number &&
+            row.vendor_name === next.vendor_name &&
+            row.vendor_id_label === next.vendor_id_label &&
+            row.reference === next.reference &&
+            row.due_state === next.due_state &&
+            row.due_state_tone === next.due_state_tone &&
+            row.amount_due === next.amount_due &&
+            row.payment_amount === next.payment_amount &&
+            row.is_selected === next.is_selected
+          );
+        })
+      ) {
+        return currentRows;
+      }
+      return nextRows;
+    });
+  }, [billsQuery.data?.items, preselectedBillSignature]);
 
   useEffect(() => {
     if (!vendorCreditsQuery.data?.items) return;
@@ -195,6 +280,12 @@ export function VendorBillsApBatchPaymentPage({
       {vendorCreditsQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {toAccountingApApiError(vendorCreditsQuery.error).message}
+        </div>
+      ) : null}
+
+      {billsQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingApApiError(billsQuery.error).message}
         </div>
       ) : null}
 

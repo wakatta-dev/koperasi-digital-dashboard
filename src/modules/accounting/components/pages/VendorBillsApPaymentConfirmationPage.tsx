@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useAccountingApBatchDetail } from "@/hooks/queries";
 import { toAccountingApApiError } from "@/services/api/accounting-ap";
 
-import { DUMMY_PAYMENT_CONFIRMATION } from "../../constants/vendor-bills-ap-dummy";
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
 import type { PaymentConfirmationModel } from "../../types/vendor-bills-ap";
 import { formatAccountingApCurrency } from "../../utils/formatters";
@@ -28,7 +27,12 @@ export function VendorBillsApPaymentConfirmationPage({
 
   const confirmation = useMemo<PaymentConfirmationModel>(() => {
     if (!batchDetailQuery.data) {
-      return DUMMY_PAYMENT_CONFIRMATION;
+      return {
+        total_paid: formatAccountingApCurrency(0),
+        bill_count_label: "0 bills",
+        bill_breakdowns: [],
+        security_note: "Transaction secured with end-to-end encryption",
+      };
     }
 
     return {
@@ -45,6 +49,12 @@ export function VendorBillsApPaymentConfirmationPage({
 
   return (
     <div className="space-y-6">
+      {!batchReference ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Batch reference is required to load payment confirmation details.
+        </div>
+      ) : null}
+
       {batchDetailQuery.isPending ? (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
           Loading batch payment confirmation...

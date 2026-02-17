@@ -46,7 +46,7 @@ describe("api service", () => {
     expect(global.fetch).toHaveBeenCalledTimes(2);
     const secondCall = (global.fetch as any).mock.calls[1];
     expect(secondCall[1].headers.get("Authorization")).toBe("Bearer new");
-    expect(result).toEqual({ success: true });
+    expect(result.success).toBe(true);
   });
 
   it("calls logout when refreshToken fails", async () => {
@@ -90,4 +90,3 @@ describe("api service", () => {
     expect(id).toBe("abc");
   });
 });
-

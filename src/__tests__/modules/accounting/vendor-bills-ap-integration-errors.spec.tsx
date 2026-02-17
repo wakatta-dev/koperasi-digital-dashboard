@@ -38,8 +38,17 @@ vi.mock("@/hooks/queries", () => ({
   }),
   useAccountingApBills: () => ({
     data: {
-      items: [],
-      pagination: { page: 1, per_page: 24, total_items: 0, total_pages: 0 },
+      items: [
+        {
+          bill_number: "BILL-2023-089",
+          vendor_name: "PT. Pemasok Jaya",
+          bill_date: "2023-10-25",
+          due_date: "2023-11-24",
+          amount: 100000,
+          status: "Approved",
+        },
+      ],
+      pagination: { page: 1, per_page: 24, total_items: 1, total_pages: 1 },
     },
     error: null,
     isPending: false,
@@ -118,6 +127,7 @@ describe("vendor-bills-ap integration errors", () => {
 
     render(<VendorBillsApBatchPaymentPage />);
 
+    fireEvent.click(screen.getByLabelText("Select BILL-2023-089"));
     fireEvent.click(screen.getByRole("button", { name: "Confirm Batch Payment" }));
 
     expect(await screen.findByText("payment exceeds outstanding amount")).toBeTruthy();
@@ -138,4 +148,3 @@ describe("vendor-bills-ap integration errors", () => {
     expect(await screen.findByText("too many OCR confirmation attempts")).toBeTruthy();
   });
 });
-

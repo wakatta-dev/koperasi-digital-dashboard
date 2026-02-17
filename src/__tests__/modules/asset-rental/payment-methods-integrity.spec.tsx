@@ -6,12 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PaymentMethods } from "@/modules/asset-reservation/payment/components/payment-methods";
 
 const createPaymentSessionMock = vi.fn();
-const finalizePaymentMock = vi.fn();
 const uploadPaymentProofMock = vi.fn();
 
 vi.mock("@/services/api/reservations", () => ({
   createPaymentSession: (...args: unknown[]) => createPaymentSessionMock(...args),
-  finalizePayment: (...args: unknown[]) => finalizePaymentMock(...args),
   uploadPaymentProof: (...args: unknown[]) => uploadPaymentProofMock(...args),
 }));
 
@@ -25,7 +23,6 @@ const methodGroups = [
 
 beforeEach(() => {
   createPaymentSessionMock.mockReset();
-  finalizePaymentMock.mockReset();
   uploadPaymentProofMock.mockReset();
 
   createPaymentSessionMock.mockResolvedValue({
@@ -43,13 +40,13 @@ beforeEach(() => {
 });
 
 describe("asset-rental payment integrity", () => {
-  it("does not switch to success state when finalize response is not successful", async () => {
-    finalizePaymentMock.mockResolvedValue({
+  it("does not switch to success state when proof upload is not successful", async () => {
+    uploadPaymentProofMock.mockResolvedValue({
       success: false,
-      message: "Backend gagal memproses pembayaran",
+      message: "Backend gagal mengunggah bukti pembayaran",
     });
 
-    render(
+    const { container } = render(
       <PaymentMethods
         mode="dp"
         reservationId={11}
@@ -62,14 +59,20 @@ describe("asset-rental payment integrity", () => {
       expect(createPaymentSessionMock).toHaveBeenCalled();
     });
 
-    const payNowButton = await screen.findByRole("button", { name: /bayar sekarang/i });
+    const payNowButton = await screen.findByRole("button", {
+      name: /kirim bukti pembayaran/i,
+    });
+    const fileInput = container.querySelector('input[type="file"]');
+    expect(fileInput).toBeTruthy();
+    const proofFile = new File(["proof"], "proof.png", { type: "image/png" });
+    fireEvent.change(fileInput as HTMLInputElement, { target: { files: [proofFile] } });
     fireEvent.click(payNowButton);
 
     await waitFor(() => {
-      expect(finalizePaymentMock).toHaveBeenCalledTimes(1);
+      expect(uploadPaymentProofMock).toHaveBeenCalledTimes(1);
     });
 
-    expect(await screen.findByText(/Backend gagal memproses pembayaran/i)).toBeTruthy();
+    expect(await screen.findByText(/Backend gagal mengunggah bukti pembayaran/i)).toBeTruthy();
     expect(screen.getByText("Menunggu tindakan")).toBeTruthy();
   });
 });

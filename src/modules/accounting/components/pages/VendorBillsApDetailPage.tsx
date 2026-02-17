@@ -8,10 +8,6 @@ import { useRouter } from "next/navigation";
 import { useAccountingApBillDetail, useAccountingApBillPayments } from "@/hooks/queries";
 import { toAccountingApApiError } from "@/services/api/accounting-ap";
 
-import {
-  DUMMY_VENDOR_BILL_DETAIL,
-  DUMMY_VENDOR_BILL_DETAILS_BY_NUMBER,
-} from "../../constants/vendor-bills-ap-dummy";
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
 import type { VendorBillDetailModel, VendorBillPaymentHistoryItem } from "../../types/vendor-bills-ap";
 import {
@@ -109,17 +105,11 @@ export function VendorBillsApDetailPage({
   );
 
   const paymentHistory = useMemo<VendorBillPaymentHistoryItem[]>(
-    () =>
-      mappedDetail?.payment_history ??
-      DUMMY_VENDOR_BILL_DETAILS_BY_NUMBER[normalizedBillNumber]?.payment_history ??
-      DUMMY_VENDOR_BILL_DETAIL.payment_history,
-    [mappedDetail?.payment_history, normalizedBillNumber]
+    () => mappedDetail?.payment_history ?? [],
+    [mappedDetail?.payment_history]
   );
 
-  const detail =
-    mappedDetail ??
-    DUMMY_VENDOR_BILL_DETAILS_BY_NUMBER[normalizedBillNumber] ??
-    DUMMY_VENDOR_BILL_DETAIL;
+  const detail = mappedDetail;
 
   return (
     <div className="space-y-6">
@@ -147,17 +137,27 @@ export function VendorBillsApDetailPage({
         </div>
       ) : null}
 
-      <FeatureVendorBillDetailOverview
-        detail={detail.overview}
-        onPayNow={() =>
-          router.push(
-            `${VENDOR_BILLS_AP_ROUTES.batchPayment}?bills=${encodeURIComponent(detail.overview.bill_number)}`
-          )
-        }
-      />
-      <FeatureVendorBillLineItemsTable rows={detail.line_items} totals={detail.totals} />
-      <FeatureVendorBillPaymentHistoryTable rows={paymentHistory} />
-      <FeatureVendorBillInternalNoteCard note={detail.internal_note} />
+      {detail ? (
+        <>
+          <FeatureVendorBillDetailOverview
+            detail={detail.overview}
+            onPayNow={() =>
+              router.push(
+                `${VENDOR_BILLS_AP_ROUTES.batchPayment}?bills=${encodeURIComponent(detail.overview.bill_number)}`
+              )
+            }
+          />
+          <FeatureVendorBillLineItemsTable rows={detail.line_items} totals={detail.totals} />
+          <FeatureVendorBillPaymentHistoryTable rows={paymentHistory} />
+          <FeatureVendorBillInternalNoteCard note={detail.internal_note} />
+        </>
+      ) : null}
+
+      {!detail && !detailQuery.isPending && !detailQuery.error && normalizedBillNumber ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Bill detail not available for the selected bill number.
+        </div>
+      ) : null}
     </div>
   );
 }
