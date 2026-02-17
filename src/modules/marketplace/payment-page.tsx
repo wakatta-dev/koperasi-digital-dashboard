@@ -402,7 +402,7 @@ export function MarketplacePaymentPage() {
           ) : null}
 
           {contextStateNotice && !hasOrderContext ? (
-            <div className="bg-card rounded-2xl shadow-sm border border-amber-300 bg-amber-50 p-6 text-amber-900">
+            <div className="rounded-2xl shadow-sm border border-amber-300 bg-amber-50 p-6 text-amber-900">
               {contextStateNotice}
             </div>
           ) : null}
