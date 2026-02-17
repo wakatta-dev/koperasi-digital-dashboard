@@ -12,6 +12,7 @@ import type {
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderManualPaymentResponse,
+  MarketplaceManualPaymentDecisionRequest,
   MarketplaceOrderReviewSubmitRequest,
   MarketplaceOrderResponse,
   MarketplaceOrderStatusUpdateRequest,
@@ -398,10 +399,21 @@ export function updateMarketplaceOrderStatus(
   );
 }
 
+export function decideMarketplaceManualPayment(
+  id: string | number,
+  payload: MarketplaceManualPaymentDecisionRequest
+): Promise<ApiResponse<MarketplaceOrderDetailResponse>> {
+  return api.patch<MarketplaceOrderDetailResponse>(
+    `${API_PREFIX}${E.orderManualPaymentDecision(id)}`,
+    payload
+  );
+}
+
 export function submitMarketplaceManualPayment(
   id: string | number,
   payload: {
     file: File;
+    tracking_token?: string;
     note?: string;
     bank_name?: string;
     account_name?: string;
@@ -411,6 +423,7 @@ export function submitMarketplaceManualPayment(
 ): Promise<ApiResponse<MarketplaceOrderManualPaymentResponse>> {
   const formData = new FormData();
   formData.append("file", payload.file);
+  if (payload.tracking_token) formData.append("tracking_token", payload.tracking_token);
   if (payload.note) formData.append("note", payload.note);
   if (payload.bank_name) formData.append("bank_name", payload.bank_name);
   if (payload.account_name) formData.append("account_name", payload.account_name);

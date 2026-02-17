@@ -130,7 +130,7 @@ function makeOrderDetail(status: string) {
     review_state: "submitted",
     review_submitted_at: 1739493000,
     manual_payment: {
-      status: "PAYMENT_VERIFICATION",
+      status: "MANUAL_PAYMENT_SUBMITTED",
       proof_url: "https://example.com/proof.jpg",
       note: "Sudah sesuai bukti transfer",
       bank_name: "BCA",

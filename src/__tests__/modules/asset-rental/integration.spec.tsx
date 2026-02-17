@@ -65,8 +65,20 @@ beforeEach(() => {
       purpose: "Workshop",
       start_time: 1762905600,
       end_time: 1762992000,
-      status: "BOOKED",
+      status: "CONFIRMED_FULL",
       total_amount: 900000,
+    },
+    {
+      id: 203,
+      asset_id: 1,
+      asset_name: "Aula Serbaguna",
+      renter_name: "Tari Wijaya",
+      renter_contact: "Unit Pelatihan",
+      purpose: "Kelas internal",
+      start_time: 1763078400,
+      end_time: 1763164800,
+      status: "PENDING_REVIEW",
+      total_amount: 750000,
     },
   ];
 
@@ -121,7 +133,7 @@ describe("asset-rental integration", () => {
     const tambahAsetLink = await screen.findByRole("link", { name: /tambah aset/i });
     expect(tambahAsetLink.getAttribute("href")).toBe("/bumdes/asset/manajemen/tambah");
     await screen.findByRole("link", { name: /aula serbaguna/i });
-    const editAssetLinks = screen.getAllByRole("link", { name: /aksi/i });
+    const editAssetLinks = screen.getAllByRole("link", { name: /edit aset/i });
     expect(editAssetLinks[0].getAttribute("href")).toBe(
       "/bumdes/asset/manajemen/edit?assetId=1"
     );

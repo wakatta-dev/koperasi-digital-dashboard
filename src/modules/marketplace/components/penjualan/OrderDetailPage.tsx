@@ -21,6 +21,7 @@ import {
 import {
   getMarketplaceTransitionOptions,
   isMarketplaceTransitionAllowed,
+  isMarketplaceTransitionReasonRequired,
 } from "@/modules/marketplace/utils/status";
 import { OrderInvoiceDialog } from "@/modules/marketplace/order/components/order-invoice-dialog";
 
@@ -56,6 +57,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [statusValue, setStatusValue] = useState<OrderStatus>("PENDING_PAYMENT");
   const [noteValue, setNoteValue] = useState("");
+  const [noteError, setNoteError] = useState<string | null>(null);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [internalNotes, setInternalNotes] = useState("");
 
@@ -137,6 +139,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
     if (!detail) return;
 
     setNoteValue("");
+    setNoteError(null);
 
     if (statusOptions.length > 0) {
       setStatusValue(statusOptions[0].value);
@@ -151,6 +154,15 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
     setInternalNotes(detail?.internalNotes ?? "");
   }, [detail?.internalNotes]);
 
+  const reasonRequired = useMemo(
+    () =>
+      isMarketplaceTransitionReasonRequired(
+        detail?.status,
+        statusValue,
+      ),
+    [detail?.status, statusValue],
+  );
+
   const handleSubmitStatus = async () => {
     if (!data) return;
 
@@ -159,10 +171,21 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
       return;
     }
 
+    const reason = noteValue.trim();
+    if (
+      isMarketplaceTransitionReasonRequired(data.status, statusValue) &&
+      reason.length === 0
+    ) {
+      setNoteError("Alasan wajib diisi untuk transisi status ini.");
+      toast.error("Alasan wajib diisi sebelum memperbarui status.");
+      return;
+    }
+
     await updateStatus.mutateAsync({
       id: data.id,
-      payload: { status: statusValue, reason: noteValue || undefined },
+      payload: { status: statusValue, reason: reason || undefined },
     });
+    setNoteError(null);
     setStatusOpen(false);
   };
 
@@ -243,8 +266,18 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         submitDisabled={statusOptions.length === 0 || updateStatus.isPending}
         isSubmitting={updateStatus.isPending}
         note={noteValue}
-        onStatusChange={(value) => setStatusValue(value as OrderStatus)}
-        onNoteChange={setNoteValue}
+        reasonRequired={reasonRequired}
+        noteError={noteError ?? undefined}
+        onStatusChange={(value) => {
+          setStatusValue(value as OrderStatus);
+          setNoteError(null);
+        }}
+        onNoteChange={(value) => {
+          setNoteValue(value);
+          if (noteError) {
+            setNoteError(null);
+          }
+        }}
         onSubmit={handleSubmitStatus}
       />
 

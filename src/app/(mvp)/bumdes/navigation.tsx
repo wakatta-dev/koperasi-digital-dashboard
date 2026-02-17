@@ -93,7 +93,28 @@ export const bumdesNavigation = [
       { name: "Journal", href: "/bumdes/accounting/journal" },
       { name: "Tax", href: "/bumdes/accounting/tax" },
       { name: "Reporting", href: "/bumdes/accounting/reporting" },
-      { name: "Settings", href: "/bumdes/accounting/settings" },
+      {
+        name: "Settings",
+        href: "/bumdes/accounting/settings",
+        items: [
+          {
+            name: "Chart of Accounts",
+            href: "/bumdes/accounting/settings/chart-of-accounts",
+          },
+          {
+            name: "Taxes",
+            href: "/bumdes/accounting/settings/taxes",
+          },
+          {
+            name: "Currencies",
+            href: "/bumdes/accounting/settings/currencies",
+          },
+          {
+            name: "Analytic & Budget",
+            href: "/bumdes/accounting/settings/analytic-budgets",
+          },
+        ],
+      },
     ],
   },
   {
@@ -140,11 +161,25 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/accounting/dashboard": "Accounting - Dashboard",
   "/bumdes/accounting/invoicing-ar": "Accounting - Invoicing (AR)",
   "/bumdes/accounting/vendor-bills-ap": "Accounting - Vendor Bills (AP)",
+  "/bumdes/accounting/vendor-bills-ap/[billNumber]":
+    "Accounting - Vendor Bills (AP) - Bill Detail",
+  "/bumdes/accounting/vendor-bills-ap/batch-payment":
+    "Accounting - Vendor Bills (AP) - Batch Payment",
+  "/bumdes/accounting/vendor-bills-ap/ocr-review":
+    "Accounting - Vendor Bills (AP) - OCR Review",
+  "/bumdes/accounting/vendor-bills-ap/payment-confirmation":
+    "Accounting - Vendor Bills (AP) - Payment Confirmation",
   "/bumdes/accounting/bank-cash": "Accounting - Bank & Cash",
   "/bumdes/accounting/journal": "Accounting - Journal",
   "/bumdes/accounting/tax": "Accounting - Tax",
   "/bumdes/accounting/reporting": "Accounting - Reporting",
   "/bumdes/accounting/settings": "Accounting - Settings",
+  "/bumdes/accounting/settings/chart-of-accounts":
+    "Accounting - Settings - Chart of Accounts",
+  "/bumdes/accounting/settings/taxes": "Accounting - Settings - Taxes",
+  "/bumdes/accounting/settings/currencies": "Accounting - Settings - Currencies",
+  "/bumdes/accounting/settings/analytic-budgets":
+    "Accounting - Settings - Analytic & Budget",
   "/bumdes/pos": "Point of Sales",
   "/bumdes/rent": "Rent",
   "/bumdes/landing-page": "Landing Page",

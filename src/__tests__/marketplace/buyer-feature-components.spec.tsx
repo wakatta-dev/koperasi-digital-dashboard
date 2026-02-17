@@ -112,8 +112,6 @@ describe("buyer feature components extraction", () => {
 
     const applyPromo = screen.getByRole("button", { name: "Gunakan" });
     expect(applyPromo.className).toContain("bg-indigo-600");
-
-    const payNowLink = screen.getByRole("link", { name: /Bayar Sekarang/i });
-    expect(payNowLink.className).toContain("bg-indigo-600");
+    expect(screen.getByText("Total Tagihan")).toBeTruthy();
   });
 });

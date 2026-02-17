@@ -33,7 +33,7 @@ beforeEach(() => {
         purpose: "Rapat",
         start_time: 1762732800,
         end_time: 1762819200,
-        status: "BOOKED",
+        status: "CONFIRMED_FULL",
         total_amount: 1000000,
       },
       {

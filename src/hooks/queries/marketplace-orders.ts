@@ -6,12 +6,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { QK } from "./queryKeys";
 import {
+  decideMarketplaceManualPayment,
   ensureMarketplaceSuccess,
+  getMarketplaceGuestOrderStatus,
   getMarketplaceOrderDetail,
   listMarketplaceOrders,
   updateMarketplaceOrderStatus,
 } from "@/services/api";
 import type {
+  MarketplaceGuestOrderStatusDetailResponse,
+  MarketplaceManualPaymentDecisionRequest,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderStatusUpdateRequest,
@@ -57,6 +61,25 @@ export function useMarketplaceOrder(
   });
 }
 
+export function useMarketplaceGuestOrderStatus(
+  id?: string | number,
+  trackingToken?: string,
+  options?: { enabled?: boolean }
+) {
+  const normalizedTrackingToken = (trackingToken ?? "").trim();
+  return useQuery({
+    queryKey: QK.marketplace.guestStatus(id ?? "", normalizedTrackingToken),
+    enabled:
+      Boolean(id) &&
+      normalizedTrackingToken.length > 0 &&
+      (options?.enabled ?? true),
+    queryFn: async (): Promise<MarketplaceGuestOrderStatusDetailResponse> =>
+      ensureMarketplaceSuccess(
+        await getMarketplaceGuestOrderStatus(id as string | number, normalizedTrackingToken)
+      ),
+  });
+}
+
 export function useMarketplaceOrderActions() {
   const qc = useQueryClient();
   const invalidateLists = () =>
@@ -84,7 +107,25 @@ export function useMarketplaceOrderActions() {
       toast.error(err?.message || "Gagal memperbarui status pesanan"),
   });
 
+  const decideManualPayment = useMutation({
+    mutationFn: async (vars: {
+      id: string | number;
+      payload: MarketplaceManualPaymentDecisionRequest;
+    }) =>
+      ensureMarketplaceSuccess(
+        await decideMarketplaceManualPayment(vars.id, vars.payload)
+      ),
+    onSuccess: (_data, vars) => {
+      invalidateLists();
+      invalidateDetail(vars.id);
+      toast.success("Keputusan pembayaran manual diperbarui");
+    },
+    onError: (err: any) =>
+      toast.error(err?.message || "Gagal memperbarui keputusan pembayaran manual"),
+  });
+
   return {
     updateStatus,
+    decideManualPayment,
   } as const;
 }

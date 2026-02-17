@@ -52,6 +52,42 @@ export const QK = {
     balanceSheet: (params?: Record<string, unknown>) =>
       ["finance", "balance-sheet", params ?? {}] as const,
   },
+  accountingAr: {
+    invoices: (params?: Record<string, unknown>) =>
+      ["accounting-ar", "invoices", params ?? {}] as const,
+    invoiceDetail: (invoiceNumber: string | number) =>
+      ["accounting-ar", "invoice", String(invoiceNumber)] as const,
+    creditNotes: (params?: Record<string, unknown>) =>
+      ["accounting-ar", "credit-notes", params ?? {}] as const,
+    payments: (params?: Record<string, unknown>) =>
+      ["accounting-ar", "payments", params ?? {}] as const,
+  },
+  accountingAp: {
+    overview: () => ["accounting-ap", "overview"] as const,
+    bills: (params?: Record<string, unknown>) =>
+      ["accounting-ap", "bills", params ?? {}] as const,
+    billDetail: (billNumber: string | number) =>
+      ["accounting-ap", "bill-detail", String(billNumber)] as const,
+    billPayments: (billNumber: string | number) =>
+      ["accounting-ap", "bill-payments", String(billNumber)] as const,
+    vendorCredits: (params?: Record<string, unknown>) =>
+      ["accounting-ap", "vendor-credits", params ?? {}] as const,
+    batchDetail: (batchReference: string | number) =>
+      ["accounting-ap", "batch-detail", String(batchReference)] as const,
+  },
+  accountingSettings: {
+    overview: () => ["accounting-settings", "overview"] as const,
+    coa: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "coa", params ?? {}] as const,
+    taxes: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "taxes", params ?? {}] as const,
+    currencies: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "currencies", params ?? {}] as const,
+    analyticAccounts: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "analytic-accounts", params ?? {}] as const,
+    budgets: (params?: Record<string, unknown>) =>
+      ["accounting-settings", "budgets", params ?? {}] as const,
+  },
   assetRental: {
     list: (params?: Record<string, unknown>) =>
       ["asset-rental", "assets", params ?? {}] as const,
@@ -120,6 +156,22 @@ export type QueryKey = ReturnType<
   | typeof QK.finance.profitLoss
   | typeof QK.finance.cashFlow
   | typeof QK.finance.balanceSheet
+  | typeof QK.accountingAr.invoices
+  | typeof QK.accountingAr.invoiceDetail
+  | typeof QK.accountingAr.creditNotes
+  | typeof QK.accountingAr.payments
+  | typeof QK.accountingAp.overview
+  | typeof QK.accountingAp.bills
+  | typeof QK.accountingAp.billDetail
+  | typeof QK.accountingAp.billPayments
+  | typeof QK.accountingAp.vendorCredits
+  | typeof QK.accountingAp.batchDetail
+  | typeof QK.accountingSettings.overview
+  | typeof QK.accountingSettings.coa
+  | typeof QK.accountingSettings.taxes
+  | typeof QK.accountingSettings.currencies
+  | typeof QK.accountingSettings.analyticAccounts
+  | typeof QK.accountingSettings.budgets
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.masterData

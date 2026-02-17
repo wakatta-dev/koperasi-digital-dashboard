@@ -6,6 +6,7 @@ import type {
   ProductStatus,
 } from "@/modules/marketplace/types";
 import type {
+  MarketplaceManualPaymentStatus,
   MarketplaceOrderStatus,
   MarketplaceOrderStatusInput,
 } from "@/types/api/marketplace";
@@ -89,12 +90,32 @@ export const MARKETPLACE_ALLOWED_STATUS_TRANSITIONS: Record<
   MarketplaceOrderStatus,
   ReadonlyArray<MarketplaceOrderStatus>
 > = {
-  PENDING_PAYMENT: ["PAYMENT_VERIFICATION", "CANCELED"],
+  PENDING_PAYMENT: ["PAYMENT_VERIFICATION", "PROCESSING", "CANCELED"],
   PAYMENT_VERIFICATION: ["PROCESSING", "CANCELED"],
-  PROCESSING: ["IN_DELIVERY", "CANCELED"],
-  IN_DELIVERY: ["COMPLETED"],
+  PROCESSING: ["IN_DELIVERY", "COMPLETED", "CANCELED"],
+  IN_DELIVERY: ["COMPLETED", "CANCELED"],
   COMPLETED: [],
   CANCELED: [],
+};
+
+export const MARKETPLACE_MANUAL_PAYMENT_STATUS_LABELS: Record<
+  MarketplaceManualPaymentStatus,
+  string
+> = {
+  MANUAL_PAYMENT_SUBMITTED: "Bukti Pembayaran Diterima",
+  WAITING_MANUAL_CONFIRMATION: "Menunggu Verifikasi",
+  CONFIRMED: "Pembayaran Terkonfirmasi",
+  REJECTED: "Pembayaran Ditolak",
+};
+
+const LEGACY_TO_MANUAL_PAYMENT_STATUS_MAP: Record<
+  string,
+  MarketplaceManualPaymentStatus
+> = {
+  PENDING_PAYMENT: "MANUAL_PAYMENT_SUBMITTED",
+  PAYMENT_VERIFICATION: "CONFIRMED",
+  CANCELED: "REJECTED",
+  CANCELLED: "REJECTED",
 };
 
 export type MarketplaceOrderFilterValue = "all" | MarketplaceOrderStatus;
@@ -140,6 +161,41 @@ export function isMarketplaceTransitionAllowed(
   const from = normalizeMarketplaceOrderStatus(fromStatus);
   const to = normalizeMarketplaceOrderStatus(toStatus);
   return MARKETPLACE_ALLOWED_STATUS_TRANSITIONS[from].includes(to);
+}
+
+export function isMarketplaceTransitionReasonRequired(
+  fromStatus?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+  toStatus?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+) {
+  const from = normalizeMarketplaceOrderStatus(fromStatus);
+  const to = normalizeMarketplaceOrderStatus(toStatus);
+
+  if (to === "CANCELED") {
+    return true;
+  }
+
+  return from === "PROCESSING" && to === "COMPLETED";
+}
+
+export function normalizeMarketplaceManualPaymentStatus(
+  status?: MarketplaceManualPaymentStatus | string | null,
+): MarketplaceManualPaymentStatus {
+  const normalized = (status ?? "").trim().toUpperCase();
+  if (!normalized) {
+    return "MANUAL_PAYMENT_SUBMITTED";
+  }
+  if (normalized in MARKETPLACE_MANUAL_PAYMENT_STATUS_LABELS) {
+    return normalized as MarketplaceManualPaymentStatus;
+  }
+  return LEGACY_TO_MANUAL_PAYMENT_STATUS_MAP[normalized] ?? "MANUAL_PAYMENT_SUBMITTED";
+}
+
+export function getMarketplaceManualPaymentStatusLabel(
+  status?: MarketplaceManualPaymentStatus | string | null,
+) {
+  return MARKETPLACE_MANUAL_PAYMENT_STATUS_LABELS[
+    normalizeMarketplaceManualPaymentStatus(status)
+  ];
 }
 
 export function getMarketplaceCanonicalStatusLabel(

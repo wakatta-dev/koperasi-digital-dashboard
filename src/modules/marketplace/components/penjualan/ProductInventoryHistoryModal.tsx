@@ -119,7 +119,8 @@ export function ProductInventoryHistoryModal({
       const toBounds = toDayBounds(dateTo);
       data = data.filter((row) => {
         if (!row.timestampValue) return true;
-        if (fromBounds.startMs && row.timestampValue < fromBounds.startMs) return false;
+        if (fromBounds.startMs && row.timestampValue < fromBounds.startMs)
+          return false;
         if (toBounds.endMs && row.timestampValue > toBounds.endMs) return false;
         return true;
       });
@@ -178,14 +179,14 @@ export function ProductInventoryHistoryModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         overlayClassName="bg-slate-900/60 backdrop-blur-sm"
-        className="w-[min(100%-2rem,1100px)] max-w-none rounded-2xl border border-white/50 bg-white p-0 shadow-[0_30px_90px_rgba(2,6,23,0.5)] dark:border-slate-700 dark:bg-slate-900"
+        className="w-[calc(100vw-2rem)] !max-w-[calc(100vw-2rem)] xl:!max-w-[1260px] rounded-2xl border border-white/50 bg-white p-0 shadow-[0_30px_90px_rgba(2,6,23,0.5)] dark:border-slate-700 dark:bg-slate-900"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">
           Riwayat Inventaris Lengkap
         </DialogTitle>
-        <div className="max-h-[88vh] overflow-y-auto">
-          <div className="space-y-6 p-8 md:p-10">
+        <div className="flex h-[min(92vh,960px)] min-w-0 flex-col">
+          <div className="min-w-0 space-y-6 overflow-y-auto overflow-x-hidden p-6 md:p-8 lg:p-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -222,13 +223,13 @@ export function ProductInventoryHistoryModal({
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-900">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
+            <div className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-900">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+                <div className="lg:col-span-7 min-w-0">
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Rentang Tanggal
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
                     <InputField
                       ariaLabel="Tanggal mulai"
                       size="lg"
@@ -247,7 +248,7 @@ export function ProductInventoryHistoryModal({
                     />
                   </div>
                 </div>
-                <div>
+                <div className="lg:col-span-5 min-w-0">
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Tipe Aktivitas
                   </label>
@@ -265,7 +266,7 @@ export function ProductInventoryHistoryModal({
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                <div className="lg:col-span-7 min-w-0">
                   <InputField
                     label="Cari Referensi"
                     labelClassName="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider"
@@ -276,7 +277,7 @@ export function ProductInventoryHistoryModal({
                     placeholder="ID Invoice / Gudang"
                   />
                 </div>
-                <div className="flex items-end">
+                <div className="lg:col-span-5 flex items-end lg:justify-end">
                   <Button
                     type="button"
                     variant="ghost"
@@ -294,8 +295,9 @@ export function ProductInventoryHistoryModal({
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-              <Table className="w-full text-left">
+            <div className="w-full min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
+              <div className="w-full overflow-x-auto">
+                <Table className="min-w-[920px] w-full text-left">
                 <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
                   <TableRow>
                     <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
@@ -336,8 +338,8 @@ export function ProductInventoryHistoryModal({
                           {row.type}
                         </span>
                       </TableCell>
-                      <TableCell className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-indigo-600 hover:underline font-medium">
+                      <TableCell className="px-6 py-4">
+                        <span className="text-sm text-indigo-600 hover:underline font-medium break-words">
                           {row.reference}
                         </span>
                       </TableCell>
@@ -359,7 +361,8 @@ export function ProductInventoryHistoryModal({
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
               <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Menampilkan {pagedRows.length} dari {rows.length} riwayat

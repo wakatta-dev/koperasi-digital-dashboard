@@ -16,11 +16,13 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
       ? "Asset & Rental - Detail Aset"
       : pathname.startsWith("/bumdes/asset/penyewaan/")
         ? "Asset & Rental - Detail Penyewaan"
-        : pathname.startsWith("/bumdes/asset/pengajuan-sewa/")
-          ? "Asset & Rental - Detail Pengajuan Sewa"
-          : pathname.startsWith("/bumdes/asset/pengembalian/")
-            ? "Asset & Rental - Detail Pengembalian"
-            : "BUMDes");
+      : pathname.startsWith("/bumdes/asset/pengajuan-sewa/")
+        ? "Asset & Rental - Detail Pengajuan Sewa"
+      : pathname.startsWith("/bumdes/asset/pengembalian/")
+        ? "Asset & Rental - Detail Pengembalian"
+      : pathname.startsWith("/bumdes/accounting/vendor-bills-ap/")
+        ? "Accounting - Vendor Bills (AP) - Bill Detail"
+      : "BUMDes");
 
   return (
     <ProtectedRoute requiredRole="bumdes">

@@ -73,12 +73,6 @@ export function OrderSummaryCard({
         totalValue={formatCurrency(resolvedTotal) ?? "-"}
         footer="Termasuk PPN jika berlaku"
       />
-      <Button
-        asChild
-        className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-bold text-white hover:bg-indigo-700"
-      >
-        <Link href="/marketplace/pembayaran">Bayar Sekarang</Link>
-      </Button>
 
       <p className="text-right text-xs text-muted-foreground">
         {itemCount > 0 ? `${itemCount} item` : "0 item"}

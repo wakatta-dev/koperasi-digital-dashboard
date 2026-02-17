@@ -155,7 +155,8 @@ export function canCancelOrder(status?: string) {
   return (
     normalized === "PENDING_PAYMENT" ||
     normalized === "PAYMENT_VERIFICATION" ||
-    normalized === "PROCESSING"
+    normalized === "PROCESSING" ||
+    normalized === "IN_DELIVERY"
   );
 }
 

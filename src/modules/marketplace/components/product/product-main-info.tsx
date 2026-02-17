@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,101 @@ const formatAttributeLabel = (attributes?: Record<string, string>) => {
     .join(" / ");
 };
 
+const normalizeAttributeKey = (value: string) =>
+  value
+    .normalize("NFKD")
+    .replace(/_/g, " ")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .toLowerCase();
+
+type FlatVariantOption = {
+  id: number;
+  sku: string;
+  attributes?: Record<string, string>;
+  price: number;
+  stock: number;
+  track_stock: boolean;
+  variant_group_id: number;
+};
+
+const GROUP_ATTRIBUTE_SYNONYMS: Record<string, string[]> = {
+  warna: ["color", "colour"],
+  ukuran: ["size"],
+  rasa: ["flavor", "flavour"],
+};
+
+const getAttributeValueByKey = (
+  attributes: Record<string, string> | undefined,
+  key: string | undefined
+) => {
+  if (!attributes || !key) {
+    return "";
+  }
+  const target = normalizeAttributeKey(key);
+  for (const [rawKey, rawValue] of Object.entries(attributes)) {
+    if (normalizeAttributeKey(rawKey) === target) {
+      return rawValue.trim();
+    }
+  }
+  return "";
+};
+
+const resolveGroupAttributeKeys = (
+  groups: MarketplaceVariantGroupResponse[],
+  options: FlatVariantOption[]
+) => {
+  const availableAttrKeyMap = new Map<string, string>();
+  for (const option of options) {
+    for (const rawKey of Object.keys(option.attributes ?? {})) {
+      const normalized = normalizeAttributeKey(rawKey);
+      if (normalized && !availableAttrKeyMap.has(normalized)) {
+        availableAttrKeyMap.set(normalized, rawKey);
+      }
+    }
+  }
+
+  const resolved = new Map<number, string>();
+  const usedNormalized = new Set<string>();
+  for (const group of groups) {
+    const normalizedName = normalizeAttributeKey(group.name);
+    const directCandidates = [
+      normalizedName,
+      ...(GROUP_ATTRIBUTE_SYNONYMS[normalizedName] ?? []),
+    ];
+
+    let matched: string | undefined;
+    for (const candidate of directCandidates) {
+      if (availableAttrKeyMap.has(candidate) && !usedNormalized.has(candidate)) {
+        matched = candidate;
+        break;
+      }
+    }
+    if (!matched) {
+      for (const candidate of availableAttrKeyMap.keys()) {
+        if (usedNormalized.has(candidate)) {
+          continue;
+        }
+        if (candidate.includes(normalizedName) || normalizedName.includes(candidate)) {
+          matched = candidate;
+          break;
+        }
+      }
+    }
+    if (!matched) {
+      matched = [...availableAttrKeyMap.keys()].find(
+        (candidate) => !usedNormalized.has(candidate)
+      );
+    }
+    if (matched) {
+      usedNormalized.add(matched);
+      resolved.set(group.id, availableAttrKeyMap.get(matched) ?? matched);
+    }
+  }
+
+  return resolved;
+};
+
 export function ProductMainInfo({
   product,
   variantState,
@@ -51,11 +146,196 @@ export function ProductMainInfo({
   const { addItem } = useCartMutations();
   const actionBtnRef = useRef<HTMLButtonElement | null>(null);
   const activeVariantState = variantState?.hasVariants ? variantState : null;
-  const selectedGroup = activeVariantState
-    ? activeVariantState.groups.find(
-        (group) => group.id === activeVariantState.selectedGroupId
-      ) ?? null
-    : null;
+  const [selectedValuesByGroupId, setSelectedValuesByGroupId] = useState<
+    Record<number, string>
+  >({});
+  const flatOptions = useMemo<FlatVariantOption[]>(
+    () =>
+      activeVariantState
+        ? activeVariantState.groups.flatMap((group) =>
+            (group.options ?? []).map((option) => ({
+              ...option,
+              variant_group_id: group.id,
+            }))
+          )
+        : [],
+    [activeVariantState]
+  );
+  const selectedOption = useMemo(
+    () =>
+      activeVariantState
+        ? flatOptions.find(
+            (option) => option.id === activeVariantState.selectedOptionId
+          ) ?? null
+        : null,
+    [activeVariantState, flatOptions]
+  );
+  const selectedOptionGroupId = selectedOption?.variant_group_id;
+  const groupAttributeKeyMap = useMemo(
+    () =>
+      activeVariantState
+        ? resolveGroupAttributeKeys(activeVariantState.groups, flatOptions)
+        : new Map<number, string>(),
+    [activeVariantState, flatOptions]
+  );
+  const requiredGroupIDs = useMemo(
+    () =>
+      activeVariantState
+        ? activeVariantState.groups
+            .filter((group) => groupAttributeKeyMap.has(group.id))
+            .map((group) => group.id)
+        : [],
+    [activeVariantState, groupAttributeKeyMap]
+  );
+
+  useEffect(() => {
+    setSelectedValuesByGroupId({});
+  }, [product.id]);
+
+  useEffect(() => {
+    if (!activeVariantState || !selectedOption) {
+      return;
+    }
+    const nextValues: Record<number, string> = {};
+    for (const group of activeVariantState.groups) {
+      const key = groupAttributeKeyMap.get(group.id);
+      const value = getAttributeValueByKey(selectedOption.attributes, key);
+      if (value) {
+        nextValues[group.id] = value;
+      }
+    }
+    setSelectedValuesByGroupId((prev) => ({ ...prev, ...nextValues }));
+  }, [activeVariantState, selectedOption, groupAttributeKeyMap]);
+
+  const getMatchingOptions = (selectedValues: Record<number, string>) => {
+    if (!activeVariantState) {
+      return [];
+    }
+    return flatOptions.filter((option) =>
+      activeVariantState.groups.every((group) => {
+        const key = groupAttributeKeyMap.get(group.id);
+        if (!key) {
+          return true;
+        }
+        const wanted = selectedValues[group.id];
+        if (!wanted) {
+          return true;
+        }
+        return getAttributeValueByKey(option.attributes, key) === wanted;
+      })
+    );
+  };
+
+  const groupValueCountMap = useMemo(() => {
+    if (!activeVariantState) {
+      return new Map<number, number>();
+    }
+    const counts = new Map<number, number>();
+    for (const group of activeVariantState.groups) {
+      const key = groupAttributeKeyMap.get(group.id);
+      if (!key) {
+        counts.set(group.id, 0);
+        continue;
+      }
+      const uniqueValues = new Set<string>();
+      for (const option of flatOptions) {
+        const value = getAttributeValueByKey(option.attributes, key);
+        if (value) {
+          uniqueValues.add(value);
+        }
+      }
+      counts.set(group.id, uniqueValues.size);
+    }
+    return counts;
+  }, [activeVariantState, flatOptions, groupAttributeKeyMap]);
+
+  const groupValueItemsByGroup = useMemo(() => {
+    const result = new Map<
+      number,
+      Array<{
+        value: string;
+        selected: boolean;
+        disabled: boolean;
+        inStock: boolean;
+      }>
+    >();
+
+    if (!activeVariantState) {
+      return result;
+    }
+
+    for (const group of activeVariantState.groups) {
+      const groupKey = groupAttributeKeyMap.get(group.id);
+      if (!groupKey) {
+        result.set(group.id, []);
+        continue;
+      }
+
+      const uniqueValues = new Set<string>();
+      for (const option of flatOptions) {
+        const value = getAttributeValueByKey(option.attributes, groupKey);
+        if (value) {
+          uniqueValues.add(value);
+        }
+      }
+
+      const items = [...uniqueValues]
+        .sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }))
+        .map((value) => {
+          const nextSelectedValues = { ...selectedValuesByGroupId, [group.id]: value };
+          const matches = getMatchingOptions(nextSelectedValues);
+          const inStock = matches.some(
+            (option) => !option.track_stock || option.stock > 0
+          );
+          return {
+            value,
+            selected: selectedValuesByGroupId[group.id] === value,
+            disabled: matches.length === 0,
+            inStock,
+          };
+        });
+
+      result.set(group.id, items);
+    }
+
+    return result;
+  }, [
+    activeVariantState,
+    flatOptions,
+    groupAttributeKeyMap,
+    selectedValuesByGroupId,
+  ]);
+
+  const handleSelectVariantValue = (groupId: number, value: string) => {
+    if (!activeVariantState) {
+      return;
+    }
+
+    const nextValues = { ...selectedValuesByGroupId, [groupId]: value };
+    setSelectedValuesByGroupId(nextValues);
+
+    const selectionComplete =
+      requiredGroupIDs.length === 0 ||
+      requiredGroupIDs.every((id) => Boolean(nextValues[id]));
+    if (!selectionComplete) {
+      activeVariantState.onSelectGroup(groupId);
+      return;
+    }
+
+    const candidates = getMatchingOptions(nextValues);
+    if (candidates.length === 0) {
+      activeVariantState.onSelectGroup(groupId);
+      return;
+    }
+
+    const chosen =
+      candidates.find((option) => option.id === activeVariantState.selectedOptionId) ??
+      candidates.find((option) => !option.track_stock || option.stock > 0) ??
+      candidates[0];
+    if (chosen) {
+      activeVariantState.onSelectOption(chosen.id);
+    }
+  };
 
   const stockCap = Number(product.availableStock);
   const maxQty =
@@ -70,13 +350,24 @@ export function ProductMainInfo({
     }
     return Math.max(1, val);
   };
+  useEffect(() => {
+    setQuantity((prev) => clamp(prev));
+  }, [maxQty]);
+
+  const canDecrease = quantity > 1;
+  const canIncrease = maxQty === undefined || quantity < maxQty;
+  const variantSelectionComplete =
+    !activeVariantState ||
+    requiredGroupIDs.length === 0 ||
+    requiredGroupIDs.every((id) => Boolean(selectedValuesByGroupId[id]));
+  const canAddToCartEffective = canAddToCart && variantSelectionComplete;
 
   const decrease = () => setQuantity((prev) => clamp(prev - 1));
   const increase = () => setQuantity((prev) => clamp(prev + 1));
 
   const handleAdd = async () => {
     const qty = clamp(quantity);
-    if (activeVariantState && !activeVariantState.selectionReady) {
+    if (activeVariantState && !variantSelectionComplete) {
       showToastError("Pilih varian", "Silakan pilih varian terlebih dahulu");
       return;
     }
@@ -84,7 +375,7 @@ export function ProductMainInfo({
       showToastError("Harga belum tersedia", "Silakan pilih varian lain.");
       return;
     }
-    if (!canAddToCart) {
+    if (!canAddToCartEffective) {
       showToastError("Stok habis", "Produk tidak tersedia");
       return;
     }
@@ -102,7 +393,9 @@ export function ProductMainInfo({
       quantity: qty,
     };
     if (activeVariantState?.selectionReady) {
-      if (activeVariantState.selectedGroupId) {
+      if (selectedOptionGroupId) {
+        payload.variant_group_id = selectedOptionGroupId;
+      } else if (activeVariantState.selectedGroupId) {
         payload.variant_group_id = activeVariantState.selectedGroupId;
       }
       if (activeVariantState.selectedOptionId) {
@@ -194,81 +487,78 @@ export function ProductMainInfo({
           {product.shortDescription}
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
           {activeVariantState ? (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
                   {product.variantLabel}
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-3">
                   {activeVariantState.groups.map((group) => {
-                    const isSelected =
-                      group.id === activeVariantState.selectedGroupId;
+                    const valueItems = groupValueItemsByGroup.get(group.id) ?? [];
                     return (
-                      <button
-                        key={group.id}
-                        data-testid={`marketplace-product-detail-variant-group-${group.id}`}
-                        type="button"
-                        onClick={() => activeVariantState.onSelectGroup(group.id)}
-                        className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-                          isSelected
-                            ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-                            : "border-border text-muted-foreground hover:border-indigo-500"
-                        }`}
-                      >
-                        {group.image_url ? (
-                          <Image
-                            src={group.image_url}
-                            alt={group.name}
-                            width={24}
-                            height={24}
-                            className="h-6 w-6 rounded-full object-cover"
-                          />
+                      <div key={group.id} className="rounded-lg border border-border/80 bg-card p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-sm font-semibold text-foreground">{group.name}</p>
+                          <span className="text-xs text-muted-foreground">
+                            {valueItems.length} opsi
+                          </span>
+                        </div>
+                        {valueItems.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {valueItems.map((item) => (
+                              <button
+                                key={`${group.id}-${item.value}`}
+                                data-testid={`marketplace-product-detail-variant-option-${group.id}-${item.value}`}
+                                type="button"
+                                aria-pressed={item.selected}
+                                disabled={item.disabled}
+                                onClick={() => handleSelectVariantValue(group.id, item.value)}
+                                className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                                  item.selected
+                                    ? "border-indigo-500 bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300"
+                                    : "border-border bg-background text-foreground hover:border-indigo-400"
+                                } ${
+                                  item.disabled
+                                    ? "cursor-not-allowed opacity-45"
+                                    : ""
+                                }`}
+                                title={
+                                  item.disabled
+                                    ? "Kombinasi varian ini tidak tersedia"
+                                    : undefined
+                                }
+                              >
+                                {item.value}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            Opsi untuk grup ini belum tersedia.
+                          </p>
+                        )}
+                        {valueItems.some((item) => item.selected && !item.inStock) ? (
+                          <p className="mt-2 text-xs text-destructive">
+                            Nilai terpilih tidak memiliki stok.
+                          </p>
                         ) : null}
-                        <span>{group.name}</span>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  Ukuran
-                </label>
-                {selectedGroup ? (
-                  <div className="flex flex-wrap gap-2">
-                    {(selectedGroup.options ?? []).map((option) => {
-                      const label =
-                        formatAttributeLabel(option.attributes) || option.sku;
-                      const isSelected =
-                        option.id === activeVariantState.selectedOptionId;
-                      const isOutOfStock =
-                        option.track_stock && option.stock <= 0;
-                      return (
-                        <button
-                          key={option.id}
-                          data-testid={`marketplace-product-detail-variant-option-${option.id}`}
-                          type="button"
-                          onClick={() => activeVariantState.onSelectOption(option.id)}
-                          disabled={isOutOfStock}
-                          className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
-                            isSelected
-                              ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
-                              : "border-border text-muted-foreground hover:border-indigo-500"
-                          } ${isOutOfStock ? "opacity-40 cursor-not-allowed" : ""}`}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Pilih varian terlebih dahulu.
-                  </p>
-                )}
-              </div>
+              {selectedOption ? (
+                <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 px-3 py-2 text-xs text-indigo-700 dark:border-indigo-900/40 dark:bg-indigo-900/20 dark:text-indigo-300">
+                  Pilihan aktif:{" "}
+                  {formatAttributeLabel(selectedOption.attributes) || selectedOption.sku}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  Pilih kombinasi varian sesuai kebutuhan Anda.
+                </div>
+              )}
             </div>
           ) : (
             <div>
@@ -285,12 +575,13 @@ export function ProductMainInfo({
             <label className="block text-sm font-medium text-foreground mb-1.5">
               Jumlah
             </label>
-            <div className="flex items-center border border-border rounded-lg w-fit overflow-hidden">
+            <div className="flex items-center overflow-hidden rounded-xl border border-border bg-card">
               <button
                 data-testid="marketplace-product-detail-quantity-decrease-button"
                 type="button"
                 onClick={decrease}
-                className="px-3 py-2 bg-muted/40 hover:bg-muted text-muted-foreground border-r border-border"
+                disabled={!canDecrease}
+                className="h-11 w-11 border-r border-border bg-muted/30 text-muted-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="material-icons-outlined text-sm">remove</span>
               </button>
@@ -299,18 +590,25 @@ export function ProductMainInfo({
                 type="text"
                 value={quantity}
                 readOnly
-                className="w-12 text-center border-none focus:ring-0 bg-card text-foreground font-medium"
+                className="w-14 border-none bg-card text-center text-base font-semibold text-foreground focus:ring-0"
               />
               <button
                 data-testid="marketplace-product-detail-quantity-increase-button"
                 type="button"
                 onClick={increase}
-                className="px-3 py-2 bg-muted/40 hover:bg-muted text-muted-foreground border-l border-border disabled:opacity-50"
+                disabled={!canIncrease}
+                className="h-11 w-11 border-l border-border bg-muted/30 text-muted-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="material-icons-outlined text-sm">add</span>
               </button>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{product.stock}</p>
+            <p
+              className={`mt-1 text-xs ${
+                canAddToCartEffective ? "text-muted-foreground" : "text-destructive"
+              }`}
+            >
+              {product.stock}
+            </p>
           </div>
         </div>
 
@@ -319,7 +617,7 @@ export function ProductMainInfo({
             data-testid="marketplace-product-detail-buy-now-button"
             className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 h-auto"
             ref={actionBtnRef}
-            disabled={!canAddToCart}
+            disabled={!canAddToCartEffective}
             onClick={handleAdd}
           >
             <span className="material-icons-outlined text-xl">
@@ -331,7 +629,7 @@ export function ProductMainInfo({
             data-testid="marketplace-product-detail-add-to-cart-button"
             variant="outline"
             className="flex-1 border border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-6 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 h-auto"
-            disabled={!canAddToCart}
+            disabled={!canAddToCartEffective}
             onClick={handleAdd}
           >
             <span className="material-icons-outlined text-xl">

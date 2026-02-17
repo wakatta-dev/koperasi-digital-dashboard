@@ -14,9 +14,12 @@ import {
   type BuyerOrderContextReadResult,
 } from "./state/buyer-checkout-context";
 import { Button } from "@/components/ui/button";
-import { useMarketplaceOrder } from "@/hooks/queries/marketplace-orders";
+import { useMarketplaceGuestOrderStatus } from "@/hooks/queries/marketplace-orders";
 import { formatCurrency } from "@/lib/format";
-import { getMarketplaceCanonicalStatusLabel } from "@/modules/marketplace/utils/status";
+import {
+  getMarketplaceCanonicalStatusLabel,
+  getMarketplaceManualPaymentStatusLabel,
+} from "@/modules/marketplace/utils/status";
 import {
   classifyMarketplaceApiError,
   withMarketplaceDenyReasonMessage,
@@ -25,15 +28,16 @@ import {
 export function MarketplaceConfirmationPage() {
   const searchParams = useSearchParams();
   const orderId = Number(searchParams.get("order_id") ?? "");
+  const trackingToken = (searchParams.get("tracking_token") ?? "").trim();
 
   const {
-    data: orderDetail,
+    data: guestStatusDetail,
     isLoading,
     isError,
     error: orderQueryError,
     refetch,
-  } = useMarketplaceOrder(orderId, {
-    enabled: Number.isFinite(orderId) && orderId > 0,
+  } = useMarketplaceGuestOrderStatus(orderId, trackingToken, {
+    enabled: Number.isFinite(orderId) && orderId > 0 && trackingToken.length > 0,
   });
 
   const [contextResult, setContextResult] = useState<BuyerOrderContextReadResult>({
@@ -50,30 +54,30 @@ export function MarketplaceConfirmationPage() {
   }, [orderId]);
 
   const storedContext = contextResult.context;
-  const isBackendConfirmed = Boolean(orderDetail);
-  const usingLocalContext = Boolean(!orderDetail && storedContext);
-  const hasOrderContext = Boolean(orderId > 0 && (orderDetail || storedContext));
-  const orderItems = orderDetail?.items ?? storedContext?.order.items ?? [];
-  const total = orderDetail?.total ?? storedContext?.order.total ?? 0;
+  const isBackendConfirmed = Boolean(guestStatusDetail);
+  const usingLocalContext = Boolean(!guestStatusDetail && storedContext);
+  const hasOrderContext = Boolean(orderId > 0 && (guestStatusDetail || storedContext));
+  const orderItems = guestStatusDetail?.items ?? storedContext?.order.items ?? [];
+  const total = guestStatusDetail?.total ?? storedContext?.order.total ?? 0;
   const customerName =
-    orderDetail?.customer_name ?? storedContext?.checkout.customerName ?? "Pembeli";
+    storedContext?.checkout.customerName ?? "Pembeli";
   const customerAddress =
-    orderDetail?.customer_address ?? storedContext?.checkout.customerAddress ?? "-";
+    storedContext?.checkout.customerAddress ?? "-";
   const orderLabel = useMemo(() => {
-    if (orderDetail?.order_number) {
-      return `#${orderDetail.order_number}`;
+    if (guestStatusDetail?.order_number) {
+      return `#${guestStatusDetail.order_number}`;
     }
     if (storedContext?.order.id) {
       return `#ORD-${storedContext.order.id}`;
     }
     return "-";
-  }, [orderDetail?.order_number, storedContext?.order.id]);
+  }, [guestStatusDetail?.order_number, storedContext?.order.id]);
 
   const statusLabel = getMarketplaceCanonicalStatusLabel(
-    orderDetail?.status ?? storedContext?.order.status
+    guestStatusDetail?.status ?? storedContext?.order.status
   );
   const proofStatus =
-    orderDetail?.manual_payment?.status ?? storedContext?.manualPayment?.status;
+    storedContext?.manualPayment?.status;
 
   const orderErrorCopy = useMemo(() => {
     if (!isError) {
@@ -118,8 +122,11 @@ export function MarketplaceConfirmationPage() {
   }, [isError, orderQueryError]);
 
   const contextStateNotice = useMemo(() => {
-    if (orderDetail) {
+    if (guestStatusDetail) {
       return null;
+    }
+    if (!trackingToken && !storedContext) {
+      return "Token pelacakan tidak tersedia. Buka kembali dari halaman pelacakan pesanan untuk melihat konfirmasi dari backend.";
     }
     if (contextResult.state === "stale") {
       return `Context checkout lokal sudah kedaluwarsa (lebih dari ${Math.floor(
@@ -130,7 +137,7 @@ export function MarketplaceConfirmationPage() {
       return "Context checkout lokal tidak valid dan sudah dibersihkan. Silakan buka kembali dari keranjang atau pelacakan.";
     }
     return null;
-  }, [contextResult.state, orderDetail]);
+  }, [contextResult.state, guestStatusDetail, storedContext, trackingToken]);
 
   return (
     <div
@@ -259,7 +266,7 @@ export function MarketplaceConfirmationPage() {
                     <p className="text-muted-foreground">Bukti Pembayaran</p>
                     <p className="font-semibold text-foreground">
                       {proofStatus
-                        ? getMarketplaceCanonicalStatusLabel(proofStatus)
+                        ? getMarketplaceManualPaymentStatusLabel(proofStatus)
                         : "Menunggu upload"}
                     </p>
                   </div>
