@@ -3,6 +3,7 @@
 "use client";
 
 import { Search, Filter, ArrowUpDown, Plus, TreePine, ChartLine } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,12 +23,16 @@ import { ANALYTIC_ACCOUNT_CARDS, BUDGET_ROWS } from "../../constants/settings-du
 type FeatureAnalyticBudgetWorkspaceProps = {
   onCreateBudget?: () => void;
   onAddAnalyticAccount?: () => void;
+  onEditBudget?: (budgetId: string) => void;
 };
 
 export function FeatureAnalyticBudgetWorkspace({
   onCreateBudget,
   onAddAnalyticAccount,
+  onEditBudget,
 }: FeatureAnalyticBudgetWorkspaceProps) {
+  const [activeTab, setActiveTab] = useState<"analytic" | "budgets">("budgets");
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -42,11 +47,16 @@ export function FeatureAnalyticBudgetWorkspace({
         </div>
       </div>
 
-      <Tabs defaultValue="budgets" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as "analytic" | "budgets")}
+        className="w-full"
+      >
         <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
           <TabsList className="h-auto gap-6 rounded-none bg-transparent p-0">
             <TabsTrigger
               value="analytic"
+              onClick={() => setActiveTab("analytic")}
               className="rounded-none border-b-2 border-transparent px-1 py-4 text-sm font-medium data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600"
             >
               <TreePine className="mr-2 h-4 w-4" />
@@ -54,6 +64,7 @@ export function FeatureAnalyticBudgetWorkspace({
             </TabsTrigger>
             <TabsTrigger
               value="budgets"
+              onClick={() => setActiveTab("budgets")}
               className="rounded-none border-b-2 border-transparent px-1 py-4 text-sm font-medium data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600"
             >
               <ChartLine className="mr-2 h-4 w-4" />
@@ -64,7 +75,7 @@ export function FeatureAnalyticBudgetWorkspace({
             <Button type="button" variant="outline">
               Import Data
             </Button>
-            <TabsContent value="budgets" className="m-0 data-[state=inactive]:hidden">
+            {activeTab === "budgets" ? (
               <Button
                 type="button"
                 className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
@@ -73,8 +84,8 @@ export function FeatureAnalyticBudgetWorkspace({
                 <Plus className="h-4 w-4" />
                 Create Budget
               </Button>
-            </TabsContent>
-            <TabsContent value="analytic" className="m-0 data-[state=inactive]:hidden">
+            ) : null}
+            {activeTab === "analytic" ? (
               <Button
                 type="button"
                 className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
@@ -83,7 +94,7 @@ export function FeatureAnalyticBudgetWorkspace({
                 <Plus className="h-4 w-4" />
                 Add Analytic Account
               </Button>
-            </TabsContent>
+            ) : null}
           </div>
         </div>
 
@@ -170,6 +181,7 @@ export function FeatureAnalyticBudgetWorkspace({
                           type="button"
                           variant="link"
                           className="h-auto px-0 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                          onClick={() => onEditBudget?.(row.budget_id)}
                         >
                           Edit
                         </Button>
@@ -243,4 +255,3 @@ export function FeatureAnalyticBudgetWorkspace({
     </div>
   );
 }
-

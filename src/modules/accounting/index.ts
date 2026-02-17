@@ -1,6 +1,7 @@
 /** @format */
 
 export { InvoicingArFeatureDemo } from "./components/demo/InvoicingArFeatureDemo";
+export { AccountingSettingsFeatureDemo } from "./components/demo/AccountingSettingsFeatureDemo";
 export { InvoicingArIndexPage } from "./components/pages/InvoicingArIndexPage";
 export { InvoicingArCreateInvoicePage } from "./components/pages/InvoicingArCreateInvoicePage";
 export { InvoicingArInvoiceDetailPage } from "./components/pages/InvoicingArInvoiceDetailPage";
@@ -30,6 +31,18 @@ export { FeatureCurrenciesTable } from "./components/features/FeatureCurrenciesT
 export { FeatureCurrenciesSuccessToast } from "./components/features/FeatureCurrenciesSuccessToast";
 export { FeatureAnalyticBudgetWorkspace } from "./components/features/FeatureAnalyticBudgetWorkspace";
 export { FeatureAnalyticBudgetSuccessToast } from "./components/features/FeatureAnalyticBudgetSuccessToast";
+export { FeatureAddCoaAccountModal } from "./components/features/FeatureAddCoaAccountModal";
+export { FeatureEditCoaAccountModal } from "./components/features/FeatureEditCoaAccountModal";
+export { FeatureDeleteCoaAccountModal } from "./components/features/FeatureDeleteCoaAccountModal";
+export { FeatureTaxActionMenu } from "./components/features/FeatureTaxActionMenu";
+export { FeatureCreateTaxModal } from "./components/features/FeatureCreateTaxModal";
+export { FeatureEditTaxModal } from "./components/features/FeatureEditTaxModal";
+export { FeatureDeleteTaxModal } from "./components/features/FeatureDeleteTaxModal";
+export { FeatureAddCurrencyModal } from "./components/features/FeatureAddCurrencyModal";
+export { FeatureCreateBudgetModal } from "./components/features/FeatureCreateBudgetModal";
+export { FeatureEditBudgetModal } from "./components/features/FeatureEditBudgetModal";
+export { FeatureDeleteBudgetModal } from "./components/features/FeatureDeleteBudgetModal";
+export { FeatureAddAnalyticAccountModal } from "./components/features/FeatureAddAnalyticAccountModal";
 
 export type {
   CreditNoteDraftForm,

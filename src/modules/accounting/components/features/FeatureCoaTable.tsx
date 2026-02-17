@@ -21,6 +21,8 @@ import type { CoaAccountRow } from "../../types/settings";
 type FeatureCoaTableProps = {
   rows?: CoaAccountRow[];
   onAddAccount?: () => void;
+  onEditAccount?: (account: CoaAccountRow) => void;
+  onDeleteAccount?: (account: CoaAccountRow) => void;
 };
 
 const PAGE_SIZE = 12;
@@ -32,7 +34,12 @@ function indentClass(level: number) {
   return "pl-14";
 }
 
-export function FeatureCoaTable({ rows = COA_ROWS, onAddAccount }: FeatureCoaTableProps) {
+export function FeatureCoaTable({
+  rows = COA_ROWS,
+  onAddAccount,
+  onEditAccount,
+  onDeleteAccount,
+}: FeatureCoaTableProps) {
   const [page, setPage] = useState(1);
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -116,6 +123,7 @@ export function FeatureCoaTable({ rows = COA_ROWS, onAddAccount }: FeatureCoaTab
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        onClick={() => onEditAccount?.(row)}
                       >
                         <Pencil className="h-4 w-4" />
                         <span className="sr-only">Edit account</span>
@@ -126,6 +134,7 @@ export function FeatureCoaTable({ rows = COA_ROWS, onAddAccount }: FeatureCoaTab
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                          onClick={() => onDeleteAccount?.(row)}
                         >
                           <Trash2 className="h-4 w-4" />
                           <span className="sr-only">Delete account</span>
@@ -170,4 +179,3 @@ export function FeatureCoaTable({ rows = COA_ROWS, onAddAccount }: FeatureCoaTab
     </div>
   );
 }
-

@@ -3,6 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { MoreVertical, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ type FeatureTaxesTableProps = {
   rows?: TaxRow[];
   onCreateTax?: () => void;
   onOpenActions?: (tax: TaxRow) => void;
+  renderActions?: (tax: TaxRow) => ReactNode;
 };
 
 const TAX_TYPE_CLASS: Record<TaxRow["tax_type"], string> = {
@@ -41,6 +43,7 @@ export function FeatureTaxesTable({
   rows = TAX_ROWS,
   onCreateTax,
   onOpenActions,
+  renderActions,
 }: FeatureTaxesTableProps) {
   const [statusByTaxId, setStatusByTaxId] = useState<Record<string, boolean>>(() =>
     rows.reduce<Record<string, boolean>>((acc, row) => {
@@ -126,16 +129,20 @@ export function FeatureTaxesTable({
                     />
                   </TableCell>
                   <TableCell className="px-6 py-4 text-right">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
-                      onClick={() => onOpenActions?.(row)}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                      <span className="sr-only">Open tax actions</span>
-                    </Button>
+                    {renderActions ? (
+                      renderActions(row)
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
+                        onClick={() => onOpenActions?.(row)}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Open tax actions</span>
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -146,4 +153,3 @@ export function FeatureTaxesTable({
     </div>
   );
 }
-

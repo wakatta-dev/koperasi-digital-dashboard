@@ -1,6 +1,6 @@
 /** @format */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 
 import {
   AccountingSettingsAnalyticBudgetPage,
@@ -32,6 +32,8 @@ describe("accounting-settings core features", () => {
     render(<AccountingSettingsCurrenciesPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Add Currency" }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Add Currency" }));
 
     expect(await screen.findByText("New currency (GBP) has been added.")).toBeTruthy();
   });
@@ -40,9 +42,10 @@ describe("accounting-settings core features", () => {
     render(<AccountingSettingsAnalyticBudgetPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Create Budget" }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save Budget" }));
 
     expect(await screen.findByText('Budget "Q4 Sales Kickoff" has been created.')).toBeTruthy();
     expect(screen.getByPlaceholderText("Search budgets...")).toBeTruthy();
   });
 });
-
