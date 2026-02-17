@@ -1,7 +1,12 @@
 /** @format */
 
-export { InvoicingArFeaturePage } from "./components/InvoicingArFeaturePage";
 export { InvoicingArFeatureDemo } from "./components/demo/InvoicingArFeatureDemo";
+export { InvoicingArIndexPage } from "./components/pages/InvoicingArIndexPage";
+export { InvoicingArCreateInvoicePage } from "./components/pages/InvoicingArCreateInvoicePage";
+export { InvoicingArInvoiceDetailPage } from "./components/pages/InvoicingArInvoiceDetailPage";
+export { InvoicingArCreditNotesPaymentsPage } from "./components/pages/InvoicingArCreditNotesPaymentsPage";
+export { InvoicingArCreditNoteCreatePage } from "./components/pages/InvoicingArCreditNoteCreatePage";
+export { InvoicingArPaymentCreatePage } from "./components/pages/InvoicingArPaymentCreatePage";
 export { FeatureInvoiceSummaryCards } from "./components/features/FeatureInvoiceSummaryCards";
 export { FeatureInvoiceTable } from "./components/features/FeatureInvoiceTable";
 export { FeatureCreditNotesTable } from "./components/features/FeatureCreditNotesTable";
@@ -32,3 +37,4 @@ export {
   PAYMENT_STATUS_BADGE_CLASS,
   STITCH_PRIMARY_ACCENT_CLASS,
 } from "./constants/stitch";
+export { INVOICING_AR_ROUTES } from "./constants/routes";

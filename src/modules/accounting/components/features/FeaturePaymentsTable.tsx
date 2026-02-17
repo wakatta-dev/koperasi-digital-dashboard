@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { Search, Plus } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,9 +25,13 @@ import type { PaymentListItem } from "../../types/invoicing-ar";
 
 type FeaturePaymentsTableProps = {
   rows?: PaymentListItem[];
+  createHref?: string;
 };
 
-export function FeaturePaymentsTable({ rows = DUMMY_PAYMENTS }: FeaturePaymentsTableProps) {
+export function FeaturePaymentsTable({
+  rows = DUMMY_PAYMENTS,
+  createHref,
+}: FeaturePaymentsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredRows = useMemo(() => {
@@ -58,10 +63,19 @@ export function FeaturePaymentsTable({ rows = DUMMY_PAYMENTS }: FeaturePaymentsT
               className="w-48 border-gray-200 bg-gray-50 py-2 pr-4 pl-9 text-sm text-gray-900 transition-all focus-visible:w-64 focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
             />
           </div>
-          <Button type="button" className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
-            <Plus className="h-4 w-4" />
-            Record Payment
-          </Button>
+          {createHref ? (
+            <Button asChild type="button" className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+              <Link href={createHref}>
+                <Plus className="h-4 w-4" />
+                Record Payment
+              </Link>
+            </Button>
+          ) : (
+            <Button type="button" className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+              <Plus className="h-4 w-4" />
+              Record Payment
+            </Button>
+          )}
         </div>
       </CardHeader>
 

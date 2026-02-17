@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { Calendar, Search, MoreVertical } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,11 +32,15 @@ import type { InvoiceListItem, InvoiceStatus } from "../../types/invoicing-ar";
 
 type FeatureInvoiceTableProps = {
   rows?: InvoiceListItem[];
+  getInvoiceHref?: (row: InvoiceListItem) => string;
 };
 
 const PAGE_SIZE = 4;
 
-export function FeatureInvoiceTable({ rows = DUMMY_INVOICE_ITEMS }: FeatureInvoiceTableProps) {
+export function FeatureInvoiceTable({
+  rows = DUMMY_INVOICE_ITEMS,
+  getInvoiceHref,
+}: FeatureInvoiceTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [status, setStatus] = useState<"all" | InvoiceStatus>("all");
   const [page, setPage] = useState(1);
@@ -140,7 +145,13 @@ export function FeatureInvoiceTable({ rows = DUMMY_INVOICE_ITEMS }: FeatureInvoi
                 className="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
               >
                 <TableCell className="px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400">
-                  {row.invoice_number}
+                  {getInvoiceHref ? (
+                    <Link className="hover:underline" href={getInvoiceHref(row)}>
+                      {row.invoice_number}
+                    </Link>
+                  ) : (
+                    row.invoice_number
+                  )}
                 </TableCell>
                 <TableCell className="px-6 py-4 text-gray-900 dark:text-white">
                   {row.customer_name}

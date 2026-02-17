@@ -1,7 +1,7 @@
 /** @format */
 
-import { InvoicingArFeaturePage } from "@/modules/accounting/components/InvoicingArFeaturePage";
+import { InvoicingArIndexPage } from "@/modules/accounting";
 
 export default function AccountingInvoicingPage() {
-  return <InvoicingArFeaturePage />;
+  return <InvoicingArIndexPage />;
 }

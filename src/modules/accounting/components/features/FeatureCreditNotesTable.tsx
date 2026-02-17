@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { Search, Plus } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,9 +25,13 @@ import type { CreditNoteListItem } from "../../types/invoicing-ar";
 
 type FeatureCreditNotesTableProps = {
   rows?: CreditNoteListItem[];
+  createHref?: string;
 };
 
-export function FeatureCreditNotesTable({ rows = DUMMY_CREDIT_NOTES }: FeatureCreditNotesTableProps) {
+export function FeatureCreditNotesTable({
+  rows = DUMMY_CREDIT_NOTES,
+  createHref,
+}: FeatureCreditNotesTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredRows = useMemo(() => {
@@ -58,10 +63,19 @@ export function FeatureCreditNotesTable({ rows = DUMMY_CREDIT_NOTES }: FeatureCr
               className="w-48 border-gray-200 bg-gray-50 py-2 pr-4 pl-9 text-sm text-gray-900 transition-all focus-visible:w-64 focus-visible:ring-1 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
             />
           </div>
-          <Button type="button" variant="outline" className="gap-2 border-gray-200 dark:border-gray-700">
-            <Plus className="h-4 w-4" />
-            New Credit Note
-          </Button>
+          {createHref ? (
+            <Button asChild type="button" variant="outline" className="gap-2 border-gray-200 dark:border-gray-700">
+              <Link href={createHref}>
+                <Plus className="h-4 w-4" />
+                New Credit Note
+              </Link>
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" className="gap-2 border-gray-200 dark:border-gray-700">
+              <Plus className="h-4 w-4" />
+              New Credit Note
+            </Button>
+          )}
         </div>
       </CardHeader>
 
