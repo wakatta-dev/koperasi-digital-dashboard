@@ -6,6 +6,9 @@ export { FeatureInvoiceTable } from "./components/features/FeatureInvoiceTable";
 export { FeatureCreditNotesTable } from "./components/features/FeatureCreditNotesTable";
 export { FeaturePaymentsTable } from "./components/features/FeaturePaymentsTable";
 export { FeatureInvoiceDetailView } from "./components/features/FeatureInvoiceDetailView";
+export { FeatureCreateInvoiceModal } from "./components/features/FeatureCreateInvoiceModal";
+export { FeatureCreditNoteModal } from "./components/features/FeatureCreditNoteModal";
+export { FeatureReceivePaymentModal } from "./components/features/FeatureReceivePaymentModal";
 
 export type {
   CreditNoteDraftForm,

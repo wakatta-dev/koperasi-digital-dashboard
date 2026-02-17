@@ -14,19 +14,18 @@ describe("invoicing-ar foundation", () => {
     ).toBeTruthy();
   });
 
-  it("toggles local modal states without API calls", () => {
+  it("opens modal flows with local state only", () => {
     render(<InvoicingArFeatureDemo />);
 
-    const createInvoice = screen.getByRole("button", { name: "Create Invoice" });
-    const createCreditNote = screen.getByRole("button", { name: "Create Credit Note" });
-    const recordPayment = screen.getByRole("button", { name: "Record Payment" });
+    fireEvent.click(screen.getByRole("button", { name: "Create Invoice" }));
+    expect(screen.getByRole("heading", { name: "Create New Invoice" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
-    fireEvent.click(createInvoice);
-    fireEvent.click(createCreditNote);
-    fireEvent.click(recordPayment);
+    fireEvent.click(screen.getByRole("button", { name: "Create Credit Note" }));
+    expect(screen.getByRole("heading", { name: "New Credit Note" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
-    expect(screen.getByText("create_invoice modal: open")).toBeTruthy();
-    expect(screen.getByText("create_credit_note modal: open")).toBeTruthy();
-    expect(screen.getByText("record_payment modal: open")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Record Payment" }));
+    expect(screen.getByRole("heading", { name: "Record Payment" })).toBeTruthy();
   });
 });

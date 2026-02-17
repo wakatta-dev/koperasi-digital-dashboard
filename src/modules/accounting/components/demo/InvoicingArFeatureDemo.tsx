@@ -2,31 +2,19 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import {
-  DUMMY_CREDIT_NOTES,
-  DUMMY_INVOICE_ITEMS,
-  DUMMY_PAYMENTS,
-} from "../../constants/dummy-data";
 import { STITCH_PRIMARY_ACCENT_CLASS } from "../../constants/stitch";
+import { FeatureCreditNoteModal } from "../features/FeatureCreditNoteModal";
+import { FeatureCreateInvoiceModal } from "../features/FeatureCreateInvoiceModal";
+import { FeatureReceivePaymentModal } from "../features/FeatureReceivePaymentModal";
 
 export function InvoicingArFeatureDemo() {
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [creditOpen, setCreditOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
-
-  const summary = useMemo(
-    () => ({
-      invoices: DUMMY_INVOICE_ITEMS.length,
-      creditNotes: DUMMY_CREDIT_NOTES.length,
-      payments: DUMMY_PAYMENTS.length,
-    }),
-    []
-  );
 
   return (
     <section className="space-y-4" aria-label="Invoicing AR demo wrapper">
@@ -37,44 +25,21 @@ export function InvoicingArFeatureDemo() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Invoices</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xl font-semibold">{summary.invoices}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Credit Notes</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xl font-semibold">{summary.creditNotes}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Payments</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xl font-semibold">{summary.payments}</CardContent>
-        </Card>
-      </div>
-
       <div className="flex flex-wrap gap-2">
-        <Button type="button" className={STITCH_PRIMARY_ACCENT_CLASS} onClick={() => setInvoiceOpen((v) => !v)}>
+        <Button type="button" className={STITCH_PRIMARY_ACCENT_CLASS} onClick={() => setInvoiceOpen(true)}>
           Create Invoice
         </Button>
-        <Button type="button" variant="outline" onClick={() => setCreditOpen((v) => !v)}>
+        <Button type="button" variant="outline" onClick={() => setCreditOpen(true)}>
           Create Credit Note
         </Button>
-        <Button type="button" variant="outline" onClick={() => setPaymentOpen((v) => !v)}>
+        <Button type="button" variant="outline" onClick={() => setPaymentOpen(true)}>
           Record Payment
         </Button>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
-        <p>create_invoice modal: {invoiceOpen ? "open" : "closed"}</p>
-        <p>create_credit_note modal: {creditOpen ? "open" : "closed"}</p>
-        <p>record_payment modal: {paymentOpen ? "open" : "closed"}</p>
-      </div>
+      <FeatureCreateInvoiceModal open={invoiceOpen} onOpenChange={setInvoiceOpen} />
+      <FeatureCreditNoteModal open={creditOpen} onOpenChange={setCreditOpen} />
+      <FeatureReceivePaymentModal open={paymentOpen} onOpenChange={setPaymentOpen} />
     </section>
   );
 }
