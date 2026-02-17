@@ -8,6 +8,11 @@ export { InvoicingArInvoiceDetailPage } from "./components/pages/InvoicingArInvo
 export { InvoicingArCreditNotesPaymentsPage } from "./components/pages/InvoicingArCreditNotesPaymentsPage";
 export { InvoicingArCreditNoteCreatePage } from "./components/pages/InvoicingArCreditNoteCreatePage";
 export { InvoicingArPaymentCreatePage } from "./components/pages/InvoicingArPaymentCreatePage";
+export { VendorBillsApIndexPage } from "./components/pages/VendorBillsApIndexPage";
+export { VendorBillsApDetailPage } from "./components/pages/VendorBillsApDetailPage";
+export { VendorBillsApBatchPaymentPage } from "./components/pages/VendorBillsApBatchPaymentPage";
+export { VendorBillsApOcrReviewPage } from "./components/pages/VendorBillsApOcrReviewPage";
+export { VendorBillsApPaymentConfirmationPage } from "./components/pages/VendorBillsApPaymentConfirmationPage";
 export { AccountingSettingsIndexPage } from "./components/pages/AccountingSettingsIndexPage";
 export { AccountingSettingsCoaPage } from "./components/pages/AccountingSettingsCoaPage";
 export { AccountingSettingsTaxesPage } from "./components/pages/AccountingSettingsTaxesPage";
@@ -66,6 +71,7 @@ export {
   STITCH_PRIMARY_ACCENT_CLASS,
 } from "./constants/stitch";
 export { INVOICING_AR_ROUTES } from "./constants/routes";
+export { VENDOR_BILLS_AP_ROUTES } from "./constants/vendor-bills-ap-routes";
 export { ACCOUNTING_SETTINGS_ROUTES } from "./constants/settings-routes";
 export {
   ANALYTIC_ACCOUNT_CARDS,
