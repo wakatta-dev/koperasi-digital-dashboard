@@ -2,8 +2,8 @@
 
 "use client";
 
-import { FeatureCreditNoteModal } from "../features/FeatureCreditNoteModal";
+import { FeatureCreditNoteCreateForm } from "../features/FeatureCreditNoteCreateForm";
 
 export function InvoicingArCreditNoteCreatePage() {
-  return <FeatureCreditNoteModal open onOpenChange={() => {}} />;
+  return <FeatureCreditNoteCreateForm onSubmit={() => {}} />;
 }

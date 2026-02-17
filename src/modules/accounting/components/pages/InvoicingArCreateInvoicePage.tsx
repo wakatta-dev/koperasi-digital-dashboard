@@ -2,8 +2,8 @@
 
 "use client";
 
-import { FeatureCreateInvoiceModal } from "../features/FeatureCreateInvoiceModal";
+import { FeatureCreateInvoiceForm } from "../features/FeatureCreateInvoiceForm";
 
 export function InvoicingArCreateInvoicePage() {
-  return <FeatureCreateInvoiceModal open onOpenChange={() => {}} />;
+  return <FeatureCreateInvoiceForm onSubmit={() => {}} />;
 }

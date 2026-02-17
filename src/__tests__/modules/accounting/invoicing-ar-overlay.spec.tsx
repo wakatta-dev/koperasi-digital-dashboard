@@ -3,17 +3,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import {
-  FeatureCreateInvoiceModal,
-  FeatureCreditNoteModal,
-  FeatureReceivePaymentModal,
+  FeatureCreateInvoiceForm,
+  FeatureCreditNoteCreateForm,
+  FeaturePaymentCreateForm,
 } from "@/modules/accounting";
 
-describe("invoicing-ar overlay features", () => {
-  it("renders create invoice modal with backdrop and line item interactions", () => {
-    render(<FeatureCreateInvoiceModal open onOpenChange={() => {}} />);
+describe("invoicing-ar create forms", () => {
+  it("renders create invoice page form without backdrop and supports line item interactions", () => {
+    render(<FeatureCreateInvoiceForm onSubmit={() => {}} />);
 
     expect(screen.getByRole("heading", { name: "Create New Invoice" })).toBeTruthy();
-    expect(document.querySelector('[data-slot="dialog-overlay"]')).toBeTruthy();
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).toBeNull();
 
     const addLineItem = screen.getByRole("button", { name: "Add Line Item" });
     fireEvent.click(addLineItem);
@@ -24,8 +24,8 @@ describe("invoicing-ar overlay features", () => {
     expect(screen.getAllByLabelText(/Remove line item/).length).toBe(2);
   });
 
-  it("renders credit note modal with source labels and add/remove item", () => {
-    render(<FeatureCreditNoteModal open onOpenChange={() => {}} />);
+  it("renders credit note page form with source labels and add/remove item", () => {
+    render(<FeatureCreditNoteCreateForm onSubmit={() => {}} />);
 
     expect(screen.getByRole("heading", { name: "New Credit Note" })).toBeTruthy();
     expect(screen.getByText("Items to be Credited")).toBeTruthy();
@@ -36,8 +36,8 @@ describe("invoicing-ar overlay features", () => {
     expect(removeButtons.length).toBe(2);
   });
 
-  it("renders receive payment modal and toggles invoice selection", () => {
-    render(<FeatureReceivePaymentModal open onOpenChange={() => {}} />);
+  it("renders record payment page form and toggles invoice selection", () => {
+    render(<FeaturePaymentCreateForm onSubmit={() => {}} />);
 
     expect(screen.getByRole("heading", { name: "Record Payment" })).toBeTruthy();
     expect(screen.getByText("Pay Against Invoices")).toBeTruthy();

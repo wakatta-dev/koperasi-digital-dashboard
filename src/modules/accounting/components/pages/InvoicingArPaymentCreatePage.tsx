@@ -2,8 +2,8 @@
 
 "use client";
 
-import { FeatureReceivePaymentModal } from "../features/FeatureReceivePaymentModal";
+import { FeaturePaymentCreateForm } from "../features/FeaturePaymentCreateForm";
 
 export function InvoicingArPaymentCreatePage() {
-  return <FeatureReceivePaymentModal open onOpenChange={() => {}} />;
+  return <FeaturePaymentCreateForm onSubmit={() => {}} />;
 }

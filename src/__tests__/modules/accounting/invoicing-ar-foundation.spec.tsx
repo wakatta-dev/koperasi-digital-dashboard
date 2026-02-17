@@ -14,16 +14,14 @@ describe("invoicing-ar foundation", () => {
     ).toBeTruthy();
   });
 
-  it("opens modal flows with local state only", () => {
+  it("switches create page-form flows with local state only", () => {
     render(<InvoicingArFeatureDemo />);
 
     fireEvent.click(screen.getByRole("button", { name: "Create Invoice" }));
     expect(screen.getByRole("heading", { name: "Create New Invoice" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
     fireEvent.click(screen.getByRole("button", { name: "Create Credit Note" }));
     expect(screen.getByRole("heading", { name: "New Credit Note" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
     fireEvent.click(screen.getByRole("button", { name: "Record Payment" }));
     expect(screen.getByRole("heading", { name: "Record Payment" })).toBeTruthy();

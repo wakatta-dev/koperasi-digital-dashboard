@@ -7,14 +7,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import { STITCH_PRIMARY_ACCENT_CLASS } from "../../constants/stitch";
-import { FeatureCreditNoteModal } from "../features/FeatureCreditNoteModal";
-import { FeatureCreateInvoiceModal } from "../features/FeatureCreateInvoiceModal";
-import { FeatureReceivePaymentModal } from "../features/FeatureReceivePaymentModal";
+import { FeatureCreateInvoiceForm } from "../features/FeatureCreateInvoiceForm";
+import { FeatureCreditNoteCreateForm } from "../features/FeatureCreditNoteCreateForm";
+import { FeaturePaymentCreateForm } from "../features/FeaturePaymentCreateForm";
+
+type ActiveForm = "invoice" | "credit-note" | "payment";
 
 export function InvoicingArFeatureDemo() {
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
-  const [creditOpen, setCreditOpen] = useState(false);
-  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [activeForm, setActiveForm] = useState<ActiveForm | null>(null);
 
   return (
     <section className="space-y-4" aria-label="Invoicing AR demo wrapper">
@@ -26,20 +26,32 @@ export function InvoicingArFeatureDemo() {
       </header>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" className={STITCH_PRIMARY_ACCENT_CLASS} onClick={() => setInvoiceOpen(true)}>
+        <Button
+          type="button"
+          className={STITCH_PRIMARY_ACCENT_CLASS}
+          onClick={() => setActiveForm("invoice")}
+        >
           Create Invoice
         </Button>
-        <Button type="button" variant="outline" onClick={() => setCreditOpen(true)}>
+        <Button type="button" variant="outline" onClick={() => setActiveForm("credit-note")}>
           Create Credit Note
         </Button>
-        <Button type="button" variant="outline" onClick={() => setPaymentOpen(true)}>
+        <Button type="button" variant="outline" onClick={() => setActiveForm("payment")}>
           Record Payment
         </Button>
       </div>
 
-      <FeatureCreateInvoiceModal open={invoiceOpen} onOpenChange={setInvoiceOpen} />
-      <FeatureCreditNoteModal open={creditOpen} onOpenChange={setCreditOpen} />
-      <FeatureReceivePaymentModal open={paymentOpen} onOpenChange={setPaymentOpen} />
+      {activeForm === "invoice" ? (
+        <FeatureCreateInvoiceForm onCancel={() => setActiveForm(null)} onSubmit={() => {}} />
+      ) : null}
+
+      {activeForm === "credit-note" ? (
+        <FeatureCreditNoteCreateForm onCancel={() => setActiveForm(null)} onSubmit={() => {}} />
+      ) : null}
+
+      {activeForm === "payment" ? (
+        <FeaturePaymentCreateForm onCancel={() => setActiveForm(null)} onSubmit={() => {}} />
+      ) : null}
     </section>
   );
 }
