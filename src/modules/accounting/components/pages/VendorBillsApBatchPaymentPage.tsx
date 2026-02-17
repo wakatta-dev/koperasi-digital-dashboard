@@ -2,7 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 
-export function VendorBillsApBatchPaymentPage() {
+type VendorBillsApBatchPaymentPageProps = {
+  preselectedBillNumbers?: string[];
+};
+
+export function VendorBillsApBatchPaymentPage({
+  preselectedBillNumbers = [],
+}: VendorBillsApBatchPaymentPageProps) {
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -11,6 +17,11 @@ export function VendorBillsApBatchPaymentPage() {
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Review selected vendor bills and apply credit notes before confirming payment.
           </p>
+          {preselectedBillNumbers.length > 0 ? (
+            <p className="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+              Preselected bills: {preselectedBillNumbers.join(", ")}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap gap-2">

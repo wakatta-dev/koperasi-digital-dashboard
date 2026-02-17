@@ -1,10 +1,19 @@
 /** @format */
 
-import Link from "next/link";
+"use client";
 
-import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 
+import {
+  DUMMY_VENDOR_BILL_DETAIL,
+  DUMMY_VENDOR_BILL_DETAILS_BY_NUMBER,
+} from "../../constants/vendor-bills-ap-dummy";
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
+import { FeatureVendorBillDetailOverview } from "../features/FeatureVendorBillDetailOverview";
+import { FeatureVendorBillInternalNoteCard } from "../features/FeatureVendorBillInternalNoteCard";
+import { FeatureVendorBillLineItemsTable } from "../features/FeatureVendorBillLineItemsTable";
+import { FeatureVendorBillPaymentHistoryTable } from "../features/FeatureVendorBillPaymentHistoryTable";
 
 type VendorBillsApDetailPageProps = {
   billNumber?: string;
@@ -13,32 +22,26 @@ type VendorBillsApDetailPageProps = {
 export function VendorBillsApDetailPage({
   billNumber,
 }: VendorBillsApDetailPageProps) {
+  const router = useRouter();
   const normalizedBillNumber = (billNumber ?? "").trim();
+  const detail = useMemo(
+    () => DUMMY_VENDOR_BILL_DETAILS_BY_NUMBER[normalizedBillNumber] ?? DUMMY_VENDOR_BILL_DETAIL,
+    [normalizedBillNumber]
+  );
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {normalizedBillNumber || "Vendor Bill Detail"}
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Review vendor information, line items, payment history, and internal notes.
-          </p>
-        </div>
-
-        <Button asChild type="button" className="bg-indigo-600 text-white hover:bg-indigo-700">
-          <Link
-            href={
-              normalizedBillNumber
-                ? `${VENDOR_BILLS_AP_ROUTES.batchPayment}?bill=${encodeURIComponent(normalizedBillNumber)}`
-                : VENDOR_BILLS_AP_ROUTES.batchPayment
-            }
-          >
-            Pay Now
-          </Link>
-        </Button>
-      </section>
+      <FeatureVendorBillDetailOverview
+        detail={detail.overview}
+        onPayNow={() =>
+          router.push(
+            `${VENDOR_BILLS_AP_ROUTES.batchPayment}?bills=${encodeURIComponent(detail.overview.bill_number)}`
+          )
+        }
+      />
+      <FeatureVendorBillLineItemsTable rows={detail.line_items} totals={detail.totals} />
+      <FeatureVendorBillPaymentHistoryTable rows={detail.payment_history} />
+      <FeatureVendorBillInternalNoteCard note={detail.internal_note} />
     </div>
   );
 }

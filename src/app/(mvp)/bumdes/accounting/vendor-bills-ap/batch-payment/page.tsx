@@ -2,6 +2,20 @@
 
 import { VendorBillsApBatchPaymentPage } from "@/modules/accounting";
 
-export default function AccountingVendorBillsBatchPaymentPage() {
-  return <VendorBillsApBatchPaymentPage />;
+type AccountingVendorBillsBatchPaymentPageProps = {
+  searchParams: Promise<{
+    bills?: string;
+  }>;
+};
+
+export default async function AccountingVendorBillsBatchPaymentPage({
+  searchParams,
+}: AccountingVendorBillsBatchPaymentPageProps) {
+  const { bills } = await searchParams;
+  const preselectedBillNumbers = (bills ?? "")
+    .split(",")
+    .map((value) => decodeURIComponent(value).trim())
+    .filter(Boolean);
+
+  return <VendorBillsApBatchPaymentPage preselectedBillNumbers={preselectedBillNumbers} />;
 }

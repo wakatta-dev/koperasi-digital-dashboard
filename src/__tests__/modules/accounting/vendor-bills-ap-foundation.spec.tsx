@@ -1,6 +1,7 @@
 /** @format */
 
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 
 import {
   VendorBillsApBatchPaymentPage,
@@ -10,6 +11,12 @@ import {
   VendorBillsApPaymentConfirmationPage,
 } from "@/modules/accounting";
 import { bumdesNavigation, bumdesTitleMap } from "@/app/(mvp)/bumdes/navigation";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
 
 describe("vendor-bills-ap foundation", () => {
   it("renders all AP route page containers", () => {
@@ -25,9 +32,7 @@ describe("vendor-bills-ap foundation", () => {
 
     const detail = render(<VendorBillsApDetailPage billNumber="BILL-2023-089" />);
     expect(screen.getByRole("heading", { name: "BILL-2023-089" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Pay Now" }).getAttribute("href")).toBe(
-      "/bumdes/accounting/vendor-bills-ap/batch-payment?bill=BILL-2023-089"
-    );
+    expect(screen.getByRole("button", { name: "Pay Now" })).toBeTruthy();
     detail.unmount();
 
     const batch = render(<VendorBillsApBatchPaymentPage />);
