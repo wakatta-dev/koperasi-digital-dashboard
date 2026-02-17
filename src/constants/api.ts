@@ -141,6 +141,23 @@ export const API_ENDPOINTS = {
     budgetItem: (budgetId: string | number) =>
       `/accounting/settings/budgets/${encodeURIComponent(String(budgetId))}`,
   },
+  accountingJournal: {
+    overview: "/accounting/journal/overview",
+    entries: "/accounting/journal/entries",
+    entryDetail: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}`,
+    entryPost: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/post`,
+    entryReverse: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/reverse`,
+    entryPdf: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/pdf`,
+    entryAuditLogs: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/audit-logs`,
+    auditLogs: "/accounting/journal/audit-logs",
+    periodLocks: "/accounting/journal/period-locks",
+    periodLockCurrent: "/accounting/journal/period-locks/current",
+  },
   bumdesReport: {
     overview: "/finance/reports/overview",
     profitLoss: "/finance/reports/profit-loss",

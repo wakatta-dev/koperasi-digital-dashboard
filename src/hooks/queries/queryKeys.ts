@@ -108,6 +108,27 @@ export const QK = {
     budgets: (params?: Record<string, unknown>) =>
       ["accounting-settings", "budgets", params ?? {}] as const,
   },
+  accountingJournal: {
+    overview: () => ["accounting-journal", "overview"] as const,
+    entries: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "entries", params ?? {}] as const,
+    entryDetail: (journalNumber: string | number) =>
+      ["accounting-journal", "entry-detail", String(journalNumber)] as const,
+    entryAuditLogs: (
+      journalNumber: string | number,
+      params?: Record<string, unknown>
+    ) =>
+      [
+        "accounting-journal",
+        "entry-audit-logs",
+        String(journalNumber),
+        params ?? {},
+      ] as const,
+    auditLogs: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "audit-logs", params ?? {}] as const,
+    periodLockCurrent: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "period-lock-current", params ?? {}] as const,
+  },
   assetRental: {
     list: (params?: Record<string, unknown>) =>
       ["asset-rental", "assets", params ?? {}] as const,
@@ -199,6 +220,12 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingSettings.currencies
   | typeof QK.accountingSettings.analyticAccounts
   | typeof QK.accountingSettings.budgets
+  | typeof QK.accountingJournal.overview
+  | typeof QK.accountingJournal.entries
+  | typeof QK.accountingJournal.entryDetail
+  | typeof QK.accountingJournal.entryAuditLogs
+  | typeof QK.accountingJournal.auditLogs
+  | typeof QK.accountingJournal.periodLockCurrent
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.masterData
