@@ -112,7 +112,7 @@ export function VendorBillsApDetailPage({
   const detail = mappedDetail;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-y-auto">
       {!normalizedBillNumber ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           Bill number is required.

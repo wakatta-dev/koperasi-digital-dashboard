@@ -48,7 +48,7 @@ export function VendorBillsApPaymentConfirmationPage({
   }, [batchDetailQuery.data]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-y-auto">
       {!batchReference ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           Batch reference is required to load payment confirmation details.

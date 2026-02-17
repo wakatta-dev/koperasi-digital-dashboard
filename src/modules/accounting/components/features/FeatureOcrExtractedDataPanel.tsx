@@ -25,7 +25,7 @@ export function FeatureOcrExtractedDataPanel({
   };
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+    <Card className="flex h-full min-h-0 flex-1 flex-col overflow-hidden border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
       <div className="border-b border-gray-200 p-6 dark:border-gray-700">
         <h3 className="text-lg font-bold text-gray-900 dark:text-white">Extracted Data</h3>
         <p className="mt-1 text-xs text-gray-500">
@@ -33,7 +33,7 @@ export function FeatureOcrExtractedDataPanel({
         </p>
       </div>
 
-      <div className="flex-1 space-y-6 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
         <div className="space-y-4">
           <h4 className="text-xs font-bold tracking-wider text-gray-400 uppercase">
             General Information

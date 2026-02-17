@@ -15,7 +15,7 @@ export function FeatureOcrAccuracyFooter({
   onSaveProgress,
 }: FeatureOcrAccuracyFooterProps) {
   return (
-    <footer className="border-t border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50">
+    <footer className="shrink-0 border-t border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800/50">
       <div className="mb-4 flex items-center justify-between">
         <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
           OCR Accuracy Score

@@ -85,7 +85,8 @@ export function FeatureCreateVendorBillModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         overlayClassName="bg-gray-900/60 backdrop-blur-sm"
-        className="max-h-[90vh] max-w-5xl gap-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 dark:border-gray-700 dark:bg-gray-900"
+        style={{ width: "80vw", maxWidth: "80vw" }}
+        className="flex max-h-[90vh] min-h-0 flex-col gap-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 dark:border-gray-700 dark:bg-gray-900"
       >
         <DialogHeader className="border-b border-gray-100 px-8 py-5 dark:border-gray-700">
           <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
@@ -96,7 +97,7 @@ export function FeatureCreateVendorBillModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 space-y-8 overflow-y-auto p-8">
+        <div className="min-h-0 flex-1 space-y-8 overflow-y-auto p-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="lg:col-span-2">
               <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">

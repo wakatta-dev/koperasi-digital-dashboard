@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -122,6 +122,17 @@ function toOcrSessionModel(params: {
   };
 }
 
+function toOcrErrorMessage(err: unknown): string {
+  const parsed = toAccountingApApiError(err);
+  const lowered = parsed.message.toLowerCase();
+
+  if (lowered.includes("failed to fetch") || lowered.includes("networkerror")) {
+    return "Unable to reach OCR API. Check CORS allow-origin/allow-headers and NEXT_PUBLIC_API_URL.";
+  }
+
+  return parsed.message;
+}
+
 export function VendorBillsApOcrReviewPage() {
   const router = useRouter();
   const ocrMutations = useAccountingApOcrMutations();
@@ -136,41 +147,39 @@ export function VendorBillsApOcrReviewPage() {
     })
   );
 
+  const initializeOcrSession = useCallback(async () => {
+    setErrorMessage(null);
+
+    try {
+      const created = await Promise.resolve(
+        ocrMutations.createOcrSession.mutateAsync({
+          payload: {
+            file_name: DEFAULT_OCR_FILE_NAME,
+            file_size_bytes: DEFAULT_OCR_FILE_SIZE_BYTES,
+            raw_payload: DEFAULT_OCR_RAW_PAYLOAD,
+          },
+        })
+      );
+
+      if (!created) return;
+      setSession(
+        toOcrSessionModel({
+          sessionId: created.session_id || "OCR-DRAFT",
+          fileName: DEFAULT_OCR_FILE_NAME,
+          accuracyPercent: created.accuracy_percent ?? 88,
+          extractedData: created.extracted_data ?? DEFAULT_OCR_RAW_PAYLOAD,
+        })
+      );
+    } catch (err) {
+      setErrorMessage(toOcrErrorMessage(err));
+    }
+  }, [ocrMutations.createOcrSession]);
+
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
-
-    const idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `ocr-init-${Date.now()}`;
-    void Promise.resolve(
-      ocrMutations.createOcrSession.mutateAsync({
-        payload: {
-          file_name: DEFAULT_OCR_FILE_NAME,
-          file_size_bytes: DEFAULT_OCR_FILE_SIZE_BYTES,
-          raw_payload: DEFAULT_OCR_RAW_PAYLOAD,
-        },
-        idempotencyKey,
-      })
-    )
-      .then((created) => {
-        if (!created) return;
-        setSession(
-          toOcrSessionModel({
-            sessionId: created.session_id || "OCR-DRAFT",
-            fileName: DEFAULT_OCR_FILE_NAME,
-            accuracyPercent: created.accuracy_percent ?? 88,
-            extractedData: created.extracted_data ?? DEFAULT_OCR_RAW_PAYLOAD,
-          })
-        );
-      })
-      .catch((err) => {
-        const parsed = toAccountingApApiError(err);
-        if (parsed.statusCode === 409 || parsed.statusCode === 422 || parsed.statusCode === 429) {
-          setErrorMessage(parsed.message);
-          return;
-        }
-        toast.error(parsed.message);
-      });
-  }, [ocrMutations.createOcrSession]);
+    void initializeOcrSession();
+  }, [initializeOcrSession]);
 
   const handleSaveProgress = async () => {
     setErrorMessage(null);
@@ -190,11 +199,13 @@ export function VendorBillsApOcrReviewPage() {
       toast.success("OCR progress saved");
     } catch (err) {
       const parsed = toAccountingApApiError(err);
+      const message = toOcrErrorMessage(err);
       if (parsed.statusCode === 409 || parsed.statusCode === 422 || parsed.statusCode === 429) {
-        setErrorMessage(parsed.message);
+        setErrorMessage(message);
         return;
       }
-      toast.error(parsed.message);
+      setErrorMessage(message);
+      toast.error(message);
     }
   };
 
@@ -211,23 +222,24 @@ export function VendorBillsApOcrReviewPage() {
             line_items: session.line_items,
           },
         },
-        idempotencyKey: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
       });
 
       toast.success("Vendor bill created from OCR");
       router.push(VENDOR_BILLS_AP_ROUTES.detail(created.bill_number));
     } catch (err) {
       const parsed = toAccountingApApiError(err);
+      const message = toOcrErrorMessage(err);
       if (parsed.statusCode === 409 || parsed.statusCode === 422 || parsed.statusCode === 429) {
-        setErrorMessage(parsed.message);
+        setErrorMessage(message);
         return;
       }
-      toast.error(parsed.message);
+      setErrorMessage(message);
+      toast.error(message);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 overflow-y-auto">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -239,11 +251,27 @@ export function VendorBillsApOcrReviewPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {errorMessage ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="border-gray-200 dark:border-gray-700"
+              onClick={() => {
+                void initializeOcrSession();
+              }}
+              disabled={ocrMutations.createOcrSession.isPending}
+            >
+              Retry OCR Session
+            </Button>
+          ) : null}
           <Button
             type="button"
             className="bg-indigo-600 text-white hover:bg-indigo-700"
             onClick={handleConfirm}
-            disabled={ocrMutations.confirmOcrSession.isPending || ocrMutations.createOcrSession.isPending}
+            disabled={
+              ocrMutations.confirmOcrSession.isPending ||
+              ocrMutations.createOcrSession.isPending
+            }
           >
             {ocrMutations.createOcrSession.isPending
               ? "Preparing OCR Session..."
@@ -260,9 +288,9 @@ export function VendorBillsApOcrReviewPage() {
         </div>
       ) : null}
 
-      <div className="grid h-[720px] grid-cols-1 gap-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 xl:grid-cols-[1fr_450px]">
+      <div className="grid h-[min(78vh,780px)] min-h-[560px] grid-cols-1 gap-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 xl:grid-cols-[1fr_450px]">
         <FeatureOcrDocumentPreviewPanel session={session} />
-        <div className="flex h-full flex-col border-l border-gray-200 dark:border-gray-700">
+        <div className="flex h-full min-h-0 flex-col border-t border-gray-200 dark:border-gray-700 xl:border-t-0 xl:border-l">
           <FeatureOcrExtractedDataPanel session={session} onSessionChange={setSession} />
           <FeatureOcrAccuracyFooter
             accuracyScore={session.accuracy_score}
