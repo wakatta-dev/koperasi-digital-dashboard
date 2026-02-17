@@ -29,6 +29,8 @@ export type OrderStatusModalProps = Readonly<{
   submitDisabled?: boolean;
   isSubmitting?: boolean;
   note: string;
+  reasonRequired?: boolean;
+  noteError?: string;
   onStatusChange: (value: string) => void;
   onNoteChange: (value: string) => void;
   onSubmit: () => void;
@@ -44,6 +46,8 @@ export function OrderStatusModal({
   submitDisabled = false,
   isSubmitting = false,
   note,
+  reasonRequired = false,
+  noteError,
   onStatusChange,
   onNoteChange,
   onSubmit,
@@ -110,19 +114,34 @@ export function OrderStatusModal({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Catatan Internal <span className="text-xs font-normal text-gray-400">(Opsional)</span>
+              Catatan Internal{" "}
+              <span className="text-xs font-normal text-gray-400">
+                {reasonRequired ? "(Wajib)" : "(Opsional)"}
+              </span>
             </label>
             <Textarea
               value={note}
               onChange={(event) => onNoteChange(event.target.value)}
-              placeholder="Tambahkan alasan atau catatan untuk perubahan ini..."
+              placeholder={
+                reasonRequired
+                  ? "Wajib isi alasan perubahan status ini..."
+                  : "Tambahkan alasan atau catatan untuk perubahan ini..."
+              }
               rows={3}
               className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg py-2.5 px-4 focus-visible:ring-2 focus-visible:ring-indigo-600/50 focus-visible:border-indigo-600 transition-all resize-none"
+              aria-invalid={Boolean(noteError)}
             />
+            {noteError ? (
+              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{noteError}</p>
+            ) : null}
           </div>
           <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-700 dark:text-blue-300">
             <Info className="h-4 w-4 flex-shrink-0" />
-            <span>Email notifikasi akan dikirimkan ke pelanggan secara otomatis.</span>
+            <span>
+              {reasonRequired
+                ? "Alasan wajib untuk transisi berisiko agar jejak audit tetap aman."
+                : "Catatan membantu audit internal saat status pesanan diperbarui."}
+            </span>
           </div>
         </div>
         <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-3">

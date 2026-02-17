@@ -12,6 +12,7 @@ import type {
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderManualPaymentResponse,
+  MarketplaceManualPaymentDecisionRequest,
   MarketplaceOrderReviewSubmitRequest,
   MarketplaceOrderResponse,
   MarketplaceOrderStatusUpdateRequest,
@@ -394,6 +395,16 @@ export function updateMarketplaceOrderStatus(
 ): Promise<ApiResponse<MarketplaceOrderDetailResponse>> {
   return api.patch<MarketplaceOrderDetailResponse>(
     `${API_PREFIX}${E.orderStatus(id)}`,
+    payload
+  );
+}
+
+export function decideMarketplaceManualPayment(
+  id: string | number,
+  payload: MarketplaceManualPaymentDecisionRequest
+): Promise<ApiResponse<MarketplaceOrderDetailResponse>> {
+  return api.patch<MarketplaceOrderDetailResponse>(
+    `${API_PREFIX}${E.orderManualPaymentDecision(id)}`,
     payload
   );
 }

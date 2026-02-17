@@ -50,7 +50,7 @@ const TRACKING_RECOVERY_PRESET = {
 
 function parseOrderIdFromOrderNumber(orderNumber: string): number | null {
   const normalized = orderNumber.trim().toUpperCase();
-  const match = normalized.match(/^ORD-(\d+)$/);
+  const match = normalized.match(/^ORD-(?:\d{4}-)?(\d+)$/);
   if (!match) {
     return null;
   }

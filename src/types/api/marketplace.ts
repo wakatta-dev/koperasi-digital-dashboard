@@ -197,6 +197,11 @@ export type MarketplaceOrderStatusUpdateRequest = {
   reason?: string;
 };
 
+export type MarketplaceManualPaymentDecisionRequest = {
+  status: MarketplaceManualPaymentStatus;
+  reason?: string;
+};
+
 export type MarketplaceGuestTrackRequest = {
   order_number: string;
   contact: string;

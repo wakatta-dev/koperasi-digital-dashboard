@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { QK } from "./queryKeys";
 import {
+  decideMarketplaceManualPayment,
   ensureMarketplaceSuccess,
   getMarketplaceGuestOrderStatus,
   getMarketplaceOrderDetail,
@@ -14,6 +15,7 @@ import {
 } from "@/services/api";
 import type {
   MarketplaceGuestOrderStatusDetailResponse,
+  MarketplaceManualPaymentDecisionRequest,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderStatusUpdateRequest,
@@ -105,7 +107,25 @@ export function useMarketplaceOrderActions() {
       toast.error(err?.message || "Gagal memperbarui status pesanan"),
   });
 
+  const decideManualPayment = useMutation({
+    mutationFn: async (vars: {
+      id: string | number;
+      payload: MarketplaceManualPaymentDecisionRequest;
+    }) =>
+      ensureMarketplaceSuccess(
+        await decideMarketplaceManualPayment(vars.id, vars.payload)
+      ),
+    onSuccess: (_data, vars) => {
+      invalidateLists();
+      invalidateDetail(vars.id);
+      toast.success("Keputusan pembayaran manual diperbarui");
+    },
+    onError: (err: any) =>
+      toast.error(err?.message || "Gagal memperbarui keputusan pembayaran manual"),
+  });
+
   return {
     updateStatus,
+    decideManualPayment,
   } as const;
 }

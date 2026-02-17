@@ -163,6 +163,20 @@ export function isMarketplaceTransitionAllowed(
   return MARKETPLACE_ALLOWED_STATUS_TRANSITIONS[from].includes(to);
 }
 
+export function isMarketplaceTransitionReasonRequired(
+  fromStatus?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+  toStatus?: MarketplaceOrderStatusInput | MarketplaceOrderStatus | string | null,
+) {
+  const from = normalizeMarketplaceOrderStatus(fromStatus);
+  const to = normalizeMarketplaceOrderStatus(toStatus);
+
+  if (to === "CANCELED") {
+    return true;
+  }
+
+  return from === "PROCESSING" && to === "COMPLETED";
+}
+
 export function normalizeMarketplaceManualPaymentStatus(
   status?: MarketplaceManualPaymentStatus | string | null,
 ): MarketplaceManualPaymentStatus {

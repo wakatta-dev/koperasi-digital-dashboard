@@ -11,6 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMarketplaceOrder, useMarketplaceOrderActions } from "@/hooks/queries/marketplace-orders";
 import { formatCurrency } from "@/lib/format";
 import { formatOrderDateTime, formatOrderNumber, normalizeOrderStatus } from "../utils";
+import {
+  isMarketplaceTransitionAllowed,
+  isMarketplaceTransitionReasonRequired,
+} from "@/modules/marketplace/utils/status";
 import type { MarketplaceOrderStatusInput } from "@/types/api/marketplace";
 
 type OrderManualPaymentPageProps = {
@@ -79,13 +83,14 @@ const normalizeManualPaymentStatus = (status?: string): ManualPaymentStatus => {
 
 export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
   const { data: order, isLoading, isError, error } = useMarketplaceOrder(id);
-  const { updateStatus } = useMarketplaceOrderActions();
+  const { decideManualPayment } = useMarketplaceOrderActions();
   const manualPayment = order?.manual_payment;
   const statusKey = manualPayment?.status ?? "WAITING_MANUAL_CONFIRMATION";
   const status = manualStatusMap[statusKey] ?? manualStatusMap.WAITING_MANUAL_CONFIRMATION;
   const normalizedStatus = normalizeManualPaymentStatus(statusKey);
   const [selectedStatus, setSelectedStatus] = useState<ManualPaymentStatus>(normalizedStatus);
   const [adminNote, setAdminNote] = useState("");
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedStatus(normalizeManualPaymentStatus(statusKey));
@@ -101,20 +106,34 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
   );
   const targetOrderStatus = selectedOption?.orderStatus;
   const currentOrderStatus = normalizeOrderStatus(order?.status);
-  const isSubmitting = updateStatus.isPending;
-  const isStatusUnchanged =
-    !targetOrderStatus || currentOrderStatus === targetOrderStatus;
+  const isSubmitting = decideManualPayment.isPending;
+  const isStatusUnchanged = selectedStatus === normalizedStatus;
+  const isTransitionAllowed = Boolean(targetOrderStatus)
+    && isMarketplaceTransitionAllowed(currentOrderStatus, targetOrderStatus);
+  const reasonRequired = isMarketplaceTransitionReasonRequired(
+    currentOrderStatus,
+    targetOrderStatus
+  );
 
   const handleConfirm = async () => {
     if (!order || !targetOrderStatus || isSubmitting) return;
+    if (!isTransitionAllowed) {
+      setNoteError("Perubahan status tidak valid untuk kondisi pesanan saat ini.");
+      return;
+    }
     const reason = adminNote.trim();
-    await updateStatus.mutateAsync({
+    if (reasonRequired && reason.length === 0) {
+      setNoteError("Alasan wajib diisi untuk transisi status ini.");
+      return;
+    }
+    await decideManualPayment.mutateAsync({
       id: order.id,
       payload: {
-        status: targetOrderStatus,
+        status: selectedStatus,
         ...(reason ? { reason } : {}),
       },
     });
+    setNoteError(null);
   };
 
   return (
@@ -425,9 +444,10 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                         </label>
                         <Select
                           value={selectedStatus}
-                          onValueChange={(value) =>
-                            setSelectedStatus(value as ManualPaymentStatus)
-                          }
+                          onValueChange={(value) => {
+                            setSelectedStatus(value as ManualPaymentStatus);
+                            setNoteError(null);
+                          }}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Pilih status" />
@@ -445,21 +465,42 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                         <label className="block text-sm font-medium text-foreground mb-2">
                           Catatan Admin{" "}
                           <span className="text-xs font-normal text-muted-foreground">
-                            (Opsional)
+                            {reasonRequired ? "(Wajib)" : "(Opsional)"}
                           </span>
                         </label>
                         <Textarea
-                          placeholder="Tambahkan catatan internal mengenai verifikasi ini..."
+                          placeholder={
+                            reasonRequired
+                              ? "Wajib isi alasan untuk perubahan status ini..."
+                              : "Tambahkan catatan internal mengenai verifikasi ini..."
+                          }
                           rows={4}
                           value={adminNote}
-                          onChange={(event) => setAdminNote(event.target.value)}
+                          aria-invalid={Boolean(noteError)}
+                          onChange={(event) => {
+                            setAdminNote(event.target.value);
+                            if (noteError) {
+                              setNoteError(null);
+                            }
+                          }}
                         />
+                        {noteError ? (
+                          <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                            {noteError}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="pt-4 border-t border-border space-y-3">
                         <Button
                           className="w-full"
                           onClick={handleConfirm}
-                          disabled={!order || isSubmitting || isStatusUnchanged}
+                          disabled={
+                            !order ||
+                            isSubmitting ||
+                            isStatusUnchanged ||
+                            !isTransitionAllowed ||
+                            (reasonRequired && adminNote.trim().length === 0)
+                          }
                         >
                           {isSubmitting
                             ? "Menyimpan..."
@@ -480,10 +521,16 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                           </div>
                           <div className="ml-3 flex-1 md:flex md:justify-between">
                             <p className="text-xs text-blue-700 dark:text-blue-300">
-                              Mengubah status menjadi <strong>Lunas</strong>{" "}
-                              akan otomatis memperbarui status pesanan dan
-                              mengirim notifikasi email ke pelanggan.
+                              Gunakan status ini sesuai hasil verifikasi aktual.
+                              Alasan perubahan diwajibkan untuk transisi berisiko
+                              agar jejak audit tetap aman.
                             </p>
+                            {!isTransitionAllowed ? (
+                              <p className="mt-2 text-xs text-red-700 dark:text-red-300">
+                                Kombinasi status yang dipilih tidak valid untuk status
+                                pesanan saat ini.
+                              </p>
+                            ) : null}
                           </div>
                         </div>
                       </div>

@@ -85,6 +85,8 @@ export const API_ENDPOINTS = {
     orderStatus: (id: string | number) => `/marketplace/orders/${id}/status`,
     orderManualPayment: (id: string | number) =>
       `/marketplace/orders/${id}/manual-payment`,
+    orderManualPaymentDecision: (id: string | number) =>
+      `/marketplace/orders/${id}/manual-payment/decision`,
     customers: "/marketplace/customers",
     customer: (id: string | number) => `/marketplace/customers/${id}`,
   },

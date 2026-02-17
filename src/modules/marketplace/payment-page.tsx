@@ -49,7 +49,9 @@ export function MarketplacePaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = Number(searchParams.get("order_id") ?? "");
-  const trackingTokenFromQuery = (searchParams.get("tracking_token") ?? "").trim();
+  const trackingTokenFromQuery = (
+    searchParams.get("tracking_token") ?? ""
+  ).trim();
 
   const { data: cart } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;
@@ -61,13 +63,17 @@ export function MarketplacePaymentPage() {
     error: orderQueryError,
     refetch: refetchOrder,
   } = useMarketplaceGuestOrderStatus(orderId, trackingTokenFromQuery, {
-    enabled: Number.isFinite(orderId) && orderId > 0 && trackingTokenFromQuery.length > 0,
+    enabled:
+      Number.isFinite(orderId) &&
+      orderId > 0 &&
+      trackingTokenFromQuery.length > 0,
   });
 
-  const [contextResult, setContextResult] = useState<BuyerOrderContextReadResult>({
-    context: null,
-    state: "missing",
-  });
+  const [contextResult, setContextResult] =
+    useState<BuyerOrderContextReadResult>({
+      context: null,
+      state: "missing",
+    });
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofTouched, setProofTouched] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -82,8 +88,10 @@ export function MarketplacePaymentPage() {
   }, [orderId]);
 
   const storedContext = contextResult.context;
-  const orderItems = guestStatusDetail?.items ?? storedContext?.order.items ?? [];
-  const totalPayment = guestStatusDetail?.total ?? storedContext?.order.total ?? 0;
+  const orderItems =
+    guestStatusDetail?.items ?? storedContext?.order.items ?? [];
+  const totalPayment =
+    guestStatusDetail?.total ?? storedContext?.order.total ?? 0;
   const orderLabel = useMemo(() => {
     if (guestStatusDetail?.order_number) {
       return `#${guestStatusDetail.order_number}`;
@@ -106,7 +114,9 @@ export function MarketplacePaymentPage() {
   }, [guestStatusDetail?.order_number, storedContext?.order.id]);
 
   const isBackendConfirmed = Boolean(guestStatusDetail);
-  const hasOrderContext = Boolean(orderId > 0 && (guestStatusDetail || storedContext));
+  const hasOrderContext = Boolean(
+    orderId > 0 && (guestStatusDetail || storedContext),
+  );
 
   const orderErrorCopy = useMemo(() => {
     if (!orderError) {
@@ -146,7 +156,8 @@ export function MarketplacePaymentPage() {
     }
     return {
       title: "Gagal memuat data pesanan",
-      message: "Terjadi gangguan saat memuat detail pesanan. Silakan coba lagi.",
+      message:
+        "Terjadi gangguan saat memuat detail pesanan. Silakan coba lagi.",
     };
   }, [orderError, orderQueryError]);
 
@@ -159,15 +170,22 @@ export function MarketplacePaymentPage() {
     }
     if (contextResult.state === "stale") {
       return `Konteks checkout lokal sudah kedaluwarsa (lebih dari ${Math.floor(
-        BUYER_ORDER_CONTEXT_TTL_MS / (60 * 60 * 1000)
+        BUYER_ORDER_CONTEXT_TTL_MS / (60 * 60 * 1000),
       )} jam). Lanjutkan melalui pelacakan pesanan atau checkout ulang.`;
     }
     if (contextResult.state === "invalid") {
       return "Konteks checkout lokal tidak valid dan sudah dibersihkan. Buka kembali dari keranjang atau pelacakan pesanan.";
     }
     return null;
-  }, [contextResult.state, guestStatusDetail, storedContext, trackingTokenFromQuery]);
-  const isUsingLocalContext = Boolean(orderId > 0 && !guestStatusDetail && storedContext);
+  }, [
+    contextResult.state,
+    guestStatusDetail,
+    storedContext,
+    trackingTokenFromQuery,
+  ]);
+  const isUsingLocalContext = Boolean(
+    orderId > 0 && !guestStatusDetail && storedContext,
+  );
 
   const handleCopy = async (value: string, label: string) => {
     try {
@@ -207,13 +225,16 @@ export function MarketplacePaymentPage() {
     if (!proofFile) {
       showToastError(
         "Bukti transfer diperlukan",
-        "Unggah bukti transfer sebelum melanjutkan."
+        "Unggah bukti transfer sebelum melanjutkan.",
       );
       return;
     }
 
     if (!Number.isFinite(orderId) || orderId <= 0) {
-      showToastError("ID pesanan tidak valid", "Kembali ke keranjang untuk checkout ulang.");
+      showToastError(
+        "ID pesanan tidak valid",
+        "Kembali ke keranjang untuk checkout ulang.",
+      );
       return;
     }
 
@@ -234,7 +255,7 @@ export function MarketplacePaymentPage() {
           await trackMarketplaceOrder({
             order_number: trackingOrderNumber,
             contact,
-          })
+          }),
         );
         trackingToken = (tracking.tracking_token ?? "").trim();
         if (!trackingToken) {
@@ -251,16 +272,19 @@ export function MarketplacePaymentPage() {
           account_name: BANK_HOLDER,
           transfer_amount: totalPayment > 0 ? totalPayment : undefined,
           transfer_date: new Date().toISOString().slice(0, 10),
-        })
+        }),
       );
 
       attachBuyerManualPayment(orderId, payment);
-      showToastSuccess("Bukti pembayaran terkirim", "Lanjutkan ke halaman konfirmasi.");
+      showToastSuccess(
+        "Bukti pembayaran terkirim",
+        "Lanjutkan ke halaman konfirmasi.",
+      );
       const nextPath = `/marketplace/konfirmasi?order_id=${orderId}`;
       router.push(
         trackingToken
           ? `${nextPath}&tracking_token=${encodeURIComponent(trackingToken)}`
-          : nextPath
+          : nextPath,
       );
     } catch (err: any) {
       const classified = classifyMarketplaceApiError(err);
@@ -320,13 +344,11 @@ export function MarketplacePaymentPage() {
                   ? "Checkout berhasil"
                   : "Data checkout lokal sementara"}
               </h2>
-              <p className="mt-1 text-sm">
-                Order ID: {orderLabel}
-              </p>
+              <p className="mt-1 text-sm">Order ID: {orderLabel}</p>
               {!isBackendConfirmed ? (
                 <p className="mt-2 text-sm">
-                  Detail ini berasal dari context lokal sementara di perangkat Anda.
-                  Status backend belum terkonfirmasi.
+                  Detail ini berasal dari context lokal sementara di perangkat
+                  Anda. Status backend belum terkonfirmasi.
                 </p>
               ) : null}
             </div>
@@ -343,24 +365,25 @@ export function MarketplacePaymentPage() {
           </h1>
 
           {hasOrderContext ? (
-            <div className="mb-6">
-              <Button
-                data-testid="marketplace-payment-pay-now-button"
-                type="button"
-                variant="outline"
-                className="border-border text-foreground hover:bg-muted"
-                onClick={() => router.push("/marketplace/keranjang")}
-              >
-                Bayar Sekarang
-              </Button>
-            </div>
+            <Button
+              data-testid="marketplace-payment-pay-now-button mb-6"
+              type="button"
+              variant="outline"
+              className="border-border text-foreground hover:bg-muted"
+              onClick={() => router.push("/marketplace/keranjang")}
+            >
+              Bayar Sekarang
+            </Button>
           ) : null}
 
           {!Number.isFinite(orderId) || orderId <= 0 ? (
             <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
-              <p className="text-destructive font-medium">ID pesanan tidak ditemukan.</p>
+              <p className="text-destructive font-medium">
+                ID pesanan tidak ditemukan.
+              </p>
               <p className="text-sm text-muted-foreground">
-                Mulai checkout dari keranjang agar konteks pesanan tersimpan dengan benar.
+                Mulai checkout dari keranjang agar konteks pesanan tersimpan
+                dengan benar.
               </p>
               <Link
                 data-testid="marketplace-payment-invalid-back-to-cart-link"
@@ -425,8 +448,9 @@ export function MarketplacePaymentPage() {
                       Selesaikan Pembayaran
                     </h3>
                     <p className="text-sm text-orange-800 dark:text-orange-300 mt-1">
-                      Harap selesaikan pembayaran dalam <strong>1x24 jam</strong>.
-                      Pesanan otomatis dibatalkan jika melewati batas waktu.
+                      Harap selesaikan pembayaran dalam{" "}
+                      <strong>1x24 jam</strong>. Pesanan otomatis dibatalkan
+                      jika melewati batas waktu.
                     </p>
                   </div>
                 </div>
@@ -471,7 +495,9 @@ export function MarketplacePaymentPage() {
                               size="icon"
                               className="ml-auto h-8 w-8 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                               title="Salin"
-                              onClick={() => handleCopy(BANK_ACCOUNT, "Nomor rekening")}
+                              onClick={() =>
+                                handleCopy(BANK_ACCOUNT, "Nomor rekening")
+                              }
                             >
                               <span className="material-icons-outlined text-lg">
                                 content_copy
@@ -496,7 +522,10 @@ export function MarketplacePaymentPage() {
                                 variant="ghost"
                                 className="h-auto p-0 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-transparent hover:text-indigo-700 dark:hover:text-indigo-300"
                                 onClick={() =>
-                                  handleCopy(String(totalPayment), "Total transfer")
+                                  handleCopy(
+                                    String(totalPayment),
+                                    "Total transfer",
+                                  )
                                 }
                               >
                                 Salin
@@ -515,7 +544,8 @@ export function MarketplacePaymentPage() {
                         </div>
                         {customerEmail ? (
                           <div className="text-xs text-muted-foreground">
-                            Notifikasi akan dikirim ke: <strong>{customerEmail}</strong>
+                            Notifikasi akan dikirim ke:{" "}
+                            <strong>{customerEmail}</strong>
                           </div>
                         ) : null}
                       </div>
@@ -536,17 +566,20 @@ export function MarketplacePaymentPage() {
                         </li>
                         <li className="pl-2">
                           <span className="ml-1">
-                            Pilih menu <strong>Transfer &gt; Sesama BRI</strong>.
+                            Pilih menu <strong>Transfer &gt; Sesama BRI</strong>
+                            .
                           </span>
                         </li>
                         <li className="pl-2">
                           <span className="ml-1">
-                            Masukkan nomor rekening tujuan <strong>{BANK_ACCOUNT}</strong>.
+                            Masukkan nomor rekening tujuan{" "}
+                            <strong>{BANK_ACCOUNT}</strong>.
                           </span>
                         </li>
                         <li className="pl-2">
                           <span className="ml-1">
-                            Masukkan nominal transfer sebesar <strong>{formatCurrency(totalPayment)}</strong>.
+                            Masukkan nominal transfer sebesar{" "}
+                            <strong>{formatCurrency(totalPayment)}</strong>.
                           </span>
                         </li>
                         <li className="pl-2">
@@ -605,7 +638,9 @@ export function MarketplacePaymentPage() {
                       </p>
                     ) : null}
                     {uploadError ? (
-                      <p className="mt-2 text-xs text-destructive">{uploadError}</p>
+                      <p className="mt-2 text-xs text-destructive">
+                        {uploadError}
+                      </p>
                     ) : null}
                   </div>
                 </div>
@@ -632,10 +667,15 @@ export function MarketplacePaymentPage() {
                       {orderLabel}
                     </span>
                   </div>
-                  <h3 className="font-bold text-lg text-foreground">Ringkasan Pesanan</h3>
+                  <h3 className="font-bold text-lg text-foreground">
+                    Ringkasan Pesanan
+                  </h3>
                   <div className="space-y-2 text-sm text-muted-foreground">
                     {orderItems.map((item) => (
-                      <div key={`${item.order_item_id ?? item.product_id}`} className="flex justify-between gap-4">
+                      <div
+                        key={`${item.order_item_id ?? item.product_id}`}
+                        className="flex justify-between gap-4"
+                      >
                         <span>
                           {item.product_name} x {item.quantity}
                         </span>
@@ -654,7 +694,9 @@ export function MarketplacePaymentPage() {
                     disabled={!proofFile || uploading || !hasOrderContext}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 font-bold disabled:opacity-50"
                   >
-                    {uploading ? "Mengirim bukti..." : "Konfirmasi Pembayaran Saya"}
+                    {uploading
+                      ? "Mengirim bukti..."
+                      : "Konfirmasi Pembayaran Saya"}
                   </Button>
                   <div className="flex items-start gap-3 text-xs text-muted-foreground bg-muted/40 p-4 rounded-xl border border-border">
                     <span className="material-icons-outlined text-base text-muted-foreground mt-0.5">

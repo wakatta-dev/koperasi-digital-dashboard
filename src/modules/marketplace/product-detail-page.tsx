@@ -51,6 +51,13 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
     () => variants?.groups ?? [],
     [variants?.groups]
   );
+  const allVariantOptions = useMemo(
+    () =>
+      variantGroups.flatMap((group) =>
+        (group.options ?? []).map((option) => ({ ...option }))
+      ),
+    [variantGroups]
+  );
   const hasVariants = variantGroups.length > 0 || data?.has_variants === true;
   const variantsRequired = data?.variants_required ?? hasVariants;
   const selectedGroup = useMemo(
@@ -58,15 +65,11 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
     [variantGroups, selectedGroupId]
   );
   const selectedOption = useMemo(
-    () =>
-      selectedGroup?.options?.find(
-        (option) => option.id === selectedOptionId
-      ) ?? null,
-    [selectedGroup, selectedOptionId]
+    () => allVariantOptions.find((option) => option.id === selectedOptionId) ?? null,
+    [allVariantOptions, selectedOptionId]
   );
-  const selectionReady =
-    !variantsRequired || Boolean(selectedGroup && selectedOption);
-  const hasSelection = Boolean(selectedGroup && selectedOption);
+  const selectionReady = !variantsRequired || Boolean(selectedOption);
+  const hasSelection = Boolean(selectedOption);
   const selectedPrice =
     selectedOption && selectedOption.price > 0 ? selectedOption.price : null;
   const priceAvailable =
