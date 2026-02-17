@@ -186,6 +186,10 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/accounting/bank-cash/accounts/[accountId]/transactions":
     "Accounting - Bank & Cash - Account Transactions",
   "/bumdes/accounting/journal": "Accounting - Journal",
+  "/bumdes/accounting/journal/new": "Accounting - Journal - New Entry",
+  "/bumdes/accounting/journal/[journalNumber]":
+    "Accounting - Journal - Entry Detail",
+  "/bumdes/accounting/journal/audit-log": "Accounting - Journal - Audit Log",
   "/bumdes/accounting/tax": "Accounting - Tax",
   "/bumdes/accounting/reporting": "Accounting - Reporting",
   "/bumdes/accounting/settings": "Accounting - Settings",
