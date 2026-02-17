@@ -7,6 +7,8 @@ import {
   VendorBillsApBatchPaymentPage,
   VendorBillsApDetailPage,
   VendorBillsApIndexPage,
+  VendorBillsApOcrReviewPage,
+  VendorBillsApPaymentConfirmationPage,
 } from "@/modules/accounting";
 
 const pushMock = vi.fn();
@@ -48,6 +50,20 @@ describe("vendor-bills-ap page wiring", () => {
   it("shows preselected bill labels on batch page", () => {
     render(<VendorBillsApBatchPaymentPage preselectedBillNumbers={["BILL-2023-089"]} />);
 
-    expect(screen.getByText("Preselected bills: BILL-2023-089")).toBeTruthy();
+    expect(screen.getByText("Selected bill count: 1")).toBeTruthy();
+  });
+
+  it("routes OCR confirm action to created bill detail", () => {
+    render(<VendorBillsApOcrReviewPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm & Create Bill" }));
+    expect(pushMock).toHaveBeenCalledWith("/bumdes/accounting/vendor-bills-ap/INV-2023-882");
+  });
+
+  it("routes Done action on confirmation page back to AP list", () => {
+    render(<VendorBillsApPaymentConfirmationPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(pushMock).toHaveBeenCalledWith("/bumdes/accounting/vendor-bills-ap");
   });
 });

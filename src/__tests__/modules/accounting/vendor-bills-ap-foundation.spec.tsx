@@ -45,9 +45,7 @@ describe("vendor-bills-ap foundation", () => {
 
     render(<VendorBillsApPaymentConfirmationPage />);
     expect(screen.getByRole("heading", { name: "Pembayaran Berhasil!" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Done" }).getAttribute("href")).toBe(
-      "/bumdes/accounting/vendor-bills-ap"
-    );
+    expect(screen.getByRole("button", { name: "Done" })).toBeTruthy();
   });
 
   it("keeps accounting AP menu as a single sidebar entry without AP submenu", () => {

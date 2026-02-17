@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 
 import { DUMMY_VENDOR_BILLS } from "../../constants/vendor-bills-ap-dummy";
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
+import { FeatureCreateVendorBillModal } from "../features/FeatureCreateVendorBillModal";
 import { FeatureVendorBillsSummaryCards } from "../features/FeatureVendorBillsSummaryCards";
 import { FeatureVendorBillsTable } from "../features/FeatureVendorBillsTable";
 
 export function VendorBillsApIndexPage() {
   const router = useRouter();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedBillNumbers, setSelectedBillNumbers] = useState<string[]>([]);
 
   const batchPaymentHref = useMemo(() => {
@@ -52,7 +54,11 @@ export function VendorBillsApIndexPage() {
           >
             <Link href={VENDOR_BILLS_AP_ROUTES.ocrReview}>OCR Upload</Link>
           </Button>
-          <Button type="button" className="bg-indigo-600 text-white hover:bg-indigo-700">
+          <Button
+            type="button"
+            className="bg-indigo-600 text-white hover:bg-indigo-700"
+            onClick={() => setCreateModalOpen(true)}
+          >
             New Bill
           </Button>
         </div>
@@ -65,6 +71,12 @@ export function VendorBillsApIndexPage() {
         selectedBillNumbers={selectedBillNumbers}
         onSelectionChange={setSelectedBillNumbers}
         onRowOpen={(row) => router.push(VENDOR_BILLS_AP_ROUTES.detail(row.bill_number))}
+      />
+
+      <FeatureCreateVendorBillModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSubmit={() => setCreateModalOpen(false)}
       />
     </div>
   );

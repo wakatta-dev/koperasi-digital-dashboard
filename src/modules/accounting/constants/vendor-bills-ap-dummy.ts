@@ -1,9 +1,15 @@
 /** @format */
 
 import type {
+  BatchPaymentBillItem,
+  BatchPaymentDraft,
+  CreateVendorBillDraft,
   VendorBillDetailModel,
   VendorBillListItem,
   VendorBillSummaryMetric,
+  VendorCreditNoteItem,
+  OcrExtractionSession,
+  PaymentConfirmationModel,
 } from "../types/vendor-bills-ap";
 
 export const DUMMY_VENDOR_BILL_SUMMARY_METRICS: VendorBillSummaryMetric[] = [
@@ -166,4 +172,169 @@ export const DUMMY_VENDOR_BILL_DETAIL = BILL_2023_089_DETAIL;
 
 export const DUMMY_VENDOR_BILL_DETAILS_BY_NUMBER: Record<string, VendorBillDetailModel> = {
   "BILL-2023-089": BILL_2023_089_DETAIL,
+};
+
+export const DUMMY_CREATE_VENDOR_BILL_DRAFT: CreateVendorBillDraft = {
+  vendor_name: "",
+  bill_number: "",
+  status: "Draft",
+  bill_date: "",
+  due_date: "",
+  line_items: [
+    {
+      id: "draft-line-1",
+      product_or_service: "",
+      description: "",
+      qty: "1",
+      price: "",
+      tax_name: "VAT 11%",
+      amount: "0.00",
+    },
+  ],
+  attachments: {
+    label: "Click to upload or drag and drop",
+    helper_text: "PDF, JPG, PNG up to 10MB",
+  },
+  subtotal: "Rp 0",
+  tax_total: "Rp 0",
+  grand_total: "Rp 0",
+};
+
+export const DUMMY_BATCH_PAYMENT_BILLS: BatchPaymentBillItem[] = [
+  {
+    bill_number: "BILL-2023-089",
+    vendor_name: "PT. Global Teknologi",
+    vendor_id_label: "ID: VND-0012",
+    reference: "INV/2023/11/001",
+    due_state: "Due Today",
+    due_state_tone: "warning",
+    amount_due: "Rp 45.000.000",
+    payment_amount: "Rp 45.000.000",
+    is_selected: true,
+  },
+  {
+    bill_number: "BILL-2023-092",
+    vendor_name: "CV. Maju Mundur",
+    vendor_id_label: "ID: VND-0045",
+    reference: "INV/2023/11/056",
+    due_state: "Nov 18, 2023",
+    due_state_tone: "normal",
+    amount_due: "Rp 12.500.000",
+    payment_amount: "Rp 12.500.000",
+    is_selected: true,
+  },
+  {
+    bill_number: "BILL-2023-097",
+    vendor_name: "PT. Sinar Jaya",
+    vendor_id_label: "ID: VND-0088",
+    reference: "INV/2023/10/992",
+    due_state: "Overdue 15d",
+    due_state_tone: "danger",
+    amount_due: "Rp 8.200.000",
+    payment_amount: "Rp 8.200.000",
+    is_selected: true,
+  },
+  {
+    bill_number: "BILL-2023-102",
+    vendor_name: "Alpha Services Ltd.",
+    vendor_id_label: "ID: VND-0003",
+    reference: "INV/2023/11/112",
+    due_state: "Nov 20, 2023",
+    due_state_tone: "normal",
+    amount_due: "Rp 150.000.000",
+    payment_amount: "Rp 150.000.000",
+    is_selected: true,
+  },
+];
+
+export const DUMMY_BATCH_PAYMENT_DRAFT: BatchPaymentDraft = {
+  pay_from: "BCA Corporate - 8821xxxx",
+  payment_date: "2023-11-15",
+  reference_number: "BATCH-092",
+  total_bills_label: "Total Bills (4)",
+  total_bills_amount: "Rp 215.700.000",
+  credits_applied_amount: "- Rp 7.500.000",
+  total_to_pay_amount: "Rp 208.200.000",
+};
+
+export const DUMMY_VENDOR_CREDIT_NOTES: VendorCreditNoteItem[] = [
+  {
+    credit_note_number: "CN-2023-001",
+    vendor_name: "PT. Global Teknologi",
+    amount: "Rp 5.0M",
+    reason: "Refund barang rusak",
+    issued_at: "Issued: 10 Nov 2023",
+    is_selected: true,
+  },
+  {
+    credit_note_number: "CN-2023-004",
+    vendor_name: "Alpha Services Ltd.",
+    amount: "Rp 2.5M",
+    reason: "Overpayment adj.",
+    issued_at: "Issued: 12 Nov 2023",
+    is_selected: true,
+  },
+];
+
+export const DUMMY_OCR_SESSION: OcrExtractionSession = {
+  session_id: "OCR-882",
+  file_name: "vendor_bill_scan_882.pdf",
+  file_size_label: "2.4 MB",
+  zoom_percent_label: "100%",
+  accuracy_score: 88,
+  general_info: {
+    vendor_name: "Global Tech Solutions",
+    bill_number: "INV-2023-882",
+    vendor_confidence_label: "99%",
+    bill_number_confidence_label: "65%",
+    bill_date: "2023-10-25",
+    due_date: "2023-11-24",
+  },
+  financials: {
+    total_amount: "12,500,000",
+  },
+  line_items: [
+    {
+      id: "ocr-line-1",
+      description: "Cloud Infrastructure Services (Monthly)",
+      qty: "1",
+      price: "8,500,000",
+      highlight_price: false,
+    },
+    {
+      id: "ocr-line-2",
+      description: "Security Compliance Audit Fee",
+      qty: "1",
+      price: "4,000,000",
+      highlight_price: true,
+    },
+  ],
+};
+
+export const DUMMY_PAYMENT_CONFIRMATION: PaymentConfirmationModel = {
+  total_paid: "Rp 208.200.000",
+  bill_count_label: "4 bills",
+  bill_breakdowns: [
+    {
+      bill_number: "BILL-2023-089",
+      vendor_name: "PT. Pemasok Jaya",
+      amount: "Rp 12.500.000",
+    },
+    {
+      bill_number: "BILL-2023-092",
+      vendor_name: "CV. Makmur Abadi",
+      amount: "Rp 8.250.000",
+    },
+    {
+      bill_number: "BILL-2023-097",
+      vendor_name: "Indo Trading Corp",
+      amount: "Rp 142.450.000",
+    },
+    {
+      bill_number: "BILL-2023-102",
+      vendor_name: "Global Tech Solutions",
+      amount: "Rp 45.000.000",
+    },
+  ],
+  security_note: "Transaction secured with end-to-end encryption",
 };

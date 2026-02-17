@@ -76,3 +76,97 @@ export type VendorBillDetailModel = {
   payment_history: VendorBillPaymentHistoryItem[];
   internal_note: string;
 };
+
+export type CreateVendorBillLineItem = {
+  id: string;
+  product_or_service: string;
+  description: string;
+  qty: string;
+  price: string;
+  tax_name: string;
+  amount: string;
+};
+
+export type CreateVendorBillDraft = {
+  vendor_name: string;
+  bill_number: string;
+  status: "Draft";
+  bill_date: string;
+  due_date: string;
+  line_items: CreateVendorBillLineItem[];
+  attachments: {
+    label: string;
+    helper_text: string;
+  };
+  subtotal: string;
+  tax_total: string;
+  grand_total: string;
+};
+
+export type BatchPaymentBillItem = {
+  bill_number: string;
+  vendor_name: string;
+  vendor_id_label: string;
+  reference: string;
+  due_state: string;
+  due_state_tone: "normal" | "warning" | "danger";
+  amount_due: string;
+  payment_amount: string;
+  is_selected: boolean;
+};
+
+export type BatchPaymentDraft = {
+  pay_from: string;
+  payment_date: string;
+  reference_number: string;
+  total_bills_label: string;
+  total_bills_amount: string;
+  credits_applied_amount: string;
+  total_to_pay_amount: string;
+};
+
+export type VendorCreditNoteItem = {
+  credit_note_number: string;
+  vendor_name: string;
+  amount: string;
+  reason: string;
+  issued_at: string;
+  is_selected: boolean;
+};
+
+export type OcrExtractionSession = {
+  session_id: string;
+  file_name: string;
+  file_size_label: string;
+  zoom_percent_label: string;
+  accuracy_score: number;
+  general_info: {
+    vendor_name: string;
+    bill_number: string;
+    vendor_confidence_label: string;
+    bill_number_confidence_label: string;
+    bill_date: string;
+    due_date: string;
+  };
+  financials: {
+    total_amount: string;
+  };
+  line_items: {
+    id: string;
+    description: string;
+    qty: string;
+    price: string;
+    highlight_price: boolean;
+  }[];
+};
+
+export type PaymentConfirmationModel = {
+  total_paid: string;
+  bill_count_label: string;
+  bill_breakdowns: {
+    bill_number: string;
+    vendor_name: string;
+    amount: string;
+  }[];
+  security_note: string;
+};

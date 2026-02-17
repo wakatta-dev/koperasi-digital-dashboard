@@ -2,6 +2,7 @@
 
 export { InvoicingArFeatureDemo } from "./components/demo/InvoicingArFeatureDemo";
 export { AccountingSettingsFeatureDemo } from "./components/demo/AccountingSettingsFeatureDemo";
+export { VendorBillsApFeatureDemo } from "./components/demo/VendorBillsApFeatureDemo";
 export { InvoicingArIndexPage } from "./components/pages/InvoicingArIndexPage";
 export { InvoicingArCreateInvoicePage } from "./components/pages/InvoicingArCreateInvoicePage";
 export { InvoicingArInvoiceDetailPage } from "./components/pages/InvoicingArInvoiceDetailPage";
@@ -35,6 +36,15 @@ export { FeatureVendorBillDetailOverview } from "./components/features/FeatureVe
 export { FeatureVendorBillLineItemsTable } from "./components/features/FeatureVendorBillLineItemsTable";
 export { FeatureVendorBillPaymentHistoryTable } from "./components/features/FeatureVendorBillPaymentHistoryTable";
 export { FeatureVendorBillInternalNoteCard } from "./components/features/FeatureVendorBillInternalNoteCard";
+export { FeatureCreateVendorBillModal } from "./components/features/FeatureCreateVendorBillModal";
+export { FeatureBatchSelectedBillsTable } from "./components/features/FeatureBatchSelectedBillsTable";
+export { FeatureBatchPaymentDetailsCard } from "./components/features/FeatureBatchPaymentDetailsCard";
+export { FeatureBatchVendorCreditsPanel } from "./components/features/FeatureBatchVendorCreditsPanel";
+export { FeatureBatchProcessingNote } from "./components/features/FeatureBatchProcessingNote";
+export { FeatureOcrDocumentPreviewPanel } from "./components/features/FeatureOcrDocumentPreviewPanel";
+export { FeatureOcrExtractedDataPanel } from "./components/features/FeatureOcrExtractedDataPanel";
+export { FeatureOcrAccuracyFooter } from "./components/features/FeatureOcrAccuracyFooter";
+export { FeaturePaymentSchedulingSuccessCard } from "./components/features/FeaturePaymentSchedulingSuccessCard";
 export { FeatureAccountingSettingsCards } from "./components/features/FeatureAccountingSettingsCards";
 export { FeatureCoaTable } from "./components/features/FeatureCoaTable";
 export { FeatureTaxesTable } from "./components/features/FeatureTaxesTable";
@@ -85,6 +95,12 @@ export {
   DUMMY_VENDOR_BILL_DETAILS_BY_NUMBER,
   DUMMY_VENDOR_BILLS,
   DUMMY_VENDOR_BILL_SUMMARY_METRICS,
+  DUMMY_CREATE_VENDOR_BILL_DRAFT,
+  DUMMY_BATCH_PAYMENT_BILLS,
+  DUMMY_BATCH_PAYMENT_DRAFT,
+  DUMMY_VENDOR_CREDIT_NOTES,
+  DUMMY_OCR_SESSION,
+  DUMMY_PAYMENT_CONFIRMATION,
 } from "./constants/vendor-bills-ap-dummy";
 export { ACCOUNTING_SETTINGS_ROUTES } from "./constants/settings-routes";
 export {
@@ -114,4 +130,11 @@ export type {
   VendorBillSummaryMetric,
   VendorBillSummaryMetricTone,
   VendorBillTotals,
+  CreateVendorBillDraft,
+  CreateVendorBillLineItem,
+  BatchPaymentBillItem,
+  BatchPaymentDraft,
+  VendorCreditNoteItem,
+  OcrExtractionSession,
+  PaymentConfirmationModel,
 } from "./types/vendor-bills-ap";
