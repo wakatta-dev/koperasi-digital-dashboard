@@ -7,6 +7,11 @@ export { InvoicingArInvoiceDetailPage } from "./components/pages/InvoicingArInvo
 export { InvoicingArCreditNotesPaymentsPage } from "./components/pages/InvoicingArCreditNotesPaymentsPage";
 export { InvoicingArCreditNoteCreatePage } from "./components/pages/InvoicingArCreditNoteCreatePage";
 export { InvoicingArPaymentCreatePage } from "./components/pages/InvoicingArPaymentCreatePage";
+export { AccountingSettingsIndexPage } from "./components/pages/AccountingSettingsIndexPage";
+export { AccountingSettingsCoaPage } from "./components/pages/AccountingSettingsCoaPage";
+export { AccountingSettingsTaxesPage } from "./components/pages/AccountingSettingsTaxesPage";
+export { AccountingSettingsCurrenciesPage } from "./components/pages/AccountingSettingsCurrenciesPage";
+export { AccountingSettingsAnalyticBudgetPage } from "./components/pages/AccountingSettingsAnalyticBudgetPage";
 export { FeatureInvoiceSummaryCards } from "./components/features/FeatureInvoiceSummaryCards";
 export { FeatureInvoiceTable } from "./components/features/FeatureInvoiceTable";
 export { FeatureCreditNotesTable } from "./components/features/FeatureCreditNotesTable";
@@ -41,3 +46,4 @@ export {
   STITCH_PRIMARY_ACCENT_CLASS,
 } from "./constants/stitch";
 export { INVOICING_AR_ROUTES } from "./constants/routes";
+export { ACCOUNTING_SETTINGS_ROUTES } from "./constants/settings-routes";
