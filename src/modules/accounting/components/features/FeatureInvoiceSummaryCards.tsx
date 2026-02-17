@@ -19,7 +19,8 @@ const SUMMARY_ITEMS: SummaryCardItem[] = [
     amount: "Rp 45.2M",
     detail: "5 Invoices",
     icon: FileText,
-    iconClassName: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+    iconClassName:
+      "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
     hoverClassName: "hover:border-gray-300 dark:hover:border-gray-600",
   },
   {
@@ -27,7 +28,8 @@ const SUMMARY_ITEMS: SummaryCardItem[] = [
     amount: "Rp 128.5M",
     detail: "12 Invoices",
     icon: Send,
-    iconClassName: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    iconClassName:
+      "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
     hoverClassName: "hover:border-blue-300 dark:hover:border-blue-800",
   },
   {
@@ -44,7 +46,8 @@ const SUMMARY_ITEMS: SummaryCardItem[] = [
     amount: "Rp 32.4M",
     detail: "3 Invoices",
     icon: AlertCircle,
-    iconClassName: "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+    iconClassName:
+      "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400",
     hoverClassName: "hover:border-red-300 dark:hover:border-red-800",
   },
 ];
@@ -57,9 +60,9 @@ export function FeatureInvoiceSummaryCards() {
         return (
           <Card
             key={item.title}
-            className={`h-28 border-gray-200 shadow-sm transition-colors dark:border-gray-700 ${item.hoverClassName}`}
+            className={`border-gray-200 shadow-sm transition-colors dark:border-gray-700 ${item.hoverClassName}`}
           >
-            <CardContent className="flex h-full flex-col justify-between p-4">
+            <CardContent className="flex flex-col justify-between">
               <div className="flex items-start justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   {item.title}
