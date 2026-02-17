@@ -1,5 +1,6 @@
 /** @format */
 
+export { InvoicingArFeaturePage } from "./components/InvoicingArFeaturePage";
 export { InvoicingArFeatureDemo } from "./components/demo/InvoicingArFeatureDemo";
 export { FeatureInvoiceSummaryCards } from "./components/features/FeatureInvoiceSummaryCards";
 export { FeatureInvoiceTable } from "./components/features/FeatureInvoiceTable";
