@@ -92,6 +92,30 @@ export const API_ENDPOINTS = {
     ocrConfirm: (sessionId: string) =>
       `/accounting/ap/ocr/sessions/${encodeURIComponent(sessionId)}/confirm`,
   },
+  accountingBankCash: {
+    overview: "/accounting/bank-cash/overview",
+    accounts: "/accounting/bank-cash/accounts",
+    accountTransactions: (accountId: string) =>
+      `/accounting/bank-cash/accounts/${encodeURIComponent(accountId)}/transactions`,
+    accountTransactionsManual: (accountId: string) =>
+      `/accounting/bank-cash/accounts/${encodeURIComponent(accountId)}/transactions/manual`,
+    accountTransactionsExport: (accountId: string) =>
+      `/accounting/bank-cash/accounts/${encodeURIComponent(accountId)}/transactions/export`,
+    unreconciledTransactions: "/accounting/bank-cash/unreconciled-transactions",
+    statementImport: "/accounting/bank-cash/statements/import",
+    reconciliationCurrent: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/current`,
+    reconciliationBankLines: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/bank-lines`,
+    reconciliationSystemLines: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/system-lines`,
+    reconciliationMatches: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/matches`,
+    reconciliationSuggest: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/suggest`,
+    reconciliationConfirm: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/confirm`,
+  },
   accountingSettings: {
     overview: "/accounting/settings/overview",
     coa: "/accounting/settings/coa",

@@ -75,6 +75,26 @@ export const QK = {
     batchDetail: (batchReference: string | number) =>
       ["accounting-ap", "batch-detail", String(batchReference)] as const,
   },
+  accountingBankCash: {
+    overview: () => ["accounting-bank-cash", "overview"] as const,
+    accounts: (params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "accounts", params ?? {}] as const,
+    unreconciledTransactions: (params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "unreconciled-transactions", params ?? {}] as const,
+    reconciliationSession: (accountId: string | number) =>
+      ["accounting-bank-cash", "reconciliation-session", String(accountId)] as const,
+    bankLines: (accountId: string | number, params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "bank-lines", String(accountId), params ?? {}] as const,
+    systemLines: (accountId: string | number, params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "system-lines", String(accountId), params ?? {}] as const,
+    accountTransactions: (accountId: string | number, params?: Record<string, unknown>) =>
+      [
+        "accounting-bank-cash",
+        "account-transactions",
+        String(accountId),
+        params ?? {},
+      ] as const,
+  },
   accountingSettings: {
     overview: () => ["accounting-settings", "overview"] as const,
     coa: (params?: Record<string, unknown>) =>
@@ -166,6 +186,13 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingAp.billPayments
   | typeof QK.accountingAp.vendorCredits
   | typeof QK.accountingAp.batchDetail
+  | typeof QK.accountingBankCash.overview
+  | typeof QK.accountingBankCash.accounts
+  | typeof QK.accountingBankCash.unreconciledTransactions
+  | typeof QK.accountingBankCash.reconciliationSession
+  | typeof QK.accountingBankCash.bankLines
+  | typeof QK.accountingBankCash.systemLines
+  | typeof QK.accountingBankCash.accountTransactions
   | typeof QK.accountingSettings.overview
   | typeof QK.accountingSettings.coa
   | typeof QK.accountingSettings.taxes

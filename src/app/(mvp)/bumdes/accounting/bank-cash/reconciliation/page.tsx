@@ -2,15 +2,15 @@
 
 import { BankCashReconciliationPage } from "@/modules/accounting";
 
-type AccountingBankCashPageProps = {
+type AccountingBankCashReconciliationPageProps = {
   searchParams?: Promise<{
     accountId?: string;
   }>;
 };
 
-export default async function AccountingBankCashPage({
+export default async function AccountingBankCashReconciliationPage({
   searchParams,
-}: AccountingBankCashPageProps) {
+}: AccountingBankCashReconciliationPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
 
   return <BankCashReconciliationPage accountId={resolvedSearchParams.accountId} />;

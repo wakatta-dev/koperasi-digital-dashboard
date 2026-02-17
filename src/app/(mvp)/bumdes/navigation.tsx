@@ -170,6 +170,11 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/accounting/vendor-bills-ap/payment-confirmation":
     "Accounting - Vendor Bills (AP) - Payment Confirmation",
   "/bumdes/accounting/bank-cash": "Accounting - Bank & Cash",
+  "/bumdes/accounting/bank-cash/reconciliation":
+    "Accounting - Bank & Cash - Reconciliation",
+  "/bumdes/accounting/bank-cash/overview": "Accounting - Bank & Cash - Overview",
+  "/bumdes/accounting/bank-cash/accounts/[accountId]/transactions":
+    "Accounting - Bank & Cash - Account Transactions",
   "/bumdes/accounting/journal": "Accounting - Journal",
   "/bumdes/accounting/tax": "Accounting - Tax",
   "/bumdes/accounting/reporting": "Accounting - Reporting",
