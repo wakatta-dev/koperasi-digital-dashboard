@@ -1,6 +1,7 @@
 /** @format */
 
 import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { bumdesNavigation, bumdesTitleMap } from "@/app/(mvp)/bumdes/navigation";
 import {
@@ -11,7 +12,30 @@ import {
   TaxSummaryPeriodPage,
 } from "@/modules/accounting";
 
+const state = vi.hoisted(() => ({
+  pushMock: vi.fn(),
+  replaceMock: vi.fn(),
+  pathname: "/bumdes/accounting/tax",
+  searchParams: new URLSearchParams(""),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: state.pushMock,
+    replace: state.replaceMock,
+  }),
+  usePathname: () => state.pathname,
+  useSearchParams: () => state.searchParams,
+}));
+
 describe("tax foundation", () => {
+  beforeEach(() => {
+    state.pushMock.mockReset();
+    state.replaceMock.mockReset();
+    state.pathname = "/bumdes/accounting/tax";
+    state.searchParams = new URLSearchParams("");
+  });
+
   it("renders all tax route page containers", () => {
     const summary = render(<TaxSummaryPeriodPage />);
     expect(screen.getByRole("heading", { name: "Tax Management (PPN & PPh)" })).toBeTruthy();
