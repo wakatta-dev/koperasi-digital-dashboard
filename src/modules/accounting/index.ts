@@ -21,6 +21,11 @@ export { JournalEntriesManagementPage } from "./components/pages/JournalEntriesM
 export { JournalNewEntryPage } from "./components/pages/JournalNewEntryPage";
 export { JournalEntryDetailPage } from "./components/pages/JournalEntryDetailPage";
 export { JournalAuditLogPage } from "./components/pages/JournalAuditLogPage";
+export { TaxSummaryPeriodPage } from "./components/pages/TaxSummaryPeriodPage";
+export { TaxPpnDetailsPage } from "./components/pages/TaxPpnDetailsPage";
+export { TaxPphRecordsPage } from "./components/pages/TaxPphRecordsPage";
+export { TaxExportHistoryPage } from "./components/pages/TaxExportHistoryPage";
+export { TaxEfakturExportPage } from "./components/pages/TaxEfakturExportPage";
 export { AccountingSettingsIndexPage } from "./components/pages/AccountingSettingsIndexPage";
 export { AccountingSettingsCoaPage } from "./components/pages/AccountingSettingsCoaPage";
 export { AccountingSettingsTaxesPage } from "./components/pages/AccountingSettingsTaxesPage";

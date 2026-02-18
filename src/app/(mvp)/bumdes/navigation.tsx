@@ -101,7 +101,17 @@ export const bumdesNavigation = [
         ],
       },
       { name: "Journal", href: "/bumdes/accounting/journal" },
-      { name: "Tax", href: "/bumdes/accounting/tax" },
+      {
+        name: "Tax",
+        href: "/bumdes/accounting/tax",
+        items: [
+          { name: "Summary & Period", href: "/bumdes/accounting/tax" },
+          { name: "PPN Details", href: "/bumdes/accounting/tax/ppn-details" },
+          { name: "PPh Records", href: "/bumdes/accounting/tax/pph-records" },
+          { name: "Export History", href: "/bumdes/accounting/tax/export-history" },
+          { name: "e-Faktur Export", href: "/bumdes/accounting/tax/e-faktur-export" },
+        ],
+      },
       { name: "Reporting", href: "/bumdes/accounting/reporting" },
       {
         name: "Settings",
@@ -191,6 +201,10 @@ export const bumdesTitleMap: Record<string, string> = {
     "Accounting - Journal - Entry Detail",
   "/bumdes/accounting/journal/audit-log": "Accounting - Journal - Audit Log",
   "/bumdes/accounting/tax": "Accounting - Tax",
+  "/bumdes/accounting/tax/ppn-details": "Accounting - Tax - PPN Details",
+  "/bumdes/accounting/tax/pph-records": "Accounting - Tax - PPh Records",
+  "/bumdes/accounting/tax/export-history": "Accounting - Tax - Export History",
+  "/bumdes/accounting/tax/e-faktur-export": "Accounting - Tax - e-Faktur Export",
   "/bumdes/accounting/reporting": "Accounting - Reporting",
   "/bumdes/accounting/settings": "Accounting - Settings",
   "/bumdes/accounting/settings/chart-of-accounts":
