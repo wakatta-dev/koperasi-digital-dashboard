@@ -11,7 +11,6 @@ import {
 } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
 
-import { ACCOUNTING_REPORTING_ROUTES } from "../../constants/reporting-routes";
 import type { ReportingAccountOption } from "../../types/reporting";
 import { buildReportingQueryString, parseReportingQueryState } from "../../utils/reporting-query-state";
 import {
@@ -134,30 +133,14 @@ export function ReportingAccountLedgerPage({
     if (!fallbackContextQuery.data) return;
 
     const firstAccount = fallbackContextQuery.data.groups[0]?.account_id;
-    const targetQuery = buildReportingQueryString({
-      preset: "custom",
-      start: resolvedStart,
-      end: resolvedEnd,
-      branch: initialState.branch,
-      accountId: firstAccount,
-      page: 1,
-      page_size: resolvedPageSize,
-    });
-
-    router.replace(
-      targetQuery
-        ? `${ACCOUNTING_REPORTING_ROUTES.generalLedger}?${targetQuery}`
-        : ACCOUNTING_REPORTING_ROUTES.generalLedger,
-      { scroll: false },
-    );
+    if (!firstAccount) return;
+    setResolvedAccountId(firstAccount);
+    setResolvedPage(1);
   }, [
     fallbackContextQuery.data,
-    initialState.branch,
     resolvedAccountId,
-    resolvedEnd,
-    resolvedPageSize,
-    resolvedStart,
-    router,
+    setResolvedAccountId,
+    setResolvedPage,
   ]);
 
   const accountLedgerQuery = useAccountingReportingAccountLedger(
@@ -196,14 +179,6 @@ export function ReportingAccountLedgerPage({
     return options;
   }, [accountLedgerQuery.data?.account, fallbackContextQuery.data?.groups]);
 
-  if (!resolvedAccountId) {
-    return (
-      <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
-        Redirecting to General Ledger...
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -238,6 +213,18 @@ export function ReportingAccountLedgerPage({
       {accountLedgerQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {toAccountingReportingApiError(accountLedgerQuery.error).message}
+        </div>
+      ) : null}
+
+      {!resolvedAccountId && fallbackContextQuery.isPending ? (
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
+          Loading account options...
+        </div>
+      ) : null}
+
+      {!resolvedAccountId && !fallbackContextQuery.isPending && accountOptions.length === 0 ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Account context is not available for this period. Please adjust filters or open General Ledger.
         </div>
       ) : null}
 

@@ -509,7 +509,7 @@ export function FeatureAccountLedgerFilterPanel({
   onApply,
 }: FeatureAccountLedgerFilterPanelProps) {
   const fallbackValue = accountOptions[0]?.id ?? "";
-  const selectedValue = accountId?.trim() || fallbackValue;
+  const selectedValue = accountId?.trim() || fallbackValue || undefined;
 
   return (
     <div className="grid gap-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-slate-900 md:grid-cols-3 md:items-end">

@@ -177,7 +177,7 @@ describe("reporting ledger flow", () => {
     );
   });
 
-  it("redirects to general-ledger when account-ledger opens without account context", async () => {
+  it("stays on account-ledger and resolves first account when opened without accountId", async () => {
     pathnameMock = "/bumdes/accounting/reporting/account-ledger";
     searchParamsMock = new URLSearchParams("preset=custom&start=2023-10-01&end=2023-10-31");
     withMissingAccountContext = true;
@@ -186,7 +186,7 @@ describe("reporting ledger flow", () => {
 
     await waitFor(() => {
       expect(replaceMock).toHaveBeenCalledWith(
-        "/bumdes/accounting/reporting/general-ledger?preset=custom&start=2023-10-01&end=2023-10-31&accountId=101000&page=1&page_size=20",
+        "/bumdes/accounting/reporting/account-ledger?preset=custom&start=2023-10-01&end=2023-10-31&accountId=101000&page=1&page_size=20",
         { scroll: false },
       );
     });

@@ -75,6 +75,7 @@ export function NavMain({
             const hasChildren =
               Array.isArray(child.items) && child.items.length > 0;
             const isChildActive = isItemActive(child);
+            const childKey = `${parentKey}-${child.url}`;
             return (
               <SidebarMenuSubItem key={child.title}>
                 <SidebarMenuSubButton
@@ -92,7 +93,9 @@ export function NavMain({
                     <span>{child.title}</span>
                   </Link>
                 </SidebarMenuSubButton>
-                {hasChildren ? renderSubItems(child.items!, `${parentKey}-${child.url}`, level + 1) : null}
+                {hasChildren && isChildActive
+                  ? renderSubItems(child.items!, childKey, level + 1)
+                  : null}
               </SidebarMenuSubItem>
             );
           })}
