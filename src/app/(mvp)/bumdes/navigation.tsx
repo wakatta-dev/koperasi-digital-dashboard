@@ -112,7 +112,22 @@ export const bumdesNavigation = [
           { name: "e-Faktur Export", href: "/bumdes/accounting/tax/e-faktur-export" },
         ],
       },
-      { name: "Reporting", href: "/bumdes/accounting/reporting" },
+      {
+        name: "Reporting",
+        href: "/bumdes/accounting/reporting",
+        items: [
+          { name: "Profit and Loss", href: "/bumdes/accounting/reporting/profit-loss" },
+          { name: "Cash Flow Statement", href: "/bumdes/accounting/reporting/cash-flow" },
+          { name: "Balance Sheet", href: "/bumdes/accounting/reporting/balance-sheet" },
+          {
+            name: "P&L Comparative",
+            href: "/bumdes/accounting/reporting/p-and-l-comparative",
+          },
+          { name: "Trial Balance", href: "/bumdes/accounting/reporting/trial-balance" },
+          { name: "General Ledger", href: "/bumdes/accounting/reporting/general-ledger" },
+          { name: "Account Ledger", href: "/bumdes/accounting/reporting/account-ledger" },
+        ],
+      },
       {
         name: "Settings",
         href: "/bumdes/accounting/settings",
@@ -206,6 +221,14 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/accounting/tax/export-history": "Accounting - Tax - Export History",
   "/bumdes/accounting/tax/e-faktur-export": "Accounting - Tax - e-Faktur Export",
   "/bumdes/accounting/reporting": "Accounting - Reporting",
+  "/bumdes/accounting/reporting/profit-loss": "Accounting - Reporting - Profit and Loss",
+  "/bumdes/accounting/reporting/cash-flow": "Accounting - Reporting - Cash Flow Statement",
+  "/bumdes/accounting/reporting/balance-sheet": "Accounting - Reporting - Balance Sheet",
+  "/bumdes/accounting/reporting/p-and-l-comparative":
+    "Accounting - Reporting - P&L Comparative",
+  "/bumdes/accounting/reporting/trial-balance": "Accounting - Reporting - Trial Balance",
+  "/bumdes/accounting/reporting/general-ledger": "Accounting - Reporting - General Ledger",
+  "/bumdes/accounting/reporting/account-ledger": "Accounting - Reporting - Account Ledger",
   "/bumdes/accounting/settings": "Accounting - Settings",
   "/bumdes/accounting/settings/chart-of-accounts":
     "Accounting - Settings - Chart of Accounts",
