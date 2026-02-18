@@ -129,6 +129,25 @@ export const QK = {
     periodLockCurrent: (params?: Record<string, unknown>) =>
       ["accounting-journal", "period-lock-current", params ?? {}] as const,
   },
+  accountingTax: {
+    overview: () => ["accounting-tax", "overview"] as const,
+    periods: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "periods", params ?? {}] as const,
+    vatTransactions: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "vat-transactions", params ?? {}] as const,
+    pphRecords: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "pph-records", params ?? {}] as const,
+    exportHistory: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "export-history", params ?? {}] as const,
+    efakturReady: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "efaktur-ready", params ?? {}] as const,
+    incomeTaxReport: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "income-tax-report", params ?? {}] as const,
+    compliance: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "compliance", params ?? {}] as const,
+    fileDownload: (fileId: string | number) =>
+      ["accounting-tax", "file-download", String(fileId)] as const,
+  },
   assetRental: {
     list: (params?: Record<string, unknown>) =>
       ["asset-rental", "assets", params ?? {}] as const,
@@ -226,6 +245,15 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingJournal.entryAuditLogs
   | typeof QK.accountingJournal.auditLogs
   | typeof QK.accountingJournal.periodLockCurrent
+  | typeof QK.accountingTax.overview
+  | typeof QK.accountingTax.periods
+  | typeof QK.accountingTax.vatTransactions
+  | typeof QK.accountingTax.pphRecords
+  | typeof QK.accountingTax.exportHistory
+  | typeof QK.accountingTax.efakturReady
+  | typeof QK.accountingTax.incomeTaxReport
+  | typeof QK.accountingTax.compliance
+  | typeof QK.accountingTax.fileDownload
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.masterData

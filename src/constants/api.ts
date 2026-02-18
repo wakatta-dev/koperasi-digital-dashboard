@@ -158,6 +158,24 @@ export const API_ENDPOINTS = {
     periodLocks: "/accounting/journal/period-locks",
     periodLockCurrent: "/accounting/journal/period-locks/current",
   },
+  accountingTax: {
+    overview: "/accounting/tax/overview",
+    periods: "/accounting/tax/periods",
+    vatTransactions: "/accounting/tax/vat-transactions",
+    pphRecords: "/accounting/tax/pph-records",
+    exportHistory: "/accounting/tax/export-history",
+    exportHistoryRetry: (exportId: string) =>
+      `/accounting/tax/export-history/${encodeURIComponent(exportId)}/retry`,
+    reportsGenerate: "/accounting/tax/reports/generate",
+    reportsPphExport: "/accounting/tax/reports/pph/export",
+    reportsPpnRecapExport: "/accounting/tax/reports/ppn-recap/export",
+    efakturReady: "/accounting/tax/e-faktur/ready",
+    efakturExport: "/accounting/tax/e-faktur/export",
+    reportsIncomeTax: "/accounting/tax/reports/income-tax",
+    compliance: "/accounting/tax/compliance",
+    fileDownload: (fileId: string) =>
+      `/accounting/tax/files/${encodeURIComponent(fileId)}/download`,
+  },
   bumdesReport: {
     overview: "/finance/reports/overview",
     profitLoss: "/finance/reports/profit-loss",

@@ -4,12 +4,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+
+import {
+  useAccountingTaxMutations,
+  useAccountingTaxOverview,
+  useAccountingTaxPeriods,
+} from "@/hooks/queries";
+import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
 
 import { ACCOUNTING_TAX_ROUTES } from "../../constants/tax-routes";
 import type {
   TaxSummaryFilterValue,
   TaxSummaryMetricCard,
-  TaxSummaryPeriodItem,
+  TaxSummaryTone,
   TaxTabKey,
 } from "../../types/tax";
 import {
@@ -31,99 +39,12 @@ const DEFAULT_SUMMARY_FILTERS: TaxSummaryFilterValue = {
 
 const SUMMARY_PER_PAGE = 5;
 
-const SUMMARY_CARDS: TaxSummaryMetricCard[] = [
-  {
-    key: "total_ppn_keluaran",
-    label: "Total PPN Keluaran",
-    helper_text: "Output VAT (Collected)",
-    value: "Rp 485.250.000",
-    tone: "warning",
-  },
-  {
-    key: "total_ppn_masukan",
-    label: "Total PPN Masukan",
-    helper_text: "Input VAT (Creditable)",
-    value: "Rp 312.500.000",
-    tone: "success",
-  },
-  {
-    key: "ppn_kurang_bayar",
-    label: "PPN Kurang Bayar",
-    helper_text: "VAT Payable",
-    value: "Rp 172.750.000",
-    tone: "primary",
-  },
-  {
-    key: "total_pph_terutang",
-    label: "Total PPh Terutang",
-    helper_text: "Income Tax (21, 23, 4(2))",
-    value: "Rp 45.800.000",
-    tone: "danger",
-  },
-];
-
-const SUMMARY_ROWS: TaxSummaryPeriodItem[] = [
-  {
-    period_label: "November 2023",
-    period_code: "2023-11",
-    ppn_keluaran: 485_250_000,
-    ppn_masukan: 312_500_000,
-    net_amount: 172_750_000,
-    net_position: "KB",
-    total_pph: 45_800_000,
-    status: "Open",
-  },
-  {
-    period_label: "October 2023",
-    period_code: "2023-10",
-    ppn_keluaran: 430_100_000,
-    ppn_masukan: 301_000_000,
-    net_amount: 129_100_000,
-    net_position: "KB",
-    total_pph: 40_300_000,
-    status: "Reported",
-  },
-  {
-    period_label: "September 2023",
-    period_code: "2023-09",
-    ppn_keluaran: 375_700_000,
-    ppn_masukan: 389_300_000,
-    net_amount: 13_600_000,
-    net_position: "LB",
-    total_pph: 37_200_000,
-    status: "Compensated",
-  },
-  {
-    period_label: "August 2023",
-    period_code: "2023-08",
-    ppn_keluaran: 398_300_000,
-    ppn_masukan: 276_200_000,
-    net_amount: 122_100_000,
-    net_position: "KB",
-    total_pph: 34_900_000,
-    status: "Reported",
-  },
-  {
-    period_label: "July 2023",
-    period_code: "2023-07",
-    ppn_keluaran: 356_950_000,
-    ppn_masukan: 248_150_000,
-    net_amount: 108_800_000,
-    net_position: "KB",
-    total_pph: 33_100_000,
-    status: "Reported",
-  },
-  {
-    period_label: "June 2023",
-    period_code: "2023-06",
-    ppn_keluaran: 330_000_000,
-    ppn_masukan: 210_000_000,
-    net_amount: 120_000_000,
-    net_position: "KB",
-    total_pph: 30_750_000,
-    status: "Reported",
-  },
-];
+function toSummaryTone(tone?: string): TaxSummaryTone {
+  if (tone === "warning" || tone === "success" || tone === "danger" || tone === "primary") {
+    return tone;
+  }
+  return "primary";
+}
 
 export function TaxSummaryPeriodPage() {
   const router = useRouter();
@@ -144,6 +65,16 @@ export function TaxSummaryPeriodPage() {
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
 
+  const overviewQuery = useAccountingTaxOverview();
+  const periodsQuery = useAccountingTaxPeriods({
+    q: filters.q || undefined,
+    year: filters.year === "All Years" ? undefined : filters.year,
+    status: filters.status === "all" ? undefined : filters.status,
+    page,
+    per_page: perPage,
+  });
+  const mutations = useAccountingTaxMutations();
+
   useEffect(() => {
     const nextQuery = buildTaxSummaryQueryString({ filters, page, perPage });
     const currentQuery = searchParams.toString();
@@ -153,25 +84,39 @@ export function TaxSummaryPeriodPage() {
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
   }, [filters, page, perPage, pathname, router, searchParams]);
 
-  const filteredRows = useMemo(() => {
-    const needle = filters.q.trim().toLowerCase();
+  const summaryCards = useMemo<TaxSummaryMetricCard[]>(() => {
+    return (overviewQuery.data?.cards ?? []).map((card) => ({
+      key: card.key,
+      label: card.label,
+      value: card.value,
+      helper_text: card.helper_text,
+      tone: toSummaryTone(card.tone),
+    }));
+  }, [overviewQuery.data?.cards]);
 
-    return SUMMARY_ROWS.filter((row) => {
-      const yearPass =
-        filters.year === "All Years" || row.period_code.startsWith(filters.year);
-      const statusPass = filters.status === "all" || row.status === filters.status;
-      const searchPass =
-        needle.length === 0 ||
-        row.period_label.toLowerCase().includes(needle) ||
-        row.period_code.toLowerCase().includes(needle);
-      return yearPass && statusPass && searchPass;
+  const summaryRows = useMemo(
+    () => periodsQuery.data?.items ?? [],
+    [periodsQuery.data?.items],
+  );
+
+  const totalItems = periodsQuery.data?.pagination?.total_items ?? summaryRows.length;
+  const resolvedPage = periodsQuery.data?.pagination?.page ?? page;
+  const resolvedPerPage = periodsQuery.data?.pagination?.per_page ?? perPage;
+
+  const yearOptions = useMemo(() => {
+    const years = new Set<string>();
+    summaryRows.forEach((row) => {
+      if (row.period_code.length >= 4) {
+        years.add(row.period_code.slice(0, 4));
+      }
     });
-  }, [filters.q, filters.status, filters.year]);
 
-  const paginatedRows = useMemo(() => {
-    const start = (page - 1) * perPage;
-    return filteredRows.slice(start, start + perPage);
-  }, [filteredRows, page, perPage]);
+    if (filters.year !== "All Years") {
+      years.add(filters.year);
+    }
+
+    return ["All Years", ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [filters.year, summaryRows]);
 
   const handleNavigateTab = (tab: TaxTabKey) => {
     if (tab === "summary") {
@@ -193,6 +138,30 @@ export function TaxSummaryPeriodPage() {
     router.push(ACCOUNTING_TAX_ROUTES.efakturExport);
   };
 
+  const handleGenerateTaxReport = async () => {
+    const activePeriodCode = overviewQuery.data?.active_period
+      ? `${overviewQuery.data.active_period.year}-${String(overviewQuery.data.active_period.month).padStart(2, "0")}`
+      : summaryRows[0]?.period_code;
+
+    if (!activePeriodCode) {
+      toast.error("Tax period is not available.");
+      return;
+    }
+
+    try {
+      await mutations.generateTaxReport.mutateAsync({
+        payload: {
+          period: activePeriodCode,
+          report_types: ["PPNSummary", "PPhReport"],
+        },
+        idempotencyKey: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
+      });
+      toast.success("Tax report generation has been queued.");
+    } catch (error) {
+      toast.error(toAccountingTaxApiError(error).message);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -204,10 +173,29 @@ export function TaxSummaryPeriodPage() {
             Monitor your tax obligations, generate reports, and export e-Faktur.
           </p>
         </div>
-        <FeatureTaxTopActions />
+        <FeatureTaxTopActions
+          onGenerateTaxReport={handleGenerateTaxReport}
+          onExportEfaktur={() => router.push(ACCOUNTING_TAX_ROUTES.efakturExport)}
+        />
       </section>
 
-      <FeatureTaxSummaryCards cards={SUMMARY_CARDS} />
+      {overviewQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(overviewQuery.error).message}
+        </div>
+      ) : null}
+      {periodsQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(periodsQuery.error).message}
+        </div>
+      ) : null}
+      {overviewQuery.isPending && !overviewQuery.data ? (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
+          Loading tax overview...
+        </div>
+      ) : null}
+
+      <FeatureTaxSummaryCards cards={summaryCards} />
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
         <div className="border-b border-gray-200 px-6 dark:border-gray-700">
@@ -215,14 +203,19 @@ export function TaxSummaryPeriodPage() {
         </div>
         <FeatureTaxSummaryFilterBar
           value={filters}
-          yearOptions={["All Years", "2023", "2022"]}
+          yearOptions={yearOptions.length > 1 ? yearOptions : ["All Years", "2023", "2022"]}
           onChange={(next) => {
             setFilters(next);
             setPage(1);
           }}
         />
+        {periodsQuery.isPending && !periodsQuery.data ? (
+          <div className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+            Loading tax period summary...
+          </div>
+        ) : null}
         <FeatureTaxSummaryPeriodTable
-          rows={paginatedRows}
+          rows={summaryRows}
           onDetails={(row) => {
             const backQuery = buildTaxSummaryQueryString({ filters, page, perPage });
             const from = encodeURIComponent(backQuery);
@@ -232,9 +225,9 @@ export function TaxSummaryPeriodPage() {
           }}
         />
         <FeatureTaxPaginationBar
-          page={page}
-          perPage={perPage}
-          totalItems={filteredRows.length}
+          page={resolvedPage}
+          perPage={resolvedPerPage}
+          totalItems={totalItems}
           onPageChange={setPage}
         />
       </div>

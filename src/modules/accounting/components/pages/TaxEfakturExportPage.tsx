@@ -2,8 +2,17 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+
+import {
+  useAccountingTaxCompliance,
+  useAccountingTaxEfakturReady,
+  useAccountingTaxIncomeTaxReport,
+  useAccountingTaxMutations,
+} from "@/hooks/queries";
+import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
 
 import { ACCOUNTING_TAX_ROUTES } from "../../constants/tax-routes";
 import type {
@@ -12,6 +21,10 @@ import type {
   TaxEfakturReadyItem,
   TaxIncomeTaxReportLine,
 } from "../../types/tax";
+import {
+  buildTaxEfakturQueryString,
+  parseTaxEfakturQueryState,
+} from "../../utils/tax-query-state";
 import { FeatureEfakturFilterPanel } from "../features/FeatureEfakturFilterPanel";
 import { FeatureEfakturReadyTable } from "../features/FeatureEfakturReadyTable";
 import { FeatureEfakturTopActions } from "../features/FeatureEfakturTopActions";
@@ -24,122 +37,126 @@ const DEFAULT_EFAKTUR_FILTERS: TaxEfakturFilterValue = {
   status: "Ready to Export",
 };
 
-const EFAKTUR_ROWS: TaxEfakturReadyItem[] = [
-  {
-    invoice_id: "inv_1001",
-    invoice_number: "INV/2023/1001",
-    date: "Oct 24, 2023",
-    counterparty: "PT. Maju Jaya",
-    tax_base_amount: 100_000_000,
-    vat_amount: 11_000_000,
-    is_selected_default: true,
-  },
-  {
-    invoice_id: "inv_1002",
-    invoice_number: "INV/2023/1002",
-    date: "Oct 25, 2023",
-    counterparty: "CV. Abadi Sentosa",
-    tax_base_amount: 50_000_000,
-    vat_amount: 5_500_000,
-    is_selected_default: true,
-  },
-  {
-    invoice_id: "inv_1003",
-    invoice_number: "INV/2023/1003",
-    date: "Oct 26, 2023",
-    counterparty: "PT. Sumber Makmur",
-    tax_base_amount: 75_000_000,
-    vat_amount: 8_250_000,
-    is_selected_default: true,
-  },
-  {
-    invoice_id: "inv_1004",
-    invoice_number: "INV/2023/1004",
-    date: "Oct 26, 2023",
-    counterparty: "PT. Global Tech",
-    tax_base_amount: 25_000_000,
-    vat_amount: 2_750_000,
-    is_selected_default: false,
-  },
-  {
-    invoice_id: "inv_1005",
-    invoice_number: "INV/2023/1005",
-    date: "Oct 27, 2023",
-    counterparty: "UD. Berkah",
-    tax_base_amount: 10_000_000,
-    vat_amount: 1_100_000,
-    is_selected_default: false,
-  },
-];
-
-const INCOME_TAX_LINES: TaxIncomeTaxReportLine[] = [
-  {
-    key: "pph_21",
-    label: "PPh 21",
-    helper_text: "Employee Tax",
-    value: 12_500_000,
-    tone: "blue",
-  },
-  {
-    key: "pph_23",
-    label: "PPh 23",
-    helper_text: "Services & Royalty",
-    value: 4_250_000,
-    tone: "purple",
-  },
-  {
-    key: "pph_4_2",
-    label: "PPh 4 ayat 2",
-    helper_text: "Final Tax (Rent)",
-    value: 1_500_000,
-    tone: "orange",
-  },
-];
-
-const TAX_COMPLIANCE_STEPS: TaxComplianceStep[] = [
-  {
-    key: "efaktur_uploaded",
-    label: "e-Faktur Uploaded",
-    status: "Completed",
-  },
-  {
-    key: "pph_calculated",
-    label: "PPh Calculated",
-    status: "Completed",
-  },
-  {
-    key: "payment_submitted",
-    label: "Payment Submitted",
-    status: "Pending",
-  },
-];
+const EFAKTUR_PER_PAGE = 5;
 
 export function TaxEfakturExportPage() {
   const router = useRouter();
-  const [filters, setFilters] = useState<TaxEfakturFilterValue>(DEFAULT_EFAKTUR_FILTERS);
-  const [page, setPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<string[]>(
-    EFAKTUR_ROWS.filter((row) => row.is_selected_default).map((row) => row.invoice_id),
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const initialQueryState = useMemo(
+    () =>
+      parseTaxEfakturQueryState(searchParams, {
+        filters: DEFAULT_EFAKTUR_FILTERS,
+        page: 1,
+        perPage: EFAKTUR_PER_PAGE,
+      }),
+    [searchParams],
   );
 
-  const perPage = 5;
+  const [filters, setFilters] = useState<TaxEfakturFilterValue>(initialQueryState.filters);
+  const [page, setPage] = useState(initialQueryState.page);
+  const perPage = initialQueryState.perPage;
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const paginatedRows = useMemo(() => {
-    const start = (page - 1) * perPage;
-    return EFAKTUR_ROWS.slice(start, start + perPage);
-  }, [page]);
+  const efakturReadyQuery = useAccountingTaxEfakturReady({
+    date_range: filters.date_range,
+    tax_type: filters.tax_type,
+    status: filters.status,
+    page,
+    per_page: perPage,
+  });
+  const incomeTaxReportQuery = useAccountingTaxIncomeTaxReport();
+  const complianceQuery = useAccountingTaxCompliance();
+  const mutations = useAccountingTaxMutations();
 
-  const totalTaxPayable = useMemo(
-    () => INCOME_TAX_LINES.reduce((total, line) => total + line.value, 0),
-    [],
-  );
+  useEffect(() => {
+    const nextQuery = buildTaxEfakturQueryString({ filters, page, perPage });
+    const currentQuery = searchParams.toString();
+    if (nextQuery === currentQuery) {
+      return;
+    }
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  }, [filters, page, pathname, perPage, router, searchParams]);
+
+  useEffect(() => {
+    const defaults = (efakturReadyQuery.data?.items ?? [])
+      .filter((item) => item.is_selected_default)
+      .map((item) => item.invoice_id);
+    setSelectedIds((current) => {
+      if (
+        current.length === defaults.length &&
+        current.every((id, index) => id === defaults[index])
+      ) {
+        return current;
+      }
+      return defaults;
+    });
+  }, [efakturReadyQuery.data?.items]);
+
+  const rows = useMemo<TaxEfakturReadyItem[]>(() => {
+    return (efakturReadyQuery.data?.items ?? []).map((item) => ({
+      invoice_id: item.invoice_id,
+      invoice_number: item.invoice_number,
+      date: item.date,
+      counterparty: item.counterparty,
+      tax_base_amount: item.tax_base_amount,
+      vat_amount: item.vat_amount,
+      is_selected_default: item.is_selected_default,
+    }));
+  }, [efakturReadyQuery.data?.items]);
+
+  const incomeTaxLines = useMemo<TaxIncomeTaxReportLine[]>(() => {
+    if (!incomeTaxReportQuery.data) {
+      return [];
+    }
+
+    return [
+      {
+        key: "pph_21",
+        label: "PPh 21",
+        helper_text: "Employee Tax",
+        value: incomeTaxReportQuery.data.pph21_amount,
+        tone: "blue",
+      },
+      {
+        key: "pph_23",
+        label: "PPh 23",
+        helper_text: "Services & Royalty",
+        value: incomeTaxReportQuery.data.pph23_amount,
+        tone: "purple",
+      },
+      {
+        key: "pph_4_2",
+        label: "PPh 4 ayat 2",
+        helper_text: "Final Tax (Rent)",
+        value: incomeTaxReportQuery.data.pph4_2_amount,
+        tone: "orange",
+      },
+    ];
+  }, [incomeTaxReportQuery.data]);
+
+  const complianceSteps = useMemo<TaxComplianceStep[]>(() => {
+    return (complianceQuery.data?.steps ?? []).map((step) => ({
+      key: step.key,
+      label: step.label,
+      status: step.status,
+    }));
+  }, [complianceQuery.data?.steps]);
+
+  const totalItems = efakturReadyQuery.data?.pagination?.total_items ?? rows.length;
+  const resolvedPage = efakturReadyQuery.data?.pagination?.page ?? page;
+  const resolvedPerPage = efakturReadyQuery.data?.pagination?.per_page ?? perPage;
 
   const toggleAllRows = (checked: boolean) => {
     if (!checked) {
       setSelectedIds([]);
       return;
     }
-    setSelectedIds(paginatedRows.map((row) => row.invoice_id));
+    setSelectedIds(rows.map((row) => row.invoice_id));
   };
 
   const toggleRow = (invoiceId: string, checked: boolean) => {
@@ -152,6 +169,21 @@ export function TaxEfakturExportPage() {
       }
       return current.filter((selectedId) => selectedId !== invoiceId);
     });
+  };
+
+  const handleExportEfaktur = async () => {
+    try {
+      await mutations.exportEfaktur.mutateAsync({
+        payload: {
+          invoice_ids: selectedIds,
+        },
+        idempotencyKey: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
+      });
+      toast.success("e-Faktur export has been queued.");
+      router.push(ACCOUNTING_TAX_ROUTES.summary);
+    } catch (error) {
+      toast.error(toAccountingTaxApiError(error).message);
+    }
   };
 
   return (
@@ -167,22 +199,48 @@ export function TaxEfakturExportPage() {
         </div>
         <FeatureEfakturTopActions
           onFilter={() => undefined}
-          onDownloadCsv={() => {
-            router.push(ACCOUNTING_TAX_ROUTES.summary);
-          }}
+          onDownloadCsv={handleExportEfaktur}
         />
       </section>
 
+      {efakturReadyQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(efakturReadyQuery.error).message}
+        </div>
+      ) : null}
+      {incomeTaxReportQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(incomeTaxReportQuery.error).message}
+        </div>
+      ) : null}
+      {complianceQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(complianceQuery.error).message}
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <FeatureEfakturFilterPanel value={filters} onChange={setFilters} />
+          <FeatureEfakturFilterPanel
+            value={filters}
+            onChange={(next) => {
+              setFilters(next);
+              setPage(1);
+            }}
+          />
+
+          {efakturReadyQuery.isPending && !efakturReadyQuery.data ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
+              Loading e-Faktur queue...
+            </div>
+          ) : null}
 
           <FeatureEfakturReadyTable
-            rows={paginatedRows}
+            rows={rows}
             selectedIds={selectedIds}
-            page={page}
-            perPage={perPage}
-            totalItems={EFAKTUR_ROWS.length}
+            page={resolvedPage}
+            perPage={resolvedPerPage}
+            totalItems={totalItems}
             onToggleAll={toggleAllRows}
             onToggleRow={toggleRow}
             onPageChange={setPage}
@@ -191,15 +249,15 @@ export function TaxEfakturExportPage() {
 
         <div className="space-y-6">
           <FeatureIncomeTaxReportCard
-            lines={INCOME_TAX_LINES}
-            totalTaxPayable={totalTaxPayable}
+            lines={incomeTaxLines}
+            totalTaxPayable={incomeTaxReportQuery.data?.total_tax_payable ?? 0}
             onViewDetailedReport={() => undefined}
           />
 
           <FeatureTaxComplianceCard
             periodLabel="October 2023"
-            steps={TAX_COMPLIANCE_STEPS}
-            deadline="Nov 15, 2023"
+            steps={complianceSteps}
+            deadline={complianceQuery.data?.deadline ?? "-"}
           />
         </div>
       </div>

@@ -4,6 +4,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+
+import {
+  useAccountingTaxMutations,
+  useAccountingTaxVatTransactions,
+} from "@/hooks/queries";
+import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
 
 import { ACCOUNTING_TAX_ROUTES } from "../../constants/tax-routes";
 import type {
@@ -48,7 +55,9 @@ const PPN_PERIOD_LABEL_TO_VALUE: Record<string, string> = {
   "September 2023": "2023-09",
 };
 
-const VALID_PPN_PERIODS = new Set(PPN_PERIOD_OPTIONS.map((option) => option.value));
+const VALID_PPN_PERIODS = new Set<string>(
+  PPN_PERIOD_OPTIONS.map((option) => option.value),
+);
 
 function normalizePpnPeriod(rawPeriod: string) {
   if (VALID_PPN_PERIODS.has(rawPeriod)) {
@@ -62,59 +71,6 @@ function normalizePpnPeriod(rawPeriod: string) {
 
   return DEFAULT_PPN_FILTERS.period;
 }
-
-const PPN_ROWS: TaxPpnTransactionItem[] = [
-  {
-    period_code: "2023-11",
-    date: "Nov 25, 2023",
-    invoice_number: "INV/2023/11/001",
-    counterparty_name: "PT Sinar Jaya Abadi",
-    counterparty_npwp: "01.234.567.8-012.000",
-    transaction_type: "Sales",
-    tax_base_amount: 100_000_000,
-    vat_amount: 11_000_000,
-  },
-  {
-    period_code: "2023-11",
-    date: "Nov 24, 2023",
-    invoice_number: "INV/2023/11/002",
-    counterparty_name: "CV Maju Bersama",
-    counterparty_npwp: "22.111.987.6-123.000",
-    transaction_type: "Purchase",
-    tax_base_amount: 65_000_000,
-    vat_amount: 7_150_000,
-  },
-  {
-    period_code: "2023-11",
-    date: "Nov 23, 2023",
-    invoice_number: "INV/2023/11/003",
-    counterparty_name: "PT Karya Niaga",
-    counterparty_npwp: "74.888.765.4-543.000",
-    transaction_type: "Sales",
-    tax_base_amount: 82_000_000,
-    vat_amount: 9_020_000,
-  },
-  {
-    period_code: "2023-11",
-    date: "Nov 22, 2023",
-    invoice_number: "INV/2023/11/004",
-    counterparty_name: "PT Mitra Sukses",
-    counterparty_npwp: "11.222.333.4-555.000",
-    transaction_type: "Purchase",
-    tax_base_amount: 46_000_000,
-    vat_amount: 5_060_000,
-  },
-  {
-    period_code: "2023-11",
-    date: "Nov 21, 2023",
-    invoice_number: "INV/2023/11/005",
-    counterparty_name: "UD Berkah Sentosa",
-    counterparty_npwp: "45.333.222.1-000.000",
-    transaction_type: "Sales",
-    tax_base_amount: 38_000_000,
-    vat_amount: 4_180_000,
-  },
-];
 
 export function TaxPpnDetailsPage({
   period,
@@ -147,6 +103,16 @@ export function TaxPpnDetailsPage({
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
 
+  const vatTransactionsQuery = useAccountingTaxVatTransactions({
+    period: filters.period === "All Periods" ? undefined : filters.period,
+    transaction_type:
+      filters.transaction_type === "All Types" ? undefined : filters.transaction_type,
+    q: filters.q || undefined,
+    page,
+    per_page: perPage,
+  });
+  const mutations = useAccountingTaxMutations();
+
   useEffect(() => {
     const baseQuery = buildTaxPpnQueryString({ filters, page, perPage });
     const params = new URLSearchParams(baseQuery);
@@ -162,27 +128,27 @@ export function TaxPpnDetailsPage({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
   }, [filters, page, pathname, perPage, returnToQuery, router, searchParams]);
 
-  const filteredRows = useMemo(() => {
-    const searchNeedle = filters.q.trim().toLowerCase();
+  const activePeriodCode =
+    filters.period === "All Periods"
+      ? normalizePpnPeriod(period ?? searchParams.get("period") ?? "All Periods")
+      : filters.period;
 
-    return PPN_ROWS.filter((row) => {
-      const periodPass =
-        filters.period === "All Periods" ||
-        row.period_code === filters.period;
-      const typePass =
-        filters.transaction_type === "All Types" || row.transaction_type === filters.transaction_type;
-      const searchPass =
-        searchNeedle.length === 0 ||
-        row.invoice_number.toLowerCase().includes(searchNeedle) ||
-        row.counterparty_name.toLowerCase().includes(searchNeedle);
-      return periodPass && typePass && searchPass;
-    });
-  }, [filters.period, filters.q, filters.transaction_type]);
+  const rows = useMemo<TaxPpnTransactionItem[]>(() => {
+    return (vatTransactionsQuery.data?.items ?? []).map((item) => ({
+      period_code: activePeriodCode,
+      date: item.date,
+      invoice_number: item.invoice_number,
+      counterparty_name: item.counterparty_name,
+      counterparty_npwp: item.counterparty_npwp,
+      transaction_type: item.transaction_type,
+      tax_base_amount: item.tax_base_amount,
+      vat_amount: item.vat_amount,
+    }));
+  }, [activePeriodCode, vatTransactionsQuery.data?.items]);
 
-  const paginatedRows = useMemo(() => {
-    const start = (page - 1) * perPage;
-    return filteredRows.slice(start, start + perPage);
-  }, [filteredRows, page, perPage]);
+  const totalItems = vatTransactionsQuery.data?.pagination?.total_items ?? rows.length;
+  const resolvedPage = vatTransactionsQuery.data?.pagination?.page ?? page;
+  const resolvedPerPage = vatTransactionsQuery.data?.pagination?.per_page ?? perPage;
 
   const navigateTab = (tab: TaxTabKey) => {
     if (tab === "summary") {
@@ -218,6 +184,28 @@ export function TaxPpnDetailsPage({
     router.push(ACCOUNTING_TAX_ROUTES.efakturExport);
   };
 
+  const handleDownloadRecapitulation = async () => {
+    const selectedPeriod = filters.period === "All Periods" ? activePeriodCode : filters.period;
+    if (!selectedPeriod || selectedPeriod === "All Periods") {
+      toast.error("Select a tax period before downloading recapitulation.");
+      return;
+    }
+
+    try {
+      await mutations.exportPpnRecapitulation.mutateAsync({
+        payload: {
+          period: selectedPeriod,
+          transaction_type:
+            filters.transaction_type === "All Types" ? undefined : filters.transaction_type,
+        },
+        idempotencyKey: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
+      });
+      toast.success("PPN recapitulation export has been queued.");
+    } catch (error) {
+      toast.error(toAccountingTaxApiError(error).message);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -231,9 +219,15 @@ export function TaxPpnDetailsPage({
         </div>
         <FeaturePpnDetailHeaderAction
           onBackToSummary={() => navigateTab("summary")}
-          onDownload={() => undefined}
+          onDownload={handleDownloadRecapitulation}
         />
       </section>
+
+      {vatTransactionsQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(vatTransactionsQuery.error).message}
+        </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
         <div className="border-b border-gray-200 px-6 dark:border-gray-700">
@@ -247,11 +241,19 @@ export function TaxPpnDetailsPage({
             setPage(1);
           }}
         />
-        <FeaturePpnDetailTable rows={paginatedRows} />
+        {vatTransactionsQuery.isPending && !vatTransactionsQuery.data ? (
+          <div className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+            Loading VAT transactions...
+          </div>
+        ) : null}
+        <FeaturePpnDetailTable
+          rows={rows}
+          vatAmountTotal={vatTransactionsQuery.data?.totals?.vat_amount_total}
+        />
         <FeatureTaxPaginationBar
-          page={page}
-          perPage={perPage}
-          totalItems={filteredRows.length}
+          page={resolvedPage}
+          perPage={resolvedPerPage}
+          totalItems={totalItems}
           onPageChange={setPage}
         />
       </div>

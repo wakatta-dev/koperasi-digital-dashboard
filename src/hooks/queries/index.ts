@@ -11,3 +11,4 @@ export * from "./accounting-ap";
 export * from "./accounting-bank-cash";
 export * from "./accounting-settings";
 export * from "./accounting-journal";
+export * from "./accounting-tax";

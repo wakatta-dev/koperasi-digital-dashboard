@@ -19,6 +19,31 @@ const state = vi.hoisted(() => ({
   searchParams: new URLSearchParams(""),
 }));
 
+const summaryRowsFixture = [
+  {
+    period_label: "November 2023",
+    period_code: "2023-11",
+    ppn_keluaran: 485_250_000,
+    ppn_masukan: 312_500_000,
+    net_amount: 172_750_000,
+    net_position: "KB",
+    total_pph: 45_800_000,
+    status: "Open",
+  },
+];
+
+const vatRowsFixture = [
+  {
+    date: "Nov 25, 2023",
+    invoice_number: "INV/2023/11/001",
+    counterparty_name: "PT Sinar Jaya Abadi",
+    counterparty_npwp: "01.234.567.8-012.000",
+    transaction_type: "Sales",
+    tax_base_amount: 100_000_000,
+    vat_amount: 11_000_000,
+  },
+];
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: state.pushMock,
@@ -26,6 +51,93 @@ vi.mock("next/navigation", () => ({
   }),
   usePathname: () => state.pathname,
   useSearchParams: () => state.searchParams,
+}));
+
+vi.mock("@/hooks/queries", () => ({
+  useAccountingTaxOverview: () => ({
+    data: {
+      cards: [
+        {
+          key: "total_ppn_keluaran",
+          label: "Total PPN Keluaran",
+          value: "Rp 485.250.000",
+          helper_text: "Output VAT (Collected)",
+          tone: "warning",
+        },
+      ],
+      active_period: { year: 2023, month: 11, label: "November 2023" },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxPeriods: () => ({
+    data: {
+      items: summaryRowsFixture,
+      pagination: { page: 1, per_page: 5, total_items: 1, total_pages: 1 },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxVatTransactions: () => ({
+    data: {
+      items: vatRowsFixture,
+      totals: { vat_amount_total: 11_000_000 },
+      pagination: { page: 1, per_page: 5, total_items: 1, total_pages: 1 },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxPphRecords: () => ({
+    data: {
+      summary_cards: [],
+      items: [],
+      pagination: { page: 1, per_page: 5, total_items: 0, total_pages: 0 },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxExportHistory: () => ({
+    data: {
+      items: [],
+      pagination: { page: 1, per_page: 5, total_items: 0, total_pages: 0 },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxEfakturReady: () => ({
+    data: {
+      items: [],
+      pagination: { page: 1, per_page: 5, total_items: 0, total_pages: 0 },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxIncomeTaxReport: () => ({
+    data: {
+      pph21_amount: 0,
+      pph23_amount: 0,
+      pph4_2_amount: 0,
+      total_tax_payable: 0,
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxCompliance: () => ({
+    data: {
+      as_of: "2023-11-01T00:00:00Z",
+      deadline: "Nov 15, 2023",
+      steps: [],
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingTaxMutations: () => ({
+    generateTaxReport: { mutateAsync: vi.fn() },
+    retryExportHistory: { mutateAsync: vi.fn() },
+    exportPphReport: { mutateAsync: vi.fn() },
+    exportPpnRecapitulation: { mutateAsync: vi.fn() },
+    exportEfaktur: { mutateAsync: vi.fn() },
+  }),
 }));
 
 describe("tax foundation", () => {
