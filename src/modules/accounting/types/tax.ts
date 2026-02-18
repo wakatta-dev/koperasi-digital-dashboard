@@ -76,6 +76,17 @@ export type TaxPphRecordItem = {
   category_label: string;
 };
 
+export type TaxPphSummaryTone = "neutral" | "purple" | "teal" | "orange";
+
+export type TaxPphSummaryCard = {
+  key: string;
+  label: string;
+  helper_text: string;
+  value: string;
+  note: string;
+  tone: TaxPphSummaryTone;
+};
+
 export type TaxExportHistoryFilterValue = {
   q: string;
   type: "all" | "EFaktur" | "PPhReport" | "PPNSummary" | "TaxRecapitulation";
@@ -115,4 +126,12 @@ export type TaxComplianceStep = {
   key: string;
   label: string;
   status: TaxComplianceStepStatus;
+};
+
+export type TaxIncomeTaxReportLine = {
+  key: string;
+  label: string;
+  helper_text: string;
+  value: number;
+  tone: "blue" | "purple" | "orange";
 };

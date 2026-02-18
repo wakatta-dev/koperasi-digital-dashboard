@@ -85,6 +85,17 @@ export { FeatureTaxSummaryPeriodTable } from "./components/features/FeatureTaxSu
 export { FeaturePpnDetailHeaderAction } from "./components/features/FeaturePpnDetailHeaderAction";
 export { FeaturePpnDetailFilterBar } from "./components/features/FeaturePpnDetailFilterBar";
 export { FeaturePpnDetailTable } from "./components/features/FeaturePpnDetailTable";
+export { FeaturePphHeaderAction } from "./components/features/FeaturePphHeaderAction";
+export { FeaturePphSummaryCards } from "./components/features/FeaturePphSummaryCards";
+export { FeaturePphFilterBar } from "./components/features/FeaturePphFilterBar";
+export { FeaturePphRecordsTable } from "./components/features/FeaturePphRecordsTable";
+export { FeatureTaxExportHistoryFilterBar } from "./components/features/FeatureTaxExportHistoryFilterBar";
+export { FeatureTaxExportHistoryTable } from "./components/features/FeatureTaxExportHistoryTable";
+export { FeatureEfakturTopActions } from "./components/features/FeatureEfakturTopActions";
+export { FeatureEfakturFilterPanel } from "./components/features/FeatureEfakturFilterPanel";
+export { FeatureEfakturReadyTable } from "./components/features/FeatureEfakturReadyTable";
+export { FeatureIncomeTaxReportCard } from "./components/features/FeatureIncomeTaxReportCard";
+export { FeatureTaxComplianceCard } from "./components/features/FeatureTaxComplianceCard";
 export { FeatureLockAccountingPeriodModal } from "./components/features/FeatureLockAccountingPeriodModal";
 export { FeatureManualJournalHeaderActions } from "./components/features/FeatureManualJournalHeaderActions";
 export { FeatureManualJournalMetadataForm } from "./components/features/FeatureManualJournalMetadataForm";
@@ -288,8 +299,11 @@ export type {
   TaxPagination,
   TaxPphFilterValue,
   TaxPphRecordItem,
+  TaxPphSummaryCard,
+  TaxPphSummaryTone,
   TaxPpnFilterValue,
   TaxPpnTransactionItem,
+  TaxIncomeTaxReportLine,
   TaxSummaryFilterValue,
   TaxSummaryMetricCard,
   TaxSummaryPeriodItem,
