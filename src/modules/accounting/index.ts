@@ -323,6 +323,7 @@ export type {
   TaxSummaryTone,
   TaxTabKey,
 } from "./types/tax";
+export type { ReportingCardGroup, ReportingCardItem, ReportingQueryState } from "./types/reporting";
 
 export { BankCashManagementFeatureDemo } from "./components/demo/BankCashManagementFeatureDemo";
 export { BankReconciliationFeatureDemo } from "./components/demo/BankReconciliationFeatureDemo";

@@ -148,6 +148,22 @@ export const QK = {
     fileDownload: (fileId: string | number) =>
       ["accounting-tax", "file-download", String(fileId)] as const,
   },
+  accountingReporting: {
+    profitLoss: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "profit-loss", params ?? {}] as const,
+    cashFlow: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "cash-flow", params ?? {}] as const,
+    balanceSheet: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "balance-sheet", params ?? {}] as const,
+    profitLossComparative: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "profit-loss-comparative", params ?? {}] as const,
+    trialBalance: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "trial-balance", params ?? {}] as const,
+    generalLedger: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "general-ledger", params ?? {}] as const,
+    accountLedger: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "account-ledger", params ?? {}] as const,
+  },
   assetRental: {
     list: (params?: Record<string, unknown>) =>
       ["asset-rental", "assets", params ?? {}] as const,
@@ -254,6 +270,13 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingTax.incomeTaxReport
   | typeof QK.accountingTax.compliance
   | typeof QK.accountingTax.fileDownload
+  | typeof QK.accountingReporting.profitLoss
+  | typeof QK.accountingReporting.cashFlow
+  | typeof QK.accountingReporting.balanceSheet
+  | typeof QK.accountingReporting.profitLossComparative
+  | typeof QK.accountingReporting.trialBalance
+  | typeof QK.accountingReporting.generalLedger
+  | typeof QK.accountingReporting.accountLedger
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.masterData

@@ -1,7 +1,7 @@
 /** @format */
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { bumdesNavigation, bumdesTitleMap } from "@/app/(mvp)/bumdes/navigation";
 import {
@@ -16,37 +16,109 @@ import {
   ReportingTrialBalancePage,
 } from "@/modules/accounting";
 
+let pathnameMock = "/bumdes/accounting/reporting";
+let searchParamsMock = new URLSearchParams();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+  }),
+  usePathname: () => pathnameMock,
+  useSearchParams: () => searchParamsMock,
+}));
+
+vi.mock("@/hooks/queries", () => ({
+  useAccountingReportingProfitLoss: () => ({
+    data: { period_label: "Period", summary_cards: [], rows: [], notes: [] },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingReportingCashFlow: () => ({
+    data: { period_label: "Period", rows: [], notes: [] },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingReportingBalanceSheet: () => ({
+    data: {
+      period_label: "Period",
+      assets: [],
+      liabilities: [],
+      equity: [],
+      asset_total_display: "$ 0.00",
+      liab_equity_total_display: "$ 0.00",
+      asset_info: [],
+      liability_info: [],
+      status_label: "Neraca Seimbang",
+      notes: [],
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingReportingProfitLossComparative: () => ({
+    data: { period_label: "Period", compare_label: "Compare", rows: [], meta: { generated_at: "-", currency: "USD" } },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingReportingTrialBalance: () => ({
+    data: { period_label: "Period", rows: [], totals: { initial_balance: 0, debit: 0, credit: 0, ending_balance: 0 } },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingReportingGeneralLedger: () => ({
+    data: { period_label: "Period", groups: [], pagination: { page: 1, page_size: 20, total_accounts: 0 } },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingReportingAccountLedger: () => ({
+    data: {
+      account: { id: "101000", code: "101000", name: "Bank Central Asia" },
+      summary: { total_debit: 0, total_credit: 0, current_balance: 0 },
+      entries: [],
+      totals: { debit: 0, credit: 0 },
+      pagination: { page: 1, page_size: 20, total_entries: 0 },
+    },
+    error: null,
+    isPending: false,
+  }),
+}));
+
 describe("reporting foundation", () => {
+  beforeEach(() => {
+    pathnameMock = "/bumdes/accounting/reporting";
+    searchParamsMock = new URLSearchParams();
+  });
+
   it("renders all accounting reporting page containers", () => {
-    const catalog = render(<ReportingCatalogPage />);
+    render(<ReportingCatalogPage />);
     expect(screen.getByRole("heading", { name: "Laporan Keuangan" })).toBeTruthy();
-    catalog.unmount();
 
-    const profit = render(<ReportingProfitLossPage />);
+    pathnameMock = "/bumdes/accounting/reporting/profit-loss";
+    render(<ReportingProfitLossPage />);
     expect(screen.getByRole("heading", { name: "Profit and Loss" })).toBeTruthy();
-    profit.unmount();
 
-    const cash = render(<ReportingCashFlowPage />);
+    pathnameMock = "/bumdes/accounting/reporting/cash-flow";
+    render(<ReportingCashFlowPage />);
     expect(screen.getByRole("heading", { name: "Cash Flow Statement" })).toBeTruthy();
-    cash.unmount();
 
-    const balance = render(<ReportingBalanceSheetPage />);
+    pathnameMock = "/bumdes/accounting/reporting/balance-sheet";
+    render(<ReportingBalanceSheetPage />);
     expect(screen.getByRole("heading", { name: "Balance Sheet" })).toBeTruthy();
-    balance.unmount();
 
-    const comparative = render(<ReportingProfitLossComparativePage />);
+    pathnameMock = "/bumdes/accounting/reporting/p-and-l-comparative";
+    render(<ReportingProfitLossComparativePage />);
     expect(screen.getByRole("heading", { name: "P&L Comparative" })).toBeTruthy();
-    comparative.unmount();
 
-    const trial = render(<ReportingTrialBalancePage />);
+    pathnameMock = "/bumdes/accounting/reporting/trial-balance";
+    render(<ReportingTrialBalancePage />);
     expect(screen.getByRole("heading", { name: "Detail Trial Balance Report" })).toBeTruthy();
-    trial.unmount();
 
-    const general = render(<ReportingGeneralLedgerPage />);
+    pathnameMock = "/bumdes/accounting/reporting/general-ledger";
+    render(<ReportingGeneralLedgerPage />);
     expect(screen.getByRole("heading", { name: "General Ledger" })).toBeTruthy();
-    general.unmount();
 
-    render(<ReportingAccountLedgerPage accountId="10100" />);
+    pathnameMock = "/bumdes/accounting/reporting/account-ledger";
+    render(<ReportingAccountLedgerPage accountId="101000" />);
     expect(screen.getByRole("heading", { name: "Account Ledger" })).toBeTruthy();
   });
 

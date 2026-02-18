@@ -176,6 +176,16 @@ export const API_ENDPOINTS = {
     fileDownload: (fileId: string) =>
       `/accounting/tax/files/${encodeURIComponent(fileId)}/download`,
   },
+  accountingReporting: {
+    overview: "/finance/reports/overview",
+    profitLoss: "/finance/reports/profit-loss",
+    cashFlow: "/finance/reports/cash-flow",
+    balanceSheet: "/finance/reports/balance-sheet",
+    profitLossComparative: "/finance/reports/profit-loss-comparative",
+    trialBalance: "/finance/reports/trial-balance",
+    generalLedger: "/finance/reports/general-ledger",
+    accountLedger: "/finance/reports/account-ledger",
+  },
   bumdesReport: {
     overview: "/finance/reports/overview",
     profitLoss: "/finance/reports/profit-loss",
