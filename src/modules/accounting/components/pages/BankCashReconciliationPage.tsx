@@ -39,7 +39,10 @@ type BankCashReconciliationPageProps = {
   accountId?: string;
 };
 
-function areBankRowsEqual(a: BankStatementLineItem[], b: BankStatementLineItem[]): boolean {
+function areBankRowsEqual(
+  a: BankStatementLineItem[],
+  b: BankStatementLineItem[],
+): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -54,7 +57,10 @@ function areBankRowsEqual(a: BankStatementLineItem[], b: BankStatementLineItem[]
   });
 }
 
-function areSystemRowsEqual(a: SystemLedgerLineItem[], b: SystemLedgerLineItem[]): boolean {
+function areSystemRowsEqual(
+  a: SystemLedgerLineItem[],
+  b: SystemLedgerLineItem[],
+): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -75,8 +81,12 @@ export function BankCashReconciliationPage({
   const router = useRouter();
   const [importOpen, setImportOpen] = useState(false);
   const [confirmedHref, setConfirmedHref] = useState<string | null>(null);
-  const [selectedBankRows, setSelectedBankRows] = useState<BankStatementLineItem[]>([]);
-  const [selectedSystemRows, setSelectedSystemRows] = useState<SystemLedgerLineItem[]>([]);
+  const [selectedBankRows, setSelectedBankRows] = useState<
+    BankStatementLineItem[]
+  >([]);
+  const [selectedSystemRows, setSelectedSystemRows] = useState<
+    SystemLedgerLineItem[]
+  >([]);
 
   const accountsQuery = useAccountingBankCashAccounts({
     page: 1,
@@ -144,24 +154,29 @@ export function BankCashReconciliationPage({
   const canConfirm = Boolean(sessionQuery.data?.can_confirm);
   const bankSelectedOnly = useMemo(
     () => selectedBankRows.filter((row) => row.is_selected),
-    [selectedBankRows]
+    [selectedBankRows],
   );
   const systemSelectedOnly = useMemo(
     () => selectedSystemRows.filter((row) => row.is_selected),
-    [selectedSystemRows]
+    [selectedSystemRows],
   );
 
   useEffect(() => {
-    setSelectedBankRows((prev) => (areBankRowsEqual(prev, bankRows) ? prev : bankRows));
+    setSelectedBankRows((prev) =>
+      areBankRowsEqual(prev, bankRows) ? prev : bankRows,
+    );
   }, [bankRows]);
 
   useEffect(() => {
     setSelectedSystemRows((prev) =>
-      areSystemRowsEqual(prev, systemRows) ? prev : systemRows
+      areSystemRowsEqual(prev, systemRows) ? prev : systemRows,
     );
   }, [systemRows]);
 
-  const parseSignedAmount = (amountLabel: string, direction: "Credit" | "Debit"): number => {
+  const parseSignedAmount = (
+    amountLabel: string,
+    direction: "Credit" | "Debit",
+  ): number => {
     const compact = amountLabel.replace(/\s/g, "");
     const detectedSign = compact.startsWith("-")
       ? -1
@@ -181,18 +196,18 @@ export function BankCashReconciliationPage({
     () =>
       bankSelectedOnly.reduce(
         (sum, row) => sum + parseSignedAmount(row.amount, row.direction),
-        0
+        0,
       ),
-    [bankSelectedOnly]
+    [bankSelectedOnly],
   );
 
   const selectedSystemAmount = useMemo(
     () =>
       systemSelectedOnly.reduce(
         (sum, row) => sum + parseSignedAmount(row.amount, row.direction),
-        0
+        0,
       ),
-    [systemSelectedOnly]
+    [systemSelectedOnly],
   );
 
   const selectedNetDifference = selectedBankAmount - selectedSystemAmount;
@@ -269,7 +284,10 @@ export function BankCashReconciliationPage({
       return;
     }
 
-    const pairCount = Math.min(bankSelectedOnly.length, systemSelectedOnly.length);
+    const pairCount = Math.min(
+      bankSelectedOnly.length,
+      systemSelectedOnly.length,
+    );
     const pairs = Array.from({ length: pairCount }, (_, index) => ({
       bank_statement_line_id: bankSelectedOnly[index].line_id,
       system_ledger_line_id: systemSelectedOnly[index].line_id,
@@ -363,7 +381,7 @@ export function BankCashReconciliationPage({
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:[height:calc(100vh-320px)] lg:min-h-[500px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:h-[460px] lg:min-h-[420px]">
         <FeatureBankStatementMatchTable
           rows={selectedBankRows}
           onRowsChange={setSelectedBankRows}

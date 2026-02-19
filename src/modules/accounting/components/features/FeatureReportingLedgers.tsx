@@ -556,7 +556,7 @@ export function FeatureAccountLedgerSummaryCards({
   summary,
 }: FeatureAccountLedgerSummaryCardsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       <Card className="border-gray-200 dark:border-gray-700 dark:bg-slate-900">
         <CardContent className="pt-6">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Debit</p>

@@ -2,7 +2,10 @@
 
 import { ArrowLeftRight, Coins, Wallet } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  KpiGridBase,
+  type KpiItem,
+} from "@/components/shared/data-display/KpiGridBase";
 
 import type { BankCashSummaryCard } from "../../types/bank-cash";
 
@@ -14,20 +17,23 @@ function toneStyles(tone: BankCashSummaryCard["tone"]) {
   switch (tone) {
     case "warning":
       return {
-        iconWrapper: "bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
-        helper: "text-orange-500",
+        tone: "warning" as const,
+        iconWrapper:
+          "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
         icon: ArrowLeftRight,
       };
     case "success":
       return {
-        iconWrapper: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
-        helper: "text-gray-500 dark:text-gray-400",
+        tone: "success" as const,
+        iconWrapper:
+          "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
         icon: Coins,
       };
     default:
       return {
-        iconWrapper: "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
-        helper: "text-gray-500 dark:text-gray-400",
+        tone: "primary" as const,
+        iconWrapper:
+          "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
         icon: Wallet,
       };
   }
@@ -44,32 +50,31 @@ export function FeatureBankCashSummaryCards({
     );
   }
 
-  return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      {cards.map((card) => {
-        const tone = toneStyles(card.tone);
-        const Icon = tone.icon;
+  const items: KpiItem[] = cards.map((card) => {
+    const styles = toneStyles(card.tone);
+    const Icon = styles.icon;
 
-        return (
-          <Card
-            key={card.key}
-            className="rounded-xl border border-gray-200 shadow-sm transition-colors hover:border-indigo-300 dark:border-gray-700 dark:hover:border-indigo-800"
-          >
-            <CardContent className="flex items-center justify-between p-6">
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{card.label}</p>
-                <h3 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{card.value}</h3>
-                {card.helper_text ? (
-                  <p className={`mt-1 text-xs font-medium ${tone.helper}`}>{card.helper_text}</p>
-                ) : null}
-              </div>
-              <div className={`flex h-12 w-12 items-center justify-center rounded-full ${tone.iconWrapper}`}>
-                <Icon className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+    return {
+      id: card.key,
+      label: card.label,
+      value: card.value,
+      icon: <Icon className="h-5 w-5" />,
+      tone: styles.tone,
+      showAccent: true,
+      iconContainerClassName: styles.iconWrapper,
+      labelClassName: "text-xs font-semibold uppercase tracking-wide",
+      valueClassName: "text-lg",
+      contentClassName: "min-h-[88px]",
+      trend: card.helper_text
+        ? {
+            direction: "neutral",
+            label: card.helper_text,
+          }
+        : undefined,
+    };
+  });
+
+  return (
+    <KpiGridBase items={items} columns={{ md: 2, xl: 4 }} />
   );
 }

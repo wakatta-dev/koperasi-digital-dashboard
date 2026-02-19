@@ -19,6 +19,13 @@ export function FeatureBankAccountsGrid({
   onReconcileNow,
   onDetails,
 }: FeatureBankAccountsGridProps) {
+  const gridClass =
+    accounts.length >= 3
+      ? "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      : accounts.length === 2
+      ? "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2"
+      : "grid grid-cols-1 gap-6";
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -32,7 +39,7 @@ export function FeatureBankAccountsGrid({
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className={gridClass}>
         {accounts.length === 0 ? (
           <div className="col-span-full rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
             Belum ada rekening bank yang terdaftar.
@@ -41,14 +48,14 @@ export function FeatureBankAccountsGrid({
         {accounts.map((account) => (
           <Card
             key={account.account_id}
-            className="overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700"
+            className="h-full overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700"
           >
-            <CardContent className="p-0">
-              <div className="space-y-4 p-6">
+            <CardContent className="flex h-full flex-col p-0">
+              <div className="space-y-3 p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-lg text-xs font-bold text-white shadow-md ${account.bank_badge_class_name}`}
+                      className={`flex h-9 w-9 items-center justify-center rounded-lg text-[11px] font-bold text-white shadow-md ${account.bank_badge_class_name}`}
                     >
                       {account.bank_badge}
                     </div>
@@ -66,12 +73,12 @@ export function FeatureBankAccountsGrid({
 
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500 dark:text-gray-400">Available Balance</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{account.available_balance}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{account.available_balance}</p>
                   <p className="text-xs text-gray-400">{account.last_sync_label}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+              <div className="mt-auto flex items-center justify-between border-t border-gray-100 bg-gray-50 p-3.5 dark:border-gray-700 dark:bg-gray-800/50">
                 {account.unreconciled_count > 0 ? (
                   <span className="rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-600 dark:bg-orange-900/20 dark:text-orange-400">
                     {account.unreconciled_count} Items Unreconciled
