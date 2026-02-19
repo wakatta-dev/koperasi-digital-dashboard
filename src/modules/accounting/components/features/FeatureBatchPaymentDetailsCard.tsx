@@ -4,33 +4,26 @@ import { ArrowRight, Banknote } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/shared/inputs/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import { DUMMY_BATCH_PAYMENT_DRAFT } from "../../constants/vendor-bills-ap-dummy";
 import type { BatchPaymentDraft } from "../../types/vendor-bills-ap";
 
 type FeatureBatchPaymentDetailsCardProps = {
-  draft?: BatchPaymentDraft;
+  draft: BatchPaymentDraft;
   onDraftChange?: (nextDraft: BatchPaymentDraft) => void;
   onConfirm?: () => void;
   isConfirming?: boolean;
   confirmationDisabled?: boolean;
   errorMessage?: string | null;
+  payFromOptions?: string[];
 };
 
 export function FeatureBatchPaymentDetailsCard({
-  draft = DUMMY_BATCH_PAYMENT_DRAFT,
+  draft,
   onDraftChange,
   onConfirm,
   isConfirming = false,
   confirmationDisabled = false,
   errorMessage,
+  payFromOptions = [],
 }: FeatureBatchPaymentDetailsCardProps) {
   return (
     <section className="sticky top-0 flex flex-col rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
@@ -46,26 +39,26 @@ export function FeatureBatchPaymentDetailsCard({
           <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
             Pay From
           </label>
-          <Select
+          <Input
+            type="text"
             value={draft.pay_from}
-            onValueChange={(value) =>
+            onChange={(event) =>
               onDraftChange?.({
                 ...draft,
-                pay_from: value,
+                pay_from: event.target.value,
               })
             }
-          >
-            <SelectTrigger className="w-full border-gray-300 bg-gray-50 text-sm focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BCA Corporate - 8821xxxx">BCA Corporate - 8821xxxx</SelectItem>
-              <SelectItem value="Mandiri Business - 123xxxx">
-                Mandiri Business - 123xxxx
-              </SelectItem>
-              <SelectItem value="Petty Cash (IDR)">Petty Cash (IDR)</SelectItem>
-            </SelectContent>
-          </Select>
+            list="batch-pay-from-options"
+            placeholder="Bank account / cash account"
+            className="w-full border-gray-300 bg-gray-50 text-sm focus-visible:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800"
+          />
+          {payFromOptions.length > 0 ? (
+            <datalist id="batch-pay-from-options">
+              {payFromOptions.map((option) => (
+                <option key={option} value={option} />
+              ))}
+            </datalist>
+          ) : null}
           <p className="mt-1 flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
             Balance Available
           </p>

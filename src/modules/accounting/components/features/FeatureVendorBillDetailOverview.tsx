@@ -6,11 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { DUMMY_VENDOR_BILL_DETAIL } from "../../constants/vendor-bills-ap-dummy";
 import type { VendorBillDetailOverviewModel } from "../../types/vendor-bills-ap";
 
 type FeatureVendorBillDetailOverviewProps = {
-  detail?: VendorBillDetailOverviewModel;
+  detail: VendorBillDetailOverviewModel;
   onPayNow?: () => void;
 };
 
@@ -25,7 +24,7 @@ const STATUS_BADGE_CLASS: Record<VendorBillDetailOverviewModel["status"], string
 };
 
 export function FeatureVendorBillDetailOverview({
-  detail = DUMMY_VENDOR_BILL_DETAIL.overview,
+  detail,
   onPayNow,
 }: FeatureVendorBillDetailOverviewProps) {
   return (

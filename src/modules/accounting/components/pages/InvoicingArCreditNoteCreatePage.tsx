@@ -3,10 +3,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { useAccountingArCreditNoteMutations } from "@/hooks/queries";
+import { useAccountingArCreditNoteMutations, useAccountingArInvoices } from "@/hooks/queries";
 import { toAccountingArApiError } from "@/services/api/accounting-ar";
 
 import { INVOICING_AR_ROUTES } from "../../constants/routes";
@@ -24,6 +24,27 @@ export function InvoicingArCreditNoteCreatePage() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const creditNoteMutations = useAccountingArCreditNoteMutations();
+  const invoicesQuery = useAccountingArInvoices({ page: 1, per_page: 100 });
+
+  const customerOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        (invoicesQuery.data?.items ?? [])
+          .map((item) => item.customer_name.trim())
+          .filter((name) => name.length > 0)
+      )
+    );
+  }, [invoicesQuery.data?.items]);
+
+  const invoiceReferenceOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        (invoicesQuery.data?.items ?? [])
+          .map((item) => item.invoice_number.trim())
+          .filter((number) => number.length > 0)
+      )
+    );
+  }, [invoicesQuery.data?.items]);
 
   const handleSubmit = async (payload: FeatureCreditNoteCreateSubmitPayload) => {
     setErrorMessage(null);
@@ -62,6 +83,8 @@ export function InvoicingArCreditNoteCreatePage() {
       onSubmit={handleSubmit}
       isSubmitting={creditNoteMutations.createCreditNote.isPending}
       errorMessage={errorMessage}
+      customerOptions={customerOptions}
+      invoiceReferenceOptions={invoiceReferenceOptions}
     />
   );
 }

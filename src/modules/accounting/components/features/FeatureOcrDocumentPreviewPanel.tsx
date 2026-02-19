@@ -16,11 +16,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_OCR_SESSION } from "../../constants/vendor-bills-ap-dummy";
 import type { OcrExtractionSession } from "../../types/vendor-bills-ap";
 
 type FeatureOcrDocumentPreviewPanelProps = {
-  session?: OcrExtractionSession;
+  session: OcrExtractionSession;
 };
 
 const MIN_ZOOM_PERCENT = 50;
@@ -46,7 +45,7 @@ function formatIdNumber(value: number): string {
 }
 
 export function FeatureOcrDocumentPreviewPanel({
-  session = DUMMY_OCR_SESSION,
+  session,
 }: FeatureOcrDocumentPreviewPanelProps) {
   const previewAreaRef = useRef<HTMLDivElement | null>(null);
   const [zoomPercent, setZoomPercent] = useState<number>(() =>
@@ -230,6 +229,13 @@ export function FeatureOcrDocumentPreviewPanel({
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-100">
+                  {lineItemRows.length === 0 ? (
+                    <TableRow className="text-sm">
+                      <TableCell className="py-4 text-center text-gray-500" colSpan={4}>
+                        No OCR line items detected.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
                   {lineItemRows.map((line) => (
                     <TableRow key={line.id} className="text-sm">
                       <TableCell className="py-4">

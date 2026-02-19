@@ -20,10 +20,11 @@ import {
 
 export function InvoicingArIndexPage() {
   const invoicesQuery = useAccountingArInvoices({ page: 1, per_page: 20 });
+  const invoiceItems = invoicesQuery.data?.items ?? [];
 
   const rows = useMemo(
     () =>
-      (invoicesQuery.data?.items ?? []).map((item) => ({
+      invoiceItems.map((item) => ({
         invoice_number: item.invoice_number,
         customer_name: item.customer_name,
         invoice_date: formatAccountingArDate(item.invoice_date),
@@ -31,8 +32,64 @@ export function InvoicingArIndexPage() {
         total_amount: formatAccountingArCurrency(item.total_amount),
         status: normalizeInvoiceStatus(item.status),
       })),
-    [invoicesQuery.data?.items]
+    [invoiceItems]
   );
+
+  const summaryMetrics = useMemo(() => {
+    const summary = {
+      draft: { count: 0, amount: 0 },
+      sent: { count: 0, amount: 0 },
+      paid: { count: 0, amount: 0 },
+      overdue: { count: 0, amount: 0 },
+    };
+
+    invoiceItems.forEach((item) => {
+      const status = normalizeInvoiceStatus(item.status);
+      if (status === "Draft") {
+        summary.draft.count += 1;
+        summary.draft.amount += item.total_amount;
+      }
+      if (status === "Sent") {
+        summary.sent.count += 1;
+        summary.sent.amount += item.total_amount;
+      }
+      if (status === "Paid") {
+        summary.paid.count += 1;
+        summary.paid.amount += item.total_amount;
+      }
+      if (status === "Overdue") {
+        summary.overdue.count += 1;
+        summary.overdue.amount += item.total_amount;
+      }
+    });
+
+    return [
+      {
+        id: "draft",
+        label: "Total Drafts",
+        displayValue: formatAccountingArCurrency(summary.draft.amount),
+        helperText: `${summary.draft.count} invoices`,
+      },
+      {
+        id: "sent",
+        label: "Total Sent",
+        displayValue: formatAccountingArCurrency(summary.sent.amount),
+        helperText: `${summary.sent.count} invoices`,
+      },
+      {
+        id: "paid",
+        label: "Total Paid",
+        displayValue: formatAccountingArCurrency(summary.paid.amount),
+        helperText: `${summary.paid.count} invoices`,
+      },
+      {
+        id: "overdue",
+        label: "Total Overdue",
+        displayValue: formatAccountingArCurrency(summary.overdue.amount),
+        helperText: `${summary.overdue.count} invoices`,
+      },
+    ];
+  }, [invoiceItems]);
 
   return (
     <div className="space-y-8">
@@ -57,7 +114,11 @@ export function InvoicingArIndexPage() {
         </div>
       </section>
 
-      <FeatureInvoiceSummaryCards />
+      <FeatureInvoiceSummaryCards
+        metrics={summaryMetrics}
+        isLoading={invoicesQuery.isPending}
+        isError={Boolean(invoicesQuery.error)}
+      />
 
       {invoicesQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

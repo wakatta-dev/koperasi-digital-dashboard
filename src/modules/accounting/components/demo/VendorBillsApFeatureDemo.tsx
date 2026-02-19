@@ -7,9 +7,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import {
-  DUMMY_BATCH_PAYMENT_BILLS,
-  DUMMY_OCR_SESSION,
-} from "../../constants/vendor-bills-ap-dummy";
+  EMPTY_OCR_SESSION,
+  EMPTY_PAYMENT_CONFIRMATION,
+  buildInitialBatchPaymentDraft,
+} from "../../constants/vendor-bills-ap-initial-state";
 import type { BatchPaymentBillItem, OcrExtractionSession } from "../../types/vendor-bills-ap";
 import { FeatureBatchPaymentDetailsCard } from "../features/FeatureBatchPaymentDetailsCard";
 import { FeatureBatchProcessingNote } from "../features/FeatureBatchProcessingNote";
@@ -29,8 +30,16 @@ export function VendorBillsApFeatureDemo() {
   const [step, setStep] = useState<DemoStep>("list");
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedBillNumbers, setSelectedBillNumbers] = useState<string[]>([]);
-  const [batchBills, setBatchBills] = useState<BatchPaymentBillItem[]>(DUMMY_BATCH_PAYMENT_BILLS);
-  const [ocrSession, setOcrSession] = useState<OcrExtractionSession>(DUMMY_OCR_SESSION);
+  const [batchBills, setBatchBills] = useState<BatchPaymentBillItem[]>([]);
+  const [batchDraft, setBatchDraft] = useState(() => ({
+    ...buildInitialBatchPaymentDraft(new Date()),
+    reference_number: "DEMO-BATCH",
+  }));
+  const [ocrSession, setOcrSession] = useState<OcrExtractionSession>({
+    ...EMPTY_OCR_SESSION,
+    file_name: "sample.pdf",
+    file_size_label: "0 MB",
+  });
 
   return (
     <section className="space-y-4">
@@ -87,7 +96,11 @@ export function VendorBillsApFeatureDemo() {
             <FeatureBatchProcessingNote />
           </div>
           <div className="space-y-6">
-            <FeatureBatchPaymentDetailsCard onConfirm={() => setStep("confirmation")} />
+            <FeatureBatchPaymentDetailsCard
+              draft={batchDraft}
+              onDraftChange={setBatchDraft}
+              onConfirm={() => setStep("confirmation")}
+            />
             <FeatureBatchVendorCreditsPanel />
           </div>
         </div>
@@ -104,7 +117,10 @@ export function VendorBillsApFeatureDemo() {
       ) : null}
 
       {step === "confirmation" ? (
-        <FeaturePaymentSchedulingSuccessCard onDone={() => setStep("list")} />
+        <FeaturePaymentSchedulingSuccessCard
+          confirmation={EMPTY_PAYMENT_CONFIRMATION}
+          onDone={() => setStep("list")}
+        />
       ) : null}
     </section>
   );

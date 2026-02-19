@@ -26,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_INVOICE_ITEMS } from "../../constants/dummy-data";
 import { INVOICE_STATUS_BADGE_CLASS } from "../../constants/stitch";
 import type { InvoiceListItem, InvoiceStatus } from "../../types/invoicing-ar";
 
@@ -38,7 +37,7 @@ type FeatureInvoiceTableProps = {
 const PAGE_SIZE = 4;
 
 export function FeatureInvoiceTable({
-  rows = DUMMY_INVOICE_ITEMS,
+  rows = [],
   getInvoiceHref,
 }: FeatureInvoiceTableProps) {
   const [searchTerm, setSearchTerm] = useState("");

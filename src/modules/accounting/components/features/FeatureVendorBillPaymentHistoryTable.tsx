@@ -13,7 +13,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_VENDOR_BILL_DETAIL } from "../../constants/vendor-bills-ap-dummy";
 import type { VendorBillPaymentHistoryItem } from "../../types/vendor-bills-ap";
 
 type FeatureVendorBillPaymentHistoryTableProps = {
@@ -28,7 +27,7 @@ const PAYMENT_HISTORY_STATUS_CLASS: Record<VendorBillPaymentHistoryItem["status"
 };
 
 export function FeatureVendorBillPaymentHistoryTable({
-  rows = DUMMY_VENDOR_BILL_DETAIL.payment_history,
+  rows = [],
 }: FeatureVendorBillPaymentHistoryTableProps) {
   return (
     <section className="space-y-4">
@@ -60,6 +59,13 @@ export function FeatureVendorBillPaymentHistoryTable({
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
+              {rows.length === 0 ? (
+                <TableRow>
+                  <TableCell className="px-8 py-8 text-center text-sm text-gray-500" colSpan={5}>
+                    No payment history available.
+                  </TableCell>
+                </TableRow>
+              ) : null}
               {rows.map((row) => (
                 <TableRow key={`${row.payment_reference}-${row.payment_date}`}>
                   <TableCell className="px-8 py-4 text-sm text-gray-700 dark:text-gray-300">

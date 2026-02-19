@@ -15,6 +15,7 @@ import {
 import { toAccountingApApiError } from "@/services/api/accounting-ap";
 
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
+import { buildInitialBatchPaymentDraft } from "../../constants/vendor-bills-ap-initial-state";
 import type { BatchPaymentBillItem, BatchPaymentDraft, VendorCreditNoteItem } from "../../types/vendor-bills-ap";
 import { formatAccountingApCurrency, formatAccountingApDate } from "../../utils/formatters";
 import { FeatureBatchPaymentDetailsCard } from "../features/FeatureBatchPaymentDetailsCard";
@@ -61,15 +62,10 @@ export function VendorBillsApBatchPaymentPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [bills, setBills] = useState<BatchPaymentBillItem[]>([]);
   const [credits, setCredits] = useState<VendorCreditNoteItem[]>([]);
-  const [draft, setDraft] = useState<BatchPaymentDraft>({
-    pay_from: "BCA Corporate - 8821xxxx",
-    payment_date: new Date().toISOString().slice(0, 10),
+  const [draft, setDraft] = useState<BatchPaymentDraft>(() => ({
+    ...buildInitialBatchPaymentDraft(new Date()),
     reference_number: `BATCH-${new Date().getTime().toString().slice(-5)}`,
-    total_bills_label: "Total Bills (0)",
-    total_bills_amount: "Rp 0",
-    credits_applied_amount: "- Rp 0",
-    total_to_pay_amount: "Rp 0",
-  });
+  }));
   const vendorCreditsQuery = useAccountingApVendorCredits({
     page: 1,
     per_page: 25,
@@ -189,7 +185,7 @@ export function VendorBillsApBatchPaymentPage({
       ...current,
       total_bills_label: `Total Bills (${selectedRows.length})`,
       total_bills_amount: formatAccountingApCurrency(selectedBillsAmount),
-      credits_applied_amount: `- ${formatAccountingApCurrency(selectedCreditsAmount)}`,
+      credits_applied_amount: formatAccountingApCurrency(selectedCreditsAmount),
       total_to_pay_amount: formatAccountingApCurrency(
         Math.max(selectedBillsAmount - selectedCreditsAmount, 0)
       ),
@@ -220,7 +216,7 @@ export function VendorBillsApBatchPaymentPage({
         ...current,
         total_bills_label: `Total Bills (${preview.selected_bills.length})`,
         total_bills_amount: formatAccountingApCurrency(preview.totals.total_bills_amount),
-        credits_applied_amount: `- ${formatAccountingApCurrency(preview.totals.credits_applied_amount)}`,
+        credits_applied_amount: formatAccountingApCurrency(preview.totals.credits_applied_amount),
         total_to_pay_amount: formatAccountingApCurrency(preview.totals.total_to_pay_amount),
       }));
 
@@ -302,6 +298,7 @@ export function VendorBillsApBatchPaymentPage({
             isConfirming={batchMutations.confirmBatchPayment.isPending}
             confirmationDisabled={batchMutations.previewBatchPayment.isPending}
             errorMessage={errorMessage}
+            payFromOptions={[]}
           />
           <FeatureBatchVendorCreditsPanel credits={credits} onCreditsChange={setCredits} />
         </div>

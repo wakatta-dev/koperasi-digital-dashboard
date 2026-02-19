@@ -31,7 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_CREATE_VENDOR_BILL_DRAFT } from "../../constants/vendor-bills-ap-dummy";
+import { INITIAL_CREATE_VENDOR_BILL_DRAFT } from "../../constants/vendor-bills-ap-initial-state";
 import type {
   CreateVendorBillDraft,
   CreateVendorBillLineItem,
@@ -43,6 +43,7 @@ type FeatureCreateVendorBillModalProps = {
   onSubmit?: (draft: CreateVendorBillDraft) => void;
   isSubmitting?: boolean;
   errorMessage?: string | null;
+  vendorOptions?: string[];
 };
 
 export function FeatureCreateVendorBillModal({
@@ -51,8 +52,9 @@ export function FeatureCreateVendorBillModal({
   onSubmit,
   isSubmitting = false,
   errorMessage,
+  vendorOptions = [],
 }: FeatureCreateVendorBillModalProps) {
-  const [draft, setDraft] = useState<CreateVendorBillDraft>(DUMMY_CREATE_VENDOR_BILL_DRAFT);
+  const [draft, setDraft] = useState<CreateVendorBillDraft>(INITIAL_CREATE_VENDOR_BILL_DRAFT);
 
   const computedTotals = useMemo(() => {
     const subtotalValue = draft.line_items.reduce((total, item) => {
@@ -103,21 +105,23 @@ export function FeatureCreateVendorBillModal({
               <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Vendor <span className="text-red-500">*</span>
               </label>
-              <Select
+              <Input
+                type="text"
                 value={draft.vendor_name}
-                onValueChange={(vendorName) =>
-                  setDraft((current) => ({ ...current, vendor_name: vendorName }))
+                placeholder="Type vendor name"
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, vendor_name: event.target.value }))
                 }
-              >
-                <SelectTrigger className="w-full border-gray-200 bg-gray-50 text-sm dark:border-gray-700 dark:bg-gray-800">
-                  <SelectValue placeholder="Select Vendor..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PT. Pemasok Jaya">PT. Pemasok Jaya</SelectItem>
-                  <SelectItem value="CV. Makmur Abadi">CV. Makmur Abadi</SelectItem>
-                  <SelectItem value="Global Tech Solutions">Global Tech Solutions</SelectItem>
-                </SelectContent>
-              </Select>
+                className="border-gray-200 bg-gray-50 text-sm dark:border-gray-700 dark:bg-gray-800"
+                list="vendor-bill-vendor-options"
+              />
+              {vendorOptions.length > 0 ? (
+                <datalist id="vendor-bill-vendor-options">
+                  {vendorOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              ) : null}
             </div>
 
             <div>
@@ -266,25 +270,28 @@ export function FeatureCreateVendorBillModal({
                             updateLineItem(line.id, (current) => ({
                               ...current,
                               price: event.target.value,
-                              amount: event.target.value || "0.00",
+                              amount: event.target.value || "0",
                             }))
                           }
                           className="border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
                         />
                       </TableCell>
                       <TableCell className="px-4 py-3">
-                        <Select
-                          value={line.tax_name}
+                          <Select
+                          value={line.tax_name || "__empty"}
                           onValueChange={(value) =>
-                            updateLineItem(line.id, (current) => ({ ...current, tax_name: value }))
+                            updateLineItem(line.id, (current) => ({
+                              ...current,
+                              tax_name: value === "__empty" ? "" : value,
+                            }))
                           }
                         >
                           <SelectTrigger className="h-auto border-none bg-transparent p-0 text-sm shadow-none focus:ring-0">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="__empty">No tax</SelectItem>
                             <SelectItem value="VAT 11%">VAT 11%</SelectItem>
-                            <SelectItem value="Non-Tax">Non-Tax</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>

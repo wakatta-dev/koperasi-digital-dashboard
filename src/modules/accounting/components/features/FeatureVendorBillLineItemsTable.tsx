@@ -10,20 +10,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_VENDOR_BILL_DETAIL } from "../../constants/vendor-bills-ap-dummy";
 import type {
   VendorBillLineItem,
   VendorBillTotals,
 } from "../../types/vendor-bills-ap";
 
 type FeatureVendorBillLineItemsTableProps = {
-  rows?: VendorBillLineItem[];
-  totals?: VendorBillTotals;
+  rows: VendorBillLineItem[];
+  totals: VendorBillTotals;
 };
 
 export function FeatureVendorBillLineItemsTable({
-  rows = DUMMY_VENDOR_BILL_DETAIL.line_items,
-  totals = DUMMY_VENDOR_BILL_DETAIL.totals,
+  rows,
+  totals,
 }: FeatureVendorBillLineItemsTableProps) {
   return (
     <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
@@ -47,6 +46,13 @@ export function FeatureVendorBillLineItemsTable({
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
+              {rows.length === 0 ? (
+                <TableRow>
+                  <TableCell className="px-8 py-8 text-center text-sm text-gray-500" colSpan={4}>
+                    No line items available.
+                  </TableCell>
+                </TableRow>
+              ) : null}
               {rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell className="px-8 py-5">
