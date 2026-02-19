@@ -4,6 +4,7 @@ import { Lock, Pencil, PlusCircle, Send, Trash } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TablePaginationFooter } from "@/components/shared/data-display/TablePaginationFooter";
 import {
   Table,
   TableBody,
@@ -132,62 +133,28 @@ export function FeatureAuditLogTable({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50/50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/30">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Menampilkan <span className="font-medium text-gray-900 dark:text-white">{start}</span>{" "}
-          sampai <span className="font-medium text-gray-900 dark:text-white">{end}</span> dari{" "}
-          <span className="font-medium text-gray-900 dark:text-white">{totalItems.toLocaleString("en-US")}</span>{" "}
-          log
-        </p>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={page <= 1}
-            className="border-gray-200 text-sm font-medium text-gray-600 hover:bg-white disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
-            onClick={() => onPageChange?.(Math.max(1, page - 1))}
-          >
-            Sebelumnya
-          </Button>
-          <div className="flex items-center">
-            {Array.from({ length: Math.min(3, totalPages) }, (_, index) => index + 1).map((value) => (
-              <Button
-                key={value}
-                type="button"
-                variant={value === page ? "default" : "ghost"}
-                className={
-                  value === page
-                    ? "h-9 w-9 bg-indigo-600 text-white hover:bg-indigo-700"
-                    : "h-9 w-9 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                }
-                onClick={() => onPageChange?.(value)}
-              >
-                {value}
-              </Button>
-            ))}
-            {totalPages > 3 ? <span className="px-2 text-gray-400">...</span> : null}
-            {totalPages > 3 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-9 w-9 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                onClick={() => onPageChange?.(totalPages)}
-              >
-                {totalPages}
-              </Button>
-            ) : null}
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={page >= totalPages}
-            className="border-gray-200 text-sm font-medium text-gray-600 hover:bg-white disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
-            onClick={() => onPageChange?.(Math.min(totalPages, page + 1))}
-          >
-            Selanjutnya
-          </Button>
-        </div>
-      </div>
+      <TablePaginationFooter
+        page={page}
+        totalPages={totalPages}
+        canPrevious={page > 1}
+        canNext={page < totalPages}
+        onPrevious={() => onPageChange?.(Math.max(1, page - 1))}
+        onNext={() => onPageChange?.(Math.min(totalPages, page + 1))}
+        summary={
+          <>
+            Menampilkan{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{start}</span> sampai{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{end}</span> dari{" "}
+            <span className="font-medium text-gray-900 dark:text-white">
+              {totalItems.toLocaleString("en-US")}
+            </span>{" "}
+            log
+          </>
+        }
+        previousLabel="Sebelumnya"
+        nextLabel="Selanjutnya"
+        className="flex items-center justify-between border-t border-gray-200 bg-gray-50/50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/30"
+      />
     </div>
   );
 }

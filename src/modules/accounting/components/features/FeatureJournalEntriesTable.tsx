@@ -4,6 +4,7 @@ import { MoreVertical } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TablePaginationFooter } from "@/components/shared/data-display/TablePaginationFooter";
 import {
   Table,
   TableBody,
@@ -128,34 +129,25 @@ export function FeatureJournalEntriesTable({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Showing <span className="font-medium text-gray-900 dark:text-white">{start}</span> to{" "}
-          <span className="font-medium text-gray-900 dark:text-white">{end}</span> of{" "}
-          <span className="font-medium text-gray-900 dark:text-white">{pagination.total_items.toLocaleString("en-US")}</span>{" "}
-          entries
-        </p>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={!canGoPrevious}
-            className="h-8 border-gray-200 px-3 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-            onClick={() => onPageChange?.(Math.max(1, pagination.page - 1))}
-          >
-            Previous
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={!canGoNext}
-            className="h-8 border-gray-200 px-3 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-            onClick={() => onPageChange?.(Math.min(totalPages, pagination.page + 1))}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <TablePaginationFooter
+        page={pagination.page}
+        totalPages={totalPages}
+        canPrevious={canGoPrevious}
+        canNext={canGoNext}
+        onPrevious={() => onPageChange?.(Math.max(1, pagination.page - 1))}
+        onNext={() => onPageChange?.(Math.min(totalPages, pagination.page + 1))}
+        summary={
+          <>
+            Showing <span className="font-medium text-gray-900 dark:text-white">{start}</span> to{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{end}</span> of{" "}
+            <span className="font-medium text-gray-900 dark:text-white">
+              {pagination.total_items.toLocaleString("en-US")}
+            </span>{" "}
+            entries
+          </>
+        }
+        className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700"
+      />
     </div>
   );
 }

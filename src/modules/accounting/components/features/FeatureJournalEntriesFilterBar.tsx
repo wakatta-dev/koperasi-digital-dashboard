@@ -1,9 +1,9 @@
 /** @format */
 
-import { Search, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
+import { FilterToolbar } from "@/components/shared/filters/FilterToolbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/shared/inputs/input";
 import {
   Select,
   SelectContent,
@@ -29,20 +29,17 @@ export function FeatureJournalEntriesFilterBar({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-slate-900">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1 md:max-w-md">
-          <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input
-            type="text"
-            value={value.q}
-            onChange={(event) => patch({ q: event.target.value })}
-            placeholder="Search reference, partner, or amount..."
-            className="border-gray-200 bg-gray-50 pl-10 text-sm focus-visible:ring-2 focus-visible:ring-indigo-600 dark:border-gray-700 dark:bg-gray-800"
-          />
-        </div>
+    <FilterToolbar
+      query={value.q}
+      onQueryChange={(nextQuery) => patch({ q: nextQuery })}
+      queryPlaceholder="Search reference, partner, or amount..."
+      className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-slate-900"
+      endSlot={
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-          <Select value={value.date} onValueChange={(next) => patch({ date: next as JournalEntriesFilterValue["date"] })}>
+          <Select
+            value={value.date}
+            onValueChange={(next) => patch({ date: next as JournalEntriesFilterValue["date"] })}
+          >
             <SelectTrigger className="w-[140px] border-gray-200 bg-white text-sm text-gray-600 focus:ring-1 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
               <SelectValue />
             </SelectTrigger>
@@ -53,7 +50,10 @@ export function FeatureJournalEntriesFilterBar({
               <SelectItem value="this_year">This Year</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={value.type} onValueChange={(next) => patch({ type: next as JournalEntriesFilterValue["type"] })}>
+          <Select
+            value={value.type}
+            onValueChange={(next) => patch({ type: next as JournalEntriesFilterValue["type"] })}
+          >
             <SelectTrigger className="w-[140px] border-gray-200 bg-white text-sm text-gray-600 focus:ring-1 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
               <SelectValue />
             </SelectTrigger>
@@ -65,7 +65,12 @@ export function FeatureJournalEntriesFilterBar({
               <SelectItem value="general">General</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={value.status} onValueChange={(next) => patch({ status: next as JournalEntriesFilterValue["status"] })}>
+          <Select
+            value={value.status}
+            onValueChange={(next) =>
+              patch({ status: next as JournalEntriesFilterValue["status"] })
+            }
+          >
             <SelectTrigger className="w-[130px] border-gray-200 bg-white text-sm text-gray-600 focus:ring-1 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
               <SelectValue />
             </SelectTrigger>
@@ -87,7 +92,7 @@ export function FeatureJournalEntriesFilterBar({
             <SlidersHorizontal className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 }

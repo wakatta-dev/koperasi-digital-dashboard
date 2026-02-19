@@ -9,7 +9,13 @@ export function parseReportingQueryState(
   defaults: ReportingQueryState = {},
 ): ReportingQueryState {
   const page = Number.parseInt(searchParams.get("page") ?? "", 10);
-  const pageSize = Number.parseInt(searchParams.get("page_size") ?? "", 10);
+  const pageSize = Number.parseInt(
+    searchParams.get("page_size") ??
+      searchParams.get("pageSize") ??
+      searchParams.get("per_page") ??
+      "",
+    10,
+  );
 
   return {
     preset: searchParams.get("preset") ?? defaults.preset,

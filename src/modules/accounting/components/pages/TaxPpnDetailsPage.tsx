@@ -68,12 +68,13 @@ export function TaxPpnDetailsPage({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const periodFromQuery = searchParams.get("period") ?? "";
 
   const initialQueryState = useMemo(() => {
     const parsed = parseTaxPpnQueryState(searchParams, {
       filters: {
         ...DEFAULT_PPN_FILTERS,
-        period: period ?? searchParams.get("period") ?? DEFAULT_PPN_FILTERS.period,
+        period: period ?? periodFromQuery ?? DEFAULT_PPN_FILTERS.period,
       },
       page: 1,
       perPage: PPN_PER_PAGE,
@@ -86,7 +87,7 @@ export function TaxPpnDetailsPage({
         period: normalizePpnPeriod(parsed.filters.period),
       },
     };
-  }, [period, searchParams]);
+  }, [period, periodFromQuery, searchParams]);
 
   const [filters, setFilters] = useState<TaxPpnFilterValue>(initialQueryState.filters);
   const [page, setPage] = useState(initialQueryState.page);
@@ -114,7 +115,7 @@ export function TaxPpnDetailsPage({
     if (filters.period !== "All Periods") {
       optionMap.set(filters.period, formatPeriodLabel(filters.period));
     }
-    const fromQuery = period || searchParams.get("period") || "";
+    const fromQuery = period || periodFromQuery || "";
     if (fromQuery && fromQuery !== "All Periods") {
       optionMap.set(fromQuery, formatPeriodLabel(fromQuery));
     }
@@ -123,8 +124,8 @@ export function TaxPpnDetailsPage({
   }, [
     filters.period,
     overviewQuery.data?.active_period,
+    periodFromQuery,
     period,
-    searchParams,
   ]);
 
   useEffect(() => {
@@ -146,7 +147,7 @@ export function TaxPpnDetailsPage({
     filters.period === "All Periods"
       ? normalizePpnPeriod(
           period ??
-            searchParams.get("period") ??
+            periodFromQuery ??
             (overviewQuery.data?.active_period
               ? `${overviewQuery.data.active_period.year}-${String(overviewQuery.data.active_period.month).padStart(2, "0")}`
               : "All Periods"),

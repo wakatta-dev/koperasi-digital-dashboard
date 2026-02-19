@@ -45,6 +45,22 @@ describe("reporting-query-state", () => {
     expect(parsed.page_size).toBe(20);
   });
 
+  it("supports legacy pageSize/per_page query keys", () => {
+    const pageSizeParams = new URLSearchParams("pageSize=50");
+    const parsedWithPageSize = parseReportingQueryState(pageSizeParams, {
+      page: 1,
+      page_size: 20,
+    });
+    expect(parsedWithPageSize.page_size).toBe(50);
+
+    const perPageParams = new URLSearchParams("per_page=40");
+    const parsedWithPerPage = parseReportingQueryState(perPageParams, {
+      page: 1,
+      page_size: 20,
+    });
+    expect(parsedWithPerPage.page_size).toBe(40);
+  });
+
   it("builds query string without empty values", () => {
     const query = buildReportingQueryString({
       preset: "today",

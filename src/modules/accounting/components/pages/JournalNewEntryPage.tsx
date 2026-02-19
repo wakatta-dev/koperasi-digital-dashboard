@@ -185,6 +185,18 @@ export function JournalNewEntryPage() {
     [auditQuery.data?.items],
   );
 
+  const historyJournalNumber = useMemo(() => {
+    if (resolvedJournalNumber) {
+      return resolvedJournalNumber;
+    }
+
+    const referenceFromAudit = auditQuery.data?.items
+      ?.map((item) => normalizeJournalNumber(item.reference_no))
+      .find(Boolean);
+
+    return referenceFromAudit ?? "";
+  }, [auditQuery.data?.items, resolvedJournalNumber]);
+
   const hasBalancedTotals = useMemo(() => {
     const debit = lines.reduce((sum, line) => sum + line.debit_amount, 0);
     const credit = lines.reduce((sum, line) => sum + line.credit_amount, 0);
@@ -283,8 +295,8 @@ export function JournalNewEntryPage() {
       <FeatureJournalInlineAuditLogTable
         rows={inlineAuditRows}
         onViewFullHistory={() => {
-          const query = resolvedJournalNumber
-            ? `?journalNumber=${encodeURIComponent(resolvedJournalNumber)}`
+          const query = historyJournalNumber
+            ? `?journalNumber=${encodeURIComponent(historyJournalNumber)}`
             : "";
           router.push(`${ACCOUNTING_JOURNAL_ROUTES.auditLog}${query}`);
         }}
