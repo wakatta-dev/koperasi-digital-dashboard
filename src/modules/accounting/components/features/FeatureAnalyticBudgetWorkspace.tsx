@@ -6,7 +6,7 @@ import { Search, Filter, ArrowUpDown, Plus, TreePine, ChartLine } from "lucide-r
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {

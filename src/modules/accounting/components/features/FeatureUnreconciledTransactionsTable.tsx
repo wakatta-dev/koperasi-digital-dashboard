@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { Filter, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Table,
   TableBody,

@@ -5,7 +5,7 @@
 import { Trash2 } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Select,
   SelectContent,

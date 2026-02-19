@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Select,
   SelectContent,
@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/shared/inputs/textarea";
 
 import { DUMMY_INVOICE_DRAFT } from "../../constants/dummy-data";
 import type { InvoiceLineItem } from "../../types/invoicing-ar";

@@ -6,7 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 
 import { DUMMY_OCR_SESSION } from "../../constants/vendor-bills-ap-dummy";
 import type { OcrExtractionSession } from "../../types/vendor-bills-ap";

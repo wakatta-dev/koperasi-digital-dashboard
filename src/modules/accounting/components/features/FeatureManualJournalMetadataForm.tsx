@@ -1,7 +1,7 @@
 /** @format */
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import { Label } from "@/components/ui/label";
 
 import { JOURNAL_NEW_ENTRY_DEFAULT_METADATA } from "../../constants/journal-seed";

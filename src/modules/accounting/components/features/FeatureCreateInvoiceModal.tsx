@@ -14,8 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/shared/inputs/input";
+import { Textarea } from "@/components/shared/inputs/textarea";
 import {
   Table,
   TableBody,
