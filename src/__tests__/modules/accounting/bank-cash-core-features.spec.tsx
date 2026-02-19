@@ -23,10 +23,71 @@ describe("bank-cash core features", () => {
   it("renders overview and reconciliation labels from source", () => {
     render(
       <div>
-        <FeatureBankCashSummaryCards />
-        <FeatureBankAccountsGrid />
-        <FeatureUnreconciledTransactionsTable />
-        <FeatureCashRegistersGrid />
+        <FeatureBankCashSummaryCards
+          cards={[
+            {
+              key: "total-cash-balance",
+              label: "Total Cash Balance",
+              value: "Rp 55,000,000",
+              helper_text: "Across all active accounts",
+              tone: "primary",
+            },
+            {
+              key: "pending-reconciliation",
+              label: "Pending Reconciliation",
+              value: "Rp 2,500,000",
+              helper_text: "Needs matching",
+              tone: "warning",
+            },
+            {
+              key: "petty-cash-balance",
+              label: "Petty Cash Balance",
+              value: "Rp 1,200,000",
+              helper_text: "Cash register total",
+              tone: "success",
+            },
+          ]}
+        />
+        <FeatureBankAccountsGrid
+          accounts={[
+            {
+              account_id: "acc-1",
+              bank_badge: "BCA",
+              bank_badge_class_name: "bg-blue-600",
+              bank_name: "Bank Central Asia",
+              account_name: "Operational Account",
+              masked_account_number: "•••• 1023",
+              available_balance: "Rp 25,000,000",
+              last_sync_label: "Synced 5m ago",
+              unreconciled_count: 2,
+              status: "Active",
+            },
+          ]}
+        />
+        <FeatureUnreconciledTransactionsTable
+          rows={[
+            {
+              id: "unrec-1",
+              date: "2026-02-18",
+              description: "Bank transfer",
+              source: "Bank Feed",
+              amount: "-Rp 150,000",
+              direction: "Debit",
+              can_match: true,
+            },
+          ]}
+        />
+        <FeatureCashRegistersGrid
+          items={[
+            {
+              id: "cash-1",
+              register_name: "Kas Kecil Gudang",
+              register_type: "Petty Cash",
+              balance_label: "Rp 1,200,000",
+              status_label: "Open",
+            },
+          ]}
+        />
         <FeatureReconciliationDifferenceBanner />
         <FeatureReconciliationBalanceCards />
         <FeatureReconciliationSelectionBar

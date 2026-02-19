@@ -21,6 +21,49 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/hooks/queries", () => ({
+  useAccountingArInvoices: () => ({
+    data: {
+      items: [
+        {
+          invoice_number: "INV-2023-097",
+          customer_name: "PT. Sumber Makmur",
+          invoice_date: "2023-11-14",
+          due_date: "2023-11-28",
+          total_amount: 1250000,
+          status: "Sent",
+        },
+        {
+          invoice_number: "INV-2023-098",
+          customer_name: "CV. Teknologi Maju",
+          invoice_date: "2023-11-16",
+          due_date: "2023-11-30",
+          total_amount: 2300000,
+          status: "Overdue",
+        },
+      ],
+      pagination: { page: 1, per_page: 100, total_items: 2, total_pages: 1 },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingArPayments: () => ({
+    data: {
+      items: [
+        {
+          date: "2023-11-10",
+          payment_number: "PAY-2023-001",
+          customer: "PT. Sumber Makmur",
+          method: "Bank Transfer",
+          amount: 750000,
+          status: "Cleared",
+          invoice_number: "INV-2023-090",
+        },
+      ],
+      pagination: { page: 1, per_page: 100, total_items: 1, total_pages: 1 },
+    },
+    error: null,
+    isPending: false,
+  }),
   useAccountingArInvoiceMutations: () => ({
     createInvoice: {
       isPending: false,

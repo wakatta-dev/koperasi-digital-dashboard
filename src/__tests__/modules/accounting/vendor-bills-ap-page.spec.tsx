@@ -12,6 +12,7 @@ import {
 } from "@/modules/accounting";
 
 const pushMock = vi.fn();
+const createOcrSessionMutateAsync = vi.fn();
 const confirmOcrSessionMutateAsync = vi.fn();
 const createBillMutateAsync = vi.fn();
 
@@ -105,7 +106,7 @@ vi.mock("@/hooks/queries", () => ({
     confirmBatchPayment: { isPending: false, mutateAsync: vi.fn() },
   }),
   useAccountingApOcrMutations: () => ({
-    createOcrSession: { isPending: false, mutateAsync: vi.fn() },
+    createOcrSession: { isPending: false, mutateAsync: createOcrSessionMutateAsync },
     saveOcrProgress: { isPending: false, mutateAsync: vi.fn() },
     confirmOcrSession: {
       isPending: false,
@@ -131,8 +132,24 @@ vi.mock("@/hooks/queries", () => ({
 describe("vendor-bills-ap page wiring", () => {
   beforeEach(() => {
     pushMock.mockReset();
+    createOcrSessionMutateAsync.mockReset();
     confirmOcrSessionMutateAsync.mockReset();
     createBillMutateAsync.mockReset();
+    createOcrSessionMutateAsync.mockResolvedValue({
+      session_id: "ocr-session-001",
+      status: "Draft",
+      accuracy_percent: 87,
+      extracted_data: {
+        general_info: {
+          vendor_name: "PT. Pemasok Jaya",
+          bill_number: "INV/PJ/2023/1029",
+          bill_date: "2023-10-25",
+          due_date: "2023-11-24",
+        },
+        financials: { total_amount: "13875000" },
+        line_items: [],
+      },
+    });
     confirmOcrSessionMutateAsync.mockResolvedValue({ bill_number: "INV-2023-882" });
   });
 
@@ -168,6 +185,9 @@ describe("vendor-bills-ap page wiring", () => {
   it("routes OCR confirm action to created bill detail", async () => {
     render(<VendorBillsApOcrReviewPage />);
 
+    await waitFor(() => {
+      expect(createOcrSessionMutateAsync).toHaveBeenCalled();
+    });
     fireEvent.click(screen.getByRole("button", { name: "Confirm & Create Bill" }));
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith("/bumdes/accounting/vendor-bills-ap/INV-2023-882");

@@ -21,7 +21,7 @@ describe("invoicing-ar create forms", () => {
     expect(removeButtons.length).toBeGreaterThan(1);
 
     fireEvent.click(removeButtons[removeButtons.length - 1]);
-    expect(screen.getAllByLabelText(/Remove line item/).length).toBe(2);
+    expect(screen.getAllByLabelText(/Remove line item/).length).toBe(1);
   });
 
   it("renders credit note page form with source labels and add/remove item", () => {
@@ -37,13 +37,29 @@ describe("invoicing-ar create forms", () => {
   });
 
   it("renders record payment page form and toggles invoice selection", () => {
-    render(<FeaturePaymentCreateForm onSubmit={() => {}} />);
+    render(
+      <FeaturePaymentCreateForm
+        onSubmit={() => {}}
+        outstandingInvoices={[
+          {
+            invoice_number: "INV-2023-097",
+            due_date: "Nov 14, 2023",
+            amount_due: "Rp 1,250,000",
+          },
+          {
+            invoice_number: "INV-2023-098",
+            due_date: "Nov 16, 2023",
+            amount_due: "Rp 2,300,000",
+          },
+        ]}
+      />
+    );
 
     expect(screen.getByRole("heading", { name: "Record Payment" })).toBeTruthy();
     expect(screen.getByText("Pay Against Invoices")).toBeTruthy();
 
     const secondInvoice = screen.getByLabelText("Select INV-2023-098");
     fireEvent.click(secondInvoice);
-    expect(screen.getByText("2 Outstanding")).toBeTruthy();
+    expect(screen.getByText("1 Outstanding")).toBeTruthy();
   });
 });
