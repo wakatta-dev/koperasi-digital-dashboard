@@ -30,6 +30,7 @@ export function ProductCreatePage() {
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
   const [priceSell, setPriceSell] = useState("");
+  const [hasVariants, setHasVariants] = useState(false);
   const [trackStock, setTrackStock] = useState(true);
   const [initialStockQty, setInitialStockQty] = useState("");
   const [minStock, setMinStock] = useState("");
@@ -46,6 +47,7 @@ export function ProductCreatePage() {
     setBrand("");
     setCategory("");
     setPriceSell("");
+    setHasVariants(false);
     setTrackStock(true);
     setInitialStockQty("");
     setMinStock("");
@@ -75,8 +77,13 @@ export function ProductCreatePage() {
     const weightValue = weight.trim() ? Number(weight) : undefined;
     const parsedWeight = Number.isFinite(weightValue as number) ? weightValue : undefined;
     const parsedPriceSell = Number(priceSell);
-    if (!Number.isFinite(parsedPriceSell) || parsedPriceSell <= 0) {
-      toast.error("Harga jual wajib diisi dan harus lebih dari 0.");
+    if (hasVariants) {
+      if (!Number.isFinite(parsedPriceSell) || parsedPriceSell < 0) {
+        toast.error("Harga dasar produk dengan varian tidak boleh negatif.");
+        return;
+      }
+    } else if (!Number.isFinite(parsedPriceSell) || parsedPriceSell <= 0) {
+      toast.error("Harga default produk tanpa varian wajib diisi dan harus lebih dari 0.");
       return;
     }
     const parsedMinStock = minStock.trim() ? Number(minStock) : 0;
@@ -128,7 +135,11 @@ export function ProductCreatePage() {
         }
       }
       resetForm();
-      router.push("/bumdes/marketplace/inventory");
+      if (hasVariants) {
+        router.push(`/bumdes/marketplace/inventory/${product.id}/variants`);
+      } else {
+        router.push(`/bumdes/marketplace/inventory?created=${product.id}`);
+      }
     } catch {
       // handled in mutation hooks
     }
@@ -145,24 +156,14 @@ export function ProductCreatePage() {
             Tambahkan informasi lengkap untuk produk baru Anda.
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            className="px-5 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            Batal
-          </Button>
-          <Button
-            type="button"
-            disabled={submitting}
-            onClick={handleSubmit}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm text-sm font-medium"
-          >
-            Simpan Produk
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+          className="px-5 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        >
+          Batal
+        </Button>
       </div>
 
       <div className="space-y-6 pb-12">
@@ -229,16 +230,21 @@ export function ProductCreatePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Harga Jual
+                {hasVariants ? "Harga Dasar Produk (Opsional)" : "Harga Default Produk"}
               </label>
               <Input
                 type="number"
-                min={1}
+                min={hasVariants ? 0 : 1}
                 value={priceSell}
                 onChange={(event) => setPriceSell(event.target.value)}
-                placeholder="Contoh: 15000"
+                placeholder={hasVariants ? "Contoh: 0 atau 15000" : "Contoh: 15000"}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {hasVariants
+                  ? "Harga jual final ditentukan pada setiap varian."
+                  : "Wajib diisi jika produk tidak memiliki varian."}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -282,6 +288,17 @@ export function ProductCreatePage() {
               />
             </div>
             <div className="md:col-span-2 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Produk Memiliki Varian
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Jika aktif, setelah simpan Anda akan diarahkan ke halaman pengaturan varian.
+                  </p>
+                </div>
+                <Switch checked={hasVariants} onCheckedChange={setHasVariants} />
+              </div>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">

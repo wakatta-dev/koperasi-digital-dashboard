@@ -162,8 +162,13 @@ export function useInventoryActions() {
   const create = useMutation({
     mutationFn: async (payload: CreateInventoryProductRequest) =>
       ensureSuccess(await createInventoryProduct(payload)),
-    onSuccess: () => {
-      invalidateLists();
+    onSuccess: async (data) => {
+      await Promise.all([
+        invalidateLists(),
+        qc.invalidateQueries({ queryKey: QK.inventory.categories() }),
+        qc.invalidateQueries({ queryKey: QK.inventory.detail(data.id) }),
+      ]);
+      await qc.refetchQueries({ queryKey: QK.inventory.lists() });
       toast.success("Produk berhasil dibuat");
     },
     onError: (err: any) => toast.error(err?.message || "Gagal membuat produk"),

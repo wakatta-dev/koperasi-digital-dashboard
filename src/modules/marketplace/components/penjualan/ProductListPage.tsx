@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ProductListHeader } from "./ProductListHeader";
 import { ProductTable } from "./ProductTable";
 import { ProductPagination } from "./ProductPagination";
@@ -39,6 +39,7 @@ const resolveStockStatus = (
 
 export function ProductListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const actions = useInventoryActions();
   const [searchValue, setSearchValue] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -53,7 +54,31 @@ export function ProductListPage() {
   }));
   const [draftFilters, setDraftFilters] = useState(appliedFilters);
   const [page, setPage] = useState(1);
+  const createdProductId = searchParams.get("created");
   const { data: categoriesData } = useInventoryCategories();
+
+  useEffect(() => {
+    if (!createdProductId) return;
+    setSearchValue("");
+    setPage(1);
+    setSelectedIds([]);
+    setAppliedFilters({
+      categories: [],
+      statuses: [],
+      minPrice: "",
+      maxPrice: "",
+      dateFrom: "",
+      dateTo: "",
+    });
+    setDraftFilters({
+      categories: [],
+      statuses: [],
+      minPrice: "",
+      maxPrice: "",
+      dateFrom: "",
+      dateTo: "",
+    });
+  }, [createdProductId]);
 
   useEffect(() => {
     if (filterOpen) {
