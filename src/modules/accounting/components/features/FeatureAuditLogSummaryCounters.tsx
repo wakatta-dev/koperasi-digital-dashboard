@@ -1,6 +1,6 @@
 /** @format */
 
-import { JOURNAL_AUDIT_LOG_SUMMARY_COUNTERS } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_AUDIT_LOG_SUMMARY_COUNTERS } from "../../constants/journal-initial-state";
 import type { JournalAuditSummaryCounter } from "../../types/journal";
 
 type FeatureAuditLogSummaryCountersProps = {
@@ -21,7 +21,7 @@ function toneClassName(tone: JournalAuditSummaryCounter["tone"]) {
 }
 
 export function FeatureAuditLogSummaryCounters({
-  counters = JOURNAL_AUDIT_LOG_SUMMARY_COUNTERS,
+  counters = JOURNAL_INITIAL_AUDIT_LOG_SUMMARY_COUNTERS,
 }: FeatureAuditLogSummaryCountersProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">

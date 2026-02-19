@@ -2,7 +2,7 @@
 
 import { ShieldCheck } from "lucide-react";
 
-import { JOURNAL_DETAIL_INTEGRITY } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_DETAIL_INTEGRITY } from "../../constants/journal-initial-state";
 import type { JournalDetailIntegrity } from "../../types/journal";
 
 type FeatureJournalDetailIntegrityFooterProps = {
@@ -10,7 +10,7 @@ type FeatureJournalDetailIntegrityFooterProps = {
 };
 
 export function FeatureJournalDetailIntegrityFooter({
-  data = JOURNAL_DETAIL_INTEGRITY,
+  data = JOURNAL_INITIAL_DETAIL_INTEGRITY,
 }: FeatureJournalDetailIntegrityFooterProps) {
   return (
     <section className="flex flex-col justify-between gap-4 px-2 md:flex-row md:items-center">

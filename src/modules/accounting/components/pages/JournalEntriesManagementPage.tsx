@@ -15,10 +15,10 @@ import {
 import { toAccountingJournalApiError } from "@/services/api/accounting-journal";
 
 import {
-  JOURNAL_ENTRIES_BASE_PAGINATION,
-  JOURNAL_ENTRIES_DEFAULT_FILTERS,
-  JOURNAL_ENTRIES_DEFAULT_LOCK_PERIOD,
-} from "../../constants/journal-seed";
+  JOURNAL_INITIAL_ENTRIES_FILTERS,
+  JOURNAL_INITIAL_ENTRIES_PAGINATION,
+  JOURNAL_INITIAL_LOCK_PERIOD,
+} from "../../constants/journal-initial-state";
 import { ACCOUNTING_JOURNAL_ROUTES } from "../../constants/journal-routes";
 import type {
   JournalEntriesFilterValue,
@@ -97,8 +97,8 @@ export function JournalEntriesManagementPage() {
   const initialQueryState = useMemo(
     () =>
       parseJournalListQueryState(searchParams, {
-        filters: JOURNAL_ENTRIES_DEFAULT_FILTERS,
-        pagination: JOURNAL_ENTRIES_BASE_PAGINATION,
+        filters: JOURNAL_INITIAL_ENTRIES_FILTERS,
+        pagination: JOURNAL_INITIAL_ENTRIES_PAGINATION,
         sort: JOURNAL_DEFAULT_SORT,
       }),
     [searchParams],
@@ -113,7 +113,7 @@ export function JournalEntriesManagementPage() {
   const [sort] = useState(initialQueryState.sort);
   const [lockPeriodOpen, setLockPeriodOpen] = useState(false);
   const [lockPeriodSelection, setLockPeriodSelection] = useState({
-    ...JOURNAL_ENTRIES_DEFAULT_LOCK_PERIOD,
+    ...JOURNAL_INITIAL_LOCK_PERIOD,
   });
 
   const overviewQuery = useAccountingJournalOverview();
@@ -163,7 +163,7 @@ export function JournalEntriesManagementPage() {
         periodLockYear ??
           (Number.isFinite(Number.parseInt(current.year, 10))
             ? Number.parseInt(current.year, 10)
-            : 2023),
+            : Number.parseInt(JOURNAL_INITIAL_LOCK_PERIOD.year, 10)),
       ),
     }));
   }, [periodLockMonth, periodLockYear]);

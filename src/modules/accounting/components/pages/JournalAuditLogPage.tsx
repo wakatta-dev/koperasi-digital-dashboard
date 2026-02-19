@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useAccountingJournalAuditLogs } from "@/hooks/queries";
 import { toAccountingJournalApiError } from "@/services/api/accounting-journal";
 
-import { JOURNAL_AUDIT_LOG_DEFAULT_FILTERS } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_AUDIT_LOG_FILTERS } from "../../constants/journal-initial-state";
 import { ACCOUNTING_JOURNAL_ROUTES } from "../../constants/journal-routes";
 import type {
   JournalAuditAction,
@@ -89,7 +89,7 @@ export function JournalAuditLogPage({ journalNumber }: JournalAuditLogPageProps)
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<JournalAuditLogFilterValue>({
-    ...JOURNAL_AUDIT_LOG_DEFAULT_FILTERS,
+    ...JOURNAL_INITIAL_AUDIT_LOG_FILTERS,
     journal_number: journalNumber ?? "",
   });
 

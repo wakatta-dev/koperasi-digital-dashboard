@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/table";
 
 import {
-  JOURNAL_DETAIL_ITEMS,
-  JOURNAL_DETAIL_TOTALS,
-} from "../../constants/journal-seed";
+  JOURNAL_INITIAL_DETAIL_ITEMS,
+  JOURNAL_INITIAL_DETAIL_TOTALS,
+} from "../../constants/journal-initial-state";
 import type { JournalDetailItem } from "../../types/journal";
 
 type FeatureJournalDetailItemsTableProps = {
@@ -25,8 +25,8 @@ type FeatureJournalDetailItemsTableProps = {
 };
 
 export function FeatureJournalDetailItemsTable({
-  rows = JOURNAL_DETAIL_ITEMS,
-  totals = JOURNAL_DETAIL_TOTALS,
+  rows = JOURNAL_INITIAL_DETAIL_ITEMS,
+  totals = JOURNAL_INITIAL_DETAIL_TOTALS,
 }: FeatureJournalDetailItemsTableProps) {
   return (
     <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">

@@ -12,6 +12,42 @@ export type AccountingReportingPagedQuery = AccountingReportingBaseQuery & {
   page_size?: number;
 };
 
+export type AccountingReportingOverviewKpi = {
+  title: string;
+  value_display: string;
+  delta_display?: string;
+  is_positive: boolean;
+  icon_key?: string;
+};
+
+export type AccountingReportingOverviewMonthlyPerformance = {
+  label: string;
+  revenue_pct: number;
+  expense_pct: number;
+};
+
+export type AccountingReportingOverviewRevenueSegment = {
+  label_display: string;
+  pct: number;
+};
+
+export type AccountingReportingOverviewRecentTransaction = {
+  date_display: string;
+  description: string;
+  category: string;
+  amount_display: string;
+  badge_class: string;
+};
+
+export type AccountingReportingOverviewResponse = {
+  period_label: string;
+  updated_at: string;
+  kpis: AccountingReportingOverviewKpi[];
+  monthly_performance: AccountingReportingOverviewMonthlyPerformance[];
+  revenue_segments: AccountingReportingOverviewRevenueSegment[];
+  recent_transactions: AccountingReportingOverviewRecentTransaction[];
+};
+
 export type AccountingReportingProfitLossRow = {
   type: "section" | "row" | "total" | "gross" | "net";
   label: string;

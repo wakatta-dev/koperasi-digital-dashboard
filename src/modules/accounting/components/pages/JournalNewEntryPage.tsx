@@ -13,7 +13,7 @@ import {
 } from "@/hooks/queries";
 import { toAccountingJournalApiError } from "@/services/api/accounting-journal";
 
-import { JOURNAL_NEW_ENTRY_DEFAULT_METADATA } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_NEW_ENTRY_METADATA } from "../../constants/journal-initial-state";
 import { ACCOUNTING_JOURNAL_ROUTES } from "../../constants/journal-routes";
 import type {
   JournalInlineAuditAction,
@@ -96,7 +96,7 @@ function formatInlineAuditTimestamp(value: string): string {
 export function JournalNewEntryPage() {
   const router = useRouter();
   const [metadata, setMetadata] = useState<ManualJournalMetadata>(
-    JOURNAL_NEW_ENTRY_DEFAULT_METADATA,
+    JOURNAL_INITIAL_NEW_ENTRY_METADATA,
   );
   const [lines, setLines] = useState<ManualJournalLineItem[]>(INITIAL_LINES);
   const [activeJournalNumber, setActiveJournalNumber] = useState("");

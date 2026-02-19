@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { JOURNAL_AUDIT_LOG_ROWS } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_AUDIT_LOG_ROWS } from "../../constants/journal-initial-state";
 import type { JournalAuditLogRow } from "../../types/journal";
 
 type FeatureAuditLogTableProps = {
@@ -56,10 +56,10 @@ function actionBadge(action: JournalAuditLogRow["action"]) {
 }
 
 export function FeatureAuditLogTable({
-  rows = JOURNAL_AUDIT_LOG_ROWS,
+  rows = JOURNAL_INITIAL_AUDIT_LOG_ROWS,
   page = 1,
   perPage = 5,
-  totalItems = 2840,
+  totalItems = 0,
   onPageChange,
   onReferenceClick,
 }: FeatureAuditLogTableProps) {

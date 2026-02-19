@@ -508,8 +508,7 @@ export function FeatureAccountLedgerFilterPanel({
   onEndChange,
   onApply,
 }: FeatureAccountLedgerFilterPanelProps) {
-  const fallbackValue = accountOptions[0]?.id ?? "";
-  const selectedValue = accountId?.trim() || fallbackValue || undefined;
+  const selectedValue = accountId?.trim() || undefined;
 
   return (
     <div className="grid gap-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-slate-900 md:grid-cols-3 md:items-end">
@@ -520,6 +519,11 @@ export function FeatureAccountLedgerFilterPanel({
             <SelectValue placeholder="Select account" />
           </SelectTrigger>
           <SelectContent>
+            {accountOptions.length === 0 ? (
+              <SelectItem value="__no-account" disabled>
+                Account not available
+              </SelectItem>
+            ) : null}
             {accountOptions.map((option) => (
               <SelectItem key={option.id} value={option.id}>
                 {option.label}

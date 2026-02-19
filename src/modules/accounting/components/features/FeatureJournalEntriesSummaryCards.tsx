@@ -4,7 +4,7 @@ import { CheckCircle2, LockKeyhole, PencilLine } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-import { JOURNAL_ENTRIES_SUMMARY_CARDS } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_ENTRIES_SUMMARY_CARDS } from "../../constants/journal-initial-state";
 import type { JournalEntriesSummaryCard } from "../../types/journal";
 
 type FeatureJournalEntriesSummaryCardsProps = {
@@ -40,7 +40,7 @@ function cardToneStyles(card: JournalEntriesSummaryCard) {
 }
 
 export function FeatureJournalEntriesSummaryCards({
-  cards = JOURNAL_ENTRIES_SUMMARY_CARDS,
+  cards = JOURNAL_INITIAL_ENTRIES_SUMMARY_CARDS,
   onLockedPeriodsClick,
 }: FeatureJournalEntriesSummaryCardsProps) {
   return (

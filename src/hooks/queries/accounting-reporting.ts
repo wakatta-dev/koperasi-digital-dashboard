@@ -10,6 +10,7 @@ import {
   getAccountingReportingBalanceSheet,
   getAccountingReportingCashFlow,
   getAccountingReportingGeneralLedger,
+  getAccountingReportingOverview,
   getAccountingReportingProfitLoss,
   getAccountingReportingProfitLossComparative,
   getAccountingReportingTrialBalance,
@@ -21,6 +22,7 @@ import type {
   AccountingReportingCashFlowResponse,
   AccountingReportingGeneralLedgerQuery,
   AccountingReportingGeneralLedgerResponse,
+  AccountingReportingOverviewResponse,
   AccountingReportingProfitLossComparativeResponse,
   AccountingReportingProfitLossResponse,
   AccountingReportingTrialBalanceResponse,
@@ -28,6 +30,18 @@ import type {
 } from "@/types/api/accounting-reporting";
 
 import { QK } from "./queryKeys";
+
+export function useAccountingReportingOverview(
+  params?: AccountingReportingBaseQuery,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: QK.accountingReporting.overview(params ?? {}),
+    queryFn: async (): Promise<AccountingReportingOverviewResponse> =>
+      ensureAccountingReportingSuccess(await getAccountingReportingOverview(params)),
+    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+  });
+}
 
 export function useAccountingReportingProfitLoss(
   params?: AccountingReportingBaseQuery,

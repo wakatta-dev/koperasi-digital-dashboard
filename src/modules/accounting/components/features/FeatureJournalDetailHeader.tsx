@@ -6,7 +6,7 @@ import { ArrowLeft, FileText, Printer, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { JOURNAL_DETAIL_HEADER } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_DETAIL_HEADER } from "../../constants/journal-initial-state";
 import { ACCOUNTING_JOURNAL_ROUTES } from "../../constants/journal-routes";
 import type { JournalDetailHeader } from "../../types/journal";
 
@@ -32,7 +32,7 @@ function statusBadgeClassName(status: JournalDetailHeader["status"]) {
 }
 
 export function FeatureJournalDetailHeader({
-  header = JOURNAL_DETAIL_HEADER,
+  header = JOURNAL_INITIAL_DETAIL_HEADER,
   returnToQuery,
   onPrint,
   onExportPdf,

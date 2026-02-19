@@ -11,6 +11,7 @@ import {
   useAccountingTaxEfakturReady,
   useAccountingTaxIncomeTaxReport,
   useAccountingTaxMutations,
+  useAccountingTaxOverview,
 } from "@/hooks/queries";
 import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
 
@@ -59,6 +60,7 @@ export function TaxEfakturExportPage() {
   const perPage = initialQueryState.perPage;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  const overviewQuery = useAccountingTaxOverview();
   const efakturReadyQuery = useAccountingTaxEfakturReady({
     date_range: filters.date_range,
     tax_type: filters.tax_type,
@@ -218,6 +220,11 @@ export function TaxEfakturExportPage() {
           {toAccountingTaxApiError(complianceQuery.error).message}
         </div>
       ) : null}
+      {overviewQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(overviewQuery.error).message}
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -255,7 +262,7 @@ export function TaxEfakturExportPage() {
           />
 
           <FeatureTaxComplianceCard
-            periodLabel="October 2023"
+            periodLabel={overviewQuery.data?.active_period?.label ?? complianceQuery.data?.as_of ?? "-"}
             steps={complianceSteps}
             deadline={complianceQuery.data?.deadline ?? "-"}
           />

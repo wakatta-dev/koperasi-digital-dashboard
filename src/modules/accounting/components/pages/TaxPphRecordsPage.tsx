@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import {
   useAccountingTaxMutations,
+  useAccountingTaxOverview,
   useAccountingTaxPphRecords,
 } from "@/hooks/queries";
 import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
@@ -41,18 +42,6 @@ const PPH_PER_PAGE = 5;
 
 const PPH_TONES: TaxPphSummaryTone[] = ["neutral", "purple", "teal", "orange"];
 
-const PPH_NOTES_BY_KEY: Record<string, string> = {
-  total_pph_withheld: "Across 18 transactions",
-  pph_21: "Employee Deductions",
-  pph_23: "Service Withholding",
-  pph_4_2: "Final Tax",
-};
-
-function currentPeriodCode() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
 export function TaxPphRecordsPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -72,6 +61,7 @@ export function TaxPphRecordsPage() {
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
 
+  const overviewQuery = useAccountingTaxOverview();
   const pphRecordsQuery = useAccountingTaxPphRecords({
     period: filters.period === "All Periods" ? undefined : filters.period,
     type: filters.type === "All Types" ? undefined : filters.type,
@@ -96,7 +86,7 @@ export function TaxPphRecordsPage() {
       label: card.label,
       helper_text: card.helper_text ?? "",
       value: card.value,
-      note: PPH_NOTES_BY_KEY[card.key] ?? "",
+      note: card.helper_text ?? "",
       tone: PPH_TONES[index] ?? "neutral",
     }));
   }, [pphRecordsQuery.data?.summary_cards]);
@@ -138,10 +128,18 @@ export function TaxPphRecordsPage() {
   };
 
   const handleExportPphReport = async () => {
+    const activePeriodCode = overviewQuery.data?.active_period
+      ? `${overviewQuery.data.active_period.year}-${String(overviewQuery.data.active_period.month).padStart(2, "0")}`
+      : undefined;
     const resolvedPeriod =
       filters.period === "All Periods"
-        ? searchParams.get("period") ?? currentPeriodCode()
+        ? searchParams.get("period") ?? activePeriodCode
         : filters.period;
+
+    if (!resolvedPeriod) {
+      toast.error("Tax period is not available.");
+      return;
+    }
 
     const selectedTypes =
       filters.type === "All Types"
@@ -179,6 +177,11 @@ export function TaxPphRecordsPage() {
       {pphRecordsQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {toAccountingTaxApiError(pphRecordsQuery.error).message}
+        </div>
+      ) : null}
+      {overviewQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(overviewQuery.error).message}
         </div>
       ) : null}
 

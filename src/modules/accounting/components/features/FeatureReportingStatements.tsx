@@ -35,7 +35,7 @@ export function FeatureProfitLossToolbar({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <Select value={preset} onValueChange={onPresetChange}>
         <SelectTrigger className="w-full sm:w-56">
-          <SelectValue placeholder="This Month" />
+          <SelectValue placeholder="Select period" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="month">This Month</SelectItem>
@@ -187,8 +187,8 @@ export interface FeatureCashFlowStatementHeaderProps {
 }
 
 export function FeatureCashFlowStatementHeader({
-  companyName = "3Portals Enterprise",
-  currencyLabel = "USD ($)",
+  companyName,
+  currencyLabel,
 }: FeatureCashFlowStatementHeaderProps) {
   return (
     <Card className="border-gray-200 dark:border-gray-700 dark:bg-slate-900">
@@ -197,13 +197,17 @@ export function FeatureCashFlowStatementHeader({
           <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-300">
             Statement of Cash Flows
           </p>
-          <h3 className="mt-1 text-lg font-bold text-gray-900 dark:text-white">{companyName}</h3>
+          <h3 className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+            {companyName || "-"}
+          </h3>
         </div>
         <div className="text-right">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
             Reporting Currency
           </p>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{currencyLabel}</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {currencyLabel || "-"}
+          </p>
         </div>
       </CardContent>
     </Card>
@@ -315,7 +319,7 @@ export function FeatureBalanceSheetTreeTable({
         <TableHeader>
           <TableRow className="bg-gray-50 dark:bg-gray-800/50">
             <TableHead>Account</TableHead>
-            <TableHead className="text-right">Balance (USD)</TableHead>
+            <TableHead className="text-right">Balance</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

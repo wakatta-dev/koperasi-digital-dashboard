@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { JOURNAL_ENTRIES_DEFAULT_LOCK_PERIOD } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_LOCK_PERIOD } from "../../constants/journal-initial-state";
 import type { JournalPeriodLockSelection } from "../../types/journal";
 
 type FeatureLockAccountingPeriodModalProps = {
@@ -33,7 +33,7 @@ type FeatureLockAccountingPeriodModalProps = {
 
 export function FeatureLockAccountingPeriodModal({
   open,
-  selection = JOURNAL_ENTRIES_DEFAULT_LOCK_PERIOD,
+  selection = JOURNAL_INITIAL_LOCK_PERIOD,
   onSelectionChange,
   onOpenChange,
   onConfirm,

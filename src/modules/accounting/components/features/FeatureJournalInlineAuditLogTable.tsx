@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { JOURNAL_NEW_ENTRY_INLINE_AUDIT } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_INLINE_AUDIT_ROWS } from "../../constants/journal-initial-state";
 import type { JournalInlineAuditItem } from "../../types/journal";
 
 type FeatureJournalInlineAuditLogTableProps = {
@@ -34,7 +34,7 @@ function actionBadgeClass(action: JournalInlineAuditItem["action"]) {
 }
 
 export function FeatureJournalInlineAuditLogTable({
-  rows = JOURNAL_NEW_ENTRY_INLINE_AUDIT,
+  rows = JOURNAL_INITIAL_INLINE_AUDIT_ROWS,
   onViewFullHistory,
 }: FeatureJournalInlineAuditLogTableProps) {
   return (

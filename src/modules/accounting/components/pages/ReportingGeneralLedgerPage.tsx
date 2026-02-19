@@ -18,8 +18,6 @@ import {
   FeatureGeneralLedgerTopActions,
 } from "../features/FeatureReportingLedgers";
 
-const DEFAULT_START = "2023-10-01";
-const DEFAULT_END = "2023-10-31";
 const DEFAULT_PAGE_SIZE = 20;
 
 export function ReportingGeneralLedgerPage() {
@@ -29,9 +27,7 @@ export function ReportingGeneralLedgerPage() {
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: "custom",
-        start: DEFAULT_START,
-        end: DEFAULT_END,
+        preset: "today",
         accountId: "all",
         page: 1,
         page_size: DEFAULT_PAGE_SIZE,
@@ -39,26 +35,27 @@ export function ReportingGeneralLedgerPage() {
     [searchParams],
   );
 
-  const [start, setStart] = useState(initialState.start ?? DEFAULT_START);
-  const [end, setEnd] = useState(initialState.end ?? DEFAULT_END);
+  const [start, setStart] = useState(initialState.start ?? "");
+  const [end, setEnd] = useState(initialState.end ?? "");
   const [accountId, setAccountId] = useState(initialState.accountId ?? "all");
   const [page, setPage] = useState(initialState.page ?? 1);
   const [pageSize, setPageSize] = useState(initialState.page_size ?? DEFAULT_PAGE_SIZE);
 
   useEffect(() => {
-    setStart(initialState.start ?? DEFAULT_START);
-    setEnd(initialState.end ?? DEFAULT_END);
+    setStart(initialState.start ?? "");
+    setEnd(initialState.end ?? "");
     setAccountId(initialState.accountId ?? "all");
     setPage(initialState.page ?? 1);
     setPageSize(initialState.page_size ?? DEFAULT_PAGE_SIZE);
   }, [initialState.accountId, initialState.end, initialState.page, initialState.page_size, initialState.start]);
 
   useEffect(() => {
+    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset: "custom",
-      start,
-      end,
+      preset: resolvedPreset,
+      start: start || undefined,
+      end: end || undefined,
       accountId,
       page,
       page_size: pageSize,
@@ -68,9 +65,9 @@ export function ReportingGeneralLedgerPage() {
   }, [accountId, end, initialState, page, pageSize, pathname, router, searchParams, start]);
 
   const reportQuery = useAccountingReportingGeneralLedger({
-    preset: "custom",
-    start,
-    end,
+    preset: start && end ? "custom" : initialState.preset || "today",
+    start: start || undefined,
+    end: end || undefined,
     accountId: accountId === "all" ? undefined : accountId,
     page,
     page_size: pageSize,
@@ -86,10 +83,11 @@ export function ReportingGeneralLedgerPage() {
   }, [reportQuery.data?.groups]);
 
   const openAccountLedger = (nextAccountId: string) => {
+    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
     const query = buildReportingQueryString({
-      preset: "custom",
-      start,
-      end,
+      preset: resolvedPreset,
+      start: start || undefined,
+      end: end || undefined,
       accountId: nextAccountId,
       page: 1,
       page_size: pageSize,

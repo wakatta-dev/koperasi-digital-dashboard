@@ -203,7 +203,7 @@ export function TaxSummaryPeriodPage() {
         </div>
         <FeatureTaxSummaryFilterBar
           value={filters}
-          yearOptions={yearOptions.length > 1 ? yearOptions : ["All Years", "2023", "2022"]}
+          yearOptions={yearOptions}
           onChange={(next) => {
             setFilters(next);
             setPage(1);

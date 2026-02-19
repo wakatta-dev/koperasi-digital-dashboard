@@ -15,8 +15,6 @@ import {
   FeatureProfitLossComparativeToolbar,
 } from "../features/FeatureReportingLedgers";
 
-const DEFAULT_PRESET = "month";
-
 export function ReportingProfitLossComparativePage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -24,21 +22,21 @@ export function ReportingProfitLossComparativePage() {
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: DEFAULT_PRESET,
+        preset: undefined,
       }),
     [searchParams],
   );
 
-  const [preset, setPreset] = useState(initialState.preset ?? DEFAULT_PRESET);
+  const [preset, setPreset] = useState(initialState.preset ?? "");
 
   useEffect(() => {
-    setPreset(initialState.preset ?? DEFAULT_PRESET);
+    setPreset(initialState.preset ?? "");
   }, [initialState.preset]);
 
   useEffect(() => {
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset,
+      preset: preset || undefined,
       page: undefined,
       page_size: undefined,
     });
@@ -46,7 +44,9 @@ export function ReportingProfitLossComparativePage() {
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
   }, [initialState, pathname, preset, router, searchParams]);
 
-  const reportQuery = useAccountingReportingProfitLossComparative({ preset });
+  const reportQuery = useAccountingReportingProfitLossComparative({
+    preset: preset || undefined,
+  });
   const reportData = reportQuery.data;
 
   return (
@@ -59,7 +59,7 @@ export function ReportingProfitLossComparativePage() {
           </p>
         </div>
         <FeatureProfitLossComparativeToolbar
-          periodLabel={reportData?.compare_label ?? "Oct 2023 vs Sep 2023"}
+          periodLabel={reportData?.compare_label ?? "-"}
         />
       </section>
 
@@ -79,7 +79,7 @@ export function ReportingProfitLossComparativePage() {
         <FeatureProfitLossComparativeTable rows={reportData?.rows ?? []} />
         <FeatureProfitLossComparativeMetaFooter
           generatedAt={reportData?.meta.generated_at ?? "-"}
-          currency={reportData?.meta.currency ?? "USD"}
+          currency={reportData?.meta.currency ?? "-"}
         />
       </div>
     </div>

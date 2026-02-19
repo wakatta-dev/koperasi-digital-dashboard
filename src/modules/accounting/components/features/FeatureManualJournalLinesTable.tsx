@@ -21,10 +21,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import {
-  JOURNAL_NEW_ENTRY_ACCOUNT_OPTIONS,
-  JOURNAL_NEW_ENTRY_DEFAULT_LINES,
-} from "../../constants/journal-seed";
 import type { ManualJournalAccountOption, ManualJournalLineItem } from "../../types/journal";
 
 type FeatureManualJournalLinesTableProps = {
@@ -46,8 +42,8 @@ function formatCurrency(value: number) {
 }
 
 export function FeatureManualJournalLinesTable({
-  lines = JOURNAL_NEW_ENTRY_DEFAULT_LINES,
-  accountOptions = JOURNAL_NEW_ENTRY_ACCOUNT_OPTIONS,
+  lines = [],
+  accountOptions = [],
   onChange,
 }: FeatureManualJournalLinesTableProps) {
   const patch = (next: ManualJournalLineItem[]) => {
@@ -63,7 +59,7 @@ export function FeatureManualJournalLinesTable({
       ...lines,
       {
         line_id: `line-${Date.now()}`,
-        account_code: accountOptions[0]?.value ?? "6001",
+        account_code: accountOptions[0]?.value ?? "",
         label_description: "",
         debit_amount: 0,
         credit_amount: 0,

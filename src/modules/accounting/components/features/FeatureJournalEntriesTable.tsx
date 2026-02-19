@@ -13,7 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { JOURNAL_ENTRIES_BASE_PAGINATION, JOURNAL_ENTRIES_ROWS } from "../../constants/journal-seed";
+import {
+  JOURNAL_INITIAL_ENTRIES_PAGINATION,
+  JOURNAL_INITIAL_ENTRIES_ROWS,
+} from "../../constants/journal-initial-state";
 import type { JournalEntriesPagination, JournalEntriesTableRow } from "../../types/journal";
 
 type FeatureJournalEntriesTableProps = {
@@ -37,8 +40,8 @@ function statusBadgeClassName(status: JournalEntriesTableRow["status"]) {
 }
 
 export function FeatureJournalEntriesTable({
-  rows = JOURNAL_ENTRIES_ROWS,
-  pagination = JOURNAL_ENTRIES_BASE_PAGINATION,
+  rows = JOURNAL_INITIAL_ENTRIES_ROWS,
+  pagination = JOURNAL_INITIAL_ENTRIES_PAGINATION,
   onPageChange,
   onReferenceClick,
 }: FeatureJournalEntriesTableProps) {

@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { JOURNAL_ENTRIES_DEFAULT_FILTERS } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_ENTRIES_FILTERS } from "../../constants/journal-initial-state";
 import type { JournalEntriesFilterValue } from "../../types/journal";
 
 type FeatureJournalEntriesFilterBarProps = {
@@ -21,7 +21,7 @@ type FeatureJournalEntriesFilterBarProps = {
 };
 
 export function FeatureJournalEntriesFilterBar({
-  value = JOURNAL_ENTRIES_DEFAULT_FILTERS,
+  value = JOURNAL_INITIAL_ENTRIES_FILTERS,
   onChange,
 }: FeatureJournalEntriesFilterBarProps) {
   const patch = (next: Partial<JournalEntriesFilterValue>) => {

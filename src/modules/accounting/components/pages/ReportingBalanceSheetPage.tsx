@@ -23,24 +23,23 @@ export function ReportingBalanceSheetPage() {
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: "custom",
-        start: "2023-10-31",
-        end: "2023-10-31",
+        preset: "today",
       }),
     [searchParams],
   );
-  const [asOfDate, setAsOfDate] = useState(initialState.start ?? "2023-10-31");
+  const [asOfDate, setAsOfDate] = useState(initialState.start ?? initialState.end ?? "");
 
   useEffect(() => {
-    setAsOfDate(initialState.start ?? "2023-10-31");
-  }, [initialState.start]);
+    setAsOfDate(initialState.start ?? initialState.end ?? "");
+  }, [initialState.end, initialState.start]);
 
   useEffect(() => {
+    const resolvedPreset = asOfDate ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset: "custom",
-      start: asOfDate,
-      end: asOfDate,
+      preset: resolvedPreset,
+      start: asOfDate || undefined,
+      end: asOfDate || undefined,
       page: undefined,
       page_size: undefined,
     });
@@ -49,9 +48,9 @@ export function ReportingBalanceSheetPage() {
   }, [asOfDate, initialState, pathname, router, searchParams]);
 
   const reportQuery = useAccountingReportingBalanceSheet({
-    preset: "custom",
-    start: asOfDate,
-    end: asOfDate,
+    preset: asOfDate ? "custom" : initialState.preset || "today",
+    start: asOfDate || undefined,
+    end: asOfDate || undefined,
   });
 
   const reportData = reportQuery.data;

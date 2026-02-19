@@ -15,8 +15,6 @@ import {
   FeatureProfitLossToolbar,
 } from "../features/FeatureReportingStatements";
 
-const DEFAULT_PRESET = "month";
-
 export function ReportingProfitLossPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -25,25 +23,30 @@ export function ReportingProfitLossPage() {
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: DEFAULT_PRESET,
+        preset: undefined,
       }),
     [searchParams],
   );
 
-  const [preset, setPreset] = useState(initialState.preset ?? DEFAULT_PRESET);
+  const [preset, setPreset] = useState(initialState.preset ?? "");
 
   useEffect(() => {
-    setPreset(initialState.preset ?? DEFAULT_PRESET);
+    setPreset(initialState.preset ?? "");
   }, [initialState.preset]);
 
   useEffect(() => {
-    const nextQuery = buildReportingQueryString({ ...initialState, preset, page: undefined, page_size: undefined });
+    const nextQuery = buildReportingQueryString({
+      ...initialState,
+      preset: preset || undefined,
+      page: undefined,
+      page_size: undefined,
+    });
     if (nextQuery === searchParams.toString()) return;
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
   }, [initialState, pathname, preset, router, searchParams]);
 
   const reportQuery = useAccountingReportingProfitLoss({
-    preset,
+    preset: preset || undefined,
   });
 
   const reportData = reportQuery.data;

@@ -149,6 +149,8 @@ export const QK = {
       ["accounting-tax", "file-download", String(fileId)] as const,
   },
   accountingReporting: {
+    overview: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "overview", params ?? {}] as const,
     profitLoss: (params?: Record<string, unknown>) =>
       ["accounting-reporting", "profit-loss", params ?? {}] as const,
     cashFlow: (params?: Record<string, unknown>) =>
@@ -270,6 +272,7 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingTax.incomeTaxReport
   | typeof QK.accountingTax.compliance
   | typeof QK.accountingTax.fileDownload
+  | typeof QK.accountingReporting.overview
   | typeof QK.accountingReporting.profitLoss
   | typeof QK.accountingReporting.cashFlow
   | typeof QK.accountingReporting.balanceSheet

@@ -17,12 +17,6 @@ import {
 } from "../features/FeatureReportingLedgers";
 
 const TRIAL_BALANCE_PAGE_SIZE = 12;
-const TRIAL_BRANCH_OPTIONS: ReadonlyArray<ReportingAccountOption> = [
-  { id: "all", label: "All Branches" },
-  { id: "headquarters", label: "Headquarters" },
-  { id: "north-branch", label: "North Branch" },
-  { id: "south-branch", label: "South Branch" },
-];
 
 export function ReportingTrialBalancePage() {
   const router = useRouter();
@@ -32,33 +26,32 @@ export function ReportingTrialBalancePage() {
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: "custom",
-        start: "2024-01-01",
-        end: "2024-12-31",
+        preset: "today",
         branch: "all",
         page: 1,
       }),
     [searchParams],
   );
 
-  const [start, setStart] = useState(initialState.start ?? "2024-01-01");
-  const [end, setEnd] = useState(initialState.end ?? "2024-12-31");
+  const [start, setStart] = useState(initialState.start ?? "");
+  const [end, setEnd] = useState(initialState.end ?? "");
   const [branch, setBranch] = useState(initialState.branch ?? "all");
   const [page, setPage] = useState(initialState.page ?? 1);
 
   useEffect(() => {
-    setStart(initialState.start ?? "2024-01-01");
-    setEnd(initialState.end ?? "2024-12-31");
+    setStart(initialState.start ?? "");
+    setEnd(initialState.end ?? "");
     setBranch(initialState.branch ?? "all");
     setPage(initialState.page ?? 1);
   }, [initialState.branch, initialState.end, initialState.page, initialState.start]);
 
   useEffect(() => {
+    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset: "custom",
-      start,
-      end,
+      preset: resolvedPreset,
+      start: start || undefined,
+      end: end || undefined,
       branch,
       page,
       page_size: undefined,
@@ -68,11 +61,21 @@ export function ReportingTrialBalancePage() {
   }, [branch, end, initialState, page, pathname, router, searchParams, start]);
 
   const reportQuery = useAccountingReportingTrialBalance({
-    preset: "custom",
-    start,
-    end,
+    preset: start && end ? "custom" : initialState.preset || "today",
+    start: start || undefined,
+    end: end || undefined,
     branch: branch === "all" ? undefined : branch,
   });
+
+  const branchOptions = useMemo<ReadonlyArray<ReportingAccountOption>>(() => {
+    if (!branch || branch === "all") {
+      return [{ id: "all", label: "All Branches" }];
+    }
+    return [
+      { id: "all", label: "All Branches" },
+      { id: branch, label: branch },
+    ];
+  }, [branch]);
 
   const allRows = useMemo(() => reportQuery.data?.rows ?? [], [reportQuery.data?.rows]);
   const pagedRows = useMemo(() => {
@@ -93,7 +96,7 @@ export function ReportingTrialBalancePage() {
         start={start}
         end={end}
         branch={branch}
-        branches={TRIAL_BRANCH_OPTIONS}
+        branches={branchOptions}
         onStartChange={(value) => {
           setStart(value);
           setPage(1);

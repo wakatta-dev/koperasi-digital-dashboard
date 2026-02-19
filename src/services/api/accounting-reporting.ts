@@ -9,6 +9,7 @@ import type {
   AccountingReportingCashFlowResponse,
   AccountingReportingGeneralLedgerQuery,
   AccountingReportingGeneralLedgerResponse,
+  AccountingReportingOverviewResponse,
   AccountingReportingProfitLossComparativeResponse,
   AccountingReportingProfitLossResponse,
   AccountingReportingTrialBalanceResponse,
@@ -113,6 +114,16 @@ export function getAccountingReportingProfitLoss(
 ): Promise<ApiResponse<AccountingReportingProfitLossResponse>> {
   const query = buildQuery(toQueryParams(params));
   return api.get<AccountingReportingProfitLossResponse>(`${API_PREFIX}${E.profitLoss}${query}`, {
+    signal: opts?.signal,
+  });
+}
+
+export function getAccountingReportingOverview(
+  params?: AccountingReportingBaseQuery,
+  opts?: { signal?: AbortSignal },
+): Promise<ApiResponse<AccountingReportingOverviewResponse>> {
+  const query = buildQuery(toQueryParams(params));
+  return api.get<AccountingReportingOverviewResponse>(`${API_PREFIX}${E.overview}${query}`, {
     signal: opts?.signal,
   });
 }

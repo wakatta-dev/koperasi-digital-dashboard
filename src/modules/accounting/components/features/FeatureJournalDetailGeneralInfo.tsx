@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-import { JOURNAL_DETAIL_GENERAL_INFORMATION } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_DETAIL_GENERAL_INFORMATION } from "../../constants/journal-initial-state";
 import type { JournalDetailGeneralInformation } from "../../types/journal";
 
 type FeatureJournalDetailGeneralInfoProps = {
@@ -10,7 +10,7 @@ type FeatureJournalDetailGeneralInfoProps = {
 };
 
 export function FeatureJournalDetailGeneralInfo({
-  data = JOURNAL_DETAIL_GENERAL_INFORMATION,
+  data = JOURNAL_INITIAL_DETAIL_GENERAL_INFORMATION,
 }: FeatureJournalDetailGeneralInfoProps) {
   return (
     <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">

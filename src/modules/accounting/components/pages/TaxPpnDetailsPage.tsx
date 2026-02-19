@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import {
   useAccountingTaxMutations,
+  useAccountingTaxOverview,
   useAccountingTaxVatTransactions,
 } from "@/hooks/queries";
 import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
@@ -41,35 +42,23 @@ const DEFAULT_PPN_FILTERS: TaxPpnFilterValue = {
 
 const PPN_PER_PAGE = 5;
 
-const PPN_PERIOD_OPTIONS = [
-  { label: "All Periods", value: "All Periods" },
-  { label: "November 2023", value: "2023-11" },
-  { label: "October 2023", value: "2023-10" },
-  { label: "September 2023", value: "2023-09" },
-] as const;
-
-const PPN_PERIOD_LABEL_TO_VALUE: Record<string, string> = {
-  "All Periods": "All Periods",
-  "November 2023": "2023-11",
-  "October 2023": "2023-10",
-  "September 2023": "2023-09",
-};
-
-const VALID_PPN_PERIODS = new Set<string>(
-  PPN_PERIOD_OPTIONS.map((option) => option.value),
-);
-
 function normalizePpnPeriod(rawPeriod: string) {
-  if (VALID_PPN_PERIODS.has(rawPeriod)) {
-    return rawPeriod;
-  }
+  const trimmed = rawPeriod.trim();
+  return trimmed || DEFAULT_PPN_FILTERS.period;
+}
 
-  const normalized = PPN_PERIOD_LABEL_TO_VALUE[rawPeriod];
-  if (normalized) {
-    return normalized;
+function formatPeriodLabel(periodCode: string): string {
+  const parsed = /^(\d{4})-(\d{2})$/.exec(periodCode);
+  if (!parsed) {
+    return periodCode;
   }
-
-  return DEFAULT_PPN_FILTERS.period;
+  const year = Number(parsed[1]);
+  const month = Number(parsed[2]);
+  const date = new Date(year, month - 1, 1);
+  if (Number.isNaN(date.getTime())) {
+    return periodCode;
+  }
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
 export function TaxPpnDetailsPage({
@@ -103,6 +92,7 @@ export function TaxPpnDetailsPage({
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
 
+  const overviewQuery = useAccountingTaxOverview();
   const vatTransactionsQuery = useAccountingTaxVatTransactions({
     period: filters.period === "All Periods" ? undefined : filters.period,
     transaction_type:
@@ -112,6 +102,30 @@ export function TaxPpnDetailsPage({
     per_page: perPage,
   });
   const mutations = useAccountingTaxMutations();
+
+  const periodOptions = useMemo<ReadonlyArray<{ label: string; value: string }>>(() => {
+    const optionMap = new Map<string, string>([["All Periods", "All Periods"]]);
+    const activePeriodCode = overviewQuery.data?.active_period
+      ? `${overviewQuery.data.active_period.year}-${String(overviewQuery.data.active_period.month).padStart(2, "0")}`
+      : "";
+    if (activePeriodCode) {
+      optionMap.set(activePeriodCode, overviewQuery.data?.active_period.label || activePeriodCode);
+    }
+    if (filters.period !== "All Periods") {
+      optionMap.set(filters.period, formatPeriodLabel(filters.period));
+    }
+    const fromQuery = period || searchParams.get("period") || "";
+    if (fromQuery && fromQuery !== "All Periods") {
+      optionMap.set(fromQuery, formatPeriodLabel(fromQuery));
+    }
+
+    return Array.from(optionMap.entries()).map(([value, label]) => ({ value, label }));
+  }, [
+    filters.period,
+    overviewQuery.data?.active_period,
+    period,
+    searchParams,
+  ]);
 
   useEffect(() => {
     const baseQuery = buildTaxPpnQueryString({ filters, page, perPage });
@@ -130,7 +144,13 @@ export function TaxPpnDetailsPage({
 
   const activePeriodCode =
     filters.period === "All Periods"
-      ? normalizePpnPeriod(period ?? searchParams.get("period") ?? "All Periods")
+      ? normalizePpnPeriod(
+          period ??
+            searchParams.get("period") ??
+            (overviewQuery.data?.active_period
+              ? `${overviewQuery.data.active_period.year}-${String(overviewQuery.data.active_period.month).padStart(2, "0")}`
+              : "All Periods"),
+        )
       : filters.period;
 
   const rows = useMemo<TaxPpnTransactionItem[]>(() => {
@@ -228,6 +248,11 @@ export function TaxPpnDetailsPage({
           {toAccountingTaxApiError(vatTransactionsQuery.error).message}
         </div>
       ) : null}
+      {overviewQuery.error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {toAccountingTaxApiError(overviewQuery.error).message}
+        </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
         <div className="border-b border-gray-200 px-6 dark:border-gray-700">
@@ -235,7 +260,7 @@ export function TaxPpnDetailsPage({
         </div>
         <FeaturePpnDetailFilterBar
           value={filters}
-          periodOptions={PPN_PERIOD_OPTIONS}
+          periodOptions={periodOptions}
           onChange={(next) => {
             setFilters(next);
             setPage(1);

@@ -32,8 +32,6 @@ type ReportingAccountLedgerPageProps = {
   pageSize?: number;
 };
 
-const DEFAULT_START = "2023-10-01";
-const DEFAULT_END = "2023-10-31";
 const DEFAULT_PAGE_SIZE = 20;
 
 export function ReportingAccountLedgerPage({
@@ -53,9 +51,9 @@ export function ReportingAccountLedgerPage({
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: preset ?? "custom",
-        start: start ?? DEFAULT_START,
-        end: end ?? DEFAULT_END,
+        preset: preset ?? "today",
+        start,
+        end,
         branch,
         accountId,
         search,
@@ -66,16 +64,16 @@ export function ReportingAccountLedgerPage({
   );
 
   const [resolvedAccountId, setResolvedAccountId] = useState(initialState.accountId ?? "");
-  const [resolvedStart, setResolvedStart] = useState(initialState.start ?? DEFAULT_START);
-  const [resolvedEnd, setResolvedEnd] = useState(initialState.end ?? DEFAULT_END);
+  const [resolvedStart, setResolvedStart] = useState(initialState.start ?? "");
+  const [resolvedEnd, setResolvedEnd] = useState(initialState.end ?? "");
   const [resolvedSearch, setResolvedSearch] = useState(initialState.search ?? "");
   const [resolvedPage, setResolvedPage] = useState(initialState.page ?? 1);
   const [resolvedPageSize, setResolvedPageSize] = useState(initialState.page_size ?? DEFAULT_PAGE_SIZE);
 
   useEffect(() => {
     setResolvedAccountId(initialState.accountId ?? "");
-    setResolvedStart(initialState.start ?? DEFAULT_START);
-    setResolvedEnd(initialState.end ?? DEFAULT_END);
+    setResolvedStart(initialState.start ?? "");
+    setResolvedEnd(initialState.end ?? "");
     setResolvedSearch(initialState.search ?? "");
     setResolvedPage(initialState.page ?? 1);
     setResolvedPageSize(initialState.page_size ?? DEFAULT_PAGE_SIZE);
@@ -89,11 +87,13 @@ export function ReportingAccountLedgerPage({
   ]);
 
   useEffect(() => {
+    const resolvedPreset =
+      resolvedStart && resolvedEnd ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset: "custom",
-      start: resolvedStart,
-      end: resolvedEnd,
+      preset: resolvedPreset,
+      start: resolvedStart || undefined,
+      end: resolvedEnd || undefined,
       accountId: resolvedAccountId,
       search: resolvedSearch,
       page: resolvedPage,
@@ -114,11 +114,14 @@ export function ReportingAccountLedgerPage({
     searchParams,
   ]);
 
+  const effectivePreset =
+    resolvedStart && resolvedEnd ? "custom" : initialState.preset || "today";
+
   const fallbackContextQuery = useAccountingReportingGeneralLedger(
     {
-      preset: "custom",
-      start: resolvedStart,
-      end: resolvedEnd,
+      preset: effectivePreset,
+      start: resolvedStart || undefined,
+      end: resolvedEnd || undefined,
       branch: initialState.branch,
       page: 1,
       page_size: DEFAULT_PAGE_SIZE,
@@ -145,9 +148,9 @@ export function ReportingAccountLedgerPage({
 
   const accountLedgerQuery = useAccountingReportingAccountLedger(
     {
-      preset: "custom",
-      start: resolvedStart,
-      end: resolvedEnd,
+      preset: effectivePreset,
+      start: resolvedStart || undefined,
+      end: resolvedEnd || undefined,
       branch: initialState.branch,
       accountId: resolvedAccountId,
       search: resolvedSearch || undefined,

@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { JOURNAL_AUDIT_LOG_DEFAULT_FILTERS } from "../../constants/journal-seed";
+import { JOURNAL_INITIAL_AUDIT_LOG_FILTERS } from "../../constants/journal-initial-state";
 import type { JournalAuditLogFilterValue } from "../../types/journal";
 
 type FeatureAuditLogFilterBarProps = {
@@ -22,7 +22,7 @@ type FeatureAuditLogFilterBarProps = {
 };
 
 export function FeatureAuditLogFilterBar({
-  value = JOURNAL_AUDIT_LOG_DEFAULT_FILTERS,
+  value = JOURNAL_INITIAL_AUDIT_LOG_FILTERS,
   onChange,
   onApplyFilter,
 }: FeatureAuditLogFilterBarProps) {

@@ -23,27 +23,26 @@ export function ReportingCashFlowPage() {
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: "custom",
-        start: "2023-01-01",
-        end: "2023-12-31",
+        preset: "today",
       }),
     [searchParams],
   );
 
-  const [start, setStart] = useState(initialState.start ?? "2023-01-01");
-  const [end, setEnd] = useState(initialState.end ?? "2023-12-31");
+  const [start, setStart] = useState(initialState.start ?? "");
+  const [end, setEnd] = useState(initialState.end ?? "");
 
   useEffect(() => {
-    setStart(initialState.start ?? "2023-01-01");
-    setEnd(initialState.end ?? "2023-12-31");
+    setStart(initialState.start ?? "");
+    setEnd(initialState.end ?? "");
   }, [initialState.end, initialState.start]);
 
   useEffect(() => {
+    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset: "custom",
-      start,
-      end,
+      preset: resolvedPreset,
+      start: start || undefined,
+      end: end || undefined,
       page: undefined,
       page_size: undefined,
     });
@@ -52,9 +51,9 @@ export function ReportingCashFlowPage() {
   }, [end, initialState, pathname, router, searchParams, start]);
 
   const reportQuery = useAccountingReportingCashFlow({
-    preset: "custom",
-    start,
-    end,
+    preset: start && end ? "custom" : initialState.preset || "today",
+    start: start || undefined,
+    end: end || undefined,
   });
 
   return (
