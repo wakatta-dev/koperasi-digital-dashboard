@@ -9,8 +9,12 @@ import { CustomerTable } from "./CustomerTable";
 import { CustomerPagination } from "./CustomerPagination";
 import { CustomerFilterSheet } from "./CustomerFilterSheet";
 import { CustomerCreateModal } from "./CustomerCreateModal";
-import { useMarketplaceCustomers } from "@/modules/marketplace/hooks/useMarketplaceProducts";
+import {
+  useMarketplaceCustomerActions,
+  useMarketplaceCustomers,
+} from "@/modules/marketplace/hooks/useMarketplaceProducts";
 import type { CustomerListItem } from "@/modules/marketplace/types";
+import { toast } from "sonner";
 
 const DEFAULT_STATUS = "Active";
 
@@ -31,6 +35,7 @@ const downloadCsv = (rows: string[][], filename: string) => {
 
 export function CustomerListPage() {
   const router = useRouter();
+  const { createCustomer } = useMarketplaceCustomerActions();
   const [searchValue, setSearchValue] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -170,6 +175,38 @@ export function CustomerListPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCancel={() => setCreateOpen(false)}
+        onSubmit={async (payload) => {
+          const name = payload.name.trim();
+          const email = payload.email.trim();
+          const phone = payload.phone.trim();
+
+          if (!name) {
+            toast.error("Nama pelanggan wajib diisi.");
+            throw new Error("Nama pelanggan wajib diisi.");
+          }
+          if (!email && !phone) {
+            toast.error("Minimal email atau nomor telepon wajib diisi.");
+            throw new Error("Kontak pelanggan wajib diisi.");
+          }
+
+          try {
+            await createCustomer.mutateAsync({
+              name,
+              customer_type: payload.type === "Perusahaan" ? "PERUSAHAAN" : "INDIVIDU",
+              email: email || undefined,
+              phone: phone || undefined,
+              address: payload.address.trim() || undefined,
+              npwp: payload.npwp.trim() || undefined,
+              status: "ACTIVE",
+            });
+            toast.success("Pelanggan berhasil ditambahkan.");
+          } catch (error: any) {
+            const message =
+              error?.message || "Gagal menambahkan pelanggan. Periksa data lalu coba lagi.";
+            toast.error(message);
+            throw error;
+          }
+        }}
       />
 
       {isLoading ? (

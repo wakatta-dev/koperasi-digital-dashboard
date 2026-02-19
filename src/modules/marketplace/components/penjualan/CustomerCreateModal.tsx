@@ -38,6 +38,7 @@ export function CustomerCreateModal({
   onSubmit,
   onCancel,
 }: CustomerCreateModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState("Individu");
   const [email, setEmail] = useState("");
@@ -70,8 +71,13 @@ export function CustomerCreateModal({
     };
 
     if (onSubmit) {
-      await onSubmit(payload);
-      handleClose(false);
+      setIsSubmitting(true);
+      try {
+        await onSubmit(payload);
+        handleClose(false);
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -180,9 +186,10 @@ export function CustomerCreateModal({
           <Button
             type="button"
             onClick={handleSubmit}
+            disabled={isSubmitting}
             className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-md shadow-indigo-500/20 px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-600/50 sm:ml-0 sm:w-auto sm:text-sm transition-colors"
           >
-            Simpan Pelanggan
+            {isSubmitting ? "Menyimpan..." : "Simpan Pelanggan"}
           </Button>
           <Button
             type="button"
