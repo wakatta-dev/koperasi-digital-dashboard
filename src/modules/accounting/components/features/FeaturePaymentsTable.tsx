@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Table,
   TableBody,
@@ -19,7 +19,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_PAYMENTS } from "../../constants/dummy-data";
 import { PAYMENT_STATUS_BADGE_CLASS } from "../../constants/stitch";
 import type { PaymentListItem } from "../../types/invoicing-ar";
 
@@ -29,7 +28,7 @@ type FeaturePaymentsTableProps = {
 };
 
 export function FeaturePaymentsTable({
-  rows = DUMMY_PAYMENTS,
+  rows = [],
   createHref,
 }: FeaturePaymentsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,6 +92,14 @@ export function FeaturePaymentsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
+            {filteredRows.length === 0 ? (
+              <TableRow>
+                <TableCell className="px-6 py-10 text-center text-sm text-gray-500" colSpan={7}>
+                  Tidak ada pembayaran.
+                </TableCell>
+              </TableRow>
+            ) : null}
+
             {filteredRows.map((row) => (
               <TableRow key={row.payment_number}>
                 <TableCell className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">

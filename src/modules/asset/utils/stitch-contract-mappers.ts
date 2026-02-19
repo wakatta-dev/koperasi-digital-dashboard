@@ -71,11 +71,13 @@ function toPriceDisplay(rateAmount?: number) {
   return String(rateAmount);
 }
 
-function toPurchasePriceDisplay(input: ContractAsset) {
-  if (input.purchase_price && input.purchase_price > 0) {
-    return String(input.purchase_price);
-  }
+function toRentalPriceDisplay(input: ContractAsset) {
   return toPriceDisplay(input.rate_amount);
+}
+
+function toPurchasePriceDisplay(input: ContractAsset) {
+  if (!input.purchase_price || input.purchase_price <= 0) return "";
+  return String(input.purchase_price);
 }
 
 function toPhotoURL(photoURL?: string) {
@@ -97,7 +99,7 @@ function pickLocation(input: ContractAsset) {
   return match?.[1]?.trim();
 }
 
-function toDescriptionAttribute(description?: string) {
+function normalizeDescription(description?: string) {
   const text = (description ?? "").trim();
   if (!text) return "";
   return text.replace(/^Lokasi:\s*[^\n;]+;?\s*/i, "").trim();
@@ -147,39 +149,12 @@ function toBookingBadgeStatus(booking: AssetRentalBooking) {
 function parseDescriptionSpecs(description?: string) {
   const descriptionText = (description ?? "").trim();
   if (!descriptionText) return [];
-
-  const specsMatch = descriptionText.match(/Spesifikasi:\s*([^\n]+)/i);
-  const rawSpecs = specsMatch?.[1]?.trim() ?? "";
-  if (!rawSpecs) {
-    return [
-      {
-        key: "Deskripsi",
-        value: descriptionText,
-      },
-    ];
-  }
-
-  const parsed = rawSpecs
-    .split(";")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .map((item) => {
-      const [label, ...rest] = item.split(":");
-      const value = rest.join(":").trim();
-      return {
-        key: (label ?? "").trim() || "Spesifikasi",
-        value: value || item,
-      };
-    });
-
-  return parsed.length > 0
-    ? parsed
-    : [
-        {
-          key: "Deskripsi",
-          value: descriptionText,
-        },
-      ];
+  return [
+    {
+      key: "Deskripsi",
+      value: descriptionText,
+    },
+  ];
 }
 
 function parseStructuredSpecs(specifications?: AssetSpecification[]) {
@@ -292,6 +267,13 @@ export function mapContractAssetToFormModel(
   mode: "create" | "edit" = "edit"
 ): AssetFormModel {
   const listItem = mapContractAssetToListItem(input);
+  const structuredSpecs = parseStructuredSpecs(input.specifications);
+  const fallbackDescription =
+    structuredSpecs.length > 0
+      ? structuredSpecs
+          .map((item) => `${item.key}: ${item.value}`)
+          .join("\n")
+      : normalizeDescription(input.description);
 
   return {
     mode,
@@ -306,22 +288,10 @@ export function mapContractAssetToFormModel(
     assignedTo: input.assigned_to ?? "",
     purchaseDate: input.purchase_date ?? "",
     vendor: input.vendor ?? "",
-    priceDisplay: toPurchasePriceDisplay(input),
+    rentalPriceDisplay: toRentalPriceDisplay(input),
+    purchasePriceDisplay: toPurchasePriceDisplay(input),
     warrantyEndDate: input.warranty_end_date ?? "",
-    attributes:
-      parseStructuredSpecs(input.specifications).length > 0
-        ? parseStructuredSpecs(input.specifications).map((item, index) => ({
-            id: `attr-${index + 1}`,
-            label: item.key,
-            value: item.value,
-          }))
-        : [
-            {
-              id: "attr-1",
-              label: "Deskripsi",
-              value: toDescriptionAttribute(input.description),
-            },
-          ],
+    description: fallbackDescription,
   };
 }
 

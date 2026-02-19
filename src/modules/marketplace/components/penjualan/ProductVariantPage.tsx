@@ -583,8 +583,8 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       } else if ((skuCount.get(skuValue.toUpperCase()) ?? 0) > 1) {
         errors.sku = "SKU harus unik.";
       }
-      if (Number.isNaN(variant.price) || variant.price < 0) {
-        errors.price = "Harga harus >= 0.";
+      if (Number.isNaN(variant.price) || variant.price <= 0) {
+        errors.price = "Harga harus lebih dari 0.";
       }
       if (!Number.isInteger(variant.stock) || variant.stock < 0) {
         errors.stock = "Stok harus bilangan >= 0.";
@@ -804,8 +804,8 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
 
   const handleApplyBulkPrice = () => {
     const value = Number(bulkPriceValue);
-    if (Number.isNaN(value) || value < 0) {
-      toast.error("Harga harus berupa angka >= 0");
+    if (Number.isNaN(value) || value <= 0) {
+      toast.error("Harga harus berupa angka lebih dari 0");
       return;
     }
     setIsDirty(true);
@@ -1018,6 +1018,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       await qc.refetchQueries({ queryKey: QK.inventory.variants(id) });
       setIsDirty(false);
       toast.success("Varian berhasil disimpan");
+      router.push(`/bumdes/marketplace/inventory/${id}`);
     } catch (err: any) {
       toast.error(err?.message || "Gagal menyimpan varian");
     } finally {

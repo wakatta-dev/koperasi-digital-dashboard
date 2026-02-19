@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Table,
   TableBody,
@@ -19,7 +19,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_VENDOR_BILLS } from "../../constants/vendor-bills-ap-dummy";
 import { VENDOR_BILL_STATUS_BADGE_CLASS } from "../../constants/stitch";
 import type { VendorBillListItem } from "../../types/vendor-bills-ap";
 
@@ -34,11 +33,11 @@ type FeatureVendorBillsTableProps = {
 const PAGE_SIZE = 5;
 
 export function FeatureVendorBillsTable({
-  rows = DUMMY_VENDOR_BILLS,
+  rows = [],
   selectedBillNumbers,
   onSelectionChange,
   onRowOpen,
-  totalResults = 24,
+  totalResults,
 }: FeatureVendorBillsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [internalSelectedBillNumbers, setInternalSelectedBillNumbers] = useState<
@@ -295,7 +294,7 @@ export function FeatureVendorBillsTable({
             </span>{" "}
             of{" "}
             <span className="font-medium text-gray-900 dark:text-white">
-              {Math.max(totalResults, selectableRows.length)}
+              {Math.max(totalResults ?? rows.length, selectableRows.length)}
             </span>{" "}
             results
           </div>

@@ -1,6 +1,6 @@
 /** @format */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { AccountingApApiError } from "@/services/api/accounting-ap";
@@ -14,12 +14,14 @@ const {
   createBillMutateAsync,
   previewBatchMutateAsync,
   confirmBatchMutateAsync,
+  createOcrSessionMutateAsync,
   saveOcrProgressMutateAsync,
   confirmOcrMutateAsync,
 } = vi.hoisted(() => ({
   createBillMutateAsync: vi.fn(),
   previewBatchMutateAsync: vi.fn(),
   confirmBatchMutateAsync: vi.fn(),
+  createOcrSessionMutateAsync: vi.fn(),
   saveOcrProgressMutateAsync: vi.fn(),
   confirmOcrMutateAsync: vi.fn(),
 }));
@@ -77,7 +79,7 @@ vi.mock("@/hooks/queries", () => ({
     },
   }),
   useAccountingApOcrMutations: () => ({
-    createOcrSession: { isPending: false, mutateAsync: vi.fn() },
+    createOcrSession: { isPending: false, mutateAsync: createOcrSessionMutateAsync },
     saveOcrProgress: { isPending: false, mutateAsync: saveOcrProgressMutateAsync },
     confirmOcrSession: { isPending: false, mutateAsync: confirmOcrMutateAsync },
   }),
@@ -88,8 +90,24 @@ describe("vendor-bills-ap integration errors", () => {
     createBillMutateAsync.mockReset();
     previewBatchMutateAsync.mockReset();
     confirmBatchMutateAsync.mockReset();
+    createOcrSessionMutateAsync.mockReset();
     saveOcrProgressMutateAsync.mockReset();
     confirmOcrMutateAsync.mockReset();
+    createOcrSessionMutateAsync.mockResolvedValue({
+      session_id: "ocr-session-001",
+      status: "Draft",
+      accuracy_percent: 87,
+      extracted_data: {
+        general_info: {
+          vendor_name: "PT. Pemasok Jaya",
+          bill_number: "INV/PJ/2023/1029",
+          bill_date: "2023-10-25",
+          due_date: "2023-11-24",
+        },
+        financials: { total_amount: "13875000" },
+        line_items: [],
+      },
+    });
   });
 
   it("shows 409 error message on create vendor bill modal", async () => {
@@ -143,6 +161,9 @@ describe("vendor-bills-ap integration errors", () => {
 
     render(<VendorBillsApOcrReviewPage />);
 
+    await waitFor(() => {
+      expect(createOcrSessionMutateAsync).toHaveBeenCalled();
+    });
     fireEvent.click(screen.getByRole("button", { name: "Confirm & Create Bill" }));
 
     expect(await screen.findByText("too many OCR confirmation attempts")).toBeTruthy();

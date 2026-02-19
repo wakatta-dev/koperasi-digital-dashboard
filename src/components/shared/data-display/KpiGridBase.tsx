@@ -23,7 +23,7 @@ export function KpiGridBase({
   emptyState,
   errorState,
   loadingState,
-  columns = { md: 2, xl: 3 },
+  columns = { md: 2, xl: 4 },
   trendSlot,
   footerSlot,
 }: KpiGridBaseProps) {
@@ -39,7 +39,13 @@ export function KpiGridBase({
     return emptyState ?? null;
   }
 
-  const colClass = getGridClass(columns.md, columns.xl);
+  const itemCount = Math.max(items.length, 1);
+  const mdCols = Math.min(Math.max(columns.md ?? 2, 1), 4);
+  const xlCols = Math.min(Math.max(columns.xl ?? 4, 1), 4);
+  const colClass = getGridClass(
+    Math.min(mdCols, itemCount),
+    Math.min(xlCols, itemCount),
+  );
 
   return (
     <div className={`grid gap-4 ${colClass}`}>
@@ -65,12 +71,12 @@ function getGridClass(md?: number, xl?: number) {
       : "md:grid-cols-2";
 
   const xlClass =
-    xl === 2
+    xl === 1
+      ? "xl:grid-cols-1"
+      : xl === 2
       ? "xl:grid-cols-2"
       : xl === 3
       ? "xl:grid-cols-3"
-      : xl === 5
-      ? "xl:grid-cols-5"
       : "xl:grid-cols-4";
 
   return `${mdClass} ${xlClass}`;

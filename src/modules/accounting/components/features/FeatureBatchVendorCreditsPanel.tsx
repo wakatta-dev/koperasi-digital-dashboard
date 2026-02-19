@@ -5,7 +5,6 @@ import { Receipt } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
-import { DUMMY_VENDOR_CREDIT_NOTES } from "../../constants/vendor-bills-ap-dummy";
 import type { VendorCreditNoteItem } from "../../types/vendor-bills-ap";
 
 type FeatureBatchVendorCreditsPanelProps = {
@@ -14,7 +13,7 @@ type FeatureBatchVendorCreditsPanelProps = {
 };
 
 export function FeatureBatchVendorCreditsPanel({
-  credits = DUMMY_VENDOR_CREDIT_NOTES,
+  credits = [],
   onCreditsChange,
 }: FeatureBatchVendorCreditsPanelProps) {
   return (
@@ -30,6 +29,9 @@ export function FeatureBatchVendorCreditsPanel({
       </div>
 
       <div className="divide-y divide-gray-100 dark:divide-gray-700">
+        {credits.length === 0 ? (
+          <div className="p-4 text-sm text-gray-500">No vendor credits available.</div>
+        ) : null}
         {credits.map((credit) => (
           <div
             key={credit.credit_note_number}

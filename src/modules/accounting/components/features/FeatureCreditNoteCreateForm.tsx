@@ -7,14 +7,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Table,
   TableBody,
@@ -24,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_CREDIT_NOTE_DRAFT } from "../../constants/dummy-data";
+import { INITIAL_CREDIT_NOTE_DRAFT } from "../../constants/invoicing-ar-initial-state";
 
 type CreditLine = {
   id: string;
@@ -51,6 +44,8 @@ type FeatureCreditNoteCreateFormProps = {
   submitLabel?: string;
   isSubmitting?: boolean;
   errorMessage?: string | null;
+  customerOptions?: string[];
+  invoiceReferenceOptions?: string[];
 };
 
 export function FeatureCreditNoteCreateForm({
@@ -59,11 +54,13 @@ export function FeatureCreditNoteCreateForm({
   submitLabel = "Create Credit Note",
   isSubmitting = false,
   errorMessage,
+  customerOptions = [],
+  invoiceReferenceOptions = [],
 }: FeatureCreditNoteCreateFormProps) {
-  const [customer, setCustomer] = useState(DUMMY_CREDIT_NOTE_DRAFT.customer);
-  const [creditNoteDate, setCreditNoteDate] = useState(DUMMY_CREDIT_NOTE_DRAFT.credit_note_date);
-  const [invoiceRef, setInvoiceRef] = useState(DUMMY_CREDIT_NOTE_DRAFT.original_invoice_reference);
-  const [reason, setReason] = useState(DUMMY_CREDIT_NOTE_DRAFT.reason_for_credit);
+  const [customer, setCustomer] = useState(INITIAL_CREDIT_NOTE_DRAFT.customer);
+  const [creditNoteDate, setCreditNoteDate] = useState(INITIAL_CREDIT_NOTE_DRAFT.credit_note_date);
+  const [invoiceRef, setInvoiceRef] = useState(INITIAL_CREDIT_NOTE_DRAFT.original_invoice_reference);
+  const [reason, setReason] = useState(INITIAL_CREDIT_NOTE_DRAFT.reason_for_credit);
   const [items, setItems] = useState<CreditLine[]>([
     { id: "credit-item-1", item_name: "", qty: 1, rate: "" },
   ]);
@@ -129,17 +126,20 @@ export function FeatureCreditNoteCreateForm({
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Customer <span className="text-red-500">*</span>
               </label>
-              <Select value={customer || "__empty"} onValueChange={(value) => setCustomer(value === "__empty" ? "" : value)}>
-                <SelectTrigger className="bg-gray-50 text-sm dark:bg-gray-800">
-                  <SelectValue placeholder="Select a customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__empty">Select a customer</SelectItem>
-                  <SelectItem value="PT. Suka Maju">PT. Suka Maju</SelectItem>
-                  <SelectItem value="CV. Abadi Jaya">CV. Abadi Jaya</SelectItem>
-                  <SelectItem value="Tech Solutions Inc">Tech Solutions Inc</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                value={customer}
+                onChange={(event) => setCustomer(event.target.value)}
+                placeholder="Type customer name"
+                className="bg-gray-50 text-sm dark:bg-gray-800"
+                list="credit-note-customer-options"
+              />
+              {customerOptions.length > 0 ? (
+                <datalist id="credit-note-customer-options">
+                  {customerOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -161,24 +161,26 @@ export function FeatureCreditNoteCreateForm({
                 onChange={(event) => setInvoiceRef(event.target.value)}
                 placeholder="e.g. INV-2023-108"
                 className="bg-gray-50 text-sm dark:bg-gray-800"
+                list="credit-note-invoice-options"
               />
+              {invoiceReferenceOptions.length > 0 ? (
+                <datalist id="credit-note-invoice-options">
+                  {invoiceReferenceOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Reason for Credit <span className="text-red-500">*</span>
               </label>
-              <Select value={reason || "__empty"} onValueChange={(value) => setReason(value === "__empty" ? "" : value)}>
-                <SelectTrigger className="bg-gray-50 text-sm dark:bg-gray-800">
-                  <SelectValue placeholder="Select reason" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__empty">Select reason</SelectItem>
-                  <SelectItem value="Product Return">Product Return</SelectItem>
-                  <SelectItem value="Post-billing Discount">Post-billing Discount</SelectItem>
-                  <SelectItem value="Correction in Invoice">Correction in Invoice</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Describe credit reason"
+                className="bg-gray-50 text-sm dark:bg-gray-800"
+              />
             </div>
           </div>
 

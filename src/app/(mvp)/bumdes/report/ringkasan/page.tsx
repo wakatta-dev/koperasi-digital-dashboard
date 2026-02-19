@@ -44,6 +44,21 @@ const segmentPositions = [
   "top-1/2 right-2 -translate-y-1/2 text-muted-foreground",
 ];
 
+function resolveSummaryGridClass(count: number): string {
+  const normalized = Math.max(count, 1);
+  const mdClass = normalized >= 2 ? "md:grid-cols-2" : "md:grid-cols-1";
+  const lgClass =
+    normalized >= 4
+      ? "lg:grid-cols-4"
+      : normalized === 3
+      ? "lg:grid-cols-3"
+      : normalized === 2
+      ? "lg:grid-cols-2"
+      : "lg:grid-cols-1";
+
+  return `grid grid-cols-1 gap-4 ${mdClass} ${lgClass}`;
+}
+
 export default function RingkasanReportPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -183,7 +198,7 @@ export default function RingkasanReportPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={resolveSummaryGridClass(summaryCards.length)}>
         {summaryCards.map(({ rowKey, ...card }) => (
           <SummaryCard key={rowKey} {...card} />
         ))}

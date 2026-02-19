@@ -15,12 +15,110 @@ import {
 import { bumdesNavigation, bumdesTitleMap } from "@/app/(mvp)/bumdes/navigation";
 
 vi.mock("@/hooks/queries", () => ({
-  useAccountingSettingsOverview: () => ({ data: { items: [] }, error: null }),
-  useAccountingSettingsCoa: () => ({ data: { items: [] }, error: null }),
-  useAccountingSettingsTaxes: () => ({ data: { items: [] }, error: null }),
-  useAccountingSettingsCurrencies: () => ({ data: { items: [] }, error: null }),
-  useAccountingSettingsAnalyticAccounts: () => ({ data: { items: [] }, error: null }),
-  useAccountingSettingsBudgets: () => ({ data: { items: [] }, error: null }),
+  useAccountingSettingsOverview: () => ({
+    data: {
+      items: [
+        {
+          key: "coa",
+          title: "Chart of Accounts",
+          description: "Kelola akun transaksi utama",
+          action_label: "Manage Accounts",
+          href: "/bumdes/accounting/settings/chart-of-accounts",
+        },
+        {
+          key: "taxes",
+          title: "Taxes",
+          description: "Kelola tarif pajak",
+          action_label: "Manage Taxes",
+          href: "/bumdes/accounting/settings/taxes",
+        },
+      ],
+    },
+    error: null,
+  }),
+  useAccountingSettingsCoa: () => ({
+    data: {
+      items: [
+        {
+          account_code: "1101",
+          account_name: "Kas",
+          account_type: "Asset",
+          balance: 1000000,
+          level: 1,
+          is_active: true,
+        },
+      ],
+    },
+    error: null,
+  }),
+  useAccountingSettingsTaxes: () => ({
+    data: {
+      items: [
+        {
+          tax_id: "tax-ppn-11",
+          tax_name: "PPN 11%",
+          tax_type: "Sales",
+          rate_percent: 11,
+          tax_account: "2101",
+          description: "Pajak penjualan",
+          is_active: true,
+        },
+      ],
+    },
+    error: null,
+  }),
+  useAccountingSettingsCurrencies: () => ({
+    data: {
+      items: [
+        {
+          currency_code: "IDR",
+          currency_name: "Rupiah",
+          symbol: "Rp",
+          exchange_rate: 1,
+          is_base: true,
+          auto_rate_update_enabled: false,
+          last_updated_at: "2026-02-18T00:00:00Z",
+          is_active: true,
+        },
+      ],
+    },
+    error: null,
+  }),
+  useAccountingSettingsAnalyticAccounts: () => ({
+    data: {
+      items: [
+        {
+          analytic_account_id: "an-001",
+          account_name: "Marketing",
+          reference_code: "MKT",
+          status: "active",
+          current_balance: 150000,
+          active_budgets: 1,
+        },
+      ],
+    },
+    error: null,
+  }),
+  useAccountingSettingsBudgets: () => ({
+    data: {
+      items: [
+        {
+          budget_id: "bg-001",
+          budget_name: "Q1 Campaign",
+          analytic_account_id: "an-001",
+          analytic_account_name: "Marketing",
+          start_date: "2026-01-01",
+          end_date: "2026-03-31",
+          currency_code: "IDR",
+          target_amount: 1000000,
+          practical_amount: 250000,
+          achievement_percent: 25,
+          status: "active",
+        },
+      ],
+    },
+    error: null,
+  }),
   useAccountingSettingsCoaMutations: () => ({
     createCoa: { mutateAsync: vi.fn().mockResolvedValue({}) },
     updateCoa: { mutateAsync: vi.fn().mockResolvedValue({}) },

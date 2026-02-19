@@ -7,7 +7,6 @@ import { useMemo } from "react";
 import { useAccountingSettingsOverview } from "@/hooks/queries";
 import { toAccountingSettingsApiError } from "@/services/api/accounting-settings";
 
-import { SETTINGS_CARDS } from "../../constants/settings-dummy";
 import { mapSettingsOverviewCards } from "../../utils/settings-api-mappers";
 import { FeatureAccountingSettingsCards } from "../features/FeatureAccountingSettingsCards";
 
@@ -15,11 +14,7 @@ export function AccountingSettingsIndexPage() {
   const overviewQuery = useAccountingSettingsOverview();
 
   const cards = useMemo(() => {
-    if (!overviewQuery.data?.items?.length) {
-      return SETTINGS_CARDS;
-    }
-
-    return mapSettingsOverviewCards(overviewQuery.data.items);
+    return mapSettingsOverviewCards(overviewQuery.data?.items ?? []);
   }, [overviewQuery.data?.items]);
 
   return (

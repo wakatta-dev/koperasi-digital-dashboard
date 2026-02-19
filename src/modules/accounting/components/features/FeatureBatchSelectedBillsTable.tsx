@@ -5,7 +5,7 @@
 import { Trash2 } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Select,
   SelectContent,
@@ -23,7 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_BATCH_PAYMENT_BILLS } from "../../constants/vendor-bills-ap-dummy";
 import type { BatchPaymentBillItem } from "../../types/vendor-bills-ap";
 
 type FeatureBatchSelectedBillsTableProps = {
@@ -38,7 +37,7 @@ const DUE_STATE_CLASS: Record<BatchPaymentBillItem["due_state_tone"], string> = 
 };
 
 export function FeatureBatchSelectedBillsTable({
-  rows = DUMMY_BATCH_PAYMENT_BILLS,
+  rows = [],
   onRowsChange,
 }: FeatureBatchSelectedBillsTableProps) {
   const selectedRows = rows.filter((row) => row.is_selected);
@@ -92,7 +91,7 @@ export function FeatureBatchSelectedBillsTable({
             <TableRow>
               <TableHead className="w-10 px-5 py-3">
                 <Checkbox
-                  checked={rows.every((row) => row.is_selected)}
+                  checked={rows.length > 0 && rows.every((row) => row.is_selected)}
                   onCheckedChange={(checked) => toggleAll(Boolean(checked))}
                   aria-label="Select all selected bills"
                 />
@@ -106,6 +105,13 @@ export function FeatureBatchSelectedBillsTable({
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell className="px-5 py-8 text-center text-sm text-gray-500" colSpan={7}>
+                  No bills selected.
+                </TableCell>
+              </TableRow>
+            ) : null}
             {rows.map((row) => (
               <TableRow
                 key={row.bill_number}

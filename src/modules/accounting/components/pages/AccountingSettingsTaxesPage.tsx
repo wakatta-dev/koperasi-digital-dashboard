@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { useAccountingSettingsTaxMutations, useAccountingSettingsTaxes } from "@/hooks/queries";
 import { toAccountingSettingsApiError } from "@/services/api/accounting-settings";
 
-import { TAX_ROWS } from "../../constants/settings-dummy";
 import { FeatureCreateTaxModal } from "../features/FeatureCreateTaxModal";
 import { FeatureDeleteTaxModal } from "../features/FeatureDeleteTaxModal";
 import { FeatureEditTaxModal } from "../features/FeatureEditTaxModal";
@@ -27,10 +26,7 @@ export function AccountingSettingsTaxesPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const rows = useMemo(() => {
-    if (!taxesQuery.data?.items?.length) {
-      return TAX_ROWS;
-    }
-    return mapTaxRows(taxesQuery.data.items);
+    return mapTaxRows(taxesQuery.data?.items ?? []);
   }, [taxesQuery.data?.items]);
 
   const queryErrorMessage = taxesQuery.error

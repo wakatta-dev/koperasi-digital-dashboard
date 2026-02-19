@@ -13,11 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_INVOICE_DETAIL } from "../../constants/dummy-data";
 import type { InvoiceDetailModel, InvoiceStepperStatus } from "../../types/invoicing-ar";
 
 type FeatureInvoiceDetailViewProps = {
-  detail?: InvoiceDetailModel;
+  detail: InvoiceDetailModel;
   onSendViaEmail?: () => void;
   onDownloadPdf?: () => void;
   onRegisterPayment?: () => void;
@@ -28,7 +27,7 @@ type FeatureInvoiceDetailViewProps = {
 const STEPS: InvoiceStepperStatus[] = ["Draft", "Sent", "Paid"];
 
 export function FeatureInvoiceDetailView({
-  detail = DUMMY_INVOICE_DETAIL,
+  detail,
   onSendViaEmail,
   onDownloadPdf,
   onRegisterPayment,

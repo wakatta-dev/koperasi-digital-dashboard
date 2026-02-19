@@ -12,7 +12,6 @@ import {
 } from "@/hooks/queries";
 import { toAccountingSettingsApiError } from "@/services/api/accounting-settings";
 
-import { ANALYTIC_ACCOUNT_CARDS, BUDGET_ROWS } from "../../constants/settings-dummy";
 import { FeatureAddAnalyticAccountModal } from "../features/FeatureAddAnalyticAccountModal";
 import { FeatureAnalyticBudgetSuccessToast } from "../features/FeatureAnalyticBudgetSuccessToast";
 import { FeatureAnalyticBudgetWorkspace } from "../features/FeatureAnalyticBudgetWorkspace";
@@ -38,17 +37,11 @@ export function AccountingSettingsAnalyticBudgetPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const budgetRows = useMemo(() => {
-    if (!budgetsQuery.data?.items?.length) {
-      return BUDGET_ROWS;
-    }
-    return mapBudgetRows(budgetsQuery.data.items);
+    return mapBudgetRows(budgetsQuery.data?.items ?? []);
   }, [budgetsQuery.data?.items]);
 
   const analyticAccountCards = useMemo(() => {
-    if (!analyticAccountsQuery.data?.items?.length) {
-      return ANALYTIC_ACCOUNT_CARDS;
-    }
-    return mapAnalyticAccountCards(analyticAccountsQuery.data.items);
+    return mapAnalyticAccountCards(analyticAccountsQuery.data?.items ?? []);
   }, [analyticAccountsQuery.data?.items]);
 
   const queryErrorMessage =

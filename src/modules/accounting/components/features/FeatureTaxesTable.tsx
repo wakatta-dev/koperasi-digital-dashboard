@@ -18,7 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { TAX_ROWS } from "../../constants/settings-dummy";
 import type { TaxRow } from "../../types/settings";
 
 type FeatureTaxesTableProps = {
@@ -41,7 +40,7 @@ const TAX_TYPE_CLASS: Record<TaxRow["tax_type"], string> = {
 };
 
 export function FeatureTaxesTable({
-  rows = TAX_ROWS,
+  rows = [],
   onCreateTax,
   onOpenActions,
   renderActions,
@@ -105,6 +104,13 @@ export function FeatureTaxesTable({
               </TableRow>
             </TableHeader>
             <TableBody>
+              {normalizedRows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="px-6 py-10 text-center text-sm text-gray-500">
+                    Data pajak belum tersedia.
+                  </TableCell>
+                </TableRow>
+              ) : null}
               {normalizedRows.map((row) => (
                 <TableRow
                   key={row.tax_id}

@@ -68,6 +68,16 @@ export function VendorBillsApIndexPage() {
     [overviewQuery.data?.cards]
   );
 
+  const vendorOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        (billsQuery.data?.items ?? [])
+          .map((item) => item.vendor_name.trim())
+          .filter((name) => name.length > 0)
+      )
+    );
+  }, [billsQuery.data?.items]);
+
   const tableRows = useMemo<VendorBillListItem[]>(
     () =>
       (billsQuery.data?.items ?? []).map((item, index) => ({
@@ -189,6 +199,7 @@ export function VendorBillsApIndexPage() {
         onSubmit={handleCreateBill}
         isSubmitting={billMutations.createBill.isPending}
         errorMessage={createErrorMessage}
+        vendorOptions={vendorOptions}
       />
     </div>
   );

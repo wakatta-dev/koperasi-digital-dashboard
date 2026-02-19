@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
+import { EMPTY_INVOICE_DETAIL } from "../constants/invoicing-ar-initial-state";
 import { FeatureCreditNotesTable } from "./features/FeatureCreditNotesTable";
 import { FeatureCreditNoteModal } from "./features/FeatureCreditNoteModal";
 import { FeatureCreateInvoiceModal } from "./features/FeatureCreateInvoiceModal";
@@ -64,7 +65,7 @@ export function InvoicingArFeaturePage() {
         <FeaturePaymentsTable />
       </div>
 
-      <FeatureInvoiceDetailView />
+      <FeatureInvoiceDetailView detail={EMPTY_INVOICE_DETAIL} />
 
       <FeatureCreateInvoiceModal open={createInvoiceOpen} onOpenChange={setCreateInvoiceOpen} />
       <FeatureCreditNoteModal open={createCreditNoteOpen} onOpenChange={setCreateCreditNoteOpen} />

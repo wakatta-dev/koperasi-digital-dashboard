@@ -6,18 +6,17 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/shared/inputs/input";
 
-import { DUMMY_OCR_SESSION } from "../../constants/vendor-bills-ap-dummy";
 import type { OcrExtractionSession } from "../../types/vendor-bills-ap";
 
 type FeatureOcrExtractedDataPanelProps = {
-  session?: OcrExtractionSession;
+  session: OcrExtractionSession;
   onSessionChange?: (session: OcrExtractionSession) => void;
 };
 
 export function FeatureOcrExtractedDataPanel({
-  session = DUMMY_OCR_SESSION,
+  session,
   onSessionChange,
 }: FeatureOcrExtractedDataPanelProps) {
   const updateSession = (nextSession: OcrExtractionSession) => {
@@ -186,6 +185,11 @@ export function FeatureOcrExtractedDataPanel({
           </div>
 
           <div className="space-y-3">
+            {session.line_items.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-gray-300 p-3 text-sm text-gray-500">
+                No OCR line items. Tambahkan item manual jika diperlukan.
+              </div>
+            ) : null}
             {session.line_items.map((lineItem) => (
               <div
                 key={lineItem.id}

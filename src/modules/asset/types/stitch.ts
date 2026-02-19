@@ -68,7 +68,8 @@ export type AssetFormModel = Readonly<{
   assignedTo: string;
   purchaseDate: string;
   vendor: string;
-  priceDisplay: string;
+  rentalPriceDisplay: string;
+  purchasePriceDisplay: string;
   warrantyEndDate: string;
-  attributes: AssetAttribute[];
+  description: string;
 }>;

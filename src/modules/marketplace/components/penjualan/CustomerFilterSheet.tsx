@@ -5,8 +5,15 @@
 import { CheckCircle2, Circle, X } from "lucide-react";
 import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 export type CustomerFilterSheetProps = Readonly<{
@@ -35,32 +42,32 @@ export function CustomerFilterSheet({
   onApply,
 }: CustomerFilterSheetProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        overlayClassName="bg-gray-900/50 backdrop-blur-[2px]"
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-[400px] translate-x-0 translate-y-0 rounded-none p-0 border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark shadow-2xl"
-        showCloseButton={false}
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full max-w-[400px] sm:max-w-[400px] rounded-none p-0 gap-0 border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark shadow-2xl [&>button]:hidden"
       >
         <div className="flex h-full flex-col">
-          <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-surface-dark z-10">
+          <SheetHeader className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between bg-white dark:bg-surface-dark z-10">
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              <SheetTitle className="text-lg font-bold text-gray-900 dark:text-white">
                 Filter Pelanggan
-              </h2>
+              </SheetTitle>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Tampilkan data spesifik sesuai kebutuhan
               </p>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="p-2 -mr-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+            <SheetClose asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="p-2 -mr-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </SheetClose>
+          </SheetHeader>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/50 dark:bg-gray-900/20">
             <div className="space-y-3">
@@ -164,7 +171,7 @@ export function CustomerFilterSheet({
             </div>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-800/50 mt-auto">
+          <SheetFooter className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-800/50 mt-auto">
             <Button
               type="button"
               variant="outline"
@@ -180,9 +187,9 @@ export function CustomerFilterSheet({
             >
               Terapkan
             </Button>
-          </div>
+          </SheetFooter>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

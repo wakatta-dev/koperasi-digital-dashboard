@@ -25,16 +25,10 @@ export function VendorBillsApPaymentConfirmationPage({
     enabled: Boolean(batchReference),
   });
 
-  const confirmation = useMemo<PaymentConfirmationModel>(() => {
+  const confirmation = useMemo<PaymentConfirmationModel | null>(() => {
     if (!batchDetailQuery.data) {
-      return {
-        total_paid: formatAccountingApCurrency(0),
-        bill_count_label: "0 bills",
-        bill_breakdowns: [],
-        security_note: "Transaction secured with end-to-end encryption",
-      };
+      return null;
     }
-
     return {
       total_paid: formatAccountingApCurrency(batchDetailQuery.data.totals.total_to_pay_amount),
       bill_count_label: `${batchDetailQuery.data.bill_breakdowns.length} bills`,
@@ -67,10 +61,18 @@ export function VendorBillsApPaymentConfirmationPage({
         </div>
       ) : null}
 
-      <FeaturePaymentSchedulingSuccessCard
-        confirmation={confirmation}
-        onDone={() => router.push(VENDOR_BILLS_AP_ROUTES.index)}
-      />
+      {confirmation ? (
+        <FeaturePaymentSchedulingSuccessCard
+          confirmation={confirmation}
+          onDone={() => router.push(VENDOR_BILLS_AP_ROUTES.index)}
+        />
+      ) : null}
+
+      {!batchDetailQuery.isPending && !batchDetailQuery.error && batchReference && !confirmation ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Batch payment confirmation is unavailable.
+        </div>
+      ) : null}
     </div>
   );
 }

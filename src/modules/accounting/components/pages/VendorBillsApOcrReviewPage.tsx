@@ -11,6 +11,7 @@ import { useAccountingApOcrMutations } from "@/hooks/queries";
 import { toAccountingApApiError } from "@/services/api/accounting-ap";
 
 import { VENDOR_BILLS_AP_ROUTES } from "../../constants/vendor-bills-ap-routes";
+import { EMPTY_OCR_SESSION } from "../../constants/vendor-bills-ap-initial-state";
 import type { OcrExtractionSession } from "../../types/vendor-bills-ap";
 import { FeatureOcrAccuracyFooter } from "../features/FeatureOcrAccuracyFooter";
 import { FeatureOcrDocumentPreviewPanel } from "../features/FeatureOcrDocumentPreviewPanel";
@@ -20,32 +21,6 @@ const DEFAULT_OCR_FILE_NAME = "vendor_bill_scan_882.pdf";
 const DEFAULT_OCR_FILE_SIZE_BYTES = 2_400_000;
 const DEFAULT_OCR_FILE_SIZE_LABEL = "2.4 MB";
 const DEFAULT_OCR_ZOOM_LABEL = "100%";
-
-const DEFAULT_OCR_RAW_PAYLOAD: Record<string, unknown> = {
-  general_info: {
-    vendor_name: "Global Tech Solutions",
-    bill_number: "INV-2023-882",
-    bill_date: "2023-10-25",
-    due_date: "2023-11-24",
-  },
-  financials: {
-    total_amount: "12,500,000",
-  },
-  line_items: [
-    {
-      description: "Cloud Infrastructure Services (Monthly)",
-      qty: "1",
-      price: "8,500,000",
-      highlight_price: false,
-    },
-    {
-      description: "Security Compliance Audit Fee",
-      qty: "1",
-      price: "4,000,000",
-      highlight_price: true,
-    },
-  ],
-};
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -85,21 +60,10 @@ function toOcrSessionModel(params: {
   accuracyPercent: number;
   extractedData: Record<string, unknown>;
 }): OcrExtractionSession {
-  const fallback = asRecord(DEFAULT_OCR_RAW_PAYLOAD);
   const extractedData = asRecord(params.extractedData);
-  const generalInfo = asRecord(
-    Object.keys(asRecord(extractedData.general_info)).length > 0
-      ? extractedData.general_info
-      : fallback.general_info
-  );
-  const financials = asRecord(
-    Object.keys(asRecord(extractedData.financials)).length > 0
-      ? extractedData.financials
-      : fallback.financials
-  );
-  const lineItems = toOcrLineItems(
-    Array.isArray(extractedData.line_items) ? extractedData.line_items : fallback.line_items
-  );
+  const generalInfo = asRecord(extractedData.general_info);
+  const financials = asRecord(extractedData.financials);
+  const lineItems = toOcrLineItems(extractedData.line_items);
 
   return {
     session_id: params.sessionId,
@@ -108,17 +72,17 @@ function toOcrSessionModel(params: {
     zoom_percent_label: DEFAULT_OCR_ZOOM_LABEL,
     accuracy_score: params.accuracyPercent,
     general_info: {
-      vendor_name: asString(generalInfo.vendor_name, "Global Tech Solutions"),
-      bill_number: asString(generalInfo.bill_number, "INV-2023-882"),
-      vendor_confidence_label: "99%",
-      bill_number_confidence_label: "65%",
-      bill_date: asString(generalInfo.bill_date, "2023-10-25"),
-      due_date: asString(generalInfo.due_date, "2023-11-24"),
+      vendor_name: asString(generalInfo.vendor_name, ""),
+      bill_number: asString(generalInfo.bill_number, ""),
+      vendor_confidence_label: asString(generalInfo.vendor_confidence_label, ""),
+      bill_number_confidence_label: asString(generalInfo.bill_number_confidence_label, ""),
+      bill_date: asString(generalInfo.bill_date, ""),
+      due_date: asString(generalInfo.due_date, ""),
     },
     financials: {
       total_amount: asString(financials.total_amount, "0"),
     },
-    line_items: lineItems.length > 0 ? lineItems : toOcrLineItems(fallback.line_items),
+    line_items: lineItems,
   };
 }
 
@@ -138,14 +102,12 @@ export function VendorBillsApOcrReviewPage() {
   const ocrMutations = useAccountingApOcrMutations();
   const initializedRef = useRef(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [session, setSession] = useState<OcrExtractionSession>(() =>
-    toOcrSessionModel({
-      sessionId: "OCR-DRAFT",
-      fileName: DEFAULT_OCR_FILE_NAME,
-      accuracyPercent: 88,
-      extractedData: DEFAULT_OCR_RAW_PAYLOAD,
-    })
-  );
+  const [session, setSession] = useState<OcrExtractionSession>({
+    ...EMPTY_OCR_SESSION,
+    file_name: DEFAULT_OCR_FILE_NAME,
+    file_size_label: DEFAULT_OCR_FILE_SIZE_LABEL,
+    zoom_percent_label: DEFAULT_OCR_ZOOM_LABEL,
+  });
 
   const initializeOcrSession = useCallback(async () => {
     setErrorMessage(null);
@@ -156,7 +118,7 @@ export function VendorBillsApOcrReviewPage() {
           payload: {
             file_name: DEFAULT_OCR_FILE_NAME,
             file_size_bytes: DEFAULT_OCR_FILE_SIZE_BYTES,
-            raw_payload: DEFAULT_OCR_RAW_PAYLOAD,
+            raw_payload: {},
           },
         })
       );
@@ -164,10 +126,10 @@ export function VendorBillsApOcrReviewPage() {
       if (!created) return;
       setSession(
         toOcrSessionModel({
-          sessionId: created.session_id || "OCR-DRAFT",
+          sessionId: created.session_id || "",
           fileName: DEFAULT_OCR_FILE_NAME,
-          accuracyPercent: created.accuracy_percent ?? 88,
-          extractedData: created.extracted_data ?? DEFAULT_OCR_RAW_PAYLOAD,
+          accuracyPercent: created.accuracy_percent ?? 0,
+          extractedData: created.extracted_data ?? {},
         })
       );
     } catch (err) {
@@ -183,6 +145,10 @@ export function VendorBillsApOcrReviewPage() {
 
   const handleSaveProgress = async () => {
     setErrorMessage(null);
+    if (!session.session_id.trim()) {
+      setErrorMessage("OCR session is not ready.");
+      return;
+    }
 
     try {
       await ocrMutations.saveOcrProgress.mutateAsync({
@@ -211,6 +177,10 @@ export function VendorBillsApOcrReviewPage() {
 
   const handleConfirm = async () => {
     setErrorMessage(null);
+    if (!session.session_id.trim()) {
+      setErrorMessage("OCR session is not ready.");
+      return;
+    }
 
     try {
       const created = await ocrMutations.confirmOcrSession.mutateAsync({
@@ -270,7 +240,8 @@ export function VendorBillsApOcrReviewPage() {
             onClick={handleConfirm}
             disabled={
               ocrMutations.confirmOcrSession.isPending ||
-              ocrMutations.createOcrSession.isPending
+              ocrMutations.createOcrSession.isPending ||
+              session.session_id.trim().length === 0
             }
           >
             {ocrMutations.createOcrSession.isPending

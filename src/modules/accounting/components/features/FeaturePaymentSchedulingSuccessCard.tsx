@@ -5,16 +5,15 @@ import { CheckCircle2, Download, Home, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
-import { DUMMY_PAYMENT_CONFIRMATION } from "../../constants/vendor-bills-ap-dummy";
 import type { PaymentConfirmationModel } from "../../types/vendor-bills-ap";
 
 type FeaturePaymentSchedulingSuccessCardProps = {
-  confirmation?: PaymentConfirmationModel;
+  confirmation: PaymentConfirmationModel;
   onDone?: () => void;
 };
 
 export function FeaturePaymentSchedulingSuccessCard({
-  confirmation = DUMMY_PAYMENT_CONFIRMATION,
+  confirmation,
   onDone,
 }: FeaturePaymentSchedulingSuccessCardProps) {
   return (
@@ -43,6 +42,11 @@ export function FeaturePaymentSchedulingSuccessCard({
             Bill Detail Breakdown
           </p>
           <div className="space-y-2">
+            {confirmation.bill_breakdowns.length === 0 ? (
+              <div className="rounded-lg border border-gray-100 bg-white p-3 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900">
+                Tidak ada detail bill untuk batch ini.
+              </div>
+            ) : null}
             {confirmation.bill_breakdowns.map((item) => (
               <div
                 key={item.bill_number}
@@ -91,7 +95,7 @@ export function FeaturePaymentSchedulingSuccessCard({
       <CardFooter className="justify-center border-t border-gray-100 bg-gray-50/50 px-8 py-4 dark:border-gray-700 dark:bg-gray-800/30">
         <p className="flex items-center gap-1 text-xs text-gray-400">
           <ShieldCheck className="h-3.5 w-3.5" />
-          {confirmation.security_note}
+          {confirmation.security_note || "Transaction status provided by backend."}
         </p>
       </CardFooter>
     </Card>

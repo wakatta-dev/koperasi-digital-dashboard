@@ -9,14 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/shared/inputs/input";
 import {
   Table,
   TableBody,
@@ -26,25 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_PAYMENT_DRAFT } from "../../constants/dummy-data";
-
-const OUTSTANDING_INVOICES = [
-  {
-    invoice_number: "INV-2023-112",
-    due_date: "Nov 24, 2023",
-    amount_due: "Rp 25.000.000",
-  },
-  {
-    invoice_number: "INV-2023-098",
-    due_date: "Nov 10, 2023",
-    amount_due: "Rp 12.450.000",
-  },
-  {
-    invoice_number: "INV-2023-090",
-    due_date: "Nov 03, 2023",
-    amount_due: "Rp 8.700.000",
-  },
-];
+import { INITIAL_PAYMENT_DRAFT } from "../../constants/invoicing-ar-initial-state";
 
 export type FeaturePaymentCreateSubmitPayload = {
   customer_name: string;
@@ -55,12 +30,22 @@ export type FeaturePaymentCreateSubmitPayload = {
   selected_invoice_numbers: string[];
 };
 
+export type OutstandingInvoiceOption = {
+  invoice_number: string;
+  due_date: string;
+  amount_due: string;
+};
+
 type FeaturePaymentCreateFormProps = {
   onCancel?: () => void;
   onSubmit?: (payload: FeaturePaymentCreateSubmitPayload) => void;
   submitLabel?: string;
   isSubmitting?: boolean;
   errorMessage?: string | null;
+  outstandingInvoices?: OutstandingInvoiceOption[];
+  customerOptions?: string[];
+  paymentMethodOptions?: string[];
+  destinationAccountOptions?: string[];
 };
 
 export function FeaturePaymentCreateForm({
@@ -69,21 +54,25 @@ export function FeaturePaymentCreateForm({
   submitLabel = "Record Payment",
   isSubmitting = false,
   errorMessage,
+  outstandingInvoices = [],
+  customerOptions = [],
+  paymentMethodOptions = [],
+  destinationAccountOptions = [],
 }: FeaturePaymentCreateFormProps) {
-  const [customer, setCustomer] = useState(DUMMY_PAYMENT_DRAFT.customer);
-  const [paymentDate, setPaymentDate] = useState(DUMMY_PAYMENT_DRAFT.payment_date);
-  const [paymentMethod, setPaymentMethod] = useState(DUMMY_PAYMENT_DRAFT.payment_method);
+  const [customer, setCustomer] = useState(INITIAL_PAYMENT_DRAFT.customer);
+  const [paymentDate, setPaymentDate] = useState(INITIAL_PAYMENT_DRAFT.payment_date);
+  const [paymentMethod, setPaymentMethod] = useState(INITIAL_PAYMENT_DRAFT.payment_method);
   const [destinationAccount, setDestinationAccount] = useState(
-    DUMMY_PAYMENT_DRAFT.destination_account
+    INITIAL_PAYMENT_DRAFT.destination_account
   );
-  const [amountReceived, setAmountReceived] = useState(DUMMY_PAYMENT_DRAFT.amount_received);
+  const [amountReceived, setAmountReceived] = useState(INITIAL_PAYMENT_DRAFT.amount_received);
   const [selectedInvoiceNumbers, setSelectedInvoiceNumbers] = useState<string[]>(
-    DUMMY_PAYMENT_DRAFT.selected_invoice_numbers
+    INITIAL_PAYMENT_DRAFT.selected_invoice_numbers
   );
 
   const allChecked =
-    OUTSTANDING_INVOICES.length > 0 &&
-    OUTSTANDING_INVOICES.every((item) => selectedInvoiceNumbers.includes(item.invoice_number));
+    outstandingInvoices.length > 0 &&
+    outstandingInvoices.every((item) => selectedInvoiceNumbers.includes(item.invoice_number));
 
   const selectedCount = useMemo(
     () => selectedInvoiceNumbers.length,
@@ -132,16 +121,20 @@ export function FeaturePaymentCreateForm({
               </label>
               <div className="relative">
                 <User className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Select value={customer} onValueChange={setCustomer}>
-                  <SelectTrigger className="bg-gray-50 pl-10 dark:bg-gray-800">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PT. Maju Bersama">PT. Maju Bersama</SelectItem>
-                    <SelectItem value="CV. Abadi Jaya">CV. Abadi Jaya</SelectItem>
-                    <SelectItem value="Tech Solutions Inc">Tech Solutions Inc</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={customer}
+                  onChange={(event) => setCustomer(event.target.value)}
+                  className="bg-gray-50 pl-10 dark:bg-gray-800"
+                  placeholder="Customer name"
+                  list="payment-customer-options"
+                />
+                {customerOptions.length > 0 ? (
+                  <datalist id="payment-customer-options">
+                    {customerOptions.map((option) => (
+                      <option key={option} value={option} />
+                    ))}
+                  </datalist>
+                ) : null}
               </div>
             </div>
 
@@ -166,17 +159,20 @@ export function FeaturePaymentCreateForm({
               </label>
               <div className="relative">
                 <CreditCard className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="bg-gray-50 pl-10 dark:bg-gray-800">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Credit Card">Credit Card</SelectItem>
-                    <SelectItem value="Digital Wallet">Digital Wallet</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={paymentMethod}
+                  onChange={(event) => setPaymentMethod(event.target.value)}
+                  className="bg-gray-50 pl-10 dark:bg-gray-800"
+                  placeholder="Payment method"
+                  list="payment-method-options"
+                />
+                {paymentMethodOptions.length > 0 ? (
+                  <datalist id="payment-method-options">
+                    {paymentMethodOptions.map((option) => (
+                      <option key={option} value={option} />
+                    ))}
+                  </datalist>
+                ) : null}
               </div>
             </div>
 
@@ -186,16 +182,20 @@ export function FeaturePaymentCreateForm({
               </label>
               <div className="relative">
                 <Banknote className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Select value={destinationAccount} onValueChange={setDestinationAccount}>
-                  <SelectTrigger className="bg-gray-50 pl-10 dark:bg-gray-800">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bank Central Asia - 12209301">Bank Central Asia - 12209301</SelectItem>
-                    <SelectItem value="Petty Cash">Petty Cash</SelectItem>
-                    <SelectItem value="Mandiri - 4452010">Mandiri - 4452010</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={destinationAccount}
+                  onChange={(event) => setDestinationAccount(event.target.value)}
+                  className="bg-gray-50 pl-10 dark:bg-gray-800"
+                  placeholder="Destination account"
+                  list="payment-destination-options"
+                />
+                {destinationAccountOptions.length > 0 ? (
+                  <datalist id="payment-destination-options">
+                    {destinationAccountOptions.map((option) => (
+                      <option key={option} value={option} />
+                    ))}
+                  </datalist>
+                ) : null}
               </div>
             </div>
 
@@ -232,7 +232,7 @@ export function FeaturePaymentCreateForm({
                           onCheckedChange={(checked) => {
                             setSelectedInvoiceNumbers(
                               checked
-                                ? OUTSTANDING_INVOICES.map((item) => item.invoice_number)
+                                ? outstandingInvoices.map((item) => item.invoice_number)
                                 : []
                             );
                           }}
@@ -245,7 +245,15 @@ export function FeaturePaymentCreateForm({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {OUTSTANDING_INVOICES.map((item) => {
+                    {outstandingInvoices.length === 0 ? (
+                      <TableRow>
+                        <TableCell className="px-4 py-6 text-center text-sm text-gray-500" colSpan={4}>
+                          No outstanding invoices available.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+
+                    {outstandingInvoices.map((item) => {
                       const selected = selectedInvoiceNumbers.includes(item.invoice_number);
                       return (
                         <TableRow

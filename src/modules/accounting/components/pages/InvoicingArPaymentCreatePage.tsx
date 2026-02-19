@@ -3,13 +3,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { useAccountingArPaymentMutations } from "@/hooks/queries";
+import {
+  useAccountingArInvoices,
+  useAccountingArPaymentMutations,
+  useAccountingArPayments,
+} from "@/hooks/queries";
 import { toAccountingArApiError } from "@/services/api/accounting-ar";
 
 import { INVOICING_AR_ROUTES } from "../../constants/routes";
+import {
+  formatAccountingArCurrency,
+  formatAccountingArDate,
+  normalizeInvoiceStatus,
+} from "../../utils/formatters";
 import {
   FeaturePaymentCreateForm,
   type FeaturePaymentCreateSubmitPayload,
@@ -24,6 +33,40 @@ export function InvoicingArPaymentCreatePage() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const paymentMutations = useAccountingArPaymentMutations();
+  const invoicesQuery = useAccountingArInvoices({ page: 1, per_page: 100 });
+  const paymentsQuery = useAccountingArPayments({ page: 1, per_page: 100 });
+
+  const outstandingInvoices = useMemo(() => {
+    return (invoicesQuery.data?.items ?? [])
+      .filter((item) => normalizeInvoiceStatus(item.status) !== "Paid")
+      .map((item) => ({
+        invoice_number: item.invoice_number,
+        due_date: formatAccountingArDate(item.due_date),
+        amount_due: formatAccountingArCurrency(item.total_amount),
+      }));
+  }, [invoicesQuery.data?.items]);
+
+  const customerOptions = useMemo(() => {
+    const invoiceCustomers = (invoicesQuery.data?.items ?? []).map((item) =>
+      item.customer_name.trim()
+    );
+    const paymentCustomers = (paymentsQuery.data?.items ?? []).map((item) =>
+      item.customer.trim()
+    );
+    return Array.from(
+      new Set([...invoiceCustomers, ...paymentCustomers].filter((name) => name.length > 0))
+    );
+  }, [invoicesQuery.data?.items, paymentsQuery.data?.items]);
+
+  const paymentMethodOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        (paymentsQuery.data?.items ?? [])
+          .map((item) => item.method.trim())
+          .filter((method) => method.length > 0)
+      )
+    );
+  }, [paymentsQuery.data?.items]);
 
   const handleSubmit = async (payload: FeaturePaymentCreateSubmitPayload) => {
     setErrorMessage(null);
@@ -67,6 +110,9 @@ export function InvoicingArPaymentCreatePage() {
       onSubmit={handleSubmit}
       isSubmitting={paymentMutations.createPayment.isPending}
       errorMessage={errorMessage}
+      outstandingInvoices={outstandingInvoices}
+      customerOptions={customerOptions}
+      paymentMethodOptions={paymentMethodOptions}
     />
   );
 }

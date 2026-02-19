@@ -92,6 +92,30 @@ export const API_ENDPOINTS = {
     ocrConfirm: (sessionId: string) =>
       `/accounting/ap/ocr/sessions/${encodeURIComponent(sessionId)}/confirm`,
   },
+  accountingBankCash: {
+    overview: "/accounting/bank-cash/overview",
+    accounts: "/accounting/bank-cash/accounts",
+    accountTransactions: (accountId: string) =>
+      `/accounting/bank-cash/accounts/${encodeURIComponent(accountId)}/transactions`,
+    accountTransactionsManual: (accountId: string) =>
+      `/accounting/bank-cash/accounts/${encodeURIComponent(accountId)}/transactions/manual`,
+    accountTransactionsExport: (accountId: string) =>
+      `/accounting/bank-cash/accounts/${encodeURIComponent(accountId)}/transactions/export`,
+    unreconciledTransactions: "/accounting/bank-cash/unreconciled-transactions",
+    statementImport: "/accounting/bank-cash/statements/import",
+    reconciliationCurrent: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/current`,
+    reconciliationBankLines: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/bank-lines`,
+    reconciliationSystemLines: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/system-lines`,
+    reconciliationMatches: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/matches`,
+    reconciliationSuggest: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/suggest`,
+    reconciliationConfirm: (accountId: string) =>
+      `/accounting/bank-cash/reconciliations/${encodeURIComponent(accountId)}/confirm`,
+  },
   accountingSettings: {
     overview: "/accounting/settings/overview",
     coa: "/accounting/settings/coa",
@@ -116,6 +140,51 @@ export const API_ENDPOINTS = {
     budgets: "/accounting/settings/budgets",
     budgetItem: (budgetId: string | number) =>
       `/accounting/settings/budgets/${encodeURIComponent(String(budgetId))}`,
+  },
+  accountingJournal: {
+    overview: "/accounting/journal/overview",
+    entries: "/accounting/journal/entries",
+    entryDetail: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}`,
+    entryPost: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/post`,
+    entryReverse: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/reverse`,
+    entryPdf: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/pdf`,
+    entryAuditLogs: (journalNumber: string) =>
+      `/accounting/journal/entries/${encodeURIComponent(journalNumber)}/audit-logs`,
+    auditLogs: "/accounting/journal/audit-logs",
+    periodLocks: "/accounting/journal/period-locks",
+    periodLockCurrent: "/accounting/journal/period-locks/current",
+  },
+  accountingTax: {
+    overview: "/accounting/tax/overview",
+    periods: "/accounting/tax/periods",
+    vatTransactions: "/accounting/tax/vat-transactions",
+    pphRecords: "/accounting/tax/pph-records",
+    exportHistory: "/accounting/tax/export-history",
+    exportHistoryRetry: (exportId: string) =>
+      `/accounting/tax/export-history/${encodeURIComponent(exportId)}/retry`,
+    reportsGenerate: "/accounting/tax/reports/generate",
+    reportsPphExport: "/accounting/tax/reports/pph/export",
+    reportsPpnRecapExport: "/accounting/tax/reports/ppn-recap/export",
+    efakturReady: "/accounting/tax/e-faktur/ready",
+    efakturExport: "/accounting/tax/e-faktur/export",
+    reportsIncomeTax: "/accounting/tax/reports/income-tax",
+    compliance: "/accounting/tax/compliance",
+    fileDownload: (fileId: string) =>
+      `/accounting/tax/files/${encodeURIComponent(fileId)}/download`,
+  },
+  accountingReporting: {
+    overview: "/finance/reports/overview",
+    profitLoss: "/finance/reports/profit-loss",
+    cashFlow: "/finance/reports/cash-flow",
+    balanceSheet: "/finance/reports/balance-sheet",
+    profitLossComparative: "/finance/reports/profit-loss-comparative",
+    trialBalance: "/finance/reports/trial-balance",
+    generalLedger: "/finance/reports/general-ledger",
+    accountLedger: "/finance/reports/account-ledger",
   },
   bumdesReport: {
     overview: "/finance/reports/overview",

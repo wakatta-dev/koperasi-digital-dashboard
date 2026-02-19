@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
   addMarketplaceCartItem,
+  createMarketplaceCustomer,
   ensureMarketplaceSuccess,
   getMarketplaceCustomerDetail,
   listMarketplaceCustomers,
@@ -19,6 +20,7 @@ import {
 import type {
   MarketplaceCartResponse,
   MarketplaceCustomerDetailResponse,
+  MarketplaceCustomerCreateRequest,
   MarketplaceCustomerListResponse,
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
@@ -121,6 +123,21 @@ export function useMarketplaceCustomerDetail(id?: string | number) {
     staleTime: MARKETPLACE_QUERY_STALE_MS,
     refetchOnWindowFocus: false,
   });
+}
+
+export function useMarketplaceCustomerActions() {
+  const qc = useQueryClient();
+
+  const createCustomer = useMutation({
+    mutationFn: (payload: MarketplaceCustomerCreateRequest) =>
+      createMarketplaceCustomer(payload).then(ensureMarketplaceSuccess),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: QK.marketplace.customers({}) });
+      await qc.invalidateQueries({ queryKey: ["marketplace", "customers"] });
+    },
+  });
+
+  return { createCustomer } as const;
 }
 
 export function useCartMutations() {

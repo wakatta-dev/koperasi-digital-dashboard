@@ -320,3 +320,13 @@ export type MarketplaceCustomerListResponse = {
   limit?: number;
   offset?: number;
 };
+
+export type MarketplaceCustomerCreateRequest = {
+  name: string;
+  customer_type: "INDIVIDU" | "PERUSAHAAN";
+  email?: string;
+  phone?: string;
+  address?: string;
+  npwp?: string;
+  status?: "ACTIVE" | "INACTIVE";
+};

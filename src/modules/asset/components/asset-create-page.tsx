@@ -39,24 +39,6 @@ function mapCategoryToRateType(category: string): "DAILY" | "HOURLY" {
   return "DAILY";
 }
 
-function composeDescription(form: AssetFormModel) {
-  const attributesText = form.attributes
-    .map((attribute) => {
-      const label = attribute.label.trim();
-      const value = attribute.value.trim();
-      if (!label && !value) return "";
-      return `${label || "Atribut"}: ${value || "-"}`;
-    })
-    .filter(Boolean)
-    .join("; ");
-
-  return [
-    attributesText ? `Spesifikasi: ${attributesText}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
 export function AssetCreatePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -83,7 +65,7 @@ export function AssetCreatePage() {
     const payload: CreateAssetRentalRequest = {
       name: form.name.trim(),
       rate_type: mapCategoryToRateType(form.category),
-      rate_amount: parsePositiveAmount(form.priceDisplay),
+      rate_amount: parsePositiveAmount(form.rentalPriceDisplay),
       category: form.category.trim(),
       availability_status: form.status.trim(),
       location: form.location.trim(),
@@ -91,15 +73,9 @@ export function AssetCreatePage() {
       assigned_to: form.assignedTo.trim() || undefined,
       purchase_date: form.purchaseDate || undefined,
       vendor: form.vendor.trim() || undefined,
-      purchase_price: parseOptionalAmount(form.priceDisplay),
+      purchase_price: parseOptionalAmount(form.purchasePriceDisplay),
       warranty_end_date: form.warrantyEndDate || undefined,
-      specifications: form.attributes
-        .map((attribute) => ({
-          label: attribute.label.trim(),
-          value: attribute.value.trim(),
-        }))
-        .filter((attribute) => attribute.label || attribute.value),
-      description: composeDescription(form) || undefined,
+      description: form.description.trim() || undefined,
     };
     let createdAssetId: string | number | null = null;
 

@@ -43,6 +43,20 @@ const resolvePresetParam = (value: string | null) =>
     ? (value as string)
     : DEFAULT_PRESET;
 
+function resolveSummaryGridClass(count: number): string {
+  const normalized = Math.max(count, 1);
+  const mdClass = normalized >= 2 ? "md:grid-cols-2" : "md:grid-cols-1";
+  const xlClass =
+    normalized >= 4
+      ? "xl:grid-cols-4"
+      : normalized === 3
+      ? "xl:grid-cols-3"
+      : normalized === 2
+      ? "xl:grid-cols-2"
+      : "xl:grid-cols-1";
+
+  return `grid grid-cols-1 gap-6 ${mdClass} ${xlClass}`;
+}
 
 export default function PenjualanRinciReportPage() {
   const router = useRouter();
@@ -194,7 +208,7 @@ export default function PenjualanRinciReportPage() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Ringkasan Penjualan</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={resolveSummaryGridClass(summaryCards.length)}>
           {summaryCards.map((card) => (
             <div
               key={card.rowKey}

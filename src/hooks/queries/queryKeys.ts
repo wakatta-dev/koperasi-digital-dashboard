@@ -75,6 +75,26 @@ export const QK = {
     batchDetail: (batchReference: string | number) =>
       ["accounting-ap", "batch-detail", String(batchReference)] as const,
   },
+  accountingBankCash: {
+    overview: () => ["accounting-bank-cash", "overview"] as const,
+    accounts: (params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "accounts", params ?? {}] as const,
+    unreconciledTransactions: (params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "unreconciled-transactions", params ?? {}] as const,
+    reconciliationSession: (accountId: string | number) =>
+      ["accounting-bank-cash", "reconciliation-session", String(accountId)] as const,
+    bankLines: (accountId: string | number, params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "bank-lines", String(accountId), params ?? {}] as const,
+    systemLines: (accountId: string | number, params?: Record<string, unknown>) =>
+      ["accounting-bank-cash", "system-lines", String(accountId), params ?? {}] as const,
+    accountTransactions: (accountId: string | number, params?: Record<string, unknown>) =>
+      [
+        "accounting-bank-cash",
+        "account-transactions",
+        String(accountId),
+        params ?? {},
+      ] as const,
+  },
   accountingSettings: {
     overview: () => ["accounting-settings", "overview"] as const,
     coa: (params?: Record<string, unknown>) =>
@@ -87,6 +107,64 @@ export const QK = {
       ["accounting-settings", "analytic-accounts", params ?? {}] as const,
     budgets: (params?: Record<string, unknown>) =>
       ["accounting-settings", "budgets", params ?? {}] as const,
+  },
+  accountingJournal: {
+    overview: () => ["accounting-journal", "overview"] as const,
+    entries: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "entries", params ?? {}] as const,
+    entryDetail: (journalNumber: string | number) =>
+      ["accounting-journal", "entry-detail", String(journalNumber)] as const,
+    entryAuditLogs: (
+      journalNumber: string | number,
+      params?: Record<string, unknown>
+    ) =>
+      [
+        "accounting-journal",
+        "entry-audit-logs",
+        String(journalNumber),
+        params ?? {},
+      ] as const,
+    auditLogs: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "audit-logs", params ?? {}] as const,
+    periodLockCurrent: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "period-lock-current", params ?? {}] as const,
+  },
+  accountingTax: {
+    overview: () => ["accounting-tax", "overview"] as const,
+    periods: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "periods", params ?? {}] as const,
+    vatTransactions: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "vat-transactions", params ?? {}] as const,
+    pphRecords: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "pph-records", params ?? {}] as const,
+    exportHistory: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "export-history", params ?? {}] as const,
+    efakturReady: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "efaktur-ready", params ?? {}] as const,
+    incomeTaxReport: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "income-tax-report", params ?? {}] as const,
+    compliance: (params?: Record<string, unknown>) =>
+      ["accounting-tax", "compliance", params ?? {}] as const,
+    fileDownload: (fileId: string | number) =>
+      ["accounting-tax", "file-download", String(fileId)] as const,
+  },
+  accountingReporting: {
+    overview: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "overview", params ?? {}] as const,
+    profitLoss: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "profit-loss", params ?? {}] as const,
+    cashFlow: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "cash-flow", params ?? {}] as const,
+    balanceSheet: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "balance-sheet", params ?? {}] as const,
+    profitLossComparative: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "profit-loss-comparative", params ?? {}] as const,
+    trialBalance: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "trial-balance", params ?? {}] as const,
+    generalLedger: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "general-ledger", params ?? {}] as const,
+    accountLedger: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "account-ledger", params ?? {}] as const,
   },
   assetRental: {
     list: (params?: Record<string, unknown>) =>
@@ -166,12 +244,42 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingAp.billPayments
   | typeof QK.accountingAp.vendorCredits
   | typeof QK.accountingAp.batchDetail
+  | typeof QK.accountingBankCash.overview
+  | typeof QK.accountingBankCash.accounts
+  | typeof QK.accountingBankCash.unreconciledTransactions
+  | typeof QK.accountingBankCash.reconciliationSession
+  | typeof QK.accountingBankCash.bankLines
+  | typeof QK.accountingBankCash.systemLines
+  | typeof QK.accountingBankCash.accountTransactions
   | typeof QK.accountingSettings.overview
   | typeof QK.accountingSettings.coa
   | typeof QK.accountingSettings.taxes
   | typeof QK.accountingSettings.currencies
   | typeof QK.accountingSettings.analyticAccounts
   | typeof QK.accountingSettings.budgets
+  | typeof QK.accountingJournal.overview
+  | typeof QK.accountingJournal.entries
+  | typeof QK.accountingJournal.entryDetail
+  | typeof QK.accountingJournal.entryAuditLogs
+  | typeof QK.accountingJournal.auditLogs
+  | typeof QK.accountingJournal.periodLockCurrent
+  | typeof QK.accountingTax.overview
+  | typeof QK.accountingTax.periods
+  | typeof QK.accountingTax.vatTransactions
+  | typeof QK.accountingTax.pphRecords
+  | typeof QK.accountingTax.exportHistory
+  | typeof QK.accountingTax.efakturReady
+  | typeof QK.accountingTax.incomeTaxReport
+  | typeof QK.accountingTax.compliance
+  | typeof QK.accountingTax.fileDownload
+  | typeof QK.accountingReporting.overview
+  | typeof QK.accountingReporting.profitLoss
+  | typeof QK.accountingReporting.cashFlow
+  | typeof QK.accountingReporting.balanceSheet
+  | typeof QK.accountingReporting.profitLossComparative
+  | typeof QK.accountingReporting.trialBalance
+  | typeof QK.accountingReporting.generalLedger
+  | typeof QK.accountingReporting.accountLedger
   | typeof QK.assetRental.list
   | typeof QK.assetRental.detail
   | typeof QK.assetRental.masterData

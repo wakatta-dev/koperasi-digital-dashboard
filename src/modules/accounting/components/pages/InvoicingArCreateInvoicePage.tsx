@@ -3,10 +3,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { useAccountingArInvoiceMutations } from "@/hooks/queries";
+import { useAccountingArInvoiceMutations, useAccountingArInvoices } from "@/hooks/queries";
 import { toAccountingArApiError } from "@/services/api/accounting-ar";
 
 import { INVOICING_AR_ROUTES } from "../../constants/routes";
@@ -24,6 +24,27 @@ export function InvoicingArCreateInvoicePage() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const invoiceMutations = useAccountingArInvoiceMutations();
+  const invoicesQuery = useAccountingArInvoices({ page: 1, per_page: 100 });
+
+  const customerOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        (invoicesQuery.data?.items ?? [])
+          .map((item) => item.customer_name.trim())
+          .filter((name) => name.length > 0)
+      )
+    );
+  }, [invoicesQuery.data?.items]);
+
+  const productOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        (invoicesQuery.data?.items ?? [])
+          .map((item) => `Invoice Ref ${item.invoice_number}`)
+          .filter((value) => value.length > 0)
+      )
+    );
+  }, [invoicesQuery.data?.items]);
 
   const handleSubmit = async (payload: FeatureCreateInvoiceSubmitPayload) => {
     setErrorMessage(null);
@@ -64,6 +85,8 @@ export function InvoicingArCreateInvoicePage() {
       onSubmit={handleSubmit}
       isSubmitting={invoiceMutations.createInvoice.isPending}
       errorMessage={errorMessage}
+      customerOptions={customerOptions}
+      productOptions={productOptions}
     />
   );
 }

@@ -19,8 +19,10 @@ import type {
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
   MarketplaceProductVariantsResponse,
+  MarketplaceCustomerSummaryResponse,
   MarketplaceCustomerListResponse,
   MarketplaceCustomerDetailResponse,
+  MarketplaceCustomerCreateRequest,
 } from "@/types/api/marketplace";
 
 const E = API_ENDPOINTS.marketplace;
@@ -381,6 +383,12 @@ export function getMarketplaceCustomerDetail(
   id: string | number
 ): Promise<ApiResponse<MarketplaceCustomerDetailResponse>> {
   return api.get<MarketplaceCustomerDetailResponse>(`${API_PREFIX}${E.customer(id)}`);
+}
+
+export function createMarketplaceCustomer(
+  payload: MarketplaceCustomerCreateRequest
+): Promise<ApiResponse<MarketplaceCustomerSummaryResponse>> {
+  return api.post<MarketplaceCustomerSummaryResponse>(`${API_PREFIX}${E.customers}`, payload);
 }
 
 export function getMarketplaceOrderDetail(
