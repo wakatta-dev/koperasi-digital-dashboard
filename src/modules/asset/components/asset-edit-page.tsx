@@ -44,24 +44,6 @@ function mapCategoryToRateType(category: string): "DAILY" | "HOURLY" {
   return "DAILY";
 }
 
-function composeDescription(form: AssetFormModel) {
-  const attributesText = form.attributes
-    .map((attribute) => {
-      const label = attribute.label.trim();
-      const value = attribute.value.trim();
-      if (!label && !value) return "";
-      return `${label || "Atribut"}: ${value || "-"}`;
-    })
-    .filter(Boolean)
-    .join("; ");
-
-  return [
-    attributesText ? `Spesifikasi: ${attributesText}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
 export function AssetEditPage({ assetId }: AssetEditPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -103,7 +85,7 @@ export function AssetEditPage({ assetId }: AssetEditPageProps) {
     const payload: UpdateAssetRentalRequest = {
       name: form.name.trim(),
       rate_type: mapCategoryToRateType(form.category),
-      rate_amount: parsePositiveAmount(form.priceDisplay),
+      rate_amount: parsePositiveAmount(form.rentalPriceDisplay),
       category: form.category.trim(),
       availability_status: form.status.trim(),
       location: form.location.trim(),
@@ -111,15 +93,9 @@ export function AssetEditPage({ assetId }: AssetEditPageProps) {
       assigned_to: form.assignedTo.trim() || undefined,
       purchase_date: form.purchaseDate || "",
       vendor: form.vendor.trim() || undefined,
-      purchase_price: parseOptionalAmount(form.priceDisplay) ?? 0,
+      purchase_price: parseOptionalAmount(form.purchasePriceDisplay) ?? 0,
       warranty_end_date: form.warrantyEndDate || "",
-      specifications: form.attributes
-        .map((attribute) => ({
-          label: attribute.label.trim(),
-          value: attribute.value.trim(),
-        }))
-        .filter((attribute) => attribute.label || attribute.value),
-      description: composeDescription(form) || undefined,
+      description: form.description.trim() || undefined,
     };
     try {
       await updateMutation.mutateAsync(payload);

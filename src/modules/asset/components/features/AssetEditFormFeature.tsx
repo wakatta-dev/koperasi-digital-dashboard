@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Info, Plus, Trash2 } from "lucide-react";
+import { Info } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
-import { useAssetAttributeRows } from "../../hooks/use-asset-attribute-rows";
 import type { AssetFormModel } from "../../types/stitch";
 
 type AssetFormOptionGroups = Readonly<{
@@ -61,9 +61,10 @@ export function AssetEditFormFeature({
       assignedTo: "",
       purchaseDate: "",
       vendor: "",
-      priceDisplay: "",
+      rentalPriceDisplay: "",
+      purchasePriceDisplay: "",
       warrantyEndDate: "",
-      attributes: [{ id: "attr-1", label: "", value: "" }],
+      description: "",
     } as const);
   const [name, setName] = useState(sourceModel.name);
   const [serialNumber, setSerialNumber] = useState(sourceModel.serialNumber);
@@ -73,16 +74,14 @@ export function AssetEditFormFeature({
   const [assignedTo, setAssignedTo] = useState(sourceModel.assignedTo);
   const [purchaseDate, setPurchaseDate] = useState(sourceModel.purchaseDate);
   const [vendor, setVendor] = useState(sourceModel.vendor);
-  const [priceDisplay, setPriceDisplay] = useState(sourceModel.priceDisplay);
+  const [rentalPriceDisplay, setRentalPriceDisplay] = useState(sourceModel.rentalPriceDisplay);
+  const [purchasePriceDisplay, setPurchasePriceDisplay] = useState(sourceModel.purchasePriceDisplay);
   const [warrantyEndDate, setWarrantyEndDate] = useState(sourceModel.warrantyEndDate);
+  const [description, setDescription] = useState(sourceModel.description);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewURL, setImagePreviewURL] = useState(sourceModel.photoUrl);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const objectURLRef = useRef<string | null>(null);
-
-  const { rows, setRows, addRow, removeRow, updateRow } = useAssetAttributeRows(
-    sourceModel.attributes
-  );
 
   useEffect(() => {
     if (!initialModel) return;
@@ -98,19 +97,16 @@ export function AssetEditFormFeature({
     setAssignedTo(initialModel.assignedTo);
     setPurchaseDate(initialModel.purchaseDate);
     setVendor(initialModel.vendor);
-    setPriceDisplay(initialModel.priceDisplay);
+    setRentalPriceDisplay(initialModel.rentalPriceDisplay);
+    setPurchasePriceDisplay(initialModel.purchasePriceDisplay);
     setWarrantyEndDate(initialModel.warrantyEndDate);
+    setDescription(initialModel.description);
     setImageFile(null);
     setImagePreviewURL(initialModel.photoUrl);
     if (imageInputRef.current) {
       imageInputRef.current.value = "";
     }
-    setRows(
-      initialModel.attributes.length > 0
-        ? initialModel.attributes
-        : [{ id: "attr-1", label: "", value: "" }]
-    );
-  }, [initialModel, setRows]);
+  }, [initialModel]);
 
   useEffect(() => {
     if (!category && categories.length > 0) {
@@ -156,13 +152,10 @@ export function AssetEditFormFeature({
           assignedTo: assignedTo.trim(),
           purchaseDate,
           vendor: vendor.trim(),
-          priceDisplay: priceDisplay.trim(),
+          rentalPriceDisplay: rentalPriceDisplay.trim(),
+          purchasePriceDisplay: purchasePriceDisplay.trim(),
           warrantyEndDate,
-          attributes: rows.map((row) => ({
-            id: row.id,
-            label: row.label,
-            value: row.value,
-          })),
+          description: description.trim(),
         });
       }}
     >
@@ -291,9 +284,7 @@ export function AssetEditFormFeature({
                 ) : null}
               </div>
 
-              <p className="text-sm text-slate-500">
-                PNG, JPG, atau WEBP sampai 5MB.
-              </p>
+              <p className="text-sm text-slate-500">PNG, JPG, atau WEBP sampai 5MB.</p>
             </div>
           </div>
         </div>
@@ -333,8 +324,29 @@ export function AssetEditFormFeature({
       </section>
 
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
-        <h4 className="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Informasi Pembelian</h4>
+        <h4 className="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Informasi Harga &amp; Pembelian</h4>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <Label className="mb-1 block">Biaya Sewa</Label>
+            <Input
+              type="number"
+              min={1}
+              required
+              value={rentalPriceDisplay}
+              onChange={(event) => setRentalPriceDisplay(event.target.value)}
+              placeholder="Contoh: 250000"
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block">Harga Beli (Opsional)</Label>
+            <Input
+              type="number"
+              min={0}
+              value={purchasePriceDisplay}
+              onChange={(event) => setPurchasePriceDisplay(event.target.value)}
+              placeholder="Contoh: 15000000"
+            />
+          </div>
           <div>
             <Label className="mb-1 block">Tanggal Pembelian</Label>
             <Input
@@ -347,14 +359,7 @@ export function AssetEditFormFeature({
             <Label className="mb-1 block">Supplier</Label>
             <Input value={vendor} onChange={(event) => setVendor(event.target.value)} />
           </div>
-          <div>
-            <Label className="mb-1 block">Harga Beli</Label>
-            <Input
-              value={priceDisplay}
-              onChange={(event) => setPriceDisplay(event.target.value)}
-            />
-          </div>
-          <div>
+          <div className="md:col-span-2">
             <Label className="mb-1 block">Masa Garansi Berakhir</Label>
             <Input
               type="date"
@@ -366,62 +371,21 @@ export function AssetEditFormFeature({
       </section>
 
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h4 className="text-base font-semibold text-slate-900">Detail Spesifikasi</h4>
-          <Button type="button" variant="ghost" className="gap-1 px-0 text-indigo-600" onClick={addRow}>
-            <Plus className="h-4 w-4" />
-            <span>Tambah Atribut</span>
-          </Button>
-        </div>
-        <div className="space-y-3">
-          {rows.map((row, index) => (
-            <div key={row.id} className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
-              <div>
-                <Label className="mb-1 block text-xs text-slate-500">
-                  {index === 0 ? "Label Atribut" : <span className="sr-only">Label Atribut</span>}
-                </Label>
-                <Input
-                  placeholder="e.g. Processor"
-                  value={row.label}
-                  onChange={(event) => updateRow(row.id, "label", event.target.value)}
-                />
-              </div>
-              <div>
-                <Label className="mb-1 block text-xs text-slate-500">
-                  {index === 0 ? "Nilai" : <span className="sr-only">Nilai</span>}
-                </Label>
-                <Input
-                  placeholder="e.g. Apple M2"
-                  value={row.value}
-                  onChange={(event) => updateRow(row.id, "value", event.target.value)}
-                />
-              </div>
-              <Button type="button" variant="ghost" size="icon" className="text-slate-500 hover:text-red-600" onClick={() => removeRow(row.id)}>
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Hapus</span>
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-slate-600">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600" />
-          <p>
-            Anda dapat menambahkan atribut khusus untuk aset ini secara fleksibel (misal: Warna, Ukuran, Daya Listrik) sesuai kebutuhan tipe aset.
-          </p>
-        </div>
+        <h4 className="text-base font-semibold text-slate-900">Deskripsi Aset</h4>
+        <Textarea
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="Tuliskan deskripsi aset, kondisi, dan catatan penting lainnya..."
+          rows={5}
+        />
       </section>
 
-      <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-        <Button type="button" variant="outline" className="border-slate-300" onClick={onCancel}>
+      <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Batal
         </Button>
-        <Button
-          type="submit"
-          className="bg-indigo-600 text-white hover:bg-indigo-700"
-          disabled={isSubmitting}
-        >
-          Simpan Perubahan
+        <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700" disabled={isSubmitting}>
+          {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
         </Button>
       </div>
     </form>

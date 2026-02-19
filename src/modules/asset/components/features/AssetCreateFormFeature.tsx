@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Info, Plus, Trash2 } from "lucide-react";
+import { Info } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,9 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 import { STITCH_FORM_TEXT } from "../../constants/stitch-form-text";
-import { useAssetAttributeRows } from "../../hooks/use-asset-attribute-rows";
 import type { AssetFormModel } from "../../types/stitch";
 
 type AssetFormOptionGroups = Readonly<{
@@ -49,8 +49,10 @@ export function AssetCreateFormFeature({
   const [assignedTo, setAssignedTo] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [vendor, setVendor] = useState("");
-  const [priceDisplay, setPriceDisplay] = useState("");
+  const [rentalPriceDisplay, setRentalPriceDisplay] = useState("");
+  const [purchasePriceDisplay, setPurchasePriceDisplay] = useState("");
   const [warrantyEndDate, setWarrantyEndDate] = useState("");
+  const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewURL, setImagePreviewURL] = useState("");
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -63,10 +65,6 @@ export function AssetCreateFormFeature({
       }
     };
   }, []);
-
-  const { rows, addRow, removeRow, updateRow } = useAssetAttributeRows([
-    { id: "attr-1", label: "", value: "" },
-  ]);
 
   const categories = useMemo(() => options?.categories ?? [], [options?.categories]);
   const statuses = useMemo(() => options?.statuses ?? [], [options?.statuses]);
@@ -109,13 +107,10 @@ export function AssetCreateFormFeature({
           assignedTo: assignedTo.trim(),
           purchaseDate,
           vendor: vendor.trim(),
-          priceDisplay: priceDisplay.trim(),
+          rentalPriceDisplay: rentalPriceDisplay.trim(),
+          purchasePriceDisplay: purchasePriceDisplay.trim(),
           warrantyEndDate,
-          attributes: rows.map((row) => ({
-            id: row.id,
-            label: row.label,
-            value: row.value,
-          })),
+          description: description.trim(),
         });
       }}
     >
@@ -250,9 +245,7 @@ export function AssetCreateFormFeature({
                 ) : null}
               </div>
 
-              <p className="text-sm text-slate-500">
-                PNG, JPG, atau WEBP sampai 5MB.
-              </p>
+              <p className="text-sm text-slate-500">PNG, JPG, atau WEBP sampai 5MB.</p>
             </div>
           </div>
         </div>
@@ -294,8 +287,29 @@ export function AssetCreateFormFeature({
       </section>
 
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
-        <h4 className="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Informasi Pembelian</h4>
+        <h4 className="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Informasi Harga &amp; Pembelian</h4>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <Label className="mb-1 block">Biaya Sewa</Label>
+            <Input
+              type="number"
+              min={1}
+              required
+              value={rentalPriceDisplay}
+              onChange={(event) => setRentalPriceDisplay(event.target.value)}
+              placeholder="Contoh: 250000"
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block">Harga Beli (Opsional)</Label>
+            <Input
+              type="number"
+              min={0}
+              value={purchasePriceDisplay}
+              onChange={(event) => setPurchasePriceDisplay(event.target.value)}
+              placeholder="Contoh: 15000000"
+            />
+          </div>
           <div>
             <Label className="mb-1 block">Tanggal Pembelian</Label>
             <Input
@@ -308,15 +322,7 @@ export function AssetCreateFormFeature({
             <Label className="mb-1 block">Supplier</Label>
             <Input value={vendor} onChange={(event) => setVendor(event.target.value)} />
           </div>
-          <div>
-            <Label className="mb-1 block">Harga Beli</Label>
-            <Input
-              value={priceDisplay}
-              onChange={(event) => setPriceDisplay(event.target.value)}
-              placeholder="Contoh: 15000000"
-            />
-          </div>
-          <div>
+          <div className="md:col-span-2">
             <Label className="mb-1 block">Masa Garansi Berakhir</Label>
             <Input
               type="date"
@@ -328,63 +334,21 @@ export function AssetCreateFormFeature({
       </section>
 
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h4 className="text-base font-semibold text-slate-900">Detail Spesifikasi</h4>
-          <Button type="button" variant="ghost" className="gap-1 px-0 text-indigo-600" onClick={addRow}>
-            <Plus className="h-4 w-4" />
-            <span>Tambah Atribut</span>
-          </Button>
-        </div>
-
-        <div className="space-y-3">
-          {rows.map((row, index) => (
-            <div key={row.id} className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
-              <div>
-                <Label className="mb-1 block text-xs text-slate-500">
-                  {index === 0 ? "Label Atribut" : <span className="sr-only">Label Atribut</span>}
-                </Label>
-                <Input
-                  placeholder="Contoh: Processor"
-                  value={row.label}
-                  onChange={(event) => updateRow(row.id, "label", event.target.value)}
-                />
-              </div>
-              <div>
-                <Label className="mb-1 block text-xs text-slate-500">
-                  {index === 0 ? "Nilai" : <span className="sr-only">Nilai</span>}
-                </Label>
-                <Input
-                  placeholder="Contoh: Intel Core i7"
-                  value={row.value}
-                  onChange={(event) => updateRow(row.id, "value", event.target.value)}
-                />
-              </div>
-              <Button type="button" variant="ghost" size="icon" className="text-slate-500 hover:text-red-600" onClick={() => removeRow(row.id)}>
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Hapus</span>
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-slate-600">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600" />
-          <p>
-            Anda dapat menambahkan atribut khusus untuk aset ini secara fleksibel (misal: Warna, Ukuran, Daya Listrik) sesuai kebutuhan tipe aset.
-          </p>
-        </div>
+        <h4 className="text-base font-semibold text-slate-900">Deskripsi Aset</h4>
+        <Textarea
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="Tuliskan deskripsi aset, kondisi, dan catatan penting lainnya..."
+          rows={5}
+        />
       </section>
 
-      <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-        <Button type="button" variant="outline" className="border-slate-300" onClick={onCancel}>
+      <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Batal
         </Button>
-        <Button
-          type="submit"
-          className="bg-indigo-600 text-white hover:bg-indigo-700"
-          disabled={isSubmitting}
-        >
-          Simpan Aset
+        <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700" disabled={isSubmitting}>
+          {isSubmitting ? "Menyimpan..." : "Simpan Aset"}
         </Button>
       </div>
     </form>
