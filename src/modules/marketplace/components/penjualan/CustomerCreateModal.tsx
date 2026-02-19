@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -92,7 +92,9 @@ export function CustomerCreateModal({
         showCloseButton={false}
       >
         <div className="bg-white dark:bg-surface-dark px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-indigo-600">Tambah Pelanggan Baru</h3>
+          <DialogTitle className="text-lg font-bold text-indigo-600">
+            Tambah Pelanggan Baru
+          </DialogTitle>
           <Button
             type="button"
             variant="ghost"
