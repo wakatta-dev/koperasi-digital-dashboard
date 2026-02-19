@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { useAccountingSettingsCoa, useAccountingSettingsCoaMutations } from "@/hooks/queries";
 import { toAccountingSettingsApiError } from "@/services/api/accounting-settings";
 
-import { COA_ROWS } from "../../constants/settings-dummy";
 import { FeatureAddCoaAccountModal } from "../features/FeatureAddCoaAccountModal";
 import { FeatureCoaTable } from "../features/FeatureCoaTable";
 import { FeatureDeleteCoaAccountModal } from "../features/FeatureDeleteCoaAccountModal";
@@ -26,11 +25,7 @@ export function AccountingSettingsCoaPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const rows = useMemo(() => {
-    if (!coaQuery.data?.items?.length) {
-      return COA_ROWS;
-    }
-
-    return mapCoaRows(coaQuery.data.items);
+    return mapCoaRows(coaQuery.data?.items ?? []);
   }, [coaQuery.data?.items]);
 
   const queryErrorMessage = coaQuery.error ? toAccountingSettingsApiError(coaQuery.error).message : null;

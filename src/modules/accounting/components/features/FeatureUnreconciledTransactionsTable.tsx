@@ -16,7 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_UNRECONCILED_TRANSACTIONS } from "../../constants/bank-cash-dummy";
 import type { UnreconciledTransactionItem } from "../../types/bank-cash";
 
 type FeatureUnreconciledTransactionsTableProps = {
@@ -24,7 +23,7 @@ type FeatureUnreconciledTransactionsTableProps = {
 };
 
 export function FeatureUnreconciledTransactionsTable({
-  rows = DUMMY_UNRECONCILED_TRANSACTIONS,
+  rows = [],
 }: FeatureUnreconciledTransactionsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -80,6 +79,13 @@ export function FeatureUnreconciledTransactionsTable({
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-gray-100 text-sm dark:divide-gray-700">
+            {filteredRows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">
+                  Tidak ada transaksi unreconciled.
+                </TableCell>
+              </TableRow>
+            ) : null}
             {filteredRows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300">

@@ -17,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { CURRENCY_ROWS } from "../../constants/settings-dummy";
 import type { CurrencyRow } from "../../types/settings";
 
 type FeatureCurrenciesTableProps = {
@@ -27,7 +26,7 @@ type FeatureCurrenciesTableProps = {
 };
 
 export function FeatureCurrenciesTable({
-  rows = CURRENCY_ROWS,
+  rows = [],
   onUpdateRates,
   onAddCurrency,
 }: FeatureCurrenciesTableProps) {
@@ -96,6 +95,13 @@ export function FeatureCurrenciesTable({
               </TableRow>
             </TableHeader>
             <TableBody>
+              {rowsWithSelection.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="px-6 py-10 text-center text-sm text-gray-500">
+                    Data mata uang belum tersedia.
+                  </TableCell>
+                </TableRow>
+              ) : null}
               {rowsWithSelection.map((row) => (
                 <TableRow
                   key={row.currency_code}
@@ -162,9 +168,9 @@ export function FeatureCurrenciesTable({
 
         <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Showing <span className="font-medium text-gray-900 dark:text-white">1</span> to{" "}
-            <span className="font-medium text-gray-900 dark:text-white">5</span> of{" "}
-            <span className="font-medium text-gray-900 dark:text-white">12</span> currencies
+            Showing <span className="font-medium text-gray-900 dark:text-white">{rows.length ? 1 : 0}</span> to{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{rows.length}</span> of{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{rows.length}</span> currencies
           </p>
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" disabled>
@@ -179,4 +185,3 @@ export function FeatureCurrenciesTable({
     </div>
   );
 }
-

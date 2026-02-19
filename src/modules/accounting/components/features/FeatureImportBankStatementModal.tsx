@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { DUMMY_IMPORT_STATEMENT_DRAFT } from "../../constants/bank-cash-dummy";
+import { EMPTY_IMPORT_STATEMENT_DRAFT } from "../../constants/bank-cash-initial-state";
 import type { ImportStatementDraft } from "../../types/bank-cash";
 
 type AccountOption = {
@@ -39,14 +39,12 @@ type FeatureImportBankStatementModalProps = {
 };
 
 const DEFAULT_ACCOUNTS: AccountOption[] = [
-  { account_id: "bca-corporate", label: "BCA Corporate - **** 8899" },
-  { account_id: "mandiri-business", label: "Mandiri Business - **** 1234" },
-  { account_id: "bri-payroll", label: "BRI Payroll - **** 5678" },
+  // Intentional empty default: options should come from backend.
 ];
 
 export function FeatureImportBankStatementModal({
   open,
-  draft = DUMMY_IMPORT_STATEMENT_DRAFT,
+  draft = EMPTY_IMPORT_STATEMENT_DRAFT,
   accountOptions = DEFAULT_ACCOUNTS,
   onOpenChange,
   onDraftChange,
@@ -90,6 +88,11 @@ export function FeatureImportBankStatementModal({
                 <SelectValue placeholder="Select Bank Account" />
               </SelectTrigger>
               <SelectContent>
+                {accountOptions.length === 0 ? (
+                  <SelectItem value="__empty__" disabled>
+                    Belum ada rekening bank
+                  </SelectItem>
+                ) : null}
                 {accountOptions.map((option) => (
                   <SelectItem key={option.account_id} value={option.account_id}>
                     {option.label}

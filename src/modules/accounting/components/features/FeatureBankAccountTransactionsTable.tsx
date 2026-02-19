@@ -15,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_BANK_ACCOUNT_TRANSACTIONS } from "../../constants/bank-cash-dummy";
 import type { BankAccountTransactionItem, BankCashTransactionFilters } from "../../types/bank-cash";
 
 type FeatureBankAccountTransactionsTableProps = {
@@ -27,7 +26,7 @@ type FeatureBankAccountTransactionsTableProps = {
 const PAGE_SIZE = 4;
 
 export function FeatureBankAccountTransactionsTable({
-  rows = DUMMY_BANK_ACCOUNT_TRANSACTIONS,
+  rows = [],
   filters,
   onViewDetail,
 }: FeatureBankAccountTransactionsTableProps) {

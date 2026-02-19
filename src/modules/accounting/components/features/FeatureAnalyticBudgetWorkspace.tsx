@@ -18,7 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { ANALYTIC_ACCOUNT_CARDS, BUDGET_ROWS } from "../../constants/settings-dummy";
 import type { AnalyticAccountCard, BudgetRow } from "../../types/settings";
 
 type FeatureAnalyticBudgetWorkspaceProps = {
@@ -30,8 +29,8 @@ type FeatureAnalyticBudgetWorkspaceProps = {
 };
 
 export function FeatureAnalyticBudgetWorkspace({
-  budgetRows = BUDGET_ROWS,
-  analyticAccountCards = ANALYTIC_ACCOUNT_CARDS,
+  budgetRows = [],
+  analyticAccountCards = [],
   onCreateBudget,
   onAddAnalyticAccount,
   onEditBudget,
@@ -142,6 +141,13 @@ export function FeatureAnalyticBudgetWorkspace({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {budgetRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
+                        Data budget belum tersedia.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
                   {budgetRows.map((row) => (
                     <TableRow key={row.budget_id} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <TableCell className="px-6 py-4">
@@ -215,6 +221,11 @@ export function FeatureAnalyticBudgetWorkspace({
               </Button>
             </div>
             <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
+              {analyticAccountCards.length === 0 ? (
+                <div className="col-span-full rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
+                  Data analytic account belum tersedia.
+                </div>
+              ) : null}
               {analyticAccountCards.map((card) => (
                 <div
                   key={card.analytic_account_id}

@@ -18,9 +18,9 @@ import { toAccountingBankCashApiError } from "@/services/api/accounting-bank-cas
 
 import { BANK_CASH_ROUTES } from "../../constants/bank-cash-routes";
 import {
-  DUMMY_ADD_BANK_ACCOUNT_DRAFT,
-  DUMMY_IMPORT_STATEMENT_DRAFT,
-} from "../../constants/bank-cash-dummy";
+  EMPTY_ADD_BANK_ACCOUNT_DRAFT,
+  EMPTY_IMPORT_STATEMENT_DRAFT,
+} from "../../constants/bank-cash-initial-state";
 import type {
   AddBankAccountDraft,
   BankAccountCardItem,
@@ -53,8 +53,8 @@ export function BankCashOverviewPage() {
   const router = useRouter();
   const [addAccountOpen, setAddAccountOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-  const [addAccountDraft, setAddAccountDraft] = useState(DUMMY_ADD_BANK_ACCOUNT_DRAFT);
-  const [importDraft, setImportDraft] = useState(DUMMY_IMPORT_STATEMENT_DRAFT);
+  const [addAccountDraft, setAddAccountDraft] = useState(EMPTY_ADD_BANK_ACCOUNT_DRAFT);
+  const [importDraft, setImportDraft] = useState(EMPTY_IMPORT_STATEMENT_DRAFT);
 
   const overviewQuery = useAccountingBankCashOverview();
   const accountsQuery = useAccountingBankCashAccounts({ page: 1, per_page: 24 });
@@ -64,9 +64,9 @@ export function BankCashOverviewPage() {
   });
   const mutations = useAccountingBankCashMutations();
 
-  const summaryCards = useMemo<BankCashSummaryCard[] | undefined>(
+  const summaryCards = useMemo<BankCashSummaryCard[]>(
     () =>
-      overviewQuery.data?.cards?.map((card) => ({
+      (overviewQuery.data?.cards ?? []).map((card) => ({
         key: card.key,
         label: card.label,
         value: card.value,
@@ -76,9 +76,9 @@ export function BankCashOverviewPage() {
     [overviewQuery.data?.cards]
   );
 
-  const accountCards = useMemo<BankAccountCardItem[] | undefined>(
+  const accountCards = useMemo<BankAccountCardItem[]>(
     () =>
-      accountsQuery.data?.items?.map((account) => ({
+      (accountsQuery.data?.items ?? []).map((account) => ({
         account_id: account.account_id,
         bank_badge: account.account_name.slice(0, 3).toUpperCase(),
         bank_badge_class_name: mapBankBadgeClass(account.account_name),
@@ -95,9 +95,9 @@ export function BankCashOverviewPage() {
     [accountsQuery.data?.items]
   );
 
-  const unreconciledRows = useMemo<UnreconciledTransactionItem[] | undefined>(
+  const unreconciledRows = useMemo<UnreconciledTransactionItem[]>(
     () =>
-      unreconciledQuery.data?.items?.map((row, index) => ({
+      (unreconciledQuery.data?.items ?? []).map((row, index) => ({
         id: `ur-${index}`,
         date: formatBankCashDateLabel(row.date),
         description: row.description,
@@ -109,9 +109,9 @@ export function BankCashOverviewPage() {
     [unreconciledQuery.data?.items]
   );
 
-  const cashRegisters = useMemo<CashRegisterItem[] | undefined>(
+  const cashRegisters = useMemo<CashRegisterItem[]>(
     () =>
-      overviewQuery.data?.cash_register_summary?.map((item) => ({
+      (overviewQuery.data?.cash_register_summary ?? []).map((item) => ({
         id: item.register_id,
         register_name: item.register_name,
         register_type: item.register_type,
@@ -135,7 +135,7 @@ export function BankCashOverviewPage() {
       });
       toast.success("Bank account added");
       setAddAccountOpen(false);
-      setAddAccountDraft(DUMMY_ADD_BANK_ACCOUNT_DRAFT);
+      setAddAccountDraft(EMPTY_ADD_BANK_ACCOUNT_DRAFT);
     } catch (error) {
       const parsed = toAccountingBankCashApiError(error);
       if (parsed.statusCode === 409 || parsed.statusCode === 422) {
@@ -165,7 +165,7 @@ export function BankCashOverviewPage() {
       });
       toast.success("Statement imported");
       setImportOpen(false);
-      setImportDraft(DUMMY_IMPORT_STATEMENT_DRAFT);
+      setImportDraft(EMPTY_IMPORT_STATEMENT_DRAFT);
     } catch (error) {
       const parsed = toAccountingBankCashApiError(error);
       if (parsed.statusCode === 413 || parsed.statusCode === 415 || parsed.statusCode === 422) {

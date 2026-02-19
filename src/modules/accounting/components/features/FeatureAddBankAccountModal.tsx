@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { DUMMY_ADD_BANK_ACCOUNT_DRAFT } from "../../constants/bank-cash-dummy";
+import { EMPTY_ADD_BANK_ACCOUNT_DRAFT } from "../../constants/bank-cash-initial-state";
 import type { AddBankAccountDraft } from "../../types/bank-cash";
 
 type FeatureAddBankAccountModalProps = {
@@ -35,7 +35,7 @@ type FeatureAddBankAccountModalProps = {
 
 export function FeatureAddBankAccountModal({
   open,
-  draft = DUMMY_ADD_BANK_ACCOUNT_DRAFT,
+  draft = EMPTY_ADD_BANK_ACCOUNT_DRAFT,
   onOpenChange,
   onDraftChange,
   onSubmit,

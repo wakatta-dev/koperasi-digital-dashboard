@@ -17,7 +17,7 @@ import { toAccountingBankCashApiError } from "@/services/api/accounting-bank-cas
 import type { AccountingBankCashTransactionsQuery } from "@/types/api/accounting-bank-cash";
 
 import { BANK_CASH_ROUTES } from "../../constants/bank-cash-routes";
-import { DUMMY_BANK_ACCOUNT_TRANSACTION_FILTERS } from "../../constants/bank-cash-dummy";
+import { INITIAL_BANK_CASH_TRANSACTION_FILTERS } from "../../constants/bank-cash-initial-state";
 import type {
   BankAccountTransactionItem,
   BankCashTransactionFilters,
@@ -45,9 +45,7 @@ export function BankCashAccountTransactionsPage({
     () => resolveBankCashAccountId(accountId, accountsQuery.data?.items),
     [accountId, accountsQuery.data?.items]
   );
-  const [filters, setFilters] = useState<BankCashTransactionFilters>(
-    DUMMY_BANK_ACCOUNT_TRANSACTION_FILTERS
-  );
+  const [filters, setFilters] = useState<BankCashTransactionFilters>(INITIAL_BANK_CASH_TRANSACTION_FILTERS);
 
   const queryParams = useMemo<AccountingBankCashTransactionsQuery>(() => {
     const transactionType =
@@ -70,19 +68,19 @@ export function BankCashAccountTransactionsPage({
   const transactionsQuery = useAccountingBankCashAccountTransactions(resolvedAccountId, queryParams);
   const mutations = useAccountingBankCashMutations();
 
-  const accountTitle = useMemo(() => {
+  const accountInfo = useMemo(() => {
     const account = accountsQuery.data?.items.find((item) => item.account_id === resolvedAccountId);
-    if (account?.account_name) {
-      return `Detail Transaksi: ${account.account_name}`;
+    if (!account) {
+      return {
+        title: "Detail Transaksi Rekening",
+        subtitle: "Acc No: - | Bank: -",
+      };
     }
-    if (accountId === "mandiri-business") {
-      return "Detail Transaksi: Mandiri Business";
-    }
-    if (accountId === "bri-payroll") {
-      return "Detail Transaksi: BRI Payroll";
-    }
-    return "Detail Transaksi: BCA Corporate";
-  }, [accountId, accountsQuery.data?.items, resolvedAccountId]);
+    return {
+      title: `Detail Transaksi: ${account.account_name}`,
+      subtitle: `Acc No: ${account.masked_account_number} | ${account.bank_name}`,
+    };
+  }, [accountsQuery.data?.items, resolvedAccountId]);
 
   const rows = useMemo<BankAccountTransactionItem[]>(() => {
     if (!transactionsQuery.data?.items) {
@@ -204,9 +202,9 @@ export function BankCashAccountTransactionsPage({
             <span className="sr-only">Back to reconciliation</span>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{accountTitle}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{accountInfo.title}</h1>
             <p className="mt-1 font-mono text-sm text-gray-500 dark:text-gray-400">
-              Acc No: **** 8899 | Bank Central Asia
+              {accountInfo.subtitle}
             </p>
           </div>
         </div>

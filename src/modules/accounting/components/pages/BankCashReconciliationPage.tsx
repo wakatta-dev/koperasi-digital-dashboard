@@ -17,11 +17,6 @@ import {
 } from "@/hooks/queries";
 import { toAccountingBankCashApiError } from "@/services/api/accounting-bank-cash";
 
-import {
-  DUMMY_RECONCILIATION_SESSION,
-  DUMMY_BANK_STATEMENT_LINES,
-  DUMMY_SYSTEM_LEDGER_LINES,
-} from "../../constants/bank-cash-dummy";
 import type {
   BankStatementLineItem,
   SystemLedgerLineItem,
@@ -109,8 +104,8 @@ export function BankCashReconciliationPage({
     );
     if (!account) {
       return {
-        title: DUMMY_RECONCILIATION_SESSION.account_title,
-        meta: DUMMY_RECONCILIATION_SESSION.account_meta,
+        title: "Rekonsiliasi Bank",
+        meta: "Pilih rekening bank untuk memulai proses rekonsiliasi.",
       };
     }
 
@@ -121,11 +116,7 @@ export function BankCashReconciliationPage({
   }, [accountsQuery.data?.items, resolvedAccountId]);
 
   const bankRows = useMemo<BankStatementLineItem[]>(() => {
-    if (!bankLinesQuery.data?.items) {
-      return DUMMY_BANK_STATEMENT_LINES;
-    }
-
-    return bankLinesQuery.data.items.map((item) => ({
+    return (bankLinesQuery.data?.items ?? []).map((item) => ({
       line_id: item.line_id,
       date: formatBankCashDateLabel(item.date),
       description: item.description,
@@ -138,11 +129,7 @@ export function BankCashReconciliationPage({
   }, [bankLinesQuery.data?.items]);
 
   const systemRows = useMemo<SystemLedgerLineItem[]>(() => {
-    if (!systemLinesQuery.data?.items) {
-      return DUMMY_SYSTEM_LEDGER_LINES;
-    }
-
-    return systemLinesQuery.data.items.map((item) => ({
+    return (systemLinesQuery.data?.items ?? []).map((item) => ({
       line_id: item.line_id,
       date: formatBankCashDateLabel(item.date),
       partner_or_ref: item.partner_or_ref,
@@ -315,7 +302,7 @@ export function BankCashReconciliationPage({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <FeatureReconciliationDifferenceBanner
-            label={`Unreconciled Difference: ${formatBankCashCurrency(sessionQuery.data?.difference_amount ?? 2500000)}`}
+            label={`Unreconciled Difference: ${formatBankCashCurrency(sessionQuery.data?.difference_amount ?? 0)}`}
           />
           <Button
             type="button"
@@ -344,13 +331,13 @@ export function BankCashReconciliationPage({
       <FeatureReconciliationBalanceCards
         cards={{
           statement_balance_amount: formatBankCashCurrency(
-            sessionQuery.data?.statement_balance_amount ?? 145200000,
+            sessionQuery.data?.statement_balance_amount ?? 0,
           ),
           system_balance_amount: formatBankCashCurrency(
-            sessionQuery.data?.system_balance_amount ?? 142700000,
+            sessionQuery.data?.system_balance_amount ?? 0,
           ),
           difference_amount: formatBankCashCurrency(
-            sessionQuery.data?.difference_amount ?? 2500000,
+            sessionQuery.data?.difference_amount ?? 0,
           ),
         }}
       />

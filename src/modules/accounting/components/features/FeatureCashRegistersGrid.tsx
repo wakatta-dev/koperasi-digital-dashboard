@@ -5,7 +5,6 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { DUMMY_CASH_REGISTERS } from "../../constants/bank-cash-dummy";
 import type { CashRegisterItem } from "../../types/bank-cash";
 
 type FeatureCashRegistersGridProps = {
@@ -13,7 +12,7 @@ type FeatureCashRegistersGridProps = {
 };
 
 export function FeatureCashRegistersGrid({
-  items = DUMMY_CASH_REGISTERS,
+  items = [],
 }: FeatureCashRegistersGridProps) {
   return (
     <div className="space-y-4">
@@ -30,6 +29,11 @@ export function FeatureCashRegistersGrid({
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {items.length === 0 ? (
+          <div className="col-span-full rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
+            Belum ada cash register yang tersedia.
+          </div>
+        ) : null}
         {items.map((item) => (
           <Card key={item.id} className="rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
             <CardContent className="space-y-3 p-5">

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_BANK_STATEMENT_LINES } from "../../constants/bank-cash-dummy";
 import type { BankStatementLineItem } from "../../types/bank-cash";
 
 type FeatureBankStatementMatchTableProps = {
@@ -25,11 +24,17 @@ type FeatureBankStatementMatchTableProps = {
 };
 
 export function FeatureBankStatementMatchTable({
-  rows = DUMMY_BANK_STATEMENT_LINES,
+  rows = [],
   onRowsChange,
 }: FeatureBankStatementMatchTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [internalRows, setInternalRows] = useState<BankStatementLineItem[]>(rows);
+
+  useEffect(() => {
+    if (!onRowsChange) {
+      setInternalRows(rows);
+    }
+  }, [onRowsChange, rows]);
 
   const currentRows = onRowsChange ? rows : internalRows;
 
@@ -118,6 +123,13 @@ export function FeatureBankStatementMatchTable({
             </TableRow>
           </TableHeader>
           <TableBody>
+            {filteredRows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="px-4 py-10 text-center text-sm text-gray-500">
+                  Tidak ada bank statement line.
+                </TableCell>
+              </TableRow>
+            ) : null}
             {filteredRows.map((row) => (
               <TableRow
                 key={row.line_id}

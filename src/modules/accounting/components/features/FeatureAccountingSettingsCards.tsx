@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { SETTINGS_CARDS } from "../../constants/settings-dummy";
 import { ACCOUNTING_SETTINGS_ROUTES } from "../../constants/settings-routes";
 import type { SettingsCardItem } from "../../types/settings";
 
@@ -37,8 +36,16 @@ type FeatureAccountingSettingsCardsProps = {
 };
 
 export function FeatureAccountingSettingsCards({
-  items = SETTINGS_CARDS,
+  items = [],
 }: FeatureAccountingSettingsCardsProps) {
+  if (items.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
+        Belum ada konfigurasi pengaturan akuntansi dari backend.
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {items.map((item) => {

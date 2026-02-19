@@ -5,7 +5,6 @@ import { CheckCircle2, Landmark, RefreshCw, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { DUMMY_BANK_ACCOUNT_TRANSACTION_SUMMARY } from "../../constants/bank-cash-dummy";
 import type { BankAccountTransactionSummary } from "../../types/bank-cash";
 
 type FeatureBankAccountTransactionSummaryCardsProps = {
@@ -13,7 +12,11 @@ type FeatureBankAccountTransactionSummaryCardsProps = {
 };
 
 export function FeatureBankAccountTransactionSummaryCards({
-  summary = DUMMY_BANK_ACCOUNT_TRANSACTION_SUMMARY,
+  summary = {
+    current_balance: "Rp 0",
+    current_balance_delta_label: "No movement",
+    last_synced_at: "-",
+  },
 }: FeatureBankAccountTransactionSummaryCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

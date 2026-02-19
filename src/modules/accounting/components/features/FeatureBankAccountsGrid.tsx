@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { DUMMY_BANK_ACCOUNTS } from "../../constants/bank-cash-dummy";
 import type { BankAccountCardItem } from "../../types/bank-cash";
 
 type FeatureBankAccountsGridProps = {
@@ -16,7 +15,7 @@ type FeatureBankAccountsGridProps = {
 };
 
 export function FeatureBankAccountsGrid({
-  accounts = DUMMY_BANK_ACCOUNTS,
+  accounts = [],
   onReconcileNow,
   onDetails,
 }: FeatureBankAccountsGridProps) {
@@ -34,6 +33,11 @@ export function FeatureBankAccountsGrid({
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {accounts.length === 0 ? (
+          <div className="col-span-full rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
+            Belum ada rekening bank yang terdaftar.
+          </div>
+        ) : null}
         {accounts.map((account) => (
           <Card
             key={account.account_id}

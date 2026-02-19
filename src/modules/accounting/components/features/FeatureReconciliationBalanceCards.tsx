@@ -4,7 +4,7 @@ import { AlertTriangle, Banknote, Monitor } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-import { DUMMY_RECONCILIATION_SESSION } from "../../constants/bank-cash-dummy";
+import { EMPTY_RECONCILIATION_BALANCE_CARDS } from "../../constants/bank-cash-initial-state";
 import type { ReconciliationBalanceCards } from "../../types/bank-cash";
 
 type FeatureReconciliationBalanceCardsProps = {
@@ -12,7 +12,7 @@ type FeatureReconciliationBalanceCardsProps = {
 };
 
 export function FeatureReconciliationBalanceCards({
-  cards = DUMMY_RECONCILIATION_SESSION.cards,
+  cards = EMPTY_RECONCILIATION_BALANCE_CARDS,
 }: FeatureReconciliationBalanceCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

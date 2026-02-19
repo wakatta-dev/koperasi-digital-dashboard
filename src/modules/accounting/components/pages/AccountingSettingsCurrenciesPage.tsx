@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { useAccountingSettingsCurrencies, useAccountingSettingsCurrencyMutations } from "@/hooks/queries";
 import { toAccountingSettingsApiError } from "@/services/api/accounting-settings";
 
-import { CURRENCY_ROWS } from "../../constants/settings-dummy";
 import { FeatureAddCurrencyModal } from "../features/FeatureAddCurrencyModal";
 import { FeatureCurrenciesSuccessToast } from "../features/FeatureCurrenciesSuccessToast";
 import { FeatureCurrenciesTable } from "../features/FeatureCurrenciesTable";
@@ -22,11 +21,7 @@ export function AccountingSettingsCurrenciesPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const rows = useMemo(() => {
-    if (!currenciesQuery.data?.items?.length) {
-      return CURRENCY_ROWS;
-    }
-
-    return mapCurrencyRows(currenciesQuery.data.items);
+    return mapCurrencyRows(currenciesQuery.data?.items ?? []);
   }, [currenciesQuery.data?.items]);
 
   const queryErrorMessage = currenciesQuery.error

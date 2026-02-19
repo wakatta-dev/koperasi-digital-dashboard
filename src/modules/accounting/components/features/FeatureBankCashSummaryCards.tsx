@@ -4,7 +4,6 @@ import { ArrowLeftRight, Coins, Wallet } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-import { DUMMY_BANK_CASH_SUMMARY_CARDS } from "../../constants/bank-cash-dummy";
 import type { BankCashSummaryCard } from "../../types/bank-cash";
 
 type FeatureBankCashSummaryCardsProps = {
@@ -35,8 +34,16 @@ function toneStyles(tone: BankCashSummaryCard["tone"]) {
 }
 
 export function FeatureBankCashSummaryCards({
-  cards = DUMMY_BANK_CASH_SUMMARY_CARDS,
+  cards = [],
 }: FeatureBankCashSummaryCardsProps) {
+  if (cards.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
+        Ringkasan bank & kas belum tersedia.
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       {cards.map((card) => {

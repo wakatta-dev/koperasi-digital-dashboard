@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { DUMMY_SYSTEM_LEDGER_LINES } from "../../constants/bank-cash-dummy";
 import type { SystemLedgerLineItem } from "../../types/bank-cash";
 
 type FeatureSystemTransactionsMatchTableProps = {
@@ -26,11 +25,17 @@ type FeatureSystemTransactionsMatchTableProps = {
 };
 
 export function FeatureSystemTransactionsMatchTable({
-  rows = DUMMY_SYSTEM_LEDGER_LINES,
+  rows = [],
   onRowsChange,
 }: FeatureSystemTransactionsMatchTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [internalRows, setInternalRows] = useState<SystemLedgerLineItem[]>(rows);
+
+  useEffect(() => {
+    if (!onRowsChange) {
+      setInternalRows(rows);
+    }
+  }, [onRowsChange, rows]);
 
   const currentRows = onRowsChange ? rows : internalRows;
 
@@ -129,6 +134,13 @@ export function FeatureSystemTransactionsMatchTable({
             </TableRow>
           </TableHeader>
           <TableBody>
+            {filteredRows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="px-4 py-10 text-center text-sm text-gray-500">
+                  Tidak ada system transaction line.
+                </TableCell>
+              </TableRow>
+            ) : null}
             {filteredRows.map((row) => (
               <TableRow
                 key={row.line_id}

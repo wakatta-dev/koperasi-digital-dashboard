@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { DUMMY_BANK_ACCOUNT_TRANSACTION_FILTERS } from "../../constants/bank-cash-dummy";
+import { INITIAL_BANK_CASH_TRANSACTION_FILTERS } from "../../constants/bank-cash-initial-state";
 import type { BankCashTransactionFilters } from "../../types/bank-cash";
 
 type FeatureBankAccountTransactionFiltersProps = {
@@ -22,7 +22,7 @@ type FeatureBankAccountTransactionFiltersProps = {
 };
 
 export function FeatureBankAccountTransactionFilters({
-  value = DUMMY_BANK_ACCOUNT_TRANSACTION_FILTERS,
+  value = INITIAL_BANK_CASH_TRANSACTION_FILTERS,
   onChange,
 }: FeatureBankAccountTransactionFiltersProps) {
   const current = value;

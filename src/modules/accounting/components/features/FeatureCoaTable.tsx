@@ -15,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { COA_ROWS } from "../../constants/settings-dummy";
 import type { CoaAccountRow } from "../../types/settings";
 
 type FeatureCoaTableProps = {
@@ -35,7 +34,7 @@ function indentClass(level: number) {
 }
 
 export function FeatureCoaTable({
-  rows = COA_ROWS,
+  rows = [],
   onAddAccount,
   onEditAccount,
   onDeleteAccount,
@@ -81,6 +80,13 @@ export function FeatureCoaTable({
               </TableRow>
             </TableHeader>
             <TableBody>
+              {pagedRows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">
+                    Chart of accounts belum memiliki data.
+                  </TableCell>
+                </TableRow>
+              ) : null}
               {pagedRows.map((row) => (
                 <TableRow
                   key={row.account_code}
@@ -150,9 +156,15 @@ export function FeatureCoaTable({
 
         <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Showing <span className="font-medium text-gray-900 dark:text-white">1</span> to{" "}
-            <span className="font-medium text-gray-900 dark:text-white">{pagedRows.length}</span> of{" "}
-            <span className="font-medium text-gray-900 dark:text-white">45</span> accounts
+            Showing{" "}
+            <span className="font-medium text-gray-900 dark:text-white">
+              {pagedRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
+            </span>{" "}
+            to{" "}
+            <span className="font-medium text-gray-900 dark:text-white">
+              {Math.min(currentPage * PAGE_SIZE, rows.length)}
+            </span>{" "}
+            of <span className="font-medium text-gray-900 dark:text-white">{rows.length}</span> accounts
           </p>
           <div className="flex gap-2">
             <Button
