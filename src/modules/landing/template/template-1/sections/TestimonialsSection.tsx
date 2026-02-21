@@ -15,13 +15,15 @@ const DEFAULT_ITEMS = [
     role: "Kontraktor Mandiri",
     quote: "Pengiriman sangat cepat, pesan pagi siang sudah sampai di lokasi proyek. Kualitas pasirnya juga bagus, tidak banyak lumpur.",
     rating: 5,
+    stars: ["star", "star", "star", "star", "star"],
     photo_url: DEFAULT_AVATARS[0],
   },
   {
     name: "Siti Rahayu",
     role: "Renovasi Rumah",
     quote: "Harga besi beton di sini paling kompetitif dibanding toko lain. Pelayanannya ramah dan sangat membantu menghitung kebutuhan.",
-    rating: 5,
+    rating: 4.5,
+    stars: ["star", "star", "star", "star", "star_half"],
     photo_url: DEFAULT_AVATARS[1],
   },
   {
@@ -29,6 +31,7 @@ const DEFAULT_ITEMS = [
     role: "Developer Properti",
     quote: "Toko bangunan langganan untuk semua proyek perumahan saya. Stok selalu lengkap dan administrasinya rapi.",
     rating: 5,
+    stars: ["star", "star", "star", "star", "star"],
     photo_url: DEFAULT_AVATARS[2],
   },
 ];
@@ -48,11 +51,15 @@ export function TemplateOneTestimonialsSection({ data }: TemplateOneTestimonials
   const parsedItems = asArray(section.items)
     .map((item, index) => {
       const itemMap = asRecord(item);
+      const parsedStars = asArray(itemMap.stars)
+        .map((value) => asString(value))
+        .filter((value) => value !== "");
       return {
         name: asString(itemMap.name),
         role: asString(itemMap.role),
         quote: asString(itemMap.quote),
         rating: Math.max(1, Math.min(5, Math.round(asNumber(itemMap.rating, 5)))),
+        stars: parsedStars,
         photo_url: asString(itemMap.photo_url, DEFAULT_AVATARS[index % DEFAULT_AVATARS.length]),
       };
     })
@@ -75,9 +82,14 @@ export function TemplateOneTestimonialsSection({ data }: TemplateOneTestimonials
               className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800"
             >
               <div className="flex text-yellow-400 mb-4">
-                {Array.from({ length: 5 }).map((_, starIndex) => (
+                {(item.stars.length > 0
+                  ? [...item.stars, ...Array.from({ length: Math.max(0, 5 - item.stars.length) }, () => "star_outline")]
+                  : Array.from({ length: 5 }).map((_, starIndex) => (starIndex < item.rating ? "star" : "star_outline"))
+                )
+                  .slice(0, 5)
+                  .map((starIcon, starIndex) => (
                   <span key={starIndex} className="material-symbols-outlined fill-current text-[20px]">
-                    {starIndex < item.rating ? "star" : "star_outline"}
+                    {starIcon}
                   </span>
                 ))}
               </div>

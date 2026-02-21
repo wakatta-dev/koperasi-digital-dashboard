@@ -23,10 +23,12 @@ export function TemplateOneAboutSection({ data }: TemplateOneAboutSectionProps) 
     section.description,
     "Kami telah melayani ratusan proyek konstruksi, mulai dari renovasi rumah kecil hingga pembangunan gedung bertingkat. Sebagai one-stop solution untuk kebutuhan bangunan, kami berkomitmen memberikan pelayanan terbaik."
   );
-  const experienceText = asString(
+  const experienceValue = asString(section.experience_value, "15+");
+  const experienceTextRaw = asString(
     section.experience_text,
-    "15+ Tahun Pengalaman Melayani Konstruksi Indonesia"
+    "Tahun Pengalaman Melayani Konstruksi Indonesia"
   );
+  const experienceText = experienceTextRaw.replace(/^\s*\d+\+?\s*/u, "").trim();
   const imageUrl = asString(section.image_url, DEFAULT_IMAGE);
 
   const parsedHighlights = asArray(section.highlights)
@@ -48,7 +50,7 @@ export function TemplateOneAboutSection({ data }: TemplateOneAboutSectionProps) 
               style={{ backgroundImage: `url('${imageUrl}')` }}
             ></div>
             <div className="absolute -bottom-6 -right-6 bg-primary text-white p-6 rounded-xl shadow-xl hidden lg:block max-w-xs">
-              <p className="text-3xl font-black mb-1">15+</p>
+              <p className="text-3xl font-black mb-1">{experienceValue}</p>
               <p className="text-sm font-medium opacity-90">{experienceText}</p>
             </div>
           </div>

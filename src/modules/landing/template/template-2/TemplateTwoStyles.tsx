@@ -40,6 +40,15 @@ export function TemplateTwoStyles() {
         transform: scale(0.95);
       }
 
+      .template-two .market-card {
+        box-shadow: 6px 6px 0px 0px rgb(93 64 55 / 0.1);
+      }
+
+      .template-two .market-card:hover {
+        box-shadow: 10px 10px 0px 0px rgb(93 64 55 / 0.2);
+        transform: translate(-4px, -4px);
+      }
+
       .template-two .no-scrollbar {
         scrollbar-width: none;
       }
@@ -160,12 +169,20 @@ export function TemplateTwoStyles() {
         color: var(--color-market-yellow);
       }
 
+      .template-two [class~="text-market-yellow/40"] {
+        color: rgb(255 217 61 / 0.4);
+      }
+
       .template-two .text-market-orange {
         color: var(--color-market-orange);
       }
 
       .template-two .text-market-red {
         color: var(--color-market-red);
+      }
+
+      .template-two [class~="text-market-red/20"] {
+        color: rgb(255 75 145 / 0.2);
       }
 
       .template-two .text-market-teal {
@@ -196,6 +213,10 @@ export function TemplateTwoStyles() {
         border-color: var(--color-market-yellow);
       }
 
+      .template-two .border-market-teal {
+        border-color: var(--color-market-teal);
+      }
+
       .template-two .border-market-orange {
         border-color: var(--color-market-orange);
       }
@@ -216,6 +237,10 @@ export function TemplateTwoStyles() {
         border-right-color: var(--color-market-yellow);
       }
 
+      .template-two .border-r-market-teal {
+        border-right-color: var(--color-market-teal);
+      }
+
       .template-two .border-r-market-orange {
         border-right-color: var(--color-market-orange);
       }
@@ -234,6 +259,10 @@ export function TemplateTwoStyles() {
 
       .template-two .border-b-market-yellow {
         border-bottom-color: var(--color-market-yellow);
+      }
+
+      .template-two .border-b-market-teal {
+        border-bottom-color: var(--color-market-teal);
       }
 
       .template-two .border-b-market-orange {
@@ -304,6 +333,10 @@ export function TemplateTwoStyles() {
         border-color: var(--color-market-green);
       }
 
+      .template-two [class~="hover:border-village-dark"]:hover {
+        border-color: var(--color-village-dark);
+      }
+
       .template-two .from-market-yellow {
         --tw-gradient-from: var(--color-market-yellow) var(--tw-gradient-from-position);
         --tw-gradient-to: rgb(255 217 61 / 0) var(--tw-gradient-to-position);
@@ -330,6 +363,11 @@ export function TemplateTwoStyles() {
 
       .template-two .animate-marquee {
         animation: template-two-marquee 30s linear infinite;
+      }
+
+      .template-two ::selection {
+        background-color: var(--color-market-yellow);
+        color: var(--color-village-dark);
       }
     `}</style>
   );

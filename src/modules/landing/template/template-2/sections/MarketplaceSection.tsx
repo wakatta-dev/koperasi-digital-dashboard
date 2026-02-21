@@ -54,6 +54,7 @@ const DEFAULT_CARDS = [
     cta_label: "Beli",
     image_url: "",
     placeholder_icon: "shopping_bag",
+    placeholder_icon_color: "text-market-red/20",
     placeholder_tint: "bg-market-red/5",
   },
   {
@@ -66,6 +67,7 @@ const DEFAULT_CARDS = [
     cta_label: "Beli",
     image_url: "",
     placeholder_icon: "local_cafe",
+    placeholder_icon_color: "text-market-yellow/40",
     placeholder_tint: "bg-market-yellow/10",
   },
 ];
@@ -149,6 +151,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
         cta_label: asString(itemMap.cta_label, "Lihat"),
         image_url: asString(itemMap.image_url, ""),
         placeholder_icon: "",
+        placeholder_icon_color: "",
         placeholder_tint: "",
       };
     })
@@ -194,7 +197,11 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
               key={`${card.title}-${index}`}
               className={`group bg-white rounded-3xl p-3 border-b-8 border-r-8 border-2 border-village-dark transition-all duration-300 transform hover:-translate-y-2 ${theme.card}`}
             >
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4 relative bg-gray-100">
+              <div
+                className={`aspect-[4/3] rounded-2xl overflow-hidden mb-4 relative bg-gray-100 ${
+                  card.image_url ? "" : "flex items-center justify-center"
+                }`}
+              >
                 <span
                   className={`absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm z-10 ${theme.badge}`}
                 >
@@ -207,27 +214,27 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
                     src={card.image_url}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center relative">
-                    <span className="material-symbols-outlined text-6xl text-village-brown/20">
-                      {card.placeholder_icon || "shopping_bag"}
-                    </span>
-                    {card.placeholder_tint ? (
-                      <div className={`absolute inset-0 ${card.placeholder_tint}`}></div>
-                    ) : null}
-                  </div>
+                  <span
+                    className={`material-symbols-outlined text-6xl ${
+                      card.placeholder_icon_color || "text-village-brown/20"
+                    }`}
+                  >
+                    {card.placeholder_icon || "shopping_bag"}
+                  </span>
                 )}
+                {card.placeholder_tint ? <div className={`absolute inset-0 ${card.placeholder_tint}`}></div> : null}
                 <button className="absolute bottom-3 right-3 size-10 bg-white rounded-full flex items-center justify-center text-village-dark hover:text-market-red shadow-lg transition-colors z-10">
                   <span className="material-symbols-outlined">favorite</span>
                 </button>
               </div>
 
               <div className="px-2 pb-2">
-                <div className="flex justify-between items-start mb-2 gap-2">
+                <div className="flex justify-between items-start mb-2">
                   <h3 className="text-xl font-black text-village-dark leading-tight">{card.title}</h3>
                   <div className={`text-xs font-bold px-2 py-1 rounded-md ${theme.type}`}>{card.type}</div>
                 </div>
                 <p className="text-village-brown/70 text-sm font-medium line-clamp-2 mb-4">{card.description}</p>
-                <div className="flex items-center justify-between mt-auto gap-3">
+                <div className="flex items-center justify-between mt-auto">
                   <span className="text-lg font-black text-village-dark">
                     {card.price}
                     {card.price_suffix ? (
