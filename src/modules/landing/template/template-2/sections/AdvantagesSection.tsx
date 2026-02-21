@@ -28,16 +28,22 @@ const DEFAULT_ITEMS = [
 
 const ITEM_THEME = [
   {
-    border: "hover:border-market-yellow",
-    iconWrap: "bg-market-yellow text-village-dark",
+    itemClass:
+      "bg-warm-bg p-4 rounded-2xl flex items-center gap-4 border-2 border-village-dark/5 hover:border-market-yellow transition-colors",
+    iconWrap:
+      "size-12 bg-market-yellow rounded-xl flex items-center justify-center shrink-0 border-2 border-village-dark text-village-dark",
   },
   {
-    border: "hover:border-market-blue",
-    iconWrap: "bg-market-blue text-white",
+    itemClass:
+      "bg-warm-bg p-4 rounded-2xl flex items-center gap-4 border-2 border-village-dark/5 hover:border-market-blue transition-colors",
+    iconWrap:
+      "size-12 bg-market-blue rounded-xl flex items-center justify-center shrink-0 border-2 border-village-dark text-white",
   },
   {
-    border: "hover:border-market-red",
-    iconWrap: "bg-market-red text-white",
+    itemClass:
+      "bg-warm-bg p-4 rounded-2xl flex items-center gap-4 border-2 border-village-dark/5 hover:border-market-red transition-colors",
+    iconWrap:
+      "size-12 bg-market-red rounded-xl flex items-center justify-center shrink-0 border-2 border-village-dark text-white",
   },
 ];
 
@@ -84,11 +90,8 @@ export function TemplateTwoAdvantagesSection({ data }: TemplateTwoAdvantagesSect
               {items.map((item, index) => {
                 const theme = ITEM_THEME[index % ITEM_THEME.length];
                 return (
-                  <div
-                    key={`${item.title}-${index}`}
-                    className={`bg-warm-bg p-4 rounded-2xl flex items-center gap-4 border-2 border-village-dark/5 transition-colors ${theme.border}`}
-                  >
-                    <div className={`size-12 rounded-xl flex items-center justify-center shrink-0 border-2 border-village-dark ${theme.iconWrap}`}>
+                  <div key={`${item.title}-${index}`} className={theme.itemClass}>
+                    <div className={theme.iconWrap}>
                       <span className="material-symbols-outlined font-bold">{item.icon}</span>
                     </div>
                     <div>

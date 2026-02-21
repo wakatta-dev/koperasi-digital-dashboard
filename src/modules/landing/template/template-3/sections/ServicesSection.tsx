@@ -20,6 +20,31 @@ const DEFAULT_ITEMS = [
   },
 ];
 
+const SERVICE_CARD_VARIANTS = [
+  {
+    wrapper:
+      "group relative bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300",
+    iconBackground: "absolute top-0 right-0 p-8 text-primary/5",
+    iconBackgroundSize: "material-symbols-outlined text-9xl",
+    iconWrap:
+      "size-20 bg-accent text-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform",
+    title: "text-3xl font-black text-primary",
+    description: "text-gray-600 text-lg leading-relaxed",
+    link: "flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all mt-4",
+  },
+  {
+    wrapper:
+      "group relative bg-primary p-10 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden",
+    iconBackground: "absolute -bottom-10 -right-10 text-white/5",
+    iconBackgroundSize: "material-symbols-outlined text-[12rem]",
+    iconWrap:
+      "size-20 bg-white text-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform",
+    title: "text-3xl font-black text-white",
+    description: "text-indigo-100 text-lg leading-relaxed",
+    link: "flex items-center gap-2 text-accent font-bold hover:gap-4 transition-all mt-4",
+  },
+];
+
 type TemplateThreeServicesSectionProps = {
   data?: Record<string, any>;
 };
@@ -58,36 +83,20 @@ export function TemplateThreeServicesSection({ data }: TemplateThreeServicesSect
 
         <div className="staggered-grid grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
           {items.map((item, index) => {
-            const isPrimary = index % 2 === 1;
+            const variant = SERVICE_CARD_VARIANTS[index % SERVICE_CARD_VARIANTS.length];
             return (
-              <div
-                key={`${item.title}-${index}`}
-                className={`group relative p-10 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 ${
-                  isPrimary
-                    ? "bg-primary overflow-hidden"
-                    : "bg-white border border-gray-100"
-                }`}
-              >
-                <div className={`absolute ${isPrimary ? "-bottom-10 -right-10 text-white/5" : "top-0 right-0 p-8 text-primary/5"}`}>
-                  <span className={`material-symbols-outlined ${isPrimary ? "text-[12rem]" : "text-9xl"}`}>{item.icon}</span>
+              <div key={`${item.title}-${index}`} className={variant.wrapper}>
+                <div className={variant.iconBackground}>
+                  <span className={variant.iconBackgroundSize}>{item.icon}</span>
                 </div>
 
                 <div className="relative z-10 flex flex-col gap-6">
-                  <div
-                    className={`size-20 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform ${
-                      isPrimary ? "bg-white text-primary" : "bg-accent text-primary"
-                    }`}
-                  >
+                  <div className={variant.iconWrap}>
                     <span className="material-symbols-outlined text-4xl font-bold">{item.icon}</span>
                   </div>
-                  <h3 className={`text-3xl font-black ${isPrimary ? "text-white" : "text-primary"}`}>{item.title}</h3>
-                  <p className={`text-lg leading-relaxed ${isPrimary ? "text-indigo-100" : "text-gray-600"}`}>{item.description}</p>
-                  <a
-                    className={`flex items-center gap-2 font-bold hover:gap-4 transition-all mt-4 ${
-                      isPrimary ? "text-accent" : "text-primary"
-                    }`}
-                    href="#"
-                  >
+                  <h3 className={variant.title}>{item.title}</h3>
+                  <p className={variant.description}>{item.description}</p>
+                  <a className={variant.link} href="#">
                     Selengkapnya <span className="material-symbols-outlined">arrow_forward</span>
                   </a>
                 </div>

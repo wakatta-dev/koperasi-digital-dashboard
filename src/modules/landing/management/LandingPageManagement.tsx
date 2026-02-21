@@ -61,6 +61,7 @@ import {
   TemplateThree,
   TemplateTwo,
 } from "@/modules/landing/template";
+import { TemplatePreviewFrame } from "./components/TemplatePreviewFrame";
 import type {
   LandingEditorState,
   LandingTemplateFieldSchema,
@@ -922,13 +923,17 @@ export function LandingPageManagement() {
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-background">
-              <div className="min-h-full [&_.fixed]:!absolute">
+            <div className="grow h-0">
+              <TemplatePreviewFrame
+                title={`Preview ${editorState.template.code || editorState.template.id}`}
+                resetKey={`${previewDevice}-${editorState.template.id}`}
+                className="block h-full w-full"
+              >
                 <SelectedTemplateComponent
                   key={editorState.template.code || editorState.template.id}
                   content={draftContent}
                 />
-              </div>
+              </TemplatePreviewFrame>
             </div>
           </div>
 
@@ -1327,15 +1332,23 @@ export function LandingPageManagement() {
                     </div>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto bg-background [&_.fixed]:!absolute">
+                  <div className="min-h-0 flex-1 overflow-hidden bg-background">
                     {PreviewTemplateComponent ? (
-                      <PreviewTemplateComponent
-                        content={
-                          previewTemplate.id === editorState.template.id
-                            ? draftContent
-                            : undefined
-                        }
-                      />
+                      <TemplatePreviewFrame
+                        title={`Template ${previewTemplate.code}`}
+                        className="h-full w-full"
+                        resetKey={`dialog-${previewTemplate.id}`}
+                      >
+                        <div className="min-h-full [&_.fixed]:!absolute">
+                          <PreviewTemplateComponent
+                            content={
+                              previewTemplate.id === editorState.template.id
+                                ? draftContent
+                                : undefined
+                            }
+                          />
+                        </div>
+                      </TemplatePreviewFrame>
                     ) : null}
                   </div>
                 </div>

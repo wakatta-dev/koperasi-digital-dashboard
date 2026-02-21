@@ -72,44 +72,52 @@ const DEFAULT_CARDS = [
   },
 ];
 
-const CARD_THEME = [
-  {
-    card: "border-r-market-blue border-b-market-blue hover:border-market-blue",
-    badge: "text-blue-700",
-    type: "bg-blue-100 text-blue-800",
-    button: "bg-market-blue hover:bg-blue-600 text-white",
-  },
-  {
-    card: "border-r-market-orange border-b-market-orange hover:border-market-orange",
-    badge: "text-orange-700",
-    type: "bg-orange-100 text-orange-800",
-    button: "bg-market-orange hover:bg-orange-600 text-white",
-  },
-  {
-    card: "border-r-market-green border-b-market-green hover:border-market-green",
-    badge: "text-green-700",
-    type: "bg-green-100 text-green-800",
-    button: "bg-market-green hover:bg-green-600 text-white",
-  },
-  {
-    card: "border-r-market-red border-b-market-red hover:border-market-red",
-    badge: "text-red-700",
-    type: "bg-red-100 text-red-800",
-    button: "bg-market-red hover:bg-red-600 text-white",
-  },
-  {
-    card: "border-r-market-yellow border-b-market-yellow hover:border-market-yellow",
-    badge: "text-yellow-700",
-    type: "bg-yellow-100 text-yellow-800",
-    button: "bg-market-yellow hover:bg-yellow-500 text-village-dark",
-  },
+const TAB_BUTTON_CLASSES = [
+  "flex-shrink-0 px-6 py-3 rounded-xl bg-village-dark text-white font-bold text-sm shadow-lg transform hover:-translate-y-1 transition-all",
+  "flex-shrink-0 px-6 py-3 rounded-xl bg-white text-village-brown border-2 border-village-brown/10 font-bold text-sm hover:border-market-blue hover:bg-market-blue/10 hover:text-blue-700 transition-all",
+  "flex-shrink-0 px-6 py-3 rounded-xl bg-white text-village-brown border-2 border-village-brown/10 font-bold text-sm hover:border-market-orange hover:bg-market-orange/10 hover:text-orange-700 transition-all",
+  "flex-shrink-0 px-6 py-3 rounded-xl bg-white text-village-brown border-2 border-village-brown/10 font-bold text-sm hover:border-market-green hover:bg-market-green/10 hover:text-green-700 transition-all",
+  "flex-shrink-0 px-6 py-3 rounded-xl bg-white text-village-brown border-2 border-village-brown/10 font-bold text-sm hover:border-market-red hover:bg-market-red/10 hover:text-red-700 transition-all",
 ];
 
-const TAB_THEME = [
-  "hover:border-market-blue hover:bg-market-blue/10 hover:text-blue-700",
-  "hover:border-market-orange hover:bg-market-orange/10 hover:text-orange-700",
-  "hover:border-market-green hover:bg-market-green/10 hover:text-green-700",
-  "hover:border-market-red hover:bg-market-red/10 hover:text-red-700",
+const CARD_THEME = [
+  {
+    card: "group bg-white rounded-3xl p-3 border-b-8 border-r-8 border-2 border-village-dark border-r-market-blue border-b-market-blue hover:border-market-blue transition-all duration-300 transform hover:-translate-y-2",
+    badge:
+      "absolute top-3 left-3 bg-white/90 backdrop-blur text-blue-700 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm z-10",
+    type: "bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-md",
+    button: "px-4 py-2 bg-market-blue text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors shadow-sm",
+  },
+  {
+    card: "group bg-white rounded-3xl p-3 border-b-8 border-r-8 border-2 border-village-dark border-r-market-orange border-b-market-orange hover:border-market-orange transition-all duration-300 transform hover:-translate-y-2",
+    badge:
+      "absolute top-3 left-3 bg-white/90 backdrop-blur text-orange-700 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm z-10",
+    type: "bg-orange-100 text-orange-800 text-xs font-bold px-2 py-1 rounded-md",
+    button:
+      "px-4 py-2 bg-market-orange text-white rounded-xl font-bold text-sm hover:bg-orange-600 transition-colors shadow-sm",
+  },
+  {
+    card: "group bg-white rounded-3xl p-3 border-b-8 border-r-8 border-2 border-village-dark border-r-market-green border-b-market-green hover:border-market-green transition-all duration-300 transform hover:-translate-y-2",
+    badge:
+      "absolute top-3 left-3 bg-white/90 backdrop-blur text-green-700 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm z-10",
+    type: "bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-md",
+    button: "px-4 py-2 bg-market-green text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-colors shadow-sm",
+  },
+  {
+    card: "group bg-white rounded-3xl p-3 border-b-8 border-r-8 border-2 border-village-dark border-r-market-red border-b-market-red hover:border-market-red transition-all duration-300 transform hover:-translate-y-2",
+    badge:
+      "absolute top-3 left-3 bg-white/90 backdrop-blur text-red-700 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm z-10",
+    type: "bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded-md",
+    button: "px-4 py-2 bg-market-red text-white rounded-xl font-bold text-sm hover:bg-red-600 transition-colors shadow-sm",
+  },
+  {
+    card: "group bg-white rounded-3xl p-3 border-b-8 border-r-8 border-2 border-village-dark border-r-market-yellow border-b-market-yellow hover:border-market-yellow transition-all duration-300 transform hover:-translate-y-2",
+    badge:
+      "absolute top-3 left-3 bg-white/90 backdrop-blur text-yellow-700 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm z-10",
+    type: "bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded-md",
+    button:
+      "px-4 py-2 bg-market-yellow text-village-dark rounded-xl font-bold text-sm hover:bg-yellow-500 transition-colors shadow-sm",
+  },
 ];
 
 type TemplateTwoMarketplaceSectionProps = {
@@ -175,13 +183,9 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
         {tabs.map((tab, index) => (
           <button
             key={`${tab.label}-${index}`}
-            className={`flex-shrink-0 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
-              index === 0
-                ? "bg-village-dark text-white shadow-lg transform hover:-translate-y-1"
-                : `bg-white text-village-brown border-2 border-village-brown/10 ${
-                    TAB_THEME[(index - 1) % TAB_THEME.length]
-                  }`
-            }`}
+            className={
+              index === 0 ? TAB_BUTTON_CLASSES[0] : TAB_BUTTON_CLASSES[((index - 1) % (TAB_BUTTON_CLASSES.length - 1)) + 1]
+            }
           >
             <span className="material-symbols-outlined align-bottom mr-1 text-lg">{tab.icon}</span>
             {tab.label}
@@ -193,18 +197,13 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
         {cards.map((card, index) => {
           const theme = CARD_THEME[index % CARD_THEME.length];
           return (
-            <div
-              key={`${card.title}-${index}`}
-              className={`group bg-white rounded-3xl p-3 border-b-8 border-r-8 border-2 border-village-dark transition-all duration-300 transform hover:-translate-y-2 ${theme.card}`}
-            >
+            <div key={`${card.title}-${index}`} className={theme.card}>
               <div
                 className={`aspect-[4/3] rounded-2xl overflow-hidden mb-4 relative bg-gray-100 ${
                   card.image_url ? "" : "flex items-center justify-center"
                 }`}
               >
-                <span
-                  className={`absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm z-10 ${theme.badge}`}
-                >
+                <span className={theme.badge}>
                   {card.badge}
                 </span>
                 {card.image_url ? (
@@ -231,7 +230,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
               <div className="px-2 pb-2">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-xl font-black text-village-dark leading-tight">{card.title}</h3>
-                  <div className={`text-xs font-bold px-2 py-1 rounded-md ${theme.type}`}>{card.type}</div>
+                  <div className={theme.type}>{card.type}</div>
                 </div>
                 <p className="text-village-brown/70 text-sm font-medium line-clamp-2 mb-4">{card.description}</p>
                 <div className="flex items-center justify-between mt-auto">
@@ -241,9 +240,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
                       <span className="text-xs font-semibold text-village-brown/50">{card.price_suffix}</span>
                     ) : null}
                   </span>
-                  <button className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-sm ${theme.button}`}>
-                    {card.cta_label}
-                  </button>
+                  <button className={theme.button}>{card.cta_label}</button>
                 </div>
               </div>
             </div>

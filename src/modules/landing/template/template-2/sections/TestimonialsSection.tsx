@@ -30,7 +30,11 @@ const DEFAULT_ITEMS = [
   },
 ];
 
-const CARD_BORDER = ["hover:border-market-yellow", "hover:border-market-blue", "hover:border-market-red"];
+const CARD_CLASS = [
+  "bg-white p-8 rounded-[2rem] shadow-lg border-2 border-village-dark/5 hover:border-market-yellow transition-all",
+  "bg-white p-8 rounded-[2rem] shadow-lg border-2 border-village-dark/5 hover:border-market-blue transition-all translate-y-0 lg:translate-y-4",
+  "bg-white p-8 rounded-[2rem] shadow-lg border-2 border-village-dark/5 hover:border-market-red transition-all",
+];
 const ROLE_COLOR = ["text-market-orange", "text-market-blue", "text-market-red"];
 const AVATAR_BORDER = ["border-market-yellow", "border-market-blue", "border-market-red"];
 
@@ -66,12 +70,7 @@ export function TemplateTwoTestimonialsSection({ data }: TemplateTwoTestimonials
 
       <div className="grid lg:grid-cols-3 gap-6">
         {items.map((item, index) => (
-          <div
-            key={`${item.name}-${index}`}
-            className={`bg-white p-8 rounded-[2rem] shadow-lg border-2 border-village-dark/5 transition-all ${
-              index === 1 ? "translate-y-0 lg:translate-y-4" : ""
-            } ${CARD_BORDER[index % CARD_BORDER.length]}`}
-          >
+          <div key={`${item.name}-${index}`} className={CARD_CLASS[index % CARD_CLASS.length]}>
             <div className="flex gap-1 mb-4 text-market-yellow">
               {Array.from({ length: 5 }).map((_, starIndex) => (
                 <span key={starIndex} className="material-symbols-outlined">

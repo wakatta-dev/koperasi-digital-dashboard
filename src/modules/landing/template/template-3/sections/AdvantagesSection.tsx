@@ -20,6 +20,12 @@ const DEFAULT_ITEMS = [
   },
 ];
 
+const ADVANTAGE_ICON_CLASS = [
+  "w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform",
+  "w-16 h-16 bg-accent text-primary rounded-2xl flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform",
+  "w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform",
+];
+
 type TemplateThreeAdvantagesSectionProps = {
   data?: Record<string, any>;
 };
@@ -58,17 +64,12 @@ export function TemplateThreeAdvantagesSection({ data }: TemplateThreeAdvantages
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {items.map((item, index) => {
-            const isAccent = index % 2 === 1;
             return (
               <div
                 key={`${item.title}-${index}`}
                 className="bg-off-white p-8 rounded-[2rem] border border-gray-100 hover:shadow-xl transition-all duration-300 group"
               >
-                <div
-                  className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform ${
-                    isAccent ? "bg-accent text-primary" : "bg-primary text-white"
-                  }`}
-                >
+                <div className={ADVANTAGE_ICON_CLASS[index % ADVANTAGE_ICON_CLASS.length]}>
                   <span className="material-symbols-outlined text-3xl">{item.icon}</span>
                 </div>
                 <h3 className="text-2xl font-bold text-primary mb-4">{item.title}</h3>
