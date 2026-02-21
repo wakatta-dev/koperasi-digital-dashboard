@@ -3,16 +3,14 @@
 import { API_PREFIX, api } from "@/services/api/base";
 import type { ApiResponse } from "@/types/api";
 import type {
-  AboutSection,
-  AdvantagesSection,
-  BusinessUnitConfig,
-  FeaturedProductSection,
-  FooterSection,
-  HeroSection,
+  LandingEditorState,
   LandingPageConfig,
   LandingPageMediaResponse,
-  NavigationConfig,
-  TestimonialSection,
+  LandingPublishPayload,
+  LandingSaveDraftPayload,
+  LandingTemplateSelectPayload,
+  LandingTemplateSelectResponse,
+  LandingTemplateSummary,
 } from "@/types/landing-page";
 
 const BASE = `${API_PREFIX}/landingpage`;
@@ -21,50 +19,39 @@ export function getLandingPagePublic(): Promise<ApiResponse<LandingPageConfig>> 
   return api.get<LandingPageConfig>(BASE);
 }
 
-export function getLandingPageAdmin(): Promise<ApiResponse<LandingPageConfig>> {
-  return api.get<LandingPageConfig>(`${BASE}/admin`);
+export function getLandingEditorState(): Promise<ApiResponse<LandingEditorState>> {
+  return api.get<LandingEditorState>(`${BASE}/admin/editor-state`);
 }
 
-export function updateNavigation(
-  payload: NavigationConfig
-): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/navigation`, payload);
+export function listLandingTemplates(): Promise<ApiResponse<LandingTemplateSummary[]>> {
+  return api.get<LandingTemplateSummary[]>(`${BASE}/admin/templates`);
 }
 
-export function updateHero(payload: HeroSection): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/hero`, payload);
+export function selectLandingTemplate(
+  payload: LandingTemplateSelectPayload
+): Promise<ApiResponse<LandingTemplateSelectResponse>> {
+  return api.post<LandingTemplateSelectResponse>(`${BASE}/admin/template/select`, payload);
 }
 
-export function updateAbout(payload: AboutSection): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/about`, payload);
+export function confirmLandingTemplateSelect(
+  payload: LandingTemplateSelectPayload
+): Promise<ApiResponse<LandingTemplateSelectResponse>> {
+  return api.post<LandingTemplateSelectResponse>(
+    `${BASE}/admin/template/select/confirm`,
+    payload
+  );
 }
 
-export function updateAdvantages(
-  payload: AdvantagesSection
-): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/advantages`, payload);
+export function saveLandingDraft(
+  payload: LandingSaveDraftPayload
+): Promise<ApiResponse<LandingEditorState>> {
+  return api.put<LandingEditorState>(`${BASE}/admin/draft`, payload);
 }
 
-export function updateFeaturedProduct(
-  payload: FeaturedProductSection
-): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/featured-product`, payload);
-}
-
-export function updateBusinessUnits(
-  payload: BusinessUnitConfig
-): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/business-units`, payload);
-}
-
-export function updateTestimonials(
-  payload: TestimonialSection
-): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/testimonials`, payload);
-}
-
-export function updateFooter(payload: FooterSection): Promise<ApiResponse<LandingPageConfig>> {
-  return api.put<LandingPageConfig>(`${BASE}/admin/footer`, payload);
+export function publishLanding(
+  payload: LandingPublishPayload
+): Promise<ApiResponse<LandingEditorState>> {
+  return api.post<LandingEditorState>(`${BASE}/admin/publish`, payload);
 }
 
 export function uploadLandingMedia(

@@ -149,6 +149,75 @@ export type LandingPageMediaResponse = {
   url: string;
 };
 
+export type LandingTemplateFieldSchema = {
+  key: string;
+  type: string;
+  label?: string;
+  required?: boolean;
+  min_items?: number;
+  max_items?: number;
+  max_size_mb?: number;
+  item_fields?: LandingTemplateFieldSchema[];
+};
+
+export type LandingTemplateSectionSchema = {
+  key: string;
+  label?: string;
+  fields: LandingTemplateFieldSchema[];
+};
+
+export type LandingTemplateSchema = {
+  sections: LandingTemplateSectionSchema[];
+};
+
+export type LandingTemplateSummary = {
+  id: number;
+  code: string;
+  name: string;
+  description?: string;
+  category?: string;
+  badges?: string[];
+  preview_image_url?: string;
+  status: string;
+};
+
+export type LandingEditorState = {
+  template: LandingTemplateSummary;
+  draft_version: number;
+  published_version: number;
+  has_unpublished_changes: boolean;
+  last_draft_saved_at?: number;
+  last_published_at?: number;
+  section_schema: LandingTemplateSchema;
+  draft_content: Record<string, any>;
+  published_content: Record<string, any>;
+};
+
+export type LandingTemplateSwitchSummary = {
+  safe_sections?: string[];
+  dropped_sections?: string[];
+};
+
+export type LandingTemplateSelectResponse = {
+  requires_confirmation: boolean;
+  summary?: LandingTemplateSwitchSummary;
+  editor_state?: LandingEditorState;
+};
+
+export type LandingTemplateSelectPayload = {
+  template_id: number;
+  force_replace?: boolean;
+};
+
+export type LandingSaveDraftPayload = {
+  expected_draft_version: number;
+  draft_content: Record<string, any>;
+};
+
+export type LandingPublishPayload = {
+  expected_draft_version: number;
+};
+
 export const createEmptyLandingConfig = (): LandingPageConfig => ({
   section_order: [
     "hero",
