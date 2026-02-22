@@ -27,22 +27,14 @@ import BumdesLayout from "@/app/(mvp)/bumdes/layout";
 import { bumdesNavigation } from "@/app/(mvp)/bumdes/navigation";
 
 describe("BUMDes Landing Page menu", () => {
-  it("defines the landing page submenu in the required order", () => {
+  it("uses a single landing page entry without submenu", () => {
     const landingMenu = bumdesNavigation.find(
       (item) => item.name === "Landing Page"
     );
 
     expect(landingMenu).toBeDefined();
-    expect(landingMenu?.items?.map((item) => item.name)).toEqual([
-      "Identitas & Navigasi",
-      "Hero Section",
-      "Tentang BUMDes",
-      "Unit Usaha",
-      "Produk Unggulan",
-      "Keunggulan",
-      "Testimoni",
-      "Footer & Kontak",
-    ]);
+    expect(landingMenu?.href).toBe("/bumdes/landing-page");
+    expect(landingMenu?.items).toBeUndefined();
   });
 
   it("keeps the BUMDes role protection on the layout", () => {

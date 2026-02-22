@@ -1,7 +1,7 @@
 /** @format */
 
-import { redirect } from "next/navigation";
+import { LandingPageManagement } from "@/modules/landing/management/LandingPageManagement";
 
 export default function LandingPageIndexPage() {
-  redirect("/bumdes/landing-page/identitas-navigasi");
+  return <LandingPageManagement />;
 }
