@@ -2,12 +2,12 @@
 
 import { asArray, asHref, asRecord, asString } from "../../shared/content";
 
-const DEFAULT_LINKS = [
-  { label: "Tentang", url: "#about" },
-  { label: "Produk", url: "#products" },
-  { label: "Layanan", url: "#features" },
-  { label: "Kontak", url: "#contact" },
-];
+const MARKETPLACE_URL = "/marketplace";
+const ASSET_RENTAL_URL = "/penyewaan-aset";
+
+function normalizeNavUrl(value: string): string {
+  return value.trim().toLowerCase();
+}
 
 type TemplateOneHeaderSectionProps = {
   data?: Record<string, any>;
@@ -17,8 +17,16 @@ export function TemplateOneHeaderSection({ data }: TemplateOneHeaderSectionProps
   const section = asRecord(data);
   const brandName = asString(section.brand_name, "Toko Bangunan");
   const ctaLabel = asString(section.cta_label, "Mulai Belanja");
+  const rawMarketplaceLabel =
+    typeof section.marketplace_nav_label === "string"
+      ? section.marketplace_nav_label
+      : "";
+  const rawAssetRentalLabel =
+    typeof section.asset_rental_nav_label === "string"
+      ? section.asset_rental_nav_label
+      : "";
 
-  const parsedLinks = asArray(section.nav_links)
+  const parsedNavLinks = asArray(section.nav_links)
     .map((item) => {
       const itemMap = asRecord(item);
       return {
@@ -28,7 +36,44 @@ export function TemplateOneHeaderSection({ data }: TemplateOneHeaderSectionProps
     })
     .filter((item) => item.label !== "");
 
-  const navLinks = parsedLinks.length > 0 ? parsedLinks : DEFAULT_LINKS;
+  const legacyMarketplace = parsedNavLinks.find(
+    (item) => normalizeNavUrl(item.url) === MARKETPLACE_URL,
+  );
+  const legacyAssetRental = parsedNavLinks.find(
+    (item) => normalizeNavUrl(item.url) === ASSET_RENTAL_URL,
+  );
+
+  const marketplaceNavLabel = asString(
+    section.marketplace_nav_label,
+    legacyMarketplace?.label ?? parsedNavLinks[0]?.label ?? "Marketplace",
+  );
+  const assetRentalNavLabel = asString(
+    section.asset_rental_nav_label,
+    legacyAssetRental?.label ?? parsedNavLinks[1]?.label ?? "Penyewaan Aset",
+  );
+
+  const shouldShiftLegacyLinks =
+    rawMarketplaceLabel.trim() === "" &&
+    rawAssetRentalLabel.trim() === "" &&
+    !legacyMarketplace &&
+    !legacyAssetRental;
+
+  const candidateAdditionalLinks = shouldShiftLegacyLinks
+    ? parsedNavLinks.slice(2)
+    : parsedNavLinks;
+
+  const additionalLinks = candidateAdditionalLinks
+    .filter((item) => {
+      const normalized = normalizeNavUrl(item.url);
+      return normalized !== MARKETPLACE_URL && normalized !== ASSET_RENTAL_URL;
+    })
+    .slice(0, 3);
+
+  const navLinks = [
+    { label: marketplaceNavLabel, url: MARKETPLACE_URL },
+    { label: assetRentalNavLabel, url: ASSET_RENTAL_URL },
+    ...additionalLinks,
+  ].slice(0, 5);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 transition-colors">

@@ -789,6 +789,8 @@ export function LandingPageManagement() {
   const PreviewTemplateComponent = previewTemplate
     ? getTemplateComponent(previewTemplate.code)
     : null;
+  const previewInteractionLockClass =
+    "[&_a]:pointer-events-none [&_button]:pointer-events-none [&_input]:pointer-events-none [&_select]:pointer-events-none [&_textarea]:pointer-events-none [&_summary]:pointer-events-none [&_[role='button']]:pointer-events-none [&_a]:cursor-default [&_button]:cursor-default";
 
   return (
     <>
@@ -929,10 +931,17 @@ export function LandingPageManagement() {
                 resetKey={`${previewDevice}-${editorState.template.id}`}
                 className="block h-full w-full"
               >
-                <SelectedTemplateComponent
-                  key={editorState.template.code || editorState.template.id}
-                  content={draftContent}
-                />
+                <div
+                  className={cn(
+                    "min-h-full [&_.fixed]:!absolute",
+                    previewInteractionLockClass,
+                  )}
+                >
+                  <SelectedTemplateComponent
+                    key={editorState.template.code || editorState.template.id}
+                    content={draftContent}
+                  />
+                </div>
               </TemplatePreviewFrame>
             </div>
           </div>
@@ -1339,7 +1348,12 @@ export function LandingPageManagement() {
                         className="h-full w-full"
                         resetKey={`dialog-${previewTemplate.id}`}
                       >
-                        <div className="min-h-full [&_.fixed]:!absolute">
+                        <div
+                          className={cn(
+                            "min-h-full [&_.fixed]:!absolute",
+                            previewInteractionLockClass,
+                          )}
+                        >
                           <PreviewTemplateComponent
                             content={
                               previewTemplate.id === editorState.template.id

@@ -2,11 +2,12 @@
 
 import { asArray, asHref, asRecord, asString } from "../../shared/content";
 
-const DEFAULT_NAV_LINKS = [
-  { label: "Beranda", url: "#" },
-  { label: "Belanja", url: "#marketplace" },
-  { label: "Tentang Kami", url: "#keunggulan" },
-];
+const MARKETPLACE_URL = "/marketplace";
+const ASSET_RENTAL_URL = "/penyewaan-aset";
+
+function normalizeNavUrl(value: string): string {
+  return value.trim().toLowerCase();
+}
 
 type TemplateTwoHeaderSectionProps = {
   data?: Record<string, any>;
@@ -17,6 +18,14 @@ export function TemplateTwoHeaderSection({ data }: TemplateTwoHeaderSectionProps
   const brandName = asString(section.brand_name, "Pasar");
   const brandHighlight = asString(section.brand_highlight, "Desa");
   const authButtonLabel = asString(section.auth_button_label, "Masuk / Daftar");
+  const rawMarketplaceLabel =
+    typeof section.marketplace_nav_label === "string"
+      ? section.marketplace_nav_label
+      : "";
+  const rawAssetRentalLabel =
+    typeof section.asset_rental_nav_label === "string"
+      ? section.asset_rental_nav_label
+      : "";
 
   const parsedNavLinks = asArray(section.nav_links)
     .map((item) => {
@@ -28,7 +37,44 @@ export function TemplateTwoHeaderSection({ data }: TemplateTwoHeaderSectionProps
     })
     .filter((item) => item.label !== "");
 
-  const navLinks = parsedNavLinks.length > 0 ? parsedNavLinks : DEFAULT_NAV_LINKS;
+  const legacyMarketplace = parsedNavLinks.find(
+    (item) => normalizeNavUrl(item.url) === MARKETPLACE_URL,
+  );
+  const legacyAssetRental = parsedNavLinks.find(
+    (item) => normalizeNavUrl(item.url) === ASSET_RENTAL_URL,
+  );
+
+  const marketplaceNavLabel = asString(
+    section.marketplace_nav_label,
+    legacyMarketplace?.label ?? parsedNavLinks[0]?.label ?? "Marketplace",
+  );
+  const assetRentalNavLabel = asString(
+    section.asset_rental_nav_label,
+    legacyAssetRental?.label ?? parsedNavLinks[1]?.label ?? "Penyewaan Aset",
+  );
+
+  const shouldShiftLegacyLinks =
+    rawMarketplaceLabel.trim() === "" &&
+    rawAssetRentalLabel.trim() === "" &&
+    !legacyMarketplace &&
+    !legacyAssetRental;
+
+  const candidateAdditionalLinks = shouldShiftLegacyLinks
+    ? parsedNavLinks.slice(2)
+    : parsedNavLinks;
+
+  const additionalLinks = candidateAdditionalLinks
+    .filter((item) => {
+      const normalized = normalizeNavUrl(item.url);
+      return normalized !== MARKETPLACE_URL && normalized !== ASSET_RENTAL_URL;
+    })
+    .slice(0, 3);
+
+  const navLinks = [
+    { label: marketplaceNavLabel, url: MARKETPLACE_URL },
+    { label: assetRentalNavLabel, url: ASSET_RENTAL_URL },
+    ...additionalLinks,
+  ].slice(0, 5);
 
   return (
     <header className="sticky top-4 z-50 w-full px-4 md:px-6">
