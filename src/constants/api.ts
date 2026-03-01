@@ -186,13 +186,6 @@ export const API_ENDPOINTS = {
     generalLedger: "/finance/reports/general-ledger",
     accountLedger: "/finance/reports/account-ledger",
   },
-  bumdesReport: {
-    overview: "/finance/reports/overview",
-    profitLoss: "/finance/reports/profit-loss",
-    cashFlow: "/finance/reports/cash-flow",
-    balanceSheet: "/finance/reports/balance-sheet",
-    salesDetail: "/finance/reports/sales-detail",
-  },
   marketplace: {
     products: "/marketplace/products",
     product: (id: string | number) => `/marketplace/products/${id}`,
