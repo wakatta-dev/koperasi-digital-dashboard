@@ -14,7 +14,7 @@ import { AccountingTaxApiError } from "@/services/api/accounting-tax";
 const testState = vi.hoisted(() => ({
   pushMock: vi.fn(),
   replaceMock: vi.fn(),
-  pathname: "/bumdes/accounting/tax",
+  pathname: "/bumdes/accounting/tax/summary",
   searchParams: new URLSearchParams(""),
   toastError: vi.fn(),
   toastSuccess: vi.fn(),
@@ -181,7 +181,7 @@ vi.mock("@/hooks/queries", () => ({
 }));
 
 function resetStates() {
-  testState.pathname = "/bumdes/accounting/tax";
+  testState.pathname = "/bumdes/accounting/tax/summary";
   testState.searchParams = new URLSearchParams("");
   testState.toastError.mockReset();
   testState.toastSuccess.mockReset();

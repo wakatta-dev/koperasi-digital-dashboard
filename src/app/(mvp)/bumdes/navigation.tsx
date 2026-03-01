@@ -53,17 +53,8 @@ export const bumdesNavigation = [
     href: "/bumdes/marketplace",
     icon: <ShoppingBag className="h-4 w-4" />,
     items: [
-      {
-        name: "Produk",
-        href: "/bumdes/marketplace/inventory",
-        items: [
-          { name: "Daftar Produk", href: "/bumdes/marketplace/inventory" },
-          {
-            name: "Kategori Produk",
-            href: "/bumdes/marketplace/inventory/categories",
-          },
-        ],
-      },
+      { name: "Produk", href: "/bumdes/marketplace/inventory" },
+      { name: "Kategori Produk", href: "/bumdes/marketplace/categories" },
       { name: "Pesanan", href: "/bumdes/marketplace/order" },
       { name: "Pelanggan", href: "/bumdes/marketplace/pelanggan" },
     ],
@@ -92,7 +83,7 @@ export const bumdesNavigation = [
         name: "Tax",
         href: "/bumdes/accounting/tax",
         items: [
-          { name: "Summary & Period", href: "/bumdes/accounting/tax" },
+          { name: "Summary & Period", href: "/bumdes/accounting/tax/summary" },
           { name: "PPN Details", href: "/bumdes/accounting/tax/ppn-details" },
           { name: "PPh Records", href: "/bumdes/accounting/tax/pph-records" },
           { name: "Export History", href: "/bumdes/accounting/tax/export-history" },
@@ -164,7 +155,7 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/asset/master-data": "Asset & Rental - Master Data",
   "/bumdes/asset/jadwal": "Asset & Rental - Penyewaan",
   "/bumdes/marketplace/inventory": "Penjualan - Produk",
-  "/bumdes/marketplace/inventory/categories": "Penjualan - Kategori Produk",
+  "/bumdes/marketplace/categories": "Penjualan - Kategori Produk",
   "/bumdes/marketplace/order": "Penjualan - Pesanan",
   "/bumdes/marketplace/pelanggan": "Penjualan - Pelanggan",
   "/bumdes/marketplace": "Penjualan",
@@ -191,6 +182,7 @@ export const bumdesTitleMap: Record<string, string> = {
     "Accounting - Journal - Entry Detail",
   "/bumdes/accounting/journal/audit-log": "Accounting - Journal - Audit Log",
   "/bumdes/accounting/tax": "Accounting - Tax",
+  "/bumdes/accounting/tax/summary": "Accounting - Tax - Summary & Period",
   "/bumdes/accounting/tax/ppn-details": "Accounting - Tax - PPN Details",
   "/bumdes/accounting/tax/pph-records": "Accounting - Tax - PPh Records",
   "/bumdes/accounting/tax/export-history": "Accounting - Tax - Export History",
