@@ -8,7 +8,7 @@ import { TaxPpnDetailsPage, TaxSummaryPeriodPage } from "@/modules/accounting";
 const state = vi.hoisted(() => ({
   pushMock: vi.fn(),
   replaceMock: vi.fn(),
-  pathname: "/bumdes/accounting/tax",
+  pathname: "/bumdes/accounting/tax/summary",
   searchParams: new URLSearchParams(""),
 }));
 
@@ -161,7 +161,7 @@ describe("tax summary and ppn core", () => {
   beforeEach(() => {
     state.pushMock.mockReset();
     state.replaceMock.mockReset();
-    state.pathname = "/bumdes/accounting/tax";
+    state.pathname = "/bumdes/accounting/tax/summary";
     state.searchParams = new URLSearchParams("");
   });
 
@@ -197,7 +197,7 @@ describe("tax summary and ppn core", () => {
     expect(screen.getByRole("heading", { name: "Detail Transaksi PPN (VAT)" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Back to Summary" }));
 
-    expect(state.pushMock).toHaveBeenCalledWith("/bumdes/accounting/tax?q=October&page=2");
+    expect(state.pushMock).toHaveBeenCalledWith("/bumdes/accounting/tax/summary?q=October&page=2");
   });
 
   it("filters ppn detail table via search input", () => {

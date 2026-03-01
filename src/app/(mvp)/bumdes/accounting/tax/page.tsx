@@ -1,7 +1,7 @@
 /** @format */
 
-import { TaxSummaryPeriodPage } from "@/modules/accounting";
+import { redirect } from "next/navigation";
 
-export default function AccountingTaxPage() {
-  return <TaxSummaryPeriodPage />;
+export default function AccountingTaxIndexPage() {
+  redirect("/bumdes/accounting/tax/summary");
 }

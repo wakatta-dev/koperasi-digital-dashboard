@@ -2,6 +2,6 @@
 
 import { ProductCategoryManagementPage } from "@/modules/marketplace/components/penjualan/ProductCategoryManagementPage";
 
-export default function MarketplaceInventoryCategoriesPage() {
+export default function MarketplaceCategoriesPage() {
   return <ProductCategoryManagementPage />;
 }

@@ -10,7 +10,6 @@ import {
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuAction,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
@@ -76,25 +75,46 @@ export function NavMain({
               Array.isArray(child.items) && child.items.length > 0;
             const isChildActive = isItemActive(child);
             const childKey = `${parentKey}-${child.url}`;
+            const childIsOpen = openItems[childKey] ?? isChildActive;
+            const childSubmenuId = getSubmenuId(childKey);
             return (
               <SidebarMenuSubItem key={child.title}>
                 <SidebarMenuSubButton
                   asChild
                   isActive={isChildActive}
                   size={level > 0 ? "sm" : "md"}
+                  data-state={childIsOpen ? "open" : "closed"}
+                  aria-expanded={hasChildren ? childIsOpen : undefined}
+                  aria-controls={hasChildren ? childSubmenuId : undefined}
                   className={
                     level > 0
                       ? "!h-7 !text-xs text-slate-500"
                       : "!h-8 !text-sm text-slate-500"
                   }
                 >
-                  <Link href={child.url}>
-                    {child.icon}
-                    <span>{child.title}</span>
-                  </Link>
+                  {hasChildren ? (
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2"
+                      onClick={() => setItemOpen(childKey, !childIsOpen)}
+                    >
+                      {child.icon}
+                      <span>{child.title}</span>
+                      <ChevronDown
+                        className={`ml-auto size-4 transition-transform ${
+                          childIsOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                  ) : (
+                    <Link href={child.url}>
+                      {child.icon}
+                      <span>{child.title}</span>
+                    </Link>
+                  )}
                 </SidebarMenuSubButton>
-                {hasChildren && isChildActive
-                  ? renderSubItems(child.items!, childKey, level + 1)
+                {hasChildren && childIsOpen
+                  ? renderSubItems(child.items!, childSubmenuId, level + 1)
                   : null}
               </SidebarMenuSubItem>
             );
@@ -102,7 +122,7 @@ export function NavMain({
         </SidebarMenuSub>
       );
     },
-    [isItemActive],
+    [getSubmenuId, isItemActive, openItems, setItemOpen],
   );
 
   return (
@@ -141,36 +161,23 @@ export function NavMain({
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
-                  asChild
                   tooltip={item.title}
                   isActive={isParentActive}
                   data-state={isOpen ? "open" : "closed"}
-                  className="!h-10 !gap-3 !rounded-lg !px-3 !py-2 font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 data-[active=true]:bg-indigo-50 data-[active=true]:text-indigo-700 data-[active=true]:ring-1 data-[active=true]:ring-indigo-200 data-[state=open]:bg-slate-100/70 dark:text-slate-300 dark:hover:bg-slate-800/70 dark:hover:text-white dark:data-[active=true]:bg-indigo-900/30 dark:data-[active=true]:text-indigo-200 dark:data-[active=true]:ring-indigo-500/40 dark:data-[state=open]:bg-slate-800/60 [&>svg]:size-5 [&>svg]:text-slate-500 dark:[&>svg]:text-slate-400 data-[active=true]:[&>svg]:text-indigo-600 dark:data-[active=true]:[&>svg]:text-indigo-200"
-                >
-                  <Link href={item.url}>
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuAction
                   type="button"
-                  className="right-2 translate-y-1 text-slate-400 hover:bg-transparent hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200"
-                  aria-label={
-                    isOpen
-                      ? `Minimize ${item.title} menu`
-                      : `Expand ${item.title} menu`
-                  }
                   aria-expanded={isOpen}
                   aria-controls={submenuId}
-                  data-state={isOpen ? "open" : "closed"}
                   onClick={() => setItemOpen(itemKey, !isOpen)}
+                  className="!h-10 !gap-3 !rounded-lg !px-3 !py-2 font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 data-[active=true]:bg-indigo-50 data-[active=true]:text-indigo-700 data-[active=true]:ring-1 data-[active=true]:ring-indigo-200 data-[state=open]:bg-slate-100/70 dark:text-slate-300 dark:hover:bg-slate-800/70 dark:hover:text-white dark:data-[active=true]:bg-indigo-900/30 dark:data-[active=true]:text-indigo-200 dark:data-[active=true]:ring-indigo-500/40 dark:data-[state=open]:bg-slate-800/60 [&>svg]:size-5 [&>svg]:text-slate-500 dark:[&>svg]:text-slate-400 data-[active=true]:[&>svg]:text-indigo-600 dark:data-[active=true]:[&>svg]:text-indigo-200"
                 >
+                  {item.icon}
+                  <span>{item.title}</span>
                   <ChevronDown
-                    className={`size-4 transition-transform ${
+                    className={`ml-auto size-4 transition-transform ${
                       isOpen ? "rotate-180" : ""
                     }`}
                   />
-                </SidebarMenuAction>
+                </SidebarMenuButton>
                 {isOpen
                   ? renderSubItems(item.items!, submenuId, 0)
                   : null}

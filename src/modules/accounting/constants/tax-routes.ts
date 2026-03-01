@@ -1,7 +1,7 @@
 /** @format */
 
 export const ACCOUNTING_TAX_ROUTES = {
-  summary: "/bumdes/accounting/tax",
+  summary: "/bumdes/accounting/tax/summary",
   ppnDetails: "/bumdes/accounting/tax/ppn-details",
   pphRecords: "/bumdes/accounting/tax/pph-records",
   exportHistory: "/bumdes/accounting/tax/export-history",

@@ -15,7 +15,7 @@ import {
 const state = vi.hoisted(() => ({
   pushMock: vi.fn(),
   replaceMock: vi.fn(),
-  pathname: "/bumdes/accounting/tax",
+  pathname: "/bumdes/accounting/tax/summary",
   searchParams: new URLSearchParams(""),
 }));
 
@@ -144,7 +144,7 @@ describe("tax foundation", () => {
   beforeEach(() => {
     state.pushMock.mockReset();
     state.replaceMock.mockReset();
-    state.pathname = "/bumdes/accounting/tax";
+    state.pathname = "/bumdes/accounting/tax/summary";
     state.searchParams = new URLSearchParams("");
   });
 
@@ -175,7 +175,7 @@ describe("tax foundation", () => {
     const taxItem = accountingItem?.items?.find((item) => item.name === "Tax");
     expect(taxItem).toBeTruthy();
     expect(taxItem?.items).toEqual([
-      { name: "Summary & Period", href: "/bumdes/accounting/tax" },
+      { name: "Summary & Period", href: "/bumdes/accounting/tax/summary" },
       { name: "PPN Details", href: "/bumdes/accounting/tax/ppn-details" },
       { name: "PPh Records", href: "/bumdes/accounting/tax/pph-records" },
       { name: "Export History", href: "/bumdes/accounting/tax/export-history" },
@@ -184,7 +184,9 @@ describe("tax foundation", () => {
   });
 
   it("registers title map entries for tax child routes", () => {
-    expect(bumdesTitleMap["/bumdes/accounting/tax"]).toBe("Accounting - Tax");
+    expect(bumdesTitleMap["/bumdes/accounting/tax/summary"]).toBe(
+      "Accounting - Tax - Summary & Period"
+    );
     expect(bumdesTitleMap["/bumdes/accounting/tax/ppn-details"]).toBe(
       "Accounting - Tax - PPN Details"
     );

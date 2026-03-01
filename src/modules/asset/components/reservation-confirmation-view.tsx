@@ -131,7 +131,9 @@ export function ReservationConfirmationView({
               <button
                 type="button"
                 className="w-full flex items-center rounded-xl border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/40 md:w-auto"
-                onClick={() => (onBackToHome ? onBackToHome() : router.push("/bumdes/asset"))}
+                onClick={() =>
+                  onBackToHome ? onBackToHome() : router.push("/bumdes/asset/manajemen")
+                }
               >
                 <Home className="mr-2 h-4 w-4" />
                 Kembali ke Beranda
@@ -139,7 +141,7 @@ export function ReservationConfirmationView({
               <button
                 type="button"
                 className="flex w-full items-center justify-center space-x-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-md shadow-primary/20 transition-colors hover:bg-primary/90 md:w-auto"
-                onClick={() => router.push("/bumdes/asset")}
+                onClick={() => router.push("/bumdes/asset/manajemen")}
               >
                 <CalendarDays className="h-5 w-5" />
                 <span>Lihat Jadwal Saya</span>
