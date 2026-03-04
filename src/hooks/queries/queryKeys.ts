@@ -27,6 +27,13 @@ export const QK = {
     profile: (tenantId: string | number) =>
       ["tenants", String(tenantId), "profile"] as const,
   },
+  settings: {
+    supportGlobalConfig: () => ["settings", "support", "global-config"] as const,
+    supportTenantConfig: () => ["settings", "support", "tenant-config"] as const,
+    emailTemplates: () => ["settings", "support", "email-templates"] as const,
+    activityLogs: (params?: Record<string, unknown>) =>
+      ["settings", "support", "activity-logs", params ?? {}] as const,
+  },
   notifications: {
     list: (params?: Record<string, unknown>) =>
       ["notifications", "list", params ?? {}] as const,
@@ -224,6 +231,10 @@ export type QueryKey = ReturnType<
   | typeof QK.roles.permissions
   | typeof QK.tenants.byDomain
   | typeof QK.tenants.profile
+  | typeof QK.settings.supportGlobalConfig
+  | typeof QK.settings.supportTenantConfig
+  | typeof QK.settings.emailTemplates
+  | typeof QK.settings.activityLogs
   | typeof QK.notifications.list
   | typeof QK.notifications.metrics
   | typeof QK.analytics.dashboard

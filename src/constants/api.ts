@@ -21,6 +21,18 @@ export const API_ENDPOINTS = {
     byDomain: (domain: string) =>
       `/get-by-domain/${encodeURIComponent(domain)}`,
   },
+  support: {
+    configGlobal: "/support/config/global",
+    configTenant: "/support/config/tenant",
+    featureFlags: "/support/feature-flags",
+    featureFlagEvaluate: (flag: string) =>
+      `/support/feature-flags/${encodeURIComponent(flag)}/evaluate`,
+    emailSend: "/support/email/send",
+    emailTemplates: "/support/email/templates",
+    emailTemplate: (id: string | number) =>
+      `/support/email/templates/${encodeURIComponent(String(id))}`,
+    activityLogs: "/support/activity-logs",
+  },
   users: {
     list: "/users",
     detail: (id: string | number) => `/users/${id}`,

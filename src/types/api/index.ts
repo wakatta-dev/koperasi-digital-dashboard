@@ -20,3 +20,4 @@ export * from "./accounting-settings";
 export * from "./accounting-journal";
 export * from "./accounting-tax";
 export * from "./accounting-reporting";
+export * from "./support";
