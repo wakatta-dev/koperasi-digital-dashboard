@@ -6,29 +6,13 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { ProtectedRoute } from "@/components/shared/protected-route";
 import { DashboardLayout } from "@/components/shared/dashboard-layout";
-import { BarChart3 } from "lucide-react";
+import { getVendorNavigation } from "@/modules/vendor";
 
-// Sidebar navigation for Vendor section (PRD-aligned)
-const navigation = [
-  {
-    name: "Dashboard",
-    href: "/vendor/dashboard",
-    icon: <BarChart3 className="h-4 w-4" />,
-  },
-  {
-    name: "Account",
-    href: "/vendor/account",
-    icon: <BarChart3 className="h-4 w-4" />,
-  },
-];
-
-const titleMap: Record<string, string> = {
-  "/vendor/account": "User Management",
-};
+const navigation = getVendorNavigation();
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const title = titleMap[pathname] ?? "Vendor";
+  const title = pathname.startsWith("/vendor") ? "Vendor Console" : "Vendor";
 
   return (
     <ProtectedRoute requiredRole="vendor">

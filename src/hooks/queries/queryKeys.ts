@@ -28,6 +28,30 @@ export const QK = {
     profile: (tenantId: string | number) =>
       ["tenants", String(tenantId), "profile"] as const,
   },
+  adminTenants: {
+    all: ["admin-tenants"] as const,
+    list: (params?: Record<string, unknown>) =>
+      ["admin-tenants", "list", params ?? {}] as const,
+    detail: (
+      tenantId: string | number,
+      params?: Record<string, unknown>
+    ) => ["admin-tenants", "detail", String(tenantId), params ?? {}] as const,
+  },
+  adminTenantAccounts: {
+    list: (
+      tenantId: string | number,
+      params?: Record<string, unknown>
+    ) =>
+      [
+        "admin-tenant-accounts",
+        "list",
+        String(tenantId),
+        params ?? {},
+      ] as const,
+  },
+  vendorDashboard: {
+    summary: () => ["vendor-dashboard", "summary"] as const,
+  },
   settings: {
     supportGlobalConfig: () => ["settings", "support", "global-config"] as const,
     supportTenantConfig: () => ["settings", "support", "tenant-config"] as const,
@@ -236,6 +260,10 @@ export type QueryKey = ReturnType<
   | typeof QK.roles.permissions
   | typeof QK.tenants.byDomain
   | typeof QK.tenants.profile
+  | typeof QK.adminTenants.list
+  | typeof QK.adminTenants.detail
+  | typeof QK.adminTenantAccounts.list
+  | typeof QK.vendorDashboard.summary
   | typeof QK.settings.supportGlobalConfig
   | typeof QK.settings.supportTenantConfig
   | typeof QK.settings.supportProfileSettings

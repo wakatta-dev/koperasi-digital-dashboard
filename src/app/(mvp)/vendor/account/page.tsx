@@ -1,9 +1,9 @@
 /** @format */
 
-import React from "react";
+import { AccessAuthorizationSettingsPage } from "@/modules/tenant-settings";
 
 const AccountPage = () => {
-  return <div>AccountPage</div>;
+  return <AccessAuthorizationSettingsPage />;
 };
 
 export default AccountPage;
