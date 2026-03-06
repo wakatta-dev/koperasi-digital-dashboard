@@ -52,6 +52,9 @@ export const QK = {
   vendorDashboard: {
     summary: () => ["vendor-dashboard", "summary"] as const,
   },
+  vendorSupportQueue: {
+    summary: () => ["vendor-support-queue", "summary"] as const,
+  },
   settings: {
     supportGlobalConfig: () => ["settings", "support", "global-config"] as const,
     supportTenantConfig: () => ["settings", "support", "tenant-config"] as const,
@@ -264,6 +267,7 @@ export type QueryKey = ReturnType<
   | typeof QK.adminTenants.detail
   | typeof QK.adminTenantAccounts.list
   | typeof QK.vendorDashboard.summary
+  | typeof QK.vendorSupportQueue.summary
   | typeof QK.settings.supportGlobalConfig
   | typeof QK.settings.supportTenantConfig
   | typeof QK.settings.supportProfileSettings

@@ -13,6 +13,7 @@ export * from "./admin-tenant-account";
 export * from "./billing";
 export * from "./analytics";
 export * from "./vendor-dashboard";
+export * from "./vendor-support";
 export * from "./reservation";
 export * from "./asset";
 export * from "./inventory";

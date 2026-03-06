@@ -1,6 +1,6 @@
 /** @format */
 
-import { VendorFeaturePlaceholderPage } from "@/modules/vendor";
+import { VendorTicketDetailPage } from "@/modules/vendor";
 
 type VendorTicketDetailPageProps = {
   params: Promise<{
@@ -8,14 +8,9 @@ type VendorTicketDetailPageProps = {
   }>;
 };
 
-export default async function VendorTicketDetailPage({
+export default async function VendorTicketDetailRoute({
   params,
 }: VendorTicketDetailPageProps) {
   const { ticketId } = await params;
-  return (
-    <VendorFeaturePlaceholderPage
-      title={`Ticket ${ticketId}`}
-      description="Detail ticket vendor masih menunggu kontrak assignment, reply, dan SLA dari backend admin."
-    />
-  );
+  return <VendorTicketDetailPage ticketId={ticketId} />;
 }

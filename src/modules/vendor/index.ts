@@ -15,5 +15,8 @@ export { VendorNotificationsPage } from "./components/pages/VendorNotificationsP
 export { VendorNotificationComposePage } from "./components/pages/VendorNotificationComposePage";
 export { VendorProductsPage } from "./components/pages/VendorProductsPage";
 export { VendorProductDetailPage } from "./components/pages/VendorProductDetailPage";
+export { VendorTicketsPage } from "./components/pages/VendorTicketsPage";
+export { VendorTicketDetailPage } from "./components/pages/VendorTicketDetailPage";
+export { VendorTicketAnalyticsPage } from "./components/pages/VendorTicketAnalyticsPage";
 export { VendorFeaturePlaceholderPage } from "./components/pages/VendorFeaturePlaceholderPage";
 export { VendorClientDetailShell } from "./components/VendorClientDetailShell";

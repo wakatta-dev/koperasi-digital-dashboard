@@ -12,6 +12,7 @@ export * from "./roles";
 export * from "./notifications";
 export * from "./analytics";
 export * from "./vendor-dashboard";
+export * from "./vendor-support-queue";
 export * from "./finance";
 export * from "./reservations";
 export * from "./assets";

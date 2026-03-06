@@ -7,6 +7,7 @@ export * from "./admin-tenants";
 export * from "./admin-tenant-accounts";
 export * from "./notifications";
 export * from "./vendor-dashboard";
+export * from "./vendor-support-queue";
 export * from "./queryKeys";
 export * from "./marketplace-orders";
 export * from "./accounting-ar";
