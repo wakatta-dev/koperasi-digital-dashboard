@@ -27,6 +27,14 @@ export const API_ENDPOINTS = {
       `/admin/tenants/${encodeURIComponent(String(tenantId))}`,
     status: (tenantId: string | number) =>
       `/admin/tenants/${encodeURIComponent(String(tenantId))}/status`,
+    subscription: (tenantId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/subscription`,
+  },
+  adminTickets: {
+    list: "/admin/tickets",
+    analytics: "/admin/tickets/analytics",
+    detail: (ticketId: string | number) =>
+      `/admin/tickets/${encodeURIComponent(String(ticketId))}`,
   },
   adminTenantAccounts: {
     list: (tenantId: string | number) =>

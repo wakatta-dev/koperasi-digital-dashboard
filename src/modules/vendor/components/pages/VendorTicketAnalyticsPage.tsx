@@ -3,7 +3,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useVendorSupportQueue } from "@/hooks/queries";
+import { useVendorSupportAnalytics } from "@/hooks/queries";
 import { VendorKpiGrid } from "../VendorKpiGrid";
 import { VendorPageHeader } from "../VendorPageHeader";
 
@@ -14,8 +14,8 @@ const SLA_POLICIES = [
 ];
 
 export function VendorTicketAnalyticsPage() {
-  const queueQuery = useVendorSupportQueue();
-  const analytics = queueQuery.data?.analytics;
+  const analyticsQuery = useVendorSupportAnalytics();
+  const analytics = analyticsQuery.data;
 
   const kpis = [
     {

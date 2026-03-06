@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getAdminTenantDetail,
+  getAdminTenantSubscription,
   listAdminTenants,
   updateAdminTenantProfile,
   updateAdminTenantStatus,
@@ -52,6 +53,24 @@ export function useAdminTenantDetail(
       const res = await getAdminTenantDetail(tenantId as string | number, params);
       if (!res.success) {
         throw new Error(getErrorMessage(new Error(res.message), "Gagal memuat detail tenant."));
+      }
+      return res;
+    },
+  });
+}
+
+export function useAdminTenantSubscription(tenantId?: string | number) {
+  return useQuery({
+    queryKey: QK.adminTenants.subscription(tenantId ?? ""),
+    enabled: Boolean(tenantId),
+    queryFn: async ({ signal }) => {
+      const res = await getAdminTenantSubscription(tenantId as string | number, {
+        signal,
+      });
+      if (!res.success) {
+        throw new Error(
+          getErrorMessage(new Error(res.message), "Gagal memuat subscription tenant.")
+        );
       }
       return res;
     },

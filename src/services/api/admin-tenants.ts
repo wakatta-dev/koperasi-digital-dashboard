@@ -5,6 +5,7 @@ import type {
   AdminTenantDetailResponse,
   AdminTenantListResponse,
   AdminTenantProfileResponse,
+  AdminTenantSubscriptionResponse,
   AdminTenantStatusResponse,
   AdminTenantUpdateProfileRequest,
   AdminTenantUpdateStatusRequest,
@@ -77,5 +78,17 @@ export function updateAdminTenantProfile(
   return api.patch(
     `${API_PREFIX}${API_ENDPOINTS.adminTenants.detail(tenantId)}`,
     payload
+  );
+}
+
+export function getAdminTenantSubscription(
+  tenantId: string | number,
+  opts?: { signal?: AbortSignal }
+): Promise<AdminTenantSubscriptionResponse> {
+  return api.get(
+    `${API_PREFIX}${API_ENDPOINTS.adminTenants.subscription(tenantId)}`,
+    {
+      signal: opts?.signal,
+    }
   );
 }

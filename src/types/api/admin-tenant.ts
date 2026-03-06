@@ -101,7 +101,27 @@ export type AdminTenantStatusResult = {
   updated_at?: Rfc3339String;
 };
 
+export type AdminTenantSubscriptionModule = {
+  key: string;
+  label: string;
+  enabled: boolean;
+};
+
+export type AdminTenantSubscriptionSnapshot = {
+  tenant_id: number;
+  tenant_name: string;
+  tenant_code: string;
+  business_type: string;
+  primary_plan_id?: number | null;
+  addon_plan_ids: number[];
+  enabled_modules: AdminTenantSubscriptionModule[];
+  raw_configs?: Record<string, unknown>;
+  updated_at: Rfc3339String;
+};
+
 export type AdminTenantListResponse = ApiResponse<AdminTenantListData>;
 export type AdminTenantDetailResponse = ApiResponse<AdminTenantDetail>;
 export type AdminTenantProfileResponse = ApiResponse<AdminTenantProfile>;
 export type AdminTenantStatusResponse = ApiResponse<AdminTenantStatusResult>;
+export type AdminTenantSubscriptionResponse =
+  ApiResponse<AdminTenantSubscriptionSnapshot>;

@@ -36,6 +36,8 @@ export const QK = {
       tenantId: string | number,
       params?: Record<string, unknown>
     ) => ["admin-tenants", "detail", String(tenantId), params ?? {}] as const,
+    subscription: (tenantId: string | number) =>
+      ["admin-tenants", "subscription", String(tenantId)] as const,
   },
   adminTenantAccounts: {
     list: (
@@ -54,6 +56,9 @@ export const QK = {
   },
   vendorSupportQueue: {
     summary: () => ["vendor-support-queue", "summary"] as const,
+    detail: (ticketId: string | number) =>
+      ["vendor-support-queue", "detail", String(ticketId)] as const,
+    analytics: () => ["vendor-support-queue", "analytics"] as const,
   },
   settings: {
     supportGlobalConfig: () => ["settings", "support", "global-config"] as const,

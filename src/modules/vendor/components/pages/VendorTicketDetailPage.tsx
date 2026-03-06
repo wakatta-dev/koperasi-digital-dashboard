@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useVendorSupportQueue } from "@/hooks/queries";
+import { useVendorSupportTicket } from "@/hooks/queries";
 import { VendorPageHeader } from "../VendorPageHeader";
 import { VENDOR_ROUTES } from "../../constants/routes";
 import { formatVendorDateTime } from "../../utils/format";
@@ -18,8 +18,24 @@ type VendorTicketDetailPageProps = {
 export function VendorTicketDetailPage({
   ticketId,
 }: VendorTicketDetailPageProps) {
-  const queueQuery = useVendorSupportQueue();
-  const item = queueQuery.data?.items.find((entry) => entry.id === ticketId);
+  const ticketQuery = useVendorSupportTicket(ticketId);
+  const item = ticketQuery.data;
+
+  if (ticketQuery.isPending) {
+    return (
+      <div className="space-y-6">
+        <VendorPageHeader
+          title="Memuat Case"
+          description="Sedang mengambil detail support case dari backend admin."
+          actions={
+            <Button asChild variant="outline">
+              <Link href={VENDOR_ROUTES.tickets}>Kembali ke Tickets</Link>
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   if (!item) {
     return (
@@ -130,9 +146,9 @@ export function VendorTicketDetailPage({
               <CardTitle>Implementation Note</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-              Detail ini masih berasal dari support queue agregat, bukan dari entity ticket backend.
-              Begitu endpoint `/tickets*` tersedia, route yang sama bisa digeser ke workflow assignment,
-              reply, dan SLA yang sebenarnya tanpa mengubah struktur navigasinya.
+              Detail ini dibaca dari endpoint admin tickets agregat di backend. Entity ticket
+              workflow penuh tetap belum ada, jadi route ini masih bersifat operasional-read-only,
+              tetapi sumber datanya tidak lagi dibentuk di frontend.
             </CardContent>
           </Card>
         </div>
