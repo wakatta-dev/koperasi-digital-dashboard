@@ -5,14 +5,17 @@ import type {
   AddPermissionResponse,
   ApiResponse,
   AssignRoleToTenantRequest,
+  DeletePermissionByAliasResponse,
+  PermissionCatalogItem,
   Permission,
   PermissionRequest,
   Role,
   TenantRole,
   UpdateRoleRequest,
   CreateRoleRequest,
+  PermissionCatalogResponse,
 } from "@/types/api";
-import { api, API_PREFIX } from "./base";
+import { api, API_PREFIX, getTenantId } from "./base";
 
 type ListRoleParams = {
   term?: string;
@@ -39,12 +42,21 @@ export function listRoles(
   );
 }
 
-export function createRole(
+export async function createRole(
   payload: CreateRoleRequest,
 ): Promise<ApiResponse<Role>> {
+  const finalPayload: CreateRoleRequest = { ...payload };
+  if (typeof finalPayload.tenant_id === "undefined" && finalPayload.is_custom) {
+    const tenantId = await getTenantId();
+    if (tenantId) {
+      finalPayload.tenant_id = Number.isNaN(Number(tenantId))
+        ? tenantId
+        : Number(tenantId);
+    }
+  }
   return api.post<Role>(
     `${API_PREFIX}${API_ENDPOINTS.roles.list}`,
-    payload,
+    finalPayload,
   );
 }
 
@@ -68,7 +80,7 @@ export function deleteRole(
 
 export function listRolePermissions(
   id: string | number,
-  params?: { limit?: number; cursor?: string },
+  params?: { limit?: number; cursor?: string; permission?: string },
   opts?: { signal?: AbortSignal },
 ): Promise<ApiResponse<Permission[]>> {
   const search = new URLSearchParams();
@@ -76,9 +88,19 @@ export function listRolePermissions(
     search.set("limit", String(params.limit));
   }
   if (params?.cursor) search.set("cursor", params.cursor);
+  if (params?.permission) search.set("permission", params.permission);
   const query = search.toString() ? `?${search.toString()}` : "";
   return api.get<Permission[]>(
     `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}${query}`,
+    { signal: opts?.signal },
+  );
+}
+
+export function listPermissionCatalog(
+  opts?: { signal?: AbortSignal },
+): Promise<PermissionCatalogResponse> {
+  return api.get<PermissionCatalogItem[]>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.permissionCatalog}`,
     { signal: opts?.signal },
   );
 }
@@ -87,7 +109,7 @@ export function addRolePermission(
   id: string | number,
   payload: PermissionRequest,
 ): Promise<AddPermissionResponse> {
-  return api.post<{ obj: string; act: string }>(
+  return api.post<{ alias: string; label: string }>(
     `${API_PREFIX}${API_ENDPOINTS.roles.permissions(id)}`,
     payload,
   );
@@ -99,6 +121,15 @@ export function deleteRolePermission(
 ): Promise<ApiResponse<{ id: number }>> {
   return api.delete<{ id: number }>(
     `${API_PREFIX}${API_ENDPOINTS.roles.permission(roleId, permissionId)}`,
+  );
+}
+
+export function deleteRolePermissionByAlias(
+  roleId: string | number,
+  alias: string,
+): Promise<DeletePermissionByAliasResponse> {
+  return api.delete<{ alias: string; label: string }>(
+    `${API_PREFIX}${API_ENDPOINTS.roles.permissionAlias(roleId, alias)}`,
   );
 }
 

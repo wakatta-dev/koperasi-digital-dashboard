@@ -5,14 +5,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
-import type { Permission, Role, UpdateRoleRequest } from "@/types/api";
+import type {
+  CreateRoleRequest,
+  Permission,
+  PermissionCatalogItem,
+  Role,
+  UpdateRoleRequest,
+} from "@/types/api";
 import {
-  listRoles,
+  deleteRolePermissionByAlias,
   createRole,
-  updateRole,
   deleteRole,
-  listRolePermissions,
   addRolePermission,
+  listPermissionCatalog,
+  listRolePermissions,
+  listRoles,
+  updateRole,
   deleteRolePermission,
 } from "@/services/api";
 import { toast } from "sonner";
@@ -31,10 +39,10 @@ export function useRoles(
 
 export function useRolePermissions(
   roleId?: string | number,
-  params?: { limit?: number; cursor?: string },
+  params?: { limit?: number; cursor?: string; permission?: string },
   initialData?: Permission[] | undefined
 ) {
-  const p = { limit: params?.limit ?? 100, cursor: params?.cursor };
+  const p = { limit: params?.limit ?? 100, cursor: params?.cursor, permission: params?.permission };
   return useQuery({
     queryKey: QK.roles.permissions(roleId ?? ""),
     enabled: !!roleId,
@@ -43,11 +51,21 @@ export function useRolePermissions(
   });
 }
 
+export function usePermissionCatalog(
+  initialData?: PermissionCatalogItem[] | undefined
+) {
+  return useQuery({
+    queryKey: QK.roles.permissionCatalog(),
+    queryFn: async () => ensureSuccess(await listPermissionCatalog()),
+    ...(initialData ? { initialData } : {}),
+  });
+}
+
 export function useRoleActions() {
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: async (payload: { name: string; description: string }) => ensureSuccess(await createRole(payload)),
+    mutationFn: async (payload: CreateRoleRequest) => ensureSuccess(await createRole(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.roles.all });
       toast.success("Role dibuat");
@@ -78,8 +96,19 @@ export function useRoleActions() {
   });
 
   const addPermission = useMutation({
-    mutationFn: async (vars: { id: string | number; obj: string; act: string }) =>
-      ensureSuccess(await addRolePermission(vars.id, { obj: vars.obj, act: vars.act })),
+    mutationFn: async (vars: {
+      id: string | number;
+      alias?: string;
+      obj?: string;
+      act?: string;
+    }) =>
+      ensureSuccess(
+        await addRolePermission(vars.id, {
+          alias: vars.alias,
+          obj: vars.obj,
+          act: vars.act,
+        })
+      ),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.roles.permissions(vars.id) });
       toast.success("Permission ditambahkan");
@@ -88,8 +117,16 @@ export function useRoleActions() {
   });
 
   const removePermission = useMutation({
-    mutationFn: async (vars: { roleId: string | number; permissionId: string | number }) =>
-      ensureSuccess(await deleteRolePermission(vars.roleId, vars.permissionId)),
+    mutationFn: async (vars: {
+      roleId: string | number;
+      permissionId?: string | number;
+      alias?: string;
+    }) => {
+      if (vars.alias) {
+        return ensureSuccess(await deleteRolePermissionByAlias(vars.roleId, vars.alias));
+      }
+      return ensureSuccess(await deleteRolePermission(vars.roleId, vars.permissionId as string | number));
+    },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: QK.roles.permissions(vars.roleId) });
       toast.success("Permission dihapus");

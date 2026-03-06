@@ -21,6 +21,27 @@ export const API_ENDPOINTS = {
     byDomain: (domain: string) =>
       `/get-by-domain/${encodeURIComponent(domain)}`,
   },
+  support: {
+    configGlobal: "/support/config/global",
+    configTenant: "/support/config/tenant",
+    configProfile: "/support/config/profile",
+    configProfileIdentity: "/support/config/profile/identity",
+    configProfileContactDomain: "/support/config/profile/contact-domain",
+    configOperational: "/support/config/operational",
+    configOperationalPreferences: "/support/config/operational/preferences",
+    configOperationalModules: "/support/config/operational/modules",
+    configOperationalAssetRental: "/support/config/operational/asset-rental",
+    configOperationalMarketplaceAccounting:
+      "/support/config/operational/marketplace-accounting",
+    featureFlags: "/support/feature-flags",
+    featureFlagEvaluate: (flag: string) =>
+      `/support/feature-flags/${encodeURIComponent(flag)}/evaluate`,
+    emailSend: "/support/email/send",
+    emailTemplates: "/support/email/templates",
+    emailTemplate: (id: string | number) =>
+      `/support/email/templates/${encodeURIComponent(String(id))}`,
+    activityLogs: "/support/activity-logs",
+  },
   users: {
     list: "/users",
     detail: (id: string | number) => `/users/${id}`,
@@ -37,10 +58,13 @@ export const API_ENDPOINTS = {
   },
   roles: {
     list: "/roles",
+    permissionCatalog: "/roles/permission-catalog",
     detail: (id: string | number) => `/roles/${id}`,
     permissions: (id: string | number) => `/roles/${id}/permissions`,
     permission: (id: string | number, pid: string | number) =>
       `/roles/${id}/permissions/${pid}`,
+    permissionAlias: (id: string | number, alias: string) =>
+      `/roles/${id}/permissions/alias/${encodeURIComponent(alias)}`,
     tenants: "/roles/tenants",
   },
   notifications: {

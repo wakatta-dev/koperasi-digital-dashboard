@@ -8,140 +8,210 @@ import {
   Settings,
   ShoppingBag,
 } from "lucide-react";
+import type { ReactNode } from "react";
+
+type NavItem = {
+  name: string;
+  href: string;
+  icon?: ReactNode;
+  items?: NavItem[];
+};
+
+export type BumdesFeatureFlags = Partial<{
+  asset_rental_enabled: boolean;
+  marketplace_enabled: boolean;
+  inventory_enabled: boolean;
+  reports_enabled: boolean;
+  pos_enabled: boolean;
+}>;
+
+function applyFeatureFlagsToNavigation(
+  navigation: NavItem[],
+  featureFlags?: BumdesFeatureFlags
+) {
+  if (!featureFlags) {
+    return navigation;
+  }
+
+  let filtered = [...navigation];
+
+  if (featureFlags.asset_rental_enabled === false) {
+    filtered = filtered.filter((item) => item.href !== "/bumdes/asset");
+  }
+
+  if (featureFlags.marketplace_enabled === false) {
+    filtered = filtered.filter((item) => item.href !== "/bumdes/marketplace");
+  } else if (featureFlags.inventory_enabled === false) {
+    filtered = filtered.map((item) => {
+      if (item.href !== "/bumdes/marketplace") {
+        return item;
+      }
+      const items = (item.items ?? []).filter(
+        (child) =>
+          child.href !== "/bumdes/marketplace/inventory" &&
+          child.href !== "/bumdes/marketplace/categories"
+      );
+      return { ...item, items };
+    });
+  }
+
+  if (featureFlags.reports_enabled === false) {
+    filtered = filtered.map((item) => {
+      if (item.href !== "/bumdes/accounting/dashboard") {
+        return item;
+      }
+      const items = (item.items ?? []).filter(
+        (child) => child.href !== "/bumdes/accounting/reporting"
+      );
+      return { ...item, items };
+    });
+  }
+
+  return filtered;
+}
+
+export function getBumdesNavigation(
+  featureFlags?: BumdesFeatureFlags
+): NavItem[] {
+  const baseNavigation: NavItem[] = [
+    {
+      name: "Dashboard",
+      href: "/bumdes/dashboard",
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      name: "Landing Page",
+      href: "/bumdes/landing-page",
+      icon: <FileText className="h-4 w-4" />,
+    },
+    {
+      name: "Asset & Rental",
+      href: "/bumdes/asset",
+      icon: <Package className="h-4 w-4" />,
+      items: [
+        {
+          name: "Daftar Aset",
+          href: "/bumdes/asset/manajemen",
+        },
+        {
+          name: "Penyewaan",
+          href: "/bumdes/asset/penyewaan",
+        },
+        {
+          name: "Pengajuan Sewa",
+          href: "/bumdes/asset/pengajuan-sewa",
+        },
+        {
+          name: "Pengembalian",
+          href: "/bumdes/asset/pengembalian",
+        },
+        {
+          name: "Master Data",
+          href: "/bumdes/asset/master-data",
+        },
+      ],
+    },
+    {
+      name: "Penjualan",
+      href: "/bumdes/marketplace",
+      icon: <ShoppingBag className="h-4 w-4" />,
+      items: [
+        { name: "Produk", href: "/bumdes/marketplace/inventory" },
+        { name: "Kategori Produk", href: "/bumdes/marketplace/categories" },
+        { name: "Pesanan", href: "/bumdes/marketplace/order" },
+        { name: "Pelanggan", href: "/bumdes/marketplace/pelanggan" },
+      ],
+    },
+    {
+      name: "Accounting",
+      href: "/bumdes/accounting/dashboard",
+      icon: <Calculator className="h-4 w-4" />,
+      items: [
+        { name: "Dashboard", href: "/bumdes/accounting/dashboard" },
+        { name: "Invoicing (AR)", href: "/bumdes/accounting/invoicing-ar" },
+        { name: "Vendor Bills (AP)", href: "/bumdes/accounting/vendor-bills-ap" },
+        {
+          name: "Bank & Cash",
+          href: "/bumdes/accounting/bank-cash",
+          items: [
+            { name: "Overview", href: "/bumdes/accounting/bank-cash/overview" },
+            {
+              name: "Rekonsiliasi",
+              href: "/bumdes/accounting/bank-cash/reconciliation",
+            },
+          ],
+        },
+        { name: "Journal", href: "/bumdes/accounting/journal" },
+        {
+          name: "Tax",
+          href: "/bumdes/accounting/tax",
+          items: [
+            { name: "Summary & Period", href: "/bumdes/accounting/tax/summary" },
+            { name: "PPN Details", href: "/bumdes/accounting/tax/ppn-details" },
+            { name: "PPh Records", href: "/bumdes/accounting/tax/pph-records" },
+            { name: "Export History", href: "/bumdes/accounting/tax/export-history" },
+            { name: "e-Faktur Export", href: "/bumdes/accounting/tax/e-faktur-export" },
+          ],
+        },
+        {
+          name: "Reporting",
+          href: "/bumdes/accounting/reporting",
+          items: [
+            { name: "Profit and Loss", href: "/bumdes/accounting/reporting/profit-loss" },
+            { name: "Cash Flow Statement", href: "/bumdes/accounting/reporting/cash-flow" },
+            { name: "Balance Sheet", href: "/bumdes/accounting/reporting/balance-sheet" },
+            {
+              name: "P&L Comparative",
+              href: "/bumdes/accounting/reporting/p-and-l-comparative",
+            },
+            { name: "Trial Balance", href: "/bumdes/accounting/reporting/trial-balance" },
+            { name: "General Ledger", href: "/bumdes/accounting/reporting/general-ledger" },
+            { name: "Account Ledger", href: "/bumdes/accounting/reporting/account-ledger" },
+          ],
+        },
+        {
+          name: "Settings",
+          href: "/bumdes/accounting/settings",
+          items: [
+            {
+              name: "Chart of Accounts",
+              href: "/bumdes/accounting/settings/chart-of-accounts",
+            },
+            {
+              name: "Taxes",
+              href: "/bumdes/accounting/settings/taxes",
+            },
+            {
+              name: "Currencies",
+              href: "/bumdes/accounting/settings/currencies",
+            },
+            {
+              name: "Analytic & Budget",
+              href: "/bumdes/accounting/settings/analytic-budgets",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Pengaturan",
+      href: "/bumdes/settings/profil-tenant",
+      icon: <Settings className="h-4 w-4" />,
+      items: [
+        { name: "Profil Tenant", href: "/bumdes/settings/profil-tenant" },
+        { name: "Operasional Usaha", href: "/bumdes/settings/operasional-usaha" },
+        { name: "Akses & Otorisasi", href: "/bumdes/settings/akses-otorisasi" },
+        { name: "Komunikasi Email", href: "/bumdes/settings/komunikasi-email" },
+        { name: "Activity Log", href: "/bumdes/settings/activity-log" },
+      ],
+    },
+  ];
+
+  return applyFeatureFlagsToNavigation(baseNavigation, featureFlags);
+}
 
 // Sidebar navigation for BUMDes MVP section
-export const bumdesNavigation = [
-  {
-    name: "Dashboard",
-    href: "/bumdes/dashboard",
-    icon: <BarChart3 className="h-4 w-4" />,
-  },
-  {
-    name: "Landing Page",
-    href: "/bumdes/landing-page",
-    icon: <FileText className="h-4 w-4" />,
-  },
-  {
-    name: "Asset & Rental",
-    href: "/bumdes/asset",
-    icon: <Package className="h-4 w-4" />,
-    items: [
-      {
-        name: "Daftar Aset",
-        href: "/bumdes/asset/manajemen",
-      },
-      {
-        name: "Penyewaan",
-        href: "/bumdes/asset/penyewaan",
-      },
-      {
-        name: "Pengajuan Sewa",
-        href: "/bumdes/asset/pengajuan-sewa",
-      },
-      {
-        name: "Pengembalian",
-        href: "/bumdes/asset/pengembalian",
-      },
-      {
-        name: "Master Data",
-        href: "/bumdes/asset/master-data",
-      },
-    ],
-  },
-  {
-    name: "Penjualan",
-    href: "/bumdes/marketplace",
-    icon: <ShoppingBag className="h-4 w-4" />,
-    items: [
-      { name: "Produk", href: "/bumdes/marketplace/inventory" },
-      { name: "Kategori Produk", href: "/bumdes/marketplace/categories" },
-      { name: "Pesanan", href: "/bumdes/marketplace/order" },
-      { name: "Pelanggan", href: "/bumdes/marketplace/pelanggan" },
-    ],
-  },
-  {
-    name: "Accounting",
-    href: "/bumdes/accounting/dashboard",
-    icon: <Calculator className="h-4 w-4" />,
-    items: [
-      { name: "Dashboard", href: "/bumdes/accounting/dashboard" },
-      { name: "Invoicing (AR)", href: "/bumdes/accounting/invoicing-ar" },
-      { name: "Vendor Bills (AP)", href: "/bumdes/accounting/vendor-bills-ap" },
-      {
-        name: "Bank & Cash",
-        href: "/bumdes/accounting/bank-cash",
-        items: [
-          { name: "Overview", href: "/bumdes/accounting/bank-cash/overview" },
-          {
-            name: "Rekonsiliasi",
-            href: "/bumdes/accounting/bank-cash/reconciliation",
-          },
-        ],
-      },
-      { name: "Journal", href: "/bumdes/accounting/journal" },
-      {
-        name: "Tax",
-        href: "/bumdes/accounting/tax",
-        items: [
-          { name: "Summary & Period", href: "/bumdes/accounting/tax/summary" },
-          { name: "PPN Details", href: "/bumdes/accounting/tax/ppn-details" },
-          { name: "PPh Records", href: "/bumdes/accounting/tax/pph-records" },
-          { name: "Export History", href: "/bumdes/accounting/tax/export-history" },
-          { name: "e-Faktur Export", href: "/bumdes/accounting/tax/e-faktur-export" },
-        ],
-      },
-      {
-        name: "Reporting",
-        href: "/bumdes/accounting/reporting",
-        items: [
-          { name: "Profit and Loss", href: "/bumdes/accounting/reporting/profit-loss" },
-          { name: "Cash Flow Statement", href: "/bumdes/accounting/reporting/cash-flow" },
-          { name: "Balance Sheet", href: "/bumdes/accounting/reporting/balance-sheet" },
-          {
-            name: "P&L Comparative",
-            href: "/bumdes/accounting/reporting/p-and-l-comparative",
-          },
-          { name: "Trial Balance", href: "/bumdes/accounting/reporting/trial-balance" },
-          { name: "General Ledger", href: "/bumdes/accounting/reporting/general-ledger" },
-          { name: "Account Ledger", href: "/bumdes/accounting/reporting/account-ledger" },
-        ],
-      },
-      {
-        name: "Settings",
-        href: "/bumdes/accounting/settings",
-        items: [
-          {
-            name: "Chart of Accounts",
-            href: "/bumdes/accounting/settings/chart-of-accounts",
-          },
-          {
-            name: "Taxes",
-            href: "/bumdes/accounting/settings/taxes",
-          },
-          {
-            name: "Currencies",
-            href: "/bumdes/accounting/settings/currencies",
-          },
-          {
-            name: "Analytic & Budget",
-            href: "/bumdes/accounting/settings/analytic-budgets",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    name: "Pengaturan",
-    href: "/bumdes/settings/general",
-    icon: <Settings className="h-4 w-4" />,
-    items: [
-      { name: "General", href: "/bumdes/settings/general" },
-      { name: "Users & Roles", href: "/bumdes/settings/users-roles" },
-      { name: "Permissions", href: "/bumdes/settings/permissions" },
-      { name: "Company Profile", href: "/bumdes/settings/company-profile" },
-    ],
-  },
-];
+export const bumdesNavigation = getBumdesNavigation();
 
 export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/dashboard": "Dashboard",
@@ -206,8 +276,10 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/pos": "Point of Sales",
   "/bumdes/rent": "Rent",
   "/bumdes/landing-page": "Landing Page",
-  "/bumdes/settings/general": "Pengaturan - General",
-  "/bumdes/settings/users-roles": "Pengaturan - Users & Roles",
-  "/bumdes/settings/permissions": "Pengaturan - Permissions",
-  "/bumdes/settings/company-profile": "Pengaturan - Company Profile",
+  "/bumdes/settings": "Pengaturan - Profil Tenant",
+  "/bumdes/settings/profil-tenant": "Pengaturan - Profil Tenant",
+  "/bumdes/settings/operasional-usaha": "Pengaturan - Operasional Usaha",
+  "/bumdes/settings/akses-otorisasi": "Pengaturan - Akses & Otorisasi",
+  "/bumdes/settings/komunikasi-email": "Pengaturan - Komunikasi Email",
+  "/bumdes/settings/activity-log": "Pengaturan - Activity Log",
 };

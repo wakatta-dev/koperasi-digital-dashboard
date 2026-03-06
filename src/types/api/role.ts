@@ -7,6 +7,13 @@ export interface Role {
   name: string;
   jenis_tenant: string;
   description: string;
+  display_name?: string;
+  is_active?: boolean;
+  is_custom?: boolean;
+  scope_tenant_id?: number;
+  is_protected?: boolean;
+  is_editable?: boolean;
+  is_deletable?: boolean;
   created_at: Rfc3339String;
   updated_at: Rfc3339String;
 }
@@ -36,18 +43,15 @@ export interface RoleUser {
 //   we include optional obj/act while also exposing normalized object/action.
 export interface Permission {
   id: number;
-  // Role name and tenant domain (may be undefined on some backends)
   role?: string;
   domain?: string;
-  // Normalized resource + verb
-  object: string;
-  action: string;
-  // Convenience composite and human label
-  permission: string;
+  alias: string;
   label: string;
-  // Back-compat (request uses obj/act; some list responses may still use these)
+  description?: string;
   obj?: string;
   act?: string;
+  object?: string;
+  action?: string;
 }
 
 export type UserRole = RoleUser; // backward compat
@@ -56,11 +60,21 @@ export type UserRole = RoleUser; // backward compat
 export interface CreateRoleRequest {
   name: string;
   description: string;
+  tenant_type?: string;
+  display_name?: string;
+  tenant_id?: number | string;
+  is_custom?: boolean;
+  is_active?: boolean;
+  reason?: string;
 }
 
 export interface UpdateRoleRequest {
   name: string;
   description: string;
+  tenant_type?: string;
+  display_name?: string;
+  is_active?: boolean;
+  reason?: string;
 }
 
 export interface AssignRoleToTenantRequest {
@@ -75,8 +89,15 @@ export interface AssignRoleRequest {
 }
 
 export interface PermissionRequest {
-  obj: string;
-  act: string;
+  alias?: string;
+  obj?: string;
+  act?: string;
+}
+
+export interface PermissionCatalogItem {
+  alias: string;
+  label: string;
+  description?: string;
 }
 
 export interface RoleDiff {
@@ -95,8 +116,10 @@ export type UpdateRoleResponse = ApiResponse<Role>;
 export type DeleteRoleResponse = ApiResponse<{ id: number }>;
 export type AssignRoleToTenantResponse = ApiResponse<TenantRole>;
 export type ListPermissionsResponse = ApiResponse<Permission[]>;
-export type AddPermissionResponse = ApiResponse<{ obj: string; act: string }>;
+export type AddPermissionResponse = ApiResponse<{ alias: string; label: string }>;
 export type DeletePermissionResponse = ApiResponse<{ id: number }>;
+export type DeletePermissionByAliasResponse = ApiResponse<{ alias: string; label: string }>;
+export type PermissionCatalogResponse = ApiResponse<PermissionCatalogItem[]>;
 export type ListUserRolesResponse = ApiResponse<RoleUser[]>;
 export type AssignUserRoleResponse = ApiResponse<{ user_id: number; role_id: number }>;
 export type DeleteUserRoleResponse = ApiResponse<{ user_id: number; role_id: number }>;

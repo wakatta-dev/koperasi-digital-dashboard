@@ -23,6 +23,17 @@ vi.mock("@/components/shared/dashboard-layout", () => ({
   ),
 }));
 
+vi.mock("@/hooks/queries/support-config", () => ({
+  useSupportTenantConfig: () => ({
+    data: {
+      feature_flags: {
+        marketplace_enabled: true,
+        asset_rental_enabled: true,
+      },
+    },
+  }),
+}));
+
 import BumdesLayout from "@/app/(mvp)/bumdes/layout";
 import { bumdesNavigation } from "@/app/(mvp)/bumdes/navigation";
 

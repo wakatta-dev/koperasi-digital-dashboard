@@ -6,14 +6,20 @@ import type { TenantRole } from "./role";
 export type User = {
   id: number;
   tenant_id: number;
-  tenant_role_id: number;
   email: string;
   full_name: string;
+  role: string;
+  role_id?: number;
   status: boolean;
   last_login?: Rfc3339String;
+  avatar_url?: string;
+  phone_number?: string;
+  address?: string;
+  metadata?: Record<string, unknown>;
   created_at: Rfc3339String;
-  updated_at: Rfc3339String;
-  tenant_role: TenantRole;
+  updated_at?: Rfc3339String;
+  tenant_role_id?: number;
+  tenant_role?: TenantRole;
 };
 
 export type CreateUserRequest = {
