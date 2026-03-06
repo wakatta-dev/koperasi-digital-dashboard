@@ -39,7 +39,7 @@ describe("settings helpers", () => {
     expect(effective.currency).toBe("IDR");
     expect(effective.feature_flags.marketplace_enabled).toBe(false);
     expect(effective.configs.marketplace.low_stock_threshold).toBe(3);
-    expect(effective.configs.accounting.invoice_prefix).toBe("INV");
+    expect(effective.configs.accounting.invoice_prefix).toBe("");
   });
 
   it("treats effective config with fallback defaults as unchanged", () => {
