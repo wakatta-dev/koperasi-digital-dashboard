@@ -7,6 +7,10 @@ export interface Role {
   name: string;
   jenis_tenant: string;
   description: string;
+  display_name?: string;
+  is_active?: boolean;
+  is_custom?: boolean;
+  scope_tenant_id?: number;
   created_at: Rfc3339String;
   updated_at: Rfc3339String;
 }
@@ -56,11 +60,21 @@ export type UserRole = RoleUser; // backward compat
 export interface CreateRoleRequest {
   name: string;
   description: string;
+  tenant_type?: string;
+  display_name?: string;
+  tenant_id?: number | string;
+  is_custom?: boolean;
+  is_active?: boolean;
+  reason?: string;
 }
 
 export interface UpdateRoleRequest {
   name: string;
   description: string;
+  tenant_type?: string;
+  display_name?: string;
+  is_active?: boolean;
+  reason?: string;
 }
 
 export interface AssignRoleToTenantRequest {

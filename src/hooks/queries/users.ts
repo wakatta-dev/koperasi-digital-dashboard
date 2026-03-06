@@ -22,6 +22,7 @@ import {
   removeUserRole,
   resetUserPassword,
   assignRole,
+  updateUserRole,
 } from "@/services/api";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
@@ -142,6 +143,21 @@ export function useUserActions() {
     onError: (err: any) => toast.error(err?.message || "Gagal menambahkan role"),
   });
 
+  const setPrimaryRole = useMutation({
+    mutationFn: async (vars: { userId: string | number; roleId: string | number }) =>
+      ensureSuccess(
+        await updateUserRole(vars.userId, {
+          role_id: Number(vars.roleId),
+        })
+      ),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: QK.users.detail(vars.userId) });
+      qc.invalidateQueries({ queryKey: QK.users.lists() });
+      toast.success("Role utama user diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui role utama"),
+  });
+
   const resetPwd = useMutation({
     mutationFn: async (payload: UserResetPasswordRequest) =>
       ensureSuccess(await resetUserPassword(payload)),
@@ -156,6 +172,7 @@ export function useUserActions() {
     remove,
     removeRole,
     assign,
+    setPrimaryRole,
     resetPwd,
   } as const;
 }

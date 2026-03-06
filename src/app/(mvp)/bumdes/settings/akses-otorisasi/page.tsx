@@ -12,11 +12,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRoleActions, useRolePermissions, useRoles, useUserActions, useUsers } from "@/hooks/queries";
-import { canManageSettings, isProtectedSystemRole } from "../helpers";
+import {
+  canManageSettings,
+  getSettingsTenantType,
+  getUserPrimaryRoleId,
+  getUserPrimaryRoleName,
+  isProtectedSystemRole,
+} from "../helpers";
 
 export default function SettingsAksesOtorisasiPage() {
   const { data: session } = useSession();
   const canManage = canManageSettings((session?.user as any)?.role);
+  const tenantType = getSettingsTenantType((session?.user as any)?.jenis_tenant);
   const [search, setSearch] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [assignRoleByUser, setAssignRoleByUser] = useState<Record<number, string>>({});
@@ -93,9 +100,10 @@ export default function SettingsAksesOtorisasiPage() {
               </TableHeader>
               <TableBody>
                 {users.map((user) => {
-                  const currentRoleId = user.tenant_role?.role_id;
-                  const selectedAssignRoleId = assignRoleByUser[user.id] ?? "";
-                  const currentRoleName = user.tenant_role?.role?.name ?? "-";
+                  const currentRoleId = getUserPrimaryRoleId(user);
+                  const selectedAssignRoleId =
+                    assignRoleByUser[user.id] ?? (currentRoleId ? String(currentRoleId) : "");
+                  const currentRoleName = getUserPrimaryRoleName(user);
                   return (
                     <TableRow key={user.id}>
                       <TableCell>{user.full_name}</TableCell>
@@ -123,29 +131,20 @@ export default function SettingsAksesOtorisasiPage() {
                         <Button
                           type="button"
                           size="sm"
-                          disabled={!canManage || !selectedAssignRoleId || userActions.assign.isPending}
+                          disabled={
+                            !canManage ||
+                            !selectedAssignRoleId ||
+                            String(currentRoleId ?? "") === selectedAssignRoleId ||
+                            userActions.setPrimaryRole.isPending
+                          }
                           onClick={() =>
-                            userActions.assign.mutate({
+                            userActions.setPrimaryRole.mutate({
                               userId: user.id,
                               roleId: selectedAssignRoleId,
                             })
                           }
                         >
-                          Assign
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={!canManage || !currentRoleId || userActions.removeRole.isPending}
-                          onClick={() =>
-                            userActions.removeRole.mutate({
-                              userId: user.id,
-                              roleId: currentRoleId!,
-                            })
-                          }
-                        >
-                          Lepas Role
+                          Simpan Role
                         </Button>
                         <Button
                           type="button"
@@ -203,13 +202,16 @@ export default function SettingsAksesOtorisasiPage() {
               <Button
                 type="button"
                 disabled={!canManage || !newRoleName.trim() || roleActions.create.isPending}
-                onClick={() => {
-                  roleActions.create.mutate({
-                    name: newRoleName.trim(),
-                    description: newRoleDescription.trim(),
-                  });
-                  setNewRoleName("");
-                  setNewRoleDescription("");
+                  onClick={() => {
+                    roleActions.create.mutate({
+                      name: newRoleName.trim(),
+                      description: newRoleDescription.trim(),
+                      display_name: newRoleName.trim(),
+                      tenant_type: tenantType,
+                      is_custom: true,
+                    });
+                    setNewRoleName("");
+                    setNewRoleDescription("");
                 }}
               >
                 Tambah Role
@@ -266,6 +268,8 @@ export default function SettingsAksesOtorisasiPage() {
                           payload: {
                             name: editRoleName,
                             description: editRoleDescription,
+                            display_name: editRoleName,
+                            tenant_type: selectedRole.jenis_tenant,
                           },
                         })
                       }

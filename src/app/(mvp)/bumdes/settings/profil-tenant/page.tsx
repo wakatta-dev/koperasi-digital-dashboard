@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSupportTenantConfig, useSupportTenantConfigActions } from "@/hooks/queries";
-import { canManageSettings } from "../helpers";
+import { areTenantConfigsEqual, buildEffectiveTenantConfig, canManageSettings } from "../helpers";
 
 type ProfileFormState = {
   business_name: string;
@@ -46,40 +46,51 @@ export default function SettingsProfilTenantPage() {
   const configQuery = useSupportTenantConfig();
   const { saveTenantConfig } = useSupportTenantConfigActions();
   const [form, setForm] = useState<ProfileFormState>(EMPTY_FORM);
+  const effectiveConfig = useMemo(
+    () => buildEffectiveTenantConfig(configQuery.data),
+    [configQuery.data]
+  );
 
   useEffect(() => {
-    const data = configQuery.data;
-    if (!data) return;
+    if (!configQuery.data) return;
     setForm({
-      business_name: data.business_name ?? "",
-      business_type: data.business_type ?? "",
-      business_category: data.business_category ?? "",
-      description: data.description ?? "",
-      contact_email: data.contact_email ?? "",
-      contact_phone: data.contact_phone ?? "",
-      address: data.address ?? "",
-      domain: data.domain ?? "",
-      custom_domain: data.custom_domain ?? "",
-      logo_url: data.logo_url ?? "",
+      business_name: effectiveConfig.business_name,
+      business_type: effectiveConfig.business_type,
+      business_category: effectiveConfig.business_category,
+      description: effectiveConfig.description,
+      contact_email: effectiveConfig.contact_email,
+      contact_phone: effectiveConfig.contact_phone,
+      address: effectiveConfig.address,
+      domain: effectiveConfig.domain,
+      custom_domain: effectiveConfig.custom_domain,
+      logo_url: effectiveConfig.logo_url,
     });
-  }, [configQuery.data]);
+  }, [configQuery.data, effectiveConfig]);
 
   const isBusy = saveTenantConfig.isPending || configQuery.isLoading;
   const isDirty = useMemo(() => {
-    const data = configQuery.data;
-    if (!data) return false;
-    return (
-      form.business_name !== (data.business_name ?? "") ||
-      form.business_type !== (data.business_type ?? "") ||
-      form.business_category !== (data.business_category ?? "") ||
-      form.description !== (data.description ?? "") ||
-      form.contact_email !== (data.contact_email ?? "") ||
-      form.contact_phone !== (data.contact_phone ?? "") ||
-      form.address !== (data.address ?? "") ||
-      form.custom_domain !== (data.custom_domain ?? "") ||
-      form.logo_url !== (data.logo_url ?? "")
+    if (!configQuery.data) return false;
+    return !areTenantConfigsEqual(
+      {
+        ...effectiveConfig,
+        feature_flags: effectiveConfig.feature_flags,
+        configs: effectiveConfig.configs,
+      },
+      {
+        ...effectiveConfig,
+        business_name: form.business_name,
+        business_type: form.business_type,
+        business_category: form.business_category,
+        description: form.description,
+        contact_email: form.contact_email,
+        contact_phone: form.contact_phone,
+        address: form.address,
+        domain: form.domain,
+        custom_domain: form.custom_domain,
+        logo_url: form.logo_url,
+      }
     );
-  }, [configQuery.data, form]);
+  }, [configQuery.data, effectiveConfig, form]);
 
   const onSave = async () => {
     await saveTenantConfig.mutateAsync({
@@ -240,16 +251,16 @@ export default function SettingsProfilTenantPage() {
           onClick={() => {
             if (!configQuery.data) return;
             setForm({
-              business_name: configQuery.data.business_name ?? "",
-              business_type: configQuery.data.business_type ?? "",
-              business_category: configQuery.data.business_category ?? "",
-              description: configQuery.data.description ?? "",
-              contact_email: configQuery.data.contact_email ?? "",
-              contact_phone: configQuery.data.contact_phone ?? "",
-              address: configQuery.data.address ?? "",
-              domain: configQuery.data.domain ?? "",
-              custom_domain: configQuery.data.custom_domain ?? "",
-              logo_url: configQuery.data.logo_url ?? "",
+              business_name: effectiveConfig.business_name,
+              business_type: effectiveConfig.business_type,
+              business_category: effectiveConfig.business_category,
+              description: effectiveConfig.description,
+              contact_email: effectiveConfig.contact_email,
+              contact_phone: effectiveConfig.contact_phone,
+              address: effectiveConfig.address,
+              domain: effectiveConfig.domain,
+              custom_domain: effectiveConfig.custom_domain,
+              logo_url: effectiveConfig.logo_url,
             });
           }}
           disabled={!isDirty || isBusy}
@@ -267,4 +278,3 @@ export default function SettingsProfilTenantPage() {
     </div>
   );
 }
-

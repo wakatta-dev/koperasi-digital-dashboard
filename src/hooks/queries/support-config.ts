@@ -42,10 +42,10 @@ export function useSupportTenantConfigActions() {
       ensureSuccess(await updateSupportTenantConfig(payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
-      toast.success("Pengaturan operasional berhasil disimpan.");
+      toast.success("Pengaturan tenant berhasil disimpan.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "Gagal menyimpan pengaturan operasional.");
+      toast.error(error?.message || "Gagal menyimpan pengaturan tenant.");
     },
   });
 

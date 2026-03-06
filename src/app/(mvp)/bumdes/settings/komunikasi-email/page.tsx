@@ -54,6 +54,7 @@ export default function SettingsKomunikasiEmailPage() {
     selectedTemplate &&
       (subject !== (selectedTemplate.subject ?? "") || body !== (selectedTemplate.body ?? ""))
   );
+  const isTemplateReady = Boolean(selectedTemplateId && selectedTemplate);
 
   return (
     <div className="space-y-6">
@@ -104,7 +105,7 @@ export default function SettingsKomunikasiEmailPage() {
               <Input
                 value={subject}
                 onChange={(event) => setSubject(event.target.value)}
-                disabled={!canManage || !selectedTemplate}
+                disabled={!canManage || !isTemplateReady}
               />
             </div>
             <div className="space-y-2">
@@ -112,7 +113,7 @@ export default function SettingsKomunikasiEmailPage() {
               <Textarea
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
-                disabled={!canManage || !selectedTemplate}
+                disabled={!canManage || !isTemplateReady}
                 rows={10}
               />
             </div>
@@ -146,7 +147,7 @@ export default function SettingsKomunikasiEmailPage() {
                   body,
                 })
               }
-              disabled={!canManage || !selectedTemplate || !isDirty || saveTemplate.isPending}
+              disabled={!canManage || !isTemplateReady || !isDirty || saveTemplate.isPending}
             >
               {saveTemplate.isPending ? "Menyimpan..." : "Simpan Template"}
             </Button>
@@ -174,22 +175,29 @@ export default function SettingsKomunikasiEmailPage() {
             type="button"
             onClick={() =>
               selectedTemplate &&
-              sendTestEmail.mutate({
-                to: testRecipient,
-                template_id: selectedTemplate.id,
-                variables: {
-                  name: "Admin BUMDes",
-                  tenant_name: "Tenant BUMDes",
-                  verify_link: "https://example.com/verify",
-                  new_email: "new-email@example.com",
-                  reason: "Testing",
-                  message: "Ini email uji dari halaman settings.",
+              sendTestEmail.mutate(
+                {
+                  to: testRecipient,
+                  template_id: selectedTemplate.id,
+                  variables: {
+                    name: "Admin BUMDes",
+                    tenant_name: "Tenant BUMDes",
+                    verify_link: "https://example.com/verify",
+                    new_email: "new-email@example.com",
+                    reason: "Testing",
+                    message: "Ini email uji dari halaman settings.",
+                  },
                 },
-              })
+                {
+                  onSuccess: () => {
+                    setTestRecipient("");
+                  },
+                }
+              )
             }
             disabled={
               !canManage ||
-              !selectedTemplate ||
+              !isTemplateReady ||
               !testRecipient.trim() ||
               sendTestEmail.isPending
             }

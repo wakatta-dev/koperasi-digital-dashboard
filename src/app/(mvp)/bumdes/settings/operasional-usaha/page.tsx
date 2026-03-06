@@ -11,7 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useSupportGlobalConfig, useSupportTenantConfig, useSupportTenantConfigActions } from "@/hooks/queries";
-import { canManageSettings } from "../helpers";
+import {
+  areTenantConfigsEqual,
+  buildEffectiveTenantConfig,
+  canManageSettings,
+  DEFAULT_SETTINGS_OPERATIONAL_CONFIGS,
+  DEFAULT_SETTINGS_FEATURE_FLAGS,
+} from "../helpers";
 
 type OperasionalFormState = {
   timezone: string;
@@ -53,33 +59,11 @@ const DEFAULT_FORM: OperasionalFormState = {
   currency: "IDR",
   locale: "id-ID",
   theme: "default",
-  feature_flags: {
-    asset_rental_enabled: true,
-    marketplace_enabled: true,
-    inventory_enabled: true,
-    reports_enabled: true,
-    pos_enabled: false,
-  },
+  feature_flags: { ...DEFAULT_SETTINGS_FEATURE_FLAGS },
   configs: {
-    asset_rental: {
-      approval_required: true,
-      default_slot_minutes: 60,
-      min_dp_percent: 20,
-      grace_period_hours: 2,
-      late_fee_per_hour: 25000,
-    },
-    marketplace: {
-      manual_payment_window_min: 120,
-      auto_cancel_unpaid_hours: 24,
-      low_stock_threshold: 5,
-      allow_guest_checkout: false,
-    },
-    accounting: {
-      invoice_prefix: "INV",
-      fiscal_year_start_month: 1,
-      default_payment_terms_days: 14,
-      period_lock_after_days: 7,
-    },
+    asset_rental: { ...DEFAULT_SETTINGS_OPERATIONAL_CONFIGS.asset_rental },
+    marketplace: { ...DEFAULT_SETTINGS_OPERATIONAL_CONFIGS.marketplace },
+    accounting: { ...DEFAULT_SETTINGS_OPERATIONAL_CONFIGS.accounting },
   },
 };
 
@@ -96,102 +80,43 @@ export default function SettingsOperasionalUsahaPage() {
   const tenantQuery = useSupportTenantConfig();
   const { saveTenantConfig } = useSupportTenantConfigActions();
   const [form, setForm] = useState<OperasionalFormState>(DEFAULT_FORM);
+  const effectiveConfig = useMemo(
+    () => buildEffectiveTenantConfig(tenantQuery.data, globalQuery.data),
+    [globalQuery.data, tenantQuery.data]
+  );
 
   useEffect(() => {
-    const global = globalQuery.data;
-    const tenant = tenantQuery.data;
-    if (!tenant) return;
-
-    const tenantConfigs = (tenant.configs ?? {}) as any;
+    if (!tenantQuery.data) return;
     setForm({
-      timezone: tenant.timezone || global?.timezone_default || DEFAULT_FORM.timezone,
-      currency: tenant.currency || global?.currency_default || DEFAULT_FORM.currency,
-      locale: tenant.locale || global?.locale_default || DEFAULT_FORM.locale,
-      theme: tenant.theme || DEFAULT_FORM.theme,
-      feature_flags: {
-        asset_rental_enabled: tenant.feature_flags?.asset_rental_enabled ?? true,
-        marketplace_enabled: tenant.feature_flags?.marketplace_enabled ?? true,
-        inventory_enabled: tenant.feature_flags?.inventory_enabled ?? true,
-        reports_enabled: tenant.feature_flags?.reports_enabled ?? true,
-        pos_enabled: tenant.feature_flags?.pos_enabled ?? false,
-      },
+      timezone: effectiveConfig.timezone,
+      currency: effectiveConfig.currency,
+      locale: effectiveConfig.locale,
+      theme: effectiveConfig.theme,
+      feature_flags: { ...effectiveConfig.feature_flags },
       configs: {
-        asset_rental: {
-          approval_required:
-            tenantConfigs?.asset_rental?.approval_required ??
-            DEFAULT_FORM.configs.asset_rental.approval_required,
-          default_slot_minutes:
-            tenantConfigs?.asset_rental?.default_slot_minutes ??
-            DEFAULT_FORM.configs.asset_rental.default_slot_minutes,
-          min_dp_percent:
-            tenantConfigs?.asset_rental?.min_dp_percent ??
-            DEFAULT_FORM.configs.asset_rental.min_dp_percent,
-          grace_period_hours:
-            tenantConfigs?.asset_rental?.grace_period_hours ??
-            DEFAULT_FORM.configs.asset_rental.grace_period_hours,
-          late_fee_per_hour:
-            tenantConfigs?.asset_rental?.late_fee_per_hour ??
-            DEFAULT_FORM.configs.asset_rental.late_fee_per_hour,
-        },
-        marketplace: {
-          manual_payment_window_min:
-            tenantConfigs?.marketplace?.manual_payment_window_min ??
-            DEFAULT_FORM.configs.marketplace.manual_payment_window_min,
-          auto_cancel_unpaid_hours:
-            tenantConfigs?.marketplace?.auto_cancel_unpaid_hours ??
-            DEFAULT_FORM.configs.marketplace.auto_cancel_unpaid_hours,
-          low_stock_threshold:
-            tenantConfigs?.marketplace?.low_stock_threshold ??
-            DEFAULT_FORM.configs.marketplace.low_stock_threshold,
-          allow_guest_checkout:
-            tenantConfigs?.marketplace?.allow_guest_checkout ??
-            DEFAULT_FORM.configs.marketplace.allow_guest_checkout,
-        },
-        accounting: {
-          invoice_prefix:
-            tenantConfigs?.accounting?.invoice_prefix ??
-            DEFAULT_FORM.configs.accounting.invoice_prefix,
-          fiscal_year_start_month:
-            tenantConfigs?.accounting?.fiscal_year_start_month ??
-            DEFAULT_FORM.configs.accounting.fiscal_year_start_month,
-          default_payment_terms_days:
-            tenantConfigs?.accounting?.default_payment_terms_days ??
-            DEFAULT_FORM.configs.accounting.default_payment_terms_days,
-          period_lock_after_days:
-            tenantConfigs?.accounting?.period_lock_after_days ??
-            DEFAULT_FORM.configs.accounting.period_lock_after_days,
-        },
+        asset_rental: { ...effectiveConfig.configs.asset_rental },
+        marketplace: { ...effectiveConfig.configs.marketplace },
+        accounting: { ...effectiveConfig.configs.accounting },
       },
     });
-  }, [globalQuery.data, tenantQuery.data]);
+  }, [effectiveConfig, tenantQuery.data]);
 
   const isBusy = saveTenantConfig.isPending || tenantQuery.isLoading;
   const isDirty = useMemo(() => {
-    const tenant = tenantQuery.data;
-    if (!tenant) return false;
-    return JSON.stringify({
-      timezone: form.timezone,
-      currency: form.currency,
-      locale: form.locale,
-      theme: form.theme,
-      feature_flags: form.feature_flags,
-      configs: form.configs,
-    }) !==
-      JSON.stringify({
-        timezone: tenant.timezone || "",
-        currency: tenant.currency || "",
-        locale: tenant.locale || "",
-        theme: tenant.theme || "",
-        feature_flags: {
-          asset_rental_enabled: tenant.feature_flags?.asset_rental_enabled ?? true,
-          marketplace_enabled: tenant.feature_flags?.marketplace_enabled ?? true,
-          inventory_enabled: tenant.feature_flags?.inventory_enabled ?? true,
-          reports_enabled: tenant.feature_flags?.reports_enabled ?? true,
-          pos_enabled: tenant.feature_flags?.pos_enabled ?? false,
-        },
-        configs: tenant.configs ?? {},
-      });
-  }, [form, tenantQuery.data]);
+    if (!tenantQuery.data) return false;
+    return !areTenantConfigsEqual(
+      effectiveConfig,
+      {
+        ...effectiveConfig,
+        timezone: form.timezone,
+        currency: form.currency,
+        locale: form.locale,
+        theme: form.theme,
+        feature_flags: form.feature_flags,
+        configs: form.configs,
+      }
+    );
+  }, [effectiveConfig, form, tenantQuery.data]);
 
   const onSave = async () => {
     await saveTenantConfig.mutateAsync({
@@ -602,4 +527,3 @@ export default function SettingsOperasionalUsahaPage() {
     </div>
   );
 }
-

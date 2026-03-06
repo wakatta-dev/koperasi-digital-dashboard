@@ -12,7 +12,7 @@ import type {
   UpdateRoleRequest,
   CreateRoleRequest,
 } from "@/types/api";
-import { api, API_PREFIX } from "./base";
+import { api, API_PREFIX, getTenantId } from "./base";
 
 type ListRoleParams = {
   term?: string;
@@ -39,12 +39,21 @@ export function listRoles(
   );
 }
 
-export function createRole(
+export async function createRole(
   payload: CreateRoleRequest,
 ): Promise<ApiResponse<Role>> {
+  const finalPayload: CreateRoleRequest = { ...payload };
+  if (typeof finalPayload.tenant_id === "undefined" && finalPayload.is_custom) {
+    const tenantId = await getTenantId();
+    if (tenantId) {
+      finalPayload.tenant_id = Number.isNaN(Number(tenantId))
+        ? tenantId
+        : Number(tenantId);
+    }
+  }
   return api.post<Role>(
     `${API_PREFIX}${API_ENDPOINTS.roles.list}`,
-    payload,
+    finalPayload,
   );
 }
 

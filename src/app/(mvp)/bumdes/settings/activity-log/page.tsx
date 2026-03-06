@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,12 +36,16 @@ export default function SettingsActivityLogPage() {
   const rows = logsQuery.data?.data?.items ?? [];
   const nextCursor = logsQuery.data?.meta?.pagination?.next_cursor;
 
+  useEffect(() => {
+    setCursor(undefined);
+  }, [action, actorId, from, module, to]);
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Activity Log</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Jejak aktivitas perubahan pengaturan, akses, dan komunikasi tenant.
+          Jejak seluruh audit tenant, termasuk pengaturan, akses, komunikasi, dan keamanan.
         </p>
       </div>
 
@@ -62,8 +66,8 @@ export default function SettingsActivityLogPage() {
                 <SelectItem value="operasional">Operasional</SelectItem>
                 <SelectItem value="access">Akses</SelectItem>
                 <SelectItem value="komunikasi">Komunikasi</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="settings">Settings</SelectItem>
+                <SelectItem value="security">Keamanan</SelectItem>
+                <SelectItem value="system">Sistem</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -167,4 +171,3 @@ export default function SettingsActivityLogPage() {
     </div>
   );
 }
-
