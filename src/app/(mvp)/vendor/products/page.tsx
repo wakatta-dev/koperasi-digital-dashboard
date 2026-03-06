@@ -1,12 +1,7 @@
 /** @format */
 
-import { VendorFeaturePlaceholderPage } from "@/modules/vendor";
+import { VendorProductsPage } from "@/modules/vendor";
 
-export default function VendorProductsPage() {
-  return (
-    <VendorFeaturePlaceholderPage
-      title="Products"
-      description="Katalog layanan SaaS global vendor akan diaktifkan setelah backend admin menyediakan kontrak produk dan pricing yang final."
-    />
-  );
+export default function VendorProductsRoute() {
+  return <VendorProductsPage />;
 }

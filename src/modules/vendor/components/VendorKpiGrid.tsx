@@ -1,10 +1,16 @@
 /** @format */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { VendorDashboardKpi } from "@/types/api";
+
+type VendorKpiItem = {
+  id: string;
+  label: string;
+  value: number | string;
+  helper: string;
+};
 
 type VendorKpiGridProps = {
-  items: VendorDashboardKpi[];
+  items: VendorKpiItem[];
 };
 
 export function VendorKpiGrid({ items }: VendorKpiGridProps) {

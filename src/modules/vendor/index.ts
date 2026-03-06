@@ -11,5 +11,9 @@ export { VendorClientSubscriptionPage } from "./components/pages/VendorClientSub
 export { VendorInvoicesPage } from "./components/pages/VendorInvoicesPage";
 export { VendorInvoiceCreatePage } from "./components/pages/VendorInvoiceCreatePage";
 export { VendorInvoiceDetailPage } from "./components/pages/VendorInvoiceDetailPage";
+export { VendorNotificationsPage } from "./components/pages/VendorNotificationsPage";
+export { VendorNotificationComposePage } from "./components/pages/VendorNotificationComposePage";
+export { VendorProductsPage } from "./components/pages/VendorProductsPage";
+export { VendorProductDetailPage } from "./components/pages/VendorProductDetailPage";
 export { VendorFeaturePlaceholderPage } from "./components/pages/VendorFeaturePlaceholderPage";
 export { VendorClientDetailShell } from "./components/VendorClientDetailShell";
