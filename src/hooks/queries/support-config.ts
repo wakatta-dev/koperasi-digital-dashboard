@@ -9,14 +9,28 @@ import { QK } from "./queryKeys";
 import type {
   SendSupportEmailRequest,
   SupportActivityLogParams,
+  UpdateSupportOperationalAssetRentalRequest,
+  UpdateSupportOperationalMarketplaceAccountingRequest,
+  UpdateSupportOperationalModulesRequest,
+  UpdateSupportOperationalPreferencesRequest,
+  UpdateSupportProfileContactDomainRequest,
+  UpdateSupportProfileIdentityRequest,
   UpdateSupportTenantConfigRequest,
 } from "@/types/api";
 import {
   getSupportGlobalConfig,
+  getSupportOperationalSettings,
+  getSupportProfileSettings,
   getSupportTenantConfig,
   listSupportActivityLogs,
   listSupportEmailTemplates,
   sendSupportEmail,
+  updateSupportOperationalAssetRental,
+  updateSupportOperationalMarketplaceAccounting,
+  updateSupportOperationalModules,
+  updateSupportOperationalPreferences,
+  updateSupportProfileContactDomain,
+  updateSupportProfileIdentity,
   updateSupportEmailTemplate,
   updateSupportTenantConfig,
 } from "@/services/api";
@@ -35,6 +49,20 @@ export function useSupportTenantConfig() {
   });
 }
 
+export function useSupportProfileSettings() {
+  return useQuery({
+    queryKey: QK.settings.supportProfileSettings(),
+    queryFn: async () => ensureSuccess(await getSupportProfileSettings()),
+  });
+}
+
+export function useSupportOperationalSettings() {
+  return useQuery({
+    queryKey: QK.settings.supportOperationalSettings(),
+    queryFn: async () => ensureSuccess(await getSupportOperationalSettings()),
+  });
+}
+
 export function useSupportTenantConfigActions() {
   const qc = useQueryClient();
   const saveTenantConfig = useMutation({
@@ -50,6 +78,96 @@ export function useSupportTenantConfigActions() {
   });
 
   return { saveTenantConfig } as const;
+}
+
+export function useSupportProfileActions() {
+  const qc = useQueryClient();
+
+  const saveIdentity = useMutation({
+    mutationFn: async (payload: UpdateSupportProfileIdentityRequest) =>
+      ensureSuccess(await updateSupportProfileIdentity(payload)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportProfileSettings() });
+      qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
+      toast.success("Identitas tenant berhasil disimpan.");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal menyimpan identitas tenant.");
+    },
+  });
+
+  const saveContactDomain = useMutation({
+    mutationFn: async (payload: UpdateSupportProfileContactDomainRequest) =>
+      ensureSuccess(await updateSupportProfileContactDomain(payload)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportProfileSettings() });
+      qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
+      toast.success("Kontak dan domain berhasil disimpan.");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal menyimpan kontak dan domain.");
+    },
+  });
+
+  return { saveIdentity, saveContactDomain } as const;
+}
+
+export function useSupportOperationalActions() {
+  const qc = useQueryClient();
+  const invalidateOperational = () => {
+    qc.invalidateQueries({ queryKey: QK.settings.supportOperationalSettings() });
+    qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
+  };
+
+  const savePreferences = useMutation({
+    mutationFn: async (payload: UpdateSupportOperationalPreferencesRequest) =>
+      ensureSuccess(await updateSupportOperationalPreferences(payload)),
+    onSuccess: () => {
+      invalidateOperational();
+      toast.success("Preferensi tenant berhasil disimpan.");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal menyimpan preferensi tenant.");
+    },
+  });
+
+  const saveModules = useMutation({
+    mutationFn: async (payload: UpdateSupportOperationalModulesRequest) =>
+      ensureSuccess(await updateSupportOperationalModules(payload)),
+    onSuccess: () => {
+      invalidateOperational();
+      toast.success("Aktivasi modul berhasil disimpan.");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal menyimpan aktivasi modul.");
+    },
+  });
+
+  const saveAssetRental = useMutation({
+    mutationFn: async (payload: UpdateSupportOperationalAssetRentalRequest) =>
+      ensureSuccess(await updateSupportOperationalAssetRental(payload)),
+    onSuccess: () => {
+      invalidateOperational();
+      toast.success("Pengaturan asset rental berhasil disimpan.");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal menyimpan asset rental.");
+    },
+  });
+
+  const saveMarketplaceAccounting = useMutation({
+    mutationFn: async (payload: UpdateSupportOperationalMarketplaceAccountingRequest) =>
+      ensureSuccess(await updateSupportOperationalMarketplaceAccounting(payload)),
+    onSuccess: () => {
+      invalidateOperational();
+      toast.success("Pengaturan marketplace dan accounting berhasil disimpan.");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal menyimpan marketplace dan accounting.");
+    },
+  });
+
+  return { savePreferences, saveModules, saveAssetRental, saveMarketplaceAccounting } as const;
 }
 
 export function useSupportEmailTemplates() {

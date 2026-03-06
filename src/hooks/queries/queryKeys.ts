@@ -19,6 +19,7 @@ export const QK = {
       ["roles", "list", params ?? {}] as const,
     detail: (id: string | number) =>
       ["roles", "detail", String(id)] as const,
+    permissionCatalog: () => ["roles", "permission-catalog"] as const,
     permissions: (id: string | number) =>
       ["roles", "permissions", String(id)] as const,
   },
@@ -30,6 +31,9 @@ export const QK = {
   settings: {
     supportGlobalConfig: () => ["settings", "support", "global-config"] as const,
     supportTenantConfig: () => ["settings", "support", "tenant-config"] as const,
+    supportProfileSettings: () => ["settings", "support", "profile-settings"] as const,
+    supportOperationalSettings: () =>
+      ["settings", "support", "operational-settings"] as const,
     emailTemplates: () => ["settings", "support", "email-templates"] as const,
     activityLogs: (params?: Record<string, unknown>) =>
       ["settings", "support", "activity-logs", params ?? {}] as const,
@@ -228,11 +232,14 @@ export type QueryKey = ReturnType<
   | typeof QK.roles.lists
   | typeof QK.roles.list
   | typeof QK.roles.detail
+  | typeof QK.roles.permissionCatalog
   | typeof QK.roles.permissions
   | typeof QK.tenants.byDomain
   | typeof QK.tenants.profile
   | typeof QK.settings.supportGlobalConfig
   | typeof QK.settings.supportTenantConfig
+  | typeof QK.settings.supportProfileSettings
+  | typeof QK.settings.supportOperationalSettings
   | typeof QK.settings.emailTemplates
   | typeof QK.settings.activityLogs
   | typeof QK.notifications.list

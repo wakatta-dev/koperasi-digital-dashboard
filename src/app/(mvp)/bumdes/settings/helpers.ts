@@ -6,32 +6,32 @@ const MANAGE_ROLES = new Set(["admin", "tenant admin", "super_admin", "support"]
 const SETTINGS_TENANT_TYPE_FALLBACK = "bumdes";
 
 export const DEFAULT_SETTINGS_FEATURE_FLAGS = {
-  asset_rental_enabled: true,
-  marketplace_enabled: true,
-  inventory_enabled: true,
-  reports_enabled: true,
+  asset_rental_enabled: false,
+  marketplace_enabled: false,
+  inventory_enabled: false,
+  reports_enabled: false,
   pos_enabled: false,
 } as const;
 
 export const DEFAULT_SETTINGS_OPERATIONAL_CONFIGS = {
   asset_rental: {
-    approval_required: true,
-    default_slot_minutes: 60,
-    min_dp_percent: 20,
-    grace_period_hours: 2,
-    late_fee_per_hour: 25000,
+    approval_required: false,
+    default_slot_minutes: 0,
+    min_dp_percent: 0,
+    grace_period_hours: 0,
+    late_fee_per_hour: 0,
   },
   marketplace: {
-    manual_payment_window_min: 120,
-    auto_cancel_unpaid_hours: 24,
-    low_stock_threshold: 5,
+    manual_payment_window_min: 0,
+    auto_cancel_unpaid_hours: 0,
+    low_stock_threshold: 0,
     allow_guest_checkout: false,
   },
   accounting: {
-    invoice_prefix: "INV",
-    fiscal_year_start_month: 1,
-    default_payment_terms_days: 14,
-    period_lock_after_days: 7,
+    invoice_prefix: "",
+    fiscal_year_start_month: 0,
+    default_payment_terms_days: 0,
+    period_lock_after_days: 0,
   },
 } as const;
 
@@ -166,10 +166,10 @@ export function buildEffectiveTenantConfig(
     domain: tenant?.domain ?? "",
     custom_domain: tenant?.custom_domain ?? "",
     logo_url: tenant?.logo_url ?? "",
-    timezone: tenant?.timezone || global?.timezone_default || "Asia/Jakarta",
-    currency: tenant?.currency || global?.currency_default || "IDR",
-    locale: tenant?.locale || global?.locale_default || "id-ID",
-    theme: tenant?.theme || "default",
+    timezone: tenant?.timezone || global?.timezone_default || "",
+    currency: tenant?.currency || global?.currency_default || "",
+    locale: tenant?.locale || global?.locale_default || "",
+    theme: tenant?.theme || "",
     feature_flags: {
       asset_rental_enabled:
         tenant?.feature_flags?.asset_rental_enabled ??
