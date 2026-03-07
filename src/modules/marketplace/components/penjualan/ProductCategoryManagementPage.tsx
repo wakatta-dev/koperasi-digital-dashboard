@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Edit3, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ type CategoryItem = {
   id: number;
   name: string;
   count: number;
+  isActive: boolean;
 };
 
 export function ProductCategoryManagementPage() {
@@ -48,6 +50,7 @@ export function ProductCategoryManagementPage() {
       id: item.id,
       name: item.name,
       count: item.count,
+      isActive: item.is_active,
     }));
     if (!searchValue.trim()) return items;
     const keyword = searchValue.toLowerCase();
@@ -72,14 +75,40 @@ export function ProductCategoryManagementPage() {
   });
 
   const renameMutation = useMutation({
-    mutationFn: async (vars: { id: number; name: string }) =>
-      ensureSuccess(await updateInventoryCategory(vars.id, { name: vars.name })),
+    mutationFn: async (vars: { id: number; name: string; isActive: boolean }) =>
+      ensureSuccess(
+        await updateInventoryCategory(vars.id, {
+          name: vars.name,
+          is_active: vars.isActive,
+        })
+      ),
     onSuccess: (_data, vars) => {
       invalidateLists();
       toast.success(`Kategori diperbarui menjadi "${vars.name}".`);
     },
     onError: (err: any) => {
       toast.error(err?.message || "Gagal memperbarui kategori.");
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async (vars: CategoryItem) =>
+      ensureSuccess(
+        await updateInventoryCategory(vars.id, {
+          name: vars.name,
+          is_active: !vars.isActive,
+        })
+      ),
+    onSuccess: (_data, vars) => {
+      invalidateLists();
+      toast.success(
+        vars.isActive
+          ? `Kategori "${vars.name}" dinonaktifkan.`
+          : `Kategori "${vars.name}" diaktifkan.`
+      );
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Gagal memperbarui status kategori.");
     },
   });
 
@@ -111,8 +140,16 @@ export function ProductCategoryManagementPage() {
       setRenameTarget(null);
       return;
     }
-    await renameMutation.mutateAsync({ id: renameTarget.id, name: nextName });
+    await renameMutation.mutateAsync({
+      id: renameTarget.id,
+      name: nextName,
+      isActive: renameTarget.isActive,
+    });
     setRenameTarget(null);
+  };
+
+  const handleToggleActive = async (item: CategoryItem) => {
+    await toggleActiveMutation.mutateAsync(item);
   };
 
   const handleConfirmClear = async () => {
@@ -133,7 +170,10 @@ export function ProductCategoryManagementPage() {
   };
 
   const busy =
-    renameMutation.isPending || deleteMutation.isPending || createMutation.isPending;
+    renameMutation.isPending ||
+    toggleActiveMutation.isPending ||
+    deleteMutation.isPending ||
+    createMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -180,6 +220,9 @@ export function ProductCategoryManagementPage() {
                 <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-40">
                   Jumlah Produk
                 </TableHead>
+                <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-40">
+                  Status
+                </TableHead>
                 <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right">
                   Aksi
                 </TableHead>
@@ -189,7 +232,7 @@ export function ProductCategoryManagementPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={4}
                     className="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400"
                   >
                     Memuat kategori...
@@ -199,7 +242,7 @@ export function ProductCategoryManagementPage() {
               {isError ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={4}
                     className="px-6 py-10 text-center text-sm text-red-500"
                   >
                     Gagal memuat kategori.
@@ -209,7 +252,7 @@ export function ProductCategoryManagementPage() {
               {!isLoading && !isError && categories.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={4}
                     className="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400"
                   >
                     Belum ada kategori yang tersedia.
@@ -226,7 +269,33 @@ export function ProductCategoryManagementPage() {
                     <TableCell className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                       {item.count} produk
                     </TableCell>
+                    <TableCell className="px-6 py-4 text-sm">
+                      <Badge
+                        variant={item.isActive ? "default" : "secondary"}
+                        className={
+                          item.isActive
+                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300"
+                            : "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300"
+                        }
+                      >
+                        {item.isActive ? "Aktif" : "Nonaktif"}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="px-6 py-4 text-right space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleActive(item)}
+                        disabled={busy}
+                        className={
+                          item.isActive
+                            ? "text-amber-600 border-amber-200 hover:bg-amber-50"
+                            : "text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                        }
+                      >
+                        {item.isActive ? "Nonaktifkan" : "Aktifkan"}
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"

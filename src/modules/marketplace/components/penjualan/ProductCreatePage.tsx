@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud } from "lucide-react";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useInventoryActions, useInventoryCategories } from "@/hooks/queries/inventory";
+import { selectableInventoryCategoryNames } from "./inventoryCategoryOptions";
 
 export function ProductCreatePage() {
   const router = useRouter();
@@ -38,6 +39,10 @@ export function ProductCreatePage() {
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const activeCategoryNames = useMemo(
+    () => selectableInventoryCategoryNames(categoriesData),
+    [categoriesData]
+  );
 
   const submitting = create.isPending || addImage.isPending || initialStock.isPending;
 
@@ -214,10 +219,10 @@ export function ProductCreatePage() {
                   <SelectValue placeholder="Pilih Kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categoriesData && categoriesData.length > 0 ? (
-                    categoriesData.map((item) => (
-                      <SelectItem key={item.name} value={item.name}>
-                        {item.name}
+                  {activeCategoryNames.length > 0 ? (
+                    activeCategoryNames.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {item}
                       </SelectItem>
                     ))
                   ) : (

@@ -65,6 +65,7 @@ export function listInventoryCategories(): Promise<
 
 export function createInventoryCategory(payload: {
   name: string;
+  is_active?: boolean;
 }): Promise<ApiResponse<InventoryCategoryResponse>> {
   return api.post<InventoryCategoryResponse>(
     `${API_PREFIX}${E.categories}`,
@@ -74,7 +75,7 @@ export function createInventoryCategory(payload: {
 
 export function updateInventoryCategory(
   id: string | number,
-  payload: { name: string }
+  payload: { name: string; is_active?: boolean }
 ): Promise<ApiResponse<InventoryCategoryResponse>> {
   return api.patch<InventoryCategoryResponse>(
     `${API_PREFIX}${E.category(id)}`,

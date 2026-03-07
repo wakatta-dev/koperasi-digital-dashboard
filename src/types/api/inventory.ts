@@ -160,6 +160,7 @@ export type InventoryCategoryResponse = {
   id: number;
   name: string;
   count: number;
+  is_active: boolean;
 };
 
 export type InventoryProductStatsResponse = {
