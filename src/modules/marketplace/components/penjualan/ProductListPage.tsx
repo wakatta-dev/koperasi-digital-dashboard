@@ -128,6 +128,13 @@ export function ProductListPage() {
         name: item.name,
         sku: item.sku,
         category: item.category ?? "-",
+        internalStatus: item.status,
+        marketplaceLabel:
+          item.status !== "ACTIVE"
+            ? "Produk diarsipkan"
+            : item.showInMarketplace
+              ? "Tayang di marketplace"
+              : "Draft internal",
         status: resolveStockStatus(
           item.stock,
           item.minStock,
@@ -260,8 +267,8 @@ export function ProductListPage() {
                 },
             {
               label: inventoryItem.showInMarketplace
-                ? "Sembunyikan Marketplace"
-                : "Tampilkan Marketplace",
+                ? "Sembunyikan dari Marketplace"
+                : "Publikasikan ke Marketplace",
               onSelect: () =>
                 actions.update.mutate({
                   id: inventoryItem.id,

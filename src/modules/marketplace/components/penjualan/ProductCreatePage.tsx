@@ -24,7 +24,7 @@ export function ProductCreatePage() {
   const router = useRouter();
   const uploadId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
-  const { create, addImage, initialStock } = useInventoryActions();
+  const { create, update, addImage, initialStock } = useInventoryActions();
   const { data: categoriesData } = useInventoryCategories();
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
@@ -35,7 +35,7 @@ export function ProductCreatePage() {
   const [trackStock, setTrackStock] = useState(true);
   const [initialStockQty, setInitialStockQty] = useState("");
   const [minStock, setMinStock] = useState("");
-  const [showInMarketplace, setShowInMarketplace] = useState(true);
+  const [showInMarketplace, setShowInMarketplace] = useState(false);
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -56,7 +56,7 @@ export function ProductCreatePage() {
     setTrackStock(true);
     setInitialStockQty("");
     setMinStock("");
-    setShowInMarketplace(true);
+    setShowInMarketplace(false);
     setWeight("");
     setDescription("");
     setFiles([]);
@@ -106,6 +106,7 @@ export function ProductCreatePage() {
       return;
     }
 
+    const publicationRequested = showInMarketplace;
     try {
       const product = await create.mutateAsync({
         name: payload.name,
@@ -117,7 +118,7 @@ export function ProductCreatePage() {
         price_sell: Math.round(parsedPriceSell),
         track_stock: trackStock,
         min_stock: Math.round(parsedMinStock),
-        show_in_marketplace: showInMarketplace,
+        show_in_marketplace: false,
       });
       if (trackStock && parsedInitialStock > 0) {
         await initialStock.mutateAsync({
@@ -137,6 +138,27 @@ export function ProductCreatePage() {
               addImage.mutateAsync({ id: product.id, file: fileItem })
             )
           );
+        }
+      }
+      if (publicationRequested) {
+        if (hasVariants) {
+          toast.info(
+            "Produk varian disimpan sebagai draft internal. Lengkapi varian lalu publikasikan dari detail produk.",
+          );
+        } else {
+          try {
+            await update.mutateAsync({
+              id: product.id,
+              payload: { show_in_marketplace: true },
+            });
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : "Lengkapi data publikasi produk.";
+            toast.error(`Produk tersimpan sebagai draft internal. ${message}`);
+            resetForm();
+            router.push(`/bumdes/marketplace/inventory/${product.id}/edit`);
+            return;
+          }
         }
       }
       resetForm();
@@ -321,7 +343,7 @@ export function ProductCreatePage() {
                     Tampilkan di Marketplace
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Jika aktif, pembeli dapat melihat produk ini.
+                    Produk baru akan disimpan sebagai draft internal. Sistem hanya mempublikasikan jika data produk sudah lengkap.
                   </p>
                 </div>
                 <Switch
@@ -404,6 +426,11 @@ export function ProductCreatePage() {
             {files.length > 0 ? (
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                 {files.length} gambar dipilih
+              </p>
+            ) : null}
+            {showInMarketplace ? (
+              <p className="mt-3 text-xs text-amber-600 dark:text-amber-300">
+                Publikasi akan dicek ulang setelah produk, stok awal, dan gambar selesai disimpan.
               </p>
             ) : null}
           </div>

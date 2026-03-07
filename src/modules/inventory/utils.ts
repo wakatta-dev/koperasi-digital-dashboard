@@ -3,39 +3,65 @@
 import type { InventoryProductResponse } from "@/types/api/inventory";
 import type { InventoryItem } from "./types";
 
-export function computeEligibility(product: InventoryProductResponse) {
+export function computeMarketplacePublicationReadiness(
+  product: InventoryProductResponse,
+  options?: { requireImage?: boolean },
+) {
   const reasons: string[] = [];
   const hasVariants = product.has_variants ?? false;
   const variantsRequired = product.variants_required ?? false;
   const variantInStock = product.variant_in_stock ?? false;
   const variantPriceValid = product.variant_price_valid ?? true;
+
   if (product.status !== "ACTIVE") {
-    reasons.push("Status bukan ACTIVE");
+    reasons.push("Aktifkan produk terlebih dahulu");
   }
-  if (!product.show_in_marketplace) {
-    reasons.push("Disembunyikan");
+  if (!product.category?.trim()) {
+    reasons.push("Pilih kategori produk");
+  }
+  if (!product.description?.trim()) {
+    reasons.push("Lengkapi deskripsi produk");
+  }
+  const hasImage =
+    (product.images ?? []).some((image) => Boolean(image.url)) ||
+    Boolean(product.photo_url?.trim());
+  if ((options?.requireImage ?? false) && !hasImage) {
+    reasons.push("Unggah minimal satu gambar produk");
   }
   if (hasVariants) {
     if (!variantsRequired) {
-      reasons.push("Varian belum lengkap");
+      reasons.push("Lengkapi minimal satu varian aktif yang dapat dijual");
     } else if (!variantPriceValid) {
-      reasons.push("Harga varian belum diatur");
+      reasons.push("Lengkapi harga varian yang dijual");
     } else if (!variantInStock) {
-      reasons.push("Varian habis");
+      reasons.push("Pastikan ada stok varian yang dijual");
     }
   } else if (product.price_sell <= 0) {
-    reasons.push("Harga belum diatur");
+    reasons.push("Isi harga jual produk");
   } else if (product.track_stock && product.stock <= 0) {
-    reasons.push("Stok habis");
+    reasons.push("Isi stok produk lebih dari 0");
   }
   return {
-    eligible: reasons.length === 0,
+    ready: reasons.length === 0,
+    reasons,
+  };
+}
+
+export function computeEligibility(product: InventoryProductResponse) {
+  const publication = computeMarketplacePublicationReadiness(product);
+  const reasons = [...publication.reasons];
+  if (!product.show_in_marketplace) {
+    reasons.unshift("Produk masih draft internal");
+  }
+  return {
+    eligible: publication.ready && product.show_in_marketplace,
     reasons,
   };
 }
 
 export function mapInventoryProduct(product: InventoryProductResponse): InventoryItem {
   const eligibility = computeEligibility(product);
+  const publication = computeMarketplacePublicationReadiness(product);
   const images = product.images && product.images.length > 0
     ? product.images
     : product.photo_url
@@ -71,5 +97,7 @@ export function mapInventoryProduct(product: InventoryProductResponse): Inventor
     costPrice: product.cost_price,
     marketplaceEligible: eligibility.eligible,
     ineligibleReasons: eligibility.reasons,
+    marketplacePublicationReady: publication.ready,
+    marketplacePublicationIssues: publication.reasons,
   };
 }

@@ -5,6 +5,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { ProductDetailHeader } from "./ProductDetailHeader";
 import { ProductMediaCard } from "./ProductMediaCard";
 import { ProductBasicInfoCard } from "./ProductBasicInfoCard";
@@ -21,7 +22,10 @@ import {
   useInventoryVariantActions,
   useInventoryVariants,
 } from "@/hooks/queries/inventory";
-import { mapInventoryProduct } from "@/modules/inventory/utils";
+import {
+  computeMarketplacePublicationReadiness,
+  mapInventoryProduct,
+} from "@/modules/inventory/utils";
 import type { InventoryEvent, ProductStatus, ProductVariant } from "@/modules/marketplace/types";
 
 export type ProductDetailPageProps = Readonly<{
@@ -64,6 +68,13 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
   const [uploadingVariantId, setUploadingVariantId] = useState<number | null>(null);
 
   const item = useMemo(() => (data ? mapInventoryProduct(data) : null), [data]);
+  const publicationReadiness = useMemo(
+    () =>
+      data
+        ? computeMarketplacePublicationReadiness(data, { requireImage: true })
+        : { ready: false, reasons: [] as string[] },
+    [data],
+  );
 
   const variants: ProductVariant[] = useMemo(() => {
     if (!variantsData) return [];
@@ -141,6 +152,12 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
   }
 
   const status = resolveStockStatus(item.stock, item.minStock, item.trackStock);
+  const marketplaceVisibilityLabel =
+    item.status !== "ACTIVE"
+      ? "Produk diarsipkan"
+      : item.showInMarketplace
+        ? "Tayang di marketplace"
+        : "Draft internal";
   const mediaImages =
     item.images && item.images.length > 0
       ? [...item.images]
@@ -207,6 +224,62 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
         onDelete={() => setDeleteOpen(true)}
         onEdit={() => router.push(`/bumdes/marketplace/inventory/${id}/edit`)}
       />
+
+      <section className="surface-card p-5 space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              Status Produk Marketplace
+            </h3>
+            <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+              <p>
+                Status internal:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {item.status === "ACTIVE" ? "Aktif" : "Diarsipkan"}
+                </span>
+              </p>
+              <p>
+                Visibilitas marketplace:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {marketplaceVisibilityLabel}
+                </span>
+              </p>
+              <p>
+                Kesiapan publikasi:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {publicationReadiness.ready ? "Siap tayang" : "Belum siap"}
+                </span>
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant={item.showInMarketplace ? "outline" : "default"}
+            onClick={() =>
+              actions.update.mutate({
+                id: item.id,
+                payload: { show_in_marketplace: !item.showInMarketplace },
+              })
+            }
+            disabled={actions.update.isPending || (item.status !== "ACTIVE" && !item.showInMarketplace)}
+            className={item.showInMarketplace ? "" : "bg-indigo-600 hover:bg-indigo-700 text-white"}
+          >
+            {item.showInMarketplace
+              ? "Sembunyikan dari Marketplace"
+              : "Publikasikan ke Marketplace"}
+          </Button>
+        </div>
+        {!publicationReadiness.ready ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+            <p className="font-medium">Lengkapi data berikut sebelum produk bisa ditayangkan:</p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              {publicationReadiness.reasons.map((issue) => (
+                <li key={issue}>{issue}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
