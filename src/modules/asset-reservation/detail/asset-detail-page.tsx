@@ -15,6 +15,10 @@ import { GuestRentalApplicationFeature } from "../guest/components/application/G
 import type { GuestRentalApplicationFormValues } from "../guest/components/application/GuestRentalApplicationForm";
 import type { SelectedAssetSummary } from "../guest/components/application/SelectedAssetSummaryCard";
 import { SubmissionSuccessCardFeature } from "../guest/components/success/SubmissionSuccessCardFeature";
+import {
+  resolvePublicAssetErrorMessage,
+  resolvePublicAssetStatusPresentation,
+} from "../guest/utils/public-catalog";
 
 type AssetDetailPageProps = {
   assetId?: string;
@@ -44,23 +48,6 @@ function resolveUnit(rateType?: string) {
   return (rateType || "").toUpperCase() === "HOURLY" ? "/ jam" : "/ hari";
 }
 
-function resolveStatusTone(
-  asset?: { status?: string; availability_status?: string } | null,
-) {
-  if (!asset) return "available" as const;
-  const rawStatus = (asset.status || "").toUpperCase();
-  if (rawStatus === "ARCHIVED") return "maintenance" as const;
-  const availability = (asset.availability_status || "").toLowerCase();
-  if (availability.includes("maint")) return "maintenance" as const;
-  if (
-    availability.includes("tidak") ||
-    availability.includes("rent") ||
-    availability.includes("sibuk")
-  )
-    return "busy" as const;
-  return "available" as const;
-}
-
 function specLookup(
   specs: Array<{ label: string; value: string }> | undefined,
   key: string,
@@ -80,8 +67,9 @@ function formatCurrency(amount?: number) {
 
 export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const { data: asset, isLoading, error } = useAssetDetail(assetId);
-  const errorMessage =
-    error instanceof Error ? error.message : error ? String(error) : null;
+  const errorMessage = resolvePublicAssetErrorMessage(
+    error instanceof Error ? error.message : error ? String(error) : null,
+  );
 
   const tomorrow = useMemo(
     () => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
@@ -104,21 +92,14 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     const priceLabel = formatCurrency(asset?.rate_amount);
     const unitLabel = resolveUnit(asset?.rate_type);
     const title = asset?.name?.trim() || "Aset Desa";
-    const statusTone = resolveStatusTone(asset ?? null);
-    const statusLabel =
-      asset?.availability_status?.trim() ||
-      (statusTone === "available"
-        ? "Tersedia"
-        : statusTone === "maintenance"
-          ? "Maintenance"
-          : "Tidak tersedia");
+    const status = resolvePublicAssetStatusPresentation(asset ?? null);
     const capacity = specLookup(asset?.specifications, "Kapasitas") || "-";
     const facilities = specLookup(asset?.specifications, "Fasilitas") || "-";
     const location = asset?.location?.trim() || "-";
     return {
       title,
-      statusLabel,
-      statusTone,
+      statusLabel: status.label,
+      statusTone: status.tone,
       priceLabel,
       unitLabel,
       imageUrl:
