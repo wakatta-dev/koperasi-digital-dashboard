@@ -154,6 +154,7 @@ export type MarketplaceOrderManualPaymentResponse = {
 
 export type MarketplaceOrderResponse = {
   id: number;
+  order_number?: string;
   status: MarketplaceOrderStatusInput;
   fulfillment_method: string;
   customer_name: string;
