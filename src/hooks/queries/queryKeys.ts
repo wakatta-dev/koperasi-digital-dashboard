@@ -63,6 +63,7 @@ export const QK = {
   settings: {
     supportGlobalConfig: () => ["settings", "support", "global-config"] as const,
     supportTenantConfig: () => ["settings", "support", "tenant-config"] as const,
+    supportReadiness: () => ["settings", "support", "readiness"] as const,
     supportProfileSettings: () => ["settings", "support", "profile-settings"] as const,
     supportOperationalSettings: () =>
       ["settings", "support", "operational-settings"] as const,

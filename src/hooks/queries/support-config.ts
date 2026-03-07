@@ -21,6 +21,7 @@ import {
   getSupportGlobalConfig,
   getSupportOperationalSettings,
   getSupportProfileSettings,
+  getSupportSystemReadiness,
   getSupportTenantConfig,
   listSupportActivityLogs,
   listSupportEmailTemplates,
@@ -49,6 +50,13 @@ export function useSupportTenantConfig() {
   });
 }
 
+export function useSupportSystemReadiness() {
+  return useQuery({
+    queryKey: QK.settings.supportReadiness(),
+    queryFn: async () => ensureSuccess(await getSupportSystemReadiness()),
+  });
+}
+
 export function useSupportProfileSettings() {
   return useQuery({
     queryKey: QK.settings.supportProfileSettings(),
@@ -69,6 +77,7 @@ export function useSupportTenantConfigActions() {
     mutationFn: async (payload: UpdateSupportTenantConfigRequest) =>
       ensureSuccess(await updateSupportTenantConfig(payload)),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
       qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
       toast.success("Pengaturan tenant berhasil disimpan.");
     },
@@ -87,6 +96,7 @@ export function useSupportProfileActions() {
     mutationFn: async (payload: UpdateSupportProfileIdentityRequest) =>
       ensureSuccess(await updateSupportProfileIdentity(payload)),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
       qc.invalidateQueries({ queryKey: QK.settings.supportProfileSettings() });
       qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
       toast.success("Identitas tenant berhasil disimpan.");
@@ -100,6 +110,7 @@ export function useSupportProfileActions() {
     mutationFn: async (payload: UpdateSupportProfileContactDomainRequest) =>
       ensureSuccess(await updateSupportProfileContactDomain(payload)),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
       qc.invalidateQueries({ queryKey: QK.settings.supportProfileSettings() });
       qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
       toast.success("Kontak dan domain berhasil disimpan.");
@@ -115,6 +126,7 @@ export function useSupportProfileActions() {
 export function useSupportOperationalActions() {
   const qc = useQueryClient();
   const invalidateOperational = () => {
+    qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
     qc.invalidateQueries({ queryKey: QK.settings.supportOperationalSettings() });
     qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
   };

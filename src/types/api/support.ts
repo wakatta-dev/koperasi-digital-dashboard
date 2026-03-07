@@ -139,6 +139,31 @@ export interface SupportOperationalSettings {
   marketplace_accounting: SupportMarketplaceAccountingSection;
 }
 
+export interface SupportReadinessItem {
+  key: string;
+  label: string;
+  status: "ready" | "missing";
+  message?: string;
+  source?: string;
+}
+
+export interface SupportReadinessDomain {
+  domain: string;
+  label: string;
+  status: "ready" | "missing";
+  ready_count: number;
+  missing_count: number;
+  items: SupportReadinessItem[];
+}
+
+export interface SupportSystemReadiness {
+  tenant_id: number;
+  status: "ready" | "missing";
+  checked_at: Rfc3339String;
+  foundation_items: SupportReadinessItem[];
+  domains: SupportReadinessDomain[];
+}
+
 export interface SectionConcurrencyRequest {
   expected_updated_at?: Rfc3339String;
 }
@@ -270,6 +295,7 @@ export type SupportProfileSettingsResponse = ApiResponse<SupportProfileSettings>
 export type SupportProfileIdentityResponse = ApiResponse<SupportProfileIdentitySection>;
 export type SupportProfileContactDomainResponse = ApiResponse<SupportProfileContactDomainSection>;
 export type SupportOperationalSettingsResponse = ApiResponse<SupportOperationalSettings>;
+export type SupportSystemReadinessResponse = ApiResponse<SupportSystemReadiness>;
 export type SupportOperationalPreferencesResponse = ApiResponse<SupportOperationalPreferencesSection>;
 export type SupportOperationalModulesResponse = ApiResponse<SupportOperationalModulesSection>;
 export type SupportOperationalAssetRentalResponse = ApiResponse<SupportAssetRentalSettingsSection>;

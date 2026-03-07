@@ -8,6 +8,7 @@ import type {
   SupportOperationalModulesResponse,
   SupportOperationalPreferencesResponse,
   SupportOperationalSettingsResponse,
+  SupportSystemReadinessResponse,
   SupportProfileContactDomainResponse,
   SupportProfileIdentityResponse,
   SupportProfileSettingsResponse,
@@ -32,6 +33,12 @@ export function getSupportGlobalConfig(): Promise<SupportGlobalConfigResponse> {
 export function getSupportTenantConfig(): Promise<SupportTenantConfigResponse> {
   return api.get(
     `${API_PREFIX}${API_ENDPOINTS.support.configTenant}`,
+  );
+}
+
+export function getSupportSystemReadiness(): Promise<SupportSystemReadinessResponse> {
+  return api.get(
+    `${API_PREFIX}${API_ENDPOINTS.support.configReadiness}`,
   );
 }
 

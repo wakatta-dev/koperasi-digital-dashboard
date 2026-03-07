@@ -20,6 +20,7 @@ const mockUseSupportEmailActions = vi.fn();
 const mockUseSupportActivityLogs = vi.fn();
 const mockUseSupportOperationalSettings = vi.fn();
 const mockUseSupportOperationalActions = vi.fn();
+const mockUseSupportSystemReadiness = vi.fn();
 
 vi.mock("next-auth/react", () => ({
   useSession: () => mockUseSession(),
@@ -39,6 +40,7 @@ vi.mock("@/hooks/queries", () => ({
   useSupportActivityLogs: () => mockUseSupportActivityLogs(),
   useSupportOperationalSettings: () => mockUseSupportOperationalSettings(),
   useSupportOperationalActions: () => mockUseSupportOperationalActions(),
+  useSupportSystemReadiness: () => mockUseSupportSystemReadiness(),
 }));
 
 describe("tenant-settings pages", () => {
@@ -57,6 +59,7 @@ describe("tenant-settings pages", () => {
     mockUseSupportActivityLogs.mockReset();
     mockUseSupportOperationalSettings.mockReset();
     mockUseSupportOperationalActions.mockReset();
+    mockUseSupportSystemReadiness.mockReset();
 
     mockUseSession.mockReturnValue({ data: { user: { role: "admin", jenis_tenant: "bumdes" } } });
     mockUseSupportProfileSettings.mockReturnValue({
@@ -243,6 +246,55 @@ describe("tenant-settings pages", () => {
       saveAssetRental: { isPending: false, mutate: vi.fn() },
       saveMarketplaceAccounting: { isPending: false, mutate: vi.fn() },
     });
+    mockUseSupportSystemReadiness.mockReturnValue({
+      data: {
+        tenant_id: 1,
+        status: "missing",
+        checked_at: "2026-03-06T00:00:00Z",
+        foundation_items: [
+          {
+            key: "business_name",
+            label: "Nama bisnis tenant",
+            status: "ready",
+          },
+        ],
+        domains: [
+          {
+            domain: "marketplace",
+            label: "Marketplace",
+            status: "missing",
+            ready_count: 2,
+            missing_count: 1,
+            items: [
+              {
+                key: "inventory_categories",
+                label: "Kategori inventory tersedia",
+                status: "missing",
+                message: "Tambahkan minimal satu kategori inventory agar produk marketplace dapat dikelompokkan.",
+              },
+            ],
+          },
+          {
+            domain: "rental",
+            label: "Rental",
+            status: "ready",
+            ready_count: 4,
+            missing_count: 0,
+            items: [],
+          },
+          {
+            domain: "accounting",
+            label: "Accounting",
+            status: "ready",
+            ready_count: 4,
+            missing_count: 0,
+            items: [],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
   });
 
   it("renders profile page in read-only mode for non-admin roles", () => {
@@ -272,8 +324,60 @@ describe("tenant-settings pages", () => {
     render(<BusinessOperationsSettingsPage />);
 
     expect(screen.getByRole("heading", { name: "Operasional Usaha" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Kesiapan Sistem" })).toBeTruthy();
+    expect(screen.getByText("Flow inti belum siap sepenuhnya")).toBeTruthy();
+    expect(screen.getByText("Kategori inventory tersedia")).toBeTruthy();
     expect(screen.getByText("Preferensi Tenant")).toBeTruthy();
     expect(screen.getByText("Aktivasi Modul")).toBeTruthy();
     expect(screen.getByText("Kebijakan Asset & Rental")).toBeTruthy();
+  });
+
+  it("renders readiness success state when all dependencies are complete", () => {
+    mockUseSupportSystemReadiness.mockReturnValue({
+      data: {
+        tenant_id: 1,
+        status: "ready",
+        checked_at: "2026-03-06T00:00:00Z",
+        foundation_items: [
+          {
+            key: "business_name",
+            label: "Nama bisnis tenant",
+            status: "ready",
+          },
+        ],
+        domains: [
+          {
+            domain: "marketplace",
+            label: "Marketplace",
+            status: "ready",
+            ready_count: 4,
+            missing_count: 0,
+            items: [],
+          },
+          {
+            domain: "rental",
+            label: "Rental",
+            status: "ready",
+            ready_count: 5,
+            missing_count: 0,
+            items: [],
+          },
+          {
+            domain: "accounting",
+            label: "Accounting",
+            status: "ready",
+            ready_count: 4,
+            missing_count: 0,
+            items: [],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<BusinessOperationsSettingsPage />);
+
+    expect(screen.getByText("Semua dependency inti sudah siap")).toBeTruthy();
   });
 });
