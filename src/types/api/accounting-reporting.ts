@@ -7,6 +7,17 @@ export type AccountingReportingBaseQuery = {
   branch?: string;
 };
 
+export type AccountingReportingReportContext = {
+  requested_preset?: string;
+  requested_start?: string;
+  requested_end?: string;
+  effective_preset?: string;
+  effective_start?: string;
+  effective_end?: string;
+  auto_fallback_applied: boolean;
+  fallback_reason?: string;
+};
+
 export type AccountingReportingPagedQuery = AccountingReportingBaseQuery & {
   page?: number;
   page_size?: number;
@@ -46,6 +57,7 @@ export type AccountingReportingOverviewResponse = {
   monthly_performance: AccountingReportingOverviewMonthlyPerformance[];
   revenue_segments: AccountingReportingOverviewRevenueSegment[];
   recent_transactions: AccountingReportingOverviewRecentTransaction[];
+  report_context: AccountingReportingReportContext;
 };
 
 export type AccountingReportingProfitLossRow = {
@@ -68,6 +80,7 @@ export type AccountingReportingProfitLossResponse = {
   summary_cards: AccountingReportingProfitLossSummaryCard[];
   rows: AccountingReportingProfitLossRow[];
   notes: string[];
+  report_context: AccountingReportingReportContext;
 };
 
 export type AccountingReportingCashFlowRow = {
@@ -90,6 +103,7 @@ export type AccountingReportingCashFlowResponse = {
   updated_at: string;
   rows: AccountingReportingCashFlowRow[];
   notes: string[];
+  report_context: AccountingReportingReportContext;
 };
 
 export type AccountingReportingBalanceLine = {
@@ -109,6 +123,7 @@ export type AccountingReportingBalanceSheetResponse = {
   liability_info: AccountingReportingBalanceLine[];
   status_label: string;
   notes: string[];
+  report_context: AccountingReportingReportContext;
 };
 
 export type AccountingReportingProfitLossComparativeRow = {
@@ -128,6 +143,7 @@ export type AccountingReportingProfitLossComparativeResponse = {
     generated_at: string;
     currency: string;
   };
+  report_context: AccountingReportingReportContext;
 };
 
 export type AccountingReportingTrialBalanceRow = {
@@ -149,6 +165,7 @@ export type AccountingReportingTrialBalanceResponse = {
     credit: number;
     ending_balance: number;
   };
+  report_context: AccountingReportingReportContext;
 };
 
 export type AccountingReportingLedgerEntry = {
@@ -194,6 +211,7 @@ export type AccountingReportingGeneralLedgerResponse = {
     page_size: number;
     total_accounts: number;
   };
+  report_context: AccountingReportingReportContext;
 };
 
 export type AccountingReportingAccountLedgerQuery = AccountingReportingPagedQuery & {
@@ -222,4 +240,5 @@ export type AccountingReportingAccountLedgerResponse = {
     page_size: number;
     total_entries: number;
   };
+  report_context: AccountingReportingReportContext;
 };

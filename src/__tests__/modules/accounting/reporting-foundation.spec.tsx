@@ -30,12 +30,12 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/hooks/queries", () => ({
   useAccountingReportingProfitLoss: () => ({
-    data: { period_label: "Period", summary_cards: [], rows: [], notes: [] },
+    data: { period_label: "Period", summary_cards: [], rows: [], notes: [], report_context: { auto_fallback_applied: false } },
     error: null,
     isPending: false,
   }),
   useAccountingReportingCashFlow: () => ({
-    data: { period_label: "Period", rows: [], notes: [] },
+    data: { period_label: "Period", rows: [], notes: [], report_context: { auto_fallback_applied: false } },
     error: null,
     isPending: false,
   }),
@@ -51,22 +51,39 @@ vi.mock("@/hooks/queries", () => ({
       liability_info: [],
       status_label: "Neraca Seimbang",
       notes: [],
+      report_context: { auto_fallback_applied: false },
     },
     error: null,
     isPending: false,
   }),
   useAccountingReportingProfitLossComparative: () => ({
-    data: { period_label: "Period", compare_label: "Compare", rows: [], meta: { generated_at: "-", currency: "USD" } },
+    data: {
+      period_label: "Period",
+      compare_label: "Compare",
+      rows: [],
+      meta: { generated_at: "-", currency: "USD" },
+      report_context: { auto_fallback_applied: false },
+    },
     error: null,
     isPending: false,
   }),
   useAccountingReportingTrialBalance: () => ({
-    data: { period_label: "Period", rows: [], totals: { initial_balance: 0, debit: 0, credit: 0, ending_balance: 0 } },
+    data: {
+      period_label: "Period",
+      rows: [],
+      totals: { initial_balance: 0, debit: 0, credit: 0, ending_balance: 0 },
+      report_context: { auto_fallback_applied: false },
+    },
     error: null,
     isPending: false,
   }),
   useAccountingReportingGeneralLedger: () => ({
-    data: { period_label: "Period", groups: [], pagination: { page: 1, page_size: 20, total_accounts: 0 } },
+    data: {
+      period_label: "Period",
+      groups: [],
+      pagination: { page: 1, page_size: 20, total_accounts: 0 },
+      report_context: { auto_fallback_applied: false },
+    },
     error: null,
     isPending: false,
   }),
@@ -77,6 +94,7 @@ vi.mock("@/hooks/queries", () => ({
       entries: [],
       totals: { debit: 0, credit: 0 },
       pagination: { page: 1, page_size: 20, total_entries: 0 },
+      report_context: { auto_fallback_applied: false },
     },
     error: null,
     isPending: false,
