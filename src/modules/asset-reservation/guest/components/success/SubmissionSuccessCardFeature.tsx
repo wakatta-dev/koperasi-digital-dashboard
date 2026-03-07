@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 type SubmissionSuccessCardFeatureProps = Readonly<{
   ticket: string;
   homeHref: string;
+  statusHref?: string;
 }>;
 
 export function SubmissionSuccessCardFeature({
   ticket,
   homeHref,
+  statusHref,
 }: SubmissionSuccessCardFeatureProps) {
   return (
     <section className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -39,15 +41,29 @@ export function SubmissionSuccessCardFeature({
           </div>
 
           <p className="mt-6 text-base text-gray-500 dark:text-gray-400 leading-relaxed">
-            Simpan nomor pengajuan ini. Admin kami akan menghubungi Anda melalui
-            WA/Email untuk langkah verifikasi selanjutnya.
+            {statusHref
+              ? "Simpan nomor pengajuan ini dan gunakan tautan status aman untuk memantau langkah selanjutnya."
+              : "Simpan nomor pengajuan ini. Admin kami akan menghubungi Anda melalui WA/Email untuk langkah verifikasi selanjutnya."}
           </p>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-4 space-y-3">
+          {statusHref ? (
+            <Button
+              asChild
+              className="w-full inline-flex justify-center items-center gap-2 px-6 py-3.5 border border-transparent text-base font-medium rounded-xl text-white bg-brand-primary hover:bg-brand-primary-hover shadow-lg shadow-indigo-600/30 transition-all focus-visible:ring-2 focus-visible:ring-brand-primary"
+            >
+              <a href={statusHref}>
+                <span className="material-symbols-outlined">query_stats</span>
+                Lihat Status Pengajuan
+              </a>
+            </Button>
+          ) : null}
+
           <Button
             asChild
-            className="w-full inline-flex justify-center items-center gap-2 px-6 py-3.5 border border-transparent text-base font-medium rounded-xl text-white bg-brand-primary hover:bg-brand-primary-hover shadow-lg shadow-indigo-600/30 transition-all focus-visible:ring-2 focus-visible:ring-brand-primary"
+            variant={statusHref ? "outline" : "default"}
+            className="w-full inline-flex justify-center items-center gap-2 px-6 py-3.5 text-base font-medium rounded-xl transition-all"
           >
             <a href={homeHref}>
               <span className="material-symbols-outlined">home</span>
@@ -66,4 +82,3 @@ export function SubmissionSuccessCardFeature({
     </section>
   );
 }
-

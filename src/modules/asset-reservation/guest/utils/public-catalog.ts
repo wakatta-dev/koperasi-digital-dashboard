@@ -38,7 +38,7 @@ export function resolvePublicAssetStatusPresentation(
 export function resolvePublicAssetErrorMessage(errorMessage?: string | null) {
   const message = (errorMessage || "").trim();
   if (!message) {
-    return "Gagal memuat detail aset.";
+    return null;
   }
 
   const normalized = message.toLowerCase();

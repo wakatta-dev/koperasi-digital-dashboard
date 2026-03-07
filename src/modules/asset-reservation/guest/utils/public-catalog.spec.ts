@@ -47,4 +47,9 @@ describe("public asset catalog helpers", () => {
       "Aset tidak tersedia untuk katalog publik.",
     );
   });
+
+  it("returns no error message when detail load is healthy", () => {
+    expect(resolvePublicAssetErrorMessage(null)).toBeNull();
+    expect(resolvePublicAssetErrorMessage("")).toBeNull();
+  });
 });

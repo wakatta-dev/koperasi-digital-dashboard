@@ -10,7 +10,6 @@ import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "../components/reservation-footer";
 import { useAssetDetail, useCreateGuestReservation } from "../hooks";
 import { checkAvailability } from "./utils/availability";
-import { formatTicketFromReservationId } from "../guest/utils/ticket";
 import { GuestRentalApplicationFeature } from "../guest/components/application/GuestRentalApplicationFeature";
 import type { GuestRentalApplicationFormValues } from "../guest/components/application/GuestRentalApplicationForm";
 import type { SelectedAssetSummary } from "../guest/components/application/SelectedAssetSummaryCard";
@@ -19,6 +18,12 @@ import {
   resolvePublicAssetErrorMessage,
   resolvePublicAssetStatusPresentation,
 } from "../guest/utils/public-catalog";
+import {
+  buildAvailabilityConflictMessage,
+  buildPublicReservationSuccessState,
+  resolvePublicReservationSubmissionErrorMessage,
+  type PublicReservationSuccessState,
+} from "../guest/utils/public-reservation";
 
 type AssetDetailPageProps = {
   assetId?: string;
@@ -86,7 +91,9 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   });
 
   const createReservation = useCreateGuestReservation();
-  const [ticket, setTicket] = useState<string | null>(null);
+  const [reservationSuccess, setReservationSuccess] =
+    useState<PublicReservationSuccessState | null>(null);
+  const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
 
   const selectedAsset: SelectedAssetSummary = useMemo(() => {
     const priceLabel = formatCurrency(asset?.rate_amount);
@@ -113,31 +120,52 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 
   const handleSubmit = async () => {
     if (!asset?.id) return;
+    setSubmissionMessage(null);
+    setReservationSuccess(null);
     const parsed = formSchema.safeParse(values);
-    if (!parsed.success) return;
+    if (!parsed.success) {
+      setSubmissionMessage("Mohon lengkapi data pengajuan dengan benar sebelum dikirim.");
+      return;
+    }
 
     const start = values.startDate;
     const end = values.endDate;
-    if (start > end) return;
+    if (start > end) {
+      setSubmissionMessage(
+        "Tanggal selesai harus sama dengan atau setelah tanggal mulai."
+      );
+      return;
+    }
 
-    const availability = await checkAvailability({
-      start,
-      end,
-      assetId: asset.id,
-    });
-    if (!availability.ok) return;
+    try {
+      const availability = await checkAvailability({
+        start,
+        end,
+        assetId: asset.id,
+      });
+      if (!availability.ok) {
+        setSubmissionMessage(buildAvailabilityConflictMessage(availability));
+        return;
+      }
 
-    const creation = await createReservation.mutateAsync({
-      asset_id: asset.id,
-      start_date: start,
-      end_date: end,
-      purpose: values.purpose.trim(),
-      renter_name: values.fullName.trim(),
-      renter_contact: values.phone.trim(),
-      renter_email: values.email.trim() ? values.email.trim() : undefined,
-    });
+      const creation = await createReservation.mutateAsync({
+        asset_id: asset.id,
+        start_date: start,
+        end_date: end,
+        purpose: values.purpose.trim(),
+        renter_name: values.fullName.trim(),
+        renter_contact: values.phone.trim(),
+        renter_email: values.email.trim() ? values.email.trim() : undefined,
+      });
 
-    setTicket(formatTicketFromReservationId(creation.reservation_id));
+      setReservationSuccess(await buildPublicReservationSuccessState(creation));
+    } catch (error) {
+      setSubmissionMessage(
+        resolvePublicReservationSubmissionErrorMessage(
+          error instanceof Error ? error.message : String(error)
+        )
+      );
+    }
   };
 
   return (
@@ -148,9 +176,9 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
       >
         <main className="flex-grow pt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {errorMessage ? (
+            {errorMessage || submissionMessage ? (
               <div className="mt-10 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-6 py-5 text-sm text-red-700 dark:text-red-200">
-                {errorMessage}
+                {errorMessage || submissionMessage}
               </div>
             ) : null}
 
@@ -162,9 +190,10 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           </div>
 
           {!isLoading && asset ? (
-            ticket ? (
+            reservationSuccess ? (
               <SubmissionSuccessCardFeature
-                ticket={ticket}
+                ticket={reservationSuccess.ticket}
+                statusHref={reservationSuccess.statusHref}
                 homeHref="/penyewaan-aset"
               />
             ) : (
