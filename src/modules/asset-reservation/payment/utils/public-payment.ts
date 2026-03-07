@@ -107,3 +107,84 @@ export function resolvePublicPaymentSessionErrorMessage(
 
   return "Sesi pembayaran belum dapat dibuat saat ini. Silakan coba lagi beberapa saat lagi.";
 }
+
+const MAX_PUBLIC_PAYMENT_PROOF_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_PUBLIC_PAYMENT_PROOF_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "application/pdf",
+]);
+
+const ALLOWED_PUBLIC_PAYMENT_PROOF_EXTENSIONS = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".pdf",
+]);
+
+export function validatePublicPaymentProofFile(
+  file: File | null | undefined
+): string | null {
+  if (!file) {
+    return "Pilih file bukti pembayaran terlebih dahulu.";
+  }
+
+  if (file.size <= 0) {
+    return "File bukti pembayaran tidak valid. Pilih file yang dapat dibuka.";
+  }
+
+  if (file.size > MAX_PUBLIC_PAYMENT_PROOF_SIZE_BYTES) {
+    return "Ukuran file bukti pembayaran maksimal 5 MB.";
+  }
+
+  const normalizedType = (file.type || "").trim().toLowerCase();
+  const filename = (file.name || "").trim().toLowerCase();
+  const extension = filename.includes(".")
+    ? `.${filename.split(".").pop() ?? ""}`
+    : "";
+  const validByType =
+    normalizedType !== "" &&
+    ALLOWED_PUBLIC_PAYMENT_PROOF_TYPES.has(normalizedType);
+  const validByExtension = ALLOWED_PUBLIC_PAYMENT_PROOF_EXTENSIONS.has(extension);
+
+  if (!validByType && !validByExtension) {
+    return "Format file belum didukung. Gunakan JPG, PNG, atau PDF.";
+  }
+
+  return null;
+}
+
+export function resolvePublicPaymentProofErrorMessage(
+  message: string | null | undefined
+): string {
+  const normalized = (message ?? "").trim().toLowerCase();
+
+  if (normalized.includes("invalid image")) {
+    return "File bukti pembayaran tidak valid. Gunakan file yang dapat dibuka.";
+  }
+
+  if (normalized.includes("unsupported image format")) {
+    return "Format file belum didukung. Gunakan JPG, PNG, atau PDF.";
+  }
+
+  if (normalized.includes("image too large")) {
+    return "Ukuran file bukti pembayaran maksimal 5 MB.";
+  }
+
+  if (
+    normalized.includes("invalid payment status") ||
+    normalized.includes("invalid booking status transition")
+  ) {
+    return "Sesi pembayaran ini sudah tidak menerima bukti baru. Muat ulang status reservasi terbaru sebelum mencoba lagi.";
+  }
+
+  if (
+    normalized.includes("forbidden ownership") ||
+    normalized.includes("payment not found")
+  ) {
+    return "Tautan upload bukti pembayaran tidak valid atau sudah tidak berlaku.";
+  }
+
+  return "Bukti pembayaran belum dapat dikirim saat ini. Silakan coba lagi beberapa saat lagi.";
+}
