@@ -4,6 +4,7 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ProtectedRoute } from "@/components/shared/protected-route";
 import { DashboardLayout } from "@/components/shared/dashboard-layout";
 import { getBumdesNavigation } from "./navigation";
@@ -12,11 +13,16 @@ import { useSupportTenantConfig } from "@/hooks/queries/support-config";
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
   const title = resolveBumdesTitle(pathname);
   const tenantConfigQuery = useSupportTenantConfig();
-  const navigation = getBumdesNavigation(
-    tenantConfigQuery.data?.feature_flags ?? undefined
-  );
+  const navigation =
+    status === "authenticated"
+      ? getBumdesNavigation(
+          tenantConfigQuery.data?.feature_flags ?? undefined,
+          (session?.user as { role?: string } | undefined)?.role
+        )
+      : [];
 
   return (
     <ProtectedRoute requiredRole="bumdes">
