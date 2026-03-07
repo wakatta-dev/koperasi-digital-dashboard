@@ -41,6 +41,8 @@ const categoryByRateType: Record<string, string> = {
   HOURLY: "Aset Per Jam",
 };
 
+const PUBLIC_AVAILABLE_STATUS = "Tersedia";
+
 function toAssetTag(id?: string | number, fallback?: string) {
   if (fallback?.trim()) return fallback.trim();
   if (id === undefined || id === null) return "AST-000";
@@ -53,11 +55,19 @@ function toAssetTag(id?: string | number, fallback?: string) {
 
 function toListStatus(status?: string): AssetListItem["status"] {
   const key = (status || "").trim().toUpperCase();
+  if (
+    key === "ACTIVE" ||
+    key === "DRAFT INTERNAL" ||
+    key === "DRAFT_INTERNAL" ||
+    key === "DRAFT"
+  ) {
+    return "Draft Internal";
+  }
   if (key === "TERSEDIA" || key === "AVAILABLE") return "Tersedia";
   if (key === "DIPINJAM" || key === "RENTED" || key === "BOOKED") return "Dipinjam";
   if (key === "MAINTENANCE") return "Maintenance";
   if (key === "ARCHIVED") return "Arsip";
-  return "Tersedia";
+  return "Draft Internal";
 }
 
 function toCategory(rateType?: string, fallback?: string) {
@@ -103,6 +113,38 @@ function normalizeDescription(description?: string) {
   const text = (description ?? "").trim();
   if (!text) return "";
   return text.replace(/^Lokasi:\s*[^\n;]+;?\s*/i, "").trim();
+}
+
+export function computeAssetPublicActivationReadiness(input: ContractAsset) {
+  const reasons: string[] = [];
+  const internalStatus = (input.status || "").trim().toUpperCase();
+  const category = toCategory(input.rate_type, input.category).trim();
+  const location = pickLocation(input)?.trim() || "";
+  const description = normalizeDescription(input.description);
+
+  if (internalStatus === "ARCHIVED") {
+    reasons.push("Aktifkan aset terlebih dahulu");
+  }
+  if (!category) {
+    reasons.push("Pilih kategori aset");
+  }
+  if (!location) {
+    reasons.push("Pilih lokasi aset");
+  }
+  if (!description) {
+    reasons.push("Lengkapi deskripsi aset");
+  }
+  if (!toPhotoURL(input.photo_url)) {
+    reasons.push("Unggah gambar aset");
+  }
+  if (!input.rate_amount || input.rate_amount <= 0) {
+    reasons.push("Isi tarif sewa aset");
+  }
+
+  return {
+    ready: reasons.length === 0,
+    reasons,
+  };
 }
 
 function toReadableDate(unixSeconds?: number) {
@@ -212,15 +254,27 @@ function toSummaryCards(asset: ContractAsset, bookings: AssetRentalBooking[]) {
 }
 
 export function mapContractAssetToListItem(input: ContractAsset): AssetListItem {
+  const readiness = computeAssetPublicActivationReadiness(input);
+  const internalLifecycle = (input.status || "").trim().toUpperCase() === "ARCHIVED" ? "Diarsipkan" : "Aktif";
+  const availabilityLabel = input.availability_status?.trim() || toListStatus(input.status);
   return {
     id: String(input.id ?? ""),
     assetTag: toAssetTag(input.id, input.asset_tag),
     name: input.name ?? "",
     category: toCategory(input.rate_type, input.category),
-    status: toListStatus(input.availability_status ?? input.status),
+    status: toListStatus(availabilityLabel),
+    internalLifecycle,
+    publicReady: readiness.ready,
+    publicReadinessIssues: readiness.reasons,
     location: pickLocation(input) || "Lokasi belum diatur",
     thumbnailIcon: null,
-    quickFlags: [],
+    quickFlags: [
+      availabilityLabel === PUBLIC_AVAILABLE_STATUS
+        ? readiness.ready
+          ? "Siap untuk publik"
+          : "Aktivasi publik tertunda"
+        : "Draft internal",
+    ],
   };
 }
 
@@ -240,6 +294,9 @@ export function mapContractAssetToDetailWithBookings(
     photoUrl: toPhotoURL(input.photo_url),
     assetTag: listItem.assetTag,
     status: listItem.status,
+    internalLifecycle: listItem.internalLifecycle,
+    publicReady: listItem.publicReady,
+    publicReadinessIssues: listItem.publicReadinessIssues,
     category: listItem.category,
     location: listItem.location,
     summaryCards: toSummaryCards(input, bookings),

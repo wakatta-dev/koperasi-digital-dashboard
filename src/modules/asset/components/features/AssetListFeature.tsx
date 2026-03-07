@@ -26,6 +26,8 @@ import { mapApiAssetToListItem } from "../../utils/stitch-contract-mappers";
 import { toFormOptionGroups, useAssetMasterData } from "../../hooks/use-asset-master-data";
 
 const statusClassMap: Record<AssetListItem["status"], string> = {
+  "Draft Internal":
+    "border border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
   Tersedia:
     "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
   Dipinjam:
@@ -268,6 +270,10 @@ export function AssetListFeature() {
                         {item.name}
                       </Link>
                       <div className="text-xs text-slate-500">{item.assetTag}</div>
+                      <div className="text-xs text-slate-500">
+                        Status internal: {item.internalLifecycle} ·{" "}
+                        {item.publicReady ? "Siap diaktifkan untuk publik" : "Belum siap publik"}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="px-4 text-sm text-slate-600">{item.category}</TableCell>

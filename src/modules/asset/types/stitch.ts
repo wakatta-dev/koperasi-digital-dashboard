@@ -1,6 +1,11 @@
 /** @format */
 
-export type AssetStatusLabel = "Tersedia" | "Dipinjam" | "Maintenance" | "Arsip";
+export type AssetStatusLabel =
+  | "Draft Internal"
+  | "Tersedia"
+  | "Dipinjam"
+  | "Maintenance"
+  | "Arsip";
 
 export type AssetListItem = Readonly<{
   id: string;
@@ -8,6 +13,9 @@ export type AssetListItem = Readonly<{
   name: string;
   category: string;
   status: AssetStatusLabel;
+  internalLifecycle: string;
+  publicReady: boolean;
+  publicReadinessIssues: string[];
   location: string;
   thumbnailIcon: string | null;
   quickFlags: string[];
@@ -42,6 +50,9 @@ export type AssetDetailModel = Readonly<{
   photoUrl: string;
   assetTag: string;
   status: string;
+  internalLifecycle: string;
+  publicReady: boolean;
+  publicReadinessIssues: string[];
   category: string;
   location: string;
   summaryCards: SummaryCard[];

@@ -88,6 +88,22 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
             </div>
             <div>
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Lifecycle Internal
+              </div>
+              <div className="mt-1 text-sm font-medium text-slate-900">
+                {detail.internalLifecycle}
+              </div>
+            </div>
+            <div className="col-span-2">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Kesiapan Publik
+              </div>
+              <div className="mt-1 text-sm font-medium text-slate-900">
+                {detail.publicReady ? "Siap diaktifkan untuk publik" : "Belum siap untuk publik"}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Kategori
               </div>
               <div className="mt-1 text-sm font-medium text-slate-900">
@@ -104,6 +120,16 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
               <span>{detail.location}</span>
             </div>
           </div>
+          {detail.publicReadinessIssues.length > 0 ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="font-medium">Lengkapi data berikut sebelum aset diaktifkan:</p>
+              <ul className="mt-2 list-disc pl-5 space-y-1">
+                {detail.publicReadinessIssues.map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
 
         <div className="space-y-4">
