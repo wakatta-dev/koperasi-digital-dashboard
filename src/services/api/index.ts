@@ -5,10 +5,14 @@ export { default } from "./base";
 
 export * from "./auth";
 export * from "./tenants";
+export * from "./admin-tenants";
+export * from "./admin-tenant-accounts";
 export * from "./users";
 export * from "./roles";
 export * from "./notifications";
 export * from "./analytics";
+export * from "./vendor-dashboard";
+export * from "./vendor-support-queue";
 export * from "./finance";
 export * from "./reservations";
 export * from "./assets";

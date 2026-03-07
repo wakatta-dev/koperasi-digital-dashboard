@@ -21,6 +21,36 @@ export const API_ENDPOINTS = {
     byDomain: (domain: string) =>
       `/get-by-domain/${encodeURIComponent(domain)}`,
   },
+  adminTenants: {
+    list: "/admin/tenants",
+    detail: (tenantId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}`,
+    status: (tenantId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/status`,
+    subscription: (tenantId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/subscription`,
+  },
+  adminTickets: {
+    list: "/admin/tickets",
+    analytics: "/admin/tickets/analytics",
+    detail: (ticketId: string | number) =>
+      `/admin/tickets/${encodeURIComponent(String(ticketId))}`,
+  },
+  adminTenantAccounts: {
+    list: (tenantId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/accounts`,
+    create: (tenantId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/accounts`,
+    email: (tenantId: string | number, userId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/accounts/${encodeURIComponent(String(userId))}/email`,
+    resetPassword: (tenantId: string | number, userId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/accounts/${encodeURIComponent(String(userId))}/reset-password`,
+    status: (tenantId: string | number, userId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/accounts/${encodeURIComponent(String(userId))}/status`,
+    role: (tenantId: string | number, userId: string | number) =>
+      `/admin/tenants/${encodeURIComponent(String(tenantId))}/accounts/${encodeURIComponent(String(userId))}/role`,
+    confirmEmailChange: "/admin/email-change/confirm",
+  },
   support: {
     configGlobal: "/support/config/global",
     configTenant: "/support/config/tenant",

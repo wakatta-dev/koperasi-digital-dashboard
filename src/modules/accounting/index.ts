@@ -138,6 +138,10 @@ export { FeatureDeleteBudgetModal } from "./components/features/FeatureDeleteBud
 export { FeatureAddAnalyticAccountModal } from "./components/features/FeatureAddAnalyticAccountModal";
 
 export type {
+  FeatureCreateInvoiceSubmitPayload,
+} from "./components/features/FeatureCreateInvoiceForm";
+
+export type {
   CreditNoteDraftForm,
   CreditNoteListItem,
   CreditNoteStatus,

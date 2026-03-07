@@ -54,6 +54,11 @@ export function ReportingBalanceSheetPage() {
   });
 
   const reportData = reportQuery.data;
+  const reportContext = reportData?.report_context;
+  const hasFallbackBanner = Boolean(reportContext?.auto_fallback_applied);
+  const hasEmptyDataBanner = Boolean(
+    !reportContext?.auto_fallback_applied && reportContext?.fallback_reason && reportData,
+  );
 
   return (
     <div className="space-y-6">
@@ -76,6 +81,23 @@ export function ReportingBalanceSheetPage() {
       {reportQuery.isPending && !reportData ? (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
           Loading balance sheet...
+        </div>
+      ) : null}
+
+      {hasFallbackBanner ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Data untuk periode yang diminta tidak tersedia. Menampilkan periode terakhir yang memiliki jurnal pada{" "}
+          {reportContext?.effective_start}
+          {reportContext?.effective_end && reportContext.effective_end !== reportContext.effective_start
+            ? ` sampai ${reportContext.effective_end}`
+            : ""}{" "}
+          agar laporan tidak kosong.
+        </div>
+      ) : null}
+
+      {hasEmptyDataBanner ? (
+        <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+          {reportContext?.fallback_reason}. Nilai nol tetap ditampilkan agar struktur neraca tetap terbaca.
         </div>
       ) : null}
 
