@@ -12,6 +12,7 @@ import {
 import type { PaymentSession } from "../../types";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { resolvePublicPaymentSessionErrorMessage } from "../utils/public-payment";
 
 type PaymentOption = {
   value: string;
@@ -120,12 +121,20 @@ export function PaymentMethods({
             status: res.data.status as PaymentStatus,
           });
         } else {
-          setSessionError(res.message || "Tidak dapat membuat sesi pembayaran");
+          setSessionError(
+            resolvePublicPaymentSessionErrorMessage(
+              res.message || "Tidak dapat membuat sesi pembayaran"
+            )
+          );
           onSessionChange?.(null);
         }
       } catch (err) {
         if (!ignore) {
-          setSessionError(err instanceof Error ? err.message : "Gagal membuat sesi pembayaran");
+          setSessionError(
+            resolvePublicPaymentSessionErrorMessage(
+              err instanceof Error ? err.message : "Gagal membuat sesi pembayaran"
+            )
+          );
           onSessionChange?.(null);
         }
       } finally {
