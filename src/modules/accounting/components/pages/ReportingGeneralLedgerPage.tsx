@@ -17,6 +17,7 @@ import {
   FeatureGeneralLedgerPagination,
   FeatureGeneralLedgerTopActions,
 } from "../features/FeatureReportingLedgers";
+import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -141,6 +142,11 @@ export function ReportingGeneralLedgerPage() {
           Loading general ledger report...
         </div>
       ) : null}
+
+      <FeatureReportingSourceOfTruthCallout
+        sourceOfTruth={reportQuery.data?.report_context.source_of_truth}
+        reportTier={reportQuery.data?.report_context.report_tier}
+      />
 
       <FeatureGeneralLedgerGroupedTable
         groups={reportQuery.data?.groups ?? []}

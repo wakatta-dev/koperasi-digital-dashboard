@@ -190,6 +190,53 @@ export function FeatureReportingSectionHeader({
   );
 }
 
+export interface FeatureReportingSourceOfTruthCalloutProps {
+  readonly sourceOfTruth?: string;
+  readonly reportTier?: string;
+}
+
+export function FeatureReportingSourceOfTruthCallout({
+  sourceOfTruth,
+  reportTier,
+}: FeatureReportingSourceOfTruthCalloutProps) {
+  if (!sourceOfTruth && !reportTier) {
+    return null;
+  }
+
+  const isOfficial = reportTier === "official_financial";
+  const sourceLabel =
+    sourceOfTruth === "general_ledger"
+      ? "General Ledger"
+      : sourceOfTruth === "operational_subledger_vs_gl_control"
+        ? "Operational Subledger vs GL Control"
+        : sourceOfTruth ?? "-";
+
+  return (
+    <div
+      className={
+        isOfficial
+          ? "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+          : "rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+      }
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge
+          className={
+            isOfficial
+              ? "border-emerald-200 bg-white text-emerald-700 hover:bg-white"
+              : "border-amber-200 bg-white text-amber-700 hover:bg-white"
+          }
+        >
+          {isOfficial ? "Official Financial Report" : "Control Workspace"}
+        </Badge>
+        <span>
+          Source of truth: <strong>{sourceLabel}</strong>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export interface FeatureReportingReportCardProps {
   readonly card: ReportingCardItem;
   readonly onView?: (card: ReportingCardItem) => void;

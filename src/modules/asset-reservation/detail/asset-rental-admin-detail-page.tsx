@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
@@ -24,7 +25,11 @@ import {
   resolveAssetRentalBookingStatus,
 } from "@/lib/asset-rental-booking-status";
 import { showToastError, showToastSuccess } from "@/lib/toast";
-import { getAssetById } from "@/services/api/assets";
+import {
+  getAssetById,
+  registerAssetFixedAsset,
+  updateAssetFixedAssetProfile,
+} from "@/services/api/assets";
 import {
   completeAssetBooking,
   getAssetRentalBookings,
@@ -332,6 +337,15 @@ export function AssetRentalAdminDetailPage({
   const [paymentDecisionError, setPaymentDecisionError] = useState<
     string | null
   >(null);
+  const [fixedAssetCategory, setFixedAssetCategory] = useState("");
+  const [fixedAssetRecognitionDate, setFixedAssetRecognitionDate] =
+    useState("");
+  const [depreciationMethod, setDepreciationMethod] = useState("");
+  const [usefulLifeMonths, setUsefulLifeMonths] = useState("");
+  const [residualValue, setResidualValue] = useState("");
+  const [maintenanceClassification, setMaintenanceClassification] =
+    useState("");
+  const [maintenanceNotes, setMaintenanceNotes] = useState("");
 
   const bookingsQuery = useQuery({
     queryKey: QK.assetRental.bookings({
@@ -442,6 +456,72 @@ export function AssetRentalAdminDetailPage({
     },
   });
 
+  const fixedAssetRegisterMutation = useMutation({
+    mutationFn: async ({
+      assetId,
+      fixedAssetCategory,
+      recognitionDate,
+    }: {
+      assetId: string | number;
+      fixedAssetCategory: string;
+      recognitionDate: string;
+    }) => {
+      const response = await registerAssetFixedAsset(assetId, {
+        fixed_asset_category: fixedAssetCategory,
+        recognition_date: recognitionDate,
+      });
+      if (!response.success || !response.data) {
+        throw new Error(
+          response.message || "Gagal memasukkan aset ke register fixed asset",
+        );
+      }
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: QK.assetRental.detail(booking?.asset_id ?? "unknown"),
+      });
+    },
+  });
+
+  const fixedAssetProfileMutation = useMutation({
+    mutationFn: async ({
+      assetId,
+      depreciationMethod,
+      usefulLifeMonths,
+      residualValue,
+      maintenanceClassification,
+      maintenanceNotes,
+    }: {
+      assetId: string | number;
+      depreciationMethod: string;
+      usefulLifeMonths: number;
+      residualValue?: number;
+      maintenanceClassification: string;
+      maintenanceNotes?: string;
+    }) => {
+      const response = await updateAssetFixedAssetProfile(assetId, {
+        depreciation_method: depreciationMethod,
+        useful_life_months: usefulLifeMonths,
+        residual_value: residualValue,
+        maintenance_classification: maintenanceClassification,
+        maintenance_notes: maintenanceNotes,
+      });
+      if (!response.success || !response.data) {
+        throw new Error(
+          response.message ||
+            "Gagal menyimpan profile depresiasi dan maintenance",
+        );
+      }
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: QK.assetRental.detail(booking?.asset_id ?? "unknown"),
+      });
+    },
+  });
+
   const resolvedBookingStatus = resolveAssetRentalBookingStatus(
     booking ?? undefined,
   );
@@ -458,10 +538,41 @@ export function AssetRentalAdminDetailPage({
     reservationDetailQuery.data?.payment_classifications ??
     booking?.payment_classifications ??
     [];
+  const financialResolutions =
+    reservationDetailQuery.data?.financial_resolutions ??
+    booking?.financial_resolutions ??
+    [];
+  const fixedAssetRegister = assetQuery.data?.fixed_asset_register;
+  const fixedAssetCategoryValue =
+    fixedAssetCategory.trim() ||
+    fixedAssetRegister?.fixed_asset_category ||
+    assetQuery.data?.category ||
+    "";
+  const fixedAssetRecognitionDateValue =
+    fixedAssetRecognitionDate ||
+    fixedAssetRegister?.recognition_date ||
+    assetQuery.data?.purchase_date ||
+    new Date().toISOString().slice(0, 10);
+  const depreciationMethodValue =
+    depreciationMethod || fixedAssetRegister?.depreciation_method || "";
+  const usefulLifeMonthsValue =
+    usefulLifeMonths ||
+    String(fixedAssetRegister?.useful_life_months ?? "");
+  const residualValueValue =
+    residualValue ||
+    String(fixedAssetRegister?.residual_value ?? "");
+  const maintenanceClassificationValue =
+    maintenanceClassification ||
+    fixedAssetRegister?.maintenance_classification ||
+    "";
+  const maintenanceNotesValue =
+    maintenanceNotes || fixedAssetRegister?.maintenance_notes || "";
   const isBusy =
     updateStatusMutation.isPending ||
     completeMutation.isPending ||
-    paymentDecisionMutation.isPending;
+    paymentDecisionMutation.isPending ||
+    fixedAssetRegisterMutation.isPending ||
+    fixedAssetProfileMutation.isPending;
 
   const canApprove = (booking?.status || "").toUpperCase() === "PENDING_REVIEW";
   const canReject = ["PENDING_REVIEW", "BOOKED"].includes(
@@ -666,6 +777,57 @@ export function AssetRentalAdminDetailPage({
     }
   };
 
+  const handleRegisterFixedAsset = async () => {
+    if (!booking?.asset_id) {
+      showToastError("Aset tidak ditemukan", "Detail aset rental belum siap.");
+      return;
+    }
+    try {
+      await fixedAssetRegisterMutation.mutateAsync({
+        assetId: booking.asset_id,
+        fixedAssetCategory: fixedAssetCategoryValue,
+        recognitionDate: fixedAssetRecognitionDateValue,
+      });
+      showToastSuccess(
+        "Aset tetap diperbarui",
+        "Register fixed asset sekarang terhubung ke aset rental ini.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui register fixed asset";
+      showToastError("Gagal register fixed asset", message);
+    }
+  };
+
+  const handleSaveFixedAssetProfile = async () => {
+    if (!booking?.asset_id) {
+      showToastError("Aset tidak ditemukan", "Detail aset rental belum siap.");
+      return;
+    }
+    try {
+      await fixedAssetProfileMutation.mutateAsync({
+        assetId: booking.asset_id,
+        depreciationMethod: depreciationMethodValue,
+        usefulLifeMonths: Number(usefulLifeMonthsValue),
+        residualValue: residualValueValue ? Number(residualValueValue) : undefined,
+        maintenanceClassification: maintenanceClassificationValue,
+        maintenanceNotes: maintenanceNotesValue,
+      });
+      showToastSuccess(
+        "Profile fixed asset diperbarui",
+        "Dasar depresiasi dan klasifikasi maintenance tersimpan di audit trail.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal menyimpan profile fixed asset";
+      showToastError("Gagal simpan profile", message);
+    }
+  };
+
   const backPath = backPathBySection[section];
 
   return (
@@ -847,6 +1009,60 @@ export function AssetRentalAdminDetailPage({
                   </div>
                 </div>
               ) : null}
+              {financialResolutions.length > 0 ? (
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Resolution Finance Rental
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Damage charge, penalty, dan keputusan penggunaan/refund
+                      deposit ditampilkan terpisah dari lifecycle operasional
+                      pengembalian.
+                    </p>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {financialResolutions.map((item) => (
+                      <div
+                        key={`${item.outcome_type}-${item.accounting_reference ?? item.amount}`}
+                        className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          {toSentenceCase(item.outcome_type)}
+                        </p>
+                        <p className="mt-2 text-lg font-semibold text-slate-900">
+                          {formatCurrency(item.amount)}
+                        </p>
+                        <p className="mt-3 text-sm text-slate-600">
+                          {item.reason || "Belum ada alasan resolution."}
+                        </p>
+                        <div className="mt-3 space-y-1 text-xs text-slate-500">
+                          <p>
+                            Event:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.accounting_event_key || "-"}
+                            </span>
+                          </p>
+                          <p>
+                            Reference:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.accounting_reference ||
+                                item.follow_up_reference ||
+                                "-"}
+                            </span>
+                          </p>
+                          <p>
+                            Evidence:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.evidence_reference || "-"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </section>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -915,6 +1131,270 @@ export function AssetRentalAdminDetailPage({
                 </div>
               </section>
             </div>
+
+            <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Register Aset Tetap
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Konteks fixed asset untuk aset rental yang memenuhi kriteria
+                    pencatatan jangka panjang.
+                  </p>
+                </div>
+                <Badge className="border border-slate-200 bg-slate-50 text-slate-700">
+                  {fixedAssetRegister
+                    ? toSentenceCase(fixedAssetRegister.status)
+                    : "Operational Only"}
+                </Badge>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="fixed-asset-category"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      >
+                        Kategori Fixed Asset
+                      </label>
+                      <Input
+                        id="fixed-asset-category"
+                        value={fixedAssetCategoryValue}
+                        onChange={(event) =>
+                          setFixedAssetCategory(event.target.value)
+                        }
+                        placeholder="Contoh: Bangunan Operasional"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="fixed-asset-recognition-date"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      >
+                        Tanggal Pengakuan
+                      </label>
+                      <Input
+                        id="fixed-asset-recognition-date"
+                        type="date"
+                        value={fixedAssetRecognitionDateValue}
+                        onChange={(event) =>
+                          setFixedAssetRecognitionDate(event.target.value)
+                        }
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">
+                    Register ini tetap terhubung ke identitas aset rental dan
+                    tidak mengubah lifecycle penyewaan.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    onClick={handleRegisterFixedAsset}
+                    disabled={isBusy || !fixedAssetCategoryValue || !fixedAssetRecognitionDateValue}
+                  >
+                    {fixedAssetRegister
+                      ? "Perbarui Register Aset Tetap"
+                      : "Masukkan ke Register Aset Tetap"}
+                  </Button>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="space-y-2 text-sm text-slate-600">
+                    <p>
+                      Status Keterkaitan:{" "}
+                      <span className="font-medium text-slate-900">
+                        {toSentenceCase(
+                          fixedAssetRegister?.rental_linkage_status ||
+                            "linked_rental_asset",
+                        )}
+                      </span>
+                    </p>
+                    <p>
+                      Referensi Fixed Asset:{" "}
+                      <span className="font-medium text-slate-900">
+                        {fixedAssetRegister?.fixed_asset_reference || "-"}
+                      </span>
+                    </p>
+                    <p>
+                      Referensi Aset Sumber:{" "}
+                      <span className="font-medium text-slate-900">
+                        {fixedAssetRegister?.source_asset_reference ||
+                          `AST-${String(booking.asset_id).padStart(6, "0")}`}
+                      </span>
+                    </p>
+                    <p>
+                      Identitas Aset:{" "}
+                      <span className="font-medium text-slate-900">
+                        {assetQuery.data?.name || booking.asset_name}
+                      </span>
+                    </p>
+                    <p>
+                      Harga Perolehan:{" "}
+                      <span className="font-medium text-slate-900">
+                        {formatCurrency(assetQuery.data?.purchase_price)}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="depreciation-method"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      >
+                        Metode Depresiasi
+                      </label>
+                      <Input
+                        id="depreciation-method"
+                        value={depreciationMethodValue}
+                        onChange={(event) =>
+                          setDepreciationMethod(event.target.value)
+                        }
+                        placeholder="STRAIGHT_LINE"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="useful-life-months"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      >
+                        Umur Manfaat (Bulan)
+                      </label>
+                      <Input
+                        id="useful-life-months"
+                        type="number"
+                        min="1"
+                        value={usefulLifeMonthsValue}
+                        onChange={(event) =>
+                          setUsefulLifeMonths(event.target.value)
+                        }
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="residual-value"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      >
+                        Nilai Residu
+                      </label>
+                      <Input
+                        id="residual-value"
+                        type="number"
+                        min="0"
+                        value={residualValueValue}
+                        onChange={(event) => setResidualValue(event.target.value)}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="maintenance-classification"
+                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      >
+                        Klasifikasi Maintenance
+                      </label>
+                      <Input
+                        id="maintenance-classification"
+                        value={maintenanceClassificationValue}
+                        onChange={(event) =>
+                          setMaintenanceClassification(event.target.value)
+                        }
+                        placeholder="PREVENTIVE"
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <label
+                      htmlFor="maintenance-notes"
+                      className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      Catatan Maintenance
+                    </label>
+                    <Textarea
+                      id="maintenance-notes"
+                      value={maintenanceNotesValue}
+                      onChange={(event) =>
+                        setMaintenanceNotes(event.target.value)
+                      }
+                      placeholder="Contoh: inspeksi struktural per kuartal."
+                      className="mt-2 min-h-[96px]"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 border-amber-200 text-amber-700 hover:bg-amber-50"
+                    onClick={handleSaveFixedAssetProfile}
+                    disabled={
+                      isBusy ||
+                      !fixedAssetRegister ||
+                      !depreciationMethodValue ||
+                      !usefulLifeMonthsValue ||
+                      !maintenanceClassificationValue
+                    }
+                  >
+                    Simpan Profile Depresiasi & Maintenance
+                  </Button>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="space-y-2 text-sm text-slate-600">
+                    <p>
+                      Metode Depresiasi:{" "}
+                      <span className="font-medium text-slate-900">
+                        {toSentenceCase(
+                          fixedAssetRegister?.depreciation_method || "-",
+                        )}
+                      </span>
+                    </p>
+                    <p>
+                      Umur Manfaat:{" "}
+                      <span className="font-medium text-slate-900">
+                        {fixedAssetRegister?.useful_life_months
+                          ? `${fixedAssetRegister.useful_life_months} bulan`
+                          : "-"}
+                      </span>
+                    </p>
+                    <p>
+                      Nilai Residu:{" "}
+                      <span className="font-medium text-slate-900">
+                        {fixedAssetRegister?.residual_value !== undefined
+                          ? formatCurrency(fixedAssetRegister.residual_value)
+                          : "-"}
+                      </span>
+                    </p>
+                    <p>
+                      Maintenance:{" "}
+                      <span className="font-medium text-slate-900">
+                        {toSentenceCase(
+                          fixedAssetRegister?.maintenance_classification || "-",
+                        )}
+                      </span>
+                    </p>
+                    <p>
+                      Catatan:{" "}
+                      <span className="font-medium text-slate-900">
+                        {fixedAssetRegister?.maintenance_notes || "-"}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
 
             <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">

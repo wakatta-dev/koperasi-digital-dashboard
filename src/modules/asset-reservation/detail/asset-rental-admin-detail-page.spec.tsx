@@ -10,17 +10,26 @@ const getAssetRentalBookingsMock = vi.fn();
 const updateAssetBookingStatusMock = vi.fn();
 const completeAssetBookingMock = vi.fn();
 const getAssetByIdMock = vi.fn();
+const registerAssetFixedAssetMock = vi.fn();
+const updateAssetFixedAssetProfileMock = vi.fn();
 const getReservationMock = vi.fn();
 const finalizePaymentMock = vi.fn();
 
 vi.mock("@/services/api/asset-rental", () => ({
-  getAssetRentalBookings: (...args: unknown[]) => getAssetRentalBookingsMock(...args),
-  updateAssetBookingStatus: (...args: unknown[]) => updateAssetBookingStatusMock(...args),
-  completeAssetBooking: (...args: unknown[]) => completeAssetBookingMock(...args),
+  getAssetRentalBookings: (...args: unknown[]) =>
+    getAssetRentalBookingsMock(...args),
+  updateAssetBookingStatus: (...args: unknown[]) =>
+    updateAssetBookingStatusMock(...args),
+  completeAssetBooking: (...args: unknown[]) =>
+    completeAssetBookingMock(...args),
 }));
 
 vi.mock("@/services/api/assets", () => ({
   getAssetById: (...args: unknown[]) => getAssetByIdMock(...args),
+  registerAssetFixedAsset: (...args: unknown[]) =>
+    registerAssetFixedAssetMock(...args),
+  updateAssetFixedAssetProfile: (...args: unknown[]) =>
+    updateAssetFixedAssetProfileMock(...args),
 }));
 
 vi.mock("@/services/api/reservations", () => ({
@@ -34,6 +43,8 @@ describe("AssetRentalAdminDetailPage", () => {
     updateAssetBookingStatusMock.mockReset();
     completeAssetBookingMock.mockReset();
     getAssetByIdMock.mockReset();
+    registerAssetFixedAssetMock.mockReset();
+    updateAssetFixedAssetProfileMock.mockReset();
     getReservationMock.mockReset();
     finalizePaymentMock.mockReset();
 
@@ -56,7 +67,8 @@ describe("AssetRentalAdminDetailPage", () => {
           updated_at: 1762650000,
           accounting_readiness: {
             status: "not_ready",
-            reason: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+            reason:
+              "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
             reference: "RSV-000501",
           },
           latest_payment: {
@@ -80,6 +92,9 @@ describe("AssetRentalAdminDetailPage", () => {
         name: "Gedung Serbaguna Desa",
         rate_type: "DAILY",
         rate_amount: 750000,
+        category: "Bangunan",
+        purchase_date: "2024-04-15",
+        purchase_price: 42000000,
         description: "Lokasi: Kompleks Balai Desa",
       },
     });
@@ -100,7 +115,8 @@ describe("AssetRentalAdminDetailPage", () => {
         amounts: { total: 750000, dp: 300000, remaining: 450000 },
         accounting_readiness: {
           status: "not_ready",
-          reason: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+          reason:
+            "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
           reference: "RSV-000501",
         },
         latest_payment: {
@@ -130,6 +146,14 @@ describe("AssetRentalAdminDetailPage", () => {
 
     updateAssetBookingStatusMock.mockResolvedValue({ success: true, data: {} });
     completeAssetBookingMock.mockResolvedValue({ success: true, data: {} });
+    registerAssetFixedAssetMock.mockResolvedValue({
+      success: true,
+      data: {},
+    });
+    updateAssetFixedAssetProfileMock.mockResolvedValue({
+      success: true,
+      data: {},
+    });
     finalizePaymentMock.mockResolvedValue({ success: true, data: {} });
   });
 
@@ -168,9 +192,7 @@ describe("AssetRentalAdminDetailPage", () => {
     await waitFor(() => {
       expect(screen.getByText("Riwayat Status Internal")).toBeTruthy();
       expect(screen.getByText("Reservation Created")).toBeTruthy();
-      expect(
-        screen.getByText("Status: Pending Review"),
-      ).toBeTruthy();
+      expect(screen.getByText("Status: Pending Review")).toBeTruthy();
       expect(screen.getByText("Payment Completed")).toBeTruthy();
       expect(
         screen.getByText("Status: Awaiting Payment Verification"),
@@ -255,13 +277,261 @@ describe("AssetRentalAdminDetailPage", () => {
     });
   });
 
+  it("renders finance classifications and resolution outcomes separately", async () => {
+    getAssetRentalBookingsMock.mockResolvedValueOnce({
+      success: true,
+      data: [
+        {
+          id: 501,
+          asset_id: 10,
+          asset_name: "Gedung Serbaguna Desa",
+          renter_name: "Karang Taruna",
+          renter_contact: "08123456789",
+          renter_email: "karangtaruna@example.com",
+          purpose: "Pelatihan UMKM",
+          start_time: 1762732800,
+          end_time: 1762819200,
+          status: "COMPLETED",
+          total_amount: 750000,
+          created_at: 1762600000,
+          updated_at: 1762650000,
+          latest_payment: {
+            id: "pay-501",
+            status: "succeeded",
+            type: "settlement",
+            method: "manual_transfer",
+            amount: 450000,
+            proof_url: "https://example.com/proof.jpg",
+            proof_note: "Pelunasan sudah diverifikasi",
+            updated_at: 1762653600,
+          },
+          payment_classifications: [
+            {
+              classification_type: "DEPOSIT",
+              amount: 200000,
+              accounting_event_key: "rental.deposit.received",
+              accounting_reference: "RNT-DPS-501",
+              reason: "Dana jaminan aset.",
+            },
+            {
+              classification_type: "REVENUE_RECOGNITION",
+              amount: 250000,
+              accounting_event_key: "rental.revenue.recognized",
+              accounting_reference: "RNT-REV-501",
+              reason: "Pendapatan jasa sewa.",
+            },
+          ],
+          financial_resolutions: [
+            {
+              outcome_type: "DEPOSIT_REFUNDED",
+              amount: 200000,
+              accounting_event_key: "rental.deposit.refunded",
+              accounting_reference: "RNT-DPR-501",
+              reason: "Deposit dikembalikan penuh.",
+            },
+          ],
+        },
+      ],
+    });
+    getReservationMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        reservation_id: 501,
+        asset_id: 10,
+        asset_name: "Gedung Serbaguna Desa",
+        renter_name: "Karang Taruna",
+        renter_contact: "08123456789",
+        renter_email: "karangtaruna@example.com",
+        purpose: "Pelatihan UMKM",
+        start_date: "2025-11-10",
+        end_date: "2025-11-11",
+        status: "completed",
+        amounts: { total: 750000, dp: 300000, remaining: 450000 },
+        accounting_readiness: {
+          status: "ready",
+          reason: "Klasifikasi dan resolution finance rental sudah lengkap.",
+          reference: "RSV-000501",
+        },
+        payment_classifications: [
+          {
+            classification_type: "DEPOSIT",
+            amount: 200000,
+            accounting_event_key: "rental.deposit.received",
+            accounting_reference: "RNT-DPS-501",
+            reason: "Dana jaminan aset.",
+          },
+        ],
+        financial_resolutions: [
+          {
+            outcome_type: "DEPOSIT_REFUNDED",
+            amount: 200000,
+            accounting_event_key: "rental.deposit.refunded",
+            accounting_reference: "RNT-DPR-501",
+            reason: "Deposit dikembalikan penuh.",
+          },
+        ],
+        timeline: [],
+      },
+    });
+
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="pengembalian" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Klasifikasi Pembayaran Finance")).toBeTruthy();
+      expect(screen.getByText("Resolution Finance Rental")).toBeTruthy();
+      expect(screen.getByText("rental.deposit.received")).toBeTruthy();
+      expect(screen.getByText("RNT-DPS-501")).toBeTruthy();
+      expect(screen.getByText("rental.deposit.refunded")).toBeTruthy();
+      expect(screen.getByText("RNT-DPR-501")).toBeTruthy();
+    });
+  });
+
+  it("renders fixed asset register context when asset already registered", async () => {
+    getAssetByIdMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        id: 10,
+        name: "Gedung Serbaguna Desa",
+        rate_type: "DAILY",
+        rate_amount: 750000,
+        category: "Bangunan",
+        purchase_date: "2024-04-15",
+        purchase_price: 42000000,
+        fixed_asset_register: {
+          status: "registered_fixed_asset",
+          fixed_asset_category: "Bangunan Operasional",
+          recognition_date: "2024-04-30",
+          rental_linkage_status: "linked_rental_asset",
+          fixed_asset_reference: "FAR-AST-000010",
+          source_asset_reference: "AST-000010",
+          depreciation_method: "STRAIGHT_LINE",
+          useful_life_months: 60,
+          residual_value: 5000000,
+          maintenance_classification: "PREVENTIVE",
+          maintenance_notes: "Inspeksi struktur per kuartal.",
+        },
+        description: "Lokasi: Kompleks Balai Desa",
+      },
+    });
+
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Register Aset Tetap")).toBeTruthy();
+      expect(
+        screen.getByDisplayValue("Bangunan Operasional"),
+      ).toBeTruthy();
+      expect(screen.getByDisplayValue("STRAIGHT_LINE")).toBeTruthy();
+      expect(screen.getByDisplayValue("60")).toBeTruthy();
+      expect(screen.getByDisplayValue("PREVENTIVE")).toBeTruthy();
+      expect(screen.getByText("FAR-AST-000010")).toBeTruthy();
+      expect(screen.getByText("AST-000010")).toBeTruthy();
+    });
+  });
+
+  it("can register rental asset into fixed asset register", async () => {
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Kategori Fixed Asset")).toBeTruthy();
+    });
+
+    fireEvent.change(screen.getByLabelText("Kategori Fixed Asset"), {
+      target: { value: "Bangunan Operasional" },
+    });
+    fireEvent.change(screen.getByLabelText("Tanggal Pengakuan"), {
+      target: { value: "2024-04-30" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Masukkan ke Register Aset Tetap" }),
+    );
+
+    await waitFor(() => {
+      expect(registerAssetFixedAssetMock).toHaveBeenCalledWith(10, {
+        fixed_asset_category: "Bangunan Operasional",
+        recognition_date: "2024-04-30",
+      });
+    });
+  });
+
+  it("can save depreciation and maintenance profile for registered fixed asset", async () => {
+    getAssetByIdMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        id: 10,
+        name: "Gedung Serbaguna Desa",
+        rate_type: "DAILY",
+        rate_amount: 750000,
+        category: "Bangunan",
+        purchase_date: "2024-04-15",
+        purchase_price: 42000000,
+        fixed_asset_register: {
+          status: "registered_fixed_asset",
+          fixed_asset_category: "Bangunan Operasional",
+          recognition_date: "2024-04-30",
+          rental_linkage_status: "linked_rental_asset",
+          fixed_asset_reference: "FAR-AST-000010",
+          source_asset_reference: "AST-000010",
+        },
+        description: "Lokasi: Kompleks Balai Desa",
+      },
+    });
+
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Metode Depresiasi")).toBeTruthy();
+    });
+
+    fireEvent.change(screen.getByLabelText("Metode Depresiasi"), {
+      target: { value: "STRAIGHT_LINE" },
+    });
+    fireEvent.change(screen.getByLabelText("Umur Manfaat (Bulan)"), {
+      target: { value: "60" },
+    });
+    fireEvent.change(screen.getByLabelText("Nilai Residu"), {
+      target: { value: "5000000" },
+    });
+    fireEvent.change(screen.getByLabelText("Klasifikasi Maintenance"), {
+      target: { value: "PREVENTIVE" },
+    });
+    fireEvent.change(screen.getByLabelText("Catatan Maintenance"), {
+      target: { value: "Inspeksi struktur per kuartal." },
+    });
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Simpan Profile Depresiasi & Maintenance",
+      }),
+    );
+
+    await waitFor(() => {
+      expect(updateAssetFixedAssetProfileMock).toHaveBeenCalledWith(10, {
+        depreciation_method: "STRAIGHT_LINE",
+        useful_life_months: 60,
+        residual_value: 5000000,
+        maintenance_classification: "PREVENTIVE",
+        maintenance_notes: "Inspeksi struktur per kuartal.",
+      });
+    });
+  });
+
   it("requires decision note before rejecting payment", async () => {
     renderFeature(
       <AssetRentalAdminDetailPage bookingId="501" section="pengajuan" />,
     );
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Tolak Pembayaran" })).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Tolak Pembayaran" }),
+      ).toBeTruthy();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Tolak Pembayaran" }));
@@ -269,7 +539,9 @@ describe("AssetRentalAdminDetailPage", () => {
     await waitFor(() => {
       expect(finalizePaymentMock).not.toHaveBeenCalled();
       expect(
-        screen.getByText("Catatan keputusan wajib diisi saat pembayaran ditolak."),
+        screen.getByText(
+          "Catatan keputusan wajib diisi saat pembayaran ditolak.",
+        ),
       ).toBeTruthy();
     });
   });

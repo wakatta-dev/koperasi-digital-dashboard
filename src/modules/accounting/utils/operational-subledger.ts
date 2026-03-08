@@ -1,12 +1,16 @@
 /** @format */
 
 import type {
+  AccountingJournalSourceTraceResponse,
+} from "@/types/api/accounting-journal";
+import type {
   MarketplaceAccountingReadinessResponse,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderSummaryResponse,
 } from "@/types/api/marketplace";
 import type { AssetRentalBooking } from "@/types/api/asset-rental";
 import type { ReservationDetailResponse } from "@/types/api/reservation";
+import type { SupportOperationalExceptionContext } from "@/types/api/support";
 
 export type OperationalTraceRow = {
   key: string;
@@ -38,6 +42,46 @@ export type OperationalTraceSummary = {
   mismatched: number;
   reportingReady: number;
   reportingBlocked: number;
+};
+
+export type FinancialMaturityTone =
+  | "success"
+  | "warning"
+  | "danger"
+  | "muted";
+
+export type FinancialMaturityReference = {
+  label: string;
+  value: string;
+};
+
+export type FinancialMaturityComponent = {
+  key: string;
+  label: string;
+  statusLabel: string;
+  summary: string;
+  tone: FinancialMaturityTone;
+  eventKey?: string | null;
+  reference?: string | null;
+  followUpReference?: string | null;
+  evidenceReference?: string | null;
+};
+
+export type FinancialMaturityWorkspace = {
+  domain: OperationalTraceRow["domain"];
+  stageLabel: string;
+  stageTone: FinancialMaturityTone;
+  summary: string;
+  governanceStatusLabel: string;
+  governanceCode: string;
+  governanceReason: string;
+  activeExceptionStatusLabel: string;
+  activeExceptionCode: string;
+  activeExceptionSummary: string;
+  activeExceptionOwner: string;
+  activeExceptionNextStep: string;
+  traceReferences: FinancialMaturityReference[];
+  components: FinancialMaturityComponent[];
 };
 
 function toTitleCase(value?: string) {
@@ -175,6 +219,256 @@ function toPaymentStatusLabel(status?: string) {
     default:
       return toTitleCase(normalized);
   }
+}
+
+function toMaturityTone(value?: string | null): FinancialMaturityTone {
+  const normalized = String(value ?? "")
+    .trim()
+    .toUpperCase();
+
+  if (
+    normalized.includes("BLOCK") ||
+    normalized.includes("FAILED") ||
+    normalized.includes("REJECT") ||
+    normalized.includes("PROBLEM")
+  ) {
+    return "danger";
+  }
+  if (
+    normalized.includes("PENDING") ||
+    normalized.includes("SCHEDULED") ||
+    normalized.includes("WAIT")
+  ) {
+    return "warning";
+  }
+  if (
+    normalized.includes("READY") ||
+    normalized.includes("POSTED") ||
+    normalized.includes("PAID") ||
+    normalized.includes("RECOGNIZED") ||
+    normalized.includes("REFUNDED") ||
+    normalized.includes("ALLOWED") ||
+    normalized.includes("DIRECT_REVENUE")
+  ) {
+    return "success";
+  }
+  return "muted";
+}
+
+function pushTraceReference(
+  references: FinancialMaturityReference[],
+  label: string,
+  value?: string | null,
+) {
+  const normalized = String(value ?? "").trim();
+  if (!normalized || normalized === "-") {
+    return;
+  }
+  if (references.some((reference) => reference.label === label && reference.value === normalized)) {
+    return;
+  }
+  references.push({ label, value: normalized });
+}
+
+function buildMarketplaceMaturityComponents(
+  trace: AccountingJournalSourceTraceResponse,
+): FinancialMaturityComponent[] {
+  const components: FinancialMaturityComponent[] = [];
+
+  if (trace.settlement_mode || trace.payout_status) {
+    components.push({
+      key: "marketplace-settlement",
+      label: "Settlement / Payout",
+      statusLabel: [
+        toTitleCase(trace.settlement_mode),
+        toTitleCase(trace.payout_status),
+      ]
+        .filter((value) => value !== "-")
+        .join(" • "),
+      summary: `Settlement marketplace memakai mode ${toTitleCase(
+        trace.settlement_mode,
+      )} dengan payout ${toTitleCase(trace.payout_status)}.`,
+      tone: toMaturityTone(trace.payout_status ?? trace.settlement_mode),
+      reference: trace.payout_reference ?? trace.source_reference,
+      followUpReference: trace.payout_reference,
+    });
+  }
+
+  if (trace.financial_flow_type || trace.financial_event_key || trace.financial_reference) {
+    components.push({
+      key: "marketplace-financial-adjustment",
+      label: "Refund / Return",
+      statusLabel: [
+        toTitleCase(trace.financial_flow_type),
+        toTitleCase(trace.financial_decision_status),
+        toTitleCase(trace.refund_status),
+      ]
+        .filter((value) => value !== "-")
+        .join(" • "),
+      summary: `Flow ${toTitleCase(
+        trace.financial_flow_type,
+      )} memakai consequence ${toTitleCase(
+        trace.accounting_consequence_status,
+      )} agar trace accounting tetap deterministik.`,
+      tone: toMaturityTone(
+        trace.accounting_consequence_status ??
+          trace.refund_status ??
+          trace.financial_decision_status,
+      ),
+      eventKey: trace.financial_event_key,
+      reference: trace.financial_reference,
+      followUpReference: trace.financial_follow_up_reference,
+    });
+  }
+
+  return components;
+}
+
+function buildRentalMaturityComponents(
+  trace: AccountingJournalSourceTraceResponse,
+): FinancialMaturityComponent[] {
+  const components: FinancialMaturityComponent[] = [];
+
+  for (const item of trace.rental_payment_classifications ?? []) {
+    components.push({
+      key: `rental-classification-${item.classification_type}-${item.accounting_reference ?? item.amount}`,
+      label: "Payment Classification",
+      statusLabel: toTitleCase(item.classification_type),
+      summary: `Bucket ${toTitleCase(item.classification_type)} sebesar Rp${Number(
+        item.amount ?? 0,
+      ).toLocaleString("id-ID")} disiapkan sebagai building block financial rental.`,
+      tone: toMaturityTone(item.accounting_event_key ?? item.accounting_reference),
+      eventKey: item.accounting_event_key,
+      reference: item.accounting_reference,
+      followUpReference: item.follow_up_reference,
+      evidenceReference: item.evidence_reference,
+    });
+  }
+
+  for (const item of trace.rental_financial_resolutions ?? []) {
+    components.push({
+      key: `rental-resolution-${item.outcome_type}-${item.accounting_reference ?? item.amount}`,
+      label: "Financial Resolution",
+      statusLabel: toTitleCase(item.outcome_type),
+      summary: `Outcome ${toTitleCase(item.outcome_type)} sebesar Rp${Number(
+        item.amount ?? 0,
+      ).toLocaleString("id-ID")} dirangkum bersama trace follow-up rental.`,
+      tone: toMaturityTone(item.accounting_event_key ?? item.accounting_reference),
+      eventKey: item.accounting_event_key,
+      reference: item.accounting_reference,
+      followUpReference: item.follow_up_reference,
+      evidenceReference: item.evidence_reference,
+    });
+  }
+
+  return components;
+}
+
+export function buildFinancialMaturityWorkspace(params: {
+  row: OperationalTraceRow;
+  trace?: AccountingJournalSourceTraceResponse | null;
+  exceptionContext?: SupportOperationalExceptionContext | null;
+}): FinancialMaturityWorkspace {
+  const trace = params.trace ?? null;
+  const exceptionContext = params.exceptionContext ?? null;
+  const components = trace
+    ? trace.domain === "marketplace"
+      ? buildMarketplaceMaturityComponents(trace)
+      : buildRentalMaturityComponents(trace)
+    : [];
+  const references: FinancialMaturityReference[] = [];
+
+  pushTraceReference(
+    references,
+    "Source Reference",
+    trace?.source_reference ?? params.row.reference,
+  );
+  pushTraceReference(references, "Document Reference", trace?.source_document_reference);
+  pushTraceReference(references, "Journal Reference", trace?.journal_reference ?? trace?.journal_number);
+  pushTraceReference(references, "Payout Reference", trace?.payout_reference);
+  pushTraceReference(
+    references,
+    "Financial Reference",
+    trace?.financial_reference ?? trace?.financial_follow_up_reference,
+  );
+
+  for (const component of components) {
+    pushTraceReference(references, `${component.label} Reference`, component.reference);
+    pushTraceReference(
+      references,
+      `${component.label} Follow-up`,
+      component.followUpReference,
+    );
+  }
+
+  const hasBlockedTrace =
+    trace?.governance_status === "blocked" ||
+    trace?.trace_status === "blocked" ||
+    trace?.readiness_status === "problematic";
+  const hasOpenException =
+    exceptionContext?.status === "active" || exceptionContext?.status === "escalated";
+  const hasPendingComponent = components.some((component) => component.tone === "warning");
+  const hasDangerComponent = components.some((component) => component.tone === "danger");
+
+  let stageLabel = "Menunggu Trace";
+  let stageTone: FinancialMaturityTone = "muted";
+
+  if (hasBlockedTrace || hasDangerComponent) {
+    stageLabel = "Tertahan";
+    stageTone = "danger";
+  } else if (
+    hasOpenException ||
+    params.row.reconciliationStatus === "Perlu Tindak Lanjut" ||
+    hasPendingComponent ||
+    trace?.readiness_status === "not_ready"
+  ) {
+    stageLabel = "Perlu Follow-up";
+    stageTone = "warning";
+  } else if (trace?.readiness_status === "ready") {
+    stageLabel = "Matang";
+    stageTone = "success";
+  }
+
+  const exceptionNote =
+    exceptionContext?.last_message ??
+    exceptionContext?.notes?.[0]?.message ??
+    params.row.attentionSummary ??
+    params.row.exceptionRecommendation ??
+    "-";
+
+  const domainSummary =
+    params.row.domain === "marketplace"
+      ? "Settlement, payout, dan refund/return marketplace ditinjau pada satu konteks maturity."
+      : "Payment classification, deposit closure, dan resolution rental ditinjau pada satu konteks maturity.";
+  const summary =
+    components.length > 0
+      ? `${domainSummary} ${components.length} komponen finansial utama sudah dirangkum bersama readiness dan trace reference.`
+      : `${domainSummary} Belum ada komponen finansial eksplisit yang tercatat pada trace ini.`;
+  const activeExceptionStatusLabel = exceptionContext?.status
+    ? toTitleCase(exceptionContext.status)
+    : "Belum Ada Catatan";
+
+  return {
+    domain: params.row.domain,
+    stageLabel,
+    stageTone,
+    summary,
+    governanceStatusLabel:
+      trace?.governance_status === "blocked" ? "Blocked" : "Allowed",
+    governanceCode: trace?.governance_code ?? "-",
+    governanceReason:
+      trace?.governance_reason ??
+      trace?.blocker_reason ??
+      "Tidak ada blocker governance aktif.",
+    activeExceptionStatusLabel,
+    activeExceptionCode:
+      exceptionContext?.exception_code ?? params.row.exceptionCode ?? "-",
+    activeExceptionSummary: exceptionNote,
+    activeExceptionOwner: exceptionContext?.owner_label ?? params.row.queueOwnerLabel ?? "-",
+    activeExceptionNextStep: exceptionContext?.next_step ?? "-",
+    traceReferences: references,
+    components,
+  };
 }
 
 export function buildMarketplaceTraceRows(

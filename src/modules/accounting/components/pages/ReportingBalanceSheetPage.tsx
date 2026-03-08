@@ -14,6 +14,7 @@ import {
   FeatureBalanceSheetTotalFooter,
   FeatureBalanceSheetTreeTable,
 } from "../features/FeatureReportingStatements";
+import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 export function ReportingBalanceSheetPage() {
   const router = useRouter();
@@ -100,6 +101,11 @@ export function ReportingBalanceSheetPage() {
           {reportContext?.fallback_reason}. Nilai nol tetap ditampilkan agar struktur neraca tetap terbaca.
         </div>
       ) : null}
+
+      <FeatureReportingSourceOfTruthCallout
+        sourceOfTruth={reportContext?.source_of_truth}
+        reportTier={reportContext?.report_tier}
+      />
 
       <FeatureBalanceSheetTreeTable
         assets={reportData?.assets ?? []}

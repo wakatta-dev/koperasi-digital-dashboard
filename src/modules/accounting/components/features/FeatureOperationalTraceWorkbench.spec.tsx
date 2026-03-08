@@ -252,6 +252,17 @@ describe("FeatureOperationalTraceWorkbench", () => {
                     accounting_reference: "RNT-REV-22",
                   },
                 ],
+                rental_financial_resolutions: [
+                  {
+                    outcome_type: "DEPOSIT_REFUNDED",
+                    amount: 200000,
+                    reason: "Deposit dikembalikan penuh.",
+                    follow_up_reference: "DPR-22",
+                    evidence_reference: "DOC-DPR-22",
+                    accounting_event_key: "rental.deposit.refunded",
+                    accounting_reference: "RNT-DPR-22",
+                  },
+                ],
               }
             : {
                 domain: "marketplace",
@@ -267,6 +278,9 @@ describe("FeatureOperationalTraceWorkbench", () => {
                 governance_code: "ACC-JOURNAL-TRACE-MISSING",
                 governance_reason:
                   "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
+                settlement_mode: "MERCHANT_PAYOUT",
+                payout_status: "SCHEDULED",
+                payout_reference: "PAYOUT-11",
                 financial_flow_type: "REFUND",
                 financial_decision_status: "APPROVED",
                 refund_status: "REFUND_PAID",
@@ -302,14 +316,15 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Follow-up Queue")).toBeTruthy();
       expect(screen.getByText("Aktif 1")).toBeTruthy();
       expect(screen.getByText("Jejak Status")).toBeTruthy();
-      expect(screen.getByText("Readiness Backbone Review")).toBeTruthy();
+      expect(screen.getByText("Financial Maturity Workspace")).toBeTruthy();
+      expect(screen.getByText("Maturity: Tertahan")).toBeTruthy();
       expect(screen.getByText("Policy Result")).toBeTruthy();
       expect(screen.getByText("Governance Blocker")).toBeTruthy();
-      expect(screen.getByText("Refund / Return Finance")).toBeTruthy();
-      expect(screen.getByText("Flow Type")).toBeTruthy();
-      expect(screen.getByText("Decision")).toBeTruthy();
-      expect(screen.getByText("Refund Status")).toBeTruthy();
-      expect(screen.getByText("Accounting Consequence")).toBeTruthy();
+      expect(screen.getByText("Exception Context")).toBeTruthy();
+      expect(screen.getByText("Trace References")).toBeTruthy();
+      expect(screen.getByText("Komponen Finansial Utama")).toBeTruthy();
+      expect(screen.getAllByText("Settlement / Payout").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Refund / Return").length).toBeGreaterThan(0);
       expect(screen.getByText("Policy Name")).toBeTruthy();
       expect(screen.getByText("Marketplace Completion Standard")).toBeTruthy();
       expect(screen.getByText("accounting_handoff_minimum")).toBeTruthy();
@@ -317,7 +332,8 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("coa_mapping_ready")).toBeTruthy();
       expect(screen.getByText("Blocked")).toBeTruthy();
       expect(screen.getByText("marketplace.refund.paid")).toBeTruthy();
-      expect(screen.getByText("MKT-RFDP-11")).toBeTruthy();
+      expect(screen.getAllByText("MKT-RFDP-11").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("CS-REFUND-11").length).toBeGreaterThan(0);
       expect(screen.getByText("PAYMENT VERIFICATION")).toBeTruthy();
       expect(screen.getByText("Exception Workspace")).toBeTruthy();
       expect(screen.getByText("Basis Resolusi")).toBeTruthy();
@@ -419,12 +435,14 @@ describe("FeatureOperationalTraceWorkbench", () => {
     renderFeature(<FeatureOperationalTraceWorkbench />);
 
     await waitFor(() => {
-      expect(screen.getByText("Readiness Backbone Review")).toBeTruthy();
+      expect(screen.getByText("Financial Maturity Workspace")).toBeTruthy();
       expect(screen.getByText("Governance Blocker")).toBeTruthy();
+      expect(screen.getByText("Exception Context")).toBeTruthy();
       expect(screen.getByText("Exception Workspace")).toBeTruthy();
       expect(screen.getByText("Request: req-exc-1")).toBeTruthy();
       expect(screen.getAllByText("MKT-11").length).toBeGreaterThan(0);
       expect(screen.getByText("Trace: Blocked")).toBeTruthy();
+      expect(screen.getByText("Maturity: Tertahan")).toBeTruthy();
     });
   });
 
@@ -439,11 +457,16 @@ describe("FeatureOperationalTraceWorkbench", () => {
     fireEvent.click(screen.getAllByText("RSV-000022")[0]);
 
     await waitFor(() => {
-      expect(screen.getByText("Rental Payment Classification")).toBeTruthy();
+      expect(screen.getByText("Financial Maturity Workspace")).toBeTruthy();
+      expect(screen.getByText("Maturity: Perlu Follow-up")).toBeTruthy();
+      expect(screen.getAllByText("Payment Classification").length).toBeGreaterThan(0);
       expect(screen.getByText("rental.deposit.received")).toBeTruthy();
-      expect(screen.getByText("RNT-DPS-22")).toBeTruthy();
+      expect(screen.getAllByText("RNT-DPS-22").length).toBeGreaterThan(0);
       expect(screen.getByText("rental.revenue.recognized")).toBeTruthy();
-      expect(screen.getByText("RNT-REV-22")).toBeTruthy();
+      expect(screen.getAllByText("RNT-REV-22").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Financial Resolution").length).toBeGreaterThan(0);
+      expect(screen.getByText("rental.deposit.refunded")).toBeTruthy();
+      expect(screen.getAllByText("RNT-DPR-22").length).toBeGreaterThan(0);
     });
   });
 

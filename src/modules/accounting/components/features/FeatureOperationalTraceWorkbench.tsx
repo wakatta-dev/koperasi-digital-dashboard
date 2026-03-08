@@ -34,6 +34,7 @@ import {
 import { getAssetRentalBookings } from "@/services/api/asset-rental";
 import { getReservation } from "@/services/api/reservations";
 import {
+  buildFinancialMaturityWorkspace,
   buildOperationalTraceRows,
   filterFollowUpQueueRows,
   filterOperationalTraceRows,
@@ -95,6 +96,13 @@ const EXCEPTION_STATUS_LABEL: Record<string, string> = {
   active: "Aktif",
   resolved: "Terselesaikan",
   escalated: "Tereskalasi",
+};
+
+const MATURITY_TONE_BADGE: Record<string, string> = {
+  success: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  warning: "bg-amber-50 text-amber-700 border border-amber-200",
+  danger: "bg-rose-50 text-rose-700 border border-rose-200",
+  muted: "bg-slate-100 text-slate-700 border border-slate-200",
 };
 
 function toSentenceCase(value?: string | null) {
@@ -318,6 +326,17 @@ export function FeatureOperationalTraceWorkbench() {
     sourceTraceQuery.data?.governance_reason ??
     sourceTraceQuery.data?.blocker_reason ??
     "Tidak ada blocker governance aktif.";
+  const maturityWorkspace = useMemo(
+    () =>
+      selectedRow
+        ? buildFinancialMaturityWorkspace({
+            row: selectedRow,
+            trace: sourceTraceQuery.data,
+            exceptionContext: exceptionContextQuery.data,
+          })
+        : null,
+    [exceptionContextQuery.data, selectedRow, sourceTraceQuery.data],
+  );
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
@@ -550,14 +569,24 @@ export function FeatureOperationalTraceWorkbench() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Readiness Backbone Review
+                        Financial Maturity Workspace
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
-                        Policy result, trace status, dan governance blocker
-                        dirangkum pada konteks transaksi yang sama.
+                        Settlement, refund, deposit, resolution, exception, dan
+                        trace reference dirangkum pada konteks transaksi yang
+                        sama.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      <Badge
+                        className={
+                          MATURITY_TONE_BADGE[
+                            maturityWorkspace?.stageTone ?? "muted"
+                          ] || MATURITY_TONE_BADGE.muted
+                        }
+                      >
+                        Maturity: {maturityWorkspace?.stageLabel ?? "Menunggu Trace"}
+                      </Badge>
                       <Badge
                         className={
                           READINESS_STATUS_BADGE[
@@ -583,6 +612,10 @@ export function FeatureOperationalTraceWorkbench() {
                       </Badge>
                     </div>
                   </div>
+                  <p className="mt-3 text-sm text-slate-700">
+                    {maturityWorkspace?.summary ??
+                      "Workspace maturity akan terisi saat trace transaksi tersedia."}
+                  </p>
 
                   <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <div>
@@ -608,8 +641,14 @@ export function FeatureOperationalTraceWorkbench() {
                     </div>
                     <div>
                       <p className="text-xs text-slate-500">
-                        Journal Reference
+                        Document Reference
                       </p>
+                      <p className="text-sm font-medium text-slate-900">
+                        {sourceTraceQuery.data?.source_document_reference ?? "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">Journal Reference</p>
                       <p className="text-sm font-medium text-slate-900">
                         {sourceTraceQuery.data?.journal_reference ??
                           sourceTraceQuery.data?.journal_number ??
@@ -618,7 +657,7 @@ export function FeatureOperationalTraceWorkbench() {
                     </div>
                   </div>
 
-                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                         Policy Result
@@ -671,153 +710,157 @@ export function FeatureOperationalTraceWorkbench() {
                         {governanceReason}
                       </p>
                     </div>
-                  </div>
-                  {(sourceTraceQuery.data?.financial_event_key ||
-                    sourceTraceQuery.data?.financial_flow_type) && (
                     <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Refund / Return Finance
+                        Exception Context
                       </p>
-                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        <div>
-                          <p className="text-xs text-slate-500">Flow Type</p>
-                          <p className="text-sm font-medium text-slate-900">
-                            {toSentenceCase(
-                              sourceTraceQuery.data?.financial_flow_type,
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">Decision</p>
-                          <p className="text-sm font-medium text-slate-900">
-                            {toSentenceCase(
-                              sourceTraceQuery.data?.financial_decision_status,
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">
-                            Refund Status
-                          </p>
-                          <p className="text-sm font-medium text-slate-900">
-                            {toSentenceCase(
-                              sourceTraceQuery.data?.refund_status,
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">
-                            Accounting Consequence
-                          </p>
-                          <p className="text-sm font-medium text-slate-900">
-                            {toSentenceCase(
-                              sourceTraceQuery.data
-                                ?.accounting_consequence_status,
-                            )}
-                          </p>
-                        </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Badge
+                          className={
+                            EXCEPTION_STATUS_BADGE[exceptionStatus] ||
+                            EXCEPTION_STATUS_BADGE.none
+                          }
+                        >
+                          {EXCEPTION_STATUS_LABEL[exceptionStatus] ||
+                            "Belum Ada Catatan"}
+                        </Badge>
+                        <Badge
+                          className={
+                            EXCEPTION_SEVERITY_BADGE[
+                              String(resolutionSeverity)
+                            ] ||
+                            "bg-slate-100 text-slate-700 border border-slate-200"
+                          }
+                        >
+                          {maturityWorkspace?.activeExceptionCode ??
+                            resolutionExceptionCode}
+                        </Badge>
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
                         <div>
-                          <p className="text-xs text-slate-500">
-                            Financial Event
-                          </p>
+                          <p className="text-xs text-slate-500">Owner</p>
                           <p className="text-sm font-medium text-slate-900">
-                            {sourceTraceQuery.data?.financial_event_key ?? "-"}
+                            {maturityWorkspace?.activeExceptionOwner ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">
-                            Financial Reference
-                          </p>
+                          <p className="text-xs text-slate-500">Next Step</p>
                           <p className="text-sm font-medium text-slate-900">
-                            {sourceTraceQuery.data?.financial_reference ??
-                              sourceTraceQuery.data
-                                ?.financial_follow_up_reference ??
-                              "-"}
+                            {maturityWorkspace?.activeExceptionNextStep ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Summary</p>
+                          <p className="text-sm text-slate-800">
+                            {maturityWorkspace?.activeExceptionSummary ??
+                              resolutionRecommendation}
                           </p>
                         </div>
                       </div>
                     </div>
-                  )}
-                  {Boolean(
-                    sourceTraceQuery.data?.rental_payment_classifications
-                      ?.length,
-                  ) && (
                     <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Rental Payment Classification
+                        Trace References
                       </p>
                       <div className="mt-3 space-y-3">
-                        {sourceTraceQuery.data?.rental_payment_classifications?.map(
-                          (item) => (
+                        {maturityWorkspace?.traceReferences.length ? (
+                          maturityWorkspace.traceReferences.map((reference) => (
                             <div
-                              key={`${item.classification_type}-${item.accounting_reference ?? item.amount}`}
+                              key={`${reference.label}-${reference.value}`}
                               className="rounded-lg border border-slate-200 bg-white p-3"
                             >
-                              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                                <div>
-                                  <p className="text-xs text-slate-500">
-                                    Bucket
-                                  </p>
-                                  <p className="text-sm font-medium text-slate-900">
-                                    {toSentenceCase(item.classification_type)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-slate-500">
-                                    Amount
-                                  </p>
-                                  <p className="text-sm font-medium text-slate-900">
-                                    Rp
-                                    {Number(item.amount ?? 0).toLocaleString(
-                                      "id-ID",
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-slate-500">
-                                    Event
-                                  </p>
-                                  <p className="text-sm font-medium text-slate-900">
-                                    {item.accounting_event_key ?? "-"}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-slate-500">
-                                    Reference
-                                  </p>
-                                  <p className="text-sm font-medium text-slate-900">
-                                    {item.accounting_reference ??
-                                      item.follow_up_reference ??
-                                      "-"}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                                <div>
-                                  <p className="text-xs text-slate-500">
-                                    Reason
-                                  </p>
-                                  <p className="text-sm text-slate-800">
-                                    {item.reason ?? "-"}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-slate-500">
-                                    Evidence
-                                  </p>
-                                  <p className="text-sm text-slate-800">
-                                    {item.evidence_reference ?? "-"}
-                                  </p>
-                                </div>
-                              </div>
+                              <p className="text-xs text-slate-500">
+                                {reference.label}
+                              </p>
+                              <p className="text-sm font-medium text-slate-900">
+                                {reference.value}
+                              </p>
                             </div>
-                          ),
+                          ))
+                        ) : (
+                          <p className="text-sm text-slate-500">
+                            Referensi trace akan muncul setelah source-to-journal
+                            trace tersedia.
+                          </p>
                         )}
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Komponen Finansial Utama
+                    </p>
+                    <div className="mt-3 space-y-3">
+                      {maturityWorkspace?.components.length ? (
+                        maturityWorkspace.components.map((component) => (
+                          <div
+                            key={component.key}
+                            className="rounded-lg border border-slate-200 bg-white p-3"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <p className="text-xs text-slate-500">
+                                  {component.label}
+                                </p>
+                                <p className="text-sm font-semibold text-slate-900">
+                                  {component.statusLabel}
+                                </p>
+                              </div>
+                              <Badge
+                                className={
+                                  MATURITY_TONE_BADGE[component.tone] ||
+                                  MATURITY_TONE_BADGE.muted
+                                }
+                              >
+                                {component.label}
+                              </Badge>
+                            </div>
+                            <p className="mt-3 text-sm text-slate-700">
+                              {component.summary}
+                            </p>
+                            <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                              <div>
+                                <p className="text-xs text-slate-500">Event</p>
+                                <p className="text-sm font-medium text-slate-900">
+                                  {component.eventKey ?? "-"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">
+                                  Reference
+                                </p>
+                                <p className="text-sm font-medium text-slate-900">
+                                  {component.reference ?? "-"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">
+                                  Follow-up
+                                </p>
+                                <p className="text-sm font-medium text-slate-900">
+                                  {component.followUpReference ?? "-"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">
+                                  Evidence
+                                </p>
+                                <p className="text-sm font-medium text-slate-900">
+                                  {component.evidenceReference ?? "-"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500">
+                          Belum ada komponen finansial maturity yang dapat
+                          diringkas untuk transaksi ini.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-start justify-between gap-3">

@@ -14,6 +14,8 @@ export type AccountingReportingReportContext = {
   effective_preset?: string;
   effective_start?: string;
   effective_end?: string;
+  source_of_truth?: string;
+  report_tier?: string;
   auto_fallback_applied: boolean;
   fallback_reason?: string;
 };
@@ -165,6 +167,65 @@ export type AccountingReportingTrialBalanceResponse = {
     credit: number;
     ending_balance: number;
   };
+  report_context: AccountingReportingReportContext;
+};
+
+export type AccountingReportingTieOutSummary = {
+  domain: "marketplace" | "rental" | string;
+  label: string;
+  operational_total: number;
+  gl_total: number;
+  delta: number;
+  operational_count: number;
+  gl_count: number;
+  mismatch_count: number;
+  status: "balanced" | "mismatch" | string;
+};
+
+export type AccountingReportingTieOutMismatch = {
+  domain: "marketplace" | "rental" | string;
+  source_id?: string;
+  source_reference: string;
+  source_document_reference?: string;
+  operational_amount: number;
+  gl_amount: number;
+  delta: number;
+  mismatch_status: string;
+  mismatch_reason: string;
+  readiness_status?: string;
+  readiness_reason?: string;
+  journal_number?: string;
+  trace_available: boolean;
+};
+
+export type AccountingReportingTieOutFixedAssetItem = {
+  asset_id: number;
+  asset_name: string;
+  asset_reference: string;
+  fixed_asset_status?: string;
+  fixed_asset_category?: string;
+  fixed_asset_reference?: string;
+  depreciation_method?: string;
+  useful_life_months?: number;
+  maintenance_classification?: string;
+  maturity_status: string;
+  gap_reason?: string;
+};
+
+export type AccountingReportingTieOutFixedAssetSummary = {
+  qualified_asset_count: number;
+  registered_asset_count: number;
+  profiled_asset_count: number;
+  missing_register_count: number;
+  missing_profile_count: number;
+  review_items: AccountingReportingTieOutFixedAssetItem[];
+};
+
+export type AccountingReportingTieOutResponse = {
+  period_label: string;
+  summaries: AccountingReportingTieOutSummary[];
+  mismatches: AccountingReportingTieOutMismatch[];
+  fixed_asset_summary?: AccountingReportingTieOutFixedAssetSummary;
   report_context: AccountingReportingReportContext;
 };
 

@@ -1,6 +1,6 @@
 /** @format */
 
-export type ReportingCardGroup = "statement" | "ledger";
+export type ReportingCardGroup = "statement" | "ledger" | "control";
 
 export type ReportingCardItem = {
   key: string;

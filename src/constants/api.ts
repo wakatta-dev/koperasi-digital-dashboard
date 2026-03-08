@@ -244,6 +244,7 @@ export const API_ENDPOINTS = {
     balanceSheet: "/finance/reports/balance-sheet",
     profitLossComparative: "/finance/reports/profit-loss-comparative",
     trialBalance: "/finance/reports/trial-balance",
+    tieOut: "/finance/reports/tie-out",
     generalLedger: "/finance/reports/general-ledger",
     accountLedger: "/finance/reports/account-ledger",
   },
@@ -272,6 +273,10 @@ export const API_ENDPOINTS = {
   assets: {
     list: "/asset-rental/assets",
     detail: (id: string | number) => `/asset-rental/assets/${id}`,
+    fixedAssetRegister: (id: string | number) =>
+      `/asset-rental/assets/${id}/fixed-asset-register`,
+    fixedAssetProfile: (id: string | number) =>
+      `/asset-rental/assets/${id}/fixed-asset-profile`,
     image: (id: string | number) => `/asset-rental/assets/${id}/image`,
     categories: "/asset-rental/assets/categories",
     masterData: "/asset-rental/master-data",

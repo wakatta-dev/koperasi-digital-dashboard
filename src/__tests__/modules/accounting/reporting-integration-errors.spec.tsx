@@ -7,6 +7,7 @@ import {
   ReportingAccountLedgerPage,
   ReportingGeneralLedgerPage,
   ReportingProfitLossPage,
+  ReportingTieOutPage,
 } from "@/modules/accounting";
 import { ensureAccountingReportingSuccess } from "@/services/api/accounting-reporting";
 
@@ -33,6 +34,11 @@ vi.mock("@/hooks/queries", () => ({
     error: new Error("general ledger unavailable"),
     isPending: false,
   }),
+  useAccountingReportingTieOut: () => ({
+    data: null,
+    error: new Error("tie-out unavailable"),
+    isPending: false,
+  }),
   useAccountingReportingAccountLedger: () => ({
     data: null,
     error: new Error("account ledger unavailable"),
@@ -53,6 +59,10 @@ describe("reporting integration errors", () => {
     pathnameMock = "/bumdes/accounting/reporting/general-ledger";
     render(<ReportingGeneralLedgerPage />);
     expect(screen.getByText("general ledger unavailable")).toBeTruthy();
+
+    pathnameMock = "/bumdes/accounting/reporting/tie-out";
+    render(<ReportingTieOutPage />);
+    expect(screen.getByText("tie-out unavailable")).toBeTruthy();
 
     pathnameMock = "/bumdes/accounting/reporting/account-ledger";
     render(<ReportingAccountLedgerPage accountId="101000" />);
