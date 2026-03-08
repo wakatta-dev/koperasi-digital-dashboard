@@ -538,6 +538,58 @@ export function FeatureOperationalTraceWorkbench() {
                       <p className="mt-3 text-sm text-slate-800">{governanceReason}</p>
                     </div>
                   </div>
+                  {(sourceTraceQuery.data?.financial_event_key ||
+                    sourceTraceQuery.data?.financial_flow_type) && (
+                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Refund / Return Finance
+                      </p>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <div>
+                          <p className="text-xs text-slate-500">Flow Type</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {toSentenceCase(sourceTraceQuery.data?.financial_flow_type)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Decision</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {toSentenceCase(sourceTraceQuery.data?.financial_decision_status)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Refund Status</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {toSentenceCase(sourceTraceQuery.data?.refund_status)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Accounting Consequence</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {toSentenceCase(
+                              sourceTraceQuery.data?.accounting_consequence_status,
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        <div>
+                          <p className="text-xs text-slate-500">Financial Event</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {sourceTraceQuery.data?.financial_event_key ?? "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Financial Reference</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {sourceTraceQuery.data?.financial_reference ??
+                              sourceTraceQuery.data?.financial_follow_up_reference ??
+                              "-"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-start justify-between gap-3">

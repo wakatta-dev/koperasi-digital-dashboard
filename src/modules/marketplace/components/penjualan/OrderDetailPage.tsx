@@ -238,6 +238,56 @@ function resolvePayoutStatusLabel(status?: string) {
   }
 }
 
+function resolveFinancialFlowTypeLabel(flowType?: string) {
+  const normalized = String(flowType ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "REFUND":
+      return "Refund";
+    case "RETURN":
+      return "Return";
+    default:
+      return "Belum Ada";
+  }
+}
+
+function resolveFinancialDecisionStatusLabel(status?: string) {
+  const normalized = String(status ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "APPROVED":
+      return "Refund Disetujui";
+    case "RECOGNIZED":
+      return "Return Diakui";
+    default:
+      return "Belum Diputuskan";
+  }
+}
+
+function resolveRefundStatusLabel(status?: string) {
+  const normalized = String(status ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "NOT_APPLICABLE":
+      return "Tidak Berlaku";
+    case "PENDING_REFUND":
+      return "Menunggu Refund";
+    case "REFUND_PAID":
+      return "Refund Selesai";
+    default:
+      return "Belum Diatur";
+  }
+}
+
+function resolveAccountingConsequenceLabel(status?: string) {
+  const normalized = String(status ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "PENDING_CONSEQUENCE":
+      return "Konsekuensi Pending";
+    case "CONSEQUENCE_RECORDED":
+      return "Konsekuensi Tercatat";
+    default:
+      return "Belum Diatur";
+  }
+}
+
 function resolveNextValidAction(detail: OrderDetail | null, data: any) {
   if (!detail || !data) return null;
 
@@ -532,6 +582,58 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
               </p>
               <p className="mt-2">
                 Status operasional tetap mengikuti lifecycle order dan tidak berubah oleh settlement.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 rounded-lg border border-border bg-muted/20 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Refund / Return Finance
+              </p>
+              <p className="mt-2 text-sm font-semibold text-foreground">
+                {resolveFinancialFlowTypeLabel(data?.financial_adjustment?.flow_type)}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Keputusan:{" "}
+                {resolveFinancialDecisionStatusLabel(
+                  data?.financial_adjustment?.decision_status,
+                )}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Status refund:{" "}
+                {resolveRefundStatusLabel(data?.financial_adjustment?.refund_status)}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Consequence accounting:{" "}
+                {resolveAccountingConsequenceLabel(
+                  data?.financial_adjustment?.accounting_consequence_status,
+                )}
+              </p>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>
+                Reference Tindak Lanjut:{" "}
+                <span className="font-medium text-foreground">
+                  {data?.financial_adjustment?.follow_up_reference || "-"}
+                </span>
+              </p>
+              <p className="mt-2">
+                Event Accounting:{" "}
+                <span className="font-medium text-foreground">
+                  {data?.financial_adjustment?.accounting_event_key || "-"}
+                </span>
+              </p>
+              <p className="mt-2">
+                Reference Accounting:{" "}
+                <span className="font-medium text-foreground">
+                  {data?.financial_adjustment?.accounting_reference || "-"}
+                </span>
+              </p>
+              <p className="mt-2">
+                {data?.financial_adjustment?.reason ||
+                  "Belum ada alasan refund/return yang tercatat."}
               </p>
             </div>
           </div>

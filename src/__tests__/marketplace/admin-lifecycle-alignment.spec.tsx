@@ -163,6 +163,19 @@ function makeOrderDetail(status: string) {
       payout_reference: "PAYOUT-101",
       payout_recorded_at: "2026-02-15T08:00:00Z",
     },
+    financial_adjustment: {
+      flow_type: "REFUND",
+      decision_status: "APPROVED",
+      refund_status: "REFUND_PAID",
+      accounting_consequence_status: "CONSEQUENCE_RECORDED",
+      reason: "Barang diterima rusak oleh pelanggan.",
+      follow_up_reference: "CS-REFUND-101",
+      refund_reference: "RFND-101",
+      accounting_event_key: "marketplace.refund.paid",
+      accounting_reference: "MKT-RFDP-101",
+      decision_recorded_at: "2026-02-15T09:00:00Z",
+      refund_paid_at: "2026-02-16T09:00:00Z",
+    },
   };
 }
 
@@ -243,12 +256,21 @@ describe("admin marketplace lifecycle alignment", () => {
       expect(screen.getByText("Status Pembayaran")).toBeTruthy();
       expect(screen.getByText("Status Accounting")).toBeTruthy();
       expect(screen.getByText("Settlement Finance")).toBeTruthy();
+      expect(screen.getByText("Refund / Return Finance")).toBeTruthy();
       expect(screen.getByText("Tindakan Berikutnya")).toBeTruthy();
       expect(screen.getByText("Tinjau Pembayaran Manual")).toBeTruthy();
       expect(screen.getByText("Siap Ditinjau")).toBeTruthy();
       expect(screen.getByText("Butuh Payout")).toBeTruthy();
       expect(screen.getByText("Status payout: Payout Selesai")).toBeTruthy();
       expect(screen.getByText("PAYOUT-101")).toBeTruthy();
+      expect(screen.getByText("Refund")).toBeTruthy();
+      expect(screen.getByText("Keputusan: Refund Disetujui")).toBeTruthy();
+      expect(screen.getByText("Status refund: Refund Selesai")).toBeTruthy();
+      expect(screen.getByText("Consequence accounting: Konsekuensi Tercatat")).toBeTruthy();
+      expect(screen.getByText("CS-REFUND-101")).toBeTruthy();
+      expect(screen.getByText("marketplace.refund.paid")).toBeTruthy();
+      expect(screen.getByText("MKT-RFDP-101")).toBeTruthy();
+      expect(screen.getByText("Barang diterima rusak oleh pelanggan.")).toBeTruthy();
       expect(
         screen.getByText("Transaksi siap diteruskan ke accounting setelah verifikasi operasional."),
       ).toBeTruthy();
