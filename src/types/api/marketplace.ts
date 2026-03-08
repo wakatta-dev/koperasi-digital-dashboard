@@ -152,6 +152,12 @@ export type MarketplaceOrderManualPaymentResponse = {
   updated_at: number;
 };
 
+export type MarketplaceAccountingReadinessResponse = {
+  status: "not_ready" | "ready" | "problematic" | "not_applicable" | string;
+  reason?: string;
+  reference?: string;
+};
+
 export type MarketplaceOrderResponse = {
   id: number;
   order_number?: string;
@@ -183,6 +189,7 @@ export type MarketplaceOrderDetailResponse = {
   updated_at: number;
   status_history?: MarketplaceOrderStatusHistoryResponse[];
   manual_payment?: MarketplaceOrderManualPaymentResponse;
+  accounting_readiness?: MarketplaceAccountingReadinessResponse;
   payment_method?: string;
   payment_reference?: string;
   shipping_method?: string;

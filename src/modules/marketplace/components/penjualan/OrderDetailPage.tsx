@@ -126,6 +126,52 @@ function resolveWorkspacePaymentState(data: any) {
 }
 
 function resolveMarketplaceAccountingState(data: any) {
+  const readiness = data?.accounting_readiness;
+  const readinessStatus = String(readiness?.status ?? "").trim().toLowerCase();
+  if (readinessStatus === "problematic") {
+    return {
+      label: "Bermasalah",
+      helper:
+        readiness?.reason ||
+        "Ada masalah pada pembayaran sehingga transaksi belum layak diteruskan ke accounting.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "not_applicable") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper:
+        readiness?.reason ||
+        "Order dibatalkan sehingga tidak ada handoff accounting yang perlu dijalankan.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "not_ready") {
+    return {
+      label: "Belum Siap",
+      helper:
+        readiness?.reason ||
+        "Accounting menunggu kepastian pembayaran dan status operasional dasar.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "ready") {
+    return {
+      label: "Siap Ditinjau",
+      helper:
+        readiness?.reason ||
+        "Transaksi sudah memiliki dasar operasional untuk diteruskan ke proses accounting berikutnya.",
+      className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
   const status = normalizeOrderStatus(data?.status);
   const manualStatus = (data?.manual_payment?.status ?? "").trim().toUpperCase();
 
@@ -134,6 +180,7 @@ function resolveMarketplaceAccountingState(data: any) {
       label: "Bermasalah",
       helper: "Ada masalah pada pembayaran sehingga transaksi belum layak diteruskan ke accounting.",
       className: "border border-red-200 bg-red-50 text-red-700",
+      reference: null,
     };
   }
 
@@ -142,6 +189,7 @@ function resolveMarketplaceAccountingState(data: any) {
       label: "Tidak Perlu Posting",
       helper: "Order dibatalkan sehingga tidak ada handoff accounting yang perlu dijalankan.",
       className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: null,
     };
   }
 
@@ -150,6 +198,7 @@ function resolveMarketplaceAccountingState(data: any) {
       label: "Belum Siap",
       helper: "Accounting menunggu kepastian pembayaran dan status operasional dasar.",
       className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: null,
     };
   }
 
@@ -157,6 +206,7 @@ function resolveMarketplaceAccountingState(data: any) {
     label: "Siap Ditinjau",
     helper: "Transaksi sudah memiliki dasar operasional untuk diteruskan ke proses accounting berikutnya.",
     className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+    reference: null,
   };
 }
 
@@ -413,6 +463,14 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             <p className="mt-3 text-sm text-muted-foreground">
               {accountingWorkspaceState.helper}
             </p>
+            {accountingWorkspaceState.reference ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Referensi Accounting:{" "}
+                <span className="font-medium text-foreground">
+                  {accountingWorkspaceState.reference}
+                </span>
+              </p>
+            ) : null}
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

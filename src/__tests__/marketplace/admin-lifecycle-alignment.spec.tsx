@@ -152,6 +152,11 @@ function makeOrderDetail(status: string) {
       created_at: 1739492100,
       updated_at: 1739492200,
     },
+    accounting_readiness: {
+      status: "ready",
+      reason: "Transaksi siap diteruskan ke accounting setelah verifikasi operasional.",
+      reference: "MP-INV-2026-0001",
+    },
   };
 }
 
@@ -234,6 +239,10 @@ describe("admin marketplace lifecycle alignment", () => {
       expect(screen.getByText("Tindakan Berikutnya")).toBeTruthy();
       expect(screen.getByText("Tinjau Pembayaran Manual")).toBeTruthy();
       expect(screen.getByText("Siap Ditinjau")).toBeTruthy();
+      expect(
+        screen.getByText("Transaksi siap diteruskan ke accounting setelah verifikasi operasional."),
+      ).toBeTruthy();
+      expect(screen.getByText("MP-INV-2026-0001")).toBeTruthy();
       expect(screen.getByText("Catatan: Bukti pembayaran diterima")).toBeTruthy();
       expect(screen.getByText("Akses Tracking Tamu")).toBeTruthy();
       expect(screen.getByText("Aktif")).toBeTruthy();
