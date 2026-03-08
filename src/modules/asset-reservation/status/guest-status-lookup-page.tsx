@@ -14,11 +14,11 @@ import {
   useUploadGuestPaymentProof,
 } from "../hooks";
 import { formatTicketFromReservationId } from "../guest/utils/ticket";
+import { resolvePublicReservationStatusPresentation } from "../guest/utils/public-status";
 import {
   GuestRequestStatusFeature,
   type GuestRequestPaymentInstruction,
   type GuestRequestStatusResult,
-  type GuestRequestStatusVariant,
 } from "../guest/components/status/GuestRequestStatusFeature";
 import { UploadPaymentProofModalFeature } from "../guest/components/status/UploadPaymentProofModalFeature";
 
@@ -68,80 +68,6 @@ function toReservationStatus(status: string): ReservationStatus {
       return normalized;
     default:
       return "pending_review";
-  }
-}
-
-function mapVariant(status: ReservationStatus): GuestRequestStatusVariant {
-  switch (status) {
-    case "awaiting_dp":
-    case "awaiting_settlement":
-    case "confirmed_dp":
-    case "confirmed_full":
-      return "approved";
-    case "completed":
-      return "completed";
-    case "rejected":
-    case "cancelled":
-    case "expired":
-      return "rejected";
-    case "pending_review":
-    case "awaiting_payment_verification":
-    default:
-      return "verifying";
-  }
-}
-
-function badgeLabelForStatus(status: ReservationStatus) {
-  switch (status) {
-    case "pending_review":
-      return "Menunggu Review Admin";
-    case "awaiting_dp":
-      return "Menunggu Pembayaran DP";
-    case "awaiting_payment_verification":
-      return "Menunggu Verifikasi Pembayaran";
-    case "confirmed_dp":
-      return "DP Terkonfirmasi";
-    case "awaiting_settlement":
-      return "Menunggu Pelunasan";
-    case "confirmed_full":
-      return "Masa Penggunaan";
-    case "completed":
-      return "Selesai";
-    case "rejected":
-      return "Ditolak";
-    case "cancelled":
-      return "Dibatalkan";
-    case "expired":
-      return "Kedaluwarsa";
-    default:
-      return "Menunggu Review Admin";
-  }
-}
-
-function statusDescriptionForStatus(status: ReservationStatus) {
-  switch (status) {
-    case "pending_review":
-      return "Pengajuan Anda sedang ditinjau admin BUMDes.";
-    case "awaiting_dp":
-      return "Pengajuan disetujui. Lanjutkan pembayaran DP untuk mengunci jadwal.";
-    case "awaiting_payment_verification":
-      return "Bukti pembayaran sudah diunggah dan menunggu verifikasi admin.";
-    case "confirmed_dp":
-      return "DP sudah dikonfirmasi. Menunggu hari pakai/pengambilan sebelum pelunasan.";
-    case "awaiting_settlement":
-      return "Silakan lakukan pelunasan sesuai nominal sisa tagihan.";
-    case "confirmed_full":
-      return "Pembayaran tervalidasi. Anda sedang dalam masa penggunaan aset.";
-    case "completed":
-      return "Penyewaan selesai. Kondisi pengembalian aset sudah dicatat admin.";
-    case "rejected":
-      return "Pengajuan tidak dapat diproses. Silakan cek alasan penolakan.";
-    case "cancelled":
-      return "Reservasi dibatalkan.";
-    case "expired":
-      return "Reservasi kedaluwarsa karena melewati batas waktu.";
-    default:
-      return "Pengajuan Anda sedang ditinjau admin BUMDes.";
   }
 }
 
@@ -254,15 +180,16 @@ export function GuestStatusLookupPage() {
   const result: GuestRequestStatusResult | null = useMemo(() => {
     if (!reservation || !effectiveStatus) return null;
     const titleAsset = reservation.asset_name?.trim() || "Aset";
-    const variant = mapVariant(effectiveStatus);
+    const statusPresentation =
+      resolvePublicReservationStatusPresentation(effectiveStatus);
 
     return {
       requestTitle: `Pengajuan Sewa ${titleAsset}`,
       ticketLabel: formatTicketFromReservationId(reservation.reservation_id),
-      badgeLabel: badgeLabelForStatus(effectiveStatus),
-      variant,
+      badgeLabel: statusPresentation.badgeLabel,
+      variant: statusPresentation.variant,
       status: effectiveStatus,
-      statusDescription: statusDescriptionForStatus(effectiveStatus),
+      statusDescription: statusPresentation.description,
       details: {
         renterName: reservation.renter_name || "-",
         assetKind: reservation.asset_name || "-",

@@ -103,4 +103,23 @@ describe("AssetPaymentPage public access gating", () => {
     expect(screen.queryByText(/shell-error:/)).toBeNull();
     expect(screen.getByText("payment-methods")).toBeTruthy();
   });
+
+  it("shows public ticket identifier and simplified status label in payment info", () => {
+    useReservationMock.mockReturnValue({
+      data: {
+        reservationId: 41,
+        status: "awaiting_payment_verification",
+        amounts: { total: 500000, dp: 150000, remaining: 350000 },
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(
+      <AssetPaymentPage reservationId={41} mode="dp" ownershipToken="token-1" />
+    );
+
+    expect(screen.getByText("Nomor Tiket: #SQ-00041")).toBeTruthy();
+    expect(screen.getByText("Pembayaran Sedang Dicek")).toBeTruthy();
+  });
 });

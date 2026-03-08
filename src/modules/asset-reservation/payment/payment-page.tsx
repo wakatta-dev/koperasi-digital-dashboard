@@ -10,6 +10,7 @@ import { PaymentSidebar } from "./components/payment-sidebar";
 import { PaymentShell } from "./shared/payment-shell";
 import { useReservation } from "../hooks";
 import { humanizeReservationStatus } from "../utils/status";
+import { formatPublicReservationIdentifier } from "../guest/utils/public-status";
 import { PAYMENT_METHOD_GROUPS } from "./constants";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -60,7 +61,9 @@ export function AssetPaymentPage({
       info={
         reservation ? (
           <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
-            <div className="font-semibold">ID Reservasi: {reservation.reservationId}</div>
+            <div className="font-semibold">
+              Nomor Tiket: {formatPublicReservationIdentifier(reservation.reservationId)}
+            </div>
             <div>
               Status:{" "}
               <span className="font-medium">

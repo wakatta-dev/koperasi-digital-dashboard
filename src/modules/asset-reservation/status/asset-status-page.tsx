@@ -22,6 +22,7 @@ import type { ReservationSummary } from "../types";
 import { useAssetDetail, useReservation } from "../hooks";
 import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
 import { humanizeReservationStatus } from "../utils/status";
+import { formatPublicReservationIdentifier } from "../guest/utils/public-status";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -181,7 +182,7 @@ export function AssetStatusPage({
         })}`
       : "";
     return {
-      id: `#${base.reservationId}`,
+      id: formatPublicReservationIdentifier(base.reservationId),
       submittedAt: submitted || "Waktu pengajuan tidak tersedia",
       renterName: base.renterName || "-",
       renterContact: base.renterContact || "-",
@@ -293,7 +294,9 @@ export function AssetStatusPage({
             ) : null}
             {resolvedReservationId ? (
               <div className="mb-6 text-sm text-gray-800 dark:text-gray-200 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3">
-                <div className="font-semibold">ID Reservasi: {resolvedReservationId}</div>
+                <div className="font-semibold">
+                  Nomor Tiket: {formatPublicReservationIdentifier(resolvedReservationId)}
+                </div>
                 {reservation ? (
                   <div className="flex flex-wrap gap-4 mt-1">
                     <span>
