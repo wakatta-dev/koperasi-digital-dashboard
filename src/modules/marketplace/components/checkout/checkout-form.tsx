@@ -13,8 +13,10 @@ import {
   checkoutMarketplace,
   classifyMarketplaceApiError,
   ensureMarketplaceSuccess,
+  trackMarketplaceOrder,
 } from "@/services/api";
 import type {
+  MarketplaceGuestTrackResponse,
   MarketplaceCartResponse,
   MarketplaceOrderResponse,
 } from "@/types/api/marketplace";
@@ -35,7 +37,10 @@ import { OptionTile } from "../shared/option-tile";
 
 type Props = {
   cart: MarketplaceCartResponse;
-  onSuccess: (order: MarketplaceOrderResponse) => void;
+  onSuccess: (
+    order: MarketplaceOrderResponse,
+    options?: { trackingToken?: string }
+  ) => void;
   onCostChange?: (cost: CheckoutCostBreakdown) => void;
 };
 
@@ -180,12 +185,30 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
         }),
       );
 
+      let tracking: MarketplaceGuestTrackResponse | null = null;
+      const trackingContact =
+        checkoutSnapshot.customerEmail || checkoutSnapshot.customerPhone;
+      if (order.order_number && trackingContact) {
+        try {
+          tracking = ensureMarketplaceSuccess(
+            await trackMarketplaceOrder({
+              order_number: order.order_number,
+              contact: trackingContact,
+            })
+          );
+        } catch {
+          tracking = null;
+        }
+      }
+
       saveBuyerOrderContext({
         order,
         checkout: checkoutSnapshot,
       });
       showToastSuccess("Checkout berhasil", "Pesanan Anda telah dibuat");
-      onSuccess(order);
+      onSuccess(order, {
+        trackingToken: tracking?.tracking_token?.trim() || undefined,
+      });
       await qc.invalidateQueries({ queryKey: QK.marketplace.cart() });
     } catch (err: any) {
       const classified = classifyMarketplaceApiError(err);

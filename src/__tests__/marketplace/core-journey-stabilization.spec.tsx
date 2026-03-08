@@ -9,10 +9,12 @@ import { CheckoutForm } from "@/modules/marketplace/components/checkout/checkout
 import type {
   MarketplaceCartItemResponse,
   MarketplaceCartResponse,
+  MarketplaceGuestTrackResponse,
   MarketplaceOrderResponse,
 } from "@/types/api/marketplace";
 
 const checkoutMarketplaceMock = vi.fn();
+const trackMarketplaceOrderMock = vi.fn();
 const saveBuyerOrderContextMock = vi.fn();
 const showToastErrorMock = vi.fn();
 
@@ -21,6 +23,7 @@ vi.mock("@/services/api", async (importOriginal) => {
   return {
     ...actual,
     checkoutMarketplace: (...args: any[]) => checkoutMarketplaceMock(...args),
+    trackMarketplaceOrder: (...args: any[]) => trackMarketplaceOrderMock(...args),
   };
 });
 
@@ -114,9 +117,23 @@ function successEnvelope(order: MarketplaceOrderResponse) {
   };
 }
 
+function trackingSuccessEnvelope(tracking: MarketplaceGuestTrackResponse) {
+  return {
+    success: true,
+    message: "ok",
+    data: tracking,
+    meta: {
+      request_id: "req-track-1",
+      timestamp: new Date().toISOString(),
+    },
+    errors: null,
+  };
+}
+
 describe("core buyer checkout stabilization", () => {
   beforeEach(() => {
     checkoutMarketplaceMock.mockReset();
+    trackMarketplaceOrderMock.mockReset();
     saveBuyerOrderContextMock.mockReset();
     showToastErrorMock.mockReset();
   });
@@ -141,6 +158,14 @@ describe("core buyer checkout stabilization", () => {
     checkoutMarketplaceMock.mockReturnValue(
       new Promise((resolve) => {
         resolveRequest = resolve;
+      })
+    );
+    trackMarketplaceOrderMock.mockResolvedValue(
+      trackingSuccessEnvelope({
+        order_id: 99,
+        order_number: "ORD-2026-099",
+        status: "PENDING_PAYMENT",
+        tracking_token: "track-token-99",
       })
     );
 
@@ -183,6 +208,17 @@ describe("core buyer checkout stabilization", () => {
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(onSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 99,
+          order_number: "ORD-2026-099",
+        }),
+        { trackingToken: "track-token-99" }
+      );
+      expect(trackMarketplaceOrderMock).toHaveBeenCalledWith({
+        order_number: "ORD-2026-099",
+        contact: "buyer@example.com",
+      });
       expect(saveBuyerOrderContextMock).toHaveBeenCalledTimes(1);
       expect(saveBuyerOrderContextMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -192,6 +228,56 @@ describe("core buyer checkout stabilization", () => {
           }),
         }),
       );
+    });
+  });
+
+  it("continues to payment flow even when tracking token bootstrap fails", async () => {
+    const onSuccess = vi.fn();
+
+    checkoutMarketplaceMock.mockResolvedValue(
+      successEnvelope({
+        id: 100,
+        order_number: "ORD-2026-100",
+        status: "PENDING_PAYMENT",
+        fulfillment_method: "DELIVERY",
+        customer_name: "Budi Santoso",
+        customer_phone: "081212300000",
+        customer_email: "buyer@example.com",
+        customer_address: "Jl. Melati No. 10",
+        notes: "-",
+        total: 25000,
+        items: [
+          {
+            order_item_id: 12,
+            product_id: 100,
+            product_name: "Kopi Arabika",
+            product_sku: "KOP-001",
+            quantity: 1,
+            price: 25000,
+            subtotal: 25000,
+          },
+        ],
+        created_at: 1739491201,
+      })
+    );
+    trackMarketplaceOrderMock.mockRejectedValue(new Error("tracking unavailable"));
+
+    renderWithClient(<CheckoutForm cart={makeCart()} onSuccess={onSuccess} />);
+
+    fillCheckoutForm();
+    fireEvent.click(screen.getByRole("button", { name: /Bayar Sekarang/i }));
+
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 100,
+          order_number: "ORD-2026-100",
+        }),
+        expect.objectContaining({
+          trackingToken: undefined,
+        })
+      );
+      expect(saveBuyerOrderContextMock).toHaveBeenCalledTimes(1);
     });
   });
 });
