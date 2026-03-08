@@ -54,6 +54,11 @@ describe("AssetRentalAdminDetailPage", () => {
           total_amount: 750000,
           created_at: 1762600000,
           updated_at: 1762650000,
+          accounting_readiness: {
+            status: "not_ready",
+            reason: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+            reference: "RSV-000501",
+          },
           latest_payment: {
             id: "pay-501",
             status: "pending_verification",
@@ -93,6 +98,11 @@ describe("AssetRentalAdminDetailPage", () => {
         end_date: "2025-11-11",
         status: "awaiting_payment_verification",
         amounts: { total: 750000, dp: 300000, remaining: 450000 },
+        accounting_readiness: {
+          status: "not_ready",
+          reason: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+          reference: "RSV-000501",
+        },
         latest_payment: {
           id: "pay-501",
           status: "pending_verification",
@@ -138,6 +148,12 @@ describe("AssetRentalAdminDetailPage", () => {
         screen.getAllByText("Menunggu Verifikasi Pembayaran").length,
       ).toBeGreaterThan(0);
       expect(screen.getByText("Belum Siap")).toBeTruthy();
+      expect(
+        screen.getByText(
+          "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+        ),
+      ).toBeTruthy();
+      expect(screen.getByText("RSV-000501")).toBeTruthy();
       expect(screen.getByText("Tinjau Pembayaran")).toBeTruthy();
       expect(screen.getByText("Keputusan Pembayaran")).toBeTruthy();
       expect(screen.getByText("Menunggu Keputusan Admin")).toBeTruthy();

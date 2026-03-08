@@ -125,6 +125,11 @@ export type ReservationDetailResponse = {
   guest_token?: string;
   amounts: { total: number; dp: number; remaining: number };
   latest_payment?: ReservationLatestPayment | null;
+  accounting_readiness?: {
+    status: "not_ready" | "ready" | "problematic" | "not_applicable" | string;
+    reason?: string | null;
+    reference?: string | null;
+  } | null;
   payment_flow?: "dp" | "settlement_direct" | "pending_decision" | string;
   hold_expires_at?: Rfc3339String;
   timeline?: ReservationTimelineItem[];

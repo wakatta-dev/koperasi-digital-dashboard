@@ -208,6 +208,53 @@ function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
 }
 
 function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
+  const readiness = reservation?.accounting_readiness || booking?.accounting_readiness;
+  const readinessStatus = String(readiness?.status ?? "").trim().toLowerCase();
+
+  if (readinessStatus === "not_applicable") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper:
+        readiness?.reason ||
+        "Booking dibatalkan atau ditolak sehingga tidak perlu diteruskan ke accounting.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "problematic") {
+    return {
+      label: "Bermasalah",
+      helper:
+        readiness?.reason ||
+        "Ada masalah pada pembayaran sehingga handoff accounting harus ditahan.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "not_ready") {
+    return {
+      label: "Belum Siap",
+      helper:
+        readiness?.reason ||
+        "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "ready") {
+    return {
+      label: "Siap Ditinjau",
+      helper:
+        readiness?.reason ||
+        "Booking sudah cukup matang untuk diteruskan ke proses accounting berikutnya.",
+      className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
   const bookingStatus = (booking?.status || "").trim().toUpperCase();
   const paymentStatus = (
     reservation?.latest_payment?.status ||
@@ -222,6 +269,7 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
       label: "Tidak Perlu Posting",
       helper: "Booking dibatalkan atau ditolak sehingga tidak perlu diteruskan ke accounting.",
       className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: null,
     };
   }
 
@@ -230,6 +278,7 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
       label: "Bermasalah",
       helper: "Ada masalah pada pembayaran sehingga handoff accounting harus ditahan.",
       className: "border border-red-200 bg-red-50 text-red-700",
+      reference: null,
     };
   }
 
@@ -245,6 +294,7 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
       label: "Belum Siap",
       helper: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
       className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: null,
     };
   }
 
@@ -252,6 +302,7 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
     label: "Siap Ditinjau",
     helper: "Booking sudah cukup matang untuk diteruskan ke proses accounting berikutnya.",
     className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+    reference: null,
   };
 }
 
@@ -694,6 +745,14 @@ export function AssetRentalAdminDetailPage({
                   <p className="mt-3 text-sm text-slate-600">
                     {accountingWorkspace.helper}
                   </p>
+                  {accountingWorkspace.reference ? (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Referensi Accounting:{" "}
+                      <span className="font-medium text-slate-900">
+                        {accountingWorkspace.reference}
+                      </span>
+                    </p>
+                  ) : null}
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
