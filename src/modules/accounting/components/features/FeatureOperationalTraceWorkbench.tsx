@@ -122,6 +122,30 @@ export function FeatureOperationalTraceWorkbench() {
     marketplaceDetail: marketplaceDetailQuery.data,
     rentalDetail: rentalDetailQuery.data,
   });
+  const historyItems = useMemo(() => {
+    if (!selectedRow) {
+      return [];
+    }
+    if (selectedRow.domain === "marketplace") {
+      return (marketplaceDetailQuery.data?.status_history ?? []).map((entry, index) => ({
+        id: `marketplace-history-${index}-${entry.status}`,
+        title: entry.status.replaceAll("_", " "),
+        description: entry.reason || "Tidak ada catatan tambahan.",
+        time: new Date(entry.timestamp * 1000).toLocaleString("id-ID"),
+      }));
+    }
+    return (rentalDetailQuery.data?.timeline ?? []).map((entry, index) => ({
+      id: `rental-history-${index}-${entry.event}`,
+      title: entry.event.replaceAll("_", " "),
+      description:
+        entry.meta && Object.keys(entry.meta).length > 0
+          ? Object.entries(entry.meta)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(" • ")
+          : "Tidak ada catatan tambahan.",
+      time: new Date(entry.at).toLocaleString("id-ID"),
+    }));
+  }, [marketplaceDetailQuery.data?.status_history, rentalDetailQuery.data?.timeline, selectedRow]);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
@@ -252,6 +276,29 @@ export function FeatureOperationalTraceWorkbench() {
               <Button asChild variant="ghost" className="px-0">
                 <Link href={selectedRow.detailHref}>Buka detail transaksi</Link>
               </Button>
+              <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Jejak Status
+                </p>
+                <div className="mt-3 space-y-3">
+                  {historyItems.length > 0 ? (
+                    historyItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-lg border border-slate-200 bg-white p-3"
+                      >
+                        <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                        <p className="mt-1 text-sm text-slate-600">{item.description}</p>
+                        <p className="mt-2 text-xs text-slate-500">{item.time}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500">
+                      Belum ada riwayat status untuk transaksi yang dipilih.
+                    </p>
+                  )}
+                </div>
+              </div>
             </>
           )}
         </CardContent>

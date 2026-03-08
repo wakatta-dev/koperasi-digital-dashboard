@@ -56,6 +56,9 @@ describe("FeatureOperationalTraceWorkbench", () => {
     useMarketplaceOrderMock.mockReturnValue({
       data: {
         manual_payment: { proof_url: "https://example.com/proof-marketplace.jpg" },
+        status_history: [
+          { status: "PAYMENT_VERIFICATION", timestamp: 1700000000, reason: "Menunggu verifikasi admin" },
+        ],
       },
       isLoading: false,
       isError: false,
@@ -89,6 +92,13 @@ describe("FeatureOperationalTraceWorkbench", () => {
       data: {
         reservation_id: 22,
         latest_payment: { proof_url: "https://example.com/proof-rental.jpg" },
+        timeline: [
+          {
+            event: "awaiting_payment_verification",
+            at: "2026-03-08T10:00:00Z",
+            meta: { actor: "system", note: "proof received" },
+          },
+        ],
       },
     });
   });
@@ -108,6 +118,8 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Reporting Basis Snapshot")).toBeTruthy();
       expect(screen.getByText("Follow-up Queue")).toBeTruthy();
       expect(screen.getByText("Aktif 1")).toBeTruthy();
+      expect(screen.getByText("Jejak Status")).toBeTruthy();
+      expect(screen.getByText("PAYMENT VERIFICATION")).toBeTruthy();
       expect(screen.getAllByText("Siap Dilaporkan").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Tahan Pelaporan").length).toBeGreaterThan(0);
       expect(screen.getByText("Lihat Bukti Pembayaran")).toBeTruthy();
