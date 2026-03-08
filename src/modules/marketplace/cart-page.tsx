@@ -159,8 +159,14 @@ export function MarketplaceCartPage() {
                 <CheckoutForm
                   cart={data}
                   onCostChange={setCheckoutCost}
-                  onSuccess={(order) => {
-                    router.push(`/marketplace/pembayaran?order_id=${order.id}`);
+                  onSuccess={(order, options) => {
+                    const params = new URLSearchParams({
+                      order_id: String(order.id),
+                    });
+                    if (options?.trackingToken) {
+                      params.set("tracking_token", options.trackingToken);
+                    }
+                    router.push(`/marketplace/pembayaran?${params.toString()}`);
                   }}
                 />
               </div>

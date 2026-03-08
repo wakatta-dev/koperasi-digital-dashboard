@@ -172,6 +172,23 @@ export type MarketplaceOrderSettlementResponse = {
   payout_recorded_at?: string;
 };
 
+export type MarketplaceOrderFinancialAdjustmentResponse = {
+  flow_type: "REFUND" | "RETURN" | string;
+  decision_status: "APPROVED" | "RECOGNIZED" | string;
+  refund_status: "NOT_APPLICABLE" | "PENDING_REFUND" | "REFUND_PAID" | string;
+  accounting_consequence_status:
+    | "PENDING_CONSEQUENCE"
+    | "CONSEQUENCE_RECORDED"
+    | string;
+  reason?: string;
+  follow_up_reference?: string;
+  refund_reference?: string;
+  accounting_event_key?: string;
+  accounting_reference?: string;
+  decision_recorded_at?: string;
+  refund_paid_at?: string;
+};
+
 export type MarketplaceOrderResponse = {
   id: number;
   order_number?: string;
@@ -204,6 +221,7 @@ export type MarketplaceOrderDetailResponse = {
   status_history?: MarketplaceOrderStatusHistoryResponse[];
   manual_payment?: MarketplaceOrderManualPaymentResponse;
   settlement?: MarketplaceOrderSettlementResponse;
+  financial_adjustment?: MarketplaceOrderFinancialAdjustmentResponse;
   accounting_readiness?: MarketplaceAccountingReadinessResponse;
   payment_method?: string;
   payment_reference?: string;

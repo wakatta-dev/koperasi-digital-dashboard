@@ -67,6 +67,16 @@ export type AccountingJournalSourceTraceResponse = {
   settlement_mode?: "DIRECT_REVENUE" | "MERCHANT_PAYOUT" | string;
   payout_status?: "NOT_APPLICABLE" | "PENDING_PAYOUT" | "SCHEDULED" | "PAID" | string;
   payout_reference?: string;
+  financial_flow_type?: "REFUND" | "RETURN" | string;
+  financial_decision_status?: "APPROVED" | "RECOGNIZED" | string;
+  refund_status?: "NOT_APPLICABLE" | "PENDING_REFUND" | "REFUND_PAID" | string;
+  accounting_consequence_status?:
+    | "PENDING_CONSEQUENCE"
+    | "CONSEQUENCE_RECORDED"
+    | string;
+  financial_follow_up_reference?: string;
+  financial_event_key?: string;
+  financial_reference?: string;
   trace_status: "posted" | "ready" | "blocked" | string;
   journal_number?: string;
   journal_reference?: string;

@@ -218,6 +218,13 @@ describe("FeatureOperationalTraceWorkbench", () => {
         governance_code: "ACC-JOURNAL-TRACE-MISSING",
         governance_reason:
           "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
+        financial_flow_type: "REFUND",
+        financial_decision_status: "APPROVED",
+        refund_status: "REFUND_PAID",
+        accounting_consequence_status: "CONSEQUENCE_RECORDED",
+        financial_follow_up_reference: "CS-REFUND-11",
+        financial_event_key: "marketplace.refund.paid",
+        financial_reference: "MKT-RFDP-11",
         trace_status: "blocked",
         journal_reference: "MKT-11",
         blocker_reason:
@@ -248,12 +255,19 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Readiness Backbone Review")).toBeTruthy();
       expect(screen.getByText("Policy Result")).toBeTruthy();
       expect(screen.getByText("Governance Blocker")).toBeTruthy();
+      expect(screen.getByText("Refund / Return Finance")).toBeTruthy();
+      expect(screen.getByText("Flow Type")).toBeTruthy();
+      expect(screen.getByText("Decision")).toBeTruthy();
+      expect(screen.getByText("Refund Status")).toBeTruthy();
+      expect(screen.getByText("Accounting Consequence")).toBeTruthy();
       expect(screen.getByText("Policy Name")).toBeTruthy();
       expect(screen.getByText("Marketplace Completion Standard")).toBeTruthy();
       expect(screen.getByText("accounting_handoff_minimum")).toBeTruthy();
       expect(screen.getByText("period_lock_open")).toBeTruthy();
       expect(screen.getByText("coa_mapping_ready")).toBeTruthy();
       expect(screen.getByText("Blocked")).toBeTruthy();
+      expect(screen.getByText("marketplace.refund.paid")).toBeTruthy();
+      expect(screen.getByText("MKT-RFDP-11")).toBeTruthy();
       expect(screen.getByText("PAYMENT VERIFICATION")).toBeTruthy();
       expect(screen.getByText("Exception Workspace")).toBeTruthy();
       expect(screen.getByText("Basis Resolusi")).toBeTruthy();
