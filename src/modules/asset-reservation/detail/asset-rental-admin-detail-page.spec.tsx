@@ -161,4 +161,81 @@ describe("AssetRentalAdminDetailPage", () => {
       ).toBeTruthy();
     });
   });
+
+  it("keeps operational next action explicit after payment is confirmed", async () => {
+    getAssetRentalBookingsMock.mockResolvedValueOnce({
+      success: true,
+      data: [
+        {
+          id: 501,
+          asset_id: 10,
+          asset_name: "Gedung Serbaguna Desa",
+          renter_name: "Karang Taruna",
+          renter_contact: "08123456789",
+          renter_email: "karangtaruna@example.com",
+          purpose: "Pelatihan UMKM",
+          start_time: 1762732800,
+          end_time: 1762819200,
+          status: "CONFIRMED_FULL",
+          total_amount: 750000,
+          created_at: 1762600000,
+          updated_at: 1762650000,
+          latest_payment: {
+            id: "pay-501",
+            status: "succeeded",
+            type: "settlement",
+            method: "manual_transfer",
+            amount: 750000,
+            proof_url: "https://example.com/proof.jpg",
+            proof_note: "Pelunasan sudah diverifikasi",
+            updated_at: 1762653600,
+          },
+        },
+      ],
+    });
+
+    getReservationMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        reservation_id: 501,
+        asset_id: 10,
+        asset_name: "Gedung Serbaguna Desa",
+        renter_name: "Karang Taruna",
+        renter_contact: "08123456789",
+        renter_email: "karangtaruna@example.com",
+        purpose: "Pelatihan UMKM",
+        start_date: "2025-11-10",
+        end_date: "2025-11-11",
+        status: "confirmed_full",
+        amounts: { total: 750000, dp: 300000, remaining: 0 },
+        latest_payment: {
+          id: "pay-501",
+          status: "succeeded",
+          type: "settlement",
+          method: "manual_transfer",
+          amount: 750000,
+          proof_url: "https://example.com/proof.jpg",
+          proof_note: "Pelunasan sudah diverifikasi",
+          updated_at: 1762653600,
+        },
+        timeline: [],
+      },
+    });
+
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Pembayaran Terkonfirmasi")).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Tandai Selesai" }),
+      ).toBeTruthy();
+      expect(
+        screen.getByText(
+          "Pembayaran sudah lengkap, tetapi penyewaan baru dianggap selesai setelah penutupan operasional dilakukan secara eksplisit.",
+        ),
+      ).toBeTruthy();
+    });
+  });
 });

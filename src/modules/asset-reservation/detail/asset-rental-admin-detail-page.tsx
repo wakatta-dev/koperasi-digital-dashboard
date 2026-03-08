@@ -185,7 +185,8 @@ function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
   if (paymentStatus === "succeeded") {
     return {
       label: "Pembayaran Terkonfirmasi",
-      helper: "Pembayaran terakhir sudah berhasil diverifikasi untuk booking ini.",
+      helper:
+        "Pembayaran terakhir sudah berhasil diverifikasi, tetapi penyewaan tetap perlu dilanjutkan melalui langkah operasional yang eksplisit.",
       className: "border border-emerald-200 bg-emerald-50 text-emerald-700",
     };
   }
@@ -414,6 +415,18 @@ export function AssetRentalAdminDetailPage({
         helper:
           "Pembayaran sedang menunggu verifikasi admin sebelum status rental berubah.",
       }
+    : resolvedBookingStatus === ASSET_RENTAL_BOOKING_STATUS.confirmedDP
+      ? {
+          label: "Pantau Menuju Hari Pakai",
+          helper:
+            "Pembayaran DP sudah diputuskan. Booking belum selesai dan harus dipantau sampai tahap operasional berikutnya.",
+        }
+      : resolvedBookingStatus === ASSET_RENTAL_BOOKING_STATUS.confirmedFull
+        ? {
+            label: "Tandai Selesai",
+            helper:
+              "Pembayaran sudah lengkap, tetapi penyewaan baru dianggap selesai setelah penutupan operasional dilakukan secara eksplisit.",
+          }
     : canApprove
       ? {
           label: "Setujui Pengajuan",
@@ -528,7 +541,7 @@ export function AssetRentalAdminDetailPage({
       await paymentDecisionMutation.mutateAsync("succeeded");
       showToastSuccess(
         "Pembayaran terkonfirmasi",
-        "Status pembayaran dan penyewaan berhasil diperbarui.",
+        "Status pembayaran diperbarui. Lanjutkan proses operasional rental secara eksplisit.",
       );
     } catch (error) {
       const message =

@@ -243,4 +243,26 @@ describe("admin marketplace lifecycle alignment", () => {
       expect(screen.getByText("Sudah sesuai bukti transfer")).toBeTruthy();
     });
   });
+
+  it("keeps operational next action explicit after payment confirmation", async () => {
+    orderDetailMock = {
+      ...makeOrderDetail("PAYMENT_VERIFICATION"),
+      manual_payment: {
+        ...makeOrderDetail("PAYMENT_VERIFICATION").manual_payment,
+        status: "CONFIRMED",
+      },
+    };
+
+    render(<OrderDetailPage id="101" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pembayaran Terkonfirmasi")).toBeTruthy();
+      expect(screen.getAllByText("Diproses").length).toBeGreaterThan(0);
+      expect(
+        screen.getByText(
+          "Ini adalah tindakan operasional berikutnya yang valid dari status order saat ini.",
+        ),
+      ).toBeTruthy();
+    });
+  });
 });
