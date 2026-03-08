@@ -67,6 +67,14 @@ function formatCurrency(amount?: number) {
   }).format(amount ?? 0);
 }
 
+function toSentenceCase(value?: string | null) {
+  const normalized = String(value ?? "")
+    .trim()
+    .replaceAll("_", " ");
+  if (!normalized) return "-";
+  return normalized.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function parseLocation(location?: string, description?: string) {
   if (location?.trim()) return location.trim();
   const text = (description ?? "").trim();
@@ -178,7 +186,8 @@ function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
   if (paymentStatus === "pending_verification") {
     return {
       label: "Menunggu Verifikasi Pembayaran",
-      helper: "Bukti pembayaran sudah diterima dan masih menunggu keputusan admin.",
+      helper:
+        "Bukti pembayaran sudah diterima dan masih menunggu keputusan admin.",
       className: "border border-orange-200 bg-orange-50 text-orange-700",
     };
   }
@@ -195,7 +204,8 @@ function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
   if (paymentStatus === "failed" || paymentStatus === "expired") {
     return {
       label: "Pembayaran Bermasalah",
-      helper: "Pembayaran terakhir gagal atau kedaluwarsa dan membutuhkan tindak lanjut.",
+      helper:
+        "Pembayaran terakhir gagal atau kedaluwarsa dan membutuhkan tindak lanjut.",
       className: "border border-red-200 bg-red-50 text-red-700",
     };
   }
@@ -208,8 +218,11 @@ function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
 }
 
 function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
-  const readiness = reservation?.accounting_readiness || booking?.accounting_readiness;
-  const readinessStatus = String(readiness?.status ?? "").trim().toLowerCase();
+  const readiness =
+    reservation?.accounting_readiness || booking?.accounting_readiness;
+  const readinessStatus = String(readiness?.status ?? "")
+    .trim()
+    .toLowerCase();
 
   if (readinessStatus === "not_applicable") {
     return {
@@ -267,7 +280,8 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
   if (bookingStatus === "REJECTED" || bookingStatus === "CANCELLED") {
     return {
       label: "Tidak Perlu Posting",
-      helper: "Booking dibatalkan atau ditolak sehingga tidak perlu diteruskan ke accounting.",
+      helper:
+        "Booking dibatalkan atau ditolak sehingga tidak perlu diteruskan ke accounting.",
       className: "border border-slate-200 bg-slate-50 text-slate-700",
       reference: null,
     };
@@ -276,7 +290,8 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
   if (paymentStatus === "failed" || paymentStatus === "expired") {
     return {
       label: "Bermasalah",
-      helper: "Ada masalah pada pembayaran sehingga handoff accounting harus ditahan.",
+      helper:
+        "Ada masalah pada pembayaran sehingga handoff accounting harus ditahan.",
       className: "border border-red-200 bg-red-50 text-red-700",
       reference: null,
     };
@@ -292,7 +307,8 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
   ) {
     return {
       label: "Belum Siap",
-      helper: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+      helper:
+        "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
       className: "border border-amber-200 bg-amber-50 text-amber-700",
       reference: null,
     };
@@ -300,7 +316,8 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
 
   return {
     label: "Siap Ditinjau",
-    helper: "Booking sudah cukup matang untuk diteruskan ke proses accounting berikutnya.",
+    helper:
+      "Booking sudah cukup matang untuk diteruskan ke proses accounting berikutnya.",
     className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
     reference: null,
   };
@@ -312,9 +329,9 @@ export function AssetRentalAdminDetailPage({
 }: AssetRentalAdminDetailPageProps) {
   const queryClient = useQueryClient();
   const [paymentDecisionNote, setPaymentDecisionNote] = useState("");
-  const [paymentDecisionError, setPaymentDecisionError] = useState<string | null>(
-    null,
-  );
+  const [paymentDecisionError, setPaymentDecisionError] = useState<
+    string | null
+  >(null);
 
   const bookingsQuery = useQuery({
     queryKey: QK.assetRental.bookings({
@@ -437,6 +454,10 @@ export function AssetRentalAdminDetailPage({
     booking,
     reservationDetailQuery.data,
   );
+  const paymentClassifications =
+    reservationDetailQuery.data?.payment_classifications ??
+    booking?.payment_classifications ??
+    [];
   const isBusy =
     updateStatusMutation.isPending ||
     completeMutation.isPending ||
@@ -489,28 +510,29 @@ export function AssetRentalAdminDetailPage({
             helper:
               "Pembayaran sudah lengkap, tetapi penyewaan baru dianggap selesai setelah penutupan operasional dilakukan secara eksplisit.",
           }
-    : canApprove
-      ? {
-          label: "Setujui Pengajuan",
-          helper:
-            "Booking masih menunggu keputusan admin sebelum masuk ke tahap pembayaran.",
-        }
-      : canComplete
-        ? {
-            label: "Tandai Selesai",
-            helper:
-              "Penyewaan sudah siap ditutup setelah penggunaan dan pengembalian selesai.",
-          }
-        : canReject
+        : canApprove
           ? {
-              label: "Tolak Pengajuan",
-              helper: "Pengajuan masih dapat ditolak dengan alasan yang sesuai.",
-            }
-          : {
-              label: "Tidak Ada Aksi Lanjutan",
+              label: "Setujui Pengajuan",
               helper:
-                "Booking sudah berada pada status terminal atau tidak memiliki tindakan operasional berikutnya.",
-            };
+                "Booking masih menunggu keputusan admin sebelum masuk ke tahap pembayaran.",
+            }
+          : canComplete
+            ? {
+                label: "Tandai Selesai",
+                helper:
+                  "Penyewaan sudah siap ditutup setelah penggunaan dan pengembalian selesai.",
+              }
+            : canReject
+              ? {
+                  label: "Tolak Pengajuan",
+                  helper:
+                    "Pengajuan masih dapat ditolak dengan alasan yang sesuai.",
+                }
+              : {
+                  label: "Tidak Ada Aksi Lanjutan",
+                  helper:
+                    "Booking sudah berada pada status terminal atau tidak memiliki tindakan operasional berikutnya.",
+                };
   const timelineItems = useMemo(() => {
     if (reservationDetailQuery.data?.timeline?.length) {
       return reservationDetailQuery.data.timeline.map((item, index, arr) => ({
@@ -621,7 +643,9 @@ export function AssetRentalAdminDetailPage({
 
   const handleRejectPayment = async () => {
     if (paymentDecisionNote.trim().length === 0) {
-      setPaymentDecisionError("Catatan keputusan wajib diisi saat pembayaran ditolak.");
+      setPaymentDecisionError(
+        "Catatan keputusan wajib diisi saat pembayaran ditolak.",
+      );
       return;
     }
     try {
@@ -703,7 +727,8 @@ export function AssetRentalAdminDetailPage({
                     Booking #{String(booking.id).padStart(5, "0")}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
-                    Terakhir diperbarui {formatDateTime(booking.updated_at || booking.created_at)}
+                    Terakhir diperbarui{" "}
+                    {formatDateTime(booking.updated_at || booking.created_at)}
                   </p>
                 </div>
                 <div className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm text-slate-500">
@@ -715,9 +740,12 @@ export function AssetRentalAdminDetailPage({
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Status Operasional
                   </p>
-                  <Badge className={`mt-2 ${statusMeta.badgeClass}`}>{statusMeta.label}</Badge>
+                  <Badge className={`mt-2 ${statusMeta.badgeClass}`}>
+                    {statusMeta.label}
+                  </Badge>
                   <p className="mt-3 text-sm text-slate-600">
-                    Status operasional rental mengikuti lifecycle booking aset secara internal.
+                    Status operasional rental mengikuti lifecycle booking aset
+                    secara internal.
                   </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -766,6 +794,59 @@ export function AssetRentalAdminDetailPage({
                   </p>
                 </div>
               </div>
+              {paymentClassifications.length > 0 ? (
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Klasifikasi Pembayaran Finance
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      DP, deposit, dan revenue recognition ditampilkan terpisah
+                      agar tidak mencampur uang jaminan dengan pendapatan jasa.
+                    </p>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {paymentClassifications.map((item) => (
+                      <div
+                        key={`${item.classification_type}-${item.accounting_reference ?? item.amount}`}
+                        className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          {toSentenceCase(item.classification_type)}
+                        </p>
+                        <p className="mt-2 text-lg font-semibold text-slate-900">
+                          {formatCurrency(item.amount)}
+                        </p>
+                        <p className="mt-3 text-sm text-slate-600">
+                          {item.reason || "Belum ada alasan klasifikasi."}
+                        </p>
+                        <div className="mt-3 space-y-1 text-xs text-slate-500">
+                          <p>
+                            Event:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.accounting_event_key || "-"}
+                            </span>
+                          </p>
+                          <p>
+                            Reference:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.accounting_reference ||
+                                item.follow_up_reference ||
+                                "-"}
+                            </span>
+                          </p>
+                          <p>
+                            Evidence:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.evidence_reference || "-"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </section>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -1020,7 +1101,8 @@ export function AssetRentalAdminDetailPage({
                           }}
                         />
                         <p className="mt-2 text-xs text-slate-500">
-                          Catatan wajib saat pembayaran ditolak, dan disarankan saat pembayaran dikonfirmasi.
+                          Catatan wajib saat pembayaran ditolak, dan disarankan
+                          saat pembayaran dikonfirmasi.
                         </p>
                         {paymentDecisionError ? (
                           <p className="mt-2 text-xs text-red-600">
@@ -1104,7 +1186,9 @@ export function AssetRentalAdminDetailPage({
               </p>
               <div className="mt-4 space-y-4">
                 {reservationDetailQuery.isLoading ? (
-                  <p className="text-sm text-slate-500">Memuat riwayat status...</p>
+                  <p className="text-sm text-slate-500">
+                    Memuat riwayat status...
+                  </p>
                 ) : timelineItems.length > 0 ? (
                   timelineItems.map((item) => (
                     <div

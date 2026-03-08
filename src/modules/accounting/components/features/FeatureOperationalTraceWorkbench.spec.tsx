@@ -16,12 +16,14 @@ const useAccountingJournalPostingPoliciesMock = vi.fn();
 const useAccountingJournalSourceTraceMock = vi.fn();
 
 vi.mock("@/hooks/queries/marketplace-orders", () => ({
-  useMarketplaceOrders: (...args: unknown[]) => useMarketplaceOrdersMock(...args),
+  useMarketplaceOrders: (...args: unknown[]) =>
+    useMarketplaceOrdersMock(...args),
   useMarketplaceOrder: (...args: unknown[]) => useMarketplaceOrderMock(...args),
 }));
 
 vi.mock("@/services/api/asset-rental", () => ({
-  getAssetRentalBookings: (...args: unknown[]) => getAssetRentalBookingsMock(...args),
+  getAssetRentalBookings: (...args: unknown[]) =>
+    getAssetRentalBookingsMock(...args),
 }));
 
 vi.mock("@/services/api/reservations", () => ({
@@ -73,9 +75,15 @@ describe("FeatureOperationalTraceWorkbench", () => {
 
     useMarketplaceOrderMock.mockReturnValue({
       data: {
-        manual_payment: { proof_url: "https://example.com/proof-marketplace.jpg" },
+        manual_payment: {
+          proof_url: "https://example.com/proof-marketplace.jpg",
+        },
         status_history: [
-          { status: "PAYMENT_VERIFICATION", timestamp: 1700000000, reason: "Menunggu verifikasi admin" },
+          {
+            status: "PAYMENT_VERIFICATION",
+            timestamp: 1700000000,
+            reason: "Menunggu verifikasi admin",
+          },
         ],
       },
       isLoading: false,
@@ -93,7 +101,11 @@ describe("FeatureOperationalTraceWorkbench", () => {
           renter_name: "Karang Taruna",
           status: "AWAITING_SETTLEMENT",
           total_amount: 500000,
-          latest_payment: { id: "pay-22", amount: 200000, status: "pending_verification" },
+          latest_payment: {
+            id: "pay-22",
+            amount: 200000,
+            status: "pending_verification",
+          },
           accounting_readiness: {
             status: "not_ready",
             reason: "Menunggu settlement",
@@ -204,36 +216,74 @@ describe("FeatureOperationalTraceWorkbench", () => {
       error: null,
     });
 
-    useAccountingJournalSourceTraceMock.mockReturnValue({
-      data: {
-        domain: "marketplace",
-        source_id: "11",
-        source_reference: "MKT-11",
-        source_document_reference: "ORD-2026-0011",
-        event_key: "marketplace.order.completed",
-        policy_code: "marketplace_completion_standard",
-        readiness_status: "ready",
-        readiness_reason: "Transaksi siap diteruskan ke accounting backbone.",
-        governance_status: "blocked",
-        governance_code: "ACC-JOURNAL-TRACE-MISSING",
-        governance_reason:
-          "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
-        financial_flow_type: "REFUND",
-        financial_decision_status: "APPROVED",
-        refund_status: "REFUND_PAID",
-        accounting_consequence_status: "CONSEQUENCE_RECORDED",
-        financial_follow_up_reference: "CS-REFUND-11",
-        financial_event_key: "marketplace.refund.paid",
-        financial_reference: "MKT-RFDP-11",
-        trace_status: "blocked",
-        journal_reference: "MKT-11",
-        blocker_reason:
-          "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
-      },
-      isLoading: false,
-      isError: false,
-      error: null,
-    });
+    useAccountingJournalSourceTraceMock.mockImplementation(
+      (domain?: string) => ({
+        data:
+          domain === "rental"
+            ? {
+                domain: "rental",
+                source_id: "22",
+                source_reference: "RNT-22",
+                source_document_reference: "RSV-000022",
+                event_key: "asset_rental.booking.completed",
+                policy_code: "rental_completion_standard",
+                readiness_status: "ready",
+                readiness_reason:
+                  "Klasifikasi DP, deposit, dan revenue recognition rental sudah tersedia.",
+                trace_status: "ready",
+                journal_reference: "RNT-22",
+                rental_payment_classifications: [
+                  {
+                    classification_type: "DEPOSIT",
+                    amount: 200000,
+                    reason: "Dana jaminan sampai inspeksi aset selesai.",
+                    follow_up_reference: "DEP-22",
+                    evidence_reference: "DOC-DEP-22",
+                    accounting_event_key: "rental.deposit.received",
+                    accounting_reference: "RNT-DPS-22",
+                  },
+                  {
+                    classification_type: "REVENUE_RECOGNITION",
+                    amount: 300000,
+                    reason: "Jasa sewa sudah selesai dan layak diakui.",
+                    follow_up_reference: "REV-22",
+                    evidence_reference: "DOC-REV-22",
+                    accounting_event_key: "rental.revenue.recognized",
+                    accounting_reference: "RNT-REV-22",
+                  },
+                ],
+              }
+            : {
+                domain: "marketplace",
+                source_id: "11",
+                source_reference: "MKT-11",
+                source_document_reference: "ORD-2026-0011",
+                event_key: "marketplace.order.completed",
+                policy_code: "marketplace_completion_standard",
+                readiness_status: "ready",
+                readiness_reason:
+                  "Transaksi siap diteruskan ke accounting backbone.",
+                governance_status: "blocked",
+                governance_code: "ACC-JOURNAL-TRACE-MISSING",
+                governance_reason:
+                  "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
+                financial_flow_type: "REFUND",
+                financial_decision_status: "APPROVED",
+                refund_status: "REFUND_PAID",
+                accounting_consequence_status: "CONSEQUENCE_RECORDED",
+                financial_follow_up_reference: "CS-REFUND-11",
+                financial_event_key: "marketplace.refund.paid",
+                financial_reference: "MKT-RFDP-11",
+                trace_status: "blocked",
+                journal_reference: "MKT-11",
+                blocker_reason:
+                  "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
+              },
+        isLoading: false,
+        isError: false,
+        error: null,
+      }),
+    );
   });
 
   it("renders unified finance trace rows and detail panel", async () => {
@@ -271,7 +321,9 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("PAYMENT VERIFICATION")).toBeTruthy();
       expect(screen.getByText("Exception Workspace")).toBeTruthy();
       expect(screen.getByText("Basis Resolusi")).toBeTruthy();
-      expect(screen.getAllByText("ACC-JOURNAL-TRACE-MISSING").length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText("ACC-JOURNAL-TRACE-MISSING").length,
+      ).toBeGreaterThan(0);
       expect(screen.getByText("Medium")).toBeTruthy();
       expect(
         screen.getByText(
@@ -284,9 +336,13 @@ describe("FeatureOperationalTraceWorkbench", () => {
         ),
       ).toBeTruthy();
       expect(screen.getByDisplayValue("Finance")).toBeTruthy();
-      expect(screen.getByDisplayValue("Konfirmasi reference jurnal")).toBeTruthy();
+      expect(
+        screen.getByDisplayValue("Konfirmasi reference jurnal"),
+      ).toBeTruthy();
       expect(screen.getByText("Tersedia")).toBeTruthy();
-      expect(screen.getAllByText("Reference jurnal belum terbentuk.").length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText("Reference jurnal belum terbentuk.").length,
+      ).toBeGreaterThan(0);
       expect(screen.getByText("Audit Trail Exception")).toBeTruthy();
       expect(screen.getByText("Request: req-exc-1")).toBeTruthy();
       expect(screen.getAllByText("Siap Dilaporkan").length).toBeGreaterThan(0);
@@ -315,21 +371,27 @@ describe("FeatureOperationalTraceWorkbench", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Follow-up Queue")).toBeTruthy();
-      expect(screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi.")).toBeTruthy();
+      expect(
+        screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi."),
+      ).toBeTruthy();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Accounting" }));
 
     await waitFor(() => {
       expect(
-        screen.getByText("Tidak ada transaksi aktif yang membutuhkan tindak lanjut pada scope ini."),
+        screen.getByText(
+          "Tidak ada transaksi aktif yang membutuhkan tindak lanjut pada scope ini.",
+        ),
       ).toBeTruthy();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Pembayaran" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi.")).toBeTruthy();
+      expect(
+        screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi."),
+      ).toBeTruthy();
     });
 
     fireEvent.change(
@@ -338,13 +400,18 @@ describe("FeatureOperationalTraceWorkbench", () => {
         target: { value: "ACC-PAYMENT-PENDING" },
       },
     );
-    fireEvent.change(screen.getByPlaceholderText("Filter owner, contoh Finance"), {
-      target: { value: "Finance" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Filter owner, contoh Finance"),
+      {
+        target: { value: "Finance" },
+      },
+    );
 
     await waitFor(() => {
       expect(screen.getByText("ACC-PAYMENT-PENDING")).toBeTruthy();
-      expect(screen.getByText("Owner: Finance • Severity: Medium")).toBeTruthy();
+      expect(
+        screen.getByText("Owner: Finance • Severity: Medium"),
+      ).toBeTruthy();
     });
   });
 
@@ -358,6 +425,25 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Request: req-exc-1")).toBeTruthy();
       expect(screen.getAllByText("MKT-11").length).toBeGreaterThan(0);
       expect(screen.getByText("Trace: Blocked")).toBeTruthy();
+    });
+  });
+
+  it("renders rental payment classifications on rental trace review", async () => {
+    renderFeature(<FeatureOperationalTraceWorkbench />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("RSV-000022").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Perlu Rekonsiliasi" }));
+    fireEvent.click(screen.getAllByText("RSV-000022")[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Rental Payment Classification")).toBeTruthy();
+      expect(screen.getByText("rental.deposit.received")).toBeTruthy();
+      expect(screen.getByText("RNT-DPS-22")).toBeTruthy();
+      expect(screen.getByText("rental.revenue.recognized")).toBeTruthy();
+      expect(screen.getByText("RNT-REV-22")).toBeTruthy();
     });
   });
 
@@ -380,12 +466,18 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Exception Workspace")).toBeTruthy();
     });
 
-    fireEvent.change(screen.getByPlaceholderText("Contoh: Finance, Admin Operasional"), {
-      target: { value: "Admin Operasional" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Contoh: Konfirmasi bukti transfer"), {
-      target: { value: "Hubungi renter" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Contoh: Finance, Admin Operasional"),
+      {
+        target: { value: "Admin Operasional" },
+      },
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText("Contoh: Konfirmasi bukti transfer"),
+      {
+        target: { value: "Hubungi renter" },
+      },
+    );
     fireEvent.change(
       screen.getByPlaceholderText(
         "Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara.",
@@ -395,7 +487,9 @@ describe("FeatureOperationalTraceWorkbench", () => {
       },
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Simpan Catatan Exception" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Simpan Catatan Exception" }),
+    );
 
     expect(saveNoteMutate).toHaveBeenCalledWith(
       expect.objectContaining({

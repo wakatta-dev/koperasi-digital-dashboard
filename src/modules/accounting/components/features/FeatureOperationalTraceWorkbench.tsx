@@ -9,14 +9,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useAccountingJournalPostingPolicies,
   useAccountingJournalSourceTrace,
 } from "@/hooks/queries/accounting-journal";
-import { useMarketplaceOrder, useMarketplaceOrders } from "@/hooks/queries/marketplace-orders";
+import {
+  useMarketplaceOrder,
+  useMarketplaceOrders,
+} from "@/hooks/queries/marketplace-orders";
 import {
   useSupportOperationalExceptionActions,
   useSupportOperationalExceptionContext,
@@ -101,7 +111,9 @@ export function FeatureOperationalTraceWorkbench() {
   const [queueScope, setQueueScope] = useState<
     "all" | "operasional" | "pembayaran" | "accounting"
   >("all");
-  const [queueDomain, setQueueDomain] = useState<"all" | "marketplace" | "rental">("all");
+  const [queueDomain, setQueueDomain] = useState<
+    "all" | "marketplace" | "rental"
+  >("all");
   const [queueCode, setQueueCode] = useState("");
   const [queueOwnerFilter, setQueueOwnerFilter] = useState("");
   const [exceptionOwner, setExceptionOwner] = useState("");
@@ -133,7 +145,10 @@ export function FeatureOperationalTraceWorkbench() {
     [marketplaceOrdersQuery.data?.items, rentalBookingsQuery.data],
   );
   const summary = useMemo(() => summarizeOperationalTrace(rows), [rows]);
-  const visibleRows = useMemo(() => filterOperationalTraceRows(rows, filter), [filter, rows]);
+  const visibleRows = useMemo(
+    () => filterOperationalTraceRows(rows, filter),
+    [filter, rows],
+  );
   const queueRows = useMemo(
     () =>
       filterFollowUpQueueRows(rows, {
@@ -151,7 +166,9 @@ export function FeatureOperationalTraceWorkbench() {
       return;
     }
     setSelectedKey((current) =>
-      current && rows.some((row) => row.key === current) ? current : rows[0].key,
+      current && rows.some((row) => row.key === current)
+        ? current
+        : rows[0].key,
     );
   }, [rows]);
 
@@ -166,7 +183,9 @@ export function FeatureOperationalTraceWorkbench() {
   }, [selectedKey, visibleRows]);
 
   const selectedRow =
-    visibleRows.find((row) => row.key === selectedKey) ?? visibleRows[0] ?? null;
+    visibleRows.find((row) => row.key === selectedKey) ??
+    visibleRows[0] ??
+    null;
   const sourceTraceQuery = useAccountingJournalSourceTrace(
     selectedRow?.domain,
     selectedRow?.sourceId,
@@ -182,12 +201,19 @@ export function FeatureOperationalTraceWorkbench() {
     { enabled: Boolean(selectedRow?.domain) },
   );
 
-  const marketplaceDetailQuery = useMarketplaceOrder(selectedRow?.domain === "marketplace" ? selectedRow.sourceId : undefined, {
-    enabled: selectedRow?.domain === "marketplace",
-  });
+  const marketplaceDetailQuery = useMarketplaceOrder(
+    selectedRow?.domain === "marketplace" ? selectedRow.sourceId : undefined,
+    {
+      enabled: selectedRow?.domain === "marketplace",
+    },
+  );
 
   const rentalDetailQuery = useQuery({
-    queryKey: ["reservation-detail", "accounting-trace", selectedRow?.sourceId ?? ""],
+    queryKey: [
+      "reservation-detail",
+      "accounting-trace",
+      selectedRow?.sourceId ?? "",
+    ],
     enabled: selectedRow?.domain === "rental",
     queryFn: async () => {
       const response = await getReservation(selectedRow?.sourceId ?? "");
@@ -207,12 +233,14 @@ export function FeatureOperationalTraceWorkbench() {
       return [];
     }
     if (selectedRow.domain === "marketplace") {
-      return (marketplaceDetailQuery.data?.status_history ?? []).map((entry, index) => ({
-        id: `marketplace-history-${index}-${entry.status}`,
-        title: entry.status.replaceAll("_", " "),
-        description: entry.reason || "Tidak ada catatan tambahan.",
-        time: new Date(entry.timestamp * 1000).toLocaleString("id-ID"),
-      }));
+      return (marketplaceDetailQuery.data?.status_history ?? []).map(
+        (entry, index) => ({
+          id: `marketplace-history-${index}-${entry.status}`,
+          title: entry.status.replaceAll("_", " "),
+          description: entry.reason || "Tidak ada catatan tambahan.",
+          time: new Date(entry.timestamp * 1000).toLocaleString("id-ID"),
+        }),
+      );
     }
     return (rentalDetailQuery.data?.timeline ?? []).map((entry, index) => ({
       id: `rental-history-${index}-${entry.event}`,
@@ -225,7 +253,11 @@ export function FeatureOperationalTraceWorkbench() {
           : "Tidak ada catatan tambahan.",
       time: new Date(entry.at).toLocaleString("id-ID"),
     }));
-  }, [marketplaceDetailQuery.data?.status_history, rentalDetailQuery.data?.timeline, selectedRow]);
+  }, [
+    marketplaceDetailQuery.data?.status_history,
+    rentalDetailQuery.data?.timeline,
+    selectedRow,
+  ]);
   const exceptionContextQuery = useSupportOperationalExceptionContext(
     selectedRow
       ? {
@@ -253,13 +285,21 @@ export function FeatureOperationalTraceWorkbench() {
     setExceptionOwner(exceptionContextQuery.data?.owner_label ?? "");
     setExceptionNextStep(exceptionContextQuery.data?.next_step ?? "");
     setExceptionMessage("");
-  }, [selectedRowKey, exceptionContextQuery.data?.owner_label, exceptionContextQuery.data?.next_step]);
+  }, [
+    selectedRowKey,
+    exceptionContextQuery.data?.owner_label,
+    exceptionContextQuery.data?.next_step,
+  ]);
 
   const exceptionStatus = exceptionContextQuery.data?.status ?? "none";
   const resolutionExceptionCode =
-    exceptionContextQuery.data?.exception_code ?? selectedRow?.exceptionCode ?? "-";
+    exceptionContextQuery.data?.exception_code ??
+    selectedRow?.exceptionCode ??
+    "-";
   const resolutionSeverity =
-    exceptionContextQuery.data?.severity ?? selectedRow?.exceptionSeverity ?? "-";
+    exceptionContextQuery.data?.severity ??
+    selectedRow?.exceptionSeverity ??
+    "-";
   const resolutionRecommendation =
     exceptionContextQuery.data?.recommended_action ??
     selectedRow?.exceptionRecommendation ??
@@ -271,7 +311,8 @@ export function FeatureOperationalTraceWorkbench() {
     ) ??
     postingPoliciesQuery.data?.items[0] ??
     null;
-  const governanceStatus = sourceTraceQuery.data?.governance_status ?? "allowed";
+  const governanceStatus =
+    sourceTraceQuery.data?.governance_status ?? "allowed";
   const governanceCode = sourceTraceQuery.data?.governance_code ?? "-";
   const governanceReason =
     sourceTraceQuery.data?.governance_reason ??
@@ -284,9 +325,12 @@ export function FeatureOperationalTraceWorkbench() {
         <CardHeader className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base">Operational Subledger Trace</CardTitle>
+              <CardTitle className="text-base">
+                Operational Subledger Trace
+              </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Satu konteks kerja untuk menelusuri transaksi sumber, pembayaran, dan readiness accounting.
+                Satu konteks kerja untuk menelusuri transaksi sumber,
+                pembayaran, dan readiness accounting.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -298,7 +342,11 @@ export function FeatureOperationalTraceWorkbench() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}>
+            <Button
+              variant={filter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter("all")}
+            >
               Semua
             </Button>
             <Button
@@ -332,23 +380,40 @@ export function FeatureOperationalTraceWorkbench() {
             <TableBody>
               {!visibleRows.length ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center text-sm text-muted-foreground"
+                  >
                     Belum ada transaksi operasional yang dapat ditelusuri.
                   </TableCell>
                 </TableRow>
               ) : null}
               {visibleRows.map((row) => (
-                <TableRow key={row.key} data-selected={row.key === selectedRow?.key || undefined}>
-                  <TableCell>{row.domain === "marketplace" ? "Marketplace" : "Rental"}</TableCell>
+                <TableRow
+                  key={row.key}
+                  data-selected={row.key === selectedRow?.key || undefined}
+                >
+                  <TableCell>
+                    {row.domain === "marketplace" ? "Marketplace" : "Rental"}
+                  </TableCell>
                   <TableCell className="font-medium">{row.reference}</TableCell>
                   <TableCell>{row.operationalStatus}</TableCell>
                   <TableCell>{row.paymentStatus}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-2">
-                      <Badge className={ACCOUNTING_STATUS_BADGE[row.accountingStatus] || ACCOUNTING_STATUS_BADGE["Belum Siap"]}>
+                      <Badge
+                        className={
+                          ACCOUNTING_STATUS_BADGE[row.accountingStatus] ||
+                          ACCOUNTING_STATUS_BADGE["Belum Siap"]
+                        }
+                      >
                         {row.accountingStatus}
                       </Badge>
-                      <Badge className={RECONCILIATION_BADGE[row.reconciliationStatus]}>
+                      <Badge
+                        className={
+                          RECONCILIATION_BADGE[row.reconciliationStatus]
+                        }
+                      >
                         {row.reconciliationStatus}
                       </Badge>
                       <Badge className={REPORTING_BADGE[row.reportingStatus]}>
@@ -357,7 +422,11 @@ export function FeatureOperationalTraceWorkbench() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => setSelectedKey(row.key)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedKey(row.key)}
+                    >
                       Lihat Trace
                     </Button>
                   </TableCell>
@@ -375,23 +444,63 @@ export function FeatureOperationalTraceWorkbench() {
         <CardContent className="space-y-4">
           {!selectedRow ? (
             <p className="text-sm text-muted-foreground">
-              Pilih transaksi untuk melihat hubungan operasional, pembayaran, dan accounting.
+              Pilih transaksi untuk melihat hubungan operasional, pembayaran,
+              dan accounting.
             </p>
           ) : (
             <>
               <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Transaksi</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Transaksi
+                </p>
                 <p className="mt-1 font-semibold">{selectedRow.title}</p>
-                <p className="text-sm text-muted-foreground">{selectedRow.reference}</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedRow.reference}
+                </p>
               </div>
               <div className="space-y-2 text-sm">
-                <p>Status operasional: <span className="font-medium">{selectedRow.operationalStatus}</span></p>
-                <p>Status pembayaran: <span className="font-medium">{selectedRow.paymentStatus}</span></p>
-                <p>Status accounting: <span className="font-medium">{selectedRow.accountingStatus}</span></p>
-                <p>Status rekonsiliasi: <span className="font-medium">{selectedRow.reconciliationStatus}</span></p>
-                <p>Kelayakan pelaporan: <span className="font-medium">{selectedRow.reportingStatus}</span></p>
-                <p>Alasan/indikator: <span className="font-medium">{selectedRow.accountingReason}</span></p>
-                <p>Catatan pelaporan: <span className="font-medium">{selectedRow.reportingReason}</span></p>
+                <p>
+                  Status operasional:{" "}
+                  <span className="font-medium">
+                    {selectedRow.operationalStatus}
+                  </span>
+                </p>
+                <p>
+                  Status pembayaran:{" "}
+                  <span className="font-medium">
+                    {selectedRow.paymentStatus}
+                  </span>
+                </p>
+                <p>
+                  Status accounting:{" "}
+                  <span className="font-medium">
+                    {selectedRow.accountingStatus}
+                  </span>
+                </p>
+                <p>
+                  Status rekonsiliasi:{" "}
+                  <span className="font-medium">
+                    {selectedRow.reconciliationStatus}
+                  </span>
+                </p>
+                <p>
+                  Kelayakan pelaporan:{" "}
+                  <span className="font-medium">
+                    {selectedRow.reportingStatus}
+                  </span>
+                </p>
+                <p>
+                  Alasan/indikator:{" "}
+                  <span className="font-medium">
+                    {selectedRow.accountingReason}
+                  </span>
+                </p>
+                <p>
+                  Catatan pelaporan:{" "}
+                  <span className="font-medium">
+                    {selectedRow.reportingReason}
+                  </span>
+                </p>
               </div>
               {proofUrl ? (
                 <Button asChild variant="outline" size="sm">
@@ -418,9 +527,15 @@ export function FeatureOperationalTraceWorkbench() {
                         key={item.id}
                         className="rounded-lg border border-slate-200 bg-white p-3"
                       >
-                        <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                        <p className="mt-1 text-sm text-slate-600">{item.description}</p>
-                        <p className="mt-2 text-xs text-slate-500">{item.time}</p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {item.description}
+                        </p>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {item.time}
+                        </p>
                       </div>
                     ))
                   ) : (
@@ -438,25 +553,33 @@ export function FeatureOperationalTraceWorkbench() {
                         Readiness Backbone Review
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
-                        Policy result, trace status, dan governance blocker dirangkum pada konteks transaksi yang sama.
+                        Policy result, trace status, dan governance blocker
+                        dirangkum pada konteks transaksi yang sama.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge
                         className={
-                          READINESS_STATUS_BADGE[sourceTraceQuery.data?.readiness_status || "not_ready"] ||
-                          READINESS_STATUS_BADGE.not_ready
+                          READINESS_STATUS_BADGE[
+                            sourceTraceQuery.data?.readiness_status ||
+                              "not_ready"
+                          ] || READINESS_STATUS_BADGE.not_ready
                         }
                       >
-                        Readiness: {toSentenceCase(sourceTraceQuery.data?.readiness_status)}
+                        Readiness:{" "}
+                        {toSentenceCase(
+                          sourceTraceQuery.data?.readiness_status,
+                        )}
                       </Badge>
                       <Badge
                         className={
-                          TRACE_STATUS_BADGE[sourceTraceQuery.data?.trace_status || "blocked"] ||
-                          TRACE_STATUS_BADGE.blocked
+                          TRACE_STATUS_BADGE[
+                            sourceTraceQuery.data?.trace_status || "blocked"
+                          ] || TRACE_STATUS_BADGE.blocked
                         }
                       >
-                        Trace: {toSentenceCase(sourceTraceQuery.data?.trace_status)}
+                        Trace:{" "}
+                        {toSentenceCase(sourceTraceQuery.data?.trace_status)}
                       </Badge>
                     </div>
                   </div>
@@ -465,7 +588,9 @@ export function FeatureOperationalTraceWorkbench() {
                     <div>
                       <p className="text-xs text-slate-500">Policy Code</p>
                       <p className="text-sm font-medium text-slate-900">
-                        {appliedPolicy?.policy_code ?? sourceTraceQuery.data?.policy_code ?? "-"}
+                        {appliedPolicy?.policy_code ??
+                          sourceTraceQuery.data?.policy_code ??
+                          "-"}
                       </p>
                     </div>
                     <div>
@@ -477,11 +602,14 @@ export function FeatureOperationalTraceWorkbench() {
                     <div>
                       <p className="text-xs text-slate-500">Source Reference</p>
                       <p className="text-sm font-medium text-slate-900">
-                        {sourceTraceQuery.data?.source_reference ?? selectedRow.reference}
+                        {sourceTraceQuery.data?.source_reference ??
+                          selectedRow.reference}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Journal Reference</p>
+                      <p className="text-xs text-slate-500">
+                        Journal Reference
+                      </p>
                       <p className="text-sm font-medium text-slate-900">
                         {sourceTraceQuery.data?.journal_reference ??
                           sourceTraceQuery.data?.journal_number ??
@@ -501,14 +629,16 @@ export function FeatureOperationalTraceWorkbench() {
                           selectedRow.accountingReason}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {(appliedPolicy?.prerequisite_codes ?? []).map((code) => (
-                          <Badge
-                            key={code}
-                            className="bg-slate-100 text-slate-700 border border-slate-200"
-                          >
-                            {code}
-                          </Badge>
-                        ))}
+                        {(appliedPolicy?.prerequisite_codes ?? []).map(
+                          (code) => (
+                            <Badge
+                              key={code}
+                              className="bg-slate-100 text-slate-700 border border-slate-200"
+                            >
+                              {code}
+                            </Badge>
+                          ),
+                        )}
                       </div>
                     </div>
                     <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
@@ -523,7 +653,9 @@ export function FeatureOperationalTraceWorkbench() {
                               : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           }
                         >
-                          {governanceStatus === "blocked" ? "Blocked" : "Allowed"}
+                          {governanceStatus === "blocked"
+                            ? "Blocked"
+                            : "Allowed"}
                         </Badge>
                         <Badge
                           className={
@@ -535,7 +667,9 @@ export function FeatureOperationalTraceWorkbench() {
                           {governanceCode}
                         </Badge>
                       </div>
-                      <p className="mt-3 text-sm text-slate-800">{governanceReason}</p>
+                      <p className="mt-3 text-sm text-slate-800">
+                        {governanceReason}
+                      </p>
                     </div>
                   </div>
                   {(sourceTraceQuery.data?.financial_event_key ||
@@ -548,45 +682,139 @@ export function FeatureOperationalTraceWorkbench() {
                         <div>
                           <p className="text-xs text-slate-500">Flow Type</p>
                           <p className="text-sm font-medium text-slate-900">
-                            {toSentenceCase(sourceTraceQuery.data?.financial_flow_type)}
+                            {toSentenceCase(
+                              sourceTraceQuery.data?.financial_flow_type,
+                            )}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500">Decision</p>
                           <p className="text-sm font-medium text-slate-900">
-                            {toSentenceCase(sourceTraceQuery.data?.financial_decision_status)}
+                            {toSentenceCase(
+                              sourceTraceQuery.data?.financial_decision_status,
+                            )}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Refund Status</p>
-                          <p className="text-sm font-medium text-slate-900">
-                            {toSentenceCase(sourceTraceQuery.data?.refund_status)}
+                          <p className="text-xs text-slate-500">
+                            Refund Status
                           </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">Accounting Consequence</p>
                           <p className="text-sm font-medium text-slate-900">
                             {toSentenceCase(
-                              sourceTraceQuery.data?.accounting_consequence_status,
+                              sourceTraceQuery.data?.refund_status,
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">
+                            Accounting Consequence
+                          </p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {toSentenceCase(
+                              sourceTraceQuery.data
+                                ?.accounting_consequence_status,
                             )}
                           </p>
                         </div>
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
                         <div>
-                          <p className="text-xs text-slate-500">Financial Event</p>
+                          <p className="text-xs text-slate-500">
+                            Financial Event
+                          </p>
                           <p className="text-sm font-medium text-slate-900">
                             {sourceTraceQuery.data?.financial_event_key ?? "-"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Financial Reference</p>
+                          <p className="text-xs text-slate-500">
+                            Financial Reference
+                          </p>
                           <p className="text-sm font-medium text-slate-900">
                             {sourceTraceQuery.data?.financial_reference ??
-                              sourceTraceQuery.data?.financial_follow_up_reference ??
+                              sourceTraceQuery.data
+                                ?.financial_follow_up_reference ??
                               "-"}
                           </p>
                         </div>
+                      </div>
+                    </div>
+                  )}
+                  {Boolean(
+                    sourceTraceQuery.data?.rental_payment_classifications
+                      ?.length,
+                  ) && (
+                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Rental Payment Classification
+                      </p>
+                      <div className="mt-3 space-y-3">
+                        {sourceTraceQuery.data?.rental_payment_classifications?.map(
+                          (item) => (
+                            <div
+                              key={`${item.classification_type}-${item.accounting_reference ?? item.amount}`}
+                              className="rounded-lg border border-slate-200 bg-white p-3"
+                            >
+                              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Bucket
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {toSentenceCase(item.classification_type)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Amount
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    Rp
+                                    {Number(item.amount ?? 0).toLocaleString(
+                                      "id-ID",
+                                    )}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Event
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {item.accounting_event_key ?? "-"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Reference
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {item.accounting_reference ??
+                                      item.follow_up_reference ??
+                                      "-"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Reason
+                                  </p>
+                                  <p className="text-sm text-slate-800">
+                                    {item.reason ?? "-"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Evidence
+                                  </p>
+                                  <p className="text-sm text-slate-800">
+                                    {item.evidence_reference ?? "-"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ),
+                        )}
                       </div>
                     </div>
                   )}
@@ -598,15 +826,18 @@ export function FeatureOperationalTraceWorkbench() {
                       Exception Workspace
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
-                      Simpan owner, langkah lanjut, dan catatan penanganan tanpa keluar dari trace transaksi.
+                      Simpan owner, langkah lanjut, dan catatan penanganan tanpa
+                      keluar dari trace transaksi.
                     </p>
                   </div>
                   <Badge
                     className={
-                      EXCEPTION_STATUS_BADGE[exceptionStatus] || EXCEPTION_STATUS_BADGE.none
+                      EXCEPTION_STATUS_BADGE[exceptionStatus] ||
+                      EXCEPTION_STATUS_BADGE.none
                     }
                   >
-                    {EXCEPTION_STATUS_LABEL[exceptionStatus] || "Belum Ada Catatan"}
+                    {EXCEPTION_STATUS_LABEL[exceptionStatus] ||
+                      "Belum Ada Catatan"}
                   </Badge>
                 </div>
 
@@ -618,18 +849,26 @@ export function FeatureOperationalTraceWorkbench() {
                     <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       <div>
                         <p className="text-xs text-slate-500">Transaksi</p>
-                        <p className="text-sm font-medium text-slate-900">{selectedRow.reference}</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {selectedRow.reference}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500">Pembayaran</p>
-                        <p className="text-sm font-medium text-slate-900">{selectedRow.paymentStatus}</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {selectedRow.paymentStatus}
+                        </p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500">Accounting</p>
-                        <p className="text-sm font-medium text-slate-900">{selectedRow.accountingStatus}</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {selectedRow.accountingStatus}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Bukti Pembayaran</p>
+                        <p className="text-xs text-slate-500">
+                          Bukti Pembayaran
+                        </p>
                         <p className="text-sm font-medium text-slate-900">
                           {proofUrl ? "Tersedia" : "Belum Tersedia"}
                         </p>
@@ -639,7 +878,9 @@ export function FeatureOperationalTraceWorkbench() {
                         <div className="mt-1">
                           <Badge
                             className={
-                              EXCEPTION_SEVERITY_BADGE[String(resolutionSeverity)] ||
+                              EXCEPTION_SEVERITY_BADGE[
+                                String(resolutionSeverity)
+                              ] ||
                               "bg-slate-100 text-slate-700 border border-slate-200"
                             }
                           >
@@ -652,18 +893,23 @@ export function FeatureOperationalTraceWorkbench() {
                         <div className="mt-1">
                           <Badge
                             className={
-                              EXCEPTION_SEVERITY_BADGE[String(resolutionSeverity)] ||
+                              EXCEPTION_SEVERITY_BADGE[
+                                String(resolutionSeverity)
+                              ] ||
                               "bg-slate-100 text-slate-700 border border-slate-200"
                             }
                           >
-                            {String(resolutionSeverity).replace(/\b\w/g, (char) =>
-                              char.toUpperCase(),
+                            {String(resolutionSeverity).replace(
+                              /\b\w/g,
+                              (char) => char.toUpperCase(),
                             )}
                           </Badge>
                         </div>
                       </div>
                       <div className="md:col-span-2 xl:col-span-2">
-                        <p className="text-xs text-slate-500">Recommended Action</p>
+                        <p className="text-xs text-slate-500">
+                          Recommended Action
+                        </p>
                         <p className="text-sm font-medium text-slate-900">
                           {resolutionRecommendation}
                         </p>
@@ -676,7 +922,9 @@ export function FeatureOperationalTraceWorkbench() {
                     </label>
                     <Input
                       value={exceptionOwner}
-                      onChange={(event) => setExceptionOwner(event.target.value)}
+                      onChange={(event) =>
+                        setExceptionOwner(event.target.value)
+                      }
                       placeholder="Contoh: Finance, Admin Operasional"
                     />
                   </div>
@@ -686,7 +934,9 @@ export function FeatureOperationalTraceWorkbench() {
                     </label>
                     <Input
                       value={exceptionNextStep}
-                      onChange={(event) => setExceptionNextStep(event.target.value)}
+                      onChange={(event) =>
+                        setExceptionNextStep(event.target.value)
+                      }
                       placeholder="Contoh: Konfirmasi bukti transfer"
                     />
                   </div>
@@ -698,7 +948,9 @@ export function FeatureOperationalTraceWorkbench() {
                   </label>
                   <Textarea
                     value={exceptionMessage}
-                    onChange={(event) => setExceptionMessage(event.target.value)}
+                    onChange={(event) =>
+                      setExceptionMessage(event.target.value)
+                    }
                     placeholder="Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara."
                     rows={4}
                   />
@@ -715,16 +967,21 @@ export function FeatureOperationalTraceWorkbench() {
                         domain: selectedRow.domain,
                         source_id: Number(selectedRow.sourceId),
                         reference: selectedRow.reference,
-                        attention_scope: selectedRow.attentionScope ?? undefined,
+                        attention_scope:
+                          selectedRow.attentionScope ?? undefined,
                         summary: selectedRow.attentionSummary ?? undefined,
                         owner_label: exceptionOwner,
                         next_step: exceptionNextStep,
                         message: exceptionMessage,
                       });
                     }}
-                    disabled={!selectedRow || exceptionActions.saveNote.isPending}
+                    disabled={
+                      !selectedRow || exceptionActions.saveNote.isPending
+                    }
                   >
-                    {exceptionActions.saveNote.isPending ? "Menyimpan..." : "Simpan Catatan Exception"}
+                    {exceptionActions.saveNote.isPending
+                      ? "Menyimpan..."
+                      : "Simpan Catatan Exception"}
                   </Button>
                   <Button
                     variant="outline"
@@ -737,7 +994,8 @@ export function FeatureOperationalTraceWorkbench() {
                         domain: selectedRow.domain,
                         source_id: Number(selectedRow.sourceId),
                         reference: selectedRow.reference,
-                        attention_scope: selectedRow.attentionScope ?? undefined,
+                        attention_scope:
+                          selectedRow.attentionScope ?? undefined,
                         summary: selectedRow.attentionSummary ?? undefined,
                         owner_label: exceptionOwner || undefined,
                         next_step: exceptionNextStep || undefined,
@@ -745,9 +1003,13 @@ export function FeatureOperationalTraceWorkbench() {
                         status: "resolved",
                       });
                     }}
-                    disabled={!selectedRow || exceptionActions.applyDecision.isPending}
+                    disabled={
+                      !selectedRow || exceptionActions.applyDecision.isPending
+                    }
                   >
-                    {exceptionActions.applyDecision.isPending ? "Memproses..." : "Tandai Selesai"}
+                    {exceptionActions.applyDecision.isPending
+                      ? "Memproses..."
+                      : "Tandai Selesai"}
                   </Button>
                   <Button
                     variant="secondary"
@@ -760,7 +1022,8 @@ export function FeatureOperationalTraceWorkbench() {
                         domain: selectedRow.domain,
                         source_id: Number(selectedRow.sourceId),
                         reference: selectedRow.reference,
-                        attention_scope: selectedRow.attentionScope ?? undefined,
+                        attention_scope:
+                          selectedRow.attentionScope ?? undefined,
                         summary: selectedRow.attentionSummary ?? undefined,
                         owner_label: exceptionOwner || undefined,
                         next_step: exceptionNextStep || undefined,
@@ -768,9 +1031,13 @@ export function FeatureOperationalTraceWorkbench() {
                         status: "escalated",
                       });
                     }}
-                    disabled={!selectedRow || exceptionActions.applyDecision.isPending}
+                    disabled={
+                      !selectedRow || exceptionActions.applyDecision.isPending
+                    }
                   >
-                    {exceptionActions.applyDecision.isPending ? "Memproses..." : "Eskalasi"}
+                    {exceptionActions.applyDecision.isPending
+                      ? "Memproses..."
+                      : "Eskalasi"}
                   </Button>
                   {exceptionContextQuery.data?.summary ? (
                     <p className="text-sm text-slate-600">
@@ -785,7 +1052,9 @@ export function FeatureOperationalTraceWorkbench() {
 
                 <div className="mt-4 space-y-3">
                   {exceptionContextQuery.isLoading ? (
-                    <p className="text-sm text-slate-500">Memuat catatan exception...</p>
+                    <p className="text-sm text-slate-500">
+                      Memuat catatan exception...
+                    </p>
                   ) : exceptionContextQuery.data?.notes?.length ? (
                     exceptionContextQuery.data.notes.map((note) => (
                       <div
@@ -800,11 +1069,17 @@ export function FeatureOperationalTraceWorkbench() {
                             {new Date(note.timestamp).toLocaleString("id-ID")}
                           </p>
                         </div>
-                        <p className="mt-1 text-sm text-slate-700">{note.message}</p>
+                        <p className="mt-1 text-sm text-slate-700">
+                          {note.message}
+                        </p>
                         <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
                           <span>Actor: {note.actor_label}</span>
-                          {note.owner_label ? <span>Owner: {note.owner_label}</span> : null}
-                          {note.next_step ? <span>Next step: {note.next_step}</span> : null}
+                          {note.owner_label ? (
+                            <span>Owner: {note.owner_label}</span>
+                          ) : null}
+                          {note.next_step ? (
+                            <span>Next step: {note.next_step}</span>
+                          ) : null}
                         </div>
                       </div>
                     ))
@@ -831,26 +1106,34 @@ export function FeatureOperationalTraceWorkbench() {
                               {entry.action.replaceAll("_", " ")}
                             </p>
                             <p className="text-xs text-slate-500">
-                              {new Date(entry.timestamp).toLocaleString("id-ID")}
+                              {new Date(entry.timestamp).toLocaleString(
+                                "id-ID",
+                              )}
                             </p>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
                             <span>Actor: {entry.actor_label}</span>
                             {entry.old_status || entry.new_status ? (
                               <span>
-                                Status: {entry.old_status || "none"} -&gt; {entry.new_status || "none"}
+                                Status: {entry.old_status || "none"} -&gt;{" "}
+                                {entry.new_status || "none"}
                               </span>
                             ) : null}
-                            {entry.request_id ? <span>Request: {entry.request_id}</span> : null}
+                            {entry.request_id ? (
+                              <span>Request: {entry.request_id}</span>
+                            ) : null}
                           </div>
                           {entry.reason ? (
-                            <p className="mt-2 text-sm text-slate-700">{entry.reason}</p>
+                            <p className="mt-2 text-sm text-slate-700">
+                              {entry.reason}
+                            </p>
                           ) : null}
                         </div>
                       ))
                     ) : (
                       <p className="text-sm text-slate-500">
-                        Belum ada audit trail exception untuk transaksi yang dipilih.
+                        Belum ada audit trail exception untuk transaksi yang
+                        dipilih.
                       </p>
                     )}
                   </div>
@@ -867,24 +1150,37 @@ export function FeatureOperationalTraceWorkbench() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">Siap Dilaporkan</p>
-            <p className="mt-2 text-2xl font-semibold text-emerald-900">{summary.reportingReady}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+              Siap Dilaporkan
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-emerald-900">
+              {summary.reportingReady}
+            </p>
             <p className="mt-1 text-sm text-emerald-800">
-              Transaksi dengan referensi deterministik dan linkage operasional-keuangan yang sinkron.
+              Transaksi dengan referensi deterministik dan linkage
+              operasional-keuangan yang sinkron.
             </p>
           </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Tahan Pelaporan</p>
-            <p className="mt-2 text-2xl font-semibold text-amber-900">{summary.reportingBlocked}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-amber-700">
+              Tahan Pelaporan
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-amber-900">
+              {summary.reportingBlocked}
+            </p>
             <p className="mt-1 text-sm text-amber-800">
-              Transaksi yang masih perlu rekonsiliasi atau memiliki handoff accounting yang belum stabil.
+              Transaksi yang masih perlu rekonsiliasi atau memiliki handoff
+              accounting yang belum stabil.
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-700">Prinsip Basis Laporan</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-700">
+              Prinsip Basis Laporan
+            </p>
             <p className="mt-2 text-sm text-slate-800">
-              Finance hanya boleh menganggap row siap sebagai basis laporan saat referensi transaksi tetap,
-              status pembayaran sinkron, dan readiness accounting tidak bermasalah.
+              Finance hanya boleh menganggap row siap sebagai basis laporan saat
+              referensi transaksi tetap, status pembayaran sinkron, dan
+              readiness accounting tidak bermasalah.
             </p>
           </div>
         </CardContent>
@@ -895,20 +1191,29 @@ export function FeatureOperationalTraceWorkbench() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="text-base">Follow-up Queue</CardTitle>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-              <span>Aktif {filterFollowUpQueueRows(rows, { scope: "all" }).length}</span>
               <span>
-                Pembayaran {filterFollowUpQueueRows(rows, { scope: "pembayaran" }).length}
+                Aktif {filterFollowUpQueueRows(rows, { scope: "all" }).length}
               </span>
               <span>
-                Accounting {filterFollowUpQueueRows(rows, { scope: "accounting" }).length}
+                Pembayaran{" "}
+                {filterFollowUpQueueRows(rows, { scope: "pembayaran" }).length}
               </span>
               <span>
-                Operasional {filterFollowUpQueueRows(rows, { scope: "operasional" }).length}
+                Accounting{" "}
+                {filterFollowUpQueueRows(rows, { scope: "accounting" }).length}
+              </span>
+              <span>
+                Operasional{" "}
+                {filterFollowUpQueueRows(rows, { scope: "operasional" }).length}
               </span>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant={queueScope === "all" ? "default" : "outline"} size="sm" onClick={() => setQueueScope("all")}>
+            <Button
+              variant={queueScope === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQueueScope("all")}
+            >
               Semua
             </Button>
             <Button
@@ -972,7 +1277,8 @@ export function FeatureOperationalTraceWorkbench() {
         <CardContent className="space-y-3">
           {!queueRows.length ? (
             <p className="text-sm text-muted-foreground">
-              Tidak ada transaksi aktif yang membutuhkan tindak lanjut pada scope ini.
+              Tidak ada transaksi aktif yang membutuhkan tindak lanjut pada
+              scope ini.
             </p>
           ) : (
             queueRows.map((row) => (
@@ -982,21 +1288,33 @@ export function FeatureOperationalTraceWorkbench() {
               >
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-slate-900">{row.reference}</p>
-                    <Badge className={ATTENTION_SCOPE_BADGE[row.attentionScope || "operasional"]}>
+                    <p className="font-medium text-slate-900">
+                      {row.reference}
+                    </p>
+                    <Badge
+                      className={
+                        ATTENTION_SCOPE_BADGE[
+                          row.attentionScope || "operasional"
+                        ]
+                      }
+                    >
                       {row.attentionScope === "pembayaran"
                         ? "Pembayaran"
                         : row.attentionScope === "accounting"
                           ? "Accounting"
                           : "Operasional"}
                     </Badge>
-                    <Badge className={RECONCILIATION_BADGE[row.reconciliationStatus]}>
+                    <Badge
+                      className={RECONCILIATION_BADGE[row.reconciliationStatus]}
+                    >
                       {row.reconciliationStatus}
                     </Badge>
                     {row.exceptionCode ? (
                       <Badge
                         className={
-                          EXCEPTION_SEVERITY_BADGE[row.exceptionSeverity || "medium"] ||
+                          EXCEPTION_SEVERITY_BADGE[
+                            row.exceptionSeverity || "medium"
+                          ] ||
                           "bg-slate-100 text-slate-700 border border-slate-200"
                         }
                       >
@@ -1005,11 +1323,15 @@ export function FeatureOperationalTraceWorkbench() {
                     ) : null}
                   </div>
                   <p className="text-sm text-slate-800">{row.title}</p>
-                  <p className="text-sm text-slate-600">{row.attentionSummary}</p>
+                  <p className="text-sm text-slate-600">
+                    {row.attentionSummary}
+                  </p>
                   <p className="text-xs text-slate-500">
                     Owner: {row.queueOwnerLabel || "-"} • Severity:{" "}
                     {row.exceptionSeverity
-                      ? row.exceptionSeverity.replace(/\b\w/g, (char) => char.toUpperCase())
+                      ? row.exceptionSeverity.replace(/\b\w/g, (char) =>
+                          char.toUpperCase(),
+                        )
                       : "-"}
                   </p>
                   <p className="text-xs text-slate-500">
