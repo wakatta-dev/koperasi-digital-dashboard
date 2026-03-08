@@ -52,7 +52,12 @@ export type PaymentSessionResponse = {
   method: string;
   amount: number;
   pay_by: Rfc3339String;
-  status: "initiated" | "pending_verification" | "succeeded" | "failed" | "expired";
+  status:
+    | "initiated"
+    | "pending_verification"
+    | "succeeded"
+    | "failed"
+    | "expired";
   proof_url?: string | null;
   proof_note?: string | null;
 };
@@ -62,12 +67,29 @@ export type ReservationLatestPayment = {
   type?: "dp" | "settlement" | string;
   method?: string;
   amount: number;
-  status?: "initiated" | "pending_verification" | "succeeded" | "failed" | "expired" | string;
+  status?:
+    | "initiated"
+    | "pending_verification"
+    | "succeeded"
+    | "failed"
+    | "expired"
+    | string;
   proof_url?: string | null;
   proof_note?: string | null;
   pay_by?: number;
   created_at?: number;
   updated_at?: number;
+};
+
+export type ReservationPaymentClassification = {
+  classification_type: "DP" | "DEPOSIT" | "REVENUE_RECOGNITION" | string;
+  amount: number;
+  reason?: string | null;
+  actor_id?: number;
+  follow_up_reference?: string | null;
+  evidence_reference?: string | null;
+  accounting_event_key?: string | null;
+  accounting_reference?: string | null;
 };
 
 export type GuestLinkVerifyResponse = {
@@ -125,6 +147,7 @@ export type ReservationDetailResponse = {
   guest_token?: string;
   amounts: { total: number; dp: number; remaining: number };
   latest_payment?: ReservationLatestPayment | null;
+  payment_classifications?: ReservationPaymentClassification[];
   accounting_readiness?: {
     status: "not_ready" | "ready" | "problematic" | "not_applicable" | string;
     reason?: string | null;
@@ -135,8 +158,11 @@ export type ReservationDetailResponse = {
   timeline?: ReservationTimelineItem[];
 };
 
-export type AvailabilityCheckApiResponse = ApiResponse<AvailabilityCheckResponse>;
-export type CreateReservationApiResponse = ApiResponse<CreateReservationResponse>;
+export type AvailabilityCheckApiResponse =
+  ApiResponse<AvailabilityCheckResponse>;
+export type CreateReservationApiResponse =
+  ApiResponse<CreateReservationResponse>;
 export type PaymentSessionApiResponse = ApiResponse<PaymentSessionResponse>;
 export type GuestLinkVerifyApiResponse = ApiResponse<GuestLinkVerifyResponse>;
-export type ReservationDetailApiResponse = ApiResponse<ReservationDetailResponse>;
+export type ReservationDetailApiResponse =
+  ApiResponse<ReservationDetailResponse>;

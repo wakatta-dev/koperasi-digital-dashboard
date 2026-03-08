@@ -46,6 +46,17 @@ export type AssetRentalAccountingReadiness = {
   reference?: string;
 };
 
+export type AssetRentalPaymentClassification = {
+  classification_type: "DP" | "DEPOSIT" | "REVENUE_RECOGNITION" | string;
+  amount: number;
+  reason?: string;
+  actor_id?: number;
+  follow_up_reference?: string;
+  evidence_reference?: string;
+  accounting_event_key?: string;
+  accounting_reference?: string;
+};
+
 export type AssetRentalBooking = {
   id: number;
   asset_id: number;
@@ -65,6 +76,7 @@ export type AssetRentalBooking = {
   return_condition?: string;
   return_condition_notes?: string;
   latest_payment?: AssetRentalBookingPayment;
+  payment_classifications?: AssetRentalPaymentClassification[];
   accounting_readiness?: AssetRentalAccountingReadiness;
 };
 

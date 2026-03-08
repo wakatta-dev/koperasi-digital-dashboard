@@ -7,7 +7,11 @@ export type AccountingJournalPagination = {
   total_pages: number;
 };
 
-export type AccountingJournalStatus = "Draft" | "Posted" | "Locked" | "Reversed";
+export type AccountingJournalStatus =
+  | "Draft"
+  | "Posted"
+  | "Locked"
+  | "Reversed";
 
 export type AccountingJournalSummaryCard = {
   key: string;
@@ -59,13 +63,23 @@ export type AccountingJournalSourceTraceResponse = {
   source_document_reference: string;
   event_key: string;
   policy_code?: string;
-  readiness_status: "ready" | "not_ready" | "problematic" | "not_applicable" | string;
+  readiness_status:
+    | "ready"
+    | "not_ready"
+    | "problematic"
+    | "not_applicable"
+    | string;
   readiness_reason: string;
   governance_status?: "allowed" | "blocked" | string;
   governance_code?: string;
   governance_reason?: string;
   settlement_mode?: "DIRECT_REVENUE" | "MERCHANT_PAYOUT" | string;
-  payout_status?: "NOT_APPLICABLE" | "PENDING_PAYOUT" | "SCHEDULED" | "PAID" | string;
+  payout_status?:
+    | "NOT_APPLICABLE"
+    | "PENDING_PAYOUT"
+    | "SCHEDULED"
+    | "PAID"
+    | string;
   payout_reference?: string;
   financial_flow_type?: "REFUND" | "RETURN" | string;
   financial_decision_status?: "APPROVED" | "RECOGNIZED" | string;
@@ -77,6 +91,15 @@ export type AccountingJournalSourceTraceResponse = {
   financial_follow_up_reference?: string;
   financial_event_key?: string;
   financial_reference?: string;
+  rental_payment_classifications?: Array<{
+    classification_type: "DP" | "DEPOSIT" | "REVENUE_RECOGNITION" | string;
+    amount: number;
+    reason?: string;
+    follow_up_reference?: string;
+    evidence_reference?: string;
+    accounting_event_key?: string;
+    accounting_reference?: string;
+  }>;
   trace_status: "posted" | "ready" | "blocked" | string;
   journal_number?: string;
   journal_reference?: string;
