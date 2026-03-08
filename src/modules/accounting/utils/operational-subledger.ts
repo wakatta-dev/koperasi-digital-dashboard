@@ -23,6 +23,10 @@ export type OperationalTraceRow = {
   reportingReason: string;
   attentionScope: "operasional" | "pembayaran" | "accounting" | null;
   attentionSummary: string | null;
+  exceptionCode: string | null;
+  exceptionSeverity: "low" | "medium" | "high" | null;
+  exceptionRecommendation: string | null;
+  queueOwnerLabel: string | null;
   detailHref: string;
 };
 
@@ -44,6 +48,92 @@ function toTitleCase(value?: string) {
     .join(" ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function deriveExceptionProfile(params: {
+  attentionScope: OperationalTraceRow["attentionScope"];
+  paymentStatus: string;
+  accountingStatus: string;
+  accountingReason: string;
+}) {
+  if (!params.attentionScope) {
+    return {
+      code: null,
+      severity: null,
+      recommendation: null,
+      ownerLabel: null,
+    };
+  }
+
+  const reason = params.accountingReason.toLowerCase();
+  switch (params.attentionScope) {
+    case "pembayaran":
+      if (params.paymentStatus === "Bermasalah") {
+        return {
+          code: "ACC-PAYMENT-FAILED",
+          severity: "high" as const,
+          recommendation: "Selesaikan exception pembayaran atau minta bukti baru sebelum handoff accounting.",
+          ownerLabel: "Finance",
+        };
+      }
+      return {
+        code: "ACC-PAYMENT-PENDING",
+        severity: "medium" as const,
+        recommendation: "Verifikasi pembayaran dan pastikan status pembayaran final sebelum handoff accounting.",
+        ownerLabel: "Finance",
+      };
+    case "accounting":
+      if (reason.includes("period") || reason.includes("periode")) {
+        return {
+          code: "ACC-PERIOD-LOCK",
+          severity: "high" as const,
+          recommendation: "Buka periode yang relevan atau ubah tanggal posting sebelum retry handoff.",
+          ownerLabel: "Finance",
+        };
+      }
+      if (
+        reason.includes("coa") ||
+        reason.includes("mapping") ||
+        reason.includes("akun") ||
+        reason.includes("account")
+      ) {
+        return {
+          code: "ACC-COA-MAPPING",
+          severity: "high" as const,
+          recommendation: "Lengkapi mapping akun/control account lalu ulangi handoff accounting.",
+          ownerLabel: "Finance",
+        };
+      }
+      if (
+        reason.includes("jurnal") ||
+        reason.includes("journal") ||
+        reason.includes("reference")
+      ) {
+        return {
+          code: "ACC-JOURNAL-TRACE-MISSING",
+          severity: "medium" as const,
+          recommendation: "Validasi pembentukan reference jurnal dan sinkronkan trace source-to-journal.",
+          ownerLabel: "Finance",
+        };
+      }
+      return {
+        code: "ACC-HANDOFF-BLOCKED",
+        severity:
+          params.accountingStatus === "Bermasalah"
+            ? ("high" as const)
+            : ("medium" as const),
+        recommendation: "Tinjau blocker accounting backbone dan ulangi handoff setelah prasyarat terpenuhi.",
+        ownerLabel: "Finance",
+      };
+    case "operasional":
+    default:
+      return {
+        code: "OPS-HANDOFF-BLOCKED",
+        severity: "medium" as const,
+        recommendation: "Selesaikan langkah operasional yang tertahan agar transaksi dapat dilanjutkan ke accounting.",
+        ownerLabel: "Admin Operasional",
+      };
+  }
 }
 
 function toAccountingStatusLabel(
@@ -106,6 +196,12 @@ export function buildMarketplaceTraceRows(
       accountingStatus,
       reconciliationStatus,
     });
+    const exceptionProfile = deriveExceptionProfile({
+      attentionScope,
+      paymentStatus,
+      accountingStatus,
+      accountingReason,
+    });
 
     return {
       key: `marketplace-${order.id}`,
@@ -133,6 +229,10 @@ export function buildMarketplaceTraceRows(
         accountingStatus,
         accountingReason,
       }),
+      exceptionCode: exceptionProfile.code,
+      exceptionSeverity: exceptionProfile.severity,
+      exceptionRecommendation: exceptionProfile.recommendation,
+      queueOwnerLabel: exceptionProfile.ownerLabel,
       detailHref: `/bumdes/marketplace/order/${order.id}`,
     };
   });
@@ -156,6 +256,12 @@ export function buildRentalTraceRows(
       paymentStatus,
       accountingStatus,
       reconciliationStatus,
+    });
+    const exceptionProfile = deriveExceptionProfile({
+      attentionScope,
+      paymentStatus,
+      accountingStatus,
+      accountingReason,
     });
 
     return {
@@ -184,6 +290,10 @@ export function buildRentalTraceRows(
         accountingStatus,
         accountingReason,
       }),
+      exceptionCode: exceptionProfile.code,
+      exceptionSeverity: exceptionProfile.severity,
+      exceptionRecommendation: exceptionProfile.recommendation,
+      queueOwnerLabel: exceptionProfile.ownerLabel,
       detailHref: `/bumdes/asset/pengajuan-sewa/${booking.id}`,
     };
   });
@@ -249,13 +359,39 @@ export function filterOperationalTraceRows(
 
 export function filterFollowUpQueueRows(
   rows: OperationalTraceRow[],
-  scope: "all" | "operasional" | "pembayaran" | "accounting",
+  filter: {
+    scope: "all" | "operasional" | "pembayaran" | "accounting";
+    domain?: "all" | "marketplace" | "rental";
+    code?: string;
+    owner?: string;
+  },
 ) {
   const queueRows = rows.filter((row) => row.attentionScope !== null);
-  if (scope === "all") {
-    return queueRows;
-  }
-  return queueRows.filter((row) => row.attentionScope === scope);
+  return queueRows.filter((row) => {
+    if (filter.scope !== "all" && row.attentionScope !== filter.scope) {
+      return false;
+    }
+    if (filter.domain && filter.domain !== "all" && row.domain !== filter.domain) {
+      return false;
+    }
+    if (
+      filter.code &&
+      !String(row.exceptionCode ?? "")
+        .toLowerCase()
+        .includes(filter.code.toLowerCase().trim())
+    ) {
+      return false;
+    }
+    if (
+      filter.owner &&
+      !String(row.queueOwnerLabel ?? "")
+        .toLowerCase()
+        .includes(filter.owner.toLowerCase().trim())
+    ) {
+      return false;
+    }
+    return true;
+  });
 }
 
 function toReconciliationStatus(paymentStatus: string, accountingStatus: string) {

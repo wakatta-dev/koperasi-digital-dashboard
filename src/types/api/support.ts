@@ -156,12 +156,34 @@ export interface SupportReadinessDomain {
   items: SupportReadinessItem[];
 }
 
+export interface SupportCriticalFlowGate {
+  key: string;
+  label: string;
+  requirement_codes: string[];
+  evidence_type: string;
+  owner: string;
+  status: "passed" | "blocker";
+  blocker: boolean;
+  message?: string;
+  source?: string;
+}
+
+export interface SupportCriticalFlow {
+  key: string;
+  label: string;
+  domain: string;
+  status: "ready" | "blocked";
+  blocker_count: number;
+  gates: SupportCriticalFlowGate[];
+}
+
 export interface SupportSystemReadiness {
   tenant_id: number;
   status: "ready" | "missing";
   checked_at: Rfc3339String;
   foundation_items: SupportReadinessItem[];
   domains: SupportReadinessDomain[];
+  critical_flows: SupportCriticalFlow[];
 }
 
 export interface SectionConcurrencyRequest {
@@ -324,6 +346,9 @@ export interface SupportOperationalExceptionContext {
   reference?: string;
   attention_scope?: "operasional" | "pembayaran" | "accounting";
   summary?: string;
+  exception_code?: string;
+  severity?: "low" | "medium" | "high" | string;
+  recommended_action?: string;
   status: "none" | "active" | "resolved" | "escalated" | string;
   owner_label?: string;
   next_step?: string;

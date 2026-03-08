@@ -156,6 +156,10 @@ export const QK = {
   },
   accountingJournal: {
     overview: () => ["accounting-journal", "overview"] as const,
+    postingPolicies: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "posting-policies", params ?? {}] as const,
+    sourceTrace: (domain: string | number, sourceId: string | number) =>
+      ["accounting-journal", "source-trace", String(domain), String(sourceId)] as const,
     entries: (params?: Record<string, unknown>) =>
       ["accounting-journal", "entries", params ?? {}] as const,
     entryDetail: (journalNumber: string | number) =>

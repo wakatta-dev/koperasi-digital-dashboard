@@ -22,6 +22,9 @@ import type {
   AccountingJournalReverseEntryRequest,
   AccountingJournalReverseEntryResponse,
   AccountingJournalOverviewResponse,
+  AccountingJournalPostingPoliciesQuery,
+  AccountingJournalPostingPoliciesResponse,
+  AccountingJournalSourceTraceResponse,
   AccountingJournalUpdateEntryRequest,
   AccountingJournalUpdateEntryResponse,
 } from "@/types/api/accounting-journal";
@@ -118,6 +121,32 @@ export function getAccountingJournalOverview(opts?: { signal?: AbortSignal }) {
   return api.get<AccountingJournalOverviewResponse>(`${API_PREFIX}${E.overview}`, {
     signal: opts?.signal,
   });
+}
+
+export function listAccountingJournalPostingPolicies(
+  params?: AccountingJournalPostingPoliciesQuery,
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<AccountingJournalPostingPoliciesResponse>> {
+  const query = buildQuery(params);
+  return api.get<AccountingJournalPostingPoliciesResponse>(
+    `${API_PREFIX}${E.postingPolicies}${query}`,
+    {
+      signal: opts?.signal,
+    }
+  );
+}
+
+export function getAccountingJournalSourceTrace(
+  domain: string,
+  sourceId: string | number,
+  opts?: { signal?: AbortSignal }
+): Promise<ApiResponse<AccountingJournalSourceTraceResponse>> {
+  return api.get<AccountingJournalSourceTraceResponse>(
+    `${API_PREFIX}${E.sourceTrace(domain, sourceId)}`,
+    {
+      signal: opts?.signal,
+    }
+  );
 }
 
 export function listAccountingJournalEntries(

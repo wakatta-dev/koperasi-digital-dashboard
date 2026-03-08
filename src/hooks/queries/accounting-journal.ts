@@ -8,10 +8,12 @@ import {
   createAccountingJournalEntry,
   createAccountingJournalPeriodLock,
   ensureAccountingJournalSuccess,
+  getAccountingJournalSourceTrace,
   getAccountingJournalCurrentPeriodLock,
   getAccountingJournalEntryDetail,
   getAccountingJournalEntryPdfMetadata,
   getAccountingJournalOverview,
+  listAccountingJournalPostingPolicies,
   listAccountingJournalAuditLogs,
   listAccountingJournalEntries,
   listAccountingJournalEntryAuditLogs,
@@ -39,6 +41,9 @@ import type {
   AccountingJournalReverseEntryRequest,
   AccountingJournalReverseEntryResponse,
   AccountingJournalOverviewResponse,
+  AccountingJournalPostingPoliciesQuery,
+  AccountingJournalPostingPoliciesResponse,
+  AccountingJournalSourceTraceResponse,
   AccountingJournalUpdateEntryRequest,
   AccountingJournalUpdateEntryResponse,
 } from "@/types/api/accounting-journal";
@@ -51,6 +56,44 @@ export function useAccountingJournalOverview(options?: { enabled?: boolean }) {
     queryFn: async (): Promise<AccountingJournalOverviewResponse> =>
       ensureAccountingJournalSuccess(await getAccountingJournalOverview()),
     ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+  });
+}
+
+export function useAccountingJournalPostingPolicies(
+  params?: AccountingJournalPostingPoliciesQuery,
+  options?: { enabled?: boolean }
+) {
+  const normalized: AccountingJournalPostingPoliciesQuery = {
+    domain: params?.domain,
+    status: params?.status,
+  };
+
+  return useQuery({
+    queryKey: QK.accountingJournal.postingPolicies(normalized),
+    queryFn: async (): Promise<AccountingJournalPostingPoliciesResponse> =>
+      ensureAccountingJournalSuccess(await listAccountingJournalPostingPolicies(normalized)),
+    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+  });
+}
+
+export function useAccountingJournalSourceTrace(
+  domain?: string,
+  sourceId?: string | number,
+  options?: { enabled?: boolean }
+) {
+  const normalizedDomain = (domain ?? "").trim();
+  const normalizedSourceId = String(sourceId ?? "").trim();
+
+  return useQuery({
+    queryKey: QK.accountingJournal.sourceTrace(normalizedDomain, normalizedSourceId),
+    enabled:
+      Boolean(normalizedDomain) &&
+      Boolean(normalizedSourceId) &&
+      (options?.enabled ?? true),
+    queryFn: async (): Promise<AccountingJournalSourceTraceResponse> =>
+      ensureAccountingJournalSuccess(
+        await getAccountingJournalSourceTrace(normalizedDomain, normalizedSourceId)
+      ),
   });
 }
 

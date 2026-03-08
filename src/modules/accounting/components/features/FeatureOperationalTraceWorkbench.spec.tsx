@@ -12,6 +12,8 @@ const getAssetRentalBookingsMock = vi.fn();
 const getReservationMock = vi.fn();
 const useSupportOperationalExceptionContextMock = vi.fn();
 const useSupportOperationalExceptionActionsMock = vi.fn();
+const useAccountingJournalPostingPoliciesMock = vi.fn();
+const useAccountingJournalSourceTraceMock = vi.fn();
 
 vi.mock("@/hooks/queries/marketplace-orders", () => ({
   useMarketplaceOrders: (...args: unknown[]) => useMarketplaceOrdersMock(...args),
@@ -31,6 +33,13 @@ vi.mock("@/hooks/queries/support-config", () => ({
     useSupportOperationalExceptionContextMock(...args),
   useSupportOperationalExceptionActions: (...args: unknown[]) =>
     useSupportOperationalExceptionActionsMock(...args),
+}));
+
+vi.mock("@/hooks/queries/accounting-journal", () => ({
+  useAccountingJournalPostingPolicies: (...args: unknown[]) =>
+    useAccountingJournalPostingPoliciesMock(...args),
+  useAccountingJournalSourceTrace: (...args: unknown[]) =>
+    useAccountingJournalSourceTraceMock(...args),
 }));
 
 describe("FeatureOperationalTraceWorkbench", () => {
@@ -118,6 +127,10 @@ describe("FeatureOperationalTraceWorkbench", () => {
         reference: "MP-INV-2026-0001",
         attention_scope: "accounting",
         summary: "Posting jurnal tertahan",
+        exception_code: "ACC-JOURNAL-TRACE-MISSING",
+        severity: "medium",
+        recommended_action:
+          "Validasi pembentukan reference jurnal dan sinkronkan trace source-to-journal.",
         status: "active",
         owner_label: "Finance",
         next_step: "Konfirmasi reference jurnal",
@@ -161,6 +174,59 @@ describe("FeatureOperationalTraceWorkbench", () => {
         isPending: false,
       },
     });
+
+    useAccountingJournalPostingPoliciesMock.mockReturnValue({
+      data: {
+        items: [
+          {
+            event_key: "marketplace.order.completed",
+            domain: "marketplace",
+            policy_code: "marketplace_completion_standard",
+            policy_name: "Marketplace Completion Standard",
+            treatment_summary:
+              "Kas/bank didebit ke pendapatan marketplace, dengan HPP dan persediaan ditambahkan bila cost tersedia.",
+            prerequisite_codes: [
+              "accounting_handoff_minimum",
+              "period_lock_open",
+              "coa_mapping_ready",
+            ],
+            status: "active",
+            updated_at: "2026-03-08T14:00:00Z",
+          },
+        ],
+        summary: {
+          active_policies: 1,
+          inactive_policies: 0,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+
+    useAccountingJournalSourceTraceMock.mockReturnValue({
+      data: {
+        domain: "marketplace",
+        source_id: "11",
+        source_reference: "MKT-11",
+        source_document_reference: "ORD-2026-0011",
+        event_key: "marketplace.order.completed",
+        policy_code: "marketplace_completion_standard",
+        readiness_status: "ready",
+        readiness_reason: "Transaksi siap diteruskan ke accounting backbone.",
+        governance_status: "blocked",
+        governance_code: "ACC-JOURNAL-TRACE-MISSING",
+        governance_reason:
+          "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
+        trace_status: "blocked",
+        journal_reference: "MKT-11",
+        blocker_reason:
+          "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
   });
 
   it("renders unified finance trace rows and detail panel", async () => {
@@ -179,9 +245,30 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Follow-up Queue")).toBeTruthy();
       expect(screen.getByText("Aktif 1")).toBeTruthy();
       expect(screen.getByText("Jejak Status")).toBeTruthy();
+      expect(screen.getByText("Readiness Backbone Review")).toBeTruthy();
+      expect(screen.getByText("Policy Result")).toBeTruthy();
+      expect(screen.getByText("Governance Blocker")).toBeTruthy();
+      expect(screen.getByText("Policy Name")).toBeTruthy();
+      expect(screen.getByText("Marketplace Completion Standard")).toBeTruthy();
+      expect(screen.getByText("accounting_handoff_minimum")).toBeTruthy();
+      expect(screen.getByText("period_lock_open")).toBeTruthy();
+      expect(screen.getByText("coa_mapping_ready")).toBeTruthy();
+      expect(screen.getByText("Blocked")).toBeTruthy();
       expect(screen.getByText("PAYMENT VERIFICATION")).toBeTruthy();
       expect(screen.getByText("Exception Workspace")).toBeTruthy();
       expect(screen.getByText("Basis Resolusi")).toBeTruthy();
+      expect(screen.getAllByText("ACC-JOURNAL-TRACE-MISSING").length).toBeGreaterThan(0);
+      expect(screen.getByText("Medium")).toBeTruthy();
+      expect(
+        screen.getByText(
+          "Validasi pembentukan reference jurnal dan sinkronkan trace source-to-journal.",
+        ),
+      ).toBeTruthy();
+      expect(
+        screen.getByText(
+          "Reference jurnal belum terbentuk sehingga trace source-to-journal belum final.",
+        ),
+      ).toBeTruthy();
       expect(screen.getByDisplayValue("Finance")).toBeTruthy();
       expect(screen.getByDisplayValue("Konfirmasi reference jurnal")).toBeTruthy();
       expect(screen.getByText("Tersedia")).toBeTruthy();
@@ -229,6 +316,34 @@ describe("FeatureOperationalTraceWorkbench", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi.")).toBeTruthy();
+    });
+
+    fireEvent.change(
+      screen.getByPlaceholderText("Filter code exception, contoh ACC-PAYMENT"),
+      {
+        target: { value: "ACC-PAYMENT-PENDING" },
+      },
+    );
+    fireEvent.change(screen.getByPlaceholderText("Filter owner, contoh Finance"), {
+      target: { value: "Finance" },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("ACC-PAYMENT-PENDING")).toBeTruthy();
+      expect(screen.getByText("Owner: Finance • Severity: Medium")).toBeTruthy();
+    });
+  });
+
+  it("keeps queue context and backbone trace visible for blocked review", async () => {
+    renderFeature(<FeatureOperationalTraceWorkbench />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Readiness Backbone Review")).toBeTruthy();
+      expect(screen.getByText("Governance Blocker")).toBeTruthy();
+      expect(screen.getByText("Exception Workspace")).toBeTruthy();
+      expect(screen.getByText("Request: req-exc-1")).toBeTruthy();
+      expect(screen.getAllByText("MKT-11").length).toBeGreaterThan(0);
+      expect(screen.getByText("Trace: Blocked")).toBeTruthy();
     });
   });
 

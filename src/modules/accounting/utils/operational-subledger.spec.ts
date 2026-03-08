@@ -61,6 +61,8 @@ describe("operational subledger utils", () => {
     expect(rows[1]?.reportingStatus).toBe("Tahan Pelaporan");
     expect(rows[0]?.attentionScope).toBeNull();
     expect(rows[1]?.attentionScope).toBe("pembayaran");
+    expect(rows[1]?.exceptionCode).toBe("ACC-PAYMENT-PENDING");
+    expect(rows[1]?.queueOwnerLabel).toBe("Finance");
   });
 
   it("summarizes rows for finance attention", () => {
@@ -78,6 +80,12 @@ describe("operational subledger utils", () => {
         reconciliationStatus: "Sesuai",
         reportingStatus: "Siap Dilaporkan",
         reportingReason: "consistent",
+        attentionScope: null,
+        attentionSummary: null,
+        exceptionCode: null,
+        exceptionSeverity: null,
+        exceptionRecommendation: null,
+        queueOwnerLabel: null,
         detailHref: "/",
       },
       {
@@ -93,6 +101,13 @@ describe("operational subledger utils", () => {
         reconciliationStatus: "Perlu Tindak Lanjut",
         reportingStatus: "Tahan Pelaporan",
         reportingReason: "blocked",
+        attentionScope: "pembayaran",
+        attentionSummary: "Perlu follow-up pembayaran: Menunggu Verifikasi.",
+        exceptionCode: "ACC-PAYMENT-PENDING",
+        exceptionSeverity: "medium",
+        exceptionRecommendation:
+          "Verifikasi pembayaran dan pastikan status pembayaran final sebelum handoff accounting.",
+        queueOwnerLabel: "Finance",
         detailHref: "/",
       },
     ]);
@@ -151,7 +166,38 @@ describe("operational subledger utils", () => {
 
     expect(filterOperationalTraceRows(rows, "attention")).toHaveLength(1);
     expect(filterOperationalTraceRows(rows, "matched")).toHaveLength(1);
-    expect(filterFollowUpQueueRows(rows, "all")).toHaveLength(1);
-    expect(filterFollowUpQueueRows(rows, "pembayaran")).toHaveLength(1);
+    expect(filterFollowUpQueueRows(rows, { scope: "all" })).toHaveLength(1);
+    expect(filterFollowUpQueueRows(rows, { scope: "pembayaran" })).toHaveLength(1);
+    expect(filterFollowUpQueueRows(rows, { scope: "all", domain: "rental" })).toHaveLength(1);
+    expect(filterFollowUpQueueRows(rows, { scope: "all", code: "ACC-PAYMENT-PENDING" })).toHaveLength(1);
+    expect(filterFollowUpQueueRows(rows, { scope: "all", owner: "finance" })).toHaveLength(1);
+  });
+
+  it("classifies accounting mapping blockers with deterministic exception code", () => {
+    const rows = buildOperationalTraceRows({
+      marketplaceOrders: [
+        {
+          id: 44,
+          order_number: "INV-2026-0044",
+          status: "PROCESSING",
+          payment_status: "succeeded",
+          fulfillment_method: "DELIVERY",
+          customer_name: "Sari",
+          customer_phone: "08124",
+          customer_email: "sari@example.com",
+          total: 150000,
+          created_at: 1,
+          accounting_readiness: {
+            status: "problematic",
+            reason: "Payload jurnal tidak memuat akun tujuan untuk control account.",
+            reference: "MP-INV-2026-0044",
+          },
+        },
+      ],
+    });
+
+    expect(rows[0]?.exceptionCode).toBe("ACC-COA-MAPPING");
+    expect(rows[0]?.exceptionSeverity).toBe("high");
+    expect(rows[0]?.queueOwnerLabel).toBe("Finance");
   });
 });

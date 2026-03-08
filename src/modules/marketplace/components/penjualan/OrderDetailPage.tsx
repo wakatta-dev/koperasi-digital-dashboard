@@ -210,6 +210,34 @@ function resolveMarketplaceAccountingState(data: any) {
   };
 }
 
+function resolveSettlementModeLabel(mode?: string) {
+  const normalized = String(mode ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "DIRECT_REVENUE":
+      return "Pendapatan Langsung";
+    case "MERCHANT_PAYOUT":
+      return "Butuh Payout";
+    default:
+      return "Belum Diatur";
+  }
+}
+
+function resolvePayoutStatusLabel(status?: string) {
+  const normalized = String(status ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "NOT_APPLICABLE":
+      return "Tidak Berlaku";
+    case "PENDING_PAYOUT":
+      return "Menunggu Payout";
+    case "SCHEDULED":
+      return "Payout Dijadwalkan";
+    case "PAID":
+      return "Payout Selesai";
+    default:
+      return "Belum Diatur";
+  }
+}
+
 function resolveNextValidAction(detail: OrderDetail | null, data: any) {
   if (!detail || !data) return null;
 
@@ -480,6 +508,32 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
               {nextValidAction?.label ?? "Tidak Ada Aksi Lanjutan"}
             </p>
             <p className="mt-3 text-sm text-muted-foreground">{nextValidAction?.helper}</p>
+          </div>
+        </div>
+        <div className="mt-4 rounded-lg border border-border bg-muted/20 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Settlement Finance
+              </p>
+              <p className="mt-2 text-sm font-semibold text-foreground">
+                {resolveSettlementModeLabel(data?.settlement?.settlement_mode)}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Status payout: {resolvePayoutStatusLabel(data?.settlement?.payout_status)}
+              </p>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>
+                Referensi Payout:{" "}
+                <span className="font-medium text-foreground">
+                  {data?.settlement?.payout_reference || "-"}
+                </span>
+              </p>
+              <p className="mt-2">
+                Status operasional tetap mengikuti lifecycle order dan tidak berubah oleh settlement.
+              </p>
+            </div>
           </div>
         </div>
       </div>

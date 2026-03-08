@@ -201,6 +201,9 @@ export const API_ENDPOINTS = {
   },
   accountingJournal: {
     overview: "/accounting/journal/overview",
+    postingPolicies: "/accounting/journal/posting-policies",
+    sourceTrace: (domain: string, sourceId: string | number) =>
+      `/accounting/journal/source-traces/${encodeURIComponent(domain)}/${encodeURIComponent(String(sourceId))}`,
     entries: "/accounting/journal/entries",
     entryDetail: (journalNumber: string) =>
       `/accounting/journal/entries/${encodeURIComponent(journalNumber)}`,

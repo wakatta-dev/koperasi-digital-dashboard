@@ -12,6 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  useAccountingJournalPostingPolicies,
+  useAccountingJournalSourceTrace,
+} from "@/hooks/queries/accounting-journal";
 import { useMarketplaceOrder, useMarketplaceOrders } from "@/hooks/queries/marketplace-orders";
 import {
   useSupportOperationalExceptionActions,
@@ -44,10 +48,29 @@ const REPORTING_BADGE: Record<string, string> = {
   "Tahan Pelaporan": "bg-rose-50 text-rose-700 border border-rose-200",
 };
 
+const READINESS_STATUS_BADGE: Record<string, string> = {
+  ready: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  not_ready: "bg-amber-50 text-amber-700 border border-amber-200",
+  problematic: "bg-rose-50 text-rose-700 border border-rose-200",
+  not_applicable: "bg-slate-100 text-slate-700 border border-slate-200",
+};
+
+const TRACE_STATUS_BADGE: Record<string, string> = {
+  posted: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  ready: "bg-sky-50 text-sky-700 border border-sky-200",
+  blocked: "bg-rose-50 text-rose-700 border border-rose-200",
+};
+
 const ATTENTION_SCOPE_BADGE: Record<string, string> = {
   operasional: "bg-slate-100 text-slate-700 border border-slate-200",
   pembayaran: "bg-amber-50 text-amber-700 border border-amber-200",
   accounting: "bg-indigo-50 text-indigo-700 border border-indigo-200",
+};
+
+const EXCEPTION_SEVERITY_BADGE: Record<string, string> = {
+  low: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  medium: "bg-amber-50 text-amber-700 border border-amber-200",
+  high: "bg-rose-50 text-rose-700 border border-rose-200",
 };
 
 const EXCEPTION_STATUS_BADGE: Record<string, string> = {
@@ -64,12 +87,23 @@ const EXCEPTION_STATUS_LABEL: Record<string, string> = {
   escalated: "Tereskalasi",
 };
 
+function toSentenceCase(value?: string | null) {
+  const normalized = String(value ?? "")
+    .trim()
+    .replaceAll("_", " ");
+  if (!normalized) return "-";
+  return normalized.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export function FeatureOperationalTraceWorkbench() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "attention" | "matched">("all");
   const [queueScope, setQueueScope] = useState<
     "all" | "operasional" | "pembayaran" | "accounting"
   >("all");
+  const [queueDomain, setQueueDomain] = useState<"all" | "marketplace" | "rental">("all");
+  const [queueCode, setQueueCode] = useState("");
+  const [queueOwnerFilter, setQueueOwnerFilter] = useState("");
   const [exceptionOwner, setExceptionOwner] = useState("");
   const [exceptionNextStep, setExceptionNextStep] = useState("");
   const [exceptionMessage, setExceptionMessage] = useState("");
@@ -100,7 +134,16 @@ export function FeatureOperationalTraceWorkbench() {
   );
   const summary = useMemo(() => summarizeOperationalTrace(rows), [rows]);
   const visibleRows = useMemo(() => filterOperationalTraceRows(rows, filter), [filter, rows]);
-  const queueRows = useMemo(() => filterFollowUpQueueRows(rows, queueScope), [queueScope, rows]);
+  const queueRows = useMemo(
+    () =>
+      filterFollowUpQueueRows(rows, {
+        scope: queueScope,
+        domain: queueDomain,
+        code: queueCode,
+        owner: queueOwnerFilter,
+      }),
+    [queueCode, queueDomain, queueOwnerFilter, queueScope, rows],
+  );
 
   useEffect(() => {
     if (!rows.length) {
@@ -124,6 +167,20 @@ export function FeatureOperationalTraceWorkbench() {
 
   const selectedRow =
     visibleRows.find((row) => row.key === selectedKey) ?? visibleRows[0] ?? null;
+  const sourceTraceQuery = useAccountingJournalSourceTrace(
+    selectedRow?.domain,
+    selectedRow?.sourceId,
+    { enabled: Boolean(selectedRow) },
+  );
+  const postingPoliciesQuery = useAccountingJournalPostingPolicies(
+    selectedRow?.domain
+      ? {
+          domain: selectedRow.domain,
+          status: "active",
+        }
+      : undefined,
+    { enabled: Boolean(selectedRow?.domain) },
+  );
 
   const marketplaceDetailQuery = useMarketplaceOrder(selectedRow?.domain === "marketplace" ? selectedRow.sourceId : undefined, {
     enabled: selectedRow?.domain === "marketplace",
@@ -199,6 +256,27 @@ export function FeatureOperationalTraceWorkbench() {
   }, [selectedRowKey, exceptionContextQuery.data?.owner_label, exceptionContextQuery.data?.next_step]);
 
   const exceptionStatus = exceptionContextQuery.data?.status ?? "none";
+  const resolutionExceptionCode =
+    exceptionContextQuery.data?.exception_code ?? selectedRow?.exceptionCode ?? "-";
+  const resolutionSeverity =
+    exceptionContextQuery.data?.severity ?? selectedRow?.exceptionSeverity ?? "-";
+  const resolutionRecommendation =
+    exceptionContextQuery.data?.recommended_action ??
+    selectedRow?.exceptionRecommendation ??
+    selectedRow?.attentionSummary ??
+    "-";
+  const appliedPolicy =
+    postingPoliciesQuery.data?.items.find(
+      (item) => item.event_key === sourceTraceQuery.data?.event_key,
+    ) ??
+    postingPoliciesQuery.data?.items[0] ??
+    null;
+  const governanceStatus = sourceTraceQuery.data?.governance_status ?? "allowed";
+  const governanceCode = sourceTraceQuery.data?.governance_code ?? "-";
+  const governanceReason =
+    sourceTraceQuery.data?.governance_reason ??
+    sourceTraceQuery.data?.blocker_reason ??
+    "Tidak ada blocker governance aktif.";
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
@@ -353,7 +431,116 @@ export function FeatureOperationalTraceWorkbench() {
                 </div>
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Readiness Backbone Review
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Policy result, trace status, dan governance blocker dirangkum pada konteks transaksi yang sama.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge
+                        className={
+                          READINESS_STATUS_BADGE[sourceTraceQuery.data?.readiness_status || "not_ready"] ||
+                          READINESS_STATUS_BADGE.not_ready
+                        }
+                      >
+                        Readiness: {toSentenceCase(sourceTraceQuery.data?.readiness_status)}
+                      </Badge>
+                      <Badge
+                        className={
+                          TRACE_STATUS_BADGE[sourceTraceQuery.data?.trace_status || "blocked"] ||
+                          TRACE_STATUS_BADGE.blocked
+                        }
+                      >
+                        Trace: {toSentenceCase(sourceTraceQuery.data?.trace_status)}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                      <p className="text-xs text-slate-500">Policy Code</p>
+                      <p className="text-sm font-medium text-slate-900">
+                        {appliedPolicy?.policy_code ?? sourceTraceQuery.data?.policy_code ?? "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">Policy Name</p>
+                      <p className="text-sm font-medium text-slate-900">
+                        {appliedPolicy?.policy_name ?? "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">Source Reference</p>
+                      <p className="text-sm font-medium text-slate-900">
+                        {sourceTraceQuery.data?.source_reference ?? selectedRow.reference}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">Journal Reference</p>
+                      <p className="text-sm font-medium text-slate-900">
+                        {sourceTraceQuery.data?.journal_reference ??
+                          sourceTraceQuery.data?.journal_number ??
+                          "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Policy Result
+                      </p>
+                      <p className="mt-2 text-sm text-slate-800">
+                        {appliedPolicy?.treatment_summary ??
+                          sourceTraceQuery.data?.readiness_reason ??
+                          selectedRow.accountingReason}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(appliedPolicy?.prerequisite_codes ?? []).map((code) => (
+                          <Badge
+                            key={code}
+                            className="bg-slate-100 text-slate-700 border border-slate-200"
+                          >
+                            {code}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Governance Blocker
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Badge
+                          className={
+                            governanceStatus === "blocked"
+                              ? "bg-rose-50 text-rose-700 border border-rose-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          }
+                        >
+                          {governanceStatus === "blocked" ? "Blocked" : "Allowed"}
+                        </Badge>
+                        <Badge
+                          className={
+                            governanceStatus === "blocked"
+                              ? "bg-rose-50 text-rose-700 border border-rose-200"
+                              : "bg-slate-100 text-slate-700 border border-slate-200"
+                          }
+                        >
+                          {governanceCode}
+                        </Badge>
+                      </div>
+                      <p className="mt-3 text-sm text-slate-800">{governanceReason}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Exception Workspace
@@ -393,6 +580,40 @@ export function FeatureOperationalTraceWorkbench() {
                         <p className="text-xs text-slate-500">Bukti Pembayaran</p>
                         <p className="text-sm font-medium text-slate-900">
                           {proofUrl ? "Tersedia" : "Belum Tersedia"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Exception Code</p>
+                        <div className="mt-1">
+                          <Badge
+                            className={
+                              EXCEPTION_SEVERITY_BADGE[String(resolutionSeverity)] ||
+                              "bg-slate-100 text-slate-700 border border-slate-200"
+                            }
+                          >
+                            {resolutionExceptionCode}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Severity</p>
+                        <div className="mt-1">
+                          <Badge
+                            className={
+                              EXCEPTION_SEVERITY_BADGE[String(resolutionSeverity)] ||
+                              "bg-slate-100 text-slate-700 border border-slate-200"
+                            }
+                          >
+                            {String(resolutionSeverity).replace(/\b\w/g, (char) =>
+                              char.toUpperCase(),
+                            )}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="md:col-span-2 xl:col-span-2">
+                        <p className="text-xs text-slate-500">Recommended Action</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {resolutionRecommendation}
                         </p>
                       </div>
                     </div>
@@ -622,10 +843,16 @@ export function FeatureOperationalTraceWorkbench() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="text-base">Follow-up Queue</CardTitle>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-              <span>Aktif {filterFollowUpQueueRows(rows, "all").length}</span>
-              <span>Pembayaran {filterFollowUpQueueRows(rows, "pembayaran").length}</span>
-              <span>Accounting {filterFollowUpQueueRows(rows, "accounting").length}</span>
-              <span>Operasional {filterFollowUpQueueRows(rows, "operasional").length}</span>
+              <span>Aktif {filterFollowUpQueueRows(rows, { scope: "all" }).length}</span>
+              <span>
+                Pembayaran {filterFollowUpQueueRows(rows, { scope: "pembayaran" }).length}
+              </span>
+              <span>
+                Accounting {filterFollowUpQueueRows(rows, { scope: "accounting" }).length}
+              </span>
+              <span>
+                Operasional {filterFollowUpQueueRows(rows, { scope: "operasional" }).length}
+              </span>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -654,6 +881,41 @@ export function FeatureOperationalTraceWorkbench() {
               Accounting
             </Button>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={queueDomain === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQueueDomain("all")}
+            >
+              Semua Domain
+            </Button>
+            <Button
+              variant={queueDomain === "marketplace" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQueueDomain("marketplace")}
+            >
+              Marketplace
+            </Button>
+            <Button
+              variant={queueDomain === "rental" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQueueDomain("rental")}
+            >
+              Rental
+            </Button>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Input
+              value={queueCode}
+              onChange={(event) => setQueueCode(event.target.value)}
+              placeholder="Filter code exception, contoh ACC-PAYMENT"
+            />
+            <Input
+              value={queueOwnerFilter}
+              onChange={(event) => setQueueOwnerFilter(event.target.value)}
+              placeholder="Filter owner, contoh Finance"
+            />
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {!queueRows.length ? (
@@ -679,9 +941,28 @@ export function FeatureOperationalTraceWorkbench() {
                     <Badge className={RECONCILIATION_BADGE[row.reconciliationStatus]}>
                       {row.reconciliationStatus}
                     </Badge>
+                    {row.exceptionCode ? (
+                      <Badge
+                        className={
+                          EXCEPTION_SEVERITY_BADGE[row.exceptionSeverity || "medium"] ||
+                          "bg-slate-100 text-slate-700 border border-slate-200"
+                        }
+                      >
+                        {row.exceptionCode}
+                      </Badge>
+                    ) : null}
                   </div>
                   <p className="text-sm text-slate-800">{row.title}</p>
                   <p className="text-sm text-slate-600">{row.attentionSummary}</p>
+                  <p className="text-xs text-slate-500">
+                    Owner: {row.queueOwnerLabel || "-"} • Severity:{" "}
+                    {row.exceptionSeverity
+                      ? row.exceptionSeverity.replace(/\b\w/g, (char) => char.toUpperCase())
+                      : "-"}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Rekomendasi: {row.exceptionRecommendation || "-"}
+                  </p>
                 </div>
                 <Button
                   variant="outline"

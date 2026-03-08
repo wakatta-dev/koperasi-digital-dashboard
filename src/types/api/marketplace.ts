@@ -160,6 +160,18 @@ export type MarketplaceAccountingReadinessResponse = {
   reference?: string;
 };
 
+export type MarketplaceOrderSettlementResponse = {
+  settlement_mode: "DIRECT_REVENUE" | "MERCHANT_PAYOUT" | string;
+  payout_status:
+    | "NOT_APPLICABLE"
+    | "PENDING_PAYOUT"
+    | "SCHEDULED"
+    | "PAID"
+    | string;
+  payout_reference?: string;
+  payout_recorded_at?: string;
+};
+
 export type MarketplaceOrderResponse = {
   id: number;
   order_number?: string;
@@ -191,6 +203,7 @@ export type MarketplaceOrderDetailResponse = {
   updated_at: number;
   status_history?: MarketplaceOrderStatusHistoryResponse[];
   manual_payment?: MarketplaceOrderManualPaymentResponse;
+  settlement?: MarketplaceOrderSettlementResponse;
   accounting_readiness?: MarketplaceAccountingReadinessResponse;
   payment_method?: string;
   payment_reference?: string;

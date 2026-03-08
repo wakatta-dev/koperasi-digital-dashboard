@@ -291,6 +291,36 @@ describe("tenant-settings pages", () => {
             items: [],
           },
         ],
+        critical_flows: [
+          {
+            key: "marketplace_public_truth",
+            label: "Marketplace Public Checkout",
+            domain: "marketplace",
+            status: "blocked",
+            blocker_count: 2,
+            gates: [
+              {
+                key: "marketplace_dependency",
+                label: "Marketplace dependency ready",
+                requirement_codes: ["NFR13"],
+                evidence_type: "domain-readiness",
+                owner: "QA Lead",
+                status: "passed",
+                blocker: false,
+              },
+              {
+                key: "public_negative_path",
+                label: "Negative-path auth/authz",
+                requirement_codes: ["FR27", "NFR5", "NFR6"],
+                evidence_type: "acceptance-test",
+                owner: "Security-aware QA",
+                status: "blocker",
+                blocker: true,
+                message: "Evidence negatif auth/authz untuk flow publik marketplace belum direkam.",
+              },
+            ],
+          },
+        ],
       },
       isLoading: false,
       error: null,
@@ -327,6 +357,9 @@ describe("tenant-settings pages", () => {
     expect(screen.getByRole("heading", { name: "Kesiapan Sistem" })).toBeTruthy();
     expect(screen.getByText("Flow inti belum siap sepenuhnya")).toBeTruthy();
     expect(screen.getByText("Kategori inventory tersedia")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Readiness Matrix Flow Kritis" })).toBeTruthy();
+    expect(screen.getByText("Marketplace Public Checkout")).toBeTruthy();
+    expect(screen.getByText("Negative-path auth/authz")).toBeTruthy();
     expect(screen.getByText("Preferensi Tenant")).toBeTruthy();
     expect(screen.getByText("Aktivasi Modul")).toBeTruthy();
     expect(screen.getByText("Kebijakan Asset & Rental")).toBeTruthy();
@@ -371,6 +404,26 @@ describe("tenant-settings pages", () => {
             items: [],
           },
         ],
+        critical_flows: [
+          {
+            key: "marketplace_public_truth",
+            label: "Marketplace Public Checkout",
+            domain: "marketplace",
+            status: "ready",
+            blocker_count: 0,
+            gates: [
+              {
+                key: "marketplace_dependency",
+                label: "Marketplace dependency ready",
+                requirement_codes: ["NFR13"],
+                evidence_type: "domain-readiness",
+                owner: "QA Lead",
+                status: "passed",
+                blocker: false,
+              },
+            ],
+          },
+        ],
       },
       isLoading: false,
       error: null,
@@ -379,5 +432,76 @@ describe("tenant-settings pages", () => {
     render(<BusinessOperationsSettingsPage />);
 
     expect(screen.getByText("Semua dependency inti sudah siap")).toBeTruthy();
+  });
+
+  it("keeps blocker alert visible when domains are ready but critical flow evidence is still blocked", () => {
+    mockUseSupportSystemReadiness.mockReturnValue({
+      data: {
+        tenant_id: 1,
+        status: "missing",
+        checked_at: "2026-03-06T00:00:00Z",
+        foundation_items: [
+          {
+            key: "business_name",
+            label: "Nama bisnis tenant",
+            status: "ready",
+          },
+        ],
+        domains: [
+          {
+            domain: "marketplace",
+            label: "Marketplace",
+            status: "ready",
+            ready_count: 4,
+            missing_count: 0,
+            items: [],
+          },
+          {
+            domain: "rental",
+            label: "Rental",
+            status: "ready",
+            ready_count: 5,
+            missing_count: 0,
+            items: [],
+          },
+          {
+            domain: "accounting",
+            label: "Accounting",
+            status: "ready",
+            ready_count: 4,
+            missing_count: 0,
+            items: [],
+          },
+        ],
+        critical_flows: [
+          {
+            key: "accounting_handoff_minimum",
+            label: "Accounting Handoff Minimum",
+            domain: "accounting",
+            status: "blocked",
+            blocker_count: 1,
+            gates: [
+              {
+                key: "period_lock_coa",
+                label: "Period lock dan COA mapping failure",
+                requirement_codes: ["FR21", "NFR9", "NFR10"],
+                evidence_type: "integration-test",
+                owner: "Finance QA Reviewer",
+                status: "blocker",
+                blocker: true,
+                message: "Evidence period lock dan missing COA mapping belum tersedia.",
+              },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<BusinessOperationsSettingsPage />);
+
+    expect(screen.getByText("Flow inti belum siap sepenuhnya")).toBeTruthy();
+    expect(screen.getByText("Accounting Handoff Minimum")).toBeTruthy();
   });
 });

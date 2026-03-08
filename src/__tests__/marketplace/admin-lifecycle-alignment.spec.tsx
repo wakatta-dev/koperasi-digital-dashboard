@@ -157,6 +157,12 @@ function makeOrderDetail(status: string) {
       reason: "Transaksi siap diteruskan ke accounting setelah verifikasi operasional.",
       reference: "MP-INV-2026-0001",
     },
+    settlement: {
+      settlement_mode: "MERCHANT_PAYOUT",
+      payout_status: "PAID",
+      payout_reference: "PAYOUT-101",
+      payout_recorded_at: "2026-02-15T08:00:00Z",
+    },
   };
 }
 
@@ -236,9 +242,13 @@ describe("admin marketplace lifecycle alignment", () => {
       expect(screen.getByText("Status Operasional")).toBeTruthy();
       expect(screen.getByText("Status Pembayaran")).toBeTruthy();
       expect(screen.getByText("Status Accounting")).toBeTruthy();
+      expect(screen.getByText("Settlement Finance")).toBeTruthy();
       expect(screen.getByText("Tindakan Berikutnya")).toBeTruthy();
       expect(screen.getByText("Tinjau Pembayaran Manual")).toBeTruthy();
       expect(screen.getByText("Siap Ditinjau")).toBeTruthy();
+      expect(screen.getByText("Butuh Payout")).toBeTruthy();
+      expect(screen.getByText("Status payout: Payout Selesai")).toBeTruthy();
+      expect(screen.getByText("PAYOUT-101")).toBeTruthy();
       expect(
         screen.getByText("Transaksi siap diteruskan ke accounting setelah verifikasi operasional."),
       ).toBeTruthy();
