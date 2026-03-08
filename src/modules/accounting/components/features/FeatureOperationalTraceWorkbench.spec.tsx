@@ -99,13 +99,15 @@ describe("FeatureOperationalTraceWorkbench", () => {
     await waitFor(() => {
       expect(screen.getByText("Operational Subledger Trace")).toBeTruthy();
       expect(screen.getAllByText("MP-INV-2026-0001").length).toBeGreaterThan(0);
-      expect(screen.getByText("RSV-000022")).toBeTruthy();
+      expect(screen.getAllByText("RSV-000022").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Siap Ditinjau").length).toBeGreaterThan(0);
       expect(screen.getByText("Belum Siap")).toBeTruthy();
       expect(screen.getByText("Perlu Rekonsiliasi")).toBeTruthy();
       expect(screen.getByText("Sinkron")).toBeTruthy();
       expect(screen.getByText("Layak lapor 1")).toBeTruthy();
       expect(screen.getByText("Reporting Basis Snapshot")).toBeTruthy();
+      expect(screen.getByText("Follow-up Queue")).toBeTruthy();
+      expect(screen.getByText("Aktif 1")).toBeTruthy();
       expect(screen.getAllByText("Siap Dilaporkan").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Tahan Pelaporan").length).toBeGreaterThan(0);
       expect(screen.getByText("Lihat Bukti Pembayaran")).toBeTruthy();
@@ -116,7 +118,7 @@ describe("FeatureOperationalTraceWorkbench", () => {
     renderFeature(<FeatureOperationalTraceWorkbench />);
 
     await waitFor(() => {
-      expect(screen.getByText("RSV-000022")).toBeTruthy();
+      expect(screen.getAllByText("RSV-000022").length).toBeGreaterThan(0);
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Perlu Rekonsiliasi" }));
@@ -124,6 +126,29 @@ describe("FeatureOperationalTraceWorkbench", () => {
     await waitFor(() => {
       expect(screen.getAllByText("RSV-000022").length).toBeGreaterThan(0);
       expect(screen.queryByText("MP-INV-2026-0001")).toBeFalsy();
+    });
+  });
+
+  it("filters follow-up queue by context", async () => {
+    renderFeature(<FeatureOperationalTraceWorkbench />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Follow-up Queue")).toBeTruthy();
+      expect(screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi.")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Accounting" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Tidak ada transaksi aktif yang membutuhkan tindak lanjut pada scope ini."),
+      ).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Pembayaran" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi.")).toBeTruthy();
     });
   });
 });

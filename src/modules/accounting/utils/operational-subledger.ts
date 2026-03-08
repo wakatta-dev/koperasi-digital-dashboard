@@ -21,6 +21,8 @@ export type OperationalTraceRow = {
   reconciliationStatus: "Sesuai" | "Perlu Tindak Lanjut";
   reportingStatus: "Siap Dilaporkan" | "Tahan Pelaporan";
   reportingReason: string;
+  attentionScope: "operasional" | "pembayaran" | "accounting" | null;
+  attentionSummary: string | null;
   detailHref: string;
 };
 
@@ -98,6 +100,12 @@ export function buildMarketplaceTraceRows(
       "Status kesiapan accounting belum dilengkapi.";
     const reconciliationStatus = toReconciliationStatus(paymentStatus, accountingStatus);
     const reportingStatus = toReportingStatus(reconciliationStatus, accountingStatus);
+    const attentionScope = toAttentionScope({
+      operationalStatus: toTitleCase(order.status),
+      paymentStatus,
+      accountingStatus,
+      reconciliationStatus,
+    });
 
     return {
       key: `marketplace-${order.id}`,
@@ -115,6 +123,13 @@ export function buildMarketplaceTraceRows(
       reportingReason: toReportingReason({
         reportingStatus,
         reconciliationStatus,
+        accountingStatus,
+        accountingReason,
+      }),
+      attentionScope,
+      attentionSummary: toAttentionSummary({
+        attentionScope,
+        paymentStatus,
         accountingStatus,
         accountingReason,
       }),
@@ -136,6 +151,12 @@ export function buildRentalTraceRows(
       "Status kesiapan accounting belum dilengkapi.";
     const reconciliationStatus = toReconciliationStatus(paymentStatus, accountingStatus);
     const reportingStatus = toReportingStatus(reconciliationStatus, accountingStatus);
+    const attentionScope = toAttentionScope({
+      operationalStatus: toTitleCase(booking.status),
+      paymentStatus,
+      accountingStatus,
+      reconciliationStatus,
+    });
 
     return {
       key: `rental-${booking.id}`,
@@ -153,6 +174,13 @@ export function buildRentalTraceRows(
       reportingReason: toReportingReason({
         reportingStatus,
         reconciliationStatus,
+        accountingStatus,
+        accountingReason,
+      }),
+      attentionScope,
+      attentionSummary: toAttentionSummary({
+        attentionScope,
+        paymentStatus,
         accountingStatus,
         accountingReason,
       }),
@@ -219,6 +247,17 @@ export function filterOperationalTraceRows(
   }
 }
 
+export function filterFollowUpQueueRows(
+  rows: OperationalTraceRow[],
+  scope: "all" | "operasional" | "pembayaran" | "accounting",
+) {
+  const queueRows = rows.filter((row) => row.attentionScope !== null);
+  if (scope === "all") {
+    return queueRows;
+  }
+  return queueRows.filter((row) => row.attentionScope === scope);
+}
+
 function toReconciliationStatus(paymentStatus: string, accountingStatus: string) {
   if (accountingStatus === "Tidak Perlu Posting") {
     return "Sesuai";
@@ -258,6 +297,45 @@ function toReportingReason(params: {
     return "Transaksi belum sinkron penuh antara pembayaran dan accounting readiness.";
   }
   return params.accountingReason;
+}
+
+function toAttentionScope(params: {
+  operationalStatus: string;
+  paymentStatus: string;
+  accountingStatus: string;
+  reconciliationStatus: OperationalTraceRow["reconciliationStatus"];
+}) {
+  if (params.reconciliationStatus === "Sesuai") {
+    return null;
+  }
+  if (params.paymentStatus === "Menunggu Pembayaran" || params.paymentStatus === "Menunggu Verifikasi" || params.paymentStatus === "Bermasalah") {
+    return "pembayaran";
+  }
+  if (params.accountingStatus === "Belum Siap" || params.accountingStatus === "Bermasalah") {
+    return "accounting";
+  }
+  if (params.operationalStatus === "Canceled" || params.operationalStatus === "Rejected") {
+    return "operasional";
+  }
+  return "operasional";
+}
+
+function toAttentionSummary(params: {
+  attentionScope: OperationalTraceRow["attentionScope"];
+  paymentStatus: string;
+  accountingStatus: string;
+  accountingReason: string;
+}) {
+  switch (params.attentionScope) {
+    case "pembayaran":
+      return `Perlu follow-up pembayaran: ${params.paymentStatus}.`;
+    case "accounting":
+      return `Perlu follow-up accounting: ${params.accountingStatus}. ${params.accountingReason}`;
+    case "operasional":
+      return "Perlu follow-up operasional agar transaksi dapat bergerak ke status berikutnya.";
+    default:
+      return null;
+  }
 }
 
 export function getTraceProofUrl(params: {

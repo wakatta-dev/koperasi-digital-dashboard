@@ -15,6 +15,7 @@ import { getAssetRentalBookings } from "@/services/api/asset-rental";
 import { getReservation } from "@/services/api/reservations";
 import {
   buildOperationalTraceRows,
+  filterFollowUpQueueRows,
   filterOperationalTraceRows,
   getTraceProofUrl,
   summarizeOperationalTrace,
@@ -37,9 +38,18 @@ const REPORTING_BADGE: Record<string, string> = {
   "Tahan Pelaporan": "bg-rose-50 text-rose-700 border border-rose-200",
 };
 
+const ATTENTION_SCOPE_BADGE: Record<string, string> = {
+  operasional: "bg-slate-100 text-slate-700 border border-slate-200",
+  pembayaran: "bg-amber-50 text-amber-700 border border-amber-200",
+  accounting: "bg-indigo-50 text-indigo-700 border border-indigo-200",
+};
+
 export function FeatureOperationalTraceWorkbench() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "attention" | "matched">("all");
+  const [queueScope, setQueueScope] = useState<
+    "all" | "operasional" | "pembayaran" | "accounting"
+  >("all");
 
   const marketplaceOrdersQuery = useMarketplaceOrders({
     limit: 8,
@@ -67,6 +77,7 @@ export function FeatureOperationalTraceWorkbench() {
   );
   const summary = useMemo(() => summarizeOperationalTrace(rows), [rows]);
   const visibleRows = useMemo(() => filterOperationalTraceRows(rows, filter), [filter, rows]);
+  const queueRows = useMemo(() => filterFollowUpQueueRows(rows, queueScope), [queueScope, rows]);
 
   useEffect(() => {
     if (!rows.length) {
@@ -272,6 +283,88 @@ export function FeatureOperationalTraceWorkbench() {
               status pembayaran sinkron, dan readiness accounting tidak bermasalah.
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="xl:col-span-2">
+        <CardHeader className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle className="text-base">Follow-up Queue</CardTitle>
+            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+              <span>Aktif {filterFollowUpQueueRows(rows, "all").length}</span>
+              <span>Pembayaran {filterFollowUpQueueRows(rows, "pembayaran").length}</span>
+              <span>Accounting {filterFollowUpQueueRows(rows, "accounting").length}</span>
+              <span>Operasional {filterFollowUpQueueRows(rows, "operasional").length}</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant={queueScope === "all" ? "default" : "outline"} size="sm" onClick={() => setQueueScope("all")}>
+              Semua
+            </Button>
+            <Button
+              variant={queueScope === "operasional" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQueueScope("operasional")}
+            >
+              Operasional
+            </Button>
+            <Button
+              variant={queueScope === "pembayaran" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQueueScope("pembayaran")}
+            >
+              Pembayaran
+            </Button>
+            <Button
+              variant={queueScope === "accounting" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQueueScope("accounting")}
+            >
+              Accounting
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {!queueRows.length ? (
+            <p className="text-sm text-muted-foreground">
+              Tidak ada transaksi aktif yang membutuhkan tindak lanjut pada scope ini.
+            </p>
+          ) : (
+            queueRows.map((row) => (
+              <div
+                key={`queue-${row.key}`}
+                className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50/80 p-4 md:flex-row md:items-start md:justify-between"
+              >
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium text-slate-900">{row.reference}</p>
+                    <Badge className={ATTENTION_SCOPE_BADGE[row.attentionScope || "operasional"]}>
+                      {row.attentionScope === "pembayaran"
+                        ? "Pembayaran"
+                        : row.attentionScope === "accounting"
+                          ? "Accounting"
+                          : "Operasional"}
+                    </Badge>
+                    <Badge className={RECONCILIATION_BADGE[row.reconciliationStatus]}>
+                      {row.reconciliationStatus}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-slate-800">{row.title}</p>
+                  <p className="text-sm text-slate-600">{row.attentionSummary}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedKey(row.key);
+                    setFilter("attention");
+                  }}
+                >
+                  Fokus ke Trace
+                </Button>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

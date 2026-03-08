@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildOperationalTraceRows,
+  filterFollowUpQueueRows,
   filterOperationalTraceRows,
   summarizeOperationalTrace,
 } from "./operational-subledger";
@@ -58,6 +59,8 @@ describe("operational subledger utils", () => {
     expect(rows[1]?.reconciliationStatus).toBe("Perlu Tindak Lanjut");
     expect(rows[0]?.reportingStatus).toBe("Siap Dilaporkan");
     expect(rows[1]?.reportingStatus).toBe("Tahan Pelaporan");
+    expect(rows[0]?.attentionScope).toBeNull();
+    expect(rows[1]?.attentionScope).toBe("pembayaran");
   });
 
   it("summarizes rows for finance attention", () => {
@@ -148,5 +151,7 @@ describe("operational subledger utils", () => {
 
     expect(filterOperationalTraceRows(rows, "attention")).toHaveLength(1);
     expect(filterOperationalTraceRows(rows, "matched")).toHaveLength(1);
+    expect(filterFollowUpQueueRows(rows, "all")).toHaveLength(1);
+    expect(filterFollowUpQueueRows(rows, "pembayaran")).toHaveLength(1);
   });
 });
