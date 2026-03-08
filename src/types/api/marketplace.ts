@@ -117,6 +117,8 @@ export type MarketplaceOrderSummaryResponse = {
   id: number;
   order_number: string;
   status: MarketplaceOrderStatusInput;
+  payment_status?: "pending" | "pending_verification" | "succeeded" | "failed" | string;
+  accounting_readiness?: MarketplaceAccountingReadinessResponse;
   fulfillment_method: string;
   customer_name: string;
   customer_phone: string;

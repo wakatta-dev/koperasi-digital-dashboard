@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAccountingReportingOverview } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
+import { FeatureOperationalTraceWorkbench } from "@/modules/accounting/components/features/FeatureOperationalTraceWorkbench";
 
 const DASHBOARD_PRESET = "today";
 
@@ -175,6 +176,8 @@ export default function AccountingDashboardPage() {
         isLoading={overviewQuery.isPending && !overviewQuery.data}
         isError={Boolean(overviewQuery.error)}
       />
+
+      <FeatureOperationalTraceWorkbench />
 
       <Card>
         <CardHeader>
