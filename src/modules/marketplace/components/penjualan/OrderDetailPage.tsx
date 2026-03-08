@@ -125,6 +125,41 @@ function resolveWorkspacePaymentState(data: any) {
   };
 }
 
+function resolveMarketplaceAccountingState(data: any) {
+  const status = normalizeOrderStatus(data?.status);
+  const manualStatus = (data?.manual_payment?.status ?? "").trim().toUpperCase();
+
+  if (manualStatus === "REJECTED") {
+    return {
+      label: "Bermasalah",
+      helper: "Ada masalah pada pembayaran sehingga transaksi belum layak diteruskan ke accounting.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+    };
+  }
+
+  if (status === "CANCELED") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper: "Order dibatalkan sehingga tidak ada handoff accounting yang perlu dijalankan.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+    };
+  }
+
+  if (status === "PENDING_PAYMENT" || status === "PAYMENT_VERIFICATION") {
+    return {
+      label: "Belum Siap",
+      helper: "Accounting menunggu kepastian pembayaran dan status operasional dasar.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+    };
+  }
+
+  return {
+    label: "Siap Ditinjau",
+    helper: "Transaksi sudah memiliki dasar operasional untuk diteruskan ke proses accounting berikutnya.",
+    className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+  };
+}
+
 function resolveNextValidAction(detail: OrderDetail | null, data: any) {
   if (!detail || !data) return null;
 
@@ -265,6 +300,10 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
   }, [detail?.internalNotes]);
 
   const workspacePaymentState = useMemo(() => resolveWorkspacePaymentState(data), [data]);
+  const accountingWorkspaceState = useMemo(
+    () => resolveMarketplaceAccountingState(data),
+    [data],
+  );
 
   const nextValidAction = useMemo(() => resolveNextValidAction(detail, data), [data, detail]);
 
@@ -341,7 +380,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             {data?.fulfillment_method === "DELIVERY" ? "Fulfillment Pengiriman" : "Fulfillment Pickup"}
           </div>
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 xl:grid-cols-4">
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Status Operasional
@@ -361,6 +400,19 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
               {workspacePaymentState.label}
             </span>
             <p className="mt-3 text-sm text-muted-foreground">{workspacePaymentState.helper}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Status Accounting
+            </p>
+            <span
+              className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${accountingWorkspaceState.className}`}
+            >
+              {accountingWorkspaceState.label}
+            </span>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {accountingWorkspaceState.helper}
+            </p>
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

@@ -230,8 +230,10 @@ describe("admin marketplace lifecycle alignment", () => {
       expect(screen.getByText("Workspace Transaksi")).toBeTruthy();
       expect(screen.getByText("Status Operasional")).toBeTruthy();
       expect(screen.getByText("Status Pembayaran")).toBeTruthy();
+      expect(screen.getByText("Status Accounting")).toBeTruthy();
       expect(screen.getByText("Tindakan Berikutnya")).toBeTruthy();
       expect(screen.getByText("Tinjau Pembayaran Manual")).toBeTruthy();
+      expect(screen.getByText("Siap Ditinjau")).toBeTruthy();
       expect(screen.getByText("Catatan: Bukti pembayaran diterima")).toBeTruthy();
       expect(screen.getByText("Akses Tracking Tamu")).toBeTruthy();
       expect(screen.getByText("Aktif")).toBeTruthy();

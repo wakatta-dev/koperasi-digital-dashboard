@@ -132,10 +132,12 @@ describe("AssetRentalAdminDetailPage", () => {
       expect(screen.getByText("Workspace Transaksi Rental")).toBeTruthy();
       expect(screen.getByText("Status Operasional")).toBeTruthy();
       expect(screen.getByText("Status Pembayaran")).toBeTruthy();
+      expect(screen.getByText("Status Accounting")).toBeTruthy();
       expect(screen.getByText("Tindakan Berikutnya")).toBeTruthy();
       expect(
         screen.getAllByText("Menunggu Verifikasi Pembayaran").length,
       ).toBeGreaterThan(0);
+      expect(screen.getByText("Belum Siap")).toBeTruthy();
       expect(screen.getByText("Tinjau Pembayaran")).toBeTruthy();
     });
   });

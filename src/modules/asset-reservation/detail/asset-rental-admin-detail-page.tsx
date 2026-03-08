@@ -205,6 +205,54 @@ function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
   };
 }
 
+function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
+  const bookingStatus = (booking?.status || "").trim().toUpperCase();
+  const paymentStatus = (
+    reservation?.latest_payment?.status ||
+    booking?.latest_payment?.status ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (bookingStatus === "REJECTED" || bookingStatus === "CANCELLED") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper: "Booking dibatalkan atau ditolak sehingga tidak perlu diteruskan ke accounting.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+    };
+  }
+
+  if (paymentStatus === "failed" || paymentStatus === "expired") {
+    return {
+      label: "Bermasalah",
+      helper: "Ada masalah pada pembayaran sehingga handoff accounting harus ditahan.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+    };
+  }
+
+  if (
+    [
+      "PENDING_REVIEW",
+      "AWAITING_DP",
+      "AWAITING_PAYMENT_VERIFICATION",
+      "AWAITING_SETTLEMENT",
+    ].includes(bookingStatus)
+  ) {
+    return {
+      label: "Belum Siap",
+      helper: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+    };
+  }
+
+  return {
+    label: "Siap Ditinjau",
+    helper: "Booking sudah cukup matang untuk diteruskan ke proses accounting berikutnya.",
+    className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+  };
+}
+
 export function AssetRentalAdminDetailPage({
   bookingId,
   section,
@@ -319,6 +367,10 @@ export function AssetRentalAdminDetailPage({
   );
   const statusMeta = toStatusMeta(resolvedBookingStatus);
   const paymentWorkspace = resolveRentalPaymentWorkspace(
+    booking,
+    reservationDetailQuery.data,
+  );
+  const accountingWorkspace = resolveRentalAccountingWorkspace(
     booking,
     reservationDetailQuery.data,
   );
@@ -558,7 +610,7 @@ export function AssetRentalAdminDetailPage({
                   Lifecycle Rental
                 </div>
               </div>
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 xl:grid-cols-4">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Status Operasional
@@ -579,6 +631,19 @@ export function AssetRentalAdminDetailPage({
                   </span>
                   <p className="mt-3 text-sm text-slate-600">
                     {paymentWorkspace.helper}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Status Accounting
+                  </p>
+                  <span
+                    className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${accountingWorkspace.className}`}
+                  >
+                    {accountingWorkspace.label}
+                  </span>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {accountingWorkspace.helper}
                   </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
