@@ -139,6 +139,8 @@ describe("AssetRentalAdminDetailPage", () => {
       ).toBeGreaterThan(0);
       expect(screen.getByText("Belum Siap")).toBeTruthy();
       expect(screen.getByText("Tinjau Pembayaran")).toBeTruthy();
+      expect(screen.getByText("Keputusan Pembayaran")).toBeTruthy();
+      expect(screen.getByText("Menunggu Keputusan Admin")).toBeTruthy();
     });
   });
 

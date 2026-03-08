@@ -23,7 +23,7 @@ type OrderManualPaymentPageProps = {
 
 const manualStatusMap: Record<string, { label: string; className: string }> = {
   WAITING_MANUAL_CONFIRMATION: {
-    label: "Menunggu Verifikasi",
+    label: "Perlu Tindak Lanjut",
     className:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-900/50",
   },
@@ -33,12 +33,12 @@ const manualStatusMap: Record<string, { label: string; className: string }> = {
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-900/50",
   },
   CONFIRMED: {
-    label: "Lunas",
+    label: "Pembayaran Terkonfirmasi",
     className:
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50",
   },
   REJECTED: {
-    label: "Gagal/Ditolak",
+    label: "Pembayaran Ditolak",
     className:
       "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50",
   },
@@ -53,20 +53,29 @@ const manualStatusOptions: Array<{
 }> = [
   {
     value: "WAITING_MANUAL_CONFIRMATION",
-    label: "Menunggu Verifikasi",
+    label: "Tandai Perlu Tindak Lanjut",
     orderStatus: "PENDING_PAYMENT",
   },
   {
     value: "CONFIRMED",
-    label: "Lunas",
+    label: "Konfirmasi Pembayaran",
     orderStatus: "PAYMENT_VERIFICATION",
   },
   {
     value: "REJECTED",
-    label: "Gagal/Ditolak",
+    label: "Tolak Pembayaran",
     orderStatus: "CANCELED",
   },
 ];
+
+const decisionHelperMap: Record<ManualPaymentStatus, string> = {
+  WAITING_MANUAL_CONFIRMATION:
+    "Gunakan opsi ini bila bukti pembayaran perlu dicek lebih lanjut atau belum cukup kuat untuk diputuskan.",
+  CONFIRMED:
+    "Gunakan opsi ini bila pembayaran valid dan siap diteruskan ke langkah operasional berikutnya.",
+  REJECTED:
+    "Gunakan opsi ini bila pembayaran ditolak dan perlu alasan yang jelas agar transaksi tetap dapat ditindaklanjuti.",
+};
 
 const normalizeManualPaymentStatus = (status?: string): ManualPaymentStatus => {
   switch (status) {
@@ -109,11 +118,19 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
   const isSubmitting = decideManualPayment.isPending;
   const isStatusUnchanged = selectedStatus === normalizedStatus;
   const isTransitionAllowed = Boolean(targetOrderStatus)
-    && isMarketplaceTransitionAllowed(currentOrderStatus, targetOrderStatus);
+    && (
+      currentOrderStatus === targetOrderStatus
+      || isMarketplaceTransitionAllowed(currentOrderStatus, targetOrderStatus)
+    );
   const reasonRequired = isMarketplaceTransitionReasonRequired(
     currentOrderStatus,
     targetOrderStatus
   );
+  const decisionNoteRequired =
+    reasonRequired || selectedStatus === "WAITING_MANUAL_CONFIRMATION" || selectedStatus === "REJECTED";
+  const operationalImpactLabel = selectedOption
+    ? normalizeOrderStatus(selectedOption.orderStatus)
+    : currentOrderStatus;
 
   const handleConfirm = async () => {
     if (!order || !targetOrderStatus || isSubmitting) return;
@@ -122,8 +139,8 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
       return;
     }
     const reason = adminNote.trim();
-    if (reasonRequired && reason.length === 0) {
-      setNoteError("Alasan wajib diisi untuk transisi status ini.");
+    if (decisionNoteRequired && reason.length === 0) {
+      setNoteError("Alasan atau catatan wajib diisi untuk keputusan ini.");
       return;
     }
     await decideManualPayment.mutateAsync({
@@ -460,18 +477,48 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {decisionHelperMap[selectedStatus]}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border bg-muted/30 p-4">
+                        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                          Ringkasan Keputusan
+                        </p>
+                        <div className="mt-3 space-y-3 text-sm">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Status Pembayaran</p>
+                            <p className="font-medium text-foreground">
+                              {manualStatusOptions.find((option) => option.value === selectedStatus)?.label}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Dampak ke Status Operasional</p>
+                            <p className="font-medium text-foreground">
+                              {operationalImpactLabel}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Catatan Keputusan</p>
+                            <p className="text-muted-foreground">
+                              {decisionNoteRequired
+                                ? "Catatan wajib untuk memastikan keputusan payment dapat ditelusuri."
+                                : "Catatan opsional, tetapi disarankan untuk konteks audit."}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
                           Catatan Admin{" "}
                           <span className="text-xs font-normal text-muted-foreground">
-                            {reasonRequired ? "(Wajib)" : "(Opsional)"}
+                            {decisionNoteRequired ? "(Wajib)" : "(Opsional)"}
                           </span>
                         </label>
                         <Textarea
                           placeholder={
-                            reasonRequired
-                              ? "Wajib isi alasan untuk perubahan status ini..."
+                            decisionNoteRequired
+                              ? "Wajib isi alasan atau catatan untuk keputusan ini..."
                               : "Tambahkan catatan internal mengenai verifikasi ini..."
                           }
                           rows={4}
@@ -499,7 +546,7 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                             isSubmitting ||
                             isStatusUnchanged ||
                             !isTransitionAllowed ||
-                            (reasonRequired && adminNote.trim().length === 0)
+                            (decisionNoteRequired && adminNote.trim().length === 0)
                           }
                         >
                           {isSubmitting

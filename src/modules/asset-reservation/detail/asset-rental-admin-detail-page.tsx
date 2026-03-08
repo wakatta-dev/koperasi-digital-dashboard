@@ -391,6 +391,17 @@ export function AssetRentalAdminDetailPage({
     .trim()
     .toLowerCase();
   const canConfirmPayment = latestPaymentStatus === "pending_verification";
+  const rentalPaymentDecisionMeta = canConfirmPayment
+    ? {
+        title: "Menunggu Keputusan Admin",
+        helper:
+          "Bukti pembayaran sudah masuk. Keputusan pembayaran akan memperbarui domain payment terlebih dahulu sebelum lifecycle rental berlanjut.",
+      }
+    : {
+        title: "Tidak Ada Keputusan Tertunda",
+        helper:
+          "Tidak ada bukti pembayaran yang sedang menunggu verifikasi pada transaksi ini.",
+      };
   const rejectionReason = booking?.rejection_reason?.trim() || "-";
   const returnConditionLabel = toReturnConditionLabel(
     booking?.return_condition,
@@ -880,6 +891,17 @@ export function AssetRentalAdminDetailPage({
                       <span className="font-medium text-slate-900">
                         {formatDateTime(latestPayment?.updated_at)}
                       </span>
+                    </p>
+                  </div>
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Keputusan Pembayaran
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-900">
+                      {rentalPaymentDecisionMeta.title}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {rentalPaymentDecisionMeta.helper}
                     </p>
                   </div>
                   {canConfirmPayment ? (
