@@ -34,6 +34,7 @@ import {
 } from "@/hooks/queries/inventory";
 import { mapInventoryProduct } from "@/modules/inventory/utils";
 import { ConfirmActionDialog } from "@/modules/marketplace/components/shared/ConfirmActionDialog";
+import { selectableInventoryCategoryNames } from "./inventoryCategoryOptions";
 
 export type ProductEditPageProps = Readonly<{
   id: string;
@@ -107,12 +108,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
 
   const [category, setCategory] = useState("");
   const categoryOptions = useMemo(() => {
-    const labels = new Set<string>();
-    (categoriesData ?? []).forEach((item) => {
-      if (item.name) labels.add(item.name);
-    });
-    if (category) labels.add(category);
-    return Array.from(labels);
+    return selectableInventoryCategoryNames(categoriesData, category);
   }, [categoriesData, category]);
 
   const [name, setName] = useState("");

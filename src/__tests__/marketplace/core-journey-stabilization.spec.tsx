@@ -157,6 +157,7 @@ describe("core buyer checkout stabilization", () => {
     resolveRequest?.(
       successEnvelope({
         id: 99,
+        order_number: "ORD-2026-099",
         status: "PENDING_PAYMENT",
         fulfillment_method: "DELIVERY",
         customer_name: "Budi Santoso",
@@ -183,6 +184,14 @@ describe("core buyer checkout stabilization", () => {
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalledTimes(1);
       expect(saveBuyerOrderContextMock).toHaveBeenCalledTimes(1);
+      expect(saveBuyerOrderContextMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: expect.objectContaining({
+            id: 99,
+            order_number: "ORD-2026-099",
+          }),
+        }),
+      );
     });
   });
 });

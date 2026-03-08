@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useMarketplaceOrder, useMarketplaceOrderActions } from "@/hooks/queries/marketplace-orders";
 import { OrderDetailHeader } from "./OrderDetailHeader";
@@ -20,6 +21,7 @@ import {
 } from "@/modules/marketplace/order/utils";
 import {
   getMarketplaceTransitionOptions,
+  getMarketplaceManualPaymentStatusLabel,
   isMarketplaceTransitionAllowed,
   isMarketplaceTransitionReasonRequired,
 } from "@/modules/marketplace/utils/status";
@@ -50,6 +52,221 @@ const resolvePaymentStatusLabel = (status?: string) => {
   if (normalized === "CANCELED") return "Gagal";
   return "Lunas";
 };
+
+const WORKSPACE_PAYMENT_BADGE_CLASS = {
+  confirmed:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50",
+  pending:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-900/50",
+  waiting:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50",
+  rejected:
+    "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50",
+} as const;
+
+function resolveWorkspacePaymentState(data: any) {
+  const manualStatus = data?.manual_payment?.status;
+
+  if (manualStatus === "CONFIRMED") {
+    return {
+      label: getMarketplaceManualPaymentStatusLabel(manualStatus),
+      helper: "Pembayaran manual sudah diverifikasi dan aman untuk diproses lebih lanjut.",
+      className: WORKSPACE_PAYMENT_BADGE_CLASS.confirmed,
+    };
+  }
+
+  if (
+    manualStatus === "MANUAL_PAYMENT_SUBMITTED" ||
+    manualStatus === "WAITING_MANUAL_CONFIRMATION"
+  ) {
+    return {
+      label: "Menunggu Verifikasi Pembayaran",
+      helper: "Bukti pembayaran sudah diterima dan masih menunggu keputusan admin.",
+      className: WORKSPACE_PAYMENT_BADGE_CLASS.pending,
+    };
+  }
+
+  if (manualStatus === "REJECTED") {
+    return {
+      label: getMarketplaceManualPaymentStatusLabel(manualStatus),
+      helper: "Pembayaran ditolak dan membutuhkan tindak lanjut sebelum order dapat berlanjut.",
+      className: WORKSPACE_PAYMENT_BADGE_CLASS.rejected,
+    };
+  }
+
+  if (data?.status === "PENDING_PAYMENT") {
+    return {
+      label: "Menunggu Pembayaran",
+      helper: "Order belum memiliki pembayaran yang tervalidasi.",
+      className: WORKSPACE_PAYMENT_BADGE_CLASS.waiting,
+    };
+  }
+
+  if (data?.status === "PAYMENT_VERIFICATION") {
+    return {
+      label: "Menunggu Verifikasi Pembayaran",
+      helper: "Order sudah berada pada tahap verifikasi pembayaran operasional.",
+      className: WORKSPACE_PAYMENT_BADGE_CLASS.pending,
+    };
+  }
+
+  if (data?.status === "CANCELED") {
+    return {
+      label: "Pembayaran Tidak Aktif",
+      helper: "Order dibatalkan sehingga tidak ada pembayaran aktif yang perlu ditindaklanjuti.",
+      className: WORKSPACE_PAYMENT_BADGE_CLASS.rejected,
+    };
+  }
+
+  return {
+    label: "Pembayaran Terkonfirmasi",
+    helper: "Order sudah berada pada tahap operasional setelah pembayaran diputuskan.",
+    className: WORKSPACE_PAYMENT_BADGE_CLASS.confirmed,
+  };
+}
+
+function resolveMarketplaceAccountingState(data: any) {
+  const readiness = data?.accounting_readiness;
+  const readinessStatus = String(readiness?.status ?? "").trim().toLowerCase();
+  if (readinessStatus === "problematic") {
+    return {
+      label: "Bermasalah",
+      helper:
+        readiness?.reason ||
+        "Ada masalah pada pembayaran sehingga transaksi belum layak diteruskan ke accounting.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "not_applicable") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper:
+        readiness?.reason ||
+        "Order dibatalkan sehingga tidak ada handoff accounting yang perlu dijalankan.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "not_ready") {
+    return {
+      label: "Belum Siap",
+      helper:
+        readiness?.reason ||
+        "Accounting menunggu kepastian pembayaran dan status operasional dasar.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "ready") {
+    return {
+      label: "Siap Ditinjau",
+      helper:
+        readiness?.reason ||
+        "Transaksi sudah memiliki dasar operasional untuk diteruskan ke proses accounting berikutnya.",
+      className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  const status = normalizeOrderStatus(data?.status);
+  const manualStatus = (data?.manual_payment?.status ?? "").trim().toUpperCase();
+
+  if (manualStatus === "REJECTED") {
+    return {
+      label: "Bermasalah",
+      helper: "Ada masalah pada pembayaran sehingga transaksi belum layak diteruskan ke accounting.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+      reference: null,
+    };
+  }
+
+  if (status === "CANCELED") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper: "Order dibatalkan sehingga tidak ada handoff accounting yang perlu dijalankan.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: null,
+    };
+  }
+
+  if (status === "PENDING_PAYMENT" || status === "PAYMENT_VERIFICATION") {
+    return {
+      label: "Belum Siap",
+      helper: "Accounting menunggu kepastian pembayaran dan status operasional dasar.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: null,
+    };
+  }
+
+  return {
+    label: "Siap Ditinjau",
+    helper: "Transaksi sudah memiliki dasar operasional untuk diteruskan ke proses accounting berikutnya.",
+    className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+    reference: null,
+  };
+}
+
+function resolveSettlementModeLabel(mode?: string) {
+  const normalized = String(mode ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "DIRECT_REVENUE":
+      return "Pendapatan Langsung";
+    case "MERCHANT_PAYOUT":
+      return "Butuh Payout";
+    default:
+      return "Belum Diatur";
+  }
+}
+
+function resolvePayoutStatusLabel(status?: string) {
+  const normalized = String(status ?? "").trim().toUpperCase();
+  switch (normalized) {
+    case "NOT_APPLICABLE":
+      return "Tidak Berlaku";
+    case "PENDING_PAYOUT":
+      return "Menunggu Payout";
+    case "SCHEDULED":
+      return "Payout Dijadwalkan";
+    case "PAID":
+      return "Payout Selesai";
+    default:
+      return "Belum Diatur";
+  }
+}
+
+function resolveNextValidAction(detail: OrderDetail | null, data: any) {
+  if (!detail || !data) return null;
+
+  if (
+    data.manual_payment &&
+    ["MANUAL_PAYMENT_SUBMITTED", "WAITING_MANUAL_CONFIRMATION"].includes(
+      data.manual_payment.status ?? "",
+    )
+  ) {
+    return {
+      label: "Tinjau Pembayaran Manual",
+      helper:
+        "Bukti pembayaran manual tersedia dan harus ditinjau sebelum proses order dilanjutkan.",
+    };
+  }
+
+  const options = getMarketplaceTransitionOptions(detail.status);
+  if (options.length > 0) {
+    return {
+      label: options[0]?.label ?? "Update Status",
+      helper: "Ini adalah tindakan operasional berikutnya yang valid dari status order saat ini.",
+    };
+  }
+
+  return {
+    label: "Tidak Ada Aksi Lanjutan",
+    helper: "Order sudah berada pada status terminal atau tidak memiliki langkah operasional berikutnya.",
+  };
+}
 
 export function OrderDetailPage({ id }: OrderDetailPageProps) {
   const { data, isLoading, isError, error } = useMarketplaceOrder(id);
@@ -100,6 +317,12 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
       manualPaymentAccountName: data.manual_payment?.account_name,
       manualPaymentTransferAmount: data.manual_payment?.transfer_amount,
       manualPaymentTransferDate: data.manual_payment?.transfer_date,
+      statusHistory:
+        data.status_history?.map((entry) => ({
+          status: mapStatusLabel(entry.status),
+          timestamp: formatOrderDateTime(entry.timestamp),
+          reason: entry.reason ?? null,
+        })) ?? [],
       customer: {
         name: data.customer_name,
         email: data.customer_email,
@@ -153,6 +376,14 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
   useEffect(() => {
     setInternalNotes(detail?.internalNotes ?? "");
   }, [detail?.internalNotes]);
+
+  const workspacePaymentState = useMemo(() => resolveWorkspacePaymentState(data), [data]);
+  const accountingWorkspaceState = useMemo(
+    () => resolveMarketplaceAccountingState(data),
+    [data],
+  );
+
+  const nextValidAction = useMemo(() => resolveNextValidAction(detail, data), [data, detail]);
 
   const reasonRequired = useMemo(
     () =>
@@ -212,6 +443,101 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         onUpdateStatus={handleOpenStatus}
       />
 
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Workspace Transaksi
+            </p>
+            <h3 className="mt-1 text-xl font-bold text-foreground">{detail.orderCode}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Terakhir diperbarui {formatOrderDateTime(data?.updated_at ?? data?.created_at)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+            {data?.fulfillment_method === "DELIVERY" ? "Fulfillment Pengiriman" : "Fulfillment Pickup"}
+          </div>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-4">
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Status Operasional
+            </p>
+            <Badge className="mt-2">{getOrderStatusDisplayLabel(detail.status)}</Badge>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Status operasional mengikuti lifecycle pemrosesan order marketplace.
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Status Pembayaran
+            </p>
+            <span
+              className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${workspacePaymentState.className}`}
+            >
+              {workspacePaymentState.label}
+            </span>
+            <p className="mt-3 text-sm text-muted-foreground">{workspacePaymentState.helper}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Status Accounting
+            </p>
+            <span
+              className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${accountingWorkspaceState.className}`}
+            >
+              {accountingWorkspaceState.label}
+            </span>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {accountingWorkspaceState.helper}
+            </p>
+            {accountingWorkspaceState.reference ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Referensi Accounting:{" "}
+                <span className="font-medium text-foreground">
+                  {accountingWorkspaceState.reference}
+                </span>
+              </p>
+            ) : null}
+          </div>
+          <div className="rounded-lg border border-border bg-muted/30 p-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Tindakan Berikutnya
+            </p>
+            <p className="mt-2 text-sm font-semibold text-foreground">
+              {nextValidAction?.label ?? "Tidak Ada Aksi Lanjutan"}
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground">{nextValidAction?.helper}</p>
+          </div>
+        </div>
+        <div className="mt-4 rounded-lg border border-border bg-muted/20 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Settlement Finance
+              </p>
+              <p className="mt-2 text-sm font-semibold text-foreground">
+                {resolveSettlementModeLabel(data?.settlement?.settlement_mode)}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Status payout: {resolvePayoutStatusLabel(data?.settlement?.payout_status)}
+              </p>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>
+                Referensi Payout:{" "}
+                <span className="font-medium text-foreground">
+                  {data?.settlement?.payout_reference || "-"}
+                </span>
+              </p>
+              <p className="mt-2">
+                Status operasional tetap mengikuti lifecycle order dan tidak berubah oleh settlement.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <OrderItemsTable
@@ -253,6 +579,31 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             billingSameAsShipping
           />
           <OrderNotesForm value={internalNotes} onChange={setInternalNotes} />
+          <div className="surface-card p-6">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Riwayat Status</h3>
+            <div className="mt-4 space-y-4">
+              {detail.statusHistory.length > 0 ? (
+                detail.statusHistory.map((entry, index) => (
+                  <div
+                    key={`${entry.status}-${entry.timestamp}-${index}`}
+                    className="rounded-lg border border-border bg-muted/20 p-4"
+                  >
+                    <p className="text-sm font-semibold text-foreground">
+                      {getOrderStatusDisplayLabel(entry.status)}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{entry.timestamp}</p>
+                    {entry.reason ? (
+                      <p className="mt-2 text-sm text-muted-foreground">Catatan: {entry.reason}</p>
+                    ) : null}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Belum ada riwayat status untuk transaksi ini.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

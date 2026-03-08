@@ -67,11 +67,14 @@ export function MarketplaceConfirmationPage() {
     if (guestStatusDetail?.order_number) {
       return `#${guestStatusDetail.order_number}`;
     }
+    if (storedContext?.order.order_number?.trim()) {
+      return `#${storedContext.order.order_number.trim()}`;
+    }
     if (storedContext?.order.id) {
       return `#ORD-${storedContext.order.id}`;
     }
     return "-";
-  }, [guestStatusDetail?.order_number, storedContext?.order.id]);
+  }, [guestStatusDetail?.order_number, storedContext?.order.id, storedContext?.order.order_number]);
 
   const statusLabel = getMarketplaceCanonicalStatusLabel(
     guestStatusDetail?.status ?? storedContext?.order.status

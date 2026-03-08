@@ -27,4 +27,6 @@ export type InventoryItem = {
   costPrice?: number;
   marketplaceEligible: boolean;
   ineligibleReasons: string[];
+  marketplacePublicationReady: boolean;
+  marketplacePublicationIssues: string[];
 };

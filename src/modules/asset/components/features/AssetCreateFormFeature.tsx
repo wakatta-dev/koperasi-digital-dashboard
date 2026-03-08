@@ -26,6 +26,8 @@ type AssetFormOptionGroups = Readonly<{
   locations: string[];
 }>;
 
+const DRAFT_INTERNAL_STATUS = "Draft Internal";
+
 type AssetCreateFormFeatureProps = Readonly<{
   onCancel?: () => void;
   onSubmit?: (payload: AssetFormModel) => void | Promise<void>;
@@ -78,7 +80,10 @@ export function AssetCreateFormFeature({
 
   useEffect(() => {
     if (!status && statuses.length > 0) {
-      setStatus(statuses[0]);
+      setStatus(
+        statuses.find((option) => option.toLowerCase() === DRAFT_INTERNAL_STATUS.toLowerCase()) ??
+          statuses[0],
+      );
     }
   }, [status, statuses]);
 
@@ -170,6 +175,10 @@ export function AssetCreateFormFeature({
                 ))}
               </SelectContent>
             </Select>
+            <p className="mt-2 text-xs text-slate-500">
+              Aset baru sebaiknya tetap berada pada lifecycle internal dulu. Aktivasi ke status
+              publik hanya akan berhasil jika data minimum aset sudah lengkap.
+            </p>
           </div>
           <div className="md:col-span-2">
             <Label className="mb-1 block">Foto Aset</Label>

@@ -139,6 +139,53 @@ export interface SupportOperationalSettings {
   marketplace_accounting: SupportMarketplaceAccountingSection;
 }
 
+export interface SupportReadinessItem {
+  key: string;
+  label: string;
+  status: "ready" | "missing";
+  message?: string;
+  source?: string;
+}
+
+export interface SupportReadinessDomain {
+  domain: string;
+  label: string;
+  status: "ready" | "missing";
+  ready_count: number;
+  missing_count: number;
+  items: SupportReadinessItem[];
+}
+
+export interface SupportCriticalFlowGate {
+  key: string;
+  label: string;
+  requirement_codes: string[];
+  evidence_type: string;
+  owner: string;
+  status: "passed" | "blocker";
+  blocker: boolean;
+  message?: string;
+  source?: string;
+}
+
+export interface SupportCriticalFlow {
+  key: string;
+  label: string;
+  domain: string;
+  status: "ready" | "blocked";
+  blocker_count: number;
+  gates: SupportCriticalFlowGate[];
+}
+
+export interface SupportSystemReadiness {
+  tenant_id: number;
+  status: "ready" | "missing";
+  checked_at: Rfc3339String;
+  foundation_items: SupportReadinessItem[];
+  domains: SupportReadinessDomain[];
+  critical_flows: SupportCriticalFlow[];
+}
+
 export interface SectionConcurrencyRequest {
   expected_updated_at?: Rfc3339String;
 }
@@ -263,6 +310,77 @@ export interface SupportActivityLogParams {
   action?: string;
 }
 
+export interface SupportOperationalExceptionContextParams {
+  domain: "marketplace" | "rental";
+  source_id: string | number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+}
+
+export interface SupportOperationalExceptionNote {
+  id: number;
+  action: string;
+  status: "none" | "active" | "resolved" | "escalated" | string;
+  message: string;
+  owner_label?: string;
+  next_step?: string;
+  actor_label: string;
+  timestamp: Rfc3339String;
+}
+
+export interface SupportOperationalExceptionAuditEntry {
+  id: number;
+  action: string;
+  old_status?: "none" | "active" | "resolved" | "escalated" | string;
+  new_status?: "none" | "active" | "resolved" | "escalated" | string;
+  reason?: string;
+  actor_label: string;
+  request_id?: string;
+  timestamp: Rfc3339String;
+}
+
+export interface SupportOperationalExceptionContext {
+  domain: "marketplace" | "rental";
+  source_id: number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+  exception_code?: string;
+  severity?: "low" | "medium" | "high" | string;
+  recommended_action?: string;
+  status: "none" | "active" | "resolved" | "escalated" | string;
+  owner_label?: string;
+  next_step?: string;
+  last_message?: string;
+  updated_at?: Rfc3339String;
+  notes: SupportOperationalExceptionNote[];
+  audit_entries: SupportOperationalExceptionAuditEntry[];
+}
+
+export interface CreateSupportOperationalExceptionNoteRequest {
+  domain: "marketplace" | "rental";
+  source_id: number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+  owner_label: string;
+  next_step: string;
+  message: string;
+}
+
+export interface UpdateSupportOperationalExceptionDecisionRequest {
+  domain: "marketplace" | "rental";
+  source_id: number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+  owner_label?: string;
+  next_step?: string;
+  message: string;
+  status: "resolved" | "escalated";
+}
+
 export type SupportGlobalConfigResponse = ApiResponse<SupportGlobalConfig>;
 export type SupportTenantConfigResponse = ApiResponse<SupportTenantConfig>;
 export type UpdateSupportTenantConfigResponse = ApiResponse<SupportTenantConfig>;
@@ -270,6 +388,7 @@ export type SupportProfileSettingsResponse = ApiResponse<SupportProfileSettings>
 export type SupportProfileIdentityResponse = ApiResponse<SupportProfileIdentitySection>;
 export type SupportProfileContactDomainResponse = ApiResponse<SupportProfileContactDomainSection>;
 export type SupportOperationalSettingsResponse = ApiResponse<SupportOperationalSettings>;
+export type SupportSystemReadinessResponse = ApiResponse<SupportSystemReadiness>;
 export type SupportOperationalPreferencesResponse = ApiResponse<SupportOperationalPreferencesSection>;
 export type SupportOperationalModulesResponse = ApiResponse<SupportOperationalModulesSection>;
 export type SupportOperationalAssetRentalResponse = ApiResponse<SupportAssetRentalSettingsSection>;
@@ -279,3 +398,5 @@ export type SupportEmailTemplatesResponse = ApiResponse<SupportEmailTemplate[]>;
 export type SupportEmailTemplateResponse = ApiResponse<SupportEmailTemplate>;
 export type SupportEmailSendResponse = ApiResponse<SupportEmailLog>;
 export type SupportActivityLogResponse = ApiResponse<SupportActivityLogList>;
+export type SupportOperationalExceptionContextResponse =
+  ApiResponse<SupportOperationalExceptionContext>;

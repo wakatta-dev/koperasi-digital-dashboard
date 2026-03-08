@@ -40,6 +40,12 @@ export type AssetRentalBookingPayment = {
   updated_at?: number;
 };
 
+export type AssetRentalAccountingReadiness = {
+  status: "not_ready" | "ready" | "problematic" | "not_applicable" | string;
+  reason?: string;
+  reference?: string;
+};
+
 export type AssetRentalBooking = {
   id: number;
   asset_id: number;
@@ -59,6 +65,7 @@ export type AssetRentalBooking = {
   return_condition?: string;
   return_condition_notes?: string;
   latest_payment?: AssetRentalBookingPayment;
+  accounting_readiness?: AssetRentalAccountingReadiness;
 };
 
 export type AssetRentalAssetListResponse = ApiResponse<AssetRentalAsset[]>;

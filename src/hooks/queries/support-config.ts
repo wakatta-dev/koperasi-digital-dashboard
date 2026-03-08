@@ -7,8 +7,11 @@ import { toast } from "sonner";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
 import type {
+  CreateSupportOperationalExceptionNoteRequest,
   SendSupportEmailRequest,
+  SupportOperationalExceptionContextParams,
   SupportActivityLogParams,
+  UpdateSupportOperationalExceptionDecisionRequest,
   UpdateSupportOperationalAssetRentalRequest,
   UpdateSupportOperationalMarketplaceAccountingRequest,
   UpdateSupportOperationalModulesRequest,
@@ -19,13 +22,17 @@ import type {
 } from "@/types/api";
 import {
   getSupportGlobalConfig,
+  getSupportOperationalExceptionContext,
   getSupportOperationalSettings,
   getSupportProfileSettings,
+  getSupportSystemReadiness,
   getSupportTenantConfig,
   listSupportActivityLogs,
   listSupportEmailTemplates,
   sendSupportEmail,
+  createSupportOperationalExceptionNote,
   updateSupportOperationalAssetRental,
+  updateSupportOperationalExceptionDecision,
   updateSupportOperationalMarketplaceAccounting,
   updateSupportOperationalModules,
   updateSupportOperationalPreferences,
@@ -49,6 +56,13 @@ export function useSupportTenantConfig() {
   });
 }
 
+export function useSupportSystemReadiness() {
+  return useQuery({
+    queryKey: QK.settings.supportReadiness(),
+    queryFn: async () => ensureSuccess(await getSupportSystemReadiness()),
+  });
+}
+
 export function useSupportProfileSettings() {
   return useQuery({
     queryKey: QK.settings.supportProfileSettings(),
@@ -69,6 +83,7 @@ export function useSupportTenantConfigActions() {
     mutationFn: async (payload: UpdateSupportTenantConfigRequest) =>
       ensureSuccess(await updateSupportTenantConfig(payload)),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
       qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
       toast.success("Pengaturan tenant berhasil disimpan.");
     },
@@ -87,6 +102,7 @@ export function useSupportProfileActions() {
     mutationFn: async (payload: UpdateSupportProfileIdentityRequest) =>
       ensureSuccess(await updateSupportProfileIdentity(payload)),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
       qc.invalidateQueries({ queryKey: QK.settings.supportProfileSettings() });
       qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
       toast.success("Identitas tenant berhasil disimpan.");
@@ -100,6 +116,7 @@ export function useSupportProfileActions() {
     mutationFn: async (payload: UpdateSupportProfileContactDomainRequest) =>
       ensureSuccess(await updateSupportProfileContactDomain(payload)),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
       qc.invalidateQueries({ queryKey: QK.settings.supportProfileSettings() });
       qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
       toast.success("Kontak dan domain berhasil disimpan.");
@@ -115,6 +132,7 @@ export function useSupportProfileActions() {
 export function useSupportOperationalActions() {
   const qc = useQueryClient();
   const invalidateOperational = () => {
+    qc.invalidateQueries({ queryKey: QK.settings.supportReadiness() });
     qc.invalidateQueries({ queryKey: QK.settings.supportOperationalSettings() });
     qc.invalidateQueries({ queryKey: QK.settings.supportTenantConfig() });
   };
@@ -226,4 +244,61 @@ export function useSupportActivityLogs(params?: SupportActivityLogParams) {
       return res;
     },
   });
+}
+
+export function useSupportOperationalExceptionContext(
+  params?: SupportOperationalExceptionContextParams
+) {
+  return useQuery({
+    queryKey: params
+      ? QK.settings.operationalExceptionContext(params.domain, params.source_id)
+      : ["settings", "support", "operational-exception", "empty"],
+    enabled: Boolean(params?.domain && params?.source_id),
+    queryFn: async () => ensureSuccess(await getSupportOperationalExceptionContext(params!)),
+  });
+}
+
+export function useSupportOperationalExceptionActions(
+  domain?: string,
+  sourceId?: string | number
+) {
+  const qc = useQueryClient();
+  const invalidateContext = () => {
+    if (!domain || sourceId === undefined || sourceId === null || sourceId === "") {
+      return;
+    }
+    qc.invalidateQueries({
+      queryKey: QK.settings.operationalExceptionContext(domain, sourceId),
+    });
+  };
+
+  const saveNote = useMutation({
+    mutationFn: async (payload: CreateSupportOperationalExceptionNoteRequest) =>
+      ensureSuccess(await createSupportOperationalExceptionNote(payload)),
+    onSuccess: () => {
+      invalidateContext();
+      toast.success("Catatan exception berhasil disimpan.");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal menyimpan catatan exception.");
+    },
+  });
+
+  const applyDecision = useMutation({
+    mutationFn: async (payload: UpdateSupportOperationalExceptionDecisionRequest) =>
+      ensureSuccess(await updateSupportOperationalExceptionDecision(payload)),
+    onSuccess: (_, vars) => {
+      invalidateContext();
+      toast.success(
+        vars.status === "resolved"
+          ? "Exception ditandai selesai."
+          : "Exception berhasil dieskalasi."
+      );
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Gagal memperbarui status exception.");
+    },
+  });
+
+  return { saveNote, applyDecision } as const;
 }

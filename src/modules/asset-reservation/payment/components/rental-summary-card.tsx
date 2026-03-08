@@ -2,6 +2,7 @@
 
 import type { ReservationSummary } from "../../types";
 import { humanizeReservationStatus } from "../../utils/status";
+import { formatPublicReservationIdentifier } from "../../guest/utils/public-status";
 
 type RentalSummaryCardProps = {
   reservation: ReservationSummary;
@@ -42,7 +43,8 @@ export function RentalSummaryCard({ reservation }: RentalSummaryCardProps) {
               {reservation.assetName || "Aset tanpa nama"}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Status: {humanizeReservationStatus(reservation.status)}
+              {formatPublicReservationIdentifier(reservation.reservationId)} ·{" "}
+              {humanizeReservationStatus(reservation.status)}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4">

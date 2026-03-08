@@ -4,7 +4,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useSupportOperationalActions, useSupportOperationalSettings } from "@/hooks/queries";
+import {
+  useSupportOperationalActions,
+  useSupportOperationalSettings,
+  useSupportSystemReadiness,
+} from "@/hooks/queries";
 import { isDeepEqual } from "../../lib/forms";
 import { canManageTenantSettings } from "../../lib/settings";
 import type {
@@ -17,6 +21,7 @@ import { FeatureAssetRentalPolicyCard } from "../features/FeatureAssetRentalPoli
 import { FeatureMarketplaceAccountingPolicyCard } from "../features/FeatureMarketplaceAccountingPolicyCard";
 import { FeatureOperationalModulesCard } from "../features/FeatureOperationalModulesCard";
 import { FeatureOperationalPreferenceCard } from "../features/FeatureOperationalPreferenceCard";
+import { FeatureSystemReadinessCard } from "../features/FeatureSystemReadinessCard";
 import { SettingsErrorBanner } from "../shared/SettingsErrorBanner";
 import { SettingsReadOnlyAlert } from "../shared/SettingsReadOnlyAlert";
 import { SettingsSectionHeading } from "../shared/SettingsSectionHeading";
@@ -63,6 +68,7 @@ export function BusinessOperationsSettingsPage() {
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
   const operationalQuery = useSupportOperationalSettings();
+  const readinessQuery = useSupportSystemReadiness();
   const {
     savePreferences,
     saveModules,
@@ -117,6 +123,12 @@ export function BusinessOperationsSettingsPage() {
       {operationalQuery.error ? (
         <SettingsErrorBanner message={(operationalQuery.error as Error).message} />
       ) : null}
+
+      <FeatureSystemReadinessCard
+        data={readinessQuery.data}
+        isLoading={readinessQuery.isLoading}
+        error={readinessQuery.error as Error | null}
+      />
 
       <FeatureOperationalPreferenceCard
         value={preferencesForm}

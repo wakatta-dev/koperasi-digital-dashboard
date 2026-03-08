@@ -12,29 +12,46 @@ import EnterpriseLoading from "./enterprise-loading";
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredRole?: UserRole;
+  allowedRoles?: string[];
+  fallbackPath?: string;
+}
+
+function normalizeRoleName(role: unknown): string {
+  return String(role ?? "").trim().toLowerCase();
 }
 
 export function ProtectedRoute({
   children,
   requiredRole,
+  allowedRoles,
+  fallbackPath,
 }: ProtectedRouteProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
     if (status !== "loading") {
-      const role = (session?.user as any)?.jenis_tenant;
+      const tenantType = (session?.user as any)?.jenis_tenant;
+      const internalRole = normalizeRoleName((session?.user as any)?.role);
       if (!session?.user) {
         router.push("/login");
         return;
       }
 
-      if (requiredRole && role !== requiredRole) {
+      if (requiredRole && tenantType !== requiredRole) {
         router.push("/login");
         return;
       }
+
+      if (
+        allowedRoles?.length &&
+        !allowedRoles.map(normalizeRoleName).includes(internalRole)
+      ) {
+        router.push(fallbackPath ?? (tenantType ? `/${tenantType}/dashboard` : "/login"));
+        return;
+      }
     }
-  }, [session, status, requiredRole, router]);
+  }, [session, status, requiredRole, allowedRoles, fallbackPath, router]);
 
   if (status === "loading") {
     return (
@@ -48,9 +65,17 @@ export function ProtectedRoute({
     );
   }
 
-  const role = (session?.user as any)?.jenis_tenant;
+  const tenantType = (session?.user as any)?.jenis_tenant;
+  const internalRole = normalizeRoleName((session?.user as any)?.role);
 
-  if (!session?.user || (requiredRole && role !== requiredRole)) {
+  if (!session?.user || (requiredRole && tenantType !== requiredRole)) {
+    return null;
+  }
+
+  if (
+    allowedRoles?.length &&
+    !allowedRoles.map(normalizeRoleName).includes(internalRole)
+  ) {
     return null;
   }
 

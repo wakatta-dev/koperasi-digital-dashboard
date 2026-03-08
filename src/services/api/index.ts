@@ -29,3 +29,4 @@ export * from "./accounting-reporting";
 export * from "./support-config";
 export * from "./support-email";
 export * from "./support-activity-logs";
+export * from "./support-operational-exceptions";

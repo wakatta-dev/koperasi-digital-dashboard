@@ -114,6 +114,7 @@ describe("payment and confirmation context integrity", () => {
     getBuyerOrderContextMock.mockReturnValue({
       order: {
         id: 55,
+        order_number: "ORD-2026-055",
         status: "PENDING_PAYMENT",
         fulfillment_method: "DELIVERY",
         customer_name: "Budi Santoso",
@@ -231,6 +232,93 @@ describe("payment and confirmation context integrity", () => {
     expect(screen.getByText("Kopi Arabika x 1")).toBeTruthy();
   });
 
+  it("uses stored public order number when local buyer context is the only source", async () => {
+    currentSearchParams = new URLSearchParams("order_id=77");
+
+    useMarketplaceGuestOrderStatusMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    getBuyerOrderContextMock.mockReturnValue({
+      order: {
+        id: 77,
+        order_number: "ORD-2026-077",
+        status: "PENDING_PAYMENT",
+        fulfillment_method: "DELIVERY",
+        customer_name: "Sinta",
+        customer_phone: "081212300000",
+        customer_email: "buyer@example.com",
+        customer_address: "Jl. Melati No. 10",
+        notes: "-",
+        total: 50000,
+        items: [
+          {
+            order_item_id: 12,
+            product_id: 1,
+            product_name: "Kopi Arabika",
+            product_sku: "KOP-001",
+            quantity: 1,
+            price: 50000,
+            subtotal: 50000,
+          },
+        ],
+        created_at: 1739491200,
+      },
+      checkout: {
+        customerName: "Sinta",
+        customerPhone: "081212300000",
+        customerEmail: "buyer@example.com",
+        customerAddress: "Jl. Melati No. 10",
+        shippingOption: "REGULER",
+        paymentMethod: "TRANSFER_BANK",
+        submittedAt: Date.now(),
+      },
+    });
+
+    trackMarketplaceOrderMock.mockResolvedValue(
+      successResponse({
+        order_id: 77,
+        order_number: "ORD-2026-077",
+        status: "PENDING_PAYMENT",
+        tracking_token: "track-77",
+      }),
+    );
+
+    submitMarketplaceManualPaymentMock.mockResolvedValue(
+      successResponse({
+        status: "MANUAL_PAYMENT_SUBMITTED",
+        proof_url: "https://example.com/proof.png",
+        proof_filename: "proof.png",
+        created_at: 1739491200,
+        updated_at: 1739491200,
+      }),
+    );
+
+    const { unmount, container } = render(<MarketplacePaymentPage />);
+    expect(screen.getByText("Order ID: #ORD-2026-077")).toBeTruthy();
+
+    const input = container.querySelector("input[type='file']") as HTMLInputElement;
+    const file = new File(["proof"], "proof.png", { type: "image/png" });
+    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Konfirmasi Pembayaran Saya" }),
+    );
+
+    await waitFor(() => {
+      expect(trackMarketplaceOrderMock).toHaveBeenCalledWith({
+        order_number: "ORD-2026-077",
+        contact: "buyer@example.com",
+      });
+    });
+
+    unmount();
+    render(<MarketplaceConfirmationPage />);
+    expect(screen.getByText("#ORD-2026-077")).toBeTruthy();
+  });
+
   it("shows local-context indicator when backend detail is unavailable", () => {
     currentSearchParams = new URLSearchParams("order_id=77");
 
@@ -244,6 +332,7 @@ describe("payment and confirmation context integrity", () => {
     getBuyerOrderContextMock.mockReturnValue({
       order: {
         id: 77,
+        order_number: "ORD-2026-077",
         status: "PENDING_PAYMENT",
         fulfillment_method: "DELIVERY",
         customer_name: "Sinta",

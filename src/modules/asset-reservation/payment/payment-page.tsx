@@ -10,10 +10,12 @@ import { PaymentSidebar } from "./components/payment-sidebar";
 import { PaymentShell } from "./shared/payment-shell";
 import { useReservation } from "../hooks";
 import { humanizeReservationStatus } from "../utils/status";
+import { formatPublicReservationIdentifier } from "../guest/utils/public-status";
 import { PAYMENT_METHOD_GROUPS } from "./constants";
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QK } from "@/hooks/queries/queryKeys";
+import { assessPublicPaymentAccess } from "./utils/public-payment";
 
 type AssetPaymentPageProps = {
   reservationId?: number;
@@ -39,16 +41,29 @@ export function AssetPaymentPage({
 
   const infoMissingReservation = !reservationId && !loading;
   const paymentMode = mode;
+  const paymentAccess = reservation
+    ? assessPublicPaymentAccess(reservation.status, paymentMode)
+    : null;
+  const publicPaymentError =
+    reservation && paymentAccess && !paymentAccess.allowed
+      ? paymentAccess.message
+      : null;
 
   return (
     <PaymentShell
       mode={paymentMode}
       loading={loading}
-      error={errorMessage || (infoMissingReservation ? "ID reservasi tidak ditemukan." : null)}
+      error={
+        errorMessage ||
+        (infoMissingReservation ? "ID reservasi tidak ditemukan." : null) ||
+        publicPaymentError
+      }
       info={
         reservation ? (
           <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-3 text-sm text-gray-800 dark:text-gray-200">
-            <div className="font-semibold">ID Reservasi: {reservation.reservationId}</div>
+            <div className="font-semibold">
+              Nomor Tiket: {formatPublicReservationIdentifier(reservation.reservationId)}
+            </div>
             <div>
               Status:{" "}
               <span className="font-medium">
@@ -67,7 +82,7 @@ export function AssetPaymentPage({
       header={<PaymentHeader backHref="/penyewaan-aset/status" />}
       summary={reservation ? <RentalSummaryCard reservation={reservation} /> : null}
       methods={
-        reservation ? (
+        reservation && paymentAccess?.allowed ? (
           <PaymentMethods
             mode={paymentMode}
             methodGroups={PAYMENT_METHOD_GROUPS}

@@ -30,6 +30,8 @@ export type ProductListItem = {
   sku: string;
   category: string;
   status: ProductStatus;
+  internalStatus?: string;
+  marketplaceLabel?: string;
   stockCount: number;
   price: number;
   thumbnailUrl?: string | null;
@@ -140,6 +142,11 @@ export type OrderDetail = {
   manualPaymentAccountName?: string;
   manualPaymentTransferAmount?: number;
   manualPaymentTransferDate?: string;
+  statusHistory: Array<{
+    status: OrderStatus;
+    timestamp: string;
+    reason?: string | null;
+  }>;
   customer: CustomerSummary;
   shippingAddress: Address;
   billingAddress: Address;

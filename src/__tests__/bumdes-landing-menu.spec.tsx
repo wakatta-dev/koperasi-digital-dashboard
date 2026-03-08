@@ -9,6 +9,12 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/bumdes/landing-page",
 }));
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({
+    data: { user: { role: "admin", jenis_tenant: "bumdes" } },
+  }),
+}));
+
 vi.mock("@/components/shared/protected-route", () => ({
   ProtectedRoute: ({ children, requiredRole }: { children: ReactNode; requiredRole?: string }) => (
     <div data-testid="protected-route" data-required-role={requiredRole}>
@@ -35,7 +41,7 @@ vi.mock("@/hooks/queries/support-config", () => ({
 }));
 
 import BumdesLayout from "@/app/(mvp)/bumdes/layout";
-import { bumdesNavigation } from "@/app/(mvp)/bumdes/navigation";
+import { bumdesNavigation, getBumdesNavigation } from "@/app/(mvp)/bumdes/navigation";
 
 describe("BUMDes Landing Page menu", () => {
   it("uses a single landing page entry without submenu", () => {
@@ -57,5 +63,20 @@ describe("BUMDes Landing Page menu", () => {
 
     const guard = screen.getByTestId("protected-route");
     expect(guard.getAttribute("data-required-role")).toBe("bumdes");
+  });
+
+  it("filters BUMDes navigation for finance roles", () => {
+    const financeNavigation = getBumdesNavigation(
+      {
+        marketplace_enabled: true,
+        asset_rental_enabled: true,
+      },
+      "finance"
+    );
+
+    expect(financeNavigation.some((item) => item.name === "Accounting")).toBe(true);
+    expect(financeNavigation.some((item) => item.name === "Asset & Rental")).toBe(false);
+    expect(financeNavigation.some((item) => item.name === "Penjualan")).toBe(false);
+    expect(financeNavigation.some((item) => item.name === "Pengaturan")).toBe(false);
   });
 });

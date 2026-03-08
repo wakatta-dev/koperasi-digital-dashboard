@@ -10,6 +10,8 @@ import { checkAvailability } from "../utils/availability";
 import { createReservation } from "@/services/api/reservations";
 import type { ReservationSummary } from "../../types";
 import { createSignedReservationLink } from "../../utils/signed-link";
+import { formatPublicReservationIdentifier } from "../../guest/utils/public-status";
+import { humanizeReservationStatus } from "../../utils/status";
 
 const rentalSchema = z.object({
   start_date: z.string().min(1, "Tanggal mulai wajib diisi."),
@@ -379,10 +381,11 @@ export function DetailRentalForm({
           <div className="mt-3 text-xs text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 space-y-1">
             <p className="font-semibold">Reservasi dibuat</p>
             <p>
-              ID: <strong>{reservationInfo.reservationId}</strong>
+              Nomor Tiket:{" "}
+              <strong>{formatPublicReservationIdentifier(reservationInfo.reservationId)}</strong>
             </p>
             <p>
-              Status: <strong>{reservationInfo.status}</strong> · Hold hingga{" "}
+              Status: <strong>{humanizeReservationStatus(reservationInfo.status)}</strong> · Hold hingga{" "}
               <strong>
                 {new Date(reservationInfo.holdExpiresAt ?? "").toLocaleString()}
               </strong>

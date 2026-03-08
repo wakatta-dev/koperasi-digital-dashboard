@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import type { ReservationSummary } from "../../types";
+import { formatPublicReservationIdentifier } from "../../guest/utils/public-status";
 
 type PaymentSidebarProps = {
   reservation: ReservationSummary;
@@ -35,7 +36,7 @@ export function PaymentSidebar({
       <div className="p-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
         <h3 className="font-bold text-gray-900 dark:text-white text-lg">Ringkasan Pembayaran</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          ID Reservasi: #{reservation.reservationId}
+          Nomor Tiket: {formatPublicReservationIdentifier(reservation.reservationId)}
         </p>
       </div>
       <div className="p-6">

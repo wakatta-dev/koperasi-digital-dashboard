@@ -12,6 +12,11 @@ import {
 import type { PaymentSession } from "../../types";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  resolvePublicPaymentProofErrorMessage,
+  resolvePublicPaymentSessionErrorMessage,
+  validatePublicPaymentProofFile,
+} from "../utils/public-payment";
 
 type PaymentOption = {
   value: string;
@@ -120,12 +125,20 @@ export function PaymentMethods({
             status: res.data.status as PaymentStatus,
           });
         } else {
-          setSessionError(res.message || "Tidak dapat membuat sesi pembayaran");
+          setSessionError(
+            resolvePublicPaymentSessionErrorMessage(
+              res.message || "Tidak dapat membuat sesi pembayaran"
+            )
+          );
           onSessionChange?.(null);
         }
       } catch (err) {
         if (!ignore) {
-          setSessionError(err instanceof Error ? err.message : "Gagal membuat sesi pembayaran");
+          setSessionError(
+            resolvePublicPaymentSessionErrorMessage(
+              err instanceof Error ? err.message : "Gagal membuat sesi pembayaran"
+            )
+          );
           onSessionChange?.(null);
         }
       } finally {
@@ -250,9 +263,14 @@ export function PaymentMethods({
             accept=".jpg,.jpeg,.png,.pdf"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) {
-                setProofFile(file);
+              const validationError = validatePublicPaymentProofFile(file);
+              if (validationError) {
+                setProofFile(null);
+                setSessionError(validationError);
+                return;
               }
+              setSessionError(null);
+              setProofFile(file ?? null);
             }}
             className="text-xs"
           />
@@ -268,6 +286,11 @@ export function PaymentMethods({
               disabled={actionsDisabled || !proofFile || isLoading}
               onClick={async () => {
                 if (!session?.paymentId || !proofFile || !reservationId || !ownershipToken) return;
+                const validationError = validatePublicPaymentProofFile(proofFile);
+                if (validationError) {
+                  setSessionError(validationError);
+                  return;
+                }
                 setIsLoading(true);
                 setSessionError(null);
                 try {
@@ -278,13 +301,29 @@ export function PaymentMethods({
                     { reservationId, ownershipToken }
                   );
                   if (res.success && res.data) {
+                    setSession((current) =>
+                      current
+                        ? {
+                            ...current,
+                            status: res.data.status as PaymentStatus,
+                          }
+                        : current
+                    );
                     handleStatusUpdate(res.data.status as PaymentStatus);
                     return;
                   }
-                  setSessionError(res.message || "Tidak dapat mengunggah bukti pembayaran.");
+                  setSessionError(
+                    resolvePublicPaymentProofErrorMessage(
+                      res.message || "Tidak dapat mengunggah bukti pembayaran."
+                    )
+                  );
                 } catch (err) {
                   setSessionError(
-                    err instanceof Error ? err.message : "Tidak dapat mengunggah bukti pembayaran."
+                    resolvePublicPaymentProofErrorMessage(
+                      err instanceof Error
+                        ? err.message
+                        : "Tidak dapat mengunggah bukti pembayaran."
+                    )
                   );
                 } finally {
                   setIsLoading(false);

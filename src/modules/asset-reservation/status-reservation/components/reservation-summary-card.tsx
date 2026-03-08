@@ -5,6 +5,10 @@ import Link from "next/link";
 
 import { humanizeReservationStatus } from "../../utils/status";
 import type { ReservationSummary } from "../../types";
+import {
+  formatPublicReservationIdentifier,
+  resolvePublicReservationStatusPresentation,
+} from "../../guest/utils/public-status";
 
 type ReservationSummaryCardProps = {
   hasSignature?: boolean;
@@ -50,52 +54,18 @@ export function ReservationSummaryCard({
       })
     : "-";
   const secureId = reservation.reservationId || reservationId || 0;
-  const bannerText =
-    reservation.status === "completed"
-      ? "Penyewaan Selesai"
-      : reservation.status === "confirmed_full"
-      ? "Reservasi Anda Telah Dikonfirmasi!"
-      : reservation.status === "confirmed_dp"
-        ? "DP Sudah Diterima"
-        : reservation.status === "awaiting_settlement"
-          ? "Menunggu Pelunasan"
-          : reservation.status === "awaiting_dp"
-            ? "Menunggu Pembayaran DP"
-            : reservation.status === "cancelled"
-              ? "Reservasi Dibatalkan"
-              : reservation.status === "rejected"
-                ? "Permintaan Ditolak"
-                : reservation.status === "expired"
-                  ? "Reservasi Kedaluwarsa"
-                  : "Permintaan Sedang Ditinjau";
-  const bannerSubtext =
-    reservation.status === "completed"
-      ? "Proses sewa ditutup admin dan kondisi aset sudah dicatat."
-      : reservation.status === "confirmed_full"
-      ? "Pembayaran selesai. Reservasi Anda aktif."
-      : reservation.status === "confirmed_dp"
-        ? "DP diterima. Silakan lakukan pelunasan sebelum jadwal."
-        : reservation.status === "awaiting_settlement"
-          ? "DP sudah diterima. Pelunasan diperlukan."
-          : reservation.status === "awaiting_dp"
-            ? "Segera lakukan pembayaran DP untuk mengunci jadwal."
-            : reservation.status === "cancelled"
-              ? "Reservasi telah dibatalkan."
-              : reservation.status === "rejected"
-                ? "Permintaan sewa tidak dapat diproses."
-                : reservation.status === "expired"
-                  ? "Reservasi Anda telah kedaluwarsa."
-                  : "Permintaan Anda sedang dalam proses review.";
+  const statusPresentation =
+    resolvePublicReservationStatusPresentation(reservation.status);
+  const bannerText = statusPresentation.headline;
+  const bannerSubtext = statusPresentation.description;
   const statusBadgeClasses =
-    reservation.status === "completed"
+    statusPresentation.variant === "completed"
       ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
-      : reservation.status === "confirmed_full"
-      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-      : reservation.status === "confirmed_dp" || reservation.status === "awaiting_settlement"
-        ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
-        : reservation.status === "awaiting_dp" || reservation.status === "pending_review"
-          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
-          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+      : statusPresentation.variant === "approved"
+        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+        : statusPresentation.variant === "rejected"
+          ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+          : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300";
   const tokenQuery = accessToken ? `&sig=${encodeURIComponent(accessToken)}` : "";
   const paymentHref =
     reservation.status === "confirmed_dp" || reservation.status === "awaiting_settlement"
@@ -129,7 +99,7 @@ export function ReservationSummaryCard({
           </p>
           <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 flex items-center gap-3">
             <span className="text-xl md:text-2xl font-mono font-bold text-brand-primary dark:text-indigo-400">
-              {secureId ? String(secureId) : "-"}
+              {formatPublicReservationIdentifier(secureId)}
             </span>
             <button className="text-gray-400 hover:text-brand-primary transition" title="Salin Kode">
               <span className="material-icons-outlined text-lg">content_copy</span>

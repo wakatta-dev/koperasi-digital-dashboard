@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   CalendarClock,
@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
   ASSET_RENTAL_BOOKING_STATUS,
@@ -29,7 +30,7 @@ import {
   getAssetRentalBookings,
   updateAssetBookingStatus,
 } from "@/services/api/asset-rental";
-import { finalizePayment } from "@/services/api/reservations";
+import { finalizePayment, getReservation } from "@/services/api/reservations";
 
 type AssetRentalAdminDetailPageProps = Readonly<{
   bookingId: string;
@@ -155,11 +156,165 @@ function isImageProofUrl(url?: string) {
   );
 }
 
+function humanizeRentalEvent(event?: string) {
+  const normalized = (event ?? "").trim();
+  if (!normalized) return "Pembaruan Status";
+  return normalized
+    .split("_")
+    .join(" ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
+  const paymentStatus = (
+    reservation?.latest_payment?.status ||
+    booking?.latest_payment?.status ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (paymentStatus === "pending_verification") {
+    return {
+      label: "Menunggu Verifikasi Pembayaran",
+      helper: "Bukti pembayaran sudah diterima dan masih menunggu keputusan admin.",
+      className: "border border-orange-200 bg-orange-50 text-orange-700",
+    };
+  }
+
+  if (paymentStatus === "succeeded") {
+    return {
+      label: "Pembayaran Terkonfirmasi",
+      helper:
+        "Pembayaran terakhir sudah berhasil diverifikasi, tetapi penyewaan tetap perlu dilanjutkan melalui langkah operasional yang eksplisit.",
+      className: "border border-emerald-200 bg-emerald-50 text-emerald-700",
+    };
+  }
+
+  if (paymentStatus === "failed" || paymentStatus === "expired") {
+    return {
+      label: "Pembayaran Bermasalah",
+      helper: "Pembayaran terakhir gagal atau kedaluwarsa dan membutuhkan tindak lanjut.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+    };
+  }
+
+  return {
+    label: "Menunggu Pembayaran",
+    helper: "Booking belum memiliki pembayaran yang tervalidasi.",
+    className: "border border-amber-200 bg-amber-50 text-amber-700",
+  };
+}
+
+function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
+  const readiness = reservation?.accounting_readiness || booking?.accounting_readiness;
+  const readinessStatus = String(readiness?.status ?? "").trim().toLowerCase();
+
+  if (readinessStatus === "not_applicable") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper:
+        readiness?.reason ||
+        "Booking dibatalkan atau ditolak sehingga tidak perlu diteruskan ke accounting.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "problematic") {
+    return {
+      label: "Bermasalah",
+      helper:
+        readiness?.reason ||
+        "Ada masalah pada pembayaran sehingga handoff accounting harus ditahan.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "not_ready") {
+    return {
+      label: "Belum Siap",
+      helper:
+        readiness?.reason ||
+        "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  if (readinessStatus === "ready") {
+    return {
+      label: "Siap Ditinjau",
+      helper:
+        readiness?.reason ||
+        "Booking sudah cukup matang untuk diteruskan ke proses accounting berikutnya.",
+      className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+      reference: readiness?.reference || null,
+    };
+  }
+
+  const bookingStatus = (booking?.status || "").trim().toUpperCase();
+  const paymentStatus = (
+    reservation?.latest_payment?.status ||
+    booking?.latest_payment?.status ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (bookingStatus === "REJECTED" || bookingStatus === "CANCELLED") {
+    return {
+      label: "Tidak Perlu Posting",
+      helper: "Booking dibatalkan atau ditolak sehingga tidak perlu diteruskan ke accounting.",
+      className: "border border-slate-200 bg-slate-50 text-slate-700",
+      reference: null,
+    };
+  }
+
+  if (paymentStatus === "failed" || paymentStatus === "expired") {
+    return {
+      label: "Bermasalah",
+      helper: "Ada masalah pada pembayaran sehingga handoff accounting harus ditahan.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+      reference: null,
+    };
+  }
+
+  if (
+    [
+      "PENDING_REVIEW",
+      "AWAITING_DP",
+      "AWAITING_PAYMENT_VERIFICATION",
+      "AWAITING_SETTLEMENT",
+    ].includes(bookingStatus)
+  ) {
+    return {
+      label: "Belum Siap",
+      helper: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+      className: "border border-amber-200 bg-amber-50 text-amber-700",
+      reference: null,
+    };
+  }
+
+  return {
+    label: "Siap Ditinjau",
+    helper: "Booking sudah cukup matang untuk diteruskan ke proses accounting berikutnya.",
+    className: "border border-indigo-200 bg-indigo-50 text-indigo-700",
+    reference: null,
+  };
+}
+
 export function AssetRentalAdminDetailPage({
   bookingId,
   section,
 }: AssetRentalAdminDetailPageProps) {
   const queryClient = useQueryClient();
+  const [paymentDecisionNote, setPaymentDecisionNote] = useState("");
+  const [paymentDecisionError, setPaymentDecisionError] = useState<string | null>(
+    null,
+  );
 
   const bookingsQuery = useQuery({
     queryKey: QK.assetRental.bookings({
@@ -188,6 +343,18 @@ export function AssetRentalAdminDetailPage({
       const response = await getAssetById(booking?.asset_id ?? "");
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memuat detail aset");
+      }
+      return response.data;
+    },
+  });
+
+  const reservationDetailQuery = useQuery({
+    enabled: Boolean(booking?.id),
+    queryKey: QK.assetRental.reservation(`admin:${booking?.id ?? "unknown"}`),
+    queryFn: async () => {
+      const response = await getReservation(booking?.id ?? "");
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal memuat detail reservasi");
       }
       return response.data;
     },
@@ -234,12 +401,18 @@ export function AssetRentalAdminDetailPage({
   });
 
   const paymentDecisionMutation = useMutation({
-    mutationFn: async (decision: "succeeded" | "failed") => {
+    mutationFn: async ({
+      status,
+      reason,
+    }: {
+      status: "succeeded" | "failed";
+      reason?: string;
+    }) => {
       const paymentID = booking?.latest_payment?.id?.trim();
       if (!paymentID) {
         throw new Error("Pembayaran belum tersedia");
       }
-      const response = await finalizePayment(paymentID, decision);
+      const response = await finalizePayment(paymentID, status, reason);
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memverifikasi pembayaran");
       }
@@ -256,6 +429,14 @@ export function AssetRentalAdminDetailPage({
     booking ?? undefined,
   );
   const statusMeta = toStatusMeta(resolvedBookingStatus);
+  const paymentWorkspace = resolveRentalPaymentWorkspace(
+    booking,
+    reservationDetailQuery.data,
+  );
+  const accountingWorkspace = resolveRentalAccountingWorkspace(
+    booking,
+    reservationDetailQuery.data,
+  );
   const isBusy =
     updateStatusMutation.isPending ||
     completeMutation.isPending ||
@@ -273,12 +454,105 @@ export function AssetRentalAdminDetailPage({
     .trim()
     .toLowerCase();
   const canConfirmPayment = latestPaymentStatus === "pending_verification";
+  const rentalPaymentDecisionMeta = canConfirmPayment
+    ? {
+        title: "Menunggu Keputusan Admin",
+        helper:
+          "Bukti pembayaran sudah masuk. Keputusan pembayaran akan memperbarui domain payment terlebih dahulu sebelum lifecycle rental berlanjut.",
+      }
+    : {
+        title: "Tidak Ada Keputusan Tertunda",
+        helper:
+          "Tidak ada bukti pembayaran yang sedang menunggu verifikasi pada transaksi ini.",
+      };
   const rejectionReason = booking?.rejection_reason?.trim() || "-";
   const returnConditionLabel = toReturnConditionLabel(
     booking?.return_condition,
     booking?.status,
   );
   const returnConditionNotes = booking?.return_condition_notes?.trim() || "-";
+  const nextValidAction = canConfirmPayment
+    ? {
+        label: "Tinjau Pembayaran",
+        helper:
+          "Pembayaran sedang menunggu verifikasi admin sebelum status rental berubah.",
+      }
+    : resolvedBookingStatus === ASSET_RENTAL_BOOKING_STATUS.confirmedDP
+      ? {
+          label: "Pantau Menuju Hari Pakai",
+          helper:
+            "Pembayaran DP sudah diputuskan. Booking belum selesai dan harus dipantau sampai tahap operasional berikutnya.",
+        }
+      : resolvedBookingStatus === ASSET_RENTAL_BOOKING_STATUS.confirmedFull
+        ? {
+            label: "Tandai Selesai",
+            helper:
+              "Pembayaran sudah lengkap, tetapi penyewaan baru dianggap selesai setelah penutupan operasional dilakukan secara eksplisit.",
+          }
+    : canApprove
+      ? {
+          label: "Setujui Pengajuan",
+          helper:
+            "Booking masih menunggu keputusan admin sebelum masuk ke tahap pembayaran.",
+        }
+      : canComplete
+        ? {
+            label: "Tandai Selesai",
+            helper:
+              "Penyewaan sudah siap ditutup setelah penggunaan dan pengembalian selesai.",
+          }
+        : canReject
+          ? {
+              label: "Tolak Pengajuan",
+              helper: "Pengajuan masih dapat ditolak dengan alasan yang sesuai.",
+            }
+          : {
+              label: "Tidak Ada Aksi Lanjutan",
+              helper:
+                "Booking sudah berada pada status terminal atau tidak memiliki tindakan operasional berikutnya.",
+            };
+  const timelineItems = useMemo(() => {
+    if (reservationDetailQuery.data?.timeline?.length) {
+      return reservationDetailQuery.data.timeline.map((item, index, arr) => ({
+        id: `${item.event}-${item.at}-${index}`,
+        title: humanizeRentalEvent(item.event || item.meta?.status),
+        description:
+          item.meta?.description ||
+          (item.meta?.status
+            ? `Status: ${humanizeRentalEvent(item.meta.status)}`
+            : "Pembaruan status reservasi"),
+        time: new Date(item.at).toLocaleString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        active: index === arr.length - 1,
+      }));
+    }
+
+    const fallback = [];
+    if (booking?.created_at || booking?.start_time) {
+      fallback.push({
+        id: "booking-created",
+        title: "Pengajuan Reservasi Dibuat",
+        description: `Status: ${statusMeta.label}`,
+        time: formatDateTime(booking.created_at || booking.start_time),
+        active: !booking?.completed_at,
+      });
+    }
+    if (booking?.completed_at) {
+      fallback.push({
+        id: "booking-completed",
+        title: "Penyewaan Selesai",
+        description: "Booking ditandai selesai pada sistem operasional.",
+        time: formatDateTime(booking.completed_at),
+        active: true,
+      });
+    }
+    return fallback;
+  }, [booking, reservationDetailQuery.data, statusMeta.label]);
 
   const handleApprove = async () => {
     try {
@@ -326,10 +600,15 @@ export function AssetRentalAdminDetailPage({
 
   const handleConfirmPayment = async () => {
     try {
-      await paymentDecisionMutation.mutateAsync("succeeded");
+      await paymentDecisionMutation.mutateAsync({
+        status: "succeeded",
+        reason: paymentDecisionNote.trim() || undefined,
+      });
+      setPaymentDecisionNote("");
+      setPaymentDecisionError(null);
       showToastSuccess(
         "Pembayaran terkonfirmasi",
-        "Status pembayaran dan penyewaan berhasil diperbarui.",
+        "Status pembayaran diperbarui. Lanjutkan proses operasional rental secara eksplisit.",
       );
     } catch (error) {
       const message =
@@ -341,8 +620,17 @@ export function AssetRentalAdminDetailPage({
   };
 
   const handleRejectPayment = async () => {
+    if (paymentDecisionNote.trim().length === 0) {
+      setPaymentDecisionError("Catatan keputusan wajib diisi saat pembayaran ditolak.");
+      return;
+    }
     try {
-      await paymentDecisionMutation.mutateAsync("failed");
+      await paymentDecisionMutation.mutateAsync({
+        status: "failed",
+        reason: paymentDecisionNote.trim(),
+      });
+      setPaymentDecisionNote("");
+      setPaymentDecisionError(null);
       showToastSuccess(
         "Pembayaran ditolak",
         "Penyewa dapat mengunggah ulang bukti pembayaran.",
@@ -404,6 +692,81 @@ export function AssetRentalAdminDetailPage({
                 Booking ID: {booking.id}
               </span>
             </div>
+
+            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Workspace Transaksi Rental
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-slate-900">
+                    Booking #{String(booking.id).padStart(5, "0")}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Terakhir diperbarui {formatDateTime(booking.updated_at || booking.created_at)}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm text-slate-500">
+                  Lifecycle Rental
+                </div>
+              </div>
+              <div className="grid gap-4 xl:grid-cols-4">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Status Operasional
+                  </p>
+                  <Badge className={`mt-2 ${statusMeta.badgeClass}`}>{statusMeta.label}</Badge>
+                  <p className="mt-3 text-sm text-slate-600">
+                    Status operasional rental mengikuti lifecycle booking aset secara internal.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Status Pembayaran
+                  </p>
+                  <span
+                    className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${paymentWorkspace.className}`}
+                  >
+                    {paymentWorkspace.label}
+                  </span>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {paymentWorkspace.helper}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Status Accounting
+                  </p>
+                  <span
+                    className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${accountingWorkspace.className}`}
+                  >
+                    {accountingWorkspace.label}
+                  </span>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {accountingWorkspace.helper}
+                  </p>
+                  {accountingWorkspace.reference ? (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Referensi Accounting:{" "}
+                      <span className="font-medium text-slate-900">
+                        {accountingWorkspace.reference}
+                      </span>
+                    </p>
+                  ) : null}
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Tindakan Berikutnya
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {nextValidAction.label}
+                  </p>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {nextValidAction.helper}
+                  </p>
+                </div>
+              </div>
+            </section>
 
             <div className="grid gap-4 lg:grid-cols-2">
               <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
@@ -627,25 +990,63 @@ export function AssetRentalAdminDetailPage({
                       </span>
                     </p>
                   </div>
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Keputusan Pembayaran
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-900">
+                      {rentalPaymentDecisionMeta.title}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {rentalPaymentDecisionMeta.helper}
+                    </p>
+                  </div>
                   {canConfirmPayment ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        className="bg-emerald-600 text-white hover:bg-emerald-700"
-                        onClick={handleConfirmPayment}
-                        disabled={isBusy}
-                      >
-                        Konfirmasi Pembayaran
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-red-200 text-red-600 hover:bg-red-50"
-                        onClick={handleRejectPayment}
-                        disabled={isBusy}
-                      >
-                        Tolak Pembayaran
-                      </Button>
+                    <div className="mt-4 space-y-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Catatan Keputusan
+                        </p>
+                        <Textarea
+                          className="mt-2 min-h-[96px] border-slate-200 bg-white"
+                          placeholder="Tambahkan catatan keputusan untuk kebutuhan audit dan tindak lanjut internal..."
+                          value={paymentDecisionNote}
+                          aria-invalid={Boolean(paymentDecisionError)}
+                          onChange={(event) => {
+                            setPaymentDecisionNote(event.target.value);
+                            if (paymentDecisionError) {
+                              setPaymentDecisionError(null);
+                            }
+                          }}
+                        />
+                        <p className="mt-2 text-xs text-slate-500">
+                          Catatan wajib saat pembayaran ditolak, dan disarankan saat pembayaran dikonfirmasi.
+                        </p>
+                        {paymentDecisionError ? (
+                          <p className="mt-2 text-xs text-red-600">
+                            {paymentDecisionError}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          className="bg-emerald-600 text-white hover:bg-emerald-700"
+                          onClick={handleConfirmPayment}
+                          disabled={isBusy}
+                        >
+                          Konfirmasi Pembayaran
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="border-red-200 text-red-600 hover:bg-red-50"
+                          onClick={handleRejectPayment}
+                          disabled={isBusy}
+                        >
+                          Tolak Pembayaran
+                        </Button>
+                      </div>
                     </div>
                   ) : null}
                 </div>
@@ -694,6 +1095,36 @@ export function AssetRentalAdminDetailPage({
                     <p>Selesai: {formatDateTime(booking.completed_at)}</p>
                   </div>
                 </div>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-slate-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Riwayat Status Internal
+              </p>
+              <div className="mt-4 space-y-4">
+                {reservationDetailQuery.isLoading ? (
+                  <p className="text-sm text-slate-500">Memuat riwayat status...</p>
+                ) : timelineItems.length > 0 ? (
+                  timelineItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                    >
+                      <p className="text-sm font-semibold text-slate-900">
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {item.description}
+                      </p>
+                      <p className="mt-2 text-xs text-slate-500">{item.time}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    Belum ada riwayat status untuk transaksi rental ini.
+                  </p>
+                )}
               </div>
             </section>
 

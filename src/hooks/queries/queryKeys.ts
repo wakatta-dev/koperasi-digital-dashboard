@@ -63,12 +63,15 @@ export const QK = {
   settings: {
     supportGlobalConfig: () => ["settings", "support", "global-config"] as const,
     supportTenantConfig: () => ["settings", "support", "tenant-config"] as const,
+    supportReadiness: () => ["settings", "support", "readiness"] as const,
     supportProfileSettings: () => ["settings", "support", "profile-settings"] as const,
     supportOperationalSettings: () =>
       ["settings", "support", "operational-settings"] as const,
     emailTemplates: () => ["settings", "support", "email-templates"] as const,
     activityLogs: (params?: Record<string, unknown>) =>
       ["settings", "support", "activity-logs", params ?? {}] as const,
+    operationalExceptionContext: (domain: string, sourceId: string | number) =>
+      ["settings", "support", "operational-exception", domain, String(sourceId)] as const,
   },
   notifications: {
     list: (params?: Record<string, unknown>) =>
@@ -153,6 +156,10 @@ export const QK = {
   },
   accountingJournal: {
     overview: () => ["accounting-journal", "overview"] as const,
+    postingPolicies: (params?: Record<string, unknown>) =>
+      ["accounting-journal", "posting-policies", params ?? {}] as const,
+    sourceTrace: (domain: string | number, sourceId: string | number) =>
+      ["accounting-journal", "source-trace", String(domain), String(sourceId)] as const,
     entries: (params?: Record<string, unknown>) =>
       ["accounting-journal", "entries", params ?? {}] as const,
     entryDetail: (journalNumber: string | number) =>

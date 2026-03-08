@@ -25,6 +25,59 @@ export type BumdesFeatureFlags = Partial<{
   pos_enabled: boolean;
 }>;
 
+const BUMDES_ADMIN_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "tenant admin",
+  "manajer_bumdes",
+  "support",
+]);
+
+const BUMDES_FINANCE_ROLES = new Set([
+  "finance",
+  "admin_keuangan",
+  "bendahara",
+  "auditor",
+  "auditor_viewer",
+]);
+
+const BUMDES_OPERATIONAL_ROLES = new Set([
+  "operator",
+  "admin_unit",
+  "kasir",
+  "kasir_unit",
+  "pemilik_toko",
+]);
+
+function normalizeRoleName(role: unknown): string {
+  return String(role ?? "").trim().toLowerCase();
+}
+
+function filterNavigationByRole(
+  navigation: NavItem[],
+  role?: string
+): NavItem[] {
+  const normalizedRole = normalizeRoleName(role);
+  if (!normalizedRole) {
+    return navigation;
+  }
+
+  if (BUMDES_ADMIN_ROLES.has(normalizedRole)) {
+    return navigation;
+  }
+
+  const allowedRoots = new Set<string>(["/bumdes/dashboard", "/bumdes/landing-page"]);
+  if (BUMDES_FINANCE_ROLES.has(normalizedRole)) {
+    allowedRoots.add("/bumdes/accounting/dashboard");
+  }
+  if (BUMDES_OPERATIONAL_ROLES.has(normalizedRole)) {
+    allowedRoots.add("/bumdes/asset");
+    allowedRoots.add("/bumdes/marketplace");
+  }
+
+  return navigation.filter((item) => allowedRoots.has(item.href));
+}
+
 function applyFeatureFlagsToNavigation(
   navigation: NavItem[],
   featureFlags?: BumdesFeatureFlags
@@ -71,7 +124,8 @@ function applyFeatureFlagsToNavigation(
 }
 
 export function getBumdesNavigation(
-  featureFlags?: BumdesFeatureFlags
+  featureFlags?: BumdesFeatureFlags,
+  role?: string
 ): NavItem[] {
   const baseNavigation: NavItem[] = [
     {
@@ -207,7 +261,10 @@ export function getBumdesNavigation(
     },
   ];
 
-  return applyFeatureFlagsToNavigation(baseNavigation, featureFlags);
+  return filterNavigationByRole(
+    applyFeatureFlagsToNavigation(baseNavigation, featureFlags),
+    role
+  );
 }
 
 // Sidebar navigation for BUMDes MVP section

@@ -96,22 +96,28 @@ export function MarketplacePaymentPage() {
     if (guestStatusDetail?.order_number) {
       return `#${guestStatusDetail.order_number}`;
     }
+    if (storedContext?.order.order_number?.trim()) {
+      return `#${storedContext.order.order_number.trim()}`;
+    }
     if (storedContext?.order.id) {
       return `#ORD-${storedContext.order.id}`;
     }
     return "-";
-  }, [guestStatusDetail?.order_number, storedContext?.order.id]);
+  }, [guestStatusDetail?.order_number, storedContext?.order.id, storedContext?.order.order_number]);
   const customerEmail = storedContext?.checkout.customerEmail ?? "";
   const customerPhone = storedContext?.checkout.customerPhone ?? "";
   const trackingOrderNumber = useMemo(() => {
     if (guestStatusDetail?.order_number) {
       return guestStatusDetail.order_number.trim();
     }
+    if (storedContext?.order.order_number?.trim()) {
+      return storedContext.order.order_number.trim();
+    }
     if (storedContext?.order.id) {
       return String(storedContext.order.id);
     }
     return "";
-  }, [guestStatusDetail?.order_number, storedContext?.order.id]);
+  }, [guestStatusDetail?.order_number, storedContext?.order.id, storedContext?.order.order_number]);
 
   const isBackendConfirmed = Boolean(guestStatusDetail);
   const hasOrderContext = Boolean(

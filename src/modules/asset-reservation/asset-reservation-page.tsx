@@ -12,6 +12,7 @@ import { useAssetList } from "./hooks";
 import { STITCH_GUEST_CATEGORIES } from "./guest/data/stitch-dummy";
 import { AssetCatalogFeature } from "./guest/components/asset-catalog/AssetCatalogFeature";
 import type { GuestAssetCardItem } from "./guest/types";
+import { resolvePublicAssetStatusPresentation } from "./guest/utils/public-catalog";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -123,27 +124,12 @@ export function AssetReservationPage() {
       const amount = Number(asset.rate_amount ?? 0);
       const priceLabel =
         amount > 0 ? `Rp ${amount.toLocaleString("id-ID")}` : "Rp 0";
-      const availability = (asset.availability_status || "").toLowerCase();
-      const statusTone =
-        (asset.status || "").toUpperCase() === "ARCHIVED"
-          ? "maintenance"
-          : availability.includes("tersedia")
-            ? "available"
-            : availability.includes("maint")
-              ? "maintenance"
-              : "busy";
-      const statusLabel =
-        asset.availability_status?.trim() ||
-        (statusTone === "available"
-          ? "Tersedia"
-          : statusTone === "maintenance"
-            ? "Maintenance"
-            : "Tidak tersedia");
+      const status = resolvePublicAssetStatusPresentation(asset);
       return {
         id: asset.id,
         category: asset.category?.trim() || "Aset Desa",
-        statusLabel,
-        statusTone,
+        statusLabel: status.label,
+        statusTone: status.tone,
         title: asset.name,
         description: asset.description?.trim() || "Deskripsi belum tersedia.",
         priceLabel,

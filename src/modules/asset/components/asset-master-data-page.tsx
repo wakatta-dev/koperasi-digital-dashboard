@@ -25,6 +25,7 @@ import {
 } from "@/services/api/assets";
 import type {
   AssetMasterDataItem,
+  AssetMasterDataRequest,
   AssetMasterDataKind,
 } from "@/types/api/asset-rental";
 import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental/AssetRentalFeatureShell";
@@ -108,9 +109,9 @@ export function AssetMasterDataPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (args: { id: number; value: string }) => {
+    mutationFn: async (args: { id: number; payload: Partial<AssetMasterDataRequest> }) => {
       const response = await updateAssetMasterData(args.id, {
-        value: args.value,
+        ...args.payload,
       });
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memperbarui master data");
@@ -165,7 +166,7 @@ export function AssetMasterDataPage() {
     }
 
     try {
-      await updateMutation.mutateAsync({ id: editing.id, value });
+      await updateMutation.mutateAsync({ id: editing.id, payload: { value } });
       setEditing(null);
       setEditValue("");
       showToastSuccess("Berhasil", "Master data berhasil diperbarui.");
@@ -182,6 +183,26 @@ export function AssetMasterDataPage() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Gagal menghapus master data";
       showToastError("Gagal menghapus", message);
+    }
+  };
+
+  const handleToggleActive = async (item: AssetMasterDataItem) => {
+    try {
+      await updateMutation.mutateAsync({
+        id: item.id,
+        payload: {
+          value: item.value,
+          is_active: !item.is_active,
+        },
+      });
+      showToastSuccess(
+        "Berhasil",
+        item.is_active ? "Master data dinonaktifkan." : "Master data diaktifkan."
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Gagal memperbarui status master data";
+      showToastError("Gagal memperbarui", message);
     }
   };
 
@@ -308,6 +329,20 @@ export function AssetMasterDataPage() {
                                   </div>
                                 ) : (
                                   <div className="flex justify-end gap-2">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      className={
+                                        item.is_active
+                                          ? "border-amber-200 text-amber-600 hover:bg-amber-50"
+                                          : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                                      }
+                                      onClick={() => handleToggleActive(item)}
+                                      disabled={isBusy}
+                                    >
+                                      {item.is_active ? "Nonaktifkan" : "Aktifkan"}
+                                    </Button>
                                     <Button
                                       type="button"
                                       size="sm"

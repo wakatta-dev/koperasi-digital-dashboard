@@ -28,6 +28,51 @@ export type AccountingJournalOverviewResponse = {
   };
 };
 
+export type AccountingJournalPostingPoliciesQuery = {
+  domain?: "marketplace" | "rental";
+  status?: "active" | "inactive";
+};
+
+export type AccountingJournalPostingPolicyItem = {
+  event_key: string;
+  domain: "marketplace" | "rental";
+  policy_code: string;
+  policy_name: string;
+  treatment_summary: string;
+  prerequisite_codes: string[];
+  status: "active" | "inactive" | string;
+  updated_at: string;
+};
+
+export type AccountingJournalPostingPoliciesResponse = {
+  items: AccountingJournalPostingPolicyItem[];
+  summary: {
+    active_policies: number;
+    inactive_policies: number;
+  };
+};
+
+export type AccountingJournalSourceTraceResponse = {
+  domain: "marketplace" | "rental";
+  source_id: string;
+  source_reference: string;
+  source_document_reference: string;
+  event_key: string;
+  policy_code?: string;
+  readiness_status: "ready" | "not_ready" | "problematic" | "not_applicable" | string;
+  readiness_reason: string;
+  governance_status?: "allowed" | "blocked" | string;
+  governance_code?: string;
+  governance_reason?: string;
+  settlement_mode?: "DIRECT_REVENUE" | "MERCHANT_PAYOUT" | string;
+  payout_status?: "NOT_APPLICABLE" | "PENDING_PAYOUT" | "SCHEDULED" | "PAID" | string;
+  payout_reference?: string;
+  trace_status: "posted" | "ready" | "blocked" | string;
+  journal_number?: string;
+  journal_reference?: string;
+  blocker_reason?: string;
+};
+
 export type AccountingJournalEntriesQuery = {
   q?: string;
   date?: string;

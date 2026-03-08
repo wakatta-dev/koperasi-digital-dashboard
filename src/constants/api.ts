@@ -54,6 +54,7 @@ export const API_ENDPOINTS = {
   support: {
     configGlobal: "/support/config/global",
     configTenant: "/support/config/tenant",
+    configReadiness: "/support/config/readiness",
     configProfile: "/support/config/profile",
     configProfileIdentity: "/support/config/profile/identity",
     configProfileContactDomain: "/support/config/profile/contact-domain",
@@ -71,6 +72,9 @@ export const API_ENDPOINTS = {
     emailTemplate: (id: string | number) =>
       `/support/email/templates/${encodeURIComponent(String(id))}`,
     activityLogs: "/support/activity-logs",
+    operationalExceptionsContext: "/support/operational-exceptions/context",
+    operationalExceptionsNotes: "/support/operational-exceptions/notes",
+    operationalExceptionsDecision: "/support/operational-exceptions/decision",
   },
   users: {
     list: "/users",
@@ -197,6 +201,9 @@ export const API_ENDPOINTS = {
   },
   accountingJournal: {
     overview: "/accounting/journal/overview",
+    postingPolicies: "/accounting/journal/posting-policies",
+    sourceTrace: (domain: string, sourceId: string | number) =>
+      `/accounting/journal/source-traces/${encodeURIComponent(domain)}/${encodeURIComponent(String(sourceId))}`,
     entries: "/accounting/journal/entries",
     entryDetail: (journalNumber: string) =>
       `/accounting/journal/entries/${encodeURIComponent(journalNumber)}`,

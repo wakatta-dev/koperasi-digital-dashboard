@@ -209,6 +209,10 @@ export function AssetEditFormFeature({
                 ))}
               </SelectContent>
             </Select>
+            <p className="mt-2 text-xs text-slate-500">
+              Saat status diubah ke penggunaan publik, sistem akan mengecek kesiapan data aset
+              secara otomatis.
+            </p>
           </div>
           <div className="md:col-span-2">
             <Label className="mb-1 block">Foto Aset</Label>
