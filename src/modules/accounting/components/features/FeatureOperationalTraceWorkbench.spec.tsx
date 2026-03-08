@@ -1,6 +1,6 @@
 /** @format */
 
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderFeature } from "@/__tests__/modules/asset-rental/test-utils";
@@ -102,7 +102,24 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("RSV-000022")).toBeTruthy();
       expect(screen.getAllByText("Siap Ditinjau").length).toBeGreaterThan(0);
       expect(screen.getByText("Belum Siap")).toBeTruthy();
+      expect(screen.getByText("Perlu Rekonsiliasi")).toBeTruthy();
+      expect(screen.getByText("Sinkron")).toBeTruthy();
       expect(screen.getByText("Lihat Bukti Pembayaran")).toBeTruthy();
+    });
+  });
+
+  it("filters rows that need reconciliation follow-up", async () => {
+    renderFeature(<FeatureOperationalTraceWorkbench />);
+
+    await waitFor(() => {
+      expect(screen.getByText("RSV-000022")).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Perlu Rekonsiliasi" }));
+
+    await waitFor(() => {
+      expect(screen.getAllByText("RSV-000022").length).toBeGreaterThan(0);
+      expect(screen.queryByText("MP-INV-2026-0001")).toBeFalsy();
     });
   });
 });

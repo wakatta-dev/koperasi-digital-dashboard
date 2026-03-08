@@ -15,6 +15,7 @@ import { getAssetRentalBookings } from "@/services/api/asset-rental";
 import { getReservation } from "@/services/api/reservations";
 import {
   buildOperationalTraceRows,
+  filterOperationalTraceRows,
   getTraceProofUrl,
   summarizeOperationalTrace,
 } from "@/modules/accounting/utils/operational-subledger";
@@ -26,8 +27,14 @@ const ACCOUNTING_STATUS_BADGE: Record<string, string> = {
   "Tidak Perlu Posting": "bg-slate-50 text-slate-700 border border-slate-200",
 };
 
+const RECONCILIATION_BADGE: Record<string, string> = {
+  Sesuai: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  "Perlu Tindak Lanjut": "bg-amber-50 text-amber-700 border border-amber-200",
+};
+
 export function FeatureOperationalTraceWorkbench() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "attention" | "matched">("all");
 
   const marketplaceOrdersQuery = useMarketplaceOrders({
     limit: 8,
@@ -53,6 +60,8 @@ export function FeatureOperationalTraceWorkbench() {
       }),
     [marketplaceOrdersQuery.data?.items, rentalBookingsQuery.data],
   );
+  const summary = useMemo(() => summarizeOperationalTrace(rows), [rows]);
+  const visibleRows = useMemo(() => filterOperationalTraceRows(rows, filter), [filter, rows]);
 
   useEffect(() => {
     if (!rows.length) {
@@ -64,8 +73,18 @@ export function FeatureOperationalTraceWorkbench() {
     );
   }, [rows]);
 
+  useEffect(() => {
+    if (!visibleRows.length) {
+      setSelectedKey(null);
+      return;
+    }
+    if (!selectedKey || !visibleRows.some((row) => row.key === selectedKey)) {
+      setSelectedKey(visibleRows[0].key);
+    }
+  }, [selectedKey, visibleRows]);
+
   const selectedRow =
-    rows.find((row) => row.key === selectedKey) ?? rows[0] ?? null;
+    visibleRows.find((row) => row.key === selectedKey) ?? visibleRows[0] ?? null;
 
   const marketplaceDetailQuery = useMarketplaceOrder(selectedRow?.domain === "marketplace" ? selectedRow.sourceId : undefined, {
     enabled: selectedRow?.domain === "marketplace",
@@ -82,8 +101,6 @@ export function FeatureOperationalTraceWorkbench() {
       return response.data;
     },
   });
-
-  const summary = useMemo(() => summarizeOperationalTrace(rows), [rows]);
   const proofUrl = getTraceProofUrl({
     domain: selectedRow?.domain ?? "marketplace",
     marketplaceDetail: marketplaceDetailQuery.data,
@@ -105,7 +122,27 @@ export function FeatureOperationalTraceWorkbench() {
               <span>Total {summary.total}</span>
               <span>Siap {summary.ready}</span>
               <span>Perlu tindak lanjut {summary.needsAttention}</span>
+              <span>Sesuai {summary.matched}</span>
             </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}>
+              Semua
+            </Button>
+            <Button
+              variant={filter === "attention" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter("attention")}
+            >
+              Perlu Rekonsiliasi
+            </Button>
+            <Button
+              variant={filter === "matched" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter("matched")}
+            >
+              Sinkron
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -121,23 +158,28 @@ export function FeatureOperationalTraceWorkbench() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {!rows.length ? (
+              {!visibleRows.length ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
                     Belum ada transaksi operasional yang dapat ditelusuri.
                   </TableCell>
                 </TableRow>
               ) : null}
-              {rows.map((row) => (
+              {visibleRows.map((row) => (
                 <TableRow key={row.key} data-selected={row.key === selectedRow?.key || undefined}>
                   <TableCell>{row.domain === "marketplace" ? "Marketplace" : "Rental"}</TableCell>
                   <TableCell className="font-medium">{row.reference}</TableCell>
                   <TableCell>{row.operationalStatus}</TableCell>
                   <TableCell>{row.paymentStatus}</TableCell>
                   <TableCell>
-                    <Badge className={ACCOUNTING_STATUS_BADGE[row.accountingStatus] || ACCOUNTING_STATUS_BADGE["Belum Siap"]}>
-                      {row.accountingStatus}
-                    </Badge>
+                    <div className="flex flex-col gap-2">
+                      <Badge className={ACCOUNTING_STATUS_BADGE[row.accountingStatus] || ACCOUNTING_STATUS_BADGE["Belum Siap"]}>
+                        {row.accountingStatus}
+                      </Badge>
+                      <Badge className={RECONCILIATION_BADGE[row.reconciliationStatus]}>
+                        {row.reconciliationStatus}
+                      </Badge>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" onClick={() => setSelectedKey(row.key)}>
@@ -171,6 +213,7 @@ export function FeatureOperationalTraceWorkbench() {
                 <p>Status operasional: <span className="font-medium">{selectedRow.operationalStatus}</span></p>
                 <p>Status pembayaran: <span className="font-medium">{selectedRow.paymentStatus}</span></p>
                 <p>Status accounting: <span className="font-medium">{selectedRow.accountingStatus}</span></p>
+                <p>Status rekonsiliasi: <span className="font-medium">{selectedRow.reconciliationStatus}</span></p>
                 <p>Alasan/indikator: <span className="font-medium">{selectedRow.accountingReason}</span></p>
               </div>
               {proofUrl ? (
