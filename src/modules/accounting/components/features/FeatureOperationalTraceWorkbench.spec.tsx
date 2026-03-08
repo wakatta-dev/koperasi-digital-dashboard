@@ -104,6 +104,10 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Belum Siap")).toBeTruthy();
       expect(screen.getByText("Perlu Rekonsiliasi")).toBeTruthy();
       expect(screen.getByText("Sinkron")).toBeTruthy();
+      expect(screen.getByText("Layak lapor 1")).toBeTruthy();
+      expect(screen.getByText("Reporting Basis Snapshot")).toBeTruthy();
+      expect(screen.getAllByText("Siap Dilaporkan").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Tahan Pelaporan").length).toBeGreaterThan(0);
       expect(screen.getByText("Lihat Bukti Pembayaran")).toBeTruthy();
     });
   });

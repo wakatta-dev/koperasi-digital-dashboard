@@ -19,6 +19,8 @@ export type OperationalTraceRow = {
   accountingStatus: string;
   accountingReason: string;
   reconciliationStatus: "Sesuai" | "Perlu Tindak Lanjut";
+  reportingStatus: "Siap Dilaporkan" | "Tahan Pelaporan";
+  reportingReason: string;
   detailHref: string;
 };
 
@@ -28,6 +30,8 @@ export type OperationalTraceSummary = {
   needsAttention: number;
   matched: number;
   mismatched: number;
+  reportingReady: number;
+  reportingBlocked: number;
 };
 
 function toTitleCase(value?: string) {
@@ -86,25 +90,37 @@ export function buildMarketplaceTraceRows(
 ): OperationalTraceRow[] {
   if (!orders?.length) return [];
 
-  return orders.map((order) => ({
-    key: `marketplace-${order.id}`,
-    domain: "marketplace",
-    sourceId: String(order.id),
-    title: order.order_number,
-    reference:
-      order.accounting_readiness?.reference || order.order_number || `MKP-${order.id}`,
-    operationalStatus: toTitleCase(order.status),
-    paymentStatus: toPaymentStatusLabel(order.payment_status),
-    accountingStatus: toAccountingStatusLabel(order.accounting_readiness),
-    accountingReason:
+  return orders.map((order) => {
+    const paymentStatus = toPaymentStatusLabel(order.payment_status);
+    const accountingStatus = toAccountingStatusLabel(order.accounting_readiness);
+    const accountingReason =
       order.accounting_readiness?.reason ||
-      "Status kesiapan accounting belum dilengkapi.",
-    reconciliationStatus: toReconciliationStatus(
-      toPaymentStatusLabel(order.payment_status),
-      toAccountingStatusLabel(order.accounting_readiness),
-    ),
-    detailHref: `/bumdes/marketplace/order/${order.id}`,
-  }));
+      "Status kesiapan accounting belum dilengkapi.";
+    const reconciliationStatus = toReconciliationStatus(paymentStatus, accountingStatus);
+    const reportingStatus = toReportingStatus(reconciliationStatus, accountingStatus);
+
+    return {
+      key: `marketplace-${order.id}`,
+      domain: "marketplace",
+      sourceId: String(order.id),
+      title: order.order_number,
+      reference:
+        order.accounting_readiness?.reference || order.order_number || `MKP-${order.id}`,
+      operationalStatus: toTitleCase(order.status),
+      paymentStatus,
+      accountingStatus,
+      accountingReason,
+      reconciliationStatus,
+      reportingStatus,
+      reportingReason: toReportingReason({
+        reportingStatus,
+        reconciliationStatus,
+        accountingStatus,
+        accountingReason,
+      }),
+      detailHref: `/bumdes/marketplace/order/${order.id}`,
+    };
+  });
 }
 
 export function buildRentalTraceRows(
@@ -112,25 +128,37 @@ export function buildRentalTraceRows(
 ): OperationalTraceRow[] {
   if (!bookings?.length) return [];
 
-  return bookings.map((booking) => ({
-    key: `rental-${booking.id}`,
-    domain: "rental",
-    sourceId: String(booking.id),
-    title: `Booking #${String(booking.id).padStart(5, "0")}`,
-    reference:
-      booking.accounting_readiness?.reference || `RSV-${String(booking.id).padStart(6, "0")}`,
-    operationalStatus: toTitleCase(booking.status),
-    paymentStatus: toPaymentStatusLabel(booking.latest_payment?.status),
-    accountingStatus: toAccountingStatusLabel(booking.accounting_readiness),
-    accountingReason:
+  return bookings.map((booking) => {
+    const paymentStatus = toPaymentStatusLabel(booking.latest_payment?.status);
+    const accountingStatus = toAccountingStatusLabel(booking.accounting_readiness);
+    const accountingReason =
       booking.accounting_readiness?.reason ||
-      "Status kesiapan accounting belum dilengkapi.",
-    reconciliationStatus: toReconciliationStatus(
-      toPaymentStatusLabel(booking.latest_payment?.status),
-      toAccountingStatusLabel(booking.accounting_readiness),
-    ),
-    detailHref: `/bumdes/asset/pengajuan-sewa/${booking.id}`,
-  }));
+      "Status kesiapan accounting belum dilengkapi.";
+    const reconciliationStatus = toReconciliationStatus(paymentStatus, accountingStatus);
+    const reportingStatus = toReportingStatus(reconciliationStatus, accountingStatus);
+
+    return {
+      key: `rental-${booking.id}`,
+      domain: "rental",
+      sourceId: String(booking.id),
+      title: `Booking #${String(booking.id).padStart(5, "0")}`,
+      reference:
+        booking.accounting_readiness?.reference || `RSV-${String(booking.id).padStart(6, "0")}`,
+      operationalStatus: toTitleCase(booking.status),
+      paymentStatus,
+      accountingStatus,
+      accountingReason,
+      reconciliationStatus,
+      reportingStatus,
+      reportingReason: toReportingReason({
+        reportingStatus,
+        reconciliationStatus,
+        accountingStatus,
+        accountingReason,
+      }),
+      detailHref: `/bumdes/asset/pengajuan-sewa/${booking.id}`,
+    };
+  });
 }
 
 export function buildOperationalTraceRows(params: {
@@ -158,9 +186,22 @@ export function summarizeOperationalTrace(rows: OperationalTraceRow[]): Operatio
       } else {
         acc.mismatched += 1;
       }
+      if (row.reportingStatus === "Siap Dilaporkan") {
+        acc.reportingReady += 1;
+      } else {
+        acc.reportingBlocked += 1;
+      }
       return acc;
     },
-    { total: 0, ready: 0, needsAttention: 0, matched: 0, mismatched: 0 },
+    {
+      total: 0,
+      ready: 0,
+      needsAttention: 0,
+      matched: 0,
+      mismatched: 0,
+      reportingReady: 0,
+      reportingBlocked: 0,
+    },
   );
 }
 
@@ -186,6 +227,37 @@ function toReconciliationStatus(paymentStatus: string, accountingStatus: string)
     return "Sesuai";
   }
   return "Perlu Tindak Lanjut";
+}
+
+function toReportingStatus(
+  reconciliationStatus: OperationalTraceRow["reconciliationStatus"],
+  accountingStatus: OperationalTraceRow["accountingStatus"],
+) {
+  if (
+    reconciliationStatus === "Sesuai" &&
+    (accountingStatus === "Siap Ditinjau" || accountingStatus === "Tidak Perlu Posting")
+  ) {
+    return "Siap Dilaporkan";
+  }
+  return "Tahan Pelaporan";
+}
+
+function toReportingReason(params: {
+  reportingStatus: OperationalTraceRow["reportingStatus"];
+  reconciliationStatus: OperationalTraceRow["reconciliationStatus"];
+  accountingStatus: OperationalTraceRow["accountingStatus"];
+  accountingReason: string;
+}) {
+  if (params.reportingStatus === "Siap Dilaporkan") {
+    return "Identifier transaksi dan linkage accounting sudah konsisten untuk pelaporan inti.";
+  }
+  if (params.accountingStatus === "Bermasalah") {
+    return "Transaksi ditahan dari pelaporan karena ada exception accounting atau handoff.";
+  }
+  if (params.reconciliationStatus === "Perlu Tindak Lanjut") {
+    return "Transaksi belum sinkron penuh antara pembayaran dan accounting readiness.";
+  }
+  return params.accountingReason;
 }
 
 export function getTraceProofUrl(params: {

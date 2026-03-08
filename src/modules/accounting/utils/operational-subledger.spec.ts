@@ -56,6 +56,8 @@ describe("operational subledger utils", () => {
     expect(rows[1]?.paymentStatus).toBe("Menunggu Verifikasi");
     expect(rows[0]?.reconciliationStatus).toBe("Sesuai");
     expect(rows[1]?.reconciliationStatus).toBe("Perlu Tindak Lanjut");
+    expect(rows[0]?.reportingStatus).toBe("Siap Dilaporkan");
+    expect(rows[1]?.reportingStatus).toBe("Tahan Pelaporan");
   });
 
   it("summarizes rows for finance attention", () => {
@@ -71,6 +73,8 @@ describe("operational subledger utils", () => {
         accountingStatus: "Siap Ditinjau",
         accountingReason: "ok",
         reconciliationStatus: "Sesuai",
+        reportingStatus: "Siap Dilaporkan",
+        reportingReason: "consistent",
         detailHref: "/",
       },
       {
@@ -84,6 +88,8 @@ describe("operational subledger utils", () => {
         accountingStatus: "Belum Siap",
         accountingReason: "wait",
         reconciliationStatus: "Perlu Tindak Lanjut",
+        reportingStatus: "Tahan Pelaporan",
+        reportingReason: "blocked",
         detailHref: "/",
       },
     ]);
@@ -94,6 +100,8 @@ describe("operational subledger utils", () => {
       needsAttention: 1,
       matched: 1,
       mismatched: 1,
+      reportingReady: 1,
+      reportingBlocked: 1,
     });
   });
 

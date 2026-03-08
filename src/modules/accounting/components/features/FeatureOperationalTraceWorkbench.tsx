@@ -32,6 +32,11 @@ const RECONCILIATION_BADGE: Record<string, string> = {
   "Perlu Tindak Lanjut": "bg-amber-50 text-amber-700 border border-amber-200",
 };
 
+const REPORTING_BADGE: Record<string, string> = {
+  "Siap Dilaporkan": "bg-sky-50 text-sky-700 border border-sky-200",
+  "Tahan Pelaporan": "bg-rose-50 text-rose-700 border border-rose-200",
+};
+
 export function FeatureOperationalTraceWorkbench() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "attention" | "matched">("all");
@@ -123,6 +128,7 @@ export function FeatureOperationalTraceWorkbench() {
               <span>Siap {summary.ready}</span>
               <span>Perlu tindak lanjut {summary.needsAttention}</span>
               <span>Sesuai {summary.matched}</span>
+              <span>Layak lapor {summary.reportingReady}</span>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -179,6 +185,9 @@ export function FeatureOperationalTraceWorkbench() {
                       <Badge className={RECONCILIATION_BADGE[row.reconciliationStatus]}>
                         {row.reconciliationStatus}
                       </Badge>
+                      <Badge className={REPORTING_BADGE[row.reportingStatus]}>
+                        {row.reportingStatus}
+                      </Badge>
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -214,7 +223,9 @@ export function FeatureOperationalTraceWorkbench() {
                 <p>Status pembayaran: <span className="font-medium">{selectedRow.paymentStatus}</span></p>
                 <p>Status accounting: <span className="font-medium">{selectedRow.accountingStatus}</span></p>
                 <p>Status rekonsiliasi: <span className="font-medium">{selectedRow.reconciliationStatus}</span></p>
+                <p>Kelayakan pelaporan: <span className="font-medium">{selectedRow.reportingStatus}</span></p>
                 <p>Alasan/indikator: <span className="font-medium">{selectedRow.accountingReason}</span></p>
+                <p>Catatan pelaporan: <span className="font-medium">{selectedRow.reportingReason}</span></p>
               </div>
               {proofUrl ? (
                 <Button asChild variant="outline" size="sm">
@@ -232,6 +243,35 @@ export function FeatureOperationalTraceWorkbench() {
               </Button>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="xl:col-span-2">
+        <CardHeader>
+          <CardTitle className="text-base">Reporting Basis Snapshot</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">Siap Dilaporkan</p>
+            <p className="mt-2 text-2xl font-semibold text-emerald-900">{summary.reportingReady}</p>
+            <p className="mt-1 text-sm text-emerald-800">
+              Transaksi dengan referensi deterministik dan linkage operasional-keuangan yang sinkron.
+            </p>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Tahan Pelaporan</p>
+            <p className="mt-2 text-2xl font-semibold text-amber-900">{summary.reportingBlocked}</p>
+            <p className="mt-1 text-sm text-amber-800">
+              Transaksi yang masih perlu rekonsiliasi atau memiliki handoff accounting yang belum stabil.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-700">Prinsip Basis Laporan</p>
+            <p className="mt-2 text-sm text-slate-800">
+              Finance hanya boleh menganggap row siap sebagai basis laporan saat referensi transaksi tetap,
+              status pembayaran sinkron, dan readiness accounting tidak bermasalah.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
