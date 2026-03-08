@@ -71,10 +71,12 @@ export function uploadPaymentProof(
 export function finalizePayment(
   paymentId: string,
   result: "succeeded" | "failed",
+  reason?: string,
   ownership?: { reservationId?: number; ownershipToken?: string }
 ): Promise<PaymentSessionApiResponse> {
   return api.post<PaymentSessionResponse>(`${API_PREFIX}${E.paymentFinalize(paymentId)}`, {
     status: result,
+    reason: reason?.trim() || undefined,
     reservation_id: ownership?.reservationId,
     ownership_token: ownership?.ownershipToken,
   });

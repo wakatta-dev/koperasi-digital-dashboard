@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   CalendarClock,
@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
   ASSET_RENTAL_BOOKING_STATUS,
@@ -259,6 +260,10 @@ export function AssetRentalAdminDetailPage({
   section,
 }: AssetRentalAdminDetailPageProps) {
   const queryClient = useQueryClient();
+  const [paymentDecisionNote, setPaymentDecisionNote] = useState("");
+  const [paymentDecisionError, setPaymentDecisionError] = useState<string | null>(
+    null,
+  );
 
   const bookingsQuery = useQuery({
     queryKey: QK.assetRental.bookings({
@@ -345,12 +350,18 @@ export function AssetRentalAdminDetailPage({
   });
 
   const paymentDecisionMutation = useMutation({
-    mutationFn: async (decision: "succeeded" | "failed") => {
+    mutationFn: async ({
+      status,
+      reason,
+    }: {
+      status: "succeeded" | "failed";
+      reason?: string;
+    }) => {
       const paymentID = booking?.latest_payment?.id?.trim();
       if (!paymentID) {
         throw new Error("Pembayaran belum tersedia");
       }
-      const response = await finalizePayment(paymentID, decision);
+      const response = await finalizePayment(paymentID, status, reason);
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memverifikasi pembayaran");
       }
@@ -538,7 +549,12 @@ export function AssetRentalAdminDetailPage({
 
   const handleConfirmPayment = async () => {
     try {
-      await paymentDecisionMutation.mutateAsync("succeeded");
+      await paymentDecisionMutation.mutateAsync({
+        status: "succeeded",
+        reason: paymentDecisionNote.trim() || undefined,
+      });
+      setPaymentDecisionNote("");
+      setPaymentDecisionError(null);
       showToastSuccess(
         "Pembayaran terkonfirmasi",
         "Status pembayaran diperbarui. Lanjutkan proses operasional rental secara eksplisit.",
@@ -553,8 +569,17 @@ export function AssetRentalAdminDetailPage({
   };
 
   const handleRejectPayment = async () => {
+    if (paymentDecisionNote.trim().length === 0) {
+      setPaymentDecisionError("Catatan keputusan wajib diisi saat pembayaran ditolak.");
+      return;
+    }
     try {
-      await paymentDecisionMutation.mutateAsync("failed");
+      await paymentDecisionMutation.mutateAsync({
+        status: "failed",
+        reason: paymentDecisionNote.trim(),
+      });
+      setPaymentDecisionNote("");
+      setPaymentDecisionError(null);
       showToastSuccess(
         "Pembayaran ditolak",
         "Penyewa dapat mengunggah ulang bukti pembayaran.",
@@ -918,24 +943,51 @@ export function AssetRentalAdminDetailPage({
                     </p>
                   </div>
                   {canConfirmPayment ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        className="bg-emerald-600 text-white hover:bg-emerald-700"
-                        onClick={handleConfirmPayment}
-                        disabled={isBusy}
-                      >
-                        Konfirmasi Pembayaran
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-red-200 text-red-600 hover:bg-red-50"
-                        onClick={handleRejectPayment}
-                        disabled={isBusy}
-                      >
-                        Tolak Pembayaran
-                      </Button>
+                    <div className="mt-4 space-y-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          Catatan Keputusan
+                        </p>
+                        <Textarea
+                          className="mt-2 min-h-[96px] border-slate-200 bg-white"
+                          placeholder="Tambahkan catatan keputusan untuk kebutuhan audit dan tindak lanjut internal..."
+                          value={paymentDecisionNote}
+                          aria-invalid={Boolean(paymentDecisionError)}
+                          onChange={(event) => {
+                            setPaymentDecisionNote(event.target.value);
+                            if (paymentDecisionError) {
+                              setPaymentDecisionError(null);
+                            }
+                          }}
+                        />
+                        <p className="mt-2 text-xs text-slate-500">
+                          Catatan wajib saat pembayaran ditolak, dan disarankan saat pembayaran dikonfirmasi.
+                        </p>
+                        {paymentDecisionError ? (
+                          <p className="mt-2 text-xs text-red-600">
+                            {paymentDecisionError}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          className="bg-emerald-600 text-white hover:bg-emerald-700"
+                          onClick={handleConfirmPayment}
+                          disabled={isBusy}
+                        >
+                          Konfirmasi Pembayaran
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="border-red-200 text-red-600 hover:bg-red-50"
+                          onClick={handleRejectPayment}
+                          disabled={isBusy}
+                        >
+                          Tolak Pembayaran
+                        </Button>
+                      </div>
                     </div>
                   ) : null}
                 </div>

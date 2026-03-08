@@ -83,7 +83,7 @@ export function useFinalizeGuestPayment() {
       reservationId?: number;
       ownershipToken?: string;
     }) => {
-      const res = await finalizePayment(args.paymentId, args.status, {
+      const res = await finalizePayment(args.paymentId, args.status, undefined, {
         reservationId: args.reservationId,
         ownershipToken: args.ownershipToken,
       });

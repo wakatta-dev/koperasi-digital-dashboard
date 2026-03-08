@@ -1,6 +1,6 @@
 /** @format */
 
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderFeature } from "@/__tests__/modules/asset-rental/test-utils";
@@ -235,6 +235,25 @@ describe("AssetRentalAdminDetailPage", () => {
         screen.getByText(
           "Pembayaran sudah lengkap, tetapi penyewaan baru dianggap selesai setelah penutupan operasional dilakukan secara eksplisit.",
         ),
+      ).toBeTruthy();
+    });
+  });
+
+  it("requires decision note before rejecting payment", async () => {
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="pengajuan" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Tolak Pembayaran" })).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Tolak Pembayaran" }));
+
+    await waitFor(() => {
+      expect(finalizePaymentMock).not.toHaveBeenCalled();
+      expect(
+        screen.getByText("Catatan keputusan wajib diisi saat pembayaran ditolak."),
       ).toBeTruthy();
     });
   });
