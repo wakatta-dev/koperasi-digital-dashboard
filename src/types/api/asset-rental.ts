@@ -57,6 +57,22 @@ export type AssetRentalPaymentClassification = {
   accounting_reference?: string;
 };
 
+export type AssetRentalFinancialResolution = {
+  outcome_type:
+    | "DAMAGE_CHARGE"
+    | "PENALTY"
+    | "DEPOSIT_APPLIED"
+    | "DEPOSIT_REFUNDED"
+    | string;
+  amount: number;
+  reason?: string;
+  actor_id?: number;
+  follow_up_reference?: string;
+  evidence_reference?: string;
+  accounting_event_key?: string;
+  accounting_reference?: string;
+};
+
 export type AssetRentalBooking = {
   id: number;
   asset_id: number;
@@ -77,6 +93,7 @@ export type AssetRentalBooking = {
   return_condition_notes?: string;
   latest_payment?: AssetRentalBookingPayment;
   payment_classifications?: AssetRentalPaymentClassification[];
+  financial_resolutions?: AssetRentalFinancialResolution[];
   accounting_readiness?: AssetRentalAccountingReadiness;
 };
 

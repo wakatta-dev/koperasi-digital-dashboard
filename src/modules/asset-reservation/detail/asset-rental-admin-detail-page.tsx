@@ -458,6 +458,10 @@ export function AssetRentalAdminDetailPage({
     reservationDetailQuery.data?.payment_classifications ??
     booking?.payment_classifications ??
     [];
+  const financialResolutions =
+    reservationDetailQuery.data?.financial_resolutions ??
+    booking?.financial_resolutions ??
+    [];
   const isBusy =
     updateStatusMutation.isPending ||
     completeMutation.isPending ||
@@ -819,6 +823,60 @@ export function AssetRentalAdminDetailPage({
                         </p>
                         <p className="mt-3 text-sm text-slate-600">
                           {item.reason || "Belum ada alasan klasifikasi."}
+                        </p>
+                        <div className="mt-3 space-y-1 text-xs text-slate-500">
+                          <p>
+                            Event:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.accounting_event_key || "-"}
+                            </span>
+                          </p>
+                          <p>
+                            Reference:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.accounting_reference ||
+                                item.follow_up_reference ||
+                                "-"}
+                            </span>
+                          </p>
+                          <p>
+                            Evidence:{" "}
+                            <span className="font-medium text-slate-900">
+                              {item.evidence_reference || "-"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {financialResolutions.length > 0 ? (
+                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Resolution Finance Rental
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Damage charge, penalty, dan keputusan penggunaan/refund
+                      deposit ditampilkan terpisah dari lifecycle operasional
+                      pengembalian.
+                    </p>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {financialResolutions.map((item) => (
+                      <div
+                        key={`${item.outcome_type}-${item.accounting_reference ?? item.amount}`}
+                        className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          {toSentenceCase(item.outcome_type)}
+                        </p>
+                        <p className="mt-2 text-lg font-semibold text-slate-900">
+                          {formatCurrency(item.amount)}
+                        </p>
+                        <p className="mt-3 text-sm text-slate-600">
+                          {item.reason || "Belum ada alasan resolution."}
                         </p>
                         <div className="mt-3 space-y-1 text-xs text-slate-500">
                           <p>

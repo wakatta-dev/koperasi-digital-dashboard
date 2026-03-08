@@ -14,9 +14,12 @@ const getReservationMock = vi.fn();
 const finalizePaymentMock = vi.fn();
 
 vi.mock("@/services/api/asset-rental", () => ({
-  getAssetRentalBookings: (...args: unknown[]) => getAssetRentalBookingsMock(...args),
-  updateAssetBookingStatus: (...args: unknown[]) => updateAssetBookingStatusMock(...args),
-  completeAssetBooking: (...args: unknown[]) => completeAssetBookingMock(...args),
+  getAssetRentalBookings: (...args: unknown[]) =>
+    getAssetRentalBookingsMock(...args),
+  updateAssetBookingStatus: (...args: unknown[]) =>
+    updateAssetBookingStatusMock(...args),
+  completeAssetBooking: (...args: unknown[]) =>
+    completeAssetBookingMock(...args),
 }));
 
 vi.mock("@/services/api/assets", () => ({
@@ -56,7 +59,8 @@ describe("AssetRentalAdminDetailPage", () => {
           updated_at: 1762650000,
           accounting_readiness: {
             status: "not_ready",
-            reason: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+            reason:
+              "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
             reference: "RSV-000501",
           },
           latest_payment: {
@@ -100,7 +104,8 @@ describe("AssetRentalAdminDetailPage", () => {
         amounts: { total: 750000, dp: 300000, remaining: 450000 },
         accounting_readiness: {
           status: "not_ready",
-          reason: "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+          reason:
+            "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
           reference: "RSV-000501",
         },
         latest_payment: {
@@ -168,9 +173,7 @@ describe("AssetRentalAdminDetailPage", () => {
     await waitFor(() => {
       expect(screen.getByText("Riwayat Status Internal")).toBeTruthy();
       expect(screen.getByText("Reservation Created")).toBeTruthy();
-      expect(
-        screen.getByText("Status: Pending Review"),
-      ).toBeTruthy();
+      expect(screen.getByText("Status: Pending Review")).toBeTruthy();
       expect(screen.getByText("Payment Completed")).toBeTruthy();
       expect(
         screen.getByText("Status: Awaiting Payment Verification"),
@@ -255,13 +258,126 @@ describe("AssetRentalAdminDetailPage", () => {
     });
   });
 
+  it("renders finance classifications and resolution outcomes separately", async () => {
+    getAssetRentalBookingsMock.mockResolvedValueOnce({
+      success: true,
+      data: [
+        {
+          id: 501,
+          asset_id: 10,
+          asset_name: "Gedung Serbaguna Desa",
+          renter_name: "Karang Taruna",
+          renter_contact: "08123456789",
+          renter_email: "karangtaruna@example.com",
+          purpose: "Pelatihan UMKM",
+          start_time: 1762732800,
+          end_time: 1762819200,
+          status: "COMPLETED",
+          total_amount: 750000,
+          created_at: 1762600000,
+          updated_at: 1762650000,
+          latest_payment: {
+            id: "pay-501",
+            status: "succeeded",
+            type: "settlement",
+            method: "manual_transfer",
+            amount: 450000,
+            proof_url: "https://example.com/proof.jpg",
+            proof_note: "Pelunasan sudah diverifikasi",
+            updated_at: 1762653600,
+          },
+          payment_classifications: [
+            {
+              classification_type: "DEPOSIT",
+              amount: 200000,
+              accounting_event_key: "rental.deposit.received",
+              accounting_reference: "RNT-DPS-501",
+              reason: "Dana jaminan aset.",
+            },
+            {
+              classification_type: "REVENUE_RECOGNITION",
+              amount: 250000,
+              accounting_event_key: "rental.revenue.recognized",
+              accounting_reference: "RNT-REV-501",
+              reason: "Pendapatan jasa sewa.",
+            },
+          ],
+          financial_resolutions: [
+            {
+              outcome_type: "DEPOSIT_REFUNDED",
+              amount: 200000,
+              accounting_event_key: "rental.deposit.refunded",
+              accounting_reference: "RNT-DPR-501",
+              reason: "Deposit dikembalikan penuh.",
+            },
+          ],
+        },
+      ],
+    });
+    getReservationMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        reservation_id: 501,
+        asset_id: 10,
+        asset_name: "Gedung Serbaguna Desa",
+        renter_name: "Karang Taruna",
+        renter_contact: "08123456789",
+        renter_email: "karangtaruna@example.com",
+        purpose: "Pelatihan UMKM",
+        start_date: "2025-11-10",
+        end_date: "2025-11-11",
+        status: "completed",
+        amounts: { total: 750000, dp: 300000, remaining: 450000 },
+        accounting_readiness: {
+          status: "ready",
+          reason: "Klasifikasi dan resolution finance rental sudah lengkap.",
+          reference: "RSV-000501",
+        },
+        payment_classifications: [
+          {
+            classification_type: "DEPOSIT",
+            amount: 200000,
+            accounting_event_key: "rental.deposit.received",
+            accounting_reference: "RNT-DPS-501",
+            reason: "Dana jaminan aset.",
+          },
+        ],
+        financial_resolutions: [
+          {
+            outcome_type: "DEPOSIT_REFUNDED",
+            amount: 200000,
+            accounting_event_key: "rental.deposit.refunded",
+            accounting_reference: "RNT-DPR-501",
+            reason: "Deposit dikembalikan penuh.",
+          },
+        ],
+        timeline: [],
+      },
+    });
+
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="pengembalian" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Klasifikasi Pembayaran Finance")).toBeTruthy();
+      expect(screen.getByText("Resolution Finance Rental")).toBeTruthy();
+      expect(screen.getByText("rental.deposit.received")).toBeTruthy();
+      expect(screen.getByText("RNT-DPS-501")).toBeTruthy();
+      expect(screen.getByText("rental.deposit.refunded")).toBeTruthy();
+      expect(screen.getByText("RNT-DPR-501")).toBeTruthy();
+    });
+  });
+
   it("requires decision note before rejecting payment", async () => {
     renderFeature(
       <AssetRentalAdminDetailPage bookingId="501" section="pengajuan" />,
     );
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Tolak Pembayaran" })).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Tolak Pembayaran" }),
+      ).toBeTruthy();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Tolak Pembayaran" }));
@@ -269,7 +385,9 @@ describe("AssetRentalAdminDetailPage", () => {
     await waitFor(() => {
       expect(finalizePaymentMock).not.toHaveBeenCalled();
       expect(
-        screen.getByText("Catatan keputusan wajib diisi saat pembayaran ditolak."),
+        screen.getByText(
+          "Catatan keputusan wajib diisi saat pembayaran ditolak.",
+        ),
       ).toBeTruthy();
     });
   });

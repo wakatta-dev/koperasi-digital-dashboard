@@ -100,6 +100,20 @@ export type AccountingJournalSourceTraceResponse = {
     accounting_event_key?: string;
     accounting_reference?: string;
   }>;
+  rental_financial_resolutions?: Array<{
+    outcome_type:
+      | "DAMAGE_CHARGE"
+      | "PENALTY"
+      | "DEPOSIT_APPLIED"
+      | "DEPOSIT_REFUNDED"
+      | string;
+    amount: number;
+    reason?: string;
+    follow_up_reference?: string;
+    evidence_reference?: string;
+    accounting_event_key?: string;
+    accounting_reference?: string;
+  }>;
   trace_status: "posted" | "ready" | "blocked" | string;
   journal_number?: string;
   journal_reference?: string;

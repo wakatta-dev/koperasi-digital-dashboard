@@ -252,6 +252,17 @@ describe("FeatureOperationalTraceWorkbench", () => {
                     accounting_reference: "RNT-REV-22",
                   },
                 ],
+                rental_financial_resolutions: [
+                  {
+                    outcome_type: "DEPOSIT_REFUNDED",
+                    amount: 200000,
+                    reason: "Deposit dikembalikan penuh.",
+                    follow_up_reference: "DPR-22",
+                    evidence_reference: "DOC-DPR-22",
+                    accounting_event_key: "rental.deposit.refunded",
+                    accounting_reference: "RNT-DPR-22",
+                  },
+                ],
               }
             : {
                 domain: "marketplace",
@@ -444,6 +455,9 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("RNT-DPS-22")).toBeTruthy();
       expect(screen.getByText("rental.revenue.recognized")).toBeTruthy();
       expect(screen.getByText("RNT-REV-22")).toBeTruthy();
+      expect(screen.getByText("Rental Resolution Outcomes")).toBeTruthy();
+      expect(screen.getByText("rental.deposit.refunded")).toBeTruthy();
+      expect(screen.getByText("RNT-DPR-22")).toBeTruthy();
     });
   });
 

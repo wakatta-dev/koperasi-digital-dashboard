@@ -92,6 +92,22 @@ export type ReservationPaymentClassification = {
   accounting_reference?: string | null;
 };
 
+export type ReservationFinancialResolution = {
+  outcome_type:
+    | "DAMAGE_CHARGE"
+    | "PENALTY"
+    | "DEPOSIT_APPLIED"
+    | "DEPOSIT_REFUNDED"
+    | string;
+  amount: number;
+  reason?: string | null;
+  actor_id?: number;
+  follow_up_reference?: string | null;
+  evidence_reference?: string | null;
+  accounting_event_key?: string | null;
+  accounting_reference?: string | null;
+};
+
 export type GuestLinkVerifyResponse = {
   allowed: boolean;
   expires_at?: Rfc3339String;
@@ -148,6 +164,7 @@ export type ReservationDetailResponse = {
   amounts: { total: number; dp: number; remaining: number };
   latest_payment?: ReservationLatestPayment | null;
   payment_classifications?: ReservationPaymentClassification[];
+  financial_resolutions?: ReservationFinancialResolution[];
   accounting_readiness?: {
     status: "not_ready" | "ready" | "problematic" | "not_applicable" | string;
     reason?: string | null;

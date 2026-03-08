@@ -818,6 +818,83 @@ export function FeatureOperationalTraceWorkbench() {
                       </div>
                     </div>
                   )}
+                  {Boolean(
+                    sourceTraceQuery.data?.rental_financial_resolutions?.length,
+                  ) && (
+                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Rental Resolution Outcomes
+                      </p>
+                      <div className="mt-3 space-y-3">
+                        {sourceTraceQuery.data?.rental_financial_resolutions?.map(
+                          (item) => (
+                            <div
+                              key={`${item.outcome_type}-${item.accounting_reference ?? item.amount}`}
+                              className="rounded-lg border border-slate-200 bg-white p-3"
+                            >
+                              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Outcome
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {toSentenceCase(item.outcome_type)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Amount
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    Rp
+                                    {Number(item.amount ?? 0).toLocaleString(
+                                      "id-ID",
+                                    )}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Event
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {item.accounting_event_key ?? "-"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Reference
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {item.accounting_reference ??
+                                      item.follow_up_reference ??
+                                      "-"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Reason
+                                  </p>
+                                  <p className="text-sm text-slate-800">
+                                    {item.reason ?? "-"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">
+                                    Evidence
+                                  </p>
+                                  <p className="text-sm text-slate-800">
+                                    {item.evidence_reference ?? "-"}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
