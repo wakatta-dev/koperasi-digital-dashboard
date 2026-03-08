@@ -142,6 +142,11 @@ export type OrderDetail = {
   manualPaymentAccountName?: string;
   manualPaymentTransferAmount?: number;
   manualPaymentTransferDate?: string;
+  statusHistory: Array<{
+    status: OrderStatus;
+    timestamp: string;
+    reason?: string | null;
+  }>;
   customer: CustomerSummary;
   shippingAddress: Address;
   billingAddress: Address;

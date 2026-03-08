@@ -125,6 +125,18 @@ function makeOrderDetail(status: string) {
     payment_reference: "REF-101",
     shipping_method: "JNE",
     shipping_tracking_number: "JNE-001",
+    status_history: [
+      {
+        status: "PAYMENT_VERIFICATION",
+        timestamp: 1739492400,
+        reason: "Bukti pembayaran diterima",
+      },
+      {
+        status: "PROCESSING",
+        timestamp: 1739493600,
+        reason: "Pesanan mulai diproses gudang",
+      },
+    ],
     guest_tracking_enabled: true,
     tracking_token: "track-abc-123",
     review_state: "submitted",
@@ -209,16 +221,24 @@ describe("admin marketplace lifecycle alignment", () => {
     transitionGuard.mockRestore();
   });
 
-  it("shows buyer support signals in admin detail transaction info", () => {
+  it("shows buyer support signals in admin detail transaction info", async () => {
     orderDetailMock = makeOrderDetail("IN_DELIVERY");
 
     render(<OrderDetailPage id="101" />);
 
-    expect(screen.getByText("Akses Tracking Tamu")).toBeTruthy();
-    expect(screen.getByText("Aktif")).toBeTruthy();
-    expect(screen.getByText("track-abc-123")).toBeTruthy();
-    expect(screen.getByText("Ulasan Terkirim")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Lihat Bukti" })).toBeTruthy();
-    expect(screen.getByText("Sudah sesuai bukti transfer")).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText("Workspace Transaksi")).toBeTruthy();
+      expect(screen.getByText("Status Operasional")).toBeTruthy();
+      expect(screen.getByText("Status Pembayaran")).toBeTruthy();
+      expect(screen.getByText("Tindakan Berikutnya")).toBeTruthy();
+      expect(screen.getByText("Tinjau Pembayaran Manual")).toBeTruthy();
+      expect(screen.getByText("Catatan: Bukti pembayaran diterima")).toBeTruthy();
+      expect(screen.getByText("Akses Tracking Tamu")).toBeTruthy();
+      expect(screen.getByText("Aktif")).toBeTruthy();
+      expect(screen.getByText("track-abc-123")).toBeTruthy();
+      expect(screen.getByText("Ulasan Terkirim")).toBeTruthy();
+      expect(screen.getByRole("link", { name: "Lihat Bukti" })).toBeTruthy();
+      expect(screen.getByText("Sudah sesuai bukti transfer")).toBeTruthy();
+    });
   });
 });
