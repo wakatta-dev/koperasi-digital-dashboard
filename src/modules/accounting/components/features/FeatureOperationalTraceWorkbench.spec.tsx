@@ -169,8 +169,10 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Jejak Status")).toBeTruthy();
       expect(screen.getByText("PAYMENT VERIFICATION")).toBeTruthy();
       expect(screen.getByText("Exception Workspace")).toBeTruthy();
+      expect(screen.getByText("Basis Resolusi")).toBeTruthy();
       expect(screen.getByDisplayValue("Finance")).toBeTruthy();
       expect(screen.getByDisplayValue("Konfirmasi reference jurnal")).toBeTruthy();
+      expect(screen.getByText("Tersedia")).toBeTruthy();
       expect(screen.getByText("Reference jurnal belum terbentuk.")).toBeTruthy();
       expect(screen.getAllByText("Siap Dilaporkan").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Tahan Pelaporan").length).toBeGreaterThan(0);
@@ -259,6 +261,46 @@ describe("FeatureOperationalTraceWorkbench", () => {
         owner_label: "Admin Operasional",
         next_step: "Hubungi renter",
         message: "Menunggu konfirmasi ulang dari renter.",
+      }),
+    );
+  });
+
+  it("applies exception resolution from linked trace context", async () => {
+    const applyDecisionMutate = vi.fn();
+    useSupportOperationalExceptionActionsMock.mockReturnValue({
+      saveNote: {
+        mutate: vi.fn(),
+        isPending: false,
+      },
+      applyDecision: {
+        mutate: applyDecisionMutate,
+        isPending: false,
+      },
+    });
+
+    renderFeature(<FeatureOperationalTraceWorkbench />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Basis Resolusi")).toBeTruthy();
+    });
+
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        "Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara.",
+      ),
+      {
+        target: { value: "Referensi jurnal sudah terbentuk dan sinkron." },
+      },
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Tandai Selesai" }));
+
+    expect(applyDecisionMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        domain: "marketplace",
+        source_id: 11,
+        status: "resolved",
+        message: "Referensi jurnal sudah terbentuk dan sinkron.",
       }),
     );
   });

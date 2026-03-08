@@ -372,6 +372,31 @@ export function FeatureOperationalTraceWorkbench() {
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 md:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Basis Resolusi
+                    </p>
+                    <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <div>
+                        <p className="text-xs text-slate-500">Transaksi</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedRow.reference}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Pembayaran</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedRow.paymentStatus}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Accounting</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedRow.accountingStatus}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Bukti Pembayaran</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {proofUrl ? "Tersedia" : "Belum Tersedia"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
                       Owner Penanganan
@@ -427,6 +452,52 @@ export function FeatureOperationalTraceWorkbench() {
                     disabled={!selectedRow || exceptionActions.saveNote.isPending}
                   >
                     {exceptionActions.saveNote.isPending ? "Menyimpan..." : "Simpan Catatan Exception"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (!selectedRow) {
+                        return;
+                      }
+                      exceptionActions.applyDecision.mutate({
+                        domain: selectedRow.domain,
+                        source_id: Number(selectedRow.sourceId),
+                        reference: selectedRow.reference,
+                        attention_scope: selectedRow.attentionScope ?? undefined,
+                        summary: selectedRow.attentionSummary ?? undefined,
+                        owner_label: exceptionOwner || undefined,
+                        next_step: exceptionNextStep || undefined,
+                        message: exceptionMessage,
+                        status: "resolved",
+                      });
+                    }}
+                    disabled={!selectedRow || exceptionActions.applyDecision.isPending}
+                  >
+                    {exceptionActions.applyDecision.isPending ? "Memproses..." : "Tandai Selesai"}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      if (!selectedRow) {
+                        return;
+                      }
+                      exceptionActions.applyDecision.mutate({
+                        domain: selectedRow.domain,
+                        source_id: Number(selectedRow.sourceId),
+                        reference: selectedRow.reference,
+                        attention_scope: selectedRow.attentionScope ?? undefined,
+                        summary: selectedRow.attentionSummary ?? undefined,
+                        owner_label: exceptionOwner || undefined,
+                        next_step: exceptionNextStep || undefined,
+                        message: exceptionMessage,
+                        status: "escalated",
+                      });
+                    }}
+                    disabled={!selectedRow || exceptionActions.applyDecision.isPending}
+                  >
+                    {exceptionActions.applyDecision.isPending ? "Memproses..." : "Eskalasi"}
                   </Button>
                   {exceptionContextQuery.data?.summary ? (
                     <p className="text-sm text-slate-600">
