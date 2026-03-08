@@ -70,6 +70,8 @@ export const QK = {
     emailTemplates: () => ["settings", "support", "email-templates"] as const,
     activityLogs: (params?: Record<string, unknown>) =>
       ["settings", "support", "activity-logs", params ?? {}] as const,
+    operationalExceptionContext: (domain: string, sourceId: string | number) =>
+      ["settings", "support", "operational-exception", domain, String(sourceId)] as const,
   },
   notifications: {
     list: (params?: Record<string, unknown>) =>

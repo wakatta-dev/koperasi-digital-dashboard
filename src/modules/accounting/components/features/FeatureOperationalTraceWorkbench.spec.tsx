@@ -10,6 +10,8 @@ const useMarketplaceOrdersMock = vi.fn();
 const useMarketplaceOrderMock = vi.fn();
 const getAssetRentalBookingsMock = vi.fn();
 const getReservationMock = vi.fn();
+const useSupportOperationalExceptionContextMock = vi.fn();
+const useSupportOperationalExceptionActionsMock = vi.fn();
 
 vi.mock("@/hooks/queries/marketplace-orders", () => ({
   useMarketplaceOrders: (...args: unknown[]) => useMarketplaceOrdersMock(...args),
@@ -22,6 +24,13 @@ vi.mock("@/services/api/asset-rental", () => ({
 
 vi.mock("@/services/api/reservations", () => ({
   getReservation: (...args: unknown[]) => getReservationMock(...args),
+}));
+
+vi.mock("@/hooks/queries/support-config", () => ({
+  useSupportOperationalExceptionContext: (...args: unknown[]) =>
+    useSupportOperationalExceptionContextMock(...args),
+  useSupportOperationalExceptionActions: (...args: unknown[]) =>
+    useSupportOperationalExceptionActionsMock(...args),
 }));
 
 describe("FeatureOperationalTraceWorkbench", () => {
@@ -101,6 +110,45 @@ describe("FeatureOperationalTraceWorkbench", () => {
         ],
       },
     });
+
+    useSupportOperationalExceptionContextMock.mockReturnValue({
+      data: {
+        domain: "marketplace",
+        source_id: 11,
+        reference: "MP-INV-2026-0001",
+        attention_scope: "accounting",
+        summary: "Posting jurnal tertahan",
+        status: "active",
+        owner_label: "Finance",
+        next_step: "Konfirmasi reference jurnal",
+        notes: [
+          {
+            id: 1,
+            action: "catatan_ditambahkan",
+            status: "active",
+            message: "Reference jurnal belum terbentuk.",
+            owner_label: "Finance",
+            next_step: "Konfirmasi reference jurnal",
+            actor_label: "finance",
+            timestamp: "2026-03-08T10:00:00Z",
+          },
+        ],
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+
+    useSupportOperationalExceptionActionsMock.mockReturnValue({
+      saveNote: {
+        mutate: vi.fn(),
+        isPending: false,
+      },
+      applyDecision: {
+        mutate: vi.fn(),
+        isPending: false,
+      },
+    });
   });
 
   it("renders unified finance trace rows and detail panel", async () => {
@@ -120,6 +168,10 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByText("Aktif 1")).toBeTruthy();
       expect(screen.getByText("Jejak Status")).toBeTruthy();
       expect(screen.getByText("PAYMENT VERIFICATION")).toBeTruthy();
+      expect(screen.getByText("Exception Workspace")).toBeTruthy();
+      expect(screen.getByDisplayValue("Finance")).toBeTruthy();
+      expect(screen.getByDisplayValue("Konfirmasi reference jurnal")).toBeTruthy();
+      expect(screen.getByText("Reference jurnal belum terbentuk.")).toBeTruthy();
       expect(screen.getAllByText("Siap Dilaporkan").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Tahan Pelaporan").length).toBeGreaterThan(0);
       expect(screen.getByText("Lihat Bukti Pembayaran")).toBeTruthy();
@@ -162,5 +214,52 @@ describe("FeatureOperationalTraceWorkbench", () => {
     await waitFor(() => {
       expect(screen.getByText("Perlu follow-up pembayaran: Menunggu Verifikasi.")).toBeTruthy();
     });
+  });
+
+  it("submits exception note from trace detail panel", async () => {
+    const saveNoteMutate = vi.fn();
+    useSupportOperationalExceptionActionsMock.mockReturnValue({
+      saveNote: {
+        mutate: saveNoteMutate,
+        isPending: false,
+      },
+      applyDecision: {
+        mutate: vi.fn(),
+        isPending: false,
+      },
+    });
+
+    renderFeature(<FeatureOperationalTraceWorkbench />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Exception Workspace")).toBeTruthy();
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Contoh: Finance, Admin Operasional"), {
+      target: { value: "Admin Operasional" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Contoh: Konfirmasi bukti transfer"), {
+      target: { value: "Hubungi renter" },
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        "Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara.",
+      ),
+      {
+        target: { value: "Menunggu konfirmasi ulang dari renter." },
+      },
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Simpan Catatan Exception" }));
+
+    expect(saveNoteMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        domain: "marketplace",
+        source_id: 11,
+        owner_label: "Admin Operasional",
+        next_step: "Hubungi renter",
+        message: "Menunggu konfirmasi ulang dari renter.",
+      }),
+    );
   });
 });

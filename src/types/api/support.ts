@@ -288,6 +288,62 @@ export interface SupportActivityLogParams {
   action?: string;
 }
 
+export interface SupportOperationalExceptionContextParams {
+  domain: "marketplace" | "rental";
+  source_id: string | number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+}
+
+export interface SupportOperationalExceptionNote {
+  id: number;
+  action: string;
+  status: "none" | "active" | "resolved" | "escalated" | string;
+  message: string;
+  owner_label?: string;
+  next_step?: string;
+  actor_label: string;
+  timestamp: Rfc3339String;
+}
+
+export interface SupportOperationalExceptionContext {
+  domain: "marketplace" | "rental";
+  source_id: number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+  status: "none" | "active" | "resolved" | "escalated" | string;
+  owner_label?: string;
+  next_step?: string;
+  last_message?: string;
+  updated_at?: Rfc3339String;
+  notes: SupportOperationalExceptionNote[];
+}
+
+export interface CreateSupportOperationalExceptionNoteRequest {
+  domain: "marketplace" | "rental";
+  source_id: number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+  owner_label: string;
+  next_step: string;
+  message: string;
+}
+
+export interface UpdateSupportOperationalExceptionDecisionRequest {
+  domain: "marketplace" | "rental";
+  source_id: number;
+  reference?: string;
+  attention_scope?: "operasional" | "pembayaran" | "accounting";
+  summary?: string;
+  owner_label?: string;
+  next_step?: string;
+  message: string;
+  status: "resolved" | "escalated";
+}
+
 export type SupportGlobalConfigResponse = ApiResponse<SupportGlobalConfig>;
 export type SupportTenantConfigResponse = ApiResponse<SupportTenantConfig>;
 export type UpdateSupportTenantConfigResponse = ApiResponse<SupportTenantConfig>;
@@ -305,3 +361,5 @@ export type SupportEmailTemplatesResponse = ApiResponse<SupportEmailTemplate[]>;
 export type SupportEmailTemplateResponse = ApiResponse<SupportEmailTemplate>;
 export type SupportEmailSendResponse = ApiResponse<SupportEmailLog>;
 export type SupportActivityLogResponse = ApiResponse<SupportActivityLogList>;
+export type SupportOperationalExceptionContextResponse =
+  ApiResponse<SupportOperationalExceptionContext>;

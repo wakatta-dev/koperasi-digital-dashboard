@@ -7,10 +7,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useMarketplaceOrder, useMarketplaceOrders } from "@/hooks/queries/marketplace-orders";
+import {
+  useSupportOperationalExceptionActions,
+  useSupportOperationalExceptionContext,
+} from "@/hooks/queries/support-config";
 import { getAssetRentalBookings } from "@/services/api/asset-rental";
 import { getReservation } from "@/services/api/reservations";
 import {
@@ -44,12 +50,29 @@ const ATTENTION_SCOPE_BADGE: Record<string, string> = {
   accounting: "bg-indigo-50 text-indigo-700 border border-indigo-200",
 };
 
+const EXCEPTION_STATUS_BADGE: Record<string, string> = {
+  none: "bg-slate-100 text-slate-700 border border-slate-200",
+  active: "bg-amber-50 text-amber-700 border border-amber-200",
+  resolved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  escalated: "bg-rose-50 text-rose-700 border border-rose-200",
+};
+
+const EXCEPTION_STATUS_LABEL: Record<string, string> = {
+  none: "Belum Ada Catatan",
+  active: "Aktif",
+  resolved: "Terselesaikan",
+  escalated: "Tereskalasi",
+};
+
 export function FeatureOperationalTraceWorkbench() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "attention" | "matched">("all");
   const [queueScope, setQueueScope] = useState<
     "all" | "operasional" | "pembayaran" | "accounting"
   >("all");
+  const [exceptionOwner, setExceptionOwner] = useState("");
+  const [exceptionNextStep, setExceptionNextStep] = useState("");
+  const [exceptionMessage, setExceptionMessage] = useState("");
 
   const marketplaceOrdersQuery = useMarketplaceOrders({
     limit: 8,
@@ -146,6 +169,36 @@ export function FeatureOperationalTraceWorkbench() {
       time: new Date(entry.at).toLocaleString("id-ID"),
     }));
   }, [marketplaceDetailQuery.data?.status_history, rentalDetailQuery.data?.timeline, selectedRow]);
+  const exceptionContextQuery = useSupportOperationalExceptionContext(
+    selectedRow
+      ? {
+          domain: selectedRow.domain,
+          source_id: selectedRow.sourceId,
+          reference: selectedRow.reference,
+          attention_scope: selectedRow.attentionScope ?? undefined,
+          summary: selectedRow.attentionSummary ?? undefined,
+        }
+      : undefined,
+  );
+  const exceptionActions = useSupportOperationalExceptionActions(
+    selectedRow?.domain,
+    selectedRow?.sourceId,
+  );
+  const selectedRowKey = selectedRow?.key ?? null;
+
+  useEffect(() => {
+    if (!selectedRowKey) {
+      setExceptionOwner("");
+      setExceptionNextStep("");
+      setExceptionMessage("");
+      return;
+    }
+    setExceptionOwner(exceptionContextQuery.data?.owner_label ?? "");
+    setExceptionNextStep(exceptionContextQuery.data?.next_step ?? "");
+    setExceptionMessage("");
+  }, [selectedRowKey, exceptionContextQuery.data?.owner_label, exceptionContextQuery.data?.next_step]);
+
+  const exceptionStatus = exceptionContextQuery.data?.status ?? "none";
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
@@ -295,6 +348,125 @@ export function FeatureOperationalTraceWorkbench() {
                   ) : (
                     <p className="text-sm text-slate-500">
                       Belum ada riwayat status untuk transaksi yang dipilih.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Exception Workspace
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Simpan owner, langkah lanjut, dan catatan penanganan tanpa keluar dari trace transaksi.
+                    </p>
+                  </div>
+                  <Badge
+                    className={
+                      EXCEPTION_STATUS_BADGE[exceptionStatus] || EXCEPTION_STATUS_BADGE.none
+                    }
+                  >
+                    {EXCEPTION_STATUS_LABEL[exceptionStatus] || "Belum Ada Catatan"}
+                  </Badge>
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Owner Penanganan
+                    </label>
+                    <Input
+                      value={exceptionOwner}
+                      onChange={(event) => setExceptionOwner(event.target.value)}
+                      placeholder="Contoh: Finance, Admin Operasional"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Next Step
+                    </label>
+                    <Input
+                      value={exceptionNextStep}
+                      onChange={(event) => setExceptionNextStep(event.target.value)}
+                      placeholder="Contoh: Konfirmasi bukti transfer"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 space-y-2">
+                  <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Catatan Exception
+                  </label>
+                  <Textarea
+                    value={exceptionMessage}
+                    onChange={(event) => setExceptionMessage(event.target.value)}
+                    placeholder="Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (!selectedRow) {
+                        return;
+                      }
+                      exceptionActions.saveNote.mutate({
+                        domain: selectedRow.domain,
+                        source_id: Number(selectedRow.sourceId),
+                        reference: selectedRow.reference,
+                        attention_scope: selectedRow.attentionScope ?? undefined,
+                        summary: selectedRow.attentionSummary ?? undefined,
+                        owner_label: exceptionOwner,
+                        next_step: exceptionNextStep,
+                        message: exceptionMessage,
+                      });
+                    }}
+                    disabled={!selectedRow || exceptionActions.saveNote.isPending}
+                  >
+                    {exceptionActions.saveNote.isPending ? "Menyimpan..." : "Simpan Catatan Exception"}
+                  </Button>
+                  {exceptionContextQuery.data?.summary ? (
+                    <p className="text-sm text-slate-600">
+                      Konteks saat ini: {exceptionContextQuery.data.summary}
+                    </p>
+                  ) : selectedRow.attentionSummary ? (
+                    <p className="text-sm text-slate-600">
+                      Konteks saat ini: {selectedRow.attentionSummary}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {exceptionContextQuery.isLoading ? (
+                    <p className="text-sm text-slate-500">Memuat catatan exception...</p>
+                  ) : exceptionContextQuery.data?.notes?.length ? (
+                    exceptionContextQuery.data.notes.map((note) => (
+                      <div
+                        key={`exception-note-${note.id}`}
+                        className="rounded-lg border border-slate-200 bg-white p-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-slate-900">
+                            {note.action.replaceAll("_", " ")}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {new Date(note.timestamp).toLocaleString("id-ID")}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-sm text-slate-700">{note.message}</p>
+                        <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+                          <span>Actor: {note.actor_label}</span>
+                          {note.owner_label ? <span>Owner: {note.owner_label}</span> : null}
+                          {note.next_step ? <span>Next step: {note.next_step}</span> : null}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500">
+                      Belum ada catatan exception untuk transaksi yang dipilih.
                     </p>
                   )}
                 </div>

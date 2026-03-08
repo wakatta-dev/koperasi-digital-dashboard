@@ -72,6 +72,9 @@ export const API_ENDPOINTS = {
     emailTemplate: (id: string | number) =>
       `/support/email/templates/${encodeURIComponent(String(id))}`,
     activityLogs: "/support/activity-logs",
+    operationalExceptionsContext: "/support/operational-exceptions/context",
+    operationalExceptionsNotes: "/support/operational-exceptions/notes",
+    operationalExceptionsDecision: "/support/operational-exceptions/decision",
   },
   users: {
     list: "/users",
