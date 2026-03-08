@@ -32,6 +32,7 @@ export { ReportingCashFlowPage } from "./components/pages/ReportingCashFlowPage"
 export { ReportingBalanceSheetPage } from "./components/pages/ReportingBalanceSheetPage";
 export { ReportingProfitLossComparativePage } from "./components/pages/ReportingProfitLossComparativePage";
 export { ReportingTrialBalancePage } from "./components/pages/ReportingTrialBalancePage";
+export { ReportingTieOutPage } from "./components/pages/ReportingTieOutPage";
 export { ReportingGeneralLedgerPage } from "./components/pages/ReportingGeneralLedgerPage";
 export { ReportingAccountLedgerPage } from "./components/pages/ReportingAccountLedgerPage";
 export { AccountingSettingsIndexPage } from "./components/pages/AccountingSettingsIndexPage";

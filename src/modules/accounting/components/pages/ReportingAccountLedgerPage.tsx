@@ -19,7 +19,10 @@ import {
   FeatureAccountLedgerSummaryCards,
   FeatureAccountLedgerTopActions,
 } from "../features/FeatureReportingLedgers";
-import { FeatureReportingPaginationBar } from "../features/FeatureReportingShared";
+import {
+  FeatureReportingPaginationBar,
+  FeatureReportingSourceOfTruthCallout,
+} from "../features/FeatureReportingShared";
 
 type ReportingAccountLedgerPageProps = {
   accountId?: string;
@@ -218,6 +221,11 @@ export function ReportingAccountLedgerPage({
           {toAccountingReportingApiError(accountLedgerQuery.error).message}
         </div>
       ) : null}
+
+      <FeatureReportingSourceOfTruthCallout
+        sourceOfTruth={accountLedgerQuery.data?.report_context.source_of_truth}
+        reportTier={accountLedgerQuery.data?.report_context.report_tier}
+      />
 
       {!resolvedAccountId && fallbackContextQuery.isPending ? (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">

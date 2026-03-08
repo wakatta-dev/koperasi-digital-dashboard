@@ -219,6 +219,7 @@ export function getBumdesNavigation(
               href: "/bumdes/accounting/reporting/p-and-l-comparative",
             },
             { name: "Trial Balance", href: "/bumdes/accounting/reporting/trial-balance" },
+            { name: "Tie-Out", href: "/bumdes/accounting/reporting/tie-out" },
             { name: "General Ledger", href: "/bumdes/accounting/reporting/general-ledger" },
             { name: "Account Ledger", href: "/bumdes/accounting/reporting/account-ledger" },
           ],
@@ -321,6 +322,7 @@ export const bumdesTitleMap: Record<string, string> = {
   "/bumdes/accounting/reporting/p-and-l-comparative":
     "Accounting - Reporting - P&L Comparative",
   "/bumdes/accounting/reporting/trial-balance": "Accounting - Reporting - Trial Balance",
+  "/bumdes/accounting/reporting/tie-out": "Accounting - Reporting - Tie-Out",
   "/bumdes/accounting/reporting/general-ledger": "Accounting - Reporting - General Ledger",
   "/bumdes/accounting/reporting/account-ledger": "Accounting - Reporting - Account Ledger",
   "/bumdes/accounting/settings": "Accounting - Settings",

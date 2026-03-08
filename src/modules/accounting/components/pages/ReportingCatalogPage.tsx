@@ -54,6 +54,14 @@ const REPORTING_CARDS: ReadonlyArray<ReportingCardItem> = [
     iconTone: "teal",
   },
   {
+    key: "tie-out",
+    title: "Operational vs GL Tie-Out",
+    description: "Compare operational subledger totals against GL references before using financial statements as source of truth.",
+    href: ACCOUNTING_REPORTING_ROUTES.tieOut,
+    group: "control",
+    iconTone: "orange",
+  },
+  {
     key: "general-ledger",
     title: "General Ledger",
     description: "Complete record of all financial transactions over the life of the company.",
@@ -76,6 +84,7 @@ export function ReportingCatalogPage() {
 
   const statementCards = REPORTING_CARDS.filter((card) => card.group === "statement");
   const ledgerCards = REPORTING_CARDS.filter((card) => card.group === "ledger");
+  const controlCards = REPORTING_CARDS.filter((card) => card.group === "control");
 
   const handleView = (card: ReportingCardItem) => {
     router.push(card.href);
@@ -86,7 +95,9 @@ export function ReportingCatalogPage() {
       <section>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Laporan Keuangan</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Detailed financial statements and ledger reports.
+          Statement dan ledger di bawah ini adalah laporan finansial resmi berbasis GL. Workspace
+          tie-out dipisahkan sebagai area kontrol sebelum angka finansial resmi dipakai, sekaligus
+          merangkum maturity fixed asset yang masih menghalangi kesiapan reporting.
         </p>
       </section>
 
@@ -98,6 +109,11 @@ export function ReportingCatalogPage() {
       <section className="space-y-4">
         <FeatureReportingSectionHeader title="Ledgers" />
         <FeatureReportingLedgerCardsGrid cards={ledgerCards} onView={handleView} />
+      </section>
+
+      <section className="space-y-4">
+        <FeatureReportingSectionHeader title="Control Workspace" badgeText="Operational vs GL" />
+        <FeatureReportingStatementCardsGrid cards={controlCards} onView={handleView} />
       </section>
     </div>
   );

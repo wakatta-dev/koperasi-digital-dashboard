@@ -211,6 +211,8 @@ export const QK = {
       ["accounting-reporting", "profit-loss-comparative", params ?? {}] as const,
     trialBalance: (params?: Record<string, unknown>) =>
       ["accounting-reporting", "trial-balance", params ?? {}] as const,
+    tieOut: (params?: Record<string, unknown>) =>
+      ["accounting-reporting", "tie-out", params ?? {}] as const,
     generalLedger: (params?: Record<string, unknown>) =>
       ["accounting-reporting", "general-ledger", params ?? {}] as const,
     accountLedger: (params?: Record<string, unknown>) =>
@@ -340,6 +342,7 @@ export type QueryKey = ReturnType<
   | typeof QK.accountingReporting.balanceSheet
   | typeof QK.accountingReporting.profitLossComparative
   | typeof QK.accountingReporting.trialBalance
+  | typeof QK.accountingReporting.tieOut
   | typeof QK.accountingReporting.generalLedger
   | typeof QK.accountingReporting.accountLedger
   | typeof QK.assetRental.list

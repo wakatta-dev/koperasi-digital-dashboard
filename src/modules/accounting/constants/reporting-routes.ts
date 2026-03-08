@@ -7,6 +7,7 @@ export const ACCOUNTING_REPORTING_ROUTES = {
   balanceSheet: "/bumdes/accounting/reporting/balance-sheet",
   profitLossComparative: "/bumdes/accounting/reporting/p-and-l-comparative",
   trialBalance: "/bumdes/accounting/reporting/trial-balance",
+  tieOut: "/bumdes/accounting/reporting/tie-out",
   generalLedger: "/bumdes/accounting/reporting/general-ledger",
   accountLedger: "/bumdes/accounting/reporting/account-ledger",
 } as const;
@@ -18,6 +19,7 @@ export const ACCOUNTING_REPORTING_FLOW_ORDER = [
   "Balance Sheet",
   "P&L Comparative",
   "Trial Balance",
+  "Tie-Out",
   "General Ledger",
   "Account Ledger",
 ] as const;

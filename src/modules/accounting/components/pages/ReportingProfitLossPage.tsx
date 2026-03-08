@@ -14,6 +14,7 @@ import {
   FeatureProfitLossSummaryHeader,
   FeatureProfitLossToolbar,
 } from "../features/FeatureReportingStatements";
+import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 export function ReportingProfitLossPage() {
   const router = useRouter();
@@ -78,6 +79,11 @@ export function ReportingProfitLossPage() {
           Loading profit and loss report...
         </div>
       ) : null}
+
+      <FeatureReportingSourceOfTruthCallout
+        sourceOfTruth={reportData?.report_context.source_of_truth}
+        reportTier={reportData?.report_context.report_tier}
+      />
 
       <FeatureProfitLossSummaryHeader
         periodLabel={reportData?.period_label ? `Period: ${reportData.period_label}` : "Period: -"}

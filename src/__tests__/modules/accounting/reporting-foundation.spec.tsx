@@ -13,6 +13,7 @@ import {
   ReportingGeneralLedgerPage,
   ReportingProfitLossComparativePage,
   ReportingProfitLossPage,
+  ReportingTieOutPage,
   ReportingTrialBalancePage,
 } from "@/modules/accounting";
 
@@ -30,12 +31,31 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/hooks/queries", () => ({
   useAccountingReportingProfitLoss: () => ({
-    data: { period_label: "Period", summary_cards: [], rows: [], notes: [], report_context: { auto_fallback_applied: false } },
+    data: {
+      period_label: "Period",
+      summary_cards: [],
+      rows: [],
+      notes: [],
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "general_ledger",
+        report_tier: "official_financial",
+      },
+    },
     error: null,
     isPending: false,
   }),
   useAccountingReportingCashFlow: () => ({
-    data: { period_label: "Period", rows: [], notes: [], report_context: { auto_fallback_applied: false } },
+    data: {
+      period_label: "Period",
+      rows: [],
+      notes: [],
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "general_ledger",
+        report_tier: "official_financial",
+      },
+    },
     error: null,
     isPending: false,
   }),
@@ -51,7 +71,11 @@ vi.mock("@/hooks/queries", () => ({
       liability_info: [],
       status_label: "Neraca Seimbang",
       notes: [],
-      report_context: { auto_fallback_applied: false },
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "general_ledger",
+        report_tier: "official_financial",
+      },
     },
     error: null,
     isPending: false,
@@ -62,7 +86,11 @@ vi.mock("@/hooks/queries", () => ({
       compare_label: "Compare",
       rows: [],
       meta: { generated_at: "-", currency: "USD" },
-      report_context: { auto_fallback_applied: false },
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "general_ledger",
+        report_tier: "official_financial",
+      },
     },
     error: null,
     isPending: false,
@@ -72,7 +100,25 @@ vi.mock("@/hooks/queries", () => ({
       period_label: "Period",
       rows: [],
       totals: { initial_balance: 0, debit: 0, credit: 0, ending_balance: 0 },
-      report_context: { auto_fallback_applied: false },
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "general_ledger",
+        report_tier: "official_financial",
+      },
+    },
+    error: null,
+    isPending: false,
+  }),
+  useAccountingReportingTieOut: () => ({
+    data: {
+      period_label: "Period",
+      summaries: [],
+      mismatches: [],
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "operational_subledger_vs_gl_control",
+        report_tier: "control_workspace",
+      },
     },
     error: null,
     isPending: false,
@@ -82,7 +128,11 @@ vi.mock("@/hooks/queries", () => ({
       period_label: "Period",
       groups: [],
       pagination: { page: 1, page_size: 20, total_accounts: 0 },
-      report_context: { auto_fallback_applied: false },
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "general_ledger",
+        report_tier: "official_financial",
+      },
     },
     error: null,
     isPending: false,
@@ -94,7 +144,11 @@ vi.mock("@/hooks/queries", () => ({
       entries: [],
       totals: { debit: 0, credit: 0 },
       pagination: { page: 1, page_size: 20, total_entries: 0 },
-      report_context: { auto_fallback_applied: false },
+      report_context: {
+        auto_fallback_applied: false,
+        source_of_truth: "general_ledger",
+        report_tier: "official_financial",
+      },
     },
     error: null,
     isPending: false,
@@ -114,6 +168,7 @@ describe("reporting foundation", () => {
     pathnameMock = "/bumdes/accounting/reporting/profit-loss";
     render(<ReportingProfitLossPage />);
     expect(screen.getByRole("heading", { name: "Profit and Loss" })).toBeTruthy();
+    expect(screen.getAllByText("Official Financial Report").length).toBeGreaterThan(0);
 
     pathnameMock = "/bumdes/accounting/reporting/cash-flow";
     render(<ReportingCashFlowPage />);
@@ -130,6 +185,11 @@ describe("reporting foundation", () => {
     pathnameMock = "/bumdes/accounting/reporting/trial-balance";
     render(<ReportingTrialBalancePage />);
     expect(screen.getByRole("heading", { name: "Detail Trial Balance Report" })).toBeTruthy();
+
+    pathnameMock = "/bumdes/accounting/reporting/tie-out";
+    render(<ReportingTieOutPage />);
+    expect(screen.getByRole("heading", { name: "Operational vs GL Tie-Out" })).toBeTruthy();
+    expect(screen.getAllByText("Control Workspace").length).toBeGreaterThan(0);
 
     pathnameMock = "/bumdes/accounting/reporting/general-ledger";
     render(<ReportingGeneralLedgerPage />);
@@ -155,6 +215,7 @@ describe("reporting foundation", () => {
         href: "/bumdes/accounting/reporting/p-and-l-comparative",
       },
       { name: "Trial Balance", href: "/bumdes/accounting/reporting/trial-balance" },
+      { name: "Tie-Out", href: "/bumdes/accounting/reporting/tie-out" },
       { name: "General Ledger", href: "/bumdes/accounting/reporting/general-ledger" },
       { name: "Account Ledger", href: "/bumdes/accounting/reporting/account-ledger" },
     ]);
@@ -177,6 +238,9 @@ describe("reporting foundation", () => {
     expect(bumdesTitleMap["/bumdes/accounting/reporting/trial-balance"]).toBe(
       "Accounting - Reporting - Trial Balance",
     );
+    expect(bumdesTitleMap["/bumdes/accounting/reporting/tie-out"]).toBe(
+      "Accounting - Reporting - Tie-Out",
+    );
     expect(bumdesTitleMap["/bumdes/accounting/reporting/general-ledger"]).toBe(
       "Accounting - Reporting - General Ledger",
     );
@@ -193,6 +257,7 @@ describe("reporting foundation", () => {
       "Balance Sheet",
       "P&L Comparative",
       "Trial Balance",
+      "Tie-Out",
       "General Ledger",
       "Account Ledger",
     ]);

@@ -14,6 +14,7 @@ import {
   FeatureProfitLossComparativeTable,
   FeatureProfitLossComparativeToolbar,
 } from "../features/FeatureReportingLedgers";
+import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 export function ReportingProfitLossComparativePage() {
   const router = useRouter();
@@ -74,6 +75,11 @@ export function ReportingProfitLossComparativePage() {
           Loading comparative report...
         </div>
       ) : null}
+
+      <FeatureReportingSourceOfTruthCallout
+        sourceOfTruth={reportData?.report_context.source_of_truth}
+        reportTier={reportData?.report_context.report_tier}
+      />
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
         <FeatureProfitLossComparativeTable rows={reportData?.rows ?? []} />

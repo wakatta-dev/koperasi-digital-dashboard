@@ -14,6 +14,7 @@ import {
   FeatureCashFlowTable,
   FeatureCashFlowToolbar,
 } from "../features/FeatureReportingStatements";
+import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 export function ReportingCashFlowPage() {
   const router = useRouter();
@@ -101,6 +102,11 @@ export function ReportingCashFlowPage() {
           {reportContext?.fallback_reason}. Nilai nol tetap ditampilkan agar struktur arus kas tetap terbaca.
         </div>
       ) : null}
+
+      <FeatureReportingSourceOfTruthCallout
+        sourceOfTruth={reportContext?.source_of_truth}
+        reportTier={reportContext?.report_tier}
+      />
 
       <FeatureCashFlowStatementHeader />
       <FeatureCashFlowTable rows={reportQuery.data?.rows ?? []} />

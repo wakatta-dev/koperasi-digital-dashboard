@@ -12,6 +12,7 @@ import type {
   AccountingReportingOverviewResponse,
   AccountingReportingProfitLossComparativeResponse,
   AccountingReportingProfitLossResponse,
+  AccountingReportingTieOutResponse,
   AccountingReportingTrialBalanceResponse,
   AccountingReportingBaseQuery,
 } from "@/types/api/accounting-reporting";
@@ -170,6 +171,16 @@ export function getAccountingReportingTrialBalance(
 ): Promise<ApiResponse<AccountingReportingTrialBalanceResponse>> {
   const query = buildQuery(toQueryParams(params));
   return api.get<AccountingReportingTrialBalanceResponse>(`${API_PREFIX}${E.trialBalance}${query}`, {
+    signal: opts?.signal,
+  });
+}
+
+export function getAccountingReportingTieOut(
+  params?: AccountingReportingBaseQuery,
+  opts?: { signal?: AbortSignal },
+): Promise<ApiResponse<AccountingReportingTieOutResponse>> {
+  const query = buildQuery(toQueryParams(params));
+  return api.get<AccountingReportingTieOutResponse>(`${API_PREFIX}${E.tieOut}${query}`, {
     signal: opts?.signal,
   });
 }

@@ -13,6 +13,7 @@ import {
   getAccountingReportingOverview,
   getAccountingReportingProfitLoss,
   getAccountingReportingProfitLossComparative,
+  getAccountingReportingTieOut,
   getAccountingReportingTrialBalance,
 } from "@/services/api/accounting-reporting";
 import type {
@@ -25,6 +26,7 @@ import type {
   AccountingReportingOverviewResponse,
   AccountingReportingProfitLossComparativeResponse,
   AccountingReportingProfitLossResponse,
+  AccountingReportingTieOutResponse,
   AccountingReportingTrialBalanceResponse,
   AccountingReportingBaseQuery,
 } from "@/types/api/accounting-reporting";
@@ -99,6 +101,18 @@ export function useAccountingReportingTrialBalance(
     queryKey: QK.accountingReporting.trialBalance(params ?? {}),
     queryFn: async (): Promise<AccountingReportingTrialBalanceResponse> =>
       ensureAccountingReportingSuccess(await getAccountingReportingTrialBalance(params)),
+    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+  });
+}
+
+export function useAccountingReportingTieOut(
+  params?: AccountingReportingBaseQuery,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: QK.accountingReporting.tieOut(params ?? {}),
+    queryFn: async (): Promise<AccountingReportingTieOutResponse> =>
+      ensureAccountingReportingSuccess(await getAccountingReportingTieOut(params)),
     ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
   });
 }

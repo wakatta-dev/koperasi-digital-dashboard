@@ -13,6 +13,8 @@ import type {
   AssetMasterDataItem,
   AssetMasterDataRequest,
   CreateAssetRentalRequest,
+  RegisterAssetRentalFixedAssetRequest,
+  UpdateAssetRentalFixedAssetProfileRequest,
   UpdateAssetRentalRequest,
 } from "@/types/api/asset-rental";
 import type { AssetFilterQuery } from "@/types/api/asset";
@@ -87,6 +89,26 @@ export function updateAsset(
   payload: UpdateAssetRentalRequest
 ): Promise<ApiResponse<AssetRentalAsset>> {
   return api.patch<AssetRentalAsset>(`${API_PREFIX}${E.detail(id)}`, payload);
+}
+
+export function registerAssetFixedAsset(
+  id: string | number,
+  payload: RegisterAssetRentalFixedAssetRequest
+): Promise<ApiResponse<AssetRentalAsset>> {
+  return api.patch<AssetRentalAsset>(
+    `${API_PREFIX}${E.fixedAssetRegister(id)}`,
+    payload
+  );
+}
+
+export function updateAssetFixedAssetProfile(
+  id: string | number,
+  payload: UpdateAssetRentalFixedAssetProfileRequest
+): Promise<ApiResponse<AssetRentalAsset>> {
+  return api.patch<AssetRentalAsset>(
+    `${API_PREFIX}${E.fixedAssetProfile(id)}`,
+    payload
+  );
 }
 
 export function deleteAsset(id: string | number): Promise<ApiResponse<null>> {

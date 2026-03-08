@@ -15,6 +15,7 @@ import {
   FeatureTrialBalancePagination,
   FeatureTrialBalanceTable,
 } from "../features/FeatureReportingLedgers";
+import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 const TRIAL_BALANCE_PAGE_SIZE = 12;
 
@@ -122,6 +123,11 @@ export function ReportingTrialBalancePage() {
           Loading trial balance report...
         </div>
       ) : null}
+
+      <FeatureReportingSourceOfTruthCallout
+        sourceOfTruth={reportQuery.data?.report_context.source_of_truth}
+        reportTier={reportQuery.data?.report_context.report_tier}
+      />
 
       <FeatureTrialBalanceTable
         rows={pagedRows}
