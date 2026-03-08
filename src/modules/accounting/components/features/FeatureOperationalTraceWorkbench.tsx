@@ -541,6 +541,47 @@ export function FeatureOperationalTraceWorkbench() {
                     </p>
                   )}
                 </div>
+
+                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Audit Trail Exception
+                  </p>
+                  <div className="mt-3 space-y-3">
+                    {exceptionContextQuery.data?.audit_entries?.length ? (
+                      exceptionContextQuery.data.audit_entries.map((entry) => (
+                        <div
+                          key={`exception-audit-${entry.id}`}
+                          className="rounded-lg border border-slate-200 bg-slate-50/80 p-3"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-slate-900">
+                              {entry.action.replaceAll("_", " ")}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {new Date(entry.timestamp).toLocaleString("id-ID")}
+                            </p>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+                            <span>Actor: {entry.actor_label}</span>
+                            {entry.old_status || entry.new_status ? (
+                              <span>
+                                Status: {entry.old_status || "none"} -&gt; {entry.new_status || "none"}
+                              </span>
+                            ) : null}
+                            {entry.request_id ? <span>Request: {entry.request_id}</span> : null}
+                          </div>
+                          {entry.reason ? (
+                            <p className="mt-2 text-sm text-slate-700">{entry.reason}</p>
+                          ) : null}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-slate-500">
+                        Belum ada audit trail exception untuk transaksi yang dipilih.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </>
           )}

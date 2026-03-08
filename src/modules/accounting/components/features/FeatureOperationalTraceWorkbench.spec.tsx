@@ -133,6 +133,18 @@ describe("FeatureOperationalTraceWorkbench", () => {
             timestamp: "2026-03-08T10:00:00Z",
           },
         ],
+        audit_entries: [
+          {
+            id: 1,
+            action: "catatan_ditambahkan",
+            old_status: "none",
+            new_status: "active",
+            reason: "Reference jurnal belum terbentuk.",
+            actor_label: "finance",
+            request_id: "req-exc-1",
+            timestamp: "2026-03-08T10:00:00Z",
+          },
+        ],
       },
       isLoading: false,
       isError: false,
@@ -173,7 +185,9 @@ describe("FeatureOperationalTraceWorkbench", () => {
       expect(screen.getByDisplayValue("Finance")).toBeTruthy();
       expect(screen.getByDisplayValue("Konfirmasi reference jurnal")).toBeTruthy();
       expect(screen.getByText("Tersedia")).toBeTruthy();
-      expect(screen.getByText("Reference jurnal belum terbentuk.")).toBeTruthy();
+      expect(screen.getAllByText("Reference jurnal belum terbentuk.").length).toBeGreaterThan(0);
+      expect(screen.getByText("Audit Trail Exception")).toBeTruthy();
+      expect(screen.getByText("Request: req-exc-1")).toBeTruthy();
       expect(screen.getAllByText("Siap Dilaporkan").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Tahan Pelaporan").length).toBeGreaterThan(0);
       expect(screen.getByText("Lihat Bukti Pembayaran")).toBeTruthy();

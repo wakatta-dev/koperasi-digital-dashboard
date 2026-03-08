@@ -307,6 +307,17 @@ export interface SupportOperationalExceptionNote {
   timestamp: Rfc3339String;
 }
 
+export interface SupportOperationalExceptionAuditEntry {
+  id: number;
+  action: string;
+  old_status?: "none" | "active" | "resolved" | "escalated" | string;
+  new_status?: "none" | "active" | "resolved" | "escalated" | string;
+  reason?: string;
+  actor_label: string;
+  request_id?: string;
+  timestamp: Rfc3339String;
+}
+
 export interface SupportOperationalExceptionContext {
   domain: "marketplace" | "rental";
   source_id: number;
@@ -319,6 +330,7 @@ export interface SupportOperationalExceptionContext {
   last_message?: string;
   updated_at?: Rfc3339String;
   notes: SupportOperationalExceptionNote[];
+  audit_entries: SupportOperationalExceptionAuditEntry[];
 }
 
 export interface CreateSupportOperationalExceptionNoteRequest {
