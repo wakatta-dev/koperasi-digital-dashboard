@@ -29,7 +29,7 @@ import {
   getAssetRentalBookings,
   updateAssetBookingStatus,
 } from "@/services/api/asset-rental";
-import { finalizePayment } from "@/services/api/reservations";
+import { finalizePayment, getReservation } from "@/services/api/reservations";
 
 type AssetRentalAdminDetailPageProps = Readonly<{
   bookingId: string;
@@ -155,6 +155,56 @@ function isImageProofUrl(url?: string) {
   );
 }
 
+function humanizeRentalEvent(event?: string) {
+  const normalized = (event ?? "").trim();
+  if (!normalized) return "Pembaruan Status";
+  return normalized
+    .split("_")
+    .join(" ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function resolveRentalPaymentWorkspace(booking: any, reservation: any) {
+  const paymentStatus = (
+    reservation?.latest_payment?.status ||
+    booking?.latest_payment?.status ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (paymentStatus === "pending_verification") {
+    return {
+      label: "Menunggu Verifikasi Pembayaran",
+      helper: "Bukti pembayaran sudah diterima dan masih menunggu keputusan admin.",
+      className: "border border-orange-200 bg-orange-50 text-orange-700",
+    };
+  }
+
+  if (paymentStatus === "succeeded") {
+    return {
+      label: "Pembayaran Terkonfirmasi",
+      helper: "Pembayaran terakhir sudah berhasil diverifikasi untuk booking ini.",
+      className: "border border-emerald-200 bg-emerald-50 text-emerald-700",
+    };
+  }
+
+  if (paymentStatus === "failed" || paymentStatus === "expired") {
+    return {
+      label: "Pembayaran Bermasalah",
+      helper: "Pembayaran terakhir gagal atau kedaluwarsa dan membutuhkan tindak lanjut.",
+      className: "border border-red-200 bg-red-50 text-red-700",
+    };
+  }
+
+  return {
+    label: "Menunggu Pembayaran",
+    helper: "Booking belum memiliki pembayaran yang tervalidasi.",
+    className: "border border-amber-200 bg-amber-50 text-amber-700",
+  };
+}
+
 export function AssetRentalAdminDetailPage({
   bookingId,
   section,
@@ -188,6 +238,18 @@ export function AssetRentalAdminDetailPage({
       const response = await getAssetById(booking?.asset_id ?? "");
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memuat detail aset");
+      }
+      return response.data;
+    },
+  });
+
+  const reservationDetailQuery = useQuery({
+    enabled: Boolean(booking?.id),
+    queryKey: QK.assetRental.reservation(`admin:${booking?.id ?? "unknown"}`),
+    queryFn: async () => {
+      const response = await getReservation(booking?.id ?? "");
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal memuat detail reservasi");
       }
       return response.data;
     },
@@ -256,6 +318,10 @@ export function AssetRentalAdminDetailPage({
     booking ?? undefined,
   );
   const statusMeta = toStatusMeta(resolvedBookingStatus);
+  const paymentWorkspace = resolveRentalPaymentWorkspace(
+    booking,
+    reservationDetailQuery.data,
+  );
   const isBusy =
     updateStatusMutation.isPending ||
     completeMutation.isPending ||
@@ -279,6 +345,76 @@ export function AssetRentalAdminDetailPage({
     booking?.status,
   );
   const returnConditionNotes = booking?.return_condition_notes?.trim() || "-";
+  const nextValidAction = canConfirmPayment
+    ? {
+        label: "Tinjau Pembayaran",
+        helper:
+          "Pembayaran sedang menunggu verifikasi admin sebelum status rental berubah.",
+      }
+    : canApprove
+      ? {
+          label: "Setujui Pengajuan",
+          helper:
+            "Booking masih menunggu keputusan admin sebelum masuk ke tahap pembayaran.",
+        }
+      : canComplete
+        ? {
+            label: "Tandai Selesai",
+            helper:
+              "Penyewaan sudah siap ditutup setelah penggunaan dan pengembalian selesai.",
+          }
+        : canReject
+          ? {
+              label: "Tolak Pengajuan",
+              helper: "Pengajuan masih dapat ditolak dengan alasan yang sesuai.",
+            }
+          : {
+              label: "Tidak Ada Aksi Lanjutan",
+              helper:
+                "Booking sudah berada pada status terminal atau tidak memiliki tindakan operasional berikutnya.",
+            };
+  const timelineItems = useMemo(() => {
+    if (reservationDetailQuery.data?.timeline?.length) {
+      return reservationDetailQuery.data.timeline.map((item, index, arr) => ({
+        id: `${item.event}-${item.at}-${index}`,
+        title: humanizeRentalEvent(item.event || item.meta?.status),
+        description:
+          item.meta?.description ||
+          (item.meta?.status
+            ? `Status: ${humanizeRentalEvent(item.meta.status)}`
+            : "Pembaruan status reservasi"),
+        time: new Date(item.at).toLocaleString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        active: index === arr.length - 1,
+      }));
+    }
+
+    const fallback = [];
+    if (booking?.created_at || booking?.start_time) {
+      fallback.push({
+        id: "booking-created",
+        title: "Pengajuan Reservasi Dibuat",
+        description: `Status: ${statusMeta.label}`,
+        time: formatDateTime(booking.created_at || booking.start_time),
+        active: !booking?.completed_at,
+      });
+    }
+    if (booking?.completed_at) {
+      fallback.push({
+        id: "booking-completed",
+        title: "Penyewaan Selesai",
+        description: "Booking ditandai selesai pada sistem operasional.",
+        time: formatDateTime(booking.completed_at),
+        active: true,
+      });
+    }
+    return fallback;
+  }, [booking, reservationDetailQuery.data, statusMeta.label]);
 
   const handleApprove = async () => {
     try {
@@ -404,6 +540,60 @@ export function AssetRentalAdminDetailPage({
                 Booking ID: {booking.id}
               </span>
             </div>
+
+            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Workspace Transaksi Rental
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-slate-900">
+                    Booking #{String(booking.id).padStart(5, "0")}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Terakhir diperbarui {formatDateTime(booking.updated_at || booking.created_at)}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm text-slate-500">
+                  Lifecycle Rental
+                </div>
+              </div>
+              <div className="grid gap-4 lg:grid-cols-3">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Status Operasional
+                  </p>
+                  <Badge className={`mt-2 ${statusMeta.badgeClass}`}>{statusMeta.label}</Badge>
+                  <p className="mt-3 text-sm text-slate-600">
+                    Status operasional rental mengikuti lifecycle booking aset secara internal.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Status Pembayaran
+                  </p>
+                  <span
+                    className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${paymentWorkspace.className}`}
+                  >
+                    {paymentWorkspace.label}
+                  </span>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {paymentWorkspace.helper}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Tindakan Berikutnya
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {nextValidAction.label}
+                  </p>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {nextValidAction.helper}
+                  </p>
+                </div>
+              </div>
+            </section>
 
             <div className="grid gap-4 lg:grid-cols-2">
               <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
@@ -694,6 +884,36 @@ export function AssetRentalAdminDetailPage({
                     <p>Selesai: {formatDateTime(booking.completed_at)}</p>
                   </div>
                 </div>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-slate-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Riwayat Status Internal
+              </p>
+              <div className="mt-4 space-y-4">
+                {reservationDetailQuery.isLoading ? (
+                  <p className="text-sm text-slate-500">Memuat riwayat status...</p>
+                ) : timelineItems.length > 0 ? (
+                  timelineItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                    >
+                      <p className="text-sm font-semibold text-slate-900">
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {item.description}
+                      </p>
+                      <p className="mt-2 text-xs text-slate-500">{item.time}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    Belum ada riwayat status untuk transaksi rental ini.
+                  </p>
+                )}
               </div>
             </section>
 
