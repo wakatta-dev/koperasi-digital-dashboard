@@ -38,11 +38,19 @@ type PaymentMethodsProps = {
   methodGroups?: ReadonlyArray<MethodGroup>;
   reservationId?: number;
   ownershipToken?: string;
-  onStatusChange?: (payload: { paymentId: string; status: PaymentStatus }) => void;
+  onStatusChange?: (payload: {
+    paymentId: string;
+    status: PaymentStatus;
+  }) => void;
   onSessionChange?: (session: PaymentSession | null) => void;
 };
 
-type PaymentStatus = "initiated" | "pending_verification" | "succeeded" | "failed" | "expired";
+type PaymentStatus =
+  | "initiated"
+  | "pending_verification"
+  | "succeeded"
+  | "failed"
+  | "expired";
 
 export function PaymentMethods({
   mode,
@@ -53,7 +61,9 @@ export function PaymentMethods({
   onSessionChange,
 }: PaymentMethodsProps) {
   const hasMethods = Boolean(methodGroups && methodGroups.length > 0);
-  const [selected, setSelected] = useState<string>(() => methodGroups?.[0]?.options?.[0]?.value ?? "");
+  const [selected, setSelected] = useState<string>(
+    () => methodGroups?.[0]?.options?.[0]?.value ?? "",
+  );
   const [status, setStatus] = useState<PaymentStatus>("initiated");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [session, setSession] = useState<PaymentSession | null>(null);
@@ -87,11 +97,15 @@ export function PaymentMethods({
         return;
       }
       if (!reservationId) {
-        setSessionError("ID reservasi wajib diisi sebelum membuat sesi pembayaran.");
+        setSessionError(
+          "ID reservasi wajib diisi sebelum membuat sesi pembayaran.",
+        );
         return;
       }
       if (!ownershipToken) {
-        setSessionError("Token kepemilikan reservasi tidak tersedia. Gunakan tautan resmi terbaru.");
+        setSessionError(
+          "Token kepemilikan reservasi tidak tersedia. Gunakan tautan resmi terbaru.",
+        );
         return;
       }
       setIsLoading(true);
@@ -127,8 +141,8 @@ export function PaymentMethods({
         } else {
           setSessionError(
             resolvePublicPaymentSessionErrorMessage(
-              res.message || "Tidak dapat membuat sesi pembayaran"
-            )
+              res.message || "Tidak dapat membuat sesi pembayaran",
+            ),
           );
           onSessionChange?.(null);
         }
@@ -136,8 +150,10 @@ export function PaymentMethods({
         if (!ignore) {
           setSessionError(
             resolvePublicPaymentSessionErrorMessage(
-              err instanceof Error ? err.message : "Gagal membuat sesi pembayaran"
-            )
+              err instanceof Error
+                ? err.message
+                : "Gagal membuat sesi pembayaran",
+            ),
           );
           onSessionChange?.(null);
         }
@@ -149,13 +165,24 @@ export function PaymentMethods({
     return () => {
       ignore = true;
     };
-  }, [mode, reservationId, selected, hasMethods, onSessionChange, ownershipToken]);
+  }, [
+    mode,
+    reservationId,
+    selected,
+    hasMethods,
+    onSessionChange,
+    ownershipToken,
+  ]);
 
   return (
     <section className="bg-white dark:bg-surface-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-gray-800">
-        <span className="material-icons-outlined text-brand-primary">payments</span>
-        {mode === "dp" ? "Pilih Metode Pembayaran DP" : "Pilih Metode Pelunasan"}
+        <span className="material-icons-outlined text-brand-primary">
+          payments
+        </span>
+        {mode === "dp"
+          ? "Pilih Metode Pembayaran DP"
+          : "Pilih Metode Pelunasan"}
       </h2>
       {!hasMethods ? (
         <div className="mb-4 text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
@@ -172,7 +199,9 @@ export function PaymentMethods({
               </span>
             ) : null}
           </div>
-          <span className="text-base font-bold text-brand-primary">{formattedAmount}</span>
+          <span className="text-base font-bold text-brand-primary">
+            {formattedAmount}
+          </span>
         </div>
       ) : null}
       {sessionError ? (
@@ -181,12 +210,23 @@ export function PaymentMethods({
         </div>
       ) : null}
       {hasMethods ? (
-        <RadioGroup value={selected} onValueChange={setSelected} className="space-y-4">
+        <RadioGroup
+          value={selected}
+          onValueChange={setSelected}
+          className="space-y-4"
+        >
           {methodGroups?.map((group) => (
-            <div key={group.title} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+            <div
+              key={group.title}
+              className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+            >
               <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
-                <span className="material-icons-outlined text-gray-500 text-sm">{group.icon}</span>
-                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{group.title}</h3>
+                <span className="material-icons-outlined text-gray-500 text-sm">
+                  {group.icon}
+                </span>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">
+                  {group.title}
+                </h3>
               </div>
               <div className="p-4 space-y-3">
                 {group.options.map((option) => {
@@ -208,13 +248,19 @@ export function PaymentMethods({
                               {option.badge}
                             </span>
                           ) : option.icon ? (
-                            <span className="material-icons-outlined text-gray-400">{option.icon}</span>
+                            <span className="material-icons-outlined text-gray-400">
+                              {option.icon}
+                            </span>
                           ) : null}
                         </div>
                         {option.account ? (
                           <>
-                            <p className="text-xs text-gray-500">{option.account}</p>
-                            <p className="text-xs text-gray-500">{option.holder}</p>
+                            <p className="text-xs text-gray-500">
+                              {option.account}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {option.holder}
+                            </p>
                           </>
                         ) : null}
                       </div>
@@ -229,28 +275,30 @@ export function PaymentMethods({
 
       <div className="mt-6 space-y-3 bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-100">
-          <span className="material-icons-outlined text-brand-primary">verified</span>
+          <span className="material-icons-outlined text-brand-primary">
+            verified
+          </span>
           Status Pembayaran:{" "}
           <span
             className={
               status === "succeeded"
                 ? "text-green-600 dark:text-green-400"
                 : status === "pending_verification"
-                ? "text-amber-600 dark:text-amber-400"
-                : status === "failed" || status === "expired"
-                ? "text-red-600 dark:text-red-400"
-                : "text-gray-700 dark:text-gray-300"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : status === "failed" || status === "expired"
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-gray-700 dark:text-gray-300"
             }
           >
             {status === "initiated"
               ? "Menunggu tindakan"
               : status === "pending_verification"
-              ? "Menunggu Verifikasi Pembayaran"
-              : status === "succeeded"
-              ? "Berhasil"
-              : status === "expired"
-              ? "Kedaluwarsa"
-              : "Gagal"}
+                ? "Menunggu Verifikasi Pembayaran"
+                : status === "succeeded"
+                  ? "Berhasil"
+                  : status === "expired"
+                    ? "Kedaluwarsa"
+                    : "Gagal"}
           </span>
         </div>
 
@@ -285,8 +333,15 @@ export function PaymentMethods({
               className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
               disabled={actionsDisabled || !proofFile || isLoading}
               onClick={async () => {
-                if (!session?.paymentId || !proofFile || !reservationId || !ownershipToken) return;
-                const validationError = validatePublicPaymentProofFile(proofFile);
+                if (
+                  !session?.paymentId ||
+                  !proofFile ||
+                  !reservationId ||
+                  !ownershipToken
+                )
+                  return;
+                const validationError =
+                  validatePublicPaymentProofFile(proofFile);
                 if (validationError) {
                   setSessionError(validationError);
                   return;
@@ -298,32 +353,32 @@ export function PaymentMethods({
                     session.paymentId,
                     proofFile,
                     undefined,
-                    { reservationId, ownershipToken }
+                    { reservationId, ownershipToken },
                   );
                   if (res.success && res.data) {
                     setSession((current) =>
                       current
                         ? {
                             ...current,
-                            status: res.data.status as PaymentStatus,
+                            status: res?.data?.status as PaymentStatus,
                           }
-                        : current
+                        : current,
                     );
                     handleStatusUpdate(res.data.status as PaymentStatus);
                     return;
                   }
                   setSessionError(
                     resolvePublicPaymentProofErrorMessage(
-                      res.message || "Tidak dapat mengunggah bukti pembayaran."
-                    )
+                      res.message || "Tidak dapat mengunggah bukti pembayaran.",
+                    ),
                   );
                 } catch (err) {
                   setSessionError(
                     resolvePublicPaymentProofErrorMessage(
                       err instanceof Error
                         ? err.message
-                        : "Tidak dapat mengunggah bukti pembayaran."
-                    )
+                        : "Tidak dapat mengunggah bukti pembayaran.",
+                    ),
                   );
                 } finally {
                   setIsLoading(false);
