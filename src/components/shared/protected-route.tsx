@@ -17,7 +17,9 @@ interface ProtectedRouteProps {
 }
 
 function normalizeRoleName(role: unknown): string {
-  return String(role ?? "").trim().toLowerCase();
+  return String(role ?? "")
+    .trim()
+    .toLowerCase();
 }
 
 export function ProtectedRoute({
@@ -47,7 +49,9 @@ export function ProtectedRoute({
         allowedRoles?.length &&
         !allowedRoles.map(normalizeRoleName).includes(internalRole)
       ) {
-        router.push(fallbackPath ?? (tenantType ? `/${tenantType}/dashboard` : "/login"));
+        router.push(
+          fallbackPath ?? (tenantType ? `/${tenantType}/dashboard` : "/login"),
+        );
         return;
       }
     }
