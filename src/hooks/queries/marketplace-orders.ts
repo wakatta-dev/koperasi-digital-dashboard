@@ -3,6 +3,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { QK } from "./queryKeys";
 import {
@@ -35,17 +36,23 @@ export function useMarketplaceOrders(
   params?: MarketplaceOrderListParams,
   options?: { enabled?: boolean }
 ) {
+  const { data: session, status } = useSession();
   const normalized = {
     limit: params?.limit ?? 20,
     offset: params?.offset ?? 0,
     ...params,
   };
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
 
   return useQuery({
     queryKey: QK.marketplace.orders(normalized),
+    enabled:
+      status === "authenticated" &&
+      hasAccessToken &&
+      (options?.enabled ?? true),
     queryFn: async (): Promise<MarketplaceOrderListResponse> =>
       ensureMarketplaceSuccess(await listMarketplaceOrders(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -53,11 +60,19 @@ export function useMarketplaceOrder(
   id?: string | number,
   options?: { enabled?: boolean }
 ) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+
   return useQuery({
     queryKey: QK.marketplace.orderDetail(id ?? ""),
-    enabled: Boolean(id) && (options?.enabled ?? true),
+    enabled:
+      status === "authenticated" &&
+      hasAccessToken &&
+      Boolean(id) &&
+      (options?.enabled ?? true),
     queryFn: async (): Promise<MarketplaceOrderDetailResponse> =>
       ensureMarketplaceSuccess(await getMarketplaceOrderDetail(id as string | number)),
+    retry: false,
   });
 }
 

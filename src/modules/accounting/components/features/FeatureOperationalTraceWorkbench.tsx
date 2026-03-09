@@ -339,7 +339,7 @@ export function FeatureOperationalTraceWorkbench() {
   );
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+    <div className="space-y-6">
       <Card>
         <CardHeader className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -585,7 +585,8 @@ export function FeatureOperationalTraceWorkbench() {
                           ] || MATURITY_TONE_BADGE.muted
                         }
                       >
-                        Maturity: {maturityWorkspace?.stageLabel ?? "Menunggu Trace"}
+                        Maturity:{" "}
+                        {maturityWorkspace?.stageLabel ?? "Menunggu Trace"}
                       </Badge>
                       <Badge
                         className={
@@ -644,11 +645,14 @@ export function FeatureOperationalTraceWorkbench() {
                         Document Reference
                       </p>
                       <p className="text-sm font-medium text-slate-900">
-                        {sourceTraceQuery.data?.source_document_reference ?? "-"}
+                        {sourceTraceQuery.data?.source_document_reference ??
+                          "-"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Journal Reference</p>
+                      <p className="text-xs text-slate-500">
+                        Journal Reference
+                      </p>
                       <p className="text-sm font-medium text-slate-900">
                         {sourceTraceQuery.data?.journal_reference ??
                           sourceTraceQuery.data?.journal_number ??
@@ -779,8 +783,8 @@ export function FeatureOperationalTraceWorkbench() {
                           ))
                         ) : (
                           <p className="text-sm text-slate-500">
-                            Referensi trace akan muncul setelah source-to-journal
-                            trace tersedia.
+                            Referensi trace akan muncul setelah
+                            source-to-journal trace tersedia.
                           </p>
                         )}
                       </div>

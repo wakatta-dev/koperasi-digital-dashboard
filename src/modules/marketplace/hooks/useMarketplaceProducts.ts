@@ -3,6 +3,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { QK } from "@/hooks/queries/queryKeys";
 import {
   addMarketplaceCartItem,
@@ -103,8 +104,12 @@ export type MarketplaceCustomerParams = {
 };
 
 export function useMarketplaceCustomers(params?: MarketplaceCustomerParams) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+
   return useQuery({
     queryKey: QK.marketplace.customers(params ?? {}),
+    enabled: status === "authenticated" && hasAccessToken,
     queryFn: async (): Promise<MarketplaceCustomerListResponse> =>
       ensureMarketplaceSuccess(await listMarketplaceCustomers(params)),
     retry: false,
@@ -114,9 +119,12 @@ export function useMarketplaceCustomers(params?: MarketplaceCustomerParams) {
 }
 
 export function useMarketplaceCustomerDetail(id?: string | number) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+
   return useQuery({
     queryKey: QK.marketplace.customerDetail(id ?? ""),
-    enabled: Boolean(id),
+    enabled: status === "authenticated" && hasAccessToken && Boolean(id),
     queryFn: async (): Promise<MarketplaceCustomerDetailResponse> =>
       ensureMarketplaceSuccess(await getMarketplaceCustomerDetail(id as string | number)),
     retry: false,

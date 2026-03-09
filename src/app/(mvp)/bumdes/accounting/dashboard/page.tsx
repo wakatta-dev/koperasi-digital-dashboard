@@ -12,10 +12,20 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { SummaryMetricsGrid, type SummaryMetricItem } from "@/components/shared/data-display/SummaryMetricsGrid";
+import {
+  SummaryMetricsGrid,
+  type SummaryMetricItem,
+} from "@/components/shared/data-display/SummaryMetricsGrid";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useAccountingReportingOverview } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
 import { FeatureOperationalTraceWorkbench } from "@/modules/accounting/components/features/FeatureOperationalTraceWorkbench";
@@ -91,7 +101,8 @@ const KPI_VISUALS: Record<string, MetricVisual> = {
 const DEFAULT_KPI_VISUAL: MetricVisual = {
   Icon: FileText,
   tone: "neutral",
-  iconContainerClassName: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
+  iconContainerClassName:
+    "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
   showAccent: false,
 };
 
@@ -103,7 +114,10 @@ function normalizeVisualKey(value?: string): string {
     .replace(/^_+|_+$/g, "");
 }
 
-function resolveKpiVisual(iconKey: string | undefined, title: string): MetricVisual {
+function resolveKpiVisual(
+  iconKey: string | undefined,
+  title: string,
+): MetricVisual {
   const iconKeyNormalized = normalizeVisualKey(iconKey);
   if (iconKeyNormalized && KPI_VISUALS[iconKeyNormalized]) {
     return KPI_VISUALS[iconKeyNormalized];
@@ -129,7 +143,9 @@ function toBadgeClassName(category: string): string {
 }
 
 export default function AccountingDashboardPage() {
-  const overviewQuery = useAccountingReportingOverview({ preset: DASHBOARD_PRESET });
+  const overviewQuery = useAccountingReportingOverview({
+    preset: DASHBOARD_PRESET,
+  });
 
   const metrics = useMemo<SummaryMetricItem[]>(() => {
     return (overviewQuery.data?.kpis ?? []).map((kpi, index) => {
@@ -196,14 +212,20 @@ export default function AccountingDashboardPage() {
             <TableBody>
               {overviewQuery.isPending && !overviewQuery.data ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-sm text-gray-500">
+                  <TableCell
+                    colSpan={4}
+                    className="text-center text-sm text-gray-500"
+                  >
                     Loading transactions...
                   </TableCell>
                 </TableRow>
               ) : null}
               {!overviewQuery.isPending && transactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-sm text-gray-500">
+                  <TableCell
+                    colSpan={4}
+                    className="text-center text-sm text-gray-500"
+                  >
                     No transaction data available.
                   </TableCell>
                 </TableRow>
@@ -217,7 +239,9 @@ export default function AccountingDashboardPage() {
                       {transaction.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right font-medium">{transaction.amount_display}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    {transaction.amount_display}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
