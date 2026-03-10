@@ -4,7 +4,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SupportSystemReadiness } from "@/types/api";
-import { settingsHeaderClassName, settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsCardContentClassName,
+  settingsHeaderClassName,
+  settingsMutedTextClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 
 type FeatureSystemReadinessCardProps = {
   data?: SupportSystemReadiness;
@@ -74,8 +80,8 @@ export function FeatureSystemReadinessCard({
       <div className={settingsHeaderClassName}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Kesiapan Sistem</h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <h2 className={settingsSectionTitleClassName}>Kesiapan Sistem</h2>
+            <p className={`mt-1 ${settingsMutedTextClassName}`}>
               Validasi dependency minimum sebelum marketplace, rental, dan accounting dipakai
               untuk flow inti.
             </p>
@@ -86,9 +92,9 @@ export function FeatureSystemReadinessCard({
         </div>
       </div>
 
-      <CardContent className="space-y-5 p-6">
+      <CardContent className={`${settingsCardContentClassName} space-y-5`}>
         {isLoading ? (
-          <p className="text-sm text-gray-500">Memeriksa kesiapan data master dan konfigurasi...</p>
+          <p className="text-sm text-gray-500">Memeriksa kesiapan data master dan konfigurasi…</p>
         ) : null}
 
         {error ? (
@@ -128,9 +134,9 @@ export function FeatureSystemReadinessCard({
                 </p>
               </div>
               <ul className="grid gap-3 md:grid-cols-2">
-                {data.foundation_items.map((item) => (
+                {data.foundation_items.map((item, index) => (
                   <li
-                    key={item.key}
+                    key={`${item.key}-${index}`}
                     className="rounded-lg border border-gray-200 p-4 dark:border-gray-800"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -160,9 +166,9 @@ export function FeatureSystemReadinessCard({
                 </p>
               </div>
               <div className="grid gap-4 xl:grid-cols-3">
-                {data.domains.map((domain) => (
+                {data.domains.map((domain, domainIndex) => (
                   <article
-                    key={domain.domain}
+                    key={`${domain.domain}-${domainIndex}`}
                     className="rounded-lg border border-gray-200 p-4 dark:border-gray-800"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -180,8 +186,8 @@ export function FeatureSystemReadinessCard({
                     </div>
 
                     <ul className="mt-4 space-y-3">
-                      {domain.items.map((item) => (
-                        <li key={item.key} className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-900/60">
+                      {domain.items.map((item, itemIndex) => (
+                        <li key={`${item.key}-${itemIndex}`} className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-900/60">
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">
@@ -215,9 +221,9 @@ export function FeatureSystemReadinessCard({
               </div>
 
               <div className="space-y-4">
-                {data.critical_flows.map((flow) => (
+                {data.critical_flows.map((flow, flowIndex) => (
                   <article
-                    key={flow.key}
+                    key={`${flow.key}-${flowIndex}`}
                     className="rounded-lg border border-gray-200 p-4 dark:border-gray-800"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -256,8 +262,8 @@ export function FeatureSystemReadinessCard({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-900/70">
-                          {flow.gates.map((gate) => (
-                            <tr key={gate.key} className="align-top">
+                          {flow.gates.map((gate, gateIndex) => (
+                            <tr key={`${gate.key}-${gateIndex}`} className="align-top">
                               <td className="py-3 pr-3">
                                 <div className="font-medium text-gray-900 dark:text-white">
                                   {gate.label}

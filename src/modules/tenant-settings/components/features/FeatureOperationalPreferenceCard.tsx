@@ -4,7 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SettingsStickyActionBar } from "../shared/SettingsStickyActionBar";
-import { settingsHeaderClassName, settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsCardContentClassName,
+  settingsHeaderClassName,
+  settingsMutedTextClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 import type { OperationalPreferencesFormState } from "../../types/forms";
 
 type FeatureOperationalPreferenceCardProps = {
@@ -18,7 +24,7 @@ type FeatureOperationalPreferenceCardProps = {
 };
 
 const triggerClassName =
-  "border-gray-300 focus:ring-indigo-600 dark:border-gray-700";
+  "border-slate-300 bg-white/90 focus:ring-slate-900/15 dark:border-slate-700 dark:bg-slate-950/70";
 
 const timezoneOptions = [
   { value: "Asia/Jakarta", label: "Asia/Jakarta (WIB)" },
@@ -69,10 +75,14 @@ export function FeatureOperationalPreferenceCard({
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden`}>
       <div className={settingsHeaderClassName}>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Preferensi Tenant</h2>
-        <p className="mt-1 text-sm text-gray-500">Pengaturan dasar regional dan preferensi tampilan.</p>
+        <div className="space-y-1">
+          <h2 className={settingsSectionTitleClassName}>Preferensi Tenant</h2>
+          <p className={settingsMutedTextClassName}>
+            Pengaturan regional dan tampilan dasar yang menjadi baseline pengalaman tenant.
+          </p>
+        </div>
       </div>
-      <CardContent className="p-6">
+      <CardContent className={settingsCardContentClassName}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Timezone</Label>
@@ -155,6 +165,7 @@ export function FeatureOperationalPreferenceCard({
           onReset={onReset}
           onSave={onSave}
           saveLabel="Simpan Pengaturan"
+          dirty={dirty}
           resetDisabled={disabled || !dirty || saving}
           saveDisabled={disabled || !dirty || saving}
           saving={saving}
@@ -163,4 +174,3 @@ export function FeatureOperationalPreferenceCard({
     </Card>
   );
 }
-

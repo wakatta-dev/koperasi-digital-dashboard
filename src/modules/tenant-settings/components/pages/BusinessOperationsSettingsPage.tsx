@@ -24,7 +24,8 @@ import { FeatureOperationalPreferenceCard } from "../features/FeatureOperational
 import { FeatureSystemReadinessCard } from "../features/FeatureSystemReadinessCard";
 import { SettingsErrorBanner } from "../shared/SettingsErrorBanner";
 import { SettingsReadOnlyAlert } from "../shared/SettingsReadOnlyAlert";
-import { SettingsSectionHeading } from "../shared/SettingsSectionHeading";
+import { TenantSettingsShell } from "../shared/TenantSettingsShell";
+import { formatSettingsDateTime } from "../../lib/settings";
 
 const emptyPreferences: OperationalPreferencesFormState = {
   timezone: "",
@@ -109,13 +110,43 @@ export function BusinessOperationsSettingsPage() {
     [marketplaceAccountingInitial]
   );
 
-  return (
-    <div className="max-w-5xl space-y-8">
-      <SettingsSectionHeading
-        title="Operasional Usaha"
-        description="Konfigurasi pengaturan operasional, kebijakan sistem, dan aktivasi modul untuk platform Anda."
-      />
+  const enabledModuleCount = Object.values(modulesForm).filter(Boolean).length;
+  const readinessLabel =
+    readinessQuery.isLoading
+      ? "Memeriksa…"
+      : readinessQuery.data?.status === "ready"
+        ? "Siap"
+        : readinessQuery.error
+          ? "Tidak tersedia"
+          : "Perlu tindak lanjut";
 
+  return (
+    <TenantSettingsShell
+      sectionId="operasional-usaha"
+      title="Operasional Usaha"
+      description="Atur baseline operasional tenant, kesiapan sistem, aktivasi modul, dan kebijakan proses inti dari satu workspace."
+      summaryTitle="Status Operasional"
+      summaryDescription="Ringkasan cepat sebelum Anda menyesuaikan modul, policy, dan readiness tenant."
+      summaryItems={[
+        {
+          label: "Kesiapan Sistem",
+          value: readinessLabel,
+          helper: readinessQuery.data?.checked_at
+            ? `Pemeriksaan terakhir ${formatSettingsDateTime(readinessQuery.data.checked_at)}`
+            : "Belum ada timestamp pemeriksaan",
+        },
+        {
+          label: "Modul Aktif",
+          value: `${enabledModuleCount} Modul`,
+          helper: modulesForm.marketplace_enabled ? "Marketplace aktif" : "Marketplace nonaktif",
+        },
+        {
+          label: "Regional Default",
+          value: preferencesForm.timezone || "Belum diatur",
+          helper: `${preferencesForm.currency || "-"} • ${preferencesForm.locale || "-"}`,
+        },
+      ]}
+    >
       {!canManage ? (
         <SettingsReadOnlyAlert message="Anda sedang melihat pengaturan dalam mode read-only. Beberapa perubahan membutuhkan persetujuan Super Admin." />
       ) : null}
@@ -189,6 +220,6 @@ export function BusinessOperationsSettingsPage() {
           })
         }
       />
-    </div>
+    </TenantSettingsShell>
   );
 }

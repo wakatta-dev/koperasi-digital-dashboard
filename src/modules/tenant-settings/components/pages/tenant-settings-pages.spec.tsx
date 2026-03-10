@@ -1,12 +1,15 @@
 /** @format */
 
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AccessAuthorizationSettingsPage } from "./AccessAuthorizationSettingsPage";
 import { BusinessOperationsSettingsPage } from "./BusinessOperationsSettingsPage";
 import { TenantProfileSettingsPage } from "./TenantProfileSettingsPage";
 
 const mockUseSession = vi.fn();
+const mockUsePathname = vi.fn();
+const mockUseRouter = vi.fn();
+const mockUseSearchParams = vi.fn();
 const mockUseSupportProfileSettings = vi.fn();
 const mockUseSupportProfileActions = vi.fn();
 const mockUseUsers = vi.fn();
@@ -15,15 +18,28 @@ const mockUsePermissionCatalog = vi.fn();
 const mockUseRolePermissions = vi.fn();
 const mockUseUserActions = vi.fn();
 const mockUseRoleActions = vi.fn();
-const mockUseSupportEmailTemplates = vi.fn();
-const mockUseSupportEmailActions = vi.fn();
-const mockUseSupportActivityLogs = vi.fn();
 const mockUseSupportOperationalSettings = vi.fn();
 const mockUseSupportOperationalActions = vi.fn();
 const mockUseSupportSystemReadiness = vi.fn();
 
+const replaceMock = vi.fn();
+const saveIdentityMutate = vi.fn();
+const saveContactDomainMutate = vi.fn();
+const removeRoleMutate = vi.fn();
+
+function setNavigation(pathname: string, query = "") {
+  mockUsePathname.mockReturnValue(pathname);
+  mockUseSearchParams.mockReturnValue(new URLSearchParams(query));
+}
+
 vi.mock("next-auth/react", () => ({
   useSession: () => mockUseSession(),
+}));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => mockUsePathname(),
+  useRouter: () => mockUseRouter(),
+  useSearchParams: () => mockUseSearchParams(),
 }));
 
 vi.mock("@/hooks/queries", () => ({
@@ -35,9 +51,6 @@ vi.mock("@/hooks/queries", () => ({
   useRolePermissions: () => mockUseRolePermissions(),
   useUserActions: () => mockUseUserActions(),
   useRoleActions: () => mockUseRoleActions(),
-  useSupportEmailTemplates: () => mockUseSupportEmailTemplates(),
-  useSupportEmailActions: () => mockUseSupportEmailActions(),
-  useSupportActivityLogs: () => mockUseSupportActivityLogs(),
   useSupportOperationalSettings: () => mockUseSupportOperationalSettings(),
   useSupportOperationalActions: () => mockUseSupportOperationalActions(),
   useSupportSystemReadiness: () => mockUseSupportSystemReadiness(),
@@ -45,7 +58,15 @@ vi.mock("@/hooks/queries", () => ({
 
 describe("tenant-settings pages", () => {
   beforeEach(() => {
+    replaceMock.mockReset();
+    saveIdentityMutate.mockReset();
+    saveContactDomainMutate.mockReset();
+    removeRoleMutate.mockReset();
+
     mockUseSession.mockReset();
+    mockUsePathname.mockReset();
+    mockUseRouter.mockReset();
+    mockUseSearchParams.mockReset();
     mockUseSupportProfileSettings.mockReset();
     mockUseSupportProfileActions.mockReset();
     mockUseUsers.mockReset();
@@ -54,12 +75,12 @@ describe("tenant-settings pages", () => {
     mockUseRolePermissions.mockReset();
     mockUseUserActions.mockReset();
     mockUseRoleActions.mockReset();
-    mockUseSupportEmailTemplates.mockReset();
-    mockUseSupportEmailActions.mockReset();
-    mockUseSupportActivityLogs.mockReset();
     mockUseSupportOperationalSettings.mockReset();
     mockUseSupportOperationalActions.mockReset();
     mockUseSupportSystemReadiness.mockReset();
+
+    mockUseRouter.mockReturnValue({ replace: replaceMock });
+    setNavigation("/bumdes/settings/profil-tenant");
 
     mockUseSession.mockReturnValue({ data: { user: { role: "admin", jenis_tenant: "bumdes" } } });
     mockUseSupportProfileSettings.mockReturnValue({
@@ -70,7 +91,7 @@ describe("tenant-settings pages", () => {
           business_type: "bumdes",
           business_category: "Perdagangan hasil desa",
           description: "Badan Usaha Milik Desa",
-          logo_url: "",
+          logo_url: "https://cdn.example.com/logo.png",
           updated_at: "2026-03-06T00:00:00Z",
         },
         contact_domain: {
@@ -78,7 +99,7 @@ describe("tenant-settings pages", () => {
           contact_phone: "081234567890",
           address: "Jl. Raya Desa No. 123",
           domain: "localhost:3004",
-          custom_domain: "",
+          custom_domain: "bumdesmaju.id",
           updated_at: "2026-03-06T00:00:00Z",
         },
       },
@@ -86,8 +107,8 @@ describe("tenant-settings pages", () => {
       error: null,
     });
     mockUseSupportProfileActions.mockReturnValue({
-      saveIdentity: { isPending: false, mutate: vi.fn() },
-      saveContactDomain: { isPending: false, mutate: vi.fn() },
+      saveIdentity: { isPending: false, mutate: saveIdentityMutate },
+      saveContactDomain: { isPending: false, mutate: saveContactDomainMutate },
     });
     mockUseUsers.mockReturnValue({
       data: [
@@ -146,52 +167,9 @@ describe("tenant-settings pages", () => {
     mockUseRoleActions.mockReturnValue({
       create: { isPending: false, mutate: vi.fn() },
       update: { isPending: false, mutate: vi.fn() },
-      remove: { isPending: false, mutate: vi.fn() },
+      remove: { isPending: false, mutate: removeRoleMutate },
       addPermission: { isPending: false, mutate: vi.fn() },
       removePermission: { isPending: false, mutate: vi.fn() },
-    });
-    mockUseSupportEmailTemplates.mockReturnValue({
-      data: [
-        {
-          id: 1,
-          code: "email_verification",
-          name: "Verifikasi Akun",
-          category: "system",
-          subject: "Verifikasi Akun Anda di {{tenant_name}}",
-          body: "Halo {{name}}",
-          placeholders: ["name", "tenant_name"],
-          version: 1,
-          updated_at: "2026-03-06T00:00:00Z",
-        },
-      ],
-      error: null,
-      isLoading: false,
-    });
-    mockUseSupportEmailActions.mockReturnValue({
-      saveTemplate: { isPending: false, mutate: vi.fn() },
-      sendTestEmail: { isPending: false, mutate: vi.fn() },
-    });
-    mockUseSupportActivityLogs.mockReturnValue({
-      data: {
-        data: {
-          items: [
-            {
-              id: 1,
-              timestamp: "2026-03-03T23:59:59Z",
-              actor_id: 12,
-              actor_label: "user:12",
-              module: "tenant",
-              action: "update_tenant_config",
-              entity_type: "tenant",
-              entity_id: 1,
-              request_id: "req_8f7d6c5b",
-            },
-          ],
-        },
-        meta: { pagination: { next_cursor: "next-1" } },
-      },
-      isFetching: false,
-      error: null,
     });
     mockUseSupportOperationalSettings.mockReturnValue({
       data: {
@@ -327,7 +305,7 @@ describe("tenant-settings pages", () => {
     });
   });
 
-  it("renders profile page in read-only mode for non-admin roles", () => {
+  it("renders profile page in read-only mode and shows local settings navigation", () => {
     mockUseSession.mockReturnValue({ data: { user: { role: "viewer" } } });
 
     render(<TenantProfileSettingsPage />);
@@ -338,19 +316,91 @@ describe("tenant-settings pages", () => {
         "Anda tidak memiliki izin untuk mengedit profil tenant. Hubungi administrator sistem untuk meminta akses."
       )
     ).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Operasional Usaha/i })).toBeTruthy();
+    expect(
+      screen
+        .getAllByRole("link", { current: "page" })
+        .some((node) => node.getAttribute("href") === "/bumdes/settings/profil-tenant")
+    ).toBe(true);
     expect(screen.getByDisplayValue("Bumdes Maju").getAttribute("disabled")).not.toBeNull();
   });
 
-  it("renders access workspace with alias-safe permissions only", async () => {
+  it("shows dirty state in sticky action bar after profile changes", () => {
+    render(<TenantProfileSettingsPage />);
+
+    fireEvent.change(screen.getByLabelText("Nama Usaha"), {
+      target: { value: "Bumdes Lebih Maju" },
+    });
+
+    expect(screen.getByText("Perubahan belum disimpan.")).toBeTruthy();
+  });
+
+  it("renders sticky action bar saving copy with ellipsis", () => {
+    mockUseSupportProfileActions.mockReturnValue({
+      saveIdentity: { isPending: true, mutate: saveIdentityMutate },
+      saveContactDomain: { isPending: false, mutate: saveContactDomainMutate },
+    });
+
+    render(<TenantProfileSettingsPage />);
+
+    expect(screen.getAllByText("Menyimpan…").length).toBeGreaterThan(0);
+  });
+
+  it("renders access workspace with alias-safe permissions and accessible role buttons", async () => {
+    setNavigation("/bumdes/settings/akses-otorisasi", "role=11");
+
     render(<AccessAuthorizationSettingsPage />);
 
     expect(screen.getByRole("heading", { name: "Akses & Otorisasi" })).toBeTruthy();
     expect(await screen.findByText("order-list")).toBeTruthy();
     expect(screen.queryByText("/api/orders")).toBeNull();
-    expect(screen.getByText("Sistem Terproteksi")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Manager/i })).toBeTruthy();
+    expect(screen.getByText("Role aktif: Manager")).toBeTruthy();
+  });
+
+  it("keeps the newly selected role active while the URL query catches up", async () => {
+    setNavigation("/bumdes/settings/akses-otorisasi", "role=10");
+
+    render(<AccessAuthorizationSettingsPage />);
+
+    const adminButton = await screen.findByRole("button", { name: /Admin/i });
+    const managerButton = screen.getByRole("button", { name: /Manager/i });
+
+    expect(adminButton.getAttribute("aria-pressed")).toBe("true");
+    expect(managerButton.getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.click(managerButton);
+
+    expect(replaceMock).toHaveBeenCalledWith("/bumdes/settings/akses-otorisasi?role=11", {
+      scroll: false,
+    });
+    expect(managerButton.getAttribute("aria-pressed")).toBe("true");
+    expect(adminButton.getAttribute("aria-pressed")).toBe("false");
+    expect(screen.getByRole("heading", { name: "Manager" })).toBeTruthy();
+  });
+
+  it("requires confirmation before deleting a custom role", async () => {
+    setNavigation("/bumdes/settings/akses-otorisasi", "role=11");
+
+    render(<AccessAuthorizationSettingsPage />);
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole("button", { name: "Hapus Role" }));
+    });
+
+    expect(screen.getByText("Role kustom ini akan dihapus permanen. Pastikan tidak ada workflow penting yang masih bergantung padanya.")).toBeTruthy();
+
+    const dialog = screen.getByRole("dialog");
+    await act(async () => {
+      fireEvent.click(within(dialog).getAllByRole("button")[1]);
+    });
+
+    expect(removeRoleMutate).toHaveBeenCalledWith(11);
   });
 
   it("renders operational page section headings from the extracted module", () => {
+    setNavigation("/bumdes/settings/operasional-usaha");
+
     render(<BusinessOperationsSettingsPage />);
 
     expect(screen.getByRole("heading", { name: "Operasional Usaha" })).toBeTruthy();
@@ -366,6 +416,7 @@ describe("tenant-settings pages", () => {
   });
 
   it("renders readiness success state when all dependencies are complete", () => {
+    setNavigation("/bumdes/settings/operasional-usaha");
     mockUseSupportSystemReadiness.mockReturnValue({
       data: {
         tenant_id: 1,
@@ -435,6 +486,7 @@ describe("tenant-settings pages", () => {
   });
 
   it("keeps blocker alert visible when domains are ready but critical flow evidence is still blocked", () => {
+    setNavigation("/bumdes/settings/operasional-usaha");
     mockUseSupportSystemReadiness.mockReturnValue({
       data: {
         tenant_id: 1,

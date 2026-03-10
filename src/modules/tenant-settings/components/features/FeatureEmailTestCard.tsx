@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsFieldClassName,
+  settingsMutedTextClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 
 type FeatureEmailTestCardProps = {
   recipient: string;
@@ -32,8 +37,8 @@ export function FeatureEmailTestCard({
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden`}>
       <CardContent className="p-6">
-        <h2 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">Kirim Email Uji</h2>
-        <p className="mb-4 text-sm text-gray-500">
+        <h2 className={settingsSectionTitleClassName}>Kirim Email Uji</h2>
+        <p className={`mb-4 mt-1 ${settingsMutedTextClassName}`}>
           Uji template aktif saat ini ke alamat email spesifik.
         </p>
         <div className="space-y-4">
@@ -41,10 +46,14 @@ export function FeatureEmailTestCard({
             <Label htmlFor="test-recipient">Email Penerima</Label>
             <Input
               id="test-recipient"
+              name="test_recipient"
               type="email"
+              autoComplete="email"
+              inputMode="email"
+              spellCheck={false}
               value={recipient}
               placeholder="Contoh: admin@desa.id"
-              className="border-gray-300 focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700"
+              className={settingsFieldClassName}
               disabled={disabled}
               onChange={(event) => onRecipientChange(event.target.value)}
             />
@@ -52,13 +61,15 @@ export function FeatureEmailTestCard({
 
           {placeholders.length ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {placeholders.map((placeholder) => (
-                <div key={placeholder} className="space-y-2">
+              {placeholders.map((placeholder, index) => (
+                <div key={`${placeholder}-${index}`} className="space-y-2">
                   <Label htmlFor={`placeholder-${placeholder}`}>{`{{${placeholder}}}`}</Label>
                   <Input
                     id={`placeholder-${placeholder}`}
+                    name={`placeholder_${placeholder}`}
+                    autoComplete="off"
                     value={variables[placeholder] ?? ""}
-                    className="border-gray-300 focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700"
+                    className={settingsFieldClassName}
                     disabled={disabled}
                     onChange={(event) => onVariableChange(placeholder, event.target.value)}
                   />
@@ -71,11 +82,11 @@ export function FeatureEmailTestCard({
             <Button
               type="button"
               variant="outline"
-              className="whitespace-nowrap border-gray-300 dark:border-gray-700"
+              className="whitespace-nowrap border-slate-300 dark:border-slate-700"
               disabled={disabled || !isValid || sending}
               onClick={onSend}
             >
-              {sending ? "Mengirim..." : "Kirim Email Uji"}
+              {sending ? "Mengirim…" : "Kirim Email Uji"}
             </Button>
           </div>
         </div>
@@ -83,4 +94,3 @@ export function FeatureEmailTestCard({
     </Card>
   );
 }
-

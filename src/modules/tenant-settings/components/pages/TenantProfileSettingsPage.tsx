@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useSupportProfileActions, useSupportProfileSettings } from "@/hooks/queries";
 import { isDeepEqual } from "../../lib/forms";
@@ -15,32 +15,16 @@ import { FeatureTenantProfileContactDomainCard } from "../features/FeatureTenant
 import { FeatureTenantProfileIdentityCard } from "../features/FeatureTenantProfileIdentityCard";
 import { SettingsErrorBanner } from "../shared/SettingsErrorBanner";
 import { SettingsReadOnlyAlert } from "../shared/SettingsReadOnlyAlert";
-import { SettingsSectionHeading } from "../shared/SettingsSectionHeading";
-
-const emptyIdentity: ProfileIdentityFormState = {
-  business_name: "",
-  business_type: "",
-  business_category: "",
-  description: "",
-  logo_url: "",
-};
-
-const emptyContactDomain: ProfileContactDomainFormState = {
-  contact_email: "",
-  contact_phone: "",
-  address: "",
-  domain: "",
-  custom_domain: "",
-};
+import { TenantSettingsShell } from "../shared/TenantSettingsShell";
 
 export function TenantProfileSettingsPage() {
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
   const profileQuery = useSupportProfileSettings();
   const { saveIdentity, saveContactDomain } = useSupportProfileActions();
-  const [identityForm, setIdentityForm] = useState<ProfileIdentityFormState>(emptyIdentity);
-  const [contactDomainForm, setContactDomainForm] =
-    useState<ProfileContactDomainFormState>(emptyContactDomain);
+  const [identityDraft, setIdentityDraft] = useState<ProfileIdentityFormState | null>(null);
+  const [contactDomainDraft, setContactDomainDraft] =
+    useState<ProfileContactDomainFormState | null>(null);
 
   const identityInitial = useMemo<ProfileIdentityFormState>(
     () => ({
@@ -64,24 +48,39 @@ export function TenantProfileSettingsPage() {
     [profileQuery.data]
   );
 
-  useEffect(() => {
-    setIdentityForm(identityInitial);
-  }, [identityInitial]);
+  const identityForm = identityDraft ?? identityInitial;
+  const contactDomainForm = contactDomainDraft ?? contactDomainInitial;
 
-  useEffect(() => {
-    setContactDomainForm(contactDomainInitial);
-  }, [contactDomainInitial]);
-
-  const isIdentityDirty = !isDeepEqual(identityForm, identityInitial);
-  const isContactDomainDirty = !isDeepEqual(contactDomainForm, contactDomainInitial);
+  const isIdentityDirty = identityDraft ? !isDeepEqual(identityDraft, identityInitial) : false;
+  const isContactDomainDirty = contactDomainDraft
+    ? !isDeepEqual(contactDomainDraft, contactDomainInitial)
+    : false;
 
   return (
-    <div className="max-w-5xl space-y-8">
-      <SettingsSectionHeading
-        title="Profil Tenant"
-        description="Kelola informasi dasar, kontak, dan pengaturan domain untuk tenant Anda."
-      />
-
+    <TenantSettingsShell
+      sectionId="profil-tenant"
+      title="Profil Tenant"
+      description="Kelola informasi dasar, kontak utama, dan konfigurasi domain tenant dari satu area yang lebih terstruktur."
+      summaryTitle="Ringkasan Identitas"
+      summaryDescription="Bacaan cepat sebelum Anda memperbarui profil usaha dan domain tenant."
+      summaryItems={[
+        {
+          label: "Nama Usaha",
+          value: identityForm.business_name || "Belum diisi",
+          helper: identityForm.business_category || "Kategori bisnis belum diatur",
+        },
+        {
+          label: "Domain Aktif",
+          value: contactDomainForm.custom_domain || contactDomainForm.domain || "Belum aktif",
+          helper: contactDomainForm.contact_email || "Email kontak belum diisi",
+        },
+        {
+          label: "Jenis Tenant",
+          value: identityForm.business_type || "-",
+          helper: canManage ? "Dapat diedit oleh role Anda" : "Anda sedang dalam mode read-only",
+        },
+      ]}
+    >
       {!canManage ? (
         <SettingsReadOnlyAlert message="Anda tidak memiliki izin untuk mengedit profil tenant. Hubungi administrator sistem untuk meminta akses." />
       ) : null}
@@ -95,8 +94,8 @@ export function TenantProfileSettingsPage() {
         disabled={!canManage || profileQuery.isLoading}
         dirty={isIdentityDirty}
         saving={saveIdentity.isPending}
-        onChange={setIdentityForm}
-        onReset={() => setIdentityForm(identityInitial)}
+        onChange={setIdentityDraft}
+        onReset={() => setIdentityDraft(null)}
         onSave={() =>
           saveIdentity.mutate({
             ...identityForm,
@@ -110,8 +109,8 @@ export function TenantProfileSettingsPage() {
         disabled={!canManage || profileQuery.isLoading}
         dirty={isContactDomainDirty}
         saving={saveContactDomain.isPending}
-        onChange={setContactDomainForm}
-        onReset={() => setContactDomainForm(contactDomainInitial)}
+        onChange={setContactDomainDraft}
+        onReset={() => setContactDomainDraft(null)}
         onSave={() =>
           saveContactDomain.mutate({
             contact_email: contactDomainForm.contact_email,
@@ -122,6 +121,6 @@ export function TenantProfileSettingsPage() {
           })
         }
       />
-    </div>
+    </TenantSettingsShell>
   );
 }

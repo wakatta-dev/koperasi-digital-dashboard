@@ -1,13 +1,18 @@
 /** @format */
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SettingsStickyActionBar } from "../shared/SettingsStickyActionBar";
 import type { EmailTemplateFormState } from "../../types/forms";
-import { settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsFieldClassName,
+  settingsMutedTextClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 
 type FeatureEmailTemplateEditorCardProps = {
   form: EmailTemplateFormState;
@@ -31,54 +36,61 @@ export function FeatureEmailTemplateEditorCard({
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden`}>
       <CardContent className="space-y-4 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Editor Template</h2>
+        <div className="space-y-1">
+          <h2 className={settingsSectionTitleClassName}>Editor Template</h2>
+          <p className={settingsMutedTextClassName}>
+            Perbarui subject dan body template aktif dengan placeholder yang konsisten.
+          </p>
+        </div>
         <div className="space-y-2">
-          <Label>Subject Email</Label>
+          <Label htmlFor="email-template-subject">Subject Email</Label>
           <Input
+            id="email-template-subject"
+            name="email_template_subject"
+            autoComplete="off"
             value={form.subject}
             disabled={disabled}
-            className="border-gray-300 font-medium focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700"
+            className={`${settingsFieldClassName} font-medium`}
             onChange={(event) => onChange({ ...form, subject: event.target.value })}
           />
         </div>
         <div className="space-y-2">
-          <Label>Body Email</Label>
+          <Label htmlFor="email-template-body">Body Email</Label>
           <Textarea
+            id="email-template-body"
+            name="email_template_body"
+            autoComplete="off"
             value={form.body}
             disabled={disabled}
             rows={10}
-            placeholder="Tulis konten email di sini..."
-            className="h-48 border-gray-300 font-mono text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700"
+            placeholder="Tulis konten email di sini…"
+            className={`h-56 ${settingsFieldClassName} font-mono text-sm`}
             onChange={(event) => onChange({ ...form, body: event.target.value })}
           />
         </div>
-        <div className="rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
             Placeholder Tersedia:
           </p>
           <div className="flex flex-wrap gap-2">
-            {placeholders.map((placeholder) => (
+            {placeholders.map((placeholder, index) => (
               <Badge
-                key={placeholder}
-                className="border-transparent bg-gray-100 font-mono text-[11px] text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                key={`${placeholder}-${index}`}
+                className="border-transparent bg-white font-mono text-[11px] text-slate-700 dark:bg-slate-950 dark:text-slate-300"
               >
                 {`{{${placeholder}}}`}
               </Badge>
             ))}
           </div>
         </div>
-        <div className="flex justify-end pt-2">
-          <Button
-            type="button"
-            className="bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:ring-indigo-600"
-            disabled={disabled || !dirty || saving}
-            onClick={onSave}
-          >
-            {saving ? "Menyimpan..." : "Simpan Template"}
-          </Button>
-        </div>
+        <SettingsStickyActionBar
+          onSave={onSave}
+          saveLabel="Simpan Template"
+          dirty={dirty}
+          saveDisabled={disabled || !dirty || saving}
+          saving={saving}
+        />
       </CardContent>
     </Card>
   );
 }
-

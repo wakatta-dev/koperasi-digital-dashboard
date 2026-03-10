@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   usePermissionCatalog,
@@ -17,19 +18,25 @@ import { FeatureAccessRolePermissionWorkspace } from "../features/FeatureAccessR
 import { FeatureAccessUserManagementCard } from "../features/FeatureAccessUserManagementCard";
 import { SettingsErrorBanner } from "../shared/SettingsErrorBanner";
 import { SettingsReadOnlyAlert } from "../shared/SettingsReadOnlyAlert";
-import { SettingsSectionHeading } from "../shared/SettingsSectionHeading";
+import { TenantSettingsShell } from "../shared/TenantSettingsShell";
 import {
+  buildQueryString,
   canManageTenantSettings,
   getSettingsTenantType,
   isRoleProtected,
 } from "../../lib/settings";
 
 export function AccessAuthorizationSettingsPage() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
   const tenantType = getSettingsTenantType(
     (session?.user as { jenis_tenant?: string } | undefined)?.jenis_tenant
   );
+  const requestedRoleId = searchParams.get("role") ?? "";
+  const pendingSelectedRoleIdRef = useRef<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState("");
@@ -55,16 +62,64 @@ export function AccessAuthorizationSettingsPage() {
   const rolePermissionsQuery = useRolePermissions(selectedRoleId || undefined, { limit: 200 });
   const permissions = useMemo(() => rolePermissionsQuery.data ?? [], [rolePermissionsQuery.data]);
 
+  const syncRoleQuery = useCallback(
+    (roleId: string) => {
+      const nextQuery = buildQueryString(searchParams, { role: roleId });
+      if (nextQuery === searchParams.toString()) {
+        return;
+      }
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const handleSelectRole = useCallback(
+    (roleId: string) => {
+      pendingSelectedRoleIdRef.current = roleId;
+      setSelectedRoleId(roleId);
+      syncRoleQuery(roleId);
+    },
+    [syncRoleQuery]
+  );
+
   useEffect(() => {
     if (!roles.length) {
+      pendingSelectedRoleIdRef.current = null;
       setSelectedRoleId("");
       return;
     }
-    if (!selectedRoleId || !roles.some((role) => String(role.id) === selectedRoleId)) {
-      const firstEditable = roles.find((role) => !isRoleProtected(role)) ?? roles[0];
-      setSelectedRoleId(String(firstEditable.id));
+
+    const hasRole = (roleId: string) => roles.some((role) => String(role.id) === roleId);
+
+    if (pendingSelectedRoleIdRef.current) {
+      if (requestedRoleId === pendingSelectedRoleIdRef.current) {
+        pendingSelectedRoleIdRef.current = null;
+      } else if (hasRole(pendingSelectedRoleIdRef.current)) {
+        return;
+      } else {
+        pendingSelectedRoleIdRef.current = null;
+      }
     }
-  }, [roles, selectedRoleId]);
+
+    if (requestedRoleId && roles.some((role) => String(role.id) === requestedRoleId)) {
+      if (selectedRoleId !== requestedRoleId) {
+        setSelectedRoleId(requestedRoleId);
+      }
+      return;
+    }
+
+    if (selectedRoleId && hasRole(selectedRoleId)) {
+      return;
+    }
+
+    const firstEditable = roles.find((role) => !isRoleProtected(role)) ?? roles[0];
+    const fallbackRoleId = String(firstEditable.id);
+    if (selectedRoleId !== fallbackRoleId) {
+      pendingSelectedRoleIdRef.current = fallbackRoleId;
+      setSelectedRoleId(fallbackRoleId);
+      syncRoleQuery(fallbackRoleId);
+    }
+  }, [requestedRoleId, roles, selectedRoleId, syncRoleQuery]);
 
   useEffect(() => {
     if (!selectedRole) {
@@ -97,12 +152,30 @@ export function AccessAuthorizationSettingsPage() {
   }, [availablePermissionCatalog, selectedPermissionAlias]);
 
   return (
-    <div className="max-w-6xl space-y-8">
-      <SettingsSectionHeading
-        title="Akses & Otorisasi"
-        description="Manajemen pengguna, peran sistem, dan izin akses untuk kontrol keamanan tingkat lanjut."
-      />
-
+    <TenantSettingsShell
+      sectionId="akses-otorisasi"
+      title="Akses & Otorisasi"
+      description="Kelola user, role, dan permission tenant dengan workspace yang lebih fokus dan mudah ditinjau ulang."
+      summaryTitle="Ringkasan Akses"
+      summaryDescription="Snapshot cepat jumlah user, role, dan konteks role yang sedang Anda kelola."
+      summaryItems={[
+        {
+          label: "User Tercatat",
+          value: `${users.length} User`,
+          helper: search ? `Hasil pencarian untuk “${search}”` : "Menampilkan daftar user tenant",
+        },
+        {
+          label: "Role Tersedia",
+          value: `${roles.length} Role`,
+          helper: selectedRole ? `Role aktif: ${selectedRole.name}` : "Belum ada role dipilih",
+        },
+        {
+          label: "Mode Akses",
+          value: canManage ? "Editable" : "Read-Only",
+          helper: canManage ? "Anda dapat mengubah role dan permission" : "Role Anda hanya dapat meninjau konfigurasi",
+        },
+      ]}
+    >
       <SettingsReadOnlyAlert message="Beberapa pengaturan peran sistem (Super Admin) dilindungi dan tidak dapat dimodifikasi tanpa eskalasi hak istimewa." />
 
       {usersQuery.error ? <SettingsErrorBanner message={(usersQuery.error as Error).message} /> : null}
@@ -167,7 +240,7 @@ export function AccessAuthorizationSettingsPage() {
         mutatingPermission={
           roleActions.addPermission.isPending || roleActions.removePermission.isPending
         }
-        onSelectRole={setSelectedRoleId}
+        onSelectRole={handleSelectRole}
         onEditRoleName={setEditRoleName}
         onEditRoleDescription={setEditRoleDescription}
         onSaveRole={() =>
@@ -200,6 +273,6 @@ export function AccessAuthorizationSettingsPage() {
           })
         }
       />
-    </div>
+    </TenantSettingsShell>
   );
 }

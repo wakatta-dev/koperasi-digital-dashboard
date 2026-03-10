@@ -5,7 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SettingsStickyActionBar } from "../shared/SettingsStickyActionBar";
-import { settingsHeaderClassName, settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsCardContentClassName,
+  settingsFieldClassName,
+  settingsHeaderClassName,
+  settingsHelperTextClassName,
+  settingsMutedTextClassName,
+  settingsReadOnlyFieldClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 import type { ProfileIdentityFormState } from "../../types/forms";
 
 type FeatureTenantProfileIdentityCardProps = {
@@ -17,9 +26,6 @@ type FeatureTenantProfileIdentityCardProps = {
   onReset: () => void;
   onSave: () => void;
 };
-
-const fieldClassName =
-  "border-gray-300 focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700";
 
 export function FeatureTenantProfileIdentityCard({
   value,
@@ -33,15 +39,44 @@ export function FeatureTenantProfileIdentityCard({
   return (
     <Card className={settingsSurfaceClassName}>
       <div className={settingsHeaderClassName}>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Identitas Usaha</h2>
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-1">
+            <h2 className={settingsSectionTitleClassName}>Identitas Usaha</h2>
+            <p className={settingsMutedTextClassName}>
+              Pastikan identitas tenant mudah dikenali oleh pengguna internal maupun publik.
+            </p>
+          </div>
+          {value.logo_url ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-950/70">
+              <img
+                src={value.logo_url}
+                alt={`Logo ${value.business_name || "tenant"}`}
+                width={48}
+                height={48}
+                loading="lazy"
+                className="h-12 w-12 rounded-2xl object-cover"
+              />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
+                  Preview Logo
+                </p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                  Akan tampil pada area yang menggunakan identitas tenant.
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
-      <CardContent className="p-6">
+      <CardContent className={settingsCardContentClassName}>
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="business_name">Nama Usaha</Label>
             <Input
               id="business_name"
-              className={fieldClassName}
+              name="business_name"
+              autoComplete="organization"
+              className={settingsFieldClassName}
               value={value.business_name}
               disabled={disabled}
               onChange={(event) => onChange({ ...value, business_name: event.target.value })}
@@ -51,7 +86,8 @@ export function FeatureTenantProfileIdentityCard({
             <Label htmlFor="business_type">Jenis Tenant</Label>
             <Input
               id="business_type"
-              className="border-gray-300 bg-gray-50 text-gray-500 dark:border-gray-700 dark:bg-gray-800/50"
+              name="business_type"
+              className={settingsReadOnlyFieldClassName}
               value={value.business_type}
               disabled
               readOnly
@@ -61,7 +97,9 @@ export function FeatureTenantProfileIdentityCard({
             <Label htmlFor="business_category">Kategori Bisnis</Label>
             <Input
               id="business_category"
-              className={fieldClassName}
+              name="business_category"
+              autoComplete="organization-title"
+              className={settingsFieldClassName}
               value={value.business_category}
               disabled={disabled}
               onChange={(event) =>
@@ -73,13 +111,17 @@ export function FeatureTenantProfileIdentityCard({
             <Label htmlFor="logo_url">Logo URL</Label>
             <Input
               id="logo_url"
-              className={fieldClassName}
+              name="logo_url"
+              type="url"
+              inputMode="url"
+              spellCheck={false}
+              className={settingsFieldClassName}
               value={value.logo_url}
               placeholder="https://example.com/logo.png"
               disabled={disabled}
               onChange={(event) => onChange({ ...value, logo_url: event.target.value })}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className={settingsHelperTextClassName}>
               URL gambar untuk logo usaha Anda (format disarankan: PNG/SVG).
             </p>
           </div>
@@ -88,7 +130,9 @@ export function FeatureTenantProfileIdentityCard({
           <Label htmlFor="description">Deskripsi</Label>
           <Textarea
             id="description"
-            className={`${fieldClassName} min-h-28`}
+            name="description"
+            autoComplete="off"
+            className={`${settingsFieldClassName} min-h-28`}
             rows={4}
             value={value.description}
             disabled={disabled}
@@ -99,6 +143,7 @@ export function FeatureTenantProfileIdentityCard({
           onReset={onReset}
           onSave={onSave}
           saveLabel="Simpan Perubahan"
+          dirty={dirty}
           resetDisabled={disabled || !dirty || saving}
           saveDisabled={disabled || !dirty || saving}
           saving={saving}
@@ -107,4 +152,3 @@ export function FeatureTenantProfileIdentityCard({
     </Card>
   );
 }
-

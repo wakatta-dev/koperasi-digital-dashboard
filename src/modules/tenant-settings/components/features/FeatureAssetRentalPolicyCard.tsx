@@ -6,7 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SettingsStickyActionBar } from "../shared/SettingsStickyActionBar";
 import { parseNumberInput } from "../../lib/forms";
-import { settingsHeaderClassName, settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsCardContentClassName,
+  settingsFieldClassName,
+  settingsHeaderClassName,
+  settingsMutedTextClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 import type { AssetRentalPolicyFormState } from "../../types/forms";
 
 type FeatureAssetRentalPolicyCardProps = {
@@ -18,9 +25,6 @@ type FeatureAssetRentalPolicyCardProps = {
   onReset: () => void;
   onSave: () => void;
 };
-
-const fieldClassName =
-  "border-gray-300 focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700";
 
 export function FeatureAssetRentalPolicyCard({
   value,
@@ -34,20 +38,20 @@ export function FeatureAssetRentalPolicyCard({
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden`}>
       <div className={settingsHeaderClassName}>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Kebijakan Asset & Rental
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Aturan standar untuk proses peminjaman dan penyewaan.
-        </p>
+        <div className="space-y-1">
+          <h2 className={settingsSectionTitleClassName}>Kebijakan Asset &amp; Rental</h2>
+          <p className={settingsMutedTextClassName}>
+            Aturan standar untuk proses peminjaman dan penyewaan yang konsisten di seluruh tenant.
+          </p>
+        </div>
       </div>
-      <CardContent className="space-y-6 p-6">
-        <div className="flex items-center justify-between gap-4">
+      <CardContent className={`${settingsCardContentClassName} space-y-6`}>
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/60">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">
               Persetujuan wajib sebelum sewa aktif
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
               Setiap request sewa memerlukan approval admin.
             </p>
           </div>
@@ -55,16 +59,17 @@ export function FeatureAssetRentalPolicyCard({
             checked={value.approval_required}
             disabled={disabled}
             onCheckedChange={(checked) => onChange({ ...value, approval_required: checked })}
-            className="data-[state=checked]:bg-indigo-600"
+            className="data-[state=checked]:bg-slate-950 dark:data-[state=checked]:bg-white"
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-6 border-t border-gray-100 pt-4 dark:border-gray-800 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 rounded-2xl border border-slate-200 p-5 dark:border-slate-800 md:grid-cols-2">
           <div className="space-y-2">
             <Label>Durasi slot default (menit)</Label>
             <Input
               type="number"
-              className={fieldClassName}
+              name="default_slot_minutes"
+              className={settingsFieldClassName}
               value={String(value.default_slot_minutes)}
               disabled={disabled}
               onChange={(event) =>
@@ -79,7 +84,8 @@ export function FeatureAssetRentalPolicyCard({
             <Label>Minimal DP (%)</Label>
             <Input
               type="number"
-              className={fieldClassName}
+              name="min_dp_percent"
+              className={settingsFieldClassName}
               value={String(value.min_dp_percent)}
               disabled={disabled}
               onChange={(event) =>
@@ -94,7 +100,8 @@ export function FeatureAssetRentalPolicyCard({
             <Label>Grace period keterlambatan (jam)</Label>
             <Input
               type="number"
-              className={fieldClassName}
+              name="grace_period_hours"
+              className={settingsFieldClassName}
               value={String(value.grace_period_hours)}
               disabled={disabled}
               onChange={(event) =>
@@ -109,7 +116,8 @@ export function FeatureAssetRentalPolicyCard({
             <Label>Denda keterlambatan per jam (IDR)</Label>
             <Input
               type="number"
-              className={fieldClassName}
+              name="late_fee_per_hour"
+              className={settingsFieldClassName}
               value={String(value.late_fee_per_hour)}
               disabled={disabled}
               onChange={(event) =>
@@ -126,6 +134,7 @@ export function FeatureAssetRentalPolicyCard({
           onReset={onReset}
           onSave={onSave}
           saveLabel="Simpan Pengaturan"
+          dirty={dirty}
           resetDisabled={disabled || !dirty || saving}
           saveDisabled={disabled || !dirty || saving}
           saving={saving}
@@ -134,4 +143,3 @@ export function FeatureAssetRentalPolicyCard({
     </Card>
   );
 }
-
