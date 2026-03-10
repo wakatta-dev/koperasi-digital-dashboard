@@ -4,7 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SupportEmailTemplate } from "@/types/api";
-import { settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsMutedTextClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 
 type FeatureEmailTemplateSelectorCardProps = {
   templates: SupportEmailTemplate[];
@@ -22,16 +26,21 @@ export function FeatureEmailTemplateSelectorCard({
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden`}>
       <CardContent className="p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Pilih Template</h2>
+        <div className="mb-4 space-y-1">
+          <h2 className={settingsSectionTitleClassName}>Pilih Template</h2>
+          <p className={settingsMutedTextClassName}>
+            Tentukan template aktif yang ingin ditinjau, diubah, dan diuji.
+          </p>
+        </div>
         <div className="w-full md:w-1/2">
-          <Label>Template Aktif</Label>
+          <Label htmlFor="active-template">Template Aktif</Label>
           <Select value={selectedTemplateId} disabled={disabled} onValueChange={onSelect}>
-            <SelectTrigger className="border-gray-300 dark:border-gray-700">
+            <SelectTrigger id="active-template" className="border-slate-300 dark:border-slate-700">
               <SelectValue placeholder="Pilih template email" />
             </SelectTrigger>
             <SelectContent>
-              {templates.map((template) => (
-                <SelectItem key={template.id} value={String(template.id)}>
+              {templates.map((template, index) => (
+                <SelectItem key={`${template.id}-${index}`} value={String(template.id)}>
                   {template.name} ({template.code})
                 </SelectItem>
               ))}
@@ -42,4 +51,3 @@ export function FeatureEmailTemplateSelectorCard({
     </Card>
   );
 }
-

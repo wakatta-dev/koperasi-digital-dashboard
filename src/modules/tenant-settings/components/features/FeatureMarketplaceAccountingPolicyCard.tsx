@@ -7,7 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { SettingsStickyActionBar } from "../shared/SettingsStickyActionBar";
 import { parseNumberInput } from "../../lib/forms";
-import { settingsHeaderClassName, settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsCardContentClassName,
+  settingsFieldClassName,
+  settingsHeaderClassName,
+  settingsMutedTextClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 import type { MarketplaceAccountingFormState } from "../../types/forms";
 
 type FeatureMarketplaceAccountingPolicyCardProps = {
@@ -20,10 +27,8 @@ type FeatureMarketplaceAccountingPolicyCardProps = {
   onSave: () => void;
 };
 
-const fieldClassName =
-  "border-gray-300 focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700";
-
-const selectClassName = "border-gray-300 focus:ring-indigo-600 dark:border-gray-700";
+const selectClassName =
+  "border-slate-300 bg-white/90 focus:ring-slate-900/15 dark:border-slate-700 dark:bg-slate-950/70";
 
 const fiscalYearOptions = [
   { value: "1", label: "Januari" },
@@ -54,23 +59,31 @@ export function FeatureMarketplaceAccountingPolicyCard({
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden`}>
       <div className={settingsHeaderClassName}>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Kebijakan Marketplace & Accounting
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Pengaturan transaksi, e-commerce, dan pencatatan keuangan.
-        </p>
+        <div className="space-y-1">
+          <h2 className={settingsSectionTitleClassName}>Kebijakan Marketplace &amp; Accounting</h2>
+          <p className={settingsMutedTextClassName}>
+            Pengaturan transaksi penjualan, pengendalian stok, dan pencatatan keuangan operasional.
+          </p>
+        </div>
       </div>
-      <CardContent className="space-y-8 p-6">
-        <div>
-          <h3 className="mb-4 text-md font-medium text-gray-900 dark:text-white">Marketplace</h3>
+      <CardContent className={`${settingsCardContentClassName} space-y-8`}>
+        <section className="rounded-[22px] border border-slate-200 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-900/60">
+          <div className="mb-4">
+            <h3 className="text-base font-semibold tracking-tight text-slate-950 dark:text-white">
+              Marketplace
+            </h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Atur ritme pembayaran, stok, dan pengalaman checkout pelanggan.
+            </p>
+          </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Manual payment window (jam)</Label>
               <Input
                 type="number"
                 step="0.5"
-                className={fieldClassName}
+                name="manual_payment_window_hours"
+                className={settingsFieldClassName}
                 value={String(manualPaymentWindowHours)}
                 disabled={disabled}
                 onChange={(event) =>
@@ -91,7 +104,8 @@ export function FeatureMarketplaceAccountingPolicyCard({
               <Label>Batas stok rendah</Label>
               <Input
                 type="number"
-                className={fieldClassName}
+                name="low_stock_threshold"
+                className={settingsFieldClassName}
                 value={String(value.marketplace.low_stock_threshold)}
                 disabled={disabled}
                 onChange={(event) =>
@@ -108,12 +122,12 @@ export function FeatureMarketplaceAccountingPolicyCard({
                 }
               />
             </div>
-            <div className="flex items-center justify-between md:col-span-2">
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white/80 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/70 md:col-span-2">
               <div className="pr-6">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-slate-950 dark:text-white">
                   Auto-cancel unpaid orders
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
                   Tetap aktif selama nilai batas jam belum diubah menjadi 0 di backend.
                 </p>
               </div>
@@ -121,7 +135,8 @@ export function FeatureMarketplaceAccountingPolicyCard({
                 <Input
                   type="number"
                   min="1"
-                  className={`${fieldClassName} w-24`}
+                  name="auto_cancel_unpaid_hours"
+                  className={`${settingsFieldClassName} w-24`}
                   value={String(value.marketplace.auto_cancel_unpaid_hours)}
                   disabled={disabled}
                   onChange={(event) =>
@@ -137,13 +152,16 @@ export function FeatureMarketplaceAccountingPolicyCard({
                     })
                   }
                 />
-                <span className="text-sm text-gray-500">jam</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">jam</span>
               </div>
             </div>
-            <div className="flex items-center justify-between md:col-span-2">
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white/80 px-4 py-4 dark:border-slate-800 dark:bg-slate-950/70 md:col-span-2">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-sm font-semibold text-slate-950 dark:text-white">
                   Guest checkout toggle
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  Izinkan pelanggan bertransaksi tanpa akun jika flow publik tenant memang membutuhkannya.
                 </p>
               </div>
               <Switch
@@ -155,21 +173,28 @@ export function FeatureMarketplaceAccountingPolicyCard({
                     marketplace: { ...value.marketplace, allow_guest_checkout: checked },
                   })
                 }
-                className="data-[state=checked]:bg-indigo-600"
+                className="data-[state=checked]:bg-slate-950 dark:data-[state=checked]:bg-white"
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        <hr className="border-gray-200 dark:border-gray-800" />
-
-        <div>
-          <h3 className="mb-4 text-md font-medium text-gray-900 dark:text-white">Accounting</h3>
+        <section className="rounded-[22px] border border-slate-200 p-5 dark:border-slate-800">
+          <div className="mb-4">
+            <h3 className="text-base font-semibold tracking-tight text-slate-950 dark:text-white">
+              Accounting
+            </h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Jaga konsistensi invoice, siklus pembayaran, dan batas tutup buku tenant.
+            </p>
+          </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Prefix Invoice</Label>
               <Input
-                className={fieldClassName}
+                name="invoice_prefix"
+                autoComplete="off"
+                className={settingsFieldClassName}
                 value={value.accounting.invoice_prefix}
                 disabled={disabled}
                 onChange={(event) =>
@@ -241,7 +266,8 @@ export function FeatureMarketplaceAccountingPolicyCard({
               <Label>Lock period (tanggal tutup buku)</Label>
               <Input
                 type="number"
-                className={fieldClassName}
+                name="period_lock_after_days"
+                className={settingsFieldClassName}
                 value={String(value.accounting.period_lock_after_days)}
                 disabled={disabled}
                 onChange={(event) =>
@@ -259,12 +285,13 @@ export function FeatureMarketplaceAccountingPolicyCard({
               />
             </div>
           </div>
-        </div>
+        </section>
 
         <SettingsStickyActionBar
           onReset={onReset}
           onSave={onSave}
           saveLabel="Simpan Pengaturan Operasional"
+          dirty={dirty}
           resetDisabled={disabled || !dirty || saving}
           saveDisabled={disabled || !dirty || saving}
           saving={saving}
@@ -273,4 +300,3 @@ export function FeatureMarketplaceAccountingPolicyCard({
     </Card>
   );
 }
-

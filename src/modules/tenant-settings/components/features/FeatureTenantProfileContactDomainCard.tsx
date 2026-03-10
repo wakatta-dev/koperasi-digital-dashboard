@@ -5,7 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SettingsStickyActionBar } from "../shared/SettingsStickyActionBar";
-import { settingsHeaderClassName, settingsSurfaceClassName } from "../../lib/settings";
+import {
+  settingsCardContentClassName,
+  settingsFieldClassName,
+  settingsHeaderClassName,
+  settingsHelperTextClassName,
+  settingsMutedTextClassName,
+  settingsReadOnlyFieldClassName,
+  settingsSectionTitleClassName,
+  settingsSurfaceClassName,
+} from "../../lib/settings";
 import type { ProfileContactDomainFormState } from "../../types/forms";
 
 type FeatureTenantProfileContactDomainCardProps = {
@@ -17,9 +26,6 @@ type FeatureTenantProfileContactDomainCardProps = {
   onReset: () => void;
   onSave: () => void;
 };
-
-const fieldClassName =
-  "border-gray-300 focus-visible:border-indigo-600 focus-visible:ring-indigo-600/30 dark:border-gray-700";
 
 export function FeatureTenantProfileContactDomainCard({
   value,
@@ -33,16 +39,25 @@ export function FeatureTenantProfileContactDomainCard({
   return (
     <Card className={settingsSurfaceClassName}>
       <div className={settingsHeaderClassName}>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Kontak dan Domain</h2>
+        <div className="space-y-1">
+          <h2 className={settingsSectionTitleClassName}>Kontak &amp; Domain</h2>
+          <p className={settingsMutedTextClassName}>
+            Informasi kontak ini dipakai sebagai titik komunikasi utama dan referensi domain aktif tenant.
+          </p>
+        </div>
       </div>
-      <CardContent className="p-6">
+      <CardContent className={settingsCardContentClassName}>
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="contact_email">Email Kontak</Label>
             <Input
               id="contact_email"
               type="email"
-              className={fieldClassName}
+              name="contact_email"
+              autoComplete="email"
+              inputMode="email"
+              spellCheck={false}
+              className={settingsFieldClassName}
               value={value.contact_email}
               disabled={disabled}
               onChange={(event) => onChange({ ...value, contact_email: event.target.value })}
@@ -53,7 +68,10 @@ export function FeatureTenantProfileContactDomainCard({
             <Input
               id="contact_phone"
               type="tel"
-              className={fieldClassName}
+              name="contact_phone"
+              autoComplete="tel"
+              inputMode="tel"
+              className={settingsFieldClassName}
               value={value.contact_phone}
               disabled={disabled}
               onChange={(event) => onChange({ ...value, contact_phone: event.target.value })}
@@ -63,7 +81,8 @@ export function FeatureTenantProfileContactDomainCard({
             <Label htmlFor="domain">Domain Aktif</Label>
             <Input
               id="domain"
-              className="border-gray-300 bg-gray-50 text-gray-500 dark:border-gray-700 dark:bg-gray-800/50"
+              name="domain"
+              className={settingsReadOnlyFieldClassName}
               value={value.domain}
               disabled
               readOnly
@@ -73,13 +92,16 @@ export function FeatureTenantProfileContactDomainCard({
             <Label htmlFor="custom_domain">Custom Domain</Label>
             <Input
               id="custom_domain"
-              className={fieldClassName}
+              name="custom_domain"
+              autoComplete="off"
+              spellCheck={false}
+              className={settingsFieldClassName}
               value={value.custom_domain}
               placeholder="contoh: bumdes.desa.id"
               disabled={disabled}
               onChange={(event) => onChange({ ...value, custom_domain: event.target.value })}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className={settingsHelperTextClassName}>
               Biarkan kosong jika tidak menggunakan domain khusus.
             </p>
           </div>
@@ -88,7 +110,9 @@ export function FeatureTenantProfileContactDomainCard({
           <Label htmlFor="address">Alamat</Label>
           <Textarea
             id="address"
-            className={`${fieldClassName} min-h-24`}
+            name="address"
+            autoComplete="street-address"
+            className={`${settingsFieldClassName} min-h-24`}
             rows={3}
             value={value.address}
             disabled={disabled}
@@ -99,6 +123,7 @@ export function FeatureTenantProfileContactDomainCard({
           onReset={onReset}
           onSave={onSave}
           saveLabel="Simpan Perubahan"
+          dirty={dirty}
           resetDisabled={disabled || !dirty || saving}
           saveDisabled={disabled || !dirty || saving}
           saving={saving}
@@ -107,4 +132,3 @@ export function FeatureTenantProfileContactDomainCard({
     </Card>
   );
 }
-
