@@ -18,12 +18,22 @@ type FeatureSystemReadinessCardProps = {
   error?: Error | null;
 };
 
-type DisplayStatus = "ready" | "missing" | "loading" | "unavailable";
+type DisplayStatus =
+  | "ready"
+  | "missing"
+  | "draft"
+  | "active"
+  | "blocked"
+  | "loading"
+  | "unavailable";
 type FlowStatus = "ready" | "blocked";
 type GateStatus = "passed" | "blocker";
 
 function statusLabel(status: DisplayStatus) {
   if (status === "ready") return "Siap";
+  if (status === "draft") return "Draft";
+  if (status === "active") return "Aktif";
+  if (status === "blocked") return "Blocker";
   if (status === "missing") return "Belum siap";
   if (status === "loading") return "Memeriksa";
   return "Tidak tersedia";
@@ -32,6 +42,12 @@ function statusLabel(status: DisplayStatus) {
 function statusBadgeClass(status: DisplayStatus) {
   if (status === "ready") {
     return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300";
+  }
+  if (status === "blocked") {
+    return "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300";
+  }
+  if (status === "active") {
+    return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300";
   }
   if (status === "missing") {
     return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300";
@@ -70,8 +86,9 @@ export function FeatureSystemReadinessCard({
     ? "loading"
     : error || !data
       ? "unavailable"
-      : data.status;
-  const missingDomains = data?.domains.filter((domain) => domain.status === "missing") ?? [];
+      : (data.state ?? data.status);
+  const missingDomains =
+    data?.domains.filter((domain) => (domain.state ?? domain.status) !== "ready") ?? [];
   const blockedCriticalFlows = data?.critical_flows.filter((flow) => flow.status === "blocked") ?? [];
   const hasReadinessBlockers = missingDomains.length > 0 || blockedCriticalFlows.length > 0;
 

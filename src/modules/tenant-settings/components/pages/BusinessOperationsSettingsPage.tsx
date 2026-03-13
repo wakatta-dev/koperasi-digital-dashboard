@@ -5,13 +5,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
+  useSupportDiagnostics,
   useSupportOperationalActions,
   useSupportOperationalSettings,
   useSupportPolicyDefinitions,
   useSupportSystemReadiness,
 } from "@/hooks/queries";
 import { isDeepEqual } from "../../lib/forms";
-import { canManageTenantSettings } from "../../lib/settings";
+import {
+  canManageTenantSettings,
+  formatSettingsDateTime,
+  normalizeRoleName,
+} from "../../lib/settings";
 import type {
   AssetRentalPolicyFormState,
   MarketplaceAccountingFormState,
@@ -23,11 +28,11 @@ import { FeatureMarketplaceAccountingPolicyCard } from "../features/FeatureMarke
 import { FeatureOperationalModulesCard } from "../features/FeatureOperationalModulesCard";
 import { FeatureOperationalPreferenceCard } from "../features/FeatureOperationalPreferenceCard";
 import { FeaturePolicyCatalogCard } from "../features/FeaturePolicyCatalogCard";
+import { FeatureReadinessDiagnosticsCard } from "../features/FeatureReadinessDiagnosticsCard";
 import { FeatureSystemReadinessCard } from "../features/FeatureSystemReadinessCard";
 import { SettingsErrorBanner } from "../shared/SettingsErrorBanner";
 import { SettingsReadOnlyAlert } from "../shared/SettingsReadOnlyAlert";
 import { TenantSettingsShell } from "../shared/TenantSettingsShell";
-import { formatSettingsDateTime } from "../../lib/settings";
 
 const emptyPreferences: OperationalPreferencesFormState = {
   timezone: "",
@@ -70,9 +75,12 @@ const emptyMarketplaceAccounting: MarketplaceAccountingFormState = {
 export function BusinessOperationsSettingsPage() {
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
+  const normalizedRole = normalizeRoleName((session?.user as { role?: string } | undefined)?.role);
+  const showSupportDiagnostics = normalizedRole === "support" || normalizedRole === "super_admin";
   const operationalQuery = useSupportOperationalSettings();
   const policyDefinitionsQuery = useSupportPolicyDefinitions();
   const readinessQuery = useSupportSystemReadiness();
+  const diagnosticsQuery = useSupportDiagnostics();
   const {
     savePreferences,
     saveModules,
@@ -168,6 +176,13 @@ export function BusinessOperationsSettingsPage() {
         data={policyDefinitionsQuery.data}
         isLoading={policyDefinitionsQuery.isLoading}
         error={policyDefinitionsQuery.error as Error | null}
+      />
+
+      <FeatureReadinessDiagnosticsCard
+        data={diagnosticsQuery.data}
+        isLoading={diagnosticsQuery.isLoading}
+        error={diagnosticsQuery.error as Error | null}
+        showSupportDetails={showSupportDiagnostics}
       />
 
       <FeatureOperationalPreferenceCard

@@ -22,6 +22,7 @@ import type {
 } from "@/types/api";
 import {
   getSupportGlobalConfig,
+  getSupportDiagnostics,
   getSupportOperationalExceptionContext,
   getSupportOperationalSettings,
   getSupportPolicyDefinitions,
@@ -61,6 +62,13 @@ export function useSupportSystemReadiness() {
   return useQuery({
     queryKey: QK.settings.supportReadiness(),
     queryFn: async () => ensureSuccess(await getSupportSystemReadiness()),
+  });
+}
+
+export function useSupportDiagnostics() {
+  return useQuery({
+    queryKey: QK.settings.supportDiagnostics(),
+    queryFn: async () => ensureSuccess(await getSupportDiagnostics()),
   });
 }
 

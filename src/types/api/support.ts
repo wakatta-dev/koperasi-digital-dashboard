@@ -143,6 +143,7 @@ export interface SupportReadinessItem {
   key: string;
   label: string;
   status: "ready" | "missing";
+  state?: "draft" | "active" | "blocked" | "ready";
   message?: string;
   source?: string;
 }
@@ -151,6 +152,7 @@ export interface SupportReadinessDomain {
   domain: string;
   label: string;
   status: "ready" | "missing";
+  state?: "draft" | "active" | "blocked" | "ready";
   ready_count: number;
   missing_count: number;
   items: SupportReadinessItem[];
@@ -180,10 +182,64 @@ export interface SupportCriticalFlow {
 export interface SupportSystemReadiness {
   tenant_id: number;
   status: "ready" | "missing";
+  state?: "draft" | "active" | "blocked" | "ready";
   checked_at: Rfc3339String;
   foundation_items: SupportReadinessItem[];
   domains: SupportReadinessDomain[];
+  modules?: SupportReadinessModule[];
   critical_flows: SupportCriticalFlow[];
+}
+
+export interface SupportReadinessPolicyTraceStep {
+  scope: string;
+  label: string;
+  has_value: boolean;
+  selected: boolean;
+  enforcement_state?: string;
+}
+
+export interface SupportReadinessEffectivePolicy {
+  policy_key: string;
+  policy_name: string;
+  effective_value: unknown;
+  source_scope: string;
+  source_label: string;
+  enforcement_state: "active" | "draft" | string;
+  resolution_chain?: SupportReadinessPolicyTraceStep[];
+}
+
+export interface SupportReadinessModule {
+  module_key: string;
+  label: string;
+  enabled: boolean;
+  status: "ready" | "missing";
+  state: "draft" | "active" | "blocked" | "ready";
+  blocker_reasons?: string[];
+  corrective_actions?: string[];
+  expected_outputs?: string[];
+  verified_outputs?: string[];
+  missing_outputs?: string[];
+  effective_policies?: SupportReadinessEffectivePolicy[];
+}
+
+export interface SupportBootstrapRunDiagnostics {
+  run_id: number;
+  status: string;
+  trigger_type: string;
+  preset_key: string;
+  repair_target?: string;
+  error_message?: string;
+  started_at?: Rfc3339String;
+  finished_at?: Rfc3339String;
+}
+
+export interface SupportDiagnostics {
+  tenant_id: number;
+  status: "ready" | "missing";
+  state: "draft" | "active" | "blocked" | "ready";
+  checked_at: Rfc3339String;
+  modules: SupportReadinessModule[];
+  bootstrap_run?: SupportBootstrapRunDiagnostics;
 }
 
 export interface SupportPolicyDefinitionItem {
@@ -408,6 +464,7 @@ export type SupportProfileContactDomainResponse = ApiResponse<SupportProfileCont
 export type SupportOperationalSettingsResponse = ApiResponse<SupportOperationalSettings>;
 export type SupportPolicyDefinitionsResponse = ApiResponse<SupportPolicyDefinitions>;
 export type SupportSystemReadinessResponse = ApiResponse<SupportSystemReadiness>;
+export type SupportDiagnosticsResponse = ApiResponse<SupportDiagnostics>;
 export type SupportOperationalPreferencesResponse = ApiResponse<SupportOperationalPreferencesSection>;
 export type SupportOperationalModulesResponse = ApiResponse<SupportOperationalModulesSection>;
 export type SupportOperationalAssetRentalResponse = ApiResponse<SupportAssetRentalSettingsSection>;

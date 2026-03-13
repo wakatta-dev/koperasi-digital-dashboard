@@ -3,6 +3,7 @@
 import { API_ENDPOINTS } from "@/constants/api";
 import type {
   SupportGlobalConfigResponse,
+  SupportDiagnosticsResponse,
   SupportOperationalAssetRentalResponse,
   SupportOperationalMarketplaceAccountingResponse,
   SupportOperationalModulesResponse,
@@ -40,6 +41,12 @@ export function getSupportTenantConfig(): Promise<SupportTenantConfigResponse> {
 export function getSupportSystemReadiness(): Promise<SupportSystemReadinessResponse> {
   return api.get(
     `${API_PREFIX}${API_ENDPOINTS.support.configReadiness}`,
+  );
+}
+
+export function getSupportDiagnostics(): Promise<SupportDiagnosticsResponse> {
+  return api.get(
+    `${API_PREFIX}${API_ENDPOINTS.support.configDiagnostics}`,
   );
 }
 
