@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import {
   useSupportOperationalActions,
   useSupportOperationalSettings,
+  useSupportPolicyDefinitions,
   useSupportSystemReadiness,
 } from "@/hooks/queries";
 import { isDeepEqual } from "../../lib/forms";
@@ -21,6 +22,7 @@ import { FeatureAssetRentalPolicyCard } from "../features/FeatureAssetRentalPoli
 import { FeatureMarketplaceAccountingPolicyCard } from "../features/FeatureMarketplaceAccountingPolicyCard";
 import { FeatureOperationalModulesCard } from "../features/FeatureOperationalModulesCard";
 import { FeatureOperationalPreferenceCard } from "../features/FeatureOperationalPreferenceCard";
+import { FeaturePolicyCatalogCard } from "../features/FeaturePolicyCatalogCard";
 import { FeatureSystemReadinessCard } from "../features/FeatureSystemReadinessCard";
 import { SettingsErrorBanner } from "../shared/SettingsErrorBanner";
 import { SettingsReadOnlyAlert } from "../shared/SettingsReadOnlyAlert";
@@ -69,6 +71,7 @@ export function BusinessOperationsSettingsPage() {
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
   const operationalQuery = useSupportOperationalSettings();
+  const policyDefinitionsQuery = useSupportPolicyDefinitions();
   const readinessQuery = useSupportSystemReadiness();
   const {
     savePreferences,
@@ -159,6 +162,12 @@ export function BusinessOperationsSettingsPage() {
         data={readinessQuery.data}
         isLoading={readinessQuery.isLoading}
         error={readinessQuery.error as Error | null}
+      />
+
+      <FeaturePolicyCatalogCard
+        data={policyDefinitionsQuery.data}
+        isLoading={policyDefinitionsQuery.isLoading}
+        error={policyDefinitionsQuery.error as Error | null}
       />
 
       <FeatureOperationalPreferenceCard

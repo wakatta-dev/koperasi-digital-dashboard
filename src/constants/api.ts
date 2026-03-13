@@ -55,6 +55,7 @@ export const API_ENDPOINTS = {
     configGlobal: "/support/config/global",
     configTenant: "/support/config/tenant",
     configReadiness: "/support/config/readiness",
+    configPolicies: "/support/config/policies",
     configProfile: "/support/config/profile",
     configProfileIdentity: "/support/config/profile/identity",
     configProfileContactDomain: "/support/config/profile/contact-domain",

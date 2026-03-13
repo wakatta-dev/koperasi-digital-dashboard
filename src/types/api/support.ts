@@ -186,6 +186,24 @@ export interface SupportSystemReadiness {
   critical_flows: SupportCriticalFlow[];
 }
 
+export interface SupportPolicyDefinitionItem {
+  policy_key: string;
+  policy_name: string;
+  description?: string;
+  policy_class: string;
+  allowed_scopes?: string[];
+  default_source: string;
+  value_type: string;
+  validation_rules?: Record<string, unknown>;
+  management_roles?: string[];
+  reviewer_roles?: string[];
+}
+
+export interface SupportPolicyDefinitions {
+  tenant_id: number;
+  items: SupportPolicyDefinitionItem[];
+}
+
 export interface SectionConcurrencyRequest {
   expected_updated_at?: Rfc3339String;
 }
@@ -388,6 +406,7 @@ export type SupportProfileSettingsResponse = ApiResponse<SupportProfileSettings>
 export type SupportProfileIdentityResponse = ApiResponse<SupportProfileIdentitySection>;
 export type SupportProfileContactDomainResponse = ApiResponse<SupportProfileContactDomainSection>;
 export type SupportOperationalSettingsResponse = ApiResponse<SupportOperationalSettings>;
+export type SupportPolicyDefinitionsResponse = ApiResponse<SupportPolicyDefinitions>;
 export type SupportSystemReadinessResponse = ApiResponse<SupportSystemReadiness>;
 export type SupportOperationalPreferencesResponse = ApiResponse<SupportOperationalPreferencesSection>;
 export type SupportOperationalModulesResponse = ApiResponse<SupportOperationalModulesSection>;

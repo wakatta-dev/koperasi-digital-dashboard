@@ -21,6 +21,7 @@ const mockUseRoleActions = vi.fn();
 const mockUseSupportOperationalSettings = vi.fn();
 const mockUseSupportOperationalActions = vi.fn();
 const mockUseSupportSystemReadiness = vi.fn();
+const mockUseSupportPolicyDefinitions = vi.fn();
 
 const replaceMock = vi.fn();
 const saveIdentityMutate = vi.fn();
@@ -54,6 +55,7 @@ vi.mock("@/hooks/queries", () => ({
   useSupportOperationalSettings: () => mockUseSupportOperationalSettings(),
   useSupportOperationalActions: () => mockUseSupportOperationalActions(),
   useSupportSystemReadiness: () => mockUseSupportSystemReadiness(),
+  useSupportPolicyDefinitions: () => mockUseSupportPolicyDefinitions(),
 }));
 
 describe("tenant-settings pages", () => {
@@ -78,6 +80,7 @@ describe("tenant-settings pages", () => {
     mockUseSupportOperationalSettings.mockReset();
     mockUseSupportOperationalActions.mockReset();
     mockUseSupportSystemReadiness.mockReset();
+    mockUseSupportPolicyDefinitions.mockReset();
 
     mockUseRouter.mockReturnValue({ replace: replaceMock });
     setNavigation("/bumdes/settings/profil-tenant");
@@ -303,6 +306,24 @@ describe("tenant-settings pages", () => {
       isLoading: false,
       error: null,
     });
+    mockUseSupportPolicyDefinitions.mockReturnValue({
+      data: {
+        tenant_id: 1,
+        items: [
+          {
+            policy_key: "manual_payment_window_hours",
+            policy_name: "Manual Payment Window",
+            policy_class: "bounded_override",
+            default_source: "tenant_type",
+            value_type: "integer",
+            allowed_scopes: ["platform", "tenant_type", "tenant", "module"],
+            validation_rules: { min: 1, max: 48 },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
   });
 
   it("renders profile page in read-only mode and shows local settings navigation", () => {
@@ -413,6 +434,8 @@ describe("tenant-settings pages", () => {
     expect(screen.getByText("Preferensi Tenant")).toBeTruthy();
     expect(screen.getByText("Aktivasi Modul")).toBeTruthy();
     expect(screen.getByText("Kebijakan Asset & Rental")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Katalog Policy Canonical" })).toBeTruthy();
+    expect(screen.getByText("Manual Payment Window")).toBeTruthy();
   });
 
   it("renders readiness success state when all dependencies are complete", () => {

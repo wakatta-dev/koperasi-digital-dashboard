@@ -24,6 +24,7 @@ import {
   getSupportGlobalConfig,
   getSupportOperationalExceptionContext,
   getSupportOperationalSettings,
+  getSupportPolicyDefinitions,
   getSupportProfileSettings,
   getSupportSystemReadiness,
   getSupportTenantConfig,
@@ -60,6 +61,13 @@ export function useSupportSystemReadiness() {
   return useQuery({
     queryKey: QK.settings.supportReadiness(),
     queryFn: async () => ensureSuccess(await getSupportSystemReadiness()),
+  });
+}
+
+export function useSupportPolicyDefinitions() {
+  return useQuery({
+    queryKey: [...QK.settings.supportOperationalSettings(), "policy-definitions"],
+    queryFn: async () => ensureSuccess(await getSupportPolicyDefinitions()),
   });
 }
 
