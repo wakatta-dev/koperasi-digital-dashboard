@@ -17,6 +17,7 @@ export * from "./vendor-support";
 export * from "./reservation";
 export * from "./asset";
 export * from "./inventory";
+export * from "./partner-management";
 export * from "./accounting-ar";
 export * from "./accounting-ap";
 export * from "./accounting-bank-cash";

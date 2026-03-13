@@ -145,6 +145,11 @@ export function ProductTable({
                           {product.marketplaceLabel}
                         </p>
                       ) : null}
+                      {product.sellerLabel ? (
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {product.sellerLabel}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 </TableCell>

@@ -135,6 +135,7 @@ export function ProductListPage() {
             : item.showInMarketplace
               ? "Tayang di marketplace"
               : "Draft internal",
+        sellerLabel: item.sellerId ? `Seller #${item.sellerId}` : "Tanpa seller",
         status: resolveStockStatus(
           item.stock,
           item.minStock,

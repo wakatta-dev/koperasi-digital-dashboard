@@ -22,6 +22,7 @@ import {
   useInventoryProduct,
   useInventoryVariants,
 } from "@/hooks/queries/inventory";
+import { usePartnerManagementSeller } from "@/hooks/queries/partner-management";
 import { formatCurrency } from "@/lib/format";
 import { EditProductModal } from "./edit-product-modal";
 import { VariantManagement } from "./variant-management";
@@ -46,6 +47,9 @@ export function InventoryDetailPage({ id }: Props) {
     () => (data ? mapInventoryProduct(data) : null),
     [data]
   );
+  const sellerQuery = usePartnerManagementSeller(item?.sellerId, {
+    enabled: Boolean(item?.sellerId),
+  });
   const eligibility = useMemo(
     () => (data ? computeEligibility(data) : { eligible: false, reasons: [] }),
     [data]
@@ -262,6 +266,16 @@ export function InventoryDetailPage({ id }: Props) {
                   </p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">Seller Owner</p>
+                  <p className="text-lg font-medium text-foreground">
+                    {sellerQuery.data
+                      ? `${sellerQuery.data.seller_name} (${sellerQuery.data.lifecycle_state})`
+                      : item.sellerId
+                        ? `Seller #${item.sellerId}`
+                        : "-"}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Harga Jual</p>
                   <p className="text-lg font-medium text-foreground">
                     {formatCurrency(item.price)}
@@ -315,6 +329,9 @@ export function InventoryDetailPage({ id }: Props) {
                   ) : (
                     <p className="text-xs text-emerald-600">Eligible</p>
                   )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Ownership seller: {item.sellerId ? `Seller #${item.sellerId}` : "belum ditautkan"}
+                  </p>
                   {activeVariantGroups.length > 0 ? (
                     <div className="mt-3 space-y-1">
                       <label className="text-xs font-medium text-muted-foreground">

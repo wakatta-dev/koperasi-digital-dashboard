@@ -264,6 +264,11 @@ export const QK = {
       ["inventory", "products", String(id), "variants"] as const,
     categories: () => ["inventory", "categories"] as const,
   },
+  partnerManagement: {
+    sellers: () => ["partner-management", "sellers"] as const,
+    sellerDetail: (sellerId: string | number) =>
+      ["partner-management", "seller-detail", String(sellerId)] as const,
+  },
 } as const;
 
 export type QueryKey = ReturnType<
@@ -366,4 +371,6 @@ export type QueryKey = ReturnType<
   | typeof QK.inventory.history
   | typeof QK.inventory.variants
   | typeof QK.inventory.categories
+  | typeof QK.partnerManagement.sellers
+  | typeof QK.partnerManagement.sellerDetail
 >;
