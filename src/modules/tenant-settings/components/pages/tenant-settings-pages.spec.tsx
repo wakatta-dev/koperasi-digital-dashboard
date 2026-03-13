@@ -21,6 +21,7 @@ const mockUseRoleActions = vi.fn();
 const mockUseSupportOperationalSettings = vi.fn();
 const mockUseSupportOperationalActions = vi.fn();
 const mockUseSupportSystemReadiness = vi.fn();
+const mockUseSupportDiagnostics = vi.fn();
 const mockUseSupportPolicyDefinitions = vi.fn();
 
 const replaceMock = vi.fn();
@@ -55,6 +56,7 @@ vi.mock("@/hooks/queries", () => ({
   useSupportOperationalSettings: () => mockUseSupportOperationalSettings(),
   useSupportOperationalActions: () => mockUseSupportOperationalActions(),
   useSupportSystemReadiness: () => mockUseSupportSystemReadiness(),
+  useSupportDiagnostics: () => mockUseSupportDiagnostics(),
   useSupportPolicyDefinitions: () => mockUseSupportPolicyDefinitions(),
 }));
 
@@ -80,6 +82,7 @@ describe("tenant-settings pages", () => {
     mockUseSupportOperationalSettings.mockReset();
     mockUseSupportOperationalActions.mockReset();
     mockUseSupportSystemReadiness.mockReset();
+    mockUseSupportDiagnostics.mockReset();
     mockUseSupportPolicyDefinitions.mockReset();
 
     mockUseRouter.mockReturnValue({ replace: replaceMock });
@@ -324,6 +327,47 @@ describe("tenant-settings pages", () => {
       isLoading: false,
       error: null,
     });
+    mockUseSupportDiagnostics.mockReturnValue({
+      data: {
+        tenant_id: 1,
+        status: "missing",
+        state: "blocked",
+        checked_at: "2026-03-06T00:00:00Z",
+        bootstrap_run: {
+          run_id: 91,
+          status: "succeeded",
+          trigger_type: "provision",
+          preset_key: "bumdes-default",
+        },
+        modules: [
+          {
+            module_key: "marketplace",
+            label: "Marketplace",
+            enabled: true,
+            status: "missing",
+            state: "blocked",
+            blocker_reasons: ["Lengkapi output baseline starter:marketplace_categories agar module siap operasional."],
+            missing_outputs: ["starter:marketplace_categories"],
+            effective_policies: [
+              {
+                policy_key: "manual_payment_window_hours",
+                policy_name: "Manual Payment Window",
+                effective_value: 24,
+                source_scope: "tenant",
+                source_label: "tenant config",
+                enforcement_state: "active",
+                resolution_chain: [
+                  { scope: "platform", label: "platform default", has_value: false, selected: false },
+                  { scope: "tenant", label: "tenant config", has_value: true, selected: true, enforcement_state: "active" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
   });
 
   it("renders profile page in read-only mode and shows local settings navigation", () => {
@@ -435,7 +479,9 @@ describe("tenant-settings pages", () => {
     expect(screen.getByText("Aktivasi Modul")).toBeTruthy();
     expect(screen.getByText("Kebijakan Asset & Rental")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Katalog Policy Canonical" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Readiness & Diagnostics" })).toBeTruthy();
     expect(screen.getByText("Manual Payment Window")).toBeTruthy();
+    expect(screen.getByText("Output baseline yang belum terbukti")).toBeTruthy();
   });
 
   it("renders readiness success state when all dependencies are complete", () => {
