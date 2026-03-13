@@ -87,6 +87,9 @@ const EXCEPTION_SEVERITY_BADGE: Record<string, string> = {
 const EXCEPTION_STATUS_BADGE: Record<string, string> = {
   none: "bg-slate-100 text-slate-700 border border-slate-200",
   active: "bg-amber-50 text-amber-700 border border-amber-200",
+  approved: "bg-indigo-50 text-indigo-700 border border-indigo-200",
+  rejected: "bg-slate-100 text-slate-700 border border-slate-200",
+  closed: "bg-slate-100 text-slate-700 border border-slate-200",
   resolved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   escalated: "bg-rose-50 text-rose-700 border border-rose-200",
 };
@@ -94,6 +97,9 @@ const EXCEPTION_STATUS_BADGE: Record<string, string> = {
 const EXCEPTION_STATUS_LABEL: Record<string, string> = {
   none: "Belum Ada Catatan",
   active: "Aktif",
+  approved: "Disetujui",
+  rejected: "Ditolak",
+  closed: "Ditutup",
   resolved: "Terselesaikan",
   escalated: "Tereskalasi",
 };
@@ -961,6 +967,19 @@ export function FeatureOperationalTraceWorkbench() {
                           {resolutionRecommendation}
                         </p>
                       </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Governance Source</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {exceptionContextQuery.data?.governance_source ??
+                            "standard_inheritance"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Reviewer</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {exceptionContextQuery.data?.reviewer_label ?? "-"}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -986,6 +1005,20 @@ export function FeatureOperationalTraceWorkbench() {
                       }
                       placeholder="Contoh: Konfirmasi bukti transfer"
                     />
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 md:col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Governance Roles
+                    </p>
+                    <p className="mt-2 text-sm text-slate-700">
+                      Owner: {(exceptionContextQuery.data?.owner_roles ?? []).join(", ") || "-"}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-700">
+                      Reviewer: {(exceptionContextQuery.data?.reviewer_roles ?? []).join(", ") || "-"}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-700">
+                      Support: {(exceptionContextQuery.data?.support_roles ?? []).join(", ") || "-"}
+                    </p>
                   </div>
                 </div>
 
@@ -1047,7 +1080,7 @@ export function FeatureOperationalTraceWorkbench() {
                         owner_label: exceptionOwner || undefined,
                         next_step: exceptionNextStep || undefined,
                         message: exceptionMessage,
-                        status: "resolved",
+                        status: "approved",
                       });
                     }}
                     disabled={
@@ -1056,7 +1089,7 @@ export function FeatureOperationalTraceWorkbench() {
                   >
                     {exceptionActions.applyDecision.isPending
                       ? "Memproses..."
-                      : "Tandai Selesai"}
+                      : "Setujui"}
                   </Button>
                   <Button
                     variant="secondary"
@@ -1085,6 +1118,62 @@ export function FeatureOperationalTraceWorkbench() {
                     {exceptionActions.applyDecision.isPending
                       ? "Memproses..."
                       : "Eskalasi"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (!selectedRow) {
+                        return;
+                      }
+                      exceptionActions.applyDecision.mutate({
+                        domain: selectedRow.domain,
+                        source_id: Number(selectedRow.sourceId),
+                        reference: selectedRow.reference,
+                        attention_scope:
+                          selectedRow.attentionScope ?? undefined,
+                        summary: selectedRow.attentionSummary ?? undefined,
+                        owner_label: exceptionOwner || undefined,
+                        next_step: exceptionNextStep || undefined,
+                        message: exceptionMessage,
+                        status: "rejected",
+                      });
+                    }}
+                    disabled={
+                      !selectedRow || exceptionActions.applyDecision.isPending
+                    }
+                  >
+                    {exceptionActions.applyDecision.isPending
+                      ? "Memproses..."
+                      : "Tolak"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (!selectedRow) {
+                        return;
+                      }
+                      exceptionActions.applyDecision.mutate({
+                        domain: selectedRow.domain,
+                        source_id: Number(selectedRow.sourceId),
+                        reference: selectedRow.reference,
+                        attention_scope:
+                          selectedRow.attentionScope ?? undefined,
+                        summary: selectedRow.attentionSummary ?? undefined,
+                        owner_label: exceptionOwner || undefined,
+                        next_step: exceptionNextStep || undefined,
+                        message: exceptionMessage,
+                        status: "closed",
+                      });
+                    }}
+                    disabled={
+                      !selectedRow || exceptionActions.applyDecision.isPending
+                    }
+                  >
+                    {exceptionActions.applyDecision.isPending
+                      ? "Memproses..."
+                      : "Tutup"}
                   </Button>
                   {exceptionContextQuery.data?.summary ? (
                     <p className="text-sm text-slate-600">

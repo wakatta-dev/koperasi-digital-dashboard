@@ -305,11 +305,17 @@ export function useSupportOperationalExceptionActions(
       ensureSuccess(await updateSupportOperationalExceptionDecision(payload)),
     onSuccess: (_, vars) => {
       invalidateContext();
-      toast.success(
-        vars.status === "resolved"
-          ? "Exception ditandai selesai."
-          : "Exception berhasil dieskalasi."
-      );
+      const statusMessage =
+        vars.status === "approved"
+          ? "Exception disetujui."
+          : vars.status === "rejected"
+            ? "Exception ditolak."
+            : vars.status === "closed"
+              ? "Exception ditutup."
+              : vars.status === "resolved"
+                ? "Exception ditandai selesai."
+                : "Exception berhasil dieskalasi.";
+      toast.success(statusMessage);
     },
     onError: (error: any) => {
       toast.error(error?.message || "Gagal memperbarui status exception.");

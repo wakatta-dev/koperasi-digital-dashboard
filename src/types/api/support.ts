@@ -214,6 +214,16 @@ export interface SupportReadinessModule {
   enabled: boolean;
   status: "ready" | "missing";
   state: "draft" | "active" | "blocked" | "ready";
+  exception_summary?: {
+    count: number;
+    active_count: number;
+    latest_status?: string;
+    governance_source?: string;
+    owner_label?: string;
+    reason?: string;
+    exception_code?: string;
+    updated_at?: Rfc3339String;
+  };
   blocker_reasons?: string[];
   corrective_actions?: string[];
   expected_outputs?: string[];
@@ -415,16 +425,31 @@ export interface SupportOperationalExceptionAuditEntry {
 }
 
 export interface SupportOperationalExceptionContext {
+  record_id?: number;
   domain: "marketplace" | "rental";
   source_id: number;
   reference?: string;
   attention_scope?: "operasional" | "pembayaran" | "accounting";
   summary?: string;
+  scope_label?: string;
+  governance_source?: string;
   exception_code?: string;
   severity?: "low" | "medium" | "high" | string;
   recommended_action?: string;
-  status: "none" | "active" | "resolved" | "escalated" | string;
+  status:
+    | "none"
+    | "active"
+    | "approved"
+    | "rejected"
+    | "closed"
+    | "resolved"
+    | "escalated"
+    | string;
   owner_label?: string;
+  reviewer_label?: string;
+  owner_roles?: string[];
+  reviewer_roles?: string[];
+  support_roles?: string[];
   next_step?: string;
   last_message?: string;
   updated_at?: Rfc3339String;
@@ -452,7 +477,7 @@ export interface UpdateSupportOperationalExceptionDecisionRequest {
   owner_label?: string;
   next_step?: string;
   message: string;
-  status: "resolved" | "escalated";
+  status: "approved" | "rejected" | "closed" | "resolved" | "escalated";
 }
 
 export type SupportGlobalConfigResponse = ApiResponse<SupportGlobalConfig>;

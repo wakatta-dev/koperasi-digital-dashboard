@@ -553,13 +553,13 @@ describe("FeatureOperationalTraceWorkbench", () => {
       },
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Tandai Selesai" }));
+    fireEvent.click(screen.getByRole("button", { name: "Setujui" }));
 
     expect(applyDecisionMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         domain: "marketplace",
         source_id: 11,
-        status: "resolved",
+        status: "approved",
         message: "Referensi jurnal sudah terbentuk dan sinkron.",
       }),
     );
