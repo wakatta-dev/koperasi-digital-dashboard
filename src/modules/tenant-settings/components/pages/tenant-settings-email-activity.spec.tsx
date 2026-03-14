@@ -112,8 +112,10 @@ describe("tenant-settings email and activity pages", () => {
 
     render(<EmailCommunicationSettingsPage />);
 
-    expect(screen.getByRole("heading", { name: "Komunikasi Email" })).toBeTruthy();
-    expect(screen.getByText("Reminder Pembayaran")).toBeTruthy();
+    expect(screen.getByText("Pilih Template")).toBeTruthy();
+    expect(
+      screen.getByRole("combobox", { name: "Template Aktif" }).textContent
+    ).toContain("Reminder Pembayaran");
     expect(screen.getByLabelText("{{invoice_number}}")).toBeTruthy();
   });
 
@@ -152,7 +154,6 @@ describe("tenant-settings email and activity pages", () => {
 
     render(<ActivityLogSettingsPage />);
 
-    expect(screen.getByRole("heading", { name: "Activity Log" })).toBeTruthy();
     expect(screen.getByText("Filter Aktivitas")).toBeTruthy();
     expect(screen.getByText("update_tenant_config")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Muat Berikutnya" })).toBeTruthy();

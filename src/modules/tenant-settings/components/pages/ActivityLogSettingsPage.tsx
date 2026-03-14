@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSupportActivityLogs } from "@/hooks/queries";
 import { FeatureActivityLogFilterCard } from "../features/FeatureActivityLogFilterCard";
@@ -17,12 +17,48 @@ export function ActivityLogSettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const pendingFiltersRef = useRef<{
+    cursor?: string;
+    module: string;
+    action: string;
+    actorId: string;
+    fromDate: string;
+    toDate: string;
+  } | null>(null);
+
   const [cursor, setCursor] = useState<string | undefined>(searchParams.get("cursor") ?? undefined);
   const [module, setModule] = useState(searchParams.get("module") ?? "all");
   const [action, setAction] = useState(searchParams.get("action") ?? "all");
   const [actorId, setActorId] = useState(searchParams.get("actorId") ?? "");
   const [fromDate, setFromDate] = useState(searchParams.get("fromDate") ?? "");
   const [toDate, setToDate] = useState(searchParams.get("toDate") ?? "");
+
+  const syncFiltersQuery = useCallback(
+    (nextState: {
+      cursor?: string;
+      module: string;
+      action: string;
+      actorId: string;
+      fromDate: string;
+      toDate: string;
+    }) => {
+      const nextQuery = buildQueryString(searchParams, {
+        cursor: nextState.cursor ?? null,
+        module: nextState.module !== "all" ? nextState.module : null,
+        action: nextState.action !== "all" ? nextState.action : null,
+        actorId: nextState.actorId || null,
+        fromDate: nextState.fromDate || null,
+        toDate: nextState.toDate || null,
+      });
+
+      if (nextQuery === searchParams.toString()) {
+        return;
+      }
+
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   useEffect(() => {
     const nextCursor = searchParams.get("cursor") ?? undefined;
@@ -31,6 +67,22 @@ export function ActivityLogSettingsPage() {
     const nextActorId = searchParams.get("actorId") ?? "";
     const nextFromDate = searchParams.get("fromDate") ?? "";
     const nextToDate = searchParams.get("toDate") ?? "";
+
+    if (pendingFiltersRef.current) {
+      const pending = pendingFiltersRef.current;
+      const synced =
+        pending.cursor === nextCursor &&
+        pending.module === nextModule &&
+        pending.action === nextAction &&
+        pending.actorId === nextActorId &&
+        pending.fromDate === nextFromDate &&
+        pending.toDate === nextToDate;
+      if (synced) {
+        pendingFiltersRef.current = null;
+      } else {
+        return;
+      }
+    }
 
     if (cursor !== nextCursor) setCursor(nextCursor);
     if (module !== nextModule) setModule(nextModule);
@@ -58,22 +110,37 @@ export function ActivityLogSettingsPage() {
   const nextCursor = logsQuery.data?.meta?.pagination?.next_cursor;
   const activeFilterCount = [module !== "all", action !== "all", Boolean(actorId), Boolean(fromDate), Boolean(toDate)].filter(Boolean).length;
 
-  useEffect(() => {
-    const nextQuery = buildQueryString(searchParams, {
-      cursor,
-      module: module !== "all" ? module : null,
-      action: action !== "all" ? action : null,
-      actorId: actorId || null,
-      fromDate: fromDate || null,
-      toDate: toDate || null,
-    });
-
-    if (nextQuery === searchParams.toString()) {
-      return;
-    }
-
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [action, actorId, cursor, fromDate, module, pathname, router, searchParams, toDate]);
+  const updateFilters = useCallback(
+    (
+      updates: Partial<{
+        cursor?: string;
+        module: string;
+        action: string;
+        actorId: string;
+        fromDate: string;
+        toDate: string;
+      }>
+    ) => {
+      const nextState = {
+        cursor,
+        module,
+        action,
+        actorId,
+        fromDate,
+        toDate,
+        ...updates,
+      };
+      pendingFiltersRef.current = nextState;
+      setCursor(nextState.cursor);
+      setModule(nextState.module);
+      setAction(nextState.action);
+      setActorId(nextState.actorId);
+      setFromDate(nextState.fromDate);
+      setToDate(nextState.toDate);
+      syncFiltersQuery(nextState);
+    },
+    [action, actorId, cursor, fromDate, module, syncFiltersQuery, toDate]
+  );
 
   return (
     <TenantSettingsShell
@@ -108,32 +175,29 @@ export function ActivityLogSettingsPage() {
         toDate={toDate || rfc3339ToDateInput(params.to)}
         disabled={logsQuery.isFetching}
         onModuleChange={(value) => {
-          setCursor(undefined);
-          setModule(value);
+          updateFilters({ cursor: undefined, module: value });
         }}
         onActionChange={(value) => {
-          setCursor(undefined);
-          setAction(value);
+          updateFilters({ cursor: undefined, action: value });
         }}
         onActorIdChange={(value) => {
-          setCursor(undefined);
-          setActorId(value);
+          updateFilters({ cursor: undefined, actorId: value });
         }}
         onFromDateChange={(value) => {
-          setCursor(undefined);
-          setFromDate(value);
+          updateFilters({ cursor: undefined, fromDate: value });
         }}
         onToDateChange={(value) => {
-          setCursor(undefined);
-          setToDate(value);
+          updateFilters({ cursor: undefined, toDate: value });
         }}
         onReset={() => {
-          setCursor(undefined);
-          setModule("all");
-          setAction("all");
-          setActorId("");
-          setFromDate("");
-          setToDate("");
+          updateFilters({
+            cursor: undefined,
+            module: "all",
+            action: "all",
+            actorId: "",
+            fromDate: "",
+            toDate: "",
+          });
         }}
       />
 
@@ -145,7 +209,7 @@ export function ActivityLogSettingsPage() {
         rows={rows}
         loading={logsQuery.isFetching}
         nextCursor={nextCursor}
-        onLoadMore={() => setCursor(String(nextCursor))}
+        onLoadMore={() => updateFilters({ cursor: String(nextCursor) })}
       />
     </TenantSettingsShell>
   );
