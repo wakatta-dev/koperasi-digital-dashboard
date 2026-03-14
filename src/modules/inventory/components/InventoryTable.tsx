@@ -4,10 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Archive, ArchiveRestore, MoreVertical } from "lucide-react";
 import type { ReactNode } from "react";
-import {
-  GenericTable,
-  type GenericTableColumn,
-} from "@/components/shared/data-display/GenericTable";
+import type { ColumnDef } from "@tanstack/react-table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -33,17 +31,17 @@ const buildColumns = ({
 }: Pick<
   InventoryTableProps,
   "onEdit" | "onToggleMarketplace" | "onArchive" | "onUnarchive"
->): GenericTableColumn<InventoryItem>[] => [
+>): ColumnDef<InventoryItem, unknown>[] => [
   {
     id: "product",
     header: "Produk",
-    render: (row) => (
+    cell: ({ row }) => (
       <div className="flex items-center">
         <div className="h-10 w-10 flex-shrink-0">
-          {row.image ? (
+          {row.original.image ? (
             <Image
-              src={row.image}
-              alt={row.name}
+              src={row.original.image}
+              alt={row.original.name}
               width={40}
               height={40}
               className="h-10 w-10 rounded object-cover bg-muted"
@@ -56,12 +54,14 @@ const buildColumns = ({
         </div>
         <div className="ml-4">
           <Link
-            href={`/bumdes/marketplace/inventory/${row.id}`}
+            href={`/bumdes/marketplace/inventory/${row.original.id}`}
             className="text-sm font-medium text-foreground transition-colors hover:underline"
           >
-            {row.name}
+            {row.original.name}
           </Link>
-          <p className="text-xs text-muted-foreground">SKU: {row.sku}</p>
+          <p className="text-xs text-muted-foreground">
+            SKU: {row.original.sku}
+          </p>
         </div>
       </div>
     ),
@@ -69,47 +69,60 @@ const buildColumns = ({
   {
     id: "status",
     header: "Status",
-    cellClassName: "text-sm text-muted-foreground",
-    render: (row) => (
-      <Badge variant={row.status === "ACTIVE" ? "default" : "outline"}>
-        {row.status}
+    meta: {
+      cellClassName: "text-sm text-muted-foreground",
+    },
+    cell: ({ row }) => (
+      <Badge variant={row.original.status === "ACTIVE" ? "default" : "outline"}>
+        {row.original.status}
       </Badge>
     ),
   },
   {
     id: "stock",
     header: "Stok",
-    cellClassName: "text-sm text-muted-foreground",
-    render: (row) => (row.trackStock ? row.stock : "Tidak dilacak"),
+    meta: {
+      cellClassName: "text-sm text-muted-foreground",
+    },
+    cell: ({ row }) =>
+      row.original.trackStock ? row.original.stock : "Tidak dilacak",
   },
   {
     id: "price",
     header: "Harga Jual",
-    cellClassName: "text-sm text-foreground",
-    render: (row) =>
-      row.product?.has_variants ? "Harga berbasis varian" : formatCurrency(row.price),
+    meta: {
+      cellClassName: "text-sm text-foreground",
+    },
+    cell: ({ row }) =>
+      row.original.product?.has_variants
+        ? "Harga berbasis varian"
+        : formatCurrency(row.original.price),
   },
   {
     id: "marketplace",
     header: "Marketplace",
-    cellClassName: "text-sm text-muted-foreground",
-    render: (row) => (
+    meta: {
+      cellClassName: "text-sm text-muted-foreground",
+    },
+    cell: ({ row }) => (
       <div className="flex items-start gap-3">
         <Switch
-          checked={row.showInMarketplace}
-          onCheckedChange={(val) => onToggleMarketplace(row, val)}
-          disabled={row.status !== "ACTIVE"}
+          checked={row.original.showInMarketplace}
+          onCheckedChange={(val) => onToggleMarketplace(row.original, val)}
+          disabled={row.original.status !== "ACTIVE"}
           aria-label="Toggle marketplace visibility"
         />
         <div className="space-y-1">
           <p className="text-xs font-medium text-foreground">
-            {row.showInMarketplace ? "Tampil di marketplace" : "Disembunyikan"}
+            {row.original.showInMarketplace
+              ? "Tampil di marketplace"
+              : "Disembunyikan"}
           </p>
-          {row.marketplaceEligible ? (
+          {row.original.marketplaceEligible ? (
             <p className="text-xs text-emerald-600">Eligible</p>
           ) : (
             <p className="text-xs text-amber-600">
-              Tidak memenuhi: {row.ineligibleReasons.join(", ")}
+              Tidak memenuhi: {row.original.ineligibleReasons.join(", ")}
             </p>
           )}
         </div>
@@ -119,9 +132,11 @@ const buildColumns = ({
   {
     id: "actions",
     header: "",
-    align: "right",
-    width: 120,
-    render: (row) => (
+    meta: {
+      align: "right",
+      width: 120,
+    },
+    cell: ({ row }) => (
       <>
         <Button
           type="button"
@@ -131,12 +146,12 @@ const buildColumns = ({
           className="text-muted-foreground hover:text-foreground"
           onClick={(e) => {
             e.stopPropagation();
-            onEdit(row);
+            onEdit(row.original);
           }}
         >
           <MoreVertical className="h-5 w-5" />
         </Button>
-        {row.status !== "ARCHIVED" ? (
+        {row.original.status !== "ARCHIVED" ? (
           <Button
             type="button"
             variant="ghost"
@@ -145,7 +160,7 @@ const buildColumns = ({
             className="text-destructive hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation();
-              onArchive(row);
+              onArchive(row.original);
             }}
           >
             <Archive className="h-5 w-5" />
@@ -159,7 +174,7 @@ const buildColumns = ({
             className="text-emerald-600 hover:text-emerald-600"
             onClick={(e) => {
               e.stopPropagation();
-              onUnarchive(row);
+              onUnarchive(row.original);
             }}
           >
             <ArchiveRestore className="h-5 w-5" />
@@ -188,13 +203,13 @@ export function InventoryTable({
   });
 
   return (
-    <GenericTable
+    <TableShell
       columns={columns}
-      rows={items}
+      data={items}
       loading={loading}
       loadingState="Memuat data inventaris..."
       emptyState="Belum ada produk."
-      getRowKey={(row) => `${row.id}-${row.sku}`}
+      getRowId={(row) => `${row.id}-${row.sku}`}
       onRowClick={onRowClick}
       footer={footer}
     />

@@ -3,6 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,15 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useAdminTenantAccountActions, useAdminTenantAccounts, useRoles } from "@/hooks/queries";
+  useAdminTenantAccountActions,
+  useAdminTenantAccounts,
+  useRoles,
+} from "@/hooks/queries";
 import { userLifecycleStatusLabel } from "../../utils/format";
 
 const FALLBACK_ROLE_OPTIONS = ["CLIENT_ADMIN", "FINANCE", "STAFF", "VIEWER"];
@@ -46,7 +44,7 @@ export function VendorClientAccountsPage({
   const rows = accountsQuery.data?.data?.items ?? [];
   const availableInviteRoles = useMemo(() => {
     const mapped = (rolesQuery.data ?? []).filter((role) =>
-      FALLBACK_ROLE_OPTIONS.includes(role.name.toUpperCase())
+      FALLBACK_ROLE_OPTIONS.includes(role.name.toUpperCase()),
     );
     return mapped;
   }, [rolesQuery.data]);
@@ -65,6 +63,134 @@ export function VendorClientAccountsPage({
   });
   const [roleDrafts, setRoleDrafts] = useState<Record<number, string>>({});
   const [statusReason, setStatusReason] = useState<Record<number, string>>({});
+  const columns: ColumnDef<(typeof rows)[number], unknown>[] = [
+    {
+      id: "user",
+      header: "User",
+      cell: ({ row }) => (
+        <div className="space-y-1">
+          <div className="font-medium">{row.original.full_name}</div>
+          <div className="text-xs text-muted-foreground">
+            {row.original.email}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "role",
+      header: "Role",
+      cell: ({ row }) => {
+        const currentRole = row.original.role?.toUpperCase();
+        const nextRole = roleDrafts[row.original.id] ?? currentRole;
+        return (
+          <div className="space-y-2">
+            <Select
+              value={nextRole}
+              onValueChange={(value) =>
+                setRoleDrafts((current) => ({
+                  ...current,
+                  [row.original.id]: value,
+                }))
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Pilih role" />
+              </SelectTrigger>
+              <SelectContent>
+                {FALLBACK_ROLE_OPTIONS.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant="outline">
+          {userLifecycleStatusLabel(row.original.status)}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Aksi",
+      meta: {
+        align: "right",
+        headerClassName: "text-right",
+      },
+      cell: ({ row }) => {
+        const currentRole = row.original.role?.toUpperCase();
+        const nextRole = roleDrafts[row.original.id] ?? currentRole;
+        const currentStatus = row.original.status?.toUpperCase();
+        const nextStatus =
+          currentStatus === "ACTIVE" ? "DEACTIVATED" : "ACTIVE";
+        return (
+          <div className="space-y-2 text-right">
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={actions.updateRole.isPending || !nextRole}
+                onClick={() =>
+                  actions.updateRole.mutate({
+                    userId: row.original.id,
+                    payload: {
+                      role: nextRole,
+                      reason: "Updated from vendor console",
+                    },
+                  })
+                }
+              >
+                Simpan Role
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={actions.resetPassword.isPending}
+                onClick={() => actions.resetPassword.mutate(row.original.id)}
+              >
+                Reset Password
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={actions.updateStatus.isPending}
+                onClick={() =>
+                  actions.updateStatus.mutate({
+                    userId: row.original.id,
+                    payload: {
+                      status: nextStatus,
+                      reason:
+                        statusReason[row.original.id] ||
+                        "Updated from vendor client account console",
+                    },
+                  })
+                }
+              >
+                {currentStatus === "ACTIVE" ? "Nonaktifkan" : "Aktifkan"}
+              </Button>
+            </div>
+            <Input
+              value={statusReason[row.original.id] ?? ""}
+              placeholder="Reason untuk status change"
+              onChange={(event) =>
+                setStatusReason((current) => ({
+                  ...current,
+                  [row.original.id]: event.target.value,
+                }))
+              }
+            />
+          </div>
+        );
+      },
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -157,7 +283,7 @@ export function VendorClientAccountsPage({
                         otp: "",
                       });
                     },
-                  }
+                  },
                 )
               }
             >
@@ -235,7 +361,9 @@ export function VendorClientAccountsPage({
             </div>
             <Button
               className="w-full"
-              disabled={actions.changeEmail.isPending || !emailChangeForm.userId}
+              disabled={
+                actions.changeEmail.isPending || !emailChangeForm.userId
+              }
               onClick={() =>
                 actions.changeEmail.mutate(
                   {
@@ -255,7 +383,7 @@ export function VendorClientAccountsPage({
                         otp: "",
                       });
                     },
-                  }
+                  },
                 )
               }
             >
@@ -282,123 +410,12 @@ export function VendorClientAccountsPage({
             </div>
           ) : null}
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row) => {
-                const currentRole = row.role?.toUpperCase();
-                const nextRole = roleDrafts[row.id] ?? currentRole;
-                const currentStatus = row.status?.toUpperCase();
-                const nextStatus =
-                  currentStatus === "ACTIVE" ? "DEACTIVATED" : "ACTIVE";
-                return (
-                  <TableRow key={row.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{row.full_name}</div>
-                        <div className="text-xs text-muted-foreground">{row.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="space-y-2">
-                      <Select
-                        value={nextRole}
-                        onValueChange={(value) =>
-                          setRoleDrafts((current) => ({
-                            ...current,
-                            [row.id]: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Pilih role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {FALLBACK_ROLE_OPTIONS.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {role}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{userLifecycleStatusLabel(row.status)}</Badge>
-                    </TableCell>
-                    <TableCell className="space-y-2 text-right">
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={actions.updateRole.isPending || !nextRole}
-                          onClick={() =>
-                            actions.updateRole.mutate({
-                              userId: row.id,
-                              payload: {
-                                role: nextRole,
-                                reason: "Updated from vendor console",
-                              },
-                            })
-                          }
-                        >
-                          Simpan Role
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={actions.resetPassword.isPending}
-                          onClick={() => actions.resetPassword.mutate(row.id)}
-                        >
-                          Reset Password
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={actions.updateStatus.isPending}
-                          onClick={() =>
-                            actions.updateStatus.mutate({
-                              userId: row.id,
-                              payload: {
-                                status: nextStatus,
-                                reason:
-                                  statusReason[row.id] ||
-                                  "Updated from vendor client account console",
-                              },
-                            })
-                          }
-                        >
-                          {currentStatus === "ACTIVE" ? "Nonaktifkan" : "Aktifkan"}
-                        </Button>
-                      </div>
-                      <Input
-                        value={statusReason[row.id] ?? ""}
-                        placeholder="Reason untuk status change"
-                        onChange={(event) =>
-                          setStatusReason((current) => ({
-                            ...current,
-                            [row.id]: event.target.value,
-                          }))
-                        }
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {!rows.length ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
-                    Tidak ada akun tenant.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
+          <TableShell
+            columns={columns}
+            data={rows}
+            getRowId={(row) => String(row.id)}
+            emptyState="Tidak ada akun tenant."
+          />
         </CardContent>
       </Card>
     </div>

@@ -11,14 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { InputField } from "@/components/shared/inputs/input-field";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import {
   useInventoryProduct,
   useInventoryVariantActions,
@@ -434,7 +427,11 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
   const serverVariantMaps = useMemo(() => {
     const activeAttributes = getActiveAttributes(attributes);
     if (!variantsData || activeAttributes.length === 0) return null;
-    return buildServerVariantMaps(variantsData.options ?? [], activeAttributes, basePrice);
+    return buildServerVariantMaps(
+      variantsData.options ?? [],
+      activeAttributes,
+      basePrice,
+    );
   }, [variantsData, attributes, basePrice]);
 
   const initialOptionIds = useMemo(
@@ -998,7 +995,9 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       savedOptions.forEach((option) => currentOptionIds.add(option.id));
       variants.forEach((variant) => {
         if (variant.optionId) currentOptionIds.add(variant.optionId);
-        const existing = existingOptionBySku.get(variant.sku.trim().toUpperCase());
+        const existing = existingOptionBySku.get(
+          variant.sku.trim().toUpperCase(),
+        );
         if (existing?.id) currentOptionIds.add(existing.id);
       });
       const removedOptionIds = initialOptionIds.filter(
@@ -1234,173 +1233,211 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <Table className="w-full text-left">
-              <TableHeader className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-                <TableRow>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-20 text-center">
-                    Gambar
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Nama Varian
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-48">
-                    SKU
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-48">
-                    Harga Jual
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-28">
-                    Stok
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-16 text-right"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {variants.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400"
-                    >
-                      Belum ada varian. Tambahkan nilai atribut untuk membuat
-                      kombinasi.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  variants.map((variant) => {
-                    const errors = validation.variantErrors.get(
-                      variant.signature,
-                    );
-                    return (
-                      <TableRow
-                        key={variant.signature}
-                        className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+            <TableShell
+              tableClassName="w-full text-left"
+              columns={[
+                {
+                  id: "image",
+                  header: <>Gambar</>,
+                  cell: ({ row }) => (
+                    <div className="relative h-12 w-12">
+                      <label
+                        htmlFor={`variant-image-${row.original.signature}`}
+                        className="flex h-12 w-12 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-indigo-600"
                       >
-                        <TableCell className="px-6 py-4">
-                          <div className="relative w-12 h-12">
-                            <label
-                              htmlFor={`variant-image-${variant.signature}`}
-                              className="w-12 h-12 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 cursor-pointer hover:border-indigo-600 dark:hover:border-indigo-600 transition-colors overflow-hidden"
-                            >
-                              {variant.image ? (
-                                <img
-                                  src={variant.image}
-                                  alt={variant.displayName}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <ImageIcon className="h-5 w-5 text-gray-400" />
-                              )}
-                            </label>
-                            <input
-                              id={`variant-image-${variant.signature}`}
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
-                              onChange={(event) => {
-                                const file = event.target.files?.[0] ?? null;
-                                handleUploadVariantImage(variant, file);
-                                event.currentTarget.value = "";
-                              }}
-                            />
-                            {variant.image ? (
-                              <Button
-                                type="button"
-                                size="icon"
-                                variant="ghost"
-                                onClick={() =>
-                                  handleDeleteVariantImage(variant)
-                                }
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-white text-red-500 shadow-sm hover:bg-red-50"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                              {variant.displayName}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {getVariantDescription(variant)}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-6 py-4">
-                          <Input
-                            value={variant.sku}
-                            onChange={(event) =>
-                              updateVariant(variant.signature, {
-                                sku: event.target.value,
-                              })
-                            }
-                            className={`w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5 ${
-                              errors?.sku
-                                ? "border-red-500 focus-visible:ring-red-500"
-                                : ""
-                            }`}
+                        {row.original.image ? (
+                          <img
+                            src={row.original.image}
+                            alt={row.original.displayName}
+                            className="h-full w-full object-cover"
                           />
-                          {errors?.sku ? (
-                            <p className="text-xs text-red-500 mt-1">
-                              {errors.sku}
-                            </p>
-                          ) : null}
-                        </TableCell>
-                        <TableCell className="px-6 py-4">
-                          <InputField
-                            ariaLabel={`Harga varian ${variant.displayName}`}
-                            className="w-full"
-                            startIcon={<span className="text-sm">Rp</span>}
-                            type="number"
-                            value={variant.price}
-                            onValueChange={(value) =>
-                              updateVariant(variant.signature, {
-                                price: Number(value) || 0,
-                              })
-                            }
-                            errorText={errors?.price}
-                          />
-                        </TableCell>
-                        <TableCell className="px-6 py-4">
-                          <Input
-                            type="number"
-                            value={variant.stock}
-                            onChange={(event) =>
-                              updateVariant(variant.signature, {
-                                stock: Number(event.target.value) || 0,
-                              })
-                            }
-                            className={`w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600 py-1.5 ${
-                              errors?.stock
-                                ? "border-red-500 focus-visible:ring-red-500"
-                                : ""
-                            }`}
-                          />
-                          {errors?.stock ? (
-                            <p className="text-xs text-red-500 mt-1">
-                              {errors.stock}
-                            </p>
-                          ) : null}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-right">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => requestRemoveVariant(variant)}
-                            className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                        ) : (
+                          <ImageIcon className="h-5 w-5 text-gray-400" />
+                        )}
+                      </label>
+                      <input
+                        id={`variant-image-${row.original.signature}`}
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0] ?? null;
+                          handleUploadVariantImage(row.original, file);
+                          event.currentTarget.value = "";
+                        }}
+                      />
+                      {row.original.image ? (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDeleteVariantImage(row.original)}
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-white text-red-500 shadow-sm hover:bg-red-50"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      ) : null}
+                    </div>
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-20 text-center",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "displayName",
+                  header: <>Nama Varian</>,
+                  cell: ({ row }) => (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {row.original.displayName}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {getVariantDescription(row.original)}
+                      </span>
+                    </div>
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "sku",
+                  header: <>SKU</>,
+                  cell: ({ row }) => {
+                    const errors = validation.variantErrors.get(
+                      row.original.signature,
                     );
-                  })
-                )}
-              </TableBody>
-            </Table>
+
+                    return (
+                      <>
+                        <Input
+                          value={row.original.sku}
+                          onChange={(event) =>
+                            updateVariant(row.original.signature, {
+                              sku: event.target.value,
+                            })
+                          }
+                          className={`w-full rounded-md border-gray-300 py-1.5 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:text-white ${
+                            errors?.sku
+                              ? "border-red-500 focus-visible:ring-red-500"
+                              : ""
+                          }`}
+                        />
+                        {errors?.sku ? (
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.sku}
+                          </p>
+                        ) : null}
+                      </>
+                    );
+                  },
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-48",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "price",
+                  header: <>Harga Jual</>,
+                  cell: ({ row }) => {
+                    const errors = validation.variantErrors.get(
+                      row.original.signature,
+                    );
+
+                    return (
+                      <InputField
+                        ariaLabel={`Harga varian ${row.original.displayName}`}
+                        className="w-full"
+                        startIcon={<span className="text-sm">Rp</span>}
+                        type="number"
+                        value={row.original.price}
+                        onValueChange={(value) =>
+                          updateVariant(row.original.signature, {
+                            price: Number(value) || 0,
+                          })
+                        }
+                        errorText={errors?.price}
+                      />
+                    );
+                  },
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-48",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "stock",
+                  header: <>Stok</>,
+                  cell: ({ row }) => {
+                    const errors = validation.variantErrors.get(
+                      row.original.signature,
+                    );
+
+                    return (
+                      <>
+                        <Input
+                          type="number"
+                          value={row.original.stock}
+                          onChange={(event) =>
+                            updateVariant(row.original.signature, {
+                              stock: Number(event.target.value) || 0,
+                            })
+                          }
+                          className={`w-full rounded-md border-gray-300 py-1.5 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:text-white ${
+                            errors?.stock
+                              ? "border-red-500 focus-visible:ring-red-500"
+                              : ""
+                          }`}
+                        />
+                        {errors?.stock ? (
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.stock}
+                          </p>
+                        ) : null}
+                      </>
+                    );
+                  },
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-28",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "actions",
+                  header: "",
+                  cell: ({ row }) => (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => requestRemoveVariant(row.original)}
+                      className="rounded p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-16 text-right",
+                    cellClassName: "px-6 py-4 text-right",
+                  },
+                },
+              ]}
+              data={variants}
+              getRowId={(row) => row.signature}
+              headerClassName="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700"
+              bodyClassName="divide-y divide-gray-100 dark:divide-gray-700"
+              emptyState="Belum ada varian. Tambahkan nilai atribut untuk membuat kombinasi."
+              rowHoverable={false}
+              rowClassName="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            />
           </div>
           <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">

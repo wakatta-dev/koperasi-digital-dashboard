@@ -2,21 +2,57 @@
 
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useAdminTenantDetail } from "@/hooks/queries";
 import { formatVendorDateTime } from "../../utils/format";
 
 type VendorClientActivityPageProps = {
   tenantId: string;
 };
+
+type TenantAuditLogRow = {
+  id: string | number;
+  timestamp: string | number;
+  actor?: string | null;
+  changed_by?: string | number | null;
+  action?: string | null;
+  old_status?: string | null;
+  new_status?: string | null;
+  reason?: string | null;
+};
+
+const columns: ColumnDef<TenantAuditLogRow, unknown>[] = [
+  {
+    id: "time",
+    header: "Waktu",
+    cell: ({ row }) => formatVendorDateTime(row.original.timestamp),
+  },
+  {
+    id: "actor",
+    header: "Actor",
+    cell: ({ row }) => row.original.actor || `User #${row.original.changed_by}`,
+  },
+  {
+    id: "action",
+    header: "Action",
+    cell: ({ row }) => row.original.action || "-",
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) =>
+      [row.original.old_status, row.original.new_status]
+        .filter(Boolean)
+        .join(" → ") || "-",
+  },
+  {
+    id: "reason",
+    header: "Reason",
+    cell: ({ row }) => row.original.reason || "-",
+  },
+];
 
 export function VendorClientActivityPage({
   tenantId,
@@ -37,37 +73,13 @@ export function VendorClientActivityPage({
           </div>
         ) : null}
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Waktu</TableHead>
-              <TableHead>Actor</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Reason</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {logs.map((log) => (
-              <TableRow key={log.id}>
-                <TableCell>{formatVendorDateTime(log.timestamp)}</TableCell>
-                <TableCell>{log.actor || `User #${log.changed_by}`}</TableCell>
-                <TableCell>{log.action || "-"}</TableCell>
-                <TableCell>
-                  {[log.old_status, log.new_status].filter(Boolean).join(" → ") || "-"}
-                </TableCell>
-                <TableCell>{log.reason || "-"}</TableCell>
-              </TableRow>
-            ))}
-            {!logs.length ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                  Belum ada audit trail tenant.
-                </TableCell>
-              </TableRow>
-            ) : null}
-          </TableBody>
-        </Table>
+        <TableShell
+          columns={columns}
+          data={logs}
+          getRowId={(row) => String(row.id)}
+          emptyState="Belum ada audit trail tenant."
+          surface="bare"
+        />
       </CardContent>
     </Card>
   );

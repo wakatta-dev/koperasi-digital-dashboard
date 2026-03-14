@@ -8,14 +8,7 @@ import { Edit3, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { QK } from "@/hooks/queries/queryKeys";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import {
@@ -60,7 +53,7 @@ function normalizeItems(items: AssetMasterDataItem[]) {
   return items
     .slice()
     .sort(
-      (a, b) => a.sort_order - b.sort_order || a.value.localeCompare(b.value)
+      (a, b) => a.sort_order - b.sort_order || a.value.localeCompare(b.value),
     );
 }
 
@@ -68,7 +61,9 @@ export function AssetMasterDataPage() {
   const queryClient = useQueryClient();
   const masterDataQuery = useAssetMasterData();
 
-  const [newValues, setNewValues] = useState<Record<AssetMasterDataKind, string>>({
+  const [newValues, setNewValues] = useState<
+    Record<AssetMasterDataKind, string>
+  >({
     CATEGORY: "",
     LOCATION: "",
     STATUS: "",
@@ -109,7 +104,10 @@ export function AssetMasterDataPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (args: { id: number; payload: Partial<AssetMasterDataRequest> }) => {
+    mutationFn: async (args: {
+      id: number;
+      payload: Partial<AssetMasterDataRequest>;
+    }) => {
       const response = await updateAssetMasterData(args.id, {
         ...args.payload,
       });
@@ -137,7 +135,9 @@ export function AssetMasterDataPage() {
   });
 
   const isBusy =
-    createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
 
   const handleCreate = async (kind: AssetMasterDataKind) => {
     const value = (newValues[kind] ?? "").trim();
@@ -151,7 +151,8 @@ export function AssetMasterDataPage() {
       setNewValues((prev) => ({ ...prev, [kind]: "" }));
       showToastSuccess("Berhasil", "Master data berhasil ditambahkan.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menambah master data";
+      const message =
+        error instanceof Error ? error.message : "Gagal menambah master data";
       showToastError("Gagal menyimpan", message);
     }
   };
@@ -171,7 +172,10 @@ export function AssetMasterDataPage() {
       setEditValue("");
       showToastSuccess("Berhasil", "Master data berhasil diperbarui.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal memperbarui master data";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui master data";
       showToastError("Gagal memperbarui", message);
     }
   };
@@ -181,7 +185,8 @@ export function AssetMasterDataPage() {
       await deleteMutation.mutateAsync(item.id);
       showToastSuccess("Berhasil", "Master data berhasil dihapus.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menghapus master data";
+      const message =
+        error instanceof Error ? error.message : "Gagal menghapus master data";
       showToastError("Gagal menghapus", message);
     }
   };
@@ -197,11 +202,15 @@ export function AssetMasterDataPage() {
       });
       showToastSuccess(
         "Berhasil",
-        item.is_active ? "Master data dinonaktifkan." : "Master data diaktifkan."
+        item.is_active
+          ? "Master data dinonaktifkan."
+          : "Master data diaktifkan.",
       );
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Gagal memperbarui status master data";
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui status master data";
       showToastError("Gagal memperbarui", message);
     }
   };
@@ -234,8 +243,12 @@ export function AssetMasterDataPage() {
                   className="space-y-3 rounded-xl border border-slate-200 bg-white p-4"
                 >
                   <div>
-                    <h4 className="text-base font-semibold text-slate-900">{section.title}</h4>
-                    <p className="text-sm text-slate-500">{section.description}</p>
+                    <h4 className="text-base font-semibold text-slate-900">
+                      {section.title}
+                    </h4>
+                    <p className="text-sm text-slate-500">
+                      {section.description}
+                    </p>
                   </div>
 
                   <div className="flex gap-2">
@@ -261,121 +274,139 @@ export function AssetMasterDataPage() {
                   </div>
 
                   <div className="overflow-hidden rounded-lg border border-slate-200">
-                    <Table>
-                      <TableHeader className="bg-slate-50">
-                        <TableRow>
-                          <TableHead className="px-4">Nilai</TableHead>
-                          <TableHead className="px-4">Status</TableHead>
-                          <TableHead className="px-4">Urutan</TableHead>
-                          <TableHead className="px-4 text-right">Aksi</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {items.length === 0 ? (
-                          <TableRow>
-                            <TableCell
-                              colSpan={4}
-                              className="px-4 py-6 text-center text-sm text-slate-500"
-                            >
-                              Belum ada data.
-                            </TableCell>
-                          </TableRow>
-                        ) : null}
-                        {items.map((item) => {
-                          const isEditing = editing?.id === item.id;
-                          return (
-                            <TableRow key={item.id} className="bg-white">
-                              <TableCell className="px-4">
-                                {isEditing ? (
-                                  <Input
-                                    value={editValue}
-                                    onChange={(event) => setEditValue(event.target.value)}
-                                    disabled={isBusy}
-                                  />
-                                ) : (
-                                  <span className="text-sm text-slate-900">{item.value}</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="px-4 text-sm text-slate-600">
-                                {item.is_active ? "Aktif" : "Nonaktif"}
-                              </TableCell>
-                              <TableCell className="px-4 text-sm text-slate-600">
-                                {item.sort_order}
-                              </TableCell>
-                              <TableCell className="px-4 text-right">
-                                {isEditing ? (
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => {
-                                        setEditing(null);
-                                        setEditValue("");
-                                      }}
-                                      disabled={isBusy}
-                                    >
-                                      Batal
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      className="bg-indigo-600 text-white hover:bg-indigo-700"
-                                      onClick={handleUpdate}
-                                      disabled={isBusy}
-                                    >
-                                      Simpan
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      className={
-                                        item.is_active
-                                          ? "border-amber-200 text-amber-600 hover:bg-amber-50"
-                                          : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                                      }
-                                      onClick={() => handleToggleActive(item)}
-                                      disabled={isBusy}
-                                    >
-                                      {item.is_active ? "Nonaktifkan" : "Aktifkan"}
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
-                                      onClick={() => {
-                                        setEditing(item);
-                                        setEditValue(item.value);
-                                      }}
-                                      disabled={isBusy}
-                                    >
-                                      <Edit3 className="mr-1.5 h-3.5 w-3.5" />
-                                      Ubah
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      className="border-red-200 text-red-600 hover:bg-red-50"
-                                      onClick={() => handleDelete(item)}
-                                      disabled={isBusy}
-                                    >
-                                      <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                                      Hapus
-                                    </Button>
-                                  </div>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
+                    <TableShell
+                      columns={[
+                        {
+                          id: "value",
+                          header: <>Nilai</>,
+                          cell: ({ row }) => {
+                            const isEditing = editing?.id === row.original.id;
+
+                            return isEditing ? (
+                              <Input
+                                value={editValue}
+                                onChange={(event) =>
+                                  setEditValue(event.target.value)
+                                }
+                                disabled={isBusy}
+                              />
+                            ) : (
+                              <span className="text-sm text-slate-900">
+                                {row.original.value}
+                              </span>
+                            );
+                          },
+                          meta: {
+                            headerClassName: "px-4 bg-slate-50",
+                            cellClassName: "px-4",
+                          },
+                        },
+                        {
+                          id: "status",
+                          header: <>Status</>,
+                          cell: ({ row }) =>
+                            row.original.is_active ? "Aktif" : "Nonaktif",
+                          meta: {
+                            headerClassName: "px-4",
+                            cellClassName: "px-4 text-sm text-slate-600",
+                          },
+                        },
+                        {
+                          id: "sort_order",
+                          header: <>Urutan</>,
+                          meta: {
+                            headerClassName: "px-4",
+                            cellClassName: "px-4 text-sm text-slate-600",
+                          },
+                        },
+                        {
+                          id: "actions",
+                          header: <>Aksi</>,
+                          cell: ({ row }) => {
+                            const item = row.original;
+                            const isEditing = editing?.id === item.id;
+
+                            return isEditing ? (
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setEditing(null);
+                                    setEditValue("");
+                                  }}
+                                  disabled={isBusy}
+                                >
+                                  Batal
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  className="bg-indigo-600 text-white hover:bg-indigo-700"
+                                  onClick={handleUpdate}
+                                  disabled={isBusy}
+                                >
+                                  Simpan
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className={
+                                    item.is_active
+                                      ? "border-amber-200 text-amber-600 hover:bg-amber-50"
+                                      : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                                  }
+                                  onClick={() => handleToggleActive(item)}
+                                  disabled={isBusy}
+                                >
+                                  {item.is_active ? "Nonaktifkan" : "Aktifkan"}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                                  onClick={() => {
+                                    setEditing(item);
+                                    setEditValue(item.value);
+                                  }}
+                                  disabled={isBusy}
+                                >
+                                  <Edit3 className="mr-1.5 h-3.5 w-3.5" />
+                                  Ubah
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-200 text-red-600 hover:bg-red-50"
+                                  onClick={() => handleDelete(item)}
+                                  disabled={isBusy}
+                                >
+                                  <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                                  Hapus
+                                </Button>
+                              </div>
+                            );
+                          },
+                          meta: {
+                            headerClassName: "px-4 text-right",
+                            cellClassName: "px-4 text-right",
+                          },
+                        },
+                      ]}
+                      data={items}
+                      getRowId={(row) => String(row.id)}
+                      headerClassName="bg-slate-50"
+                      emptyState="Belum ada data."
+                      rowHoverable={false}
+                      rowClassName="bg-white"
+                    />
                   </div>
                 </section>
               );

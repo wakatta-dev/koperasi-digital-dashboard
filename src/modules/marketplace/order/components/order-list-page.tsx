@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  GenericTable,
-  type GenericTableColumn,
-} from "@/components/shared/data-display/GenericTable";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { formatCurrency } from "@/lib/format";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
@@ -139,56 +137,71 @@ export function OrderListPage() {
     "Tidak ada pesanan ditemukan."
   );
 
-  const columns: GenericTableColumn<MarketplaceOrderSummaryResponse>[] = [
+  const columns: ColumnDef<MarketplaceOrderSummaryResponse, unknown>[] = [
     {
       id: "orderNumber",
       header: "ID Pesanan",
-      cellClassName:
-        "whitespace-nowrap text-sm font-medium text-indigo-600 dark:text-indigo-400",
-      render: (order) => formatOrderNumber(order.order_number),
+      meta: {
+        cellClassName:
+          "whitespace-nowrap text-sm font-medium text-indigo-600 dark:text-indigo-400",
+      },
+      cell: ({ row }) => formatOrderNumber(row.original.order_number),
     },
     {
       id: "orderDate",
       header: "Tanggal Pesanan",
-      cellClassName: "whitespace-nowrap text-sm text-muted-foreground",
-      render: (order) => formatOrderDate(order.created_at),
+      meta: {
+        cellClassName: "whitespace-nowrap text-sm text-muted-foreground",
+      },
+      cell: ({ row }) => formatOrderDate(row.original.created_at),
     },
     {
       id: "customer",
       header: "Nama Pelanggan",
-      cellClassName: "whitespace-nowrap text-sm text-foreground",
-      render: (order) => order.customer_name,
+      meta: {
+        cellClassName: "whitespace-nowrap text-sm text-foreground",
+      },
+      cell: ({ row }) => row.original.customer_name,
     },
     {
       id: "total",
       header: "Total Pembayaran",
-      cellClassName: "whitespace-nowrap text-sm text-foreground",
-      render: (order) => formatCurrency(order.total),
+      meta: {
+        cellClassName: "whitespace-nowrap text-sm text-foreground",
+      },
+      cell: ({ row }) => formatCurrency(row.original.total),
     },
     {
       id: "payment",
       header: "Status Pembayaran",
-      cellClassName: "whitespace-nowrap",
-      render: (order) => {
-        const payment = getPaymentBadge(order.status);
+      meta: {
+        cellClassName: "whitespace-nowrap",
+      },
+      cell: ({ row }) => {
+        const payment = getPaymentBadge(row.original.status);
         return <Badge variant={payment.variant}>{payment.label}</Badge>;
       },
     },
     {
       id: "shipping",
       header: "Status Pengiriman",
-      cellClassName: "whitespace-nowrap",
-      render: (order) => {
-        const shipping = getShippingBadge(order.status);
+      meta: {
+        cellClassName: "whitespace-nowrap",
+      },
+      cell: ({ row }) => {
+        const shipping = getShippingBadge(row.original.status);
         return <Badge variant={shipping.variant}>{shipping.label}</Badge>;
       },
     },
     {
       id: "actions",
       header: "Aksi",
-      align: "right",
-      cellClassName: "whitespace-nowrap text-right text-sm font-medium",
-      render: (order) => {
+      meta: {
+        align: "right",
+        cellClassName: "whitespace-nowrap text-right text-sm font-medium",
+      },
+      cell: ({ row }) => {
+        const order = row.original;
         const action = getStatusAction(order.status);
         const isRowLoading = pendingAction?.id === order.id;
         const canCancel = canCancelOrder(order.status);
@@ -318,13 +331,13 @@ export function OrderListPage() {
           </div>
         </div>
       </div>
-      <GenericTable
+      <TableShell
         columns={columns}
-        rows={rowsForTable}
+        data={rowsForTable}
         loading={isLoading}
         loadingState="Memuat pesanan..."
         emptyState={emptyState}
-        getRowKey={(row) => String(row.id)}
+        getRowId={(row) => String(row.id)}
         containerClassName="w-full max-w-full"
         bodyClassName="bg-card"
         footer={

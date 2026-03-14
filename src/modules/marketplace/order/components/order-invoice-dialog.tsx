@@ -3,12 +3,14 @@
 "use client";
 
 import { useEffect } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { formatCurrency } from "@/lib/format";
 import { useMarketplaceOrder } from "@/hooks/queries/marketplace-orders";
 import {
@@ -70,7 +72,10 @@ export function OrderInvoiceDialog({
 
   const activeOrder = order ?? data;
   const items = activeOrder?.items ?? [];
-  const itemsSubtotal = items.reduce((sum, item) => sum + (item.subtotal ?? 0), 0);
+  const itemsSubtotal = items.reduce(
+    (sum, item) => sum + (item.subtotal ?? 0),
+    0,
+  );
   const shippingCost = 0;
   const discountValue = 0;
   const totalPayment = activeOrder?.total ?? itemsSubtotal + shippingCost;
@@ -81,6 +86,82 @@ export function OrderInvoiceDialog({
   const invoiceDate =
     activeOrder?.updated_at ?? activeOrder?.created_at ?? undefined;
   const printDate = formatOrderDateTime(Math.floor(Date.now() / 1000));
+  const itemColumns: ColumnDef<MarketplaceOrderItemResponse, unknown>[] = [
+    {
+      id: "index",
+      header: "No.",
+      meta: {
+        headerClassName:
+          "w-12 px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500",
+        cellClassName:
+          "px-6 py-4 text-sm text-muted-foreground print:text-gray-500 whitespace-normal",
+      },
+      cell: ({ row, table }) =>
+        table.getRowModel().rows.findIndex((item) => item.id === row.id) + 1,
+    },
+    {
+      id: "product",
+      header: "Produk",
+      meta: {
+        headerClassName:
+          "px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500",
+        cellClassName:
+          "px-6 py-4 text-sm font-medium text-foreground print:text-gray-900 whitespace-normal",
+      },
+      cell: ({ row }) => {
+        const variantLabel = formatVariantLabel(row.original);
+        return (
+          <>
+            {row.original.product_name}
+            <span className="block text-xs font-normal text-muted-foreground print:text-gray-400">
+              SKU: {row.original.product_sku}
+            </span>
+            {variantLabel ? (
+              <span className="block text-xs font-normal text-muted-foreground print:text-gray-400">
+                {variantLabel}
+              </span>
+            ) : null}
+          </>
+        );
+      },
+    },
+    {
+      id: "price",
+      header: "Harga Satuan",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500",
+        cellClassName:
+          "px-6 py-4 text-right text-sm text-muted-foreground print:text-gray-500 whitespace-normal",
+      },
+      cell: ({ row }) => formatCurrency(row.original.price),
+    },
+    {
+      id: "quantity",
+      header: "Jumlah",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500",
+        cellClassName:
+          "px-6 py-4 text-right text-sm text-muted-foreground print:text-gray-500 whitespace-normal",
+      },
+      cell: ({ row }) => row.original.quantity,
+    },
+    {
+      id: "total",
+      header: "Total",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500",
+        cellClassName:
+          "px-6 py-4 text-right text-sm font-semibold text-foreground print:text-gray-900 whitespace-normal",
+      },
+      cell: ({ row }) => formatCurrency(row.original.subtotal),
+    },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -134,7 +215,9 @@ export function OrderInvoiceDialog({
           id="invoice-printable"
         >
           {isLoading && !activeOrder ? (
-            <div className="text-sm text-muted-foreground">Memuat invoice...</div>
+            <div className="text-sm text-muted-foreground">
+              Memuat invoice...
+            </div>
           ) : null}
           {activeOrder ? (
             <>
@@ -241,7 +324,8 @@ export function OrderInvoiceDialog({
                       {activeOrder.customer_address || "-"}
                     </p>
                     <p className="inline-block rounded border border-border bg-muted/40 px-2 py-1 text-xs print:border-0 print:bg-transparent print:p-0">
-                      <span className="font-semibold">Metode:</span> {shippingMethod}
+                      <span className="font-semibold">Metode:</span>{" "}
+                      {shippingMethod}
                     </p>
                   </div>
                 </div>
@@ -251,76 +335,17 @@ export function OrderInvoiceDialog({
                   Daftar Barang
                 </h3>
                 <div className="overflow-hidden rounded-lg border border-border print:rounded-none print:border-0">
-                  <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-muted/40 print:bg-gray-100">
-                      <tr>
-                        <th
-                          className="w-12 px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500"
-                          scope="col"
-                        >
-                          No.
-                        </th>
-                        <th
-                          className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500"
-                          scope="col"
-                        >
-                          Produk
-                        </th>
-                        <th
-                          className="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500"
-                          scope="col"
-                        >
-                          Harga Satuan
-                        </th>
-                        <th
-                          className="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500"
-                          scope="col"
-                        >
-                          Jumlah
-                        </th>
-                        <th
-                          className="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-gray-500"
-                          scope="col"
-                        >
-                          Total
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border bg-card print:bg-white">
-                      {items.map((item, index) => {
-                        const variantLabel = formatVariantLabel(item);
-                        return (
-                          <tr
-                            key={`${item.product_id}-${item.variant_option_id ?? index}`}
-                          >
-                            <td className="px-6 py-4 text-sm text-muted-foreground print:text-gray-500">
-                              {index + 1}
-                            </td>
-                            <td className="px-6 py-4 text-sm font-medium text-foreground print:text-gray-900">
-                              {item.product_name}
-                              <span className="block text-xs font-normal text-muted-foreground print:text-gray-400">
-                                SKU: {item.product_sku}
-                              </span>
-                              {variantLabel ? (
-                                <span className="block text-xs font-normal text-muted-foreground print:text-gray-400">
-                                  {variantLabel}
-                                </span>
-                              ) : null}
-                            </td>
-                            <td className="px-6 py-4 text-right text-sm text-muted-foreground print:text-gray-500">
-                              {formatCurrency(item.price)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-sm text-muted-foreground print:text-gray-500">
-                              {item.quantity}
-                            </td>
-                            <td className="px-6 py-4 text-right text-sm font-semibold text-foreground print:text-gray-900">
-                              {formatCurrency(item.subtotal)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <TableShell
+                    tableClassName="min-w-full divide-y divide-border"
+                    columns={itemColumns}
+                    data={items}
+                    getRowId={(row) =>
+                      `${row.product_id}-${row.variant_option_id ?? row.product_sku}`
+                    }
+                    emptyState="Belum ada item invoice."
+                    headerClassName="bg-muted/40 print:bg-gray-100"
+                    bodyClassName="divide-y divide-border bg-card print:bg-white"
+                  />
                 </div>
               </div>
               <div className="flex flex-col justify-between gap-8 md:flex-row">

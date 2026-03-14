@@ -1,14 +1,9 @@
 /** @format */
 
+import type { ColumnDef } from "@tanstack/react-table";
+
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import type { TaxPpnTransactionItem } from "../../types/tax";
 
@@ -32,80 +27,112 @@ export function FeaturePpnDetailTable({
   const resolvedTotal =
     vatAmountTotal ?? rows.reduce((total, row) => total + row.vat_amount, 0);
 
+  const columns: ColumnDef<TaxPpnTransactionItem, unknown>[] = [
+    {
+      id: "date",
+      header: "Date",
+      meta: {
+        headerClassName:
+          "px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase",
+        cellClassName: "px-6 py-4 text-sm text-gray-900 dark:text-white",
+      },
+      cell: ({ row }) => row.original.date,
+    },
+    {
+      id: "invoiceNumber",
+      header: "Invoice No",
+      meta: {
+        headerClassName:
+          "px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase",
+        cellClassName:
+          "px-6 py-4 text-sm font-medium text-indigo-600 dark:text-indigo-300",
+      },
+      cell: ({ row }) => row.original.invoice_number,
+    },
+    {
+      id: "counterparty",
+      header: "Customer/Vendor",
+      meta: {
+        headerClassName:
+          "px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase",
+        cellClassName: "px-6 py-4 text-sm text-gray-900 dark:text-white",
+      },
+      cell: ({ row }) => (
+        <>
+          <div>{row.original.counterparty_name}</div>
+          {row.original.counterparty_npwp ? (
+            <div className="text-xs text-gray-500">
+              NPWP: {row.original.counterparty_npwp}
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: "type",
+      header: "Type",
+      meta: {
+        align: "center",
+        headerClassName:
+          "px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase",
+        cellClassName: "px-6 py-4 text-center",
+      },
+      cell: ({ row }) => (
+        <Badge className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
+          {row.original.transaction_type}
+        </Badge>
+      ),
+    },
+    {
+      id: "taxBase",
+      header: "DPP (Tax Base)",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
+        cellClassName:
+          "px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300",
+      },
+      cell: ({ row }) => formatCurrency(row.original.tax_base_amount),
+    },
+    {
+      id: "vatAmount",
+      header: "PPN Amount (11%)",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
+        cellClassName:
+          "px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white",
+      },
+      cell: ({ row }) => formatCurrency(row.original.vat_amount),
+    },
+  ];
+
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-          <TableRow>
-            <TableHead className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Date
-            </TableHead>
-            <TableHead className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Invoice No
-            </TableHead>
-            <TableHead className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Customer/Vendor
-            </TableHead>
-            <TableHead className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Type
-            </TableHead>
-            <TableHead className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
-              DPP (Tax Base)
-            </TableHead>
-            <TableHead className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
-              PPN Amount (11%)
-            </TableHead>
-            <TableHead className="px-6 py-3" />
-          </TableRow>
-        </TableHeader>
-        <TableBody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-slate-900">
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-                No VAT transaction found.
-              </TableCell>
-            </TableRow>
-          ) : null}
-          {rows.map((row) => (
-            <TableRow key={`${row.invoice_number}-${row.date}`} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
-              <TableCell className="px-6 py-4 text-sm text-gray-900 dark:text-white">{row.date}</TableCell>
-              <TableCell className="px-6 py-4 text-sm font-medium text-indigo-600 dark:text-indigo-300">
-                {row.invoice_number}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                <div>{row.counterparty_name}</div>
-                {row.counterparty_npwp ? (
-                  <div className="text-xs text-gray-500">NPWP: {row.counterparty_npwp}</div>
-                ) : null}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-center">
-                <Badge className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
-                  {row.transaction_type}
-                </Badge>
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
-                {formatCurrency(row.tax_base_amount)}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">
-                {formatCurrency(row.vat_amount)}
-              </TableCell>
-              <TableCell className="px-6 py-4" />
-            </TableRow>
-          ))}
-          <TableRow className="bg-gray-50 dark:bg-gray-800/40">
-            <TableCell
-              colSpan={5}
-              className="px-6 py-4 text-right text-sm font-medium text-gray-500 dark:text-gray-400"
-            >
-              Total PPN (Calculated)
-            </TableCell>
-            <TableCell className="px-6 py-4 text-right text-sm font-bold text-indigo-600 dark:text-indigo-300">
-              {formatCurrency(resolvedTotal)}
-            </TableCell>
-            <TableCell className="px-6 py-4" />
-          </TableRow>
-        </TableBody>
-      </Table>
+      <TableShell
+        tableClassName="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+        columns={columns}
+        data={rows}
+        getRowId={(row) => `${row.invoice_number}-${row.date}`}
+        emptyState="No VAT transaction found."
+        headerClassName="bg-gray-50 dark:bg-gray-800/50"
+        bodyClassName="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-slate-900"
+        rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        footer={
+          <div className="flex justify-end bg-gray-50 px-6 py-4 text-sm dark:bg-gray-800/40">
+            <div className="flex items-center gap-4">
+              <span className="font-medium text-gray-500 dark:text-gray-400">
+                Total PPN (Calculated)
+              </span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-300">
+                {formatCurrency(resolvedTotal)}
+              </span>
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 }

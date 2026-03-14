@@ -17,14 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import {
   useInventoryActions,
   useInventoryCategories,
@@ -537,88 +530,117 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
             </Button>
           </div>
           <div className="overflow-x-auto">
-            <Table className="w-full text-left">
-              <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-                <TableRow>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Varian
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    SKU Varian
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-24">
-                    Stok
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Harga
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right">
-                    Aksi
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {editableVariants.map((variant) => (
-                  <TableRow key={variant.optionId}>
-                    <TableCell className="px-6 py-4">
-                      <Input
-                        value={variant.name}
-                        readOnly
-                        className="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-100 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
-                      />
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Input
-                        value={variant.sku}
-                        onChange={(event) =>
-                          updateVariantRow(variant.optionId, {
-                            sku: event.target.value,
-                          })
-                        }
-                        className="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
-                      />
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Input
-                        type="number"
-                        value={variant.stock}
-                        onChange={(event) =>
-                          updateVariantRow(variant.optionId, {
-                            stock: Number(event.target.value || 0),
-                          })
-                        }
-                        className="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
-                      />
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <InputField
-                        ariaLabel={`Harga varian ${variant.name}`}
-                        className="w-full"
-                        startIcon={<span className="text-sm">Rp</span>}
-                        type="number"
-                        value={variant.price}
-                        onValueChange={(value) =>
-                          updateVariantRow(variant.optionId, {
-                            price: Number(value || 0),
-                          })
-                        }
-                      />
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                        onClick={() => setPendingDeleteVariant(variant)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <TableShell
+              tableClassName="w-full text-left"
+              columns={[
+                {
+                  id: "name",
+                  header: <>Varian</>,
+                  cell: ({ row }) => (
+                    <Input
+                      value={row.original.name}
+                      readOnly
+                      className="w-full rounded-md border-gray-300 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-600 dark:bg-gray-100 dark:text-white"
+                    />
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "sku",
+                  header: <>SKU Varian</>,
+                  cell: ({ row }) => (
+                    <Input
+                      value={row.original.sku}
+                      onChange={(event) =>
+                        updateVariantRow(row.original.optionId, {
+                          sku: event.target.value,
+                        })
+                      }
+                      className="w-full rounded-md border-gray-300 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "stock",
+                  header: <>Stok</>,
+                  cell: ({ row }) => (
+                    <Input
+                      type="number"
+                      value={row.original.stock}
+                      onChange={(event) =>
+                        updateVariantRow(row.original.optionId, {
+                          stock: Number(event.target.value || 0),
+                        })
+                      }
+                      className="w-full rounded-md border-gray-300 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-24",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "price",
+                  header: <>Harga</>,
+                  cell: ({ row }) => (
+                    <InputField
+                      ariaLabel={`Harga varian ${row.original.name}`}
+                      className="w-full"
+                      startIcon={<span className="text-sm">Rp</span>}
+                      type="number"
+                      value={row.original.price}
+                      onValueChange={(value) =>
+                        updateVariantRow(row.original.optionId, {
+                          price: Number(value || 0),
+                        })
+                      }
+                    />
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+                    cellClassName: "px-6 py-4",
+                  },
+                },
+                {
+                  id: "actions",
+                  header: <>Aksi</>,
+                  cell: ({ row }) => (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-400 transition-colors hover:text-red-500"
+                      onClick={() => setPendingDeleteVariant(row.original)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  ),
+                  meta: {
+                    headerClassName:
+                      "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right",
+                    cellClassName: "px-6 py-4 text-right",
+                  },
+                },
+              ]}
+              data={editableVariants}
+              getRowId={(row) => String(row.optionId)}
+              headerClassName="bg-gray-50 dark:bg-gray-800/50"
+              bodyClassName="divide-y divide-gray-100 dark:divide-gray-700"
+              emptyState="Belum ada varian produk."
+              rowHoverable={false}
+            />
           </div>
         </section>
 

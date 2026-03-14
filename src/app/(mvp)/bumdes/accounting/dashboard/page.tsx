@@ -18,14 +18,7 @@ import {
 } from "@/components/shared/data-display/SummaryMetricsGrid";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { useAccountingReportingOverview } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
 import { FeatureOperationalTraceWorkbench } from "@/modules/accounting/components/features/FeatureOperationalTraceWorkbench";
@@ -200,52 +193,43 @@ export default function AccountingDashboardPage() {
           <CardTitle className="text-base">Recent Transactions</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {overviewQuery.isPending && !overviewQuery.data ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center text-sm text-gray-500"
-                  >
-                    Loading transactions...
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {!overviewQuery.isPending && transactions.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center text-sm text-gray-500"
-                  >
-                    No transaction data available.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {transactions.map((transaction, index) => (
-                <TableRow key={`${transaction.date_display}-${index}`}>
-                  <TableCell>{transaction.date_display}</TableCell>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell>
-                    <Badge className={toBadgeClassName(transaction.category)}>
-                      {transaction.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {transaction.amount_display}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <TableShell
+            columns={[
+              {
+                id: "date_display",
+                header: <>Date</>,
+                cell: ({ row }) => row.original.date_display,
+              },
+              {
+                id: "description",
+                header: <>Description</>,
+                cell: ({ row }) => row.original.description,
+              },
+              {
+                id: "category",
+                header: <>Category</>,
+                cell: ({ row }) => (
+                  <Badge className={toBadgeClassName(row.original.category)}>
+                    {row.original.category}
+                  </Badge>
+                ),
+              },
+              {
+                id: "amount_display",
+                header: <>Amount</>,
+                cell: ({ row }) => row.original.amount_display,
+                meta: {
+                  headerClassName: "text-right",
+                  cellClassName: "text-right font-medium",
+                },
+              },
+            ]}
+            data={transactions}
+            getRowId={(row, index) => `${row.date_display}-${index}`}
+            loading={overviewQuery.isPending && !overviewQuery.data}
+            loadingState="Loading transactions..."
+            emptyState="No transaction data available."
+          />
         </CardContent>
       </Card>
     </div>

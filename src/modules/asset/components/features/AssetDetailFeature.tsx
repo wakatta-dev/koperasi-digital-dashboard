@@ -1,17 +1,11 @@
 /** @format */
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { Cpu, History, Copy, MapPin } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental/AssetRentalFeatureShell";
 
 import type { AssetDetailModel } from "../../types/stitch";
@@ -21,6 +15,98 @@ type AssetDetailFeatureProps = Readonly<{
 }>;
 
 export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
+  const specificationColumns: ColumnDef<(typeof detail.specifications)[number], unknown>[] =
+    [
+      {
+        id: "key",
+        header: "",
+        meta: {
+          cellClassName:
+            "w-1/3 bg-slate-50 px-4 text-sm font-medium text-slate-500",
+        },
+        cell: ({ row }) => row.original.key,
+      },
+      {
+        id: "value",
+        header: "",
+        meta: {
+          cellClassName: "px-4 text-sm text-slate-900",
+        },
+        cell: ({ row }) => row.original.value,
+      },
+    ];
+
+  const activityColumns: ColumnDef<(typeof detail.activityRows)[number], unknown>[] =
+    [
+      {
+        id: "renter",
+        header: "Peminjam",
+        meta: {
+          headerClassName: "px-4",
+          cellClassName: "px-4",
+        },
+        cell: ({ row }) => (
+          <>
+            <div className="text-sm font-medium text-slate-900">
+              {row.original.renterName}
+            </div>
+            <div className="text-xs text-slate-500">
+              {row.original.renterContact}
+            </div>
+          </>
+        ),
+      },
+      {
+        id: "startDate",
+        header: "Tanggal Pinjam",
+        meta: {
+          headerClassName: "px-4",
+          cellClassName: "px-4 text-sm text-slate-600",
+        },
+        cell: ({ row }) => row.original.startDate,
+      },
+      {
+        id: "endDate",
+        header: "Tanggal Kembali",
+        meta: {
+          headerClassName: "px-4",
+          cellClassName: "px-4 text-sm text-slate-600",
+        },
+        cell: ({ row }) => row.original.endDate,
+      },
+      {
+        id: "duration",
+        header: "Durasi",
+        meta: {
+          headerClassName: "px-4",
+          cellClassName: "px-4 text-sm text-slate-600",
+        },
+        cell: ({ row }) => row.original.duration,
+      },
+      {
+        id: "status",
+        header: "Status",
+        meta: {
+          align: "right",
+          headerClassName: "px-4 text-right",
+          cellClassName: "px-4 text-right",
+        },
+        cell: ({ row }) => (
+          <Badge
+            className={
+              row.original.status === "Selesai"
+                ? "rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
+                : row.original.status === "Menunggu"
+                  ? "rounded-full border border-amber-200 bg-amber-50 text-amber-700"
+                  : "rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"
+            }
+          >
+            {row.original.status}
+          </Badge>
+        ),
+      },
+    ];
+
   return (
     <AssetRentalFeatureShell
       title="Detail Aset"
@@ -99,7 +185,9 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
                 Kesiapan Publik
               </div>
               <div className="mt-1 text-sm font-medium text-slate-900">
-                {detail.publicReady ? "Siap diaktifkan untuk publik" : "Belum siap untuk publik"}
+                {detail.publicReady
+                  ? "Siap diaktifkan untuk publik"
+                  : "Belum siap untuk publik"}
               </div>
             </div>
             <div>
@@ -122,7 +210,9 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
           </div>
           {detail.publicReadinessIssues.length > 0 ? (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              <p className="font-medium">Lengkapi data berikut sebelum aset diaktifkan:</p>
+              <p className="font-medium">
+                Lengkapi data berikut sebelum aset diaktifkan:
+              </p>
               <ul className="mt-2 list-disc pl-5 space-y-1">
                 {detail.publicReadinessIssues.map((issue) => (
                   <li key={issue}>{issue}</li>
@@ -139,20 +229,12 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
               <span>Spesifikasi</span>
             </div>
             <div className="overflow-hidden rounded-lg border border-slate-200">
-              <Table>
-                <TableBody>
-                  {detail.specifications.map((item) => (
-                    <TableRow key={item.key} className="bg-white">
-                      <TableCell className="w-1/3 bg-slate-50 px-4 text-sm font-medium text-slate-500">
-                        {item.key}
-                      </TableCell>
-                      <TableCell className="px-4 text-sm text-slate-900">
-                        {item.value}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <TableShell
+                columns={specificationColumns}
+                data={detail.specifications}
+                getRowId={(row) => row.key}
+                emptyState="Belum ada spesifikasi."
+              />
             </div>
           </section>
 
@@ -170,63 +252,14 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
                 Lihat Semua
               </Button>
             </div>
-            <Table>
-              <TableHeader className="bg-slate-50">
-                <TableRow>
-                  <TableHead className="px-4">Peminjam</TableHead>
-                  <TableHead className="px-4">Tanggal Pinjam</TableHead>
-                  <TableHead className="px-4">Tanggal Kembali</TableHead>
-                  <TableHead className="px-4">Durasi</TableHead>
-                  <TableHead className="px-4 text-right">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {detail.activityRows.length === 0 ? (
-                  <TableRow className="bg-white">
-                    <TableCell
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-sm text-slate-500"
-                    >
-                      Belum ada riwayat penyewaan untuk aset ini.
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-                {detail.activityRows.map((row) => (
-                  <TableRow key={row.id} className="bg-white">
-                    <TableCell className="px-4">
-                      <div className="text-sm font-medium text-slate-900">
-                        {row.renterName}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {row.renterContact}
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 text-sm text-slate-600">
-                      {row.startDate}
-                    </TableCell>
-                    <TableCell className="px-4 text-sm text-slate-600">
-                      {row.endDate}
-                    </TableCell>
-                    <TableCell className="px-4 text-sm text-slate-600">
-                      {row.duration}
-                    </TableCell>
-                    <TableCell className="px-4 text-right">
-                      <Badge
-                        className={
-                          row.status === "Selesai"
-                            ? "rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
-                            : row.status === "Menunggu"
-                              ? "rounded-full border border-amber-200 bg-amber-50 text-amber-700"
-                              : "rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"
-                        }
-                      >
-                        {row.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <TableShell
+              columns={activityColumns}
+              data={detail.activityRows}
+              getRowId={(row) => row.id}
+              emptyState="Belum ada riwayat penyewaan untuk aset ini."
+              headerClassName="bg-slate-50"
+              rowClassName="bg-white"
+            />
           </section>
         </div>
       </div>

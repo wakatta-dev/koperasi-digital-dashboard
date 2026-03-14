@@ -1,6 +1,8 @@
 /** @format */
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,14 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import type { Role, User } from "@/types/api";
 import {
   getUserPrimaryRoleId,
@@ -58,6 +53,129 @@ export function FeatureAccessUserManagementCard({
   onSaveRole,
   onToggleStatus,
 }: FeatureAccessUserManagementCardProps) {
+  const columns: ColumnDef<User, unknown>[] = [
+    {
+      id: "name",
+      header: "Nama",
+      meta: {
+        headerClassName: "px-6 py-3",
+        cellClassName: "px-6 py-4 font-medium text-slate-950 dark:text-white",
+      },
+      cell: ({ row }) => row.original.full_name,
+    },
+    {
+      id: "email",
+      header: "Email",
+      meta: {
+        headerClassName: "px-6 py-3",
+        cellClassName: "px-6 py-4 text-slate-500 dark:text-slate-400",
+      },
+      cell: ({ row }) => (
+        <span className="block max-w-[220px] truncate">
+          {row.original.email}
+        </span>
+      ),
+    },
+    {
+      id: "role",
+      header: "Role",
+      meta: {
+        headerClassName: "px-6 py-3",
+        cellClassName: "px-6 py-4",
+      },
+      cell: ({ row }) => {
+        const currentRoleId = getUserPrimaryRoleId(row.original);
+        const selectedRoleId =
+          roleByUser[row.original.id] ??
+          (currentRoleId ? String(currentRoleId) : "");
+
+        return (
+          <Select
+            value={selectedRoleId}
+            disabled={disabled}
+            onValueChange={(next) => onRoleChange(row.original.id, next)}
+          >
+            <SelectTrigger className="h-8 w-44 border-slate-300 text-xs dark:border-slate-700">
+              <SelectValue placeholder={getUserPrimaryRoleName(row.original)} />
+            </SelectTrigger>
+            <SelectContent>
+              {roles.map((role, roleIndex) => (
+                <SelectItem
+                  key={`${role.id}-${roleIndex}`}
+                  value={String(role.id)}
+                >
+                  {role.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: "Status",
+      meta: {
+        headerClassName: "px-6 py-3",
+        cellClassName: "px-6 py-4",
+      },
+      cell: ({ row }) => (
+        <Badge
+          className={
+            row.original.status
+              ? "border-transparent bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+              : "border-transparent bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          }
+        >
+          {row.original.status ? "Aktif" : "Nonaktif"}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Aksi",
+      meta: {
+        align: "right",
+        headerClassName: "px-6 py-3 text-right",
+        cellClassName: "px-6 py-4 text-right",
+      },
+      cell: ({ row }) => {
+        const currentRoleId = getUserPrimaryRoleId(row.original);
+        const selectedRoleId =
+          roleByUser[row.original.id] ??
+          (currentRoleId ? String(currentRoleId) : "");
+
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 border-slate-300 px-3 py-1 text-xs dark:border-slate-700"
+              disabled={
+                disabled ||
+                !selectedRoleId ||
+                String(currentRoleId ?? "") === selectedRoleId ||
+                savingRole
+              }
+              onClick={() => onSaveRole(row.original.id, selectedRoleId)}
+            >
+              Simpan Role
+            </Button>
+            <Switch
+              checked={row.original.status}
+              disabled={disabled || savingStatus}
+              onCheckedChange={(checked) =>
+                onToggleStatus(row.original.id, checked)
+              }
+              className="data-[state=checked]:bg-slate-950 dark:data-[state=checked]:bg-white"
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden gap-y-0`}>
       <div className={settingsHeaderClassName}>
@@ -85,113 +203,14 @@ export function FeatureAccessUserManagementCard({
 
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b border-slate-200 bg-slate-50/80 uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400">
-                <TableHead className="px-6 py-3">Nama</TableHead>
-                <TableHead className="px-6 py-3">Email</TableHead>
-                <TableHead className="px-6 py-3">Role</TableHead>
-                <TableHead className="px-6 py-3">Status</TableHead>
-                <TableHead className="px-6 py-3 text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user, userIndex) => {
-                const currentRoleId = getUserPrimaryRoleId(user);
-                const selectedRoleId =
-                  roleByUser[user.id] ??
-                  (currentRoleId ? String(currentRoleId) : "");
-
-                return (
-                  <TableRow
-                    key={`${user.id}-${userIndex}`}
-                    className="border-slate-200 hover:bg-slate-50/70 dark:border-slate-800 dark:hover:bg-slate-900/60"
-                  >
-                    <TableCell className="px-6 py-4 font-medium text-slate-950 dark:text-white">
-                      {user.full_name}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                      <span className="block max-w-[220px] truncate">
-                        {user.email}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Select
-                        value={selectedRoleId}
-                        disabled={disabled}
-                        onValueChange={(next) => onRoleChange(user.id, next)}
-                      >
-                        <SelectTrigger className="h-8 w-44 border-slate-300 text-xs dark:border-slate-700">
-                          <SelectValue
-                            placeholder={getUserPrimaryRoleName(user)}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {roles.map((role, roleIndex) => (
-                            <SelectItem
-                              key={`${role.id}-${roleIndex}`}
-                              value={String(role.id)}
-                            >
-                              {role.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Badge
-                        className={
-                          user.status
-                            ? "border-transparent bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
-                            : "border-transparent bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                        }
-                      >
-                        {user.status ? "Aktif" : "Nonaktif"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="h-8 border-slate-300 px-3 py-1 text-xs dark:border-slate-700"
-                          disabled={
-                            disabled ||
-                            !selectedRoleId ||
-                            String(currentRoleId ?? "") === selectedRoleId ||
-                            savingRole
-                          }
-                          onClick={() => onSaveRole(user.id, selectedRoleId)}
-                        >
-                          Simpan Role
-                        </Button>
-                        <Switch
-                          checked={user.status}
-                          disabled={disabled || savingStatus}
-                          onCheckedChange={(checked) =>
-                            onToggleStatus(user.id, checked)
-                          }
-                          className="data-[state=checked]:bg-slate-950 dark:data-[state=checked]:bg-white"
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-
-              {users.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="py-10 text-center text-sm text-slate-500 dark:text-slate-400"
-                  >
-                    Tidak ada user ditemukan.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
+          <TableShell
+            columns={columns}
+            data={users}
+            getRowId={(row, userIndex) => `${row.id}-${userIndex}`}
+            emptyState="Tidak ada user ditemukan."
+            headerRowClassName="border-b border-slate-200 bg-slate-50/80 uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400"
+            rowClassName="border-slate-200 hover:bg-slate-50/70 dark:border-slate-800 dark:hover:bg-slate-900/60"
+          />
         </div>
       </CardContent>
     </Card>

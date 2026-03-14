@@ -10,14 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/shared/inputs/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import { INITIAL_PAYMENT_DRAFT } from "../../constants/invoicing-ar-initial-state";
 
@@ -60,23 +53,31 @@ export function FeaturePaymentCreateForm({
   destinationAccountOptions = [],
 }: FeaturePaymentCreateFormProps) {
   const [customer, setCustomer] = useState(INITIAL_PAYMENT_DRAFT.customer);
-  const [paymentDate, setPaymentDate] = useState(INITIAL_PAYMENT_DRAFT.payment_date);
-  const [paymentMethod, setPaymentMethod] = useState(INITIAL_PAYMENT_DRAFT.payment_method);
+  const [paymentDate, setPaymentDate] = useState(
+    INITIAL_PAYMENT_DRAFT.payment_date,
+  );
+  const [paymentMethod, setPaymentMethod] = useState(
+    INITIAL_PAYMENT_DRAFT.payment_method,
+  );
   const [destinationAccount, setDestinationAccount] = useState(
-    INITIAL_PAYMENT_DRAFT.destination_account
+    INITIAL_PAYMENT_DRAFT.destination_account,
   );
-  const [amountReceived, setAmountReceived] = useState(INITIAL_PAYMENT_DRAFT.amount_received);
-  const [selectedInvoiceNumbers, setSelectedInvoiceNumbers] = useState<string[]>(
-    INITIAL_PAYMENT_DRAFT.selected_invoice_numbers
+  const [amountReceived, setAmountReceived] = useState(
+    INITIAL_PAYMENT_DRAFT.amount_received,
   );
+  const [selectedInvoiceNumbers, setSelectedInvoiceNumbers] = useState<
+    string[]
+  >(INITIAL_PAYMENT_DRAFT.selected_invoice_numbers);
 
   const allChecked =
     outstandingInvoices.length > 0 &&
-    outstandingInvoices.every((item) => selectedInvoiceNumbers.includes(item.invoice_number));
+    outstandingInvoices.every((item) =>
+      selectedInvoiceNumbers.includes(item.invoice_number),
+    );
 
   const selectedCount = useMemo(
     () => selectedInvoiceNumbers.length,
-    [selectedInvoiceNumbers]
+    [selectedInvoiceNumbers],
   );
 
   const toggleInvoice = (invoiceNumber: string, checked: boolean) => {
@@ -107,7 +108,9 @@ export function FeaturePaymentCreateForm({
               <Banknote className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Record Payment</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                Record Payment
+              </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Receive payment from customer for outstanding invoices
               </p>
@@ -184,7 +187,9 @@ export function FeaturePaymentCreateForm({
                 <Banknote className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   value={destinationAccount}
-                  onChange={(event) => setDestinationAccount(event.target.value)}
+                  onChange={(event) =>
+                    setDestinationAccount(event.target.value)
+                  }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   placeholder="Destination account"
                   list="payment-destination-options"
@@ -217,79 +222,119 @@ export function FeaturePaymentCreateForm({
 
             <div className="md:col-span-2">
               <div className="mb-3 flex items-center justify-between">
-                <label className="text-sm font-bold text-gray-900 dark:text-white">Pay Against Invoices</label>
+                <label className="text-sm font-bold text-gray-900 dark:text-white">
+                  Pay Against Invoices
+                </label>
                 <Badge className="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:bg-indigo-900/40">
                   {selectedCount} Outstanding
                 </Badge>
               </div>
               <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700">
-                <Table>
-                  <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-                    <TableRow>
-                      <TableHead className="px-4 py-2.5">
-                        <Checkbox
-                          checked={allChecked}
-                          onCheckedChange={(checked) => {
-                            setSelectedInvoiceNumbers(
-                              checked
-                                ? outstandingInvoices.map((item) => item.invoice_number)
-                                : []
-                            );
-                          }}
-                          aria-label="Select all outstanding invoices"
-                        />
-                      </TableHead>
-                      <TableHead className="px-4 py-2.5">Invoice #</TableHead>
-                      <TableHead className="px-4 py-2.5">Due Date</TableHead>
-                      <TableHead className="px-4 py-2.5 text-right">Amount Due</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {outstandingInvoices.length === 0 ? (
-                      <TableRow>
-                        <TableCell className="px-4 py-6 text-center text-sm text-gray-500" colSpan={4}>
-                          No outstanding invoices available.
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
+                <TableShell
+                  columns={[
+                    {
+                      id: "selected",
+                      header: (
+                        <>
+                          <Checkbox
+                            checked={allChecked}
+                            onCheckedChange={(checked) => {
+                              setSelectedInvoiceNumbers(
+                                checked
+                                  ? outstandingInvoices.map(
+                                      (item) => item.invoice_number,
+                                    )
+                                  : [],
+                              );
+                            }}
+                            aria-label="Select all outstanding invoices"
+                          />
+                        </>
+                      ),
+                      cell: ({ row }) => {
+                        const selected = selectedInvoiceNumbers.includes(
+                          row.original.invoice_number,
+                        );
 
-                    {outstandingInvoices.map((item) => {
-                      const selected = selectedInvoiceNumbers.includes(item.invoice_number);
-                      return (
-                        <TableRow
-                          key={item.invoice_number}
-                          className={selected ? "bg-indigo-50/30 dark:bg-indigo-900/10" : undefined}
-                        >
-                          <TableCell className="px-4 py-3">
-                            <Checkbox
-                              checked={selected}
-                              onCheckedChange={(checked) =>
-                                toggleInvoice(item.invoice_number, Boolean(checked))
-                              }
-                              aria-label={`Select ${item.invoice_number}`}
-                            />
-                          </TableCell>
-                          <TableCell
-                            className={`px-4 py-3 font-medium ${
-                              selected ? "text-indigo-600" : "text-gray-900 dark:text-white"
-                            }`}
+                        return (
+                          <Checkbox
+                            checked={selected}
+                            onCheckedChange={(checked) =>
+                              toggleInvoice(
+                                row.original.invoice_number,
+                                Boolean(checked),
+                              )
+                            }
+                            aria-label={`Select ${row.original.invoice_number}`}
+                          />
+                        );
+                      },
+                      meta: {
+                        headerClassName: "px-4 py-2.5",
+                        cellClassName: "px-4 py-3",
+                      },
+                    },
+                    {
+                      id: "invoice_number",
+                      header: <>Invoice #</>,
+                      cell: ({ row }) => {
+                        const selected = selectedInvoiceNumbers.includes(
+                          row.original.invoice_number,
+                        );
+
+                        return (
+                          <span
+                            className={
+                              selected
+                                ? "text-indigo-600"
+                                : "text-gray-900 dark:text-white"
+                            }
                           >
-                            {item.invoice_number}
-                          </TableCell>
-                          <TableCell className="px-4 py-3 text-gray-500">{item.due_date}</TableCell>
-                          <TableCell className="px-4 py-3 text-right font-bold">{item.amount_due}</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                            {row.original.invoice_number}
+                          </span>
+                        );
+                      },
+                      meta: {
+                        headerClassName: "px-4 py-2.5",
+                        cellClassName: "px-4 py-3 font-medium",
+                      },
+                    },
+                    {
+                      id: "due_date",
+                      header: <>Due Date</>,
+                      meta: {
+                        headerClassName: "px-4 py-2.5",
+                        cellClassName: "px-4 py-3 text-gray-500",
+                      },
+                    },
+                    {
+                      id: "amount_due",
+                      header: <>Amount Due</>,
+                      meta: {
+                        headerClassName: "px-4 py-2.5 text-right",
+                        cellClassName: "px-4 py-3 text-right font-bold",
+                      },
+                    },
+                  ]}
+                  data={outstandingInvoices}
+                  getRowId={(row) => row.invoice_number}
+                  headerClassName="bg-gray-50 dark:bg-gray-800/50"
+                  emptyState="No outstanding invoices available."
+                  rowClassName={(row) =>
+                    selectedInvoiceNumbers.includes(row.invoice_number)
+                      ? "bg-indigo-50/30 dark:bg-indigo-900/10"
+                      : undefined
+                  }
+                />
               </div>
             </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
             {errorMessage ? (
-              <p className="mr-auto text-sm font-medium text-red-600">{errorMessage}</p>
+              <p className="mr-auto text-sm font-medium text-red-600">
+                {errorMessage}
+              </p>
             ) : null}
             <Button type="button" variant="ghost" onClick={onCancel}>
               Cancel

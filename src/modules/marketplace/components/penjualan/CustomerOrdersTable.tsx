@@ -2,17 +2,12 @@
 
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CustomerOrderSummary } from "@/modules/marketplace/types";
@@ -30,8 +25,7 @@ const STATUS_BADGE_CLASS: Record<CustomerOrderSummary["status"], string> = {
     "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
   Pending:
     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  Dibatalkan:
-    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  Dibatalkan: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
 export function CustomerOrdersTable({
@@ -41,6 +35,80 @@ export function CustomerOrdersTable({
   totalOrders,
   onViewOrder,
 }: CustomerOrdersTableProps) {
+  const columns: ColumnDef<CustomerOrderSummary, unknown>[] = [
+    {
+      id: "orderId",
+      header: "ID Pesanan",
+      meta: {
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider",
+        cellClassName: "px-6 py-4 text-sm font-medium text-indigo-600",
+      },
+      cell: ({ row }) => row.original.orderId,
+    },
+    {
+      id: "date",
+      header: "Tanggal",
+      meta: {
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider",
+        cellClassName: "px-6 py-4 text-sm text-gray-600 dark:text-gray-300",
+      },
+      cell: ({ row }) => row.original.date,
+    },
+    {
+      id: "status",
+      header: "Status",
+      meta: {
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider",
+      },
+      cell: ({ row }) => (
+        <span
+          className={cn(
+            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+            STATUS_BADGE_CLASS[row.original.status],
+          )}
+        >
+          {row.original.status}
+        </span>
+      ),
+    },
+    {
+      id: "total",
+      header: "Total",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right",
+        cellClassName:
+          "px-6 py-4 text-sm font-medium text-gray-900 dark:text-white text-right",
+      },
+      cell: ({ row }) => formatCurrency(row.original.total),
+    },
+    {
+      id: "action",
+      header: "Aksi",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right",
+        cellClassName: "px-6 py-4 text-right",
+      },
+      cell: ({ row }) => (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => onViewOrder?.(row.original.orderId)}
+          className="text-gray-400 hover:text-indigo-600 transition-colors"
+        >
+          <Eye className="h-5 w-5" />
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="surface-table">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -57,63 +125,15 @@ export function CustomerOrdersTable({
         </div>
       </div>
       <div className="overflow-x-auto">
-        <Table className="w-full text-left border-collapse">
-          <TableHeader>
-            <TableRow className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-              <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                ID Pesanan
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Tanggal
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Status
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
-                Total
-              </TableHead>
-              <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
-                Aksi
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-            {orders.map((order) => (
-              <TableRow key={order.orderId} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <TableCell className="px-6 py-4 text-sm font-medium text-indigo-600">
-                  {order.orderId}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {order.date}
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  <span
-                    className={cn(
-                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                      STATUS_BADGE_CLASS[order.status]
-                    )}
-                  >
-                    {order.status}
-                  </span>
-                </TableCell>
-                <TableCell className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white text-right">
-                  {formatCurrency(order.total)}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-right">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onViewOrder?.(order.orderId)}
-                    className="text-gray-400 hover:text-indigo-600 transition-colors"
-                  >
-                    <Eye className="h-5 w-5" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TableShell
+          tableClassName="w-full text-left border-collapse"
+          columns={columns}
+          data={orders}
+          getRowId={(row) => row.orderId}
+          emptyState="Belum ada pesanan."
+          headerRowClassName="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700"
+          rowClassName="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        />
       </div>
       <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
         <span className="text-sm text-gray-500 dark:text-gray-400">

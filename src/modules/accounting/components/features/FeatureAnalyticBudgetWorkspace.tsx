@@ -2,21 +2,21 @@
 
 "use client";
 
-import { Search, Filter, ArrowUpDown, Plus, TreePine, ChartLine } from "lucide-react";
+import {
+  Search,
+  Filter,
+  ArrowUpDown,
+  Plus,
+  TreePine,
+  ChartLine,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/shared/inputs/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import type { AnalyticAccountCard, BudgetRow } from "../../types/settings";
 
@@ -56,7 +56,7 @@ export function FeatureAnalyticBudgetWorkspace({
         onValueChange={(value) => setActiveTab(value as "analytic" | "budgets")}
         className="w-full"
       >
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 mb-4">
           <TabsList className="h-auto gap-6 rounded-none bg-transparent p-0">
             <TabsTrigger
               value="analytic"
@@ -123,84 +123,130 @@ export function FeatureAnalyticBudgetWorkspace({
                 </Button>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-gray-50 dark:bg-gray-800">
-                  <TableRow>
-                    <TableHead className="px-6 py-3 text-xs uppercase">Budget Name</TableHead>
-                    <TableHead className="px-6 py-3 text-xs uppercase">Analytic Account</TableHead>
-                    <TableHead className="px-6 py-3 text-xs uppercase">Period</TableHead>
-                    <TableHead className="px-6 py-3 text-right text-xs uppercase">Target Amount</TableHead>
-                    <TableHead className="px-6 py-3 text-right text-xs uppercase">
-                      Practical Amount
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-center text-xs uppercase">Achievement</TableHead>
-                    <TableHead className="px-6 py-3 text-right text-xs uppercase">
-                      <span className="sr-only">Edit</span>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {budgetRows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
-                        Data budget belum tersedia.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                  {budgetRows.map((row) => (
-                    <TableRow key={row.budget_id} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <TableCell className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div
-                            className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${row.avatar_class}`}
-                          >
-                            {row.avatar}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {row.budget_name}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{row.department}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <span className="inline-flex rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                          {row.analytic_account}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                        {row.period}
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-right text-sm font-medium text-gray-900 dark:text-white">
-                        {row.target_amount}
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-right text-sm text-gray-500 dark:text-gray-400">
-                        {row.practical_amount}
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <Progress value={row.achievement_percent} className="h-2.5 max-w-[100px]" />
-                          <span className={`text-xs font-medium ${row.achievement_class}`}>
-                            {row.achievement_label}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-right text-sm font-medium">
-                        <Button
-                          type="button"
-                          variant="link"
-                          className="h-auto px-0 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-                          onClick={() => onEditBudget?.(row.budget_id)}
+            <div className="overflow-x-auto p-4">
+              <TableShell
+                columns={[
+                  {
+                    id: "budget_name",
+                    header: <>Budget Name</>,
+                    cell: ({ row }) => (
+                      <div className="flex items-center">
+                        <div
+                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${row.original.avatar_class}`}
                         >
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                          {row.original.avatar}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {row.original.budget_name}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {row.original.department}
+                          </div>
+                        </div>
+                      </div>
+                    ),
+                    meta: {
+                      headerClassName:
+                        "px-6 py-3 text-xs uppercase bg-gray-50 dark:bg-gray-800",
+                      cellClassName: "px-6 py-4",
+                    },
+                  },
+                  {
+                    id: "analytic_account",
+                    header: <>Analytic Account</>,
+                    cell: ({ row }) => (
+                      <span className="inline-flex rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                        {row.original.analytic_account}
+                      </span>
+                    ),
+                    meta: {
+                      headerClassName: "px-6 py-3 text-xs uppercase",
+                      cellClassName: "px-6 py-4",
+                    },
+                  },
+                  {
+                    id: "period",
+                    header: <>Period</>,
+                    cell: ({ row }) => row.original.period,
+                    meta: {
+                      headerClassName: "px-6 py-3 text-xs uppercase",
+                      cellClassName:
+                        "px-6 py-4 text-sm text-gray-500 dark:text-gray-400",
+                    },
+                  },
+                  {
+                    id: "target_amount",
+                    header: <>Target Amount</>,
+                    cell: ({ row }) => row.original.target_amount,
+                    meta: {
+                      headerClassName: "px-6 py-3 text-right text-xs uppercase",
+                      cellClassName:
+                        "px-6 py-4 text-right text-sm font-medium text-gray-900 dark:text-white",
+                    },
+                  },
+                  {
+                    id: "practical_amount",
+                    header: <>Practical Amount</>,
+                    cell: ({ row }) => row.original.practical_amount,
+                    meta: {
+                      headerClassName: "px-6 py-3 text-right text-xs uppercase",
+                      cellClassName:
+                        "px-6 py-4 text-right text-sm text-gray-500 dark:text-gray-400",
+                    },
+                  },
+                  {
+                    id: "achievement",
+                    header: <>Achievement</>,
+                    cell: ({ row }) => (
+                      <div className="flex items-center justify-center gap-2">
+                        <Progress
+                          value={row.original.achievement_percent}
+                          className="h-2.5 max-w-[100px]"
+                        />
+                        <span
+                          className={`text-xs font-medium ${row.original.achievement_class}`}
+                        >
+                          {row.original.achievement_label}
+                        </span>
+                      </div>
+                    ),
+                    meta: {
+                      headerClassName:
+                        "px-6 py-3 text-center text-xs uppercase",
+                      cellClassName: "px-6 py-4",
+                    },
+                  },
+                  {
+                    id: "actions",
+                    header: (
+                      <>
+                        <span className="sr-only">Edit</span>
+                      </>
+                    ),
+                    cell: ({ row }) => (
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto px-0 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        onClick={() => onEditBudget?.(row.original.budget_id)}
+                      >
+                        Edit
+                      </Button>
+                    ),
+                    meta: {
+                      headerClassName: "px-6 py-3 text-right text-xs uppercase",
+                      cellClassName: "px-6 py-4 text-right text-sm font-medium",
+                    },
+                  },
+                ]}
+                data={budgetRows}
+                headerClassName="bg-gray-50 dark:bg-gray-800"
+                getRowId={(row) => row.budget_id}
+                emptyState="Data budget belum tersedia."
+                rowHoverable={false}
+                rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              />
             </div>
           </div>
         </TabsContent>
@@ -241,17 +287,25 @@ export function FeatureAnalyticBudgetWorkspace({
                       {card.status}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">{card.account_name}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {card.account_name}
+                  </h3>
                   <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
                     Cost Center: {card.reference_code}
                   </p>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Current Balance</span>
-                      <span className={`font-medium ${card.balance_class}`}>{card.current_balance}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Current Balance
+                      </span>
+                      <span className={`font-medium ${card.balance_class}`}>
+                        {card.current_balance}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Active Budgets</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Active Budgets
+                      </span>
                       <span className="font-medium text-gray-900 dark:text-white">
                         {card.active_budgets}
                       </span>

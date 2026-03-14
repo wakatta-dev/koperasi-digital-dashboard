@@ -2,7 +2,39 @@
 
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { usePartnerManagementSellers } from "@/hooks/queries/partner-management";
+import type { PartnerManagementSellerItem } from "@/types/api/partner-management";
+
+const columns: ColumnDef<PartnerManagementSellerItem, unknown>[] = [
+  {
+    id: "seller",
+    header: "Seller",
+    cell: ({ row }) => (
+      <div>
+        <div className="font-medium text-foreground">{row.original.seller_name}</div>
+        <div className="text-xs text-muted-foreground">{row.original.owner_name || "-"}</div>
+      </div>
+    ),
+  },
+  {
+    id: "business",
+    header: "Business",
+    cell: ({ row }) => row.original.business_name || "-",
+  },
+  {
+    accessorKey: "lifecycle_state",
+    header: "Lifecycle",
+  },
+  {
+    id: "ownershipRef",
+    header: "Ownership Ref",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">Seller #{row.original.seller_id}</span>
+    ),
+  },
+];
 
 export function PartnerManagementPage() {
   const sellersQuery = usePartnerManagementSellers();
@@ -31,36 +63,16 @@ export function PartnerManagementPage() {
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40">
-            <tr>
-              <th className="px-4 py-3 text-left">Seller</th>
-              <th className="px-4 py-3 text-left">Business</th>
-              <th className="px-4 py-3 text-left">Lifecycle</th>
-              <th className="px-4 py-3 text-left">Ownership Ref</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((seller) => (
-              <tr key={seller.seller_id} className="border-t border-border">
-                <td className="px-4 py-3">
-                  <div className="font-medium text-foreground">{seller.seller_name}</div>
-                  <div className="text-xs text-muted-foreground">{seller.owner_name || "-"}</div>
-                </td>
-                <td className="px-4 py-3 text-foreground">{seller.business_name || "-"}</td>
-                <td className="px-4 py-3 text-foreground">{seller.lifecycle_state}</td>
-                <td className="px-4 py-3 text-muted-foreground">Seller #{seller.seller_id}</td>
-              </tr>
-            ))}
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
-                  Belum ada seller terdaftar.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+        <TableShell
+          columns={columns}
+          data={items}
+          getRowId={(row) => String(row.seller_id)}
+          emptyState="Belum ada seller terdaftar."
+          surface="bare"
+          tableClassName="w-full text-sm"
+          headerClassName="bg-muted/40"
+          bodyClassName="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4 [&_th]:py-3"
+        />
       </div>
     </div>
   );

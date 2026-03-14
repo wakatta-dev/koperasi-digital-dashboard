@@ -1,6 +1,8 @@
 /** @format */
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SupportSystemReadiness } from "@/types/api";
@@ -88,9 +90,13 @@ export function FeatureSystemReadinessCard({
       ? "unavailable"
       : (data.state ?? data.status);
   const missingDomains =
-    data?.domains.filter((domain) => (domain.state ?? domain.status) !== "ready") ?? [];
-  const blockedCriticalFlows = data?.critical_flows.filter((flow) => flow.status === "blocked") ?? [];
-  const hasReadinessBlockers = missingDomains.length > 0 || blockedCriticalFlows.length > 0;
+    data?.domains.filter(
+      (domain) => (domain.state ?? domain.status) !== "ready",
+    ) ?? [];
+  const blockedCriticalFlows =
+    data?.critical_flows.filter((flow) => flow.status === "blocked") ?? [];
+  const hasReadinessBlockers =
+    missingDomains.length > 0 || blockedCriticalFlows.length > 0;
 
   return (
     <Card className={`${settingsSurfaceClassName} overflow-hidden`}>
@@ -99,8 +105,8 @@ export function FeatureSystemReadinessCard({
           <div>
             <h2 className={settingsSectionTitleClassName}>Kesiapan Sistem</h2>
             <p className={`mt-1 ${settingsMutedTextClassName}`}>
-              Validasi dependency minimum sebelum marketplace, rental, dan accounting dipakai
-              untuk flow inti.
+              Validasi dependency minimum sebelum marketplace, rental, dan
+              accounting dipakai untuk flow inti.
             </p>
           </div>
           <Badge className={statusBadgeClass(displayStatus)}>
@@ -111,7 +117,9 @@ export function FeatureSystemReadinessCard({
 
       <CardContent className={`${settingsCardContentClassName} space-y-5`}>
         {isLoading ? (
-          <p className="text-sm text-gray-500">Memeriksa kesiapan data master dan konfigurasi…</p>
+          <p className="text-sm text-gray-500">
+            Memeriksa kesiapan data master dan konfigurasi…
+          </p>
         ) : null}
 
         {error ? (
@@ -127,16 +135,16 @@ export function FeatureSystemReadinessCard({
               <Alert className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
                 <AlertTitle>Flow inti belum siap sepenuhnya</AlertTitle>
                 <AlertDescription>
-                  Selesaikan dependency domain dan gate evidence yang masih blocker sebelum
-                  mengandalkan flow inti pada release readiness.
+                  Selesaikan dependency domain dan gate evidence yang masih
+                  blocker sebelum mengandalkan flow inti pada release readiness.
                 </AlertDescription>
               </Alert>
             ) : (
               <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">
                 <AlertTitle>Semua dependency inti sudah siap</AlertTitle>
                 <AlertDescription>
-                  Tenant ini sudah memiliki baseline konfigurasi dan data minimum untuk flow inti
-                  MVP.
+                  Tenant ini sudah memiliki baseline konfigurasi dan data
+                  minimum untuk flow inti MVP.
                 </AlertDescription>
               </Alert>
             )}
@@ -147,7 +155,8 @@ export function FeatureSystemReadinessCard({
                   Fondasi Umum Tenant
                 </h3>
                 <p className="text-xs text-gray-500">
-                  Dependency dasar yang dipakai lintas marketplace, rental, dan accounting.
+                  Dependency dasar yang dipakai lintas marketplace, rental, dan
+                  accounting.
                 </p>
               </div>
               <ul className="grid gap-3 md:grid-cols-2">
@@ -162,10 +171,14 @@ export function FeatureSystemReadinessCard({
                           {item.label}
                         </p>
                         {item.message ? (
-                          <p className="mt-1 text-xs text-gray-500">{item.message}</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            {item.message}
+                          </p>
                         ) : null}
                       </div>
-                      <Badge className={statusBadgeClass(item.status)}>{statusLabel(item.status)}</Badge>
+                      <Badge className={statusBadgeClass(item.status)}>
+                        {statusLabel(item.status)}
+                      </Badge>
                     </div>
                   </li>
                 ))}
@@ -178,8 +191,8 @@ export function FeatureSystemReadinessCard({
                   Status per Domain
                 </h3>
                 <p className="text-xs text-gray-500">
-                  Domain dengan status belum siap harus diselesaikan lebih dulu sebelum flow inti
-                  domain tersebut dipakai penuh.
+                  Domain dengan status belum siap harus diselesaikan lebih dulu
+                  sebelum flow inti domain tersebut dipakai penuh.
                 </p>
               </div>
               <div className="grid gap-4 xl:grid-cols-3">
@@ -194,7 +207,8 @@ export function FeatureSystemReadinessCard({
                           {domain.label}
                         </h4>
                         <p className="mt-1 text-xs text-gray-500">
-                          {domain.ready_count} siap • {domain.missing_count} kurang
+                          {domain.ready_count} siap • {domain.missing_count}{" "}
+                          kurang
                         </p>
                       </div>
                       <Badge className={statusBadgeClass(domain.status)}>
@@ -204,14 +218,19 @@ export function FeatureSystemReadinessCard({
 
                     <ul className="mt-4 space-y-3">
                       {domain.items.map((item, itemIndex) => (
-                        <li key={`${item.key}-${itemIndex}`} className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-900/60">
+                        <li
+                          key={`${item.key}-${itemIndex}`}
+                          className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-900/60"
+                        >
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <p className="text-sm font-medium text-gray-900 dark:text-white">
                                 {item.label}
                               </p>
                               {item.message ? (
-                                <p className="mt-1 text-xs text-gray-500">{item.message}</p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {item.message}
+                                </p>
                               ) : null}
                             </div>
                             <Badge className={statusBadgeClass(item.status)}>
@@ -232,8 +251,8 @@ export function FeatureSystemReadinessCard({
                   Readiness Matrix Flow Kritis
                 </h3>
                 <p className="text-xs text-gray-500">
-                  Matriks release-readiness untuk flow authoritative yang harus punya evidence
-                  eksplisit sebelum sprint dinyatakan siap.
+                  Matriks release-readiness untuk flow authoritative yang harus
+                  punya evidence eksplisit sebelum sprint dinyatakan siap.
                 </p>
               </div>
 
@@ -268,45 +287,84 @@ export function FeatureSystemReadinessCard({
                     </div>
 
                     <div className="mt-4 overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200 text-left text-sm dark:divide-gray-800">
-                        <thead>
-                          <tr className="text-xs uppercase tracking-wide text-gray-500">
-                            <th className="py-2 pr-3 font-medium">Gate</th>
-                            <th className="px-3 py-2 font-medium">Requirement</th>
-                            <th className="px-3 py-2 font-medium">Evidence</th>
-                            <th className="px-3 py-2 font-medium">Owner</th>
-                            <th className="px-3 py-2 font-medium">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-900/70">
-                          {flow.gates.map((gate, gateIndex) => (
-                            <tr key={`${gate.key}-${gateIndex}`} className="align-top">
-                              <td className="py-3 pr-3">
+                      {(() => {
+                        const columns: ColumnDef<(typeof flow.gates)[number], unknown>[] = [
+                          {
+                            id: "gate",
+                            header: "Gate",
+                            meta: {
+                              headerClassName: "py-2 pr-3 font-medium whitespace-normal",
+                              cellClassName: "py-3 pr-3 whitespace-normal",
+                            },
+                            cell: ({ row }) => (
+                              <>
                                 <div className="font-medium text-gray-900 dark:text-white">
-                                  {gate.label}
+                                  {row.original.label}
                                 </div>
-                                {gate.message ? (
-                                  <p className="mt-1 text-xs text-gray-500">{gate.message}</p>
+                                {row.original.message ? (
+                                  <p className="mt-1 text-xs text-gray-500">
+                                    {row.original.message}
+                                  </p>
                                 ) : null}
-                              </td>
-                              <td className="px-3 py-3 text-xs text-gray-600 dark:text-gray-300">
-                                {gate.requirement_codes.join(", ")}
-                              </td>
-                              <td className="px-3 py-3 text-xs text-gray-600 dark:text-gray-300">
-                                {gate.evidence_type}
-                              </td>
-                              <td className="px-3 py-3 text-xs text-gray-600 dark:text-gray-300">
-                                {gate.owner}
-                              </td>
-                              <td className="px-3 py-3">
-                                <Badge className={gateStatusBadgeClass(gate.status)}>
-                                  {gateStatusLabel(gate.status)}
-                                </Badge>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              </>
+                            ),
+                          },
+                          {
+                            id: "requirement",
+                            header: "Requirement",
+                            meta: {
+                              headerClassName: "px-3 py-2 font-medium whitespace-normal",
+                              cellClassName:
+                                "px-3 py-3 text-xs text-gray-600 dark:text-gray-300 whitespace-normal",
+                            },
+                            cell: ({ row }) => row.original.requirement_codes.join(", "),
+                          },
+                          {
+                            id: "evidence",
+                            header: "Evidence",
+                            meta: {
+                              headerClassName: "px-3 py-2 font-medium whitespace-normal",
+                              cellClassName:
+                                "px-3 py-3 text-xs text-gray-600 dark:text-gray-300 whitespace-normal",
+                            },
+                            cell: ({ row }) => row.original.evidence_type,
+                          },
+                          {
+                            id: "owner",
+                            header: "Owner",
+                            meta: {
+                              headerClassName: "px-3 py-2 font-medium whitespace-normal",
+                              cellClassName:
+                                "px-3 py-3 text-xs text-gray-600 dark:text-gray-300 whitespace-normal",
+                            },
+                            cell: ({ row }) => row.original.owner,
+                          },
+                          {
+                            id: "status",
+                            header: "Status",
+                            meta: {
+                              headerClassName: "px-3 py-2 font-medium whitespace-normal",
+                              cellClassName: "px-3 py-3 whitespace-normal",
+                            },
+                            cell: ({ row }) => (
+                              <Badge className={gateStatusBadgeClass(row.original.status)}>
+                                {gateStatusLabel(row.original.status)}
+                              </Badge>
+                            ),
+                          },
+                        ];
+                        return (
+                      <TableShell
+                        tableClassName="min-w-full divide-y divide-gray-200 text-left text-sm dark:divide-gray-800"
+                        columns={columns}
+                        data={flow.gates}
+                        getRowId={(row, index) => `${row.key}-${index}`}
+                        headerRowClassName="text-xs uppercase tracking-wide text-gray-500"
+                        bodyClassName="divide-y divide-gray-100 dark:divide-gray-900/70"
+                        rowClassName="align-top"
+                      />
+                        );
+                      })()}
                     </div>
                   </article>
                 ))}

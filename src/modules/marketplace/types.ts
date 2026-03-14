@@ -32,6 +32,7 @@ export type ProductListItem = {
   status: ProductStatus;
   internalStatus?: string;
   marketplaceLabel?: string;
+  sellerLabel?: string;
   stockCount: number;
   price: number;
   thumbnailUrl?: string | null;

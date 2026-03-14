@@ -12,7 +12,7 @@ import { InputField } from "@/components/shared/inputs/input-field";
 import { TableCell } from "@/components/shared/data-display/TableCell";
 import { TableHeader } from "@/components/shared/data-display/TableHeader";
 import { TableRow } from "@/components/shared/data-display/TableRow";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import { TableViewport } from "@/components/shared/data-display/TableViewport";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QK } from "@/hooks/queries/queryKeys";
@@ -23,7 +23,10 @@ import { AssetRentalFeatureShell } from "@/modules/asset/components/asset-rental
 
 import type { AssetListItem } from "../../types/stitch";
 import { mapApiAssetToListItem } from "../../utils/stitch-contract-mappers";
-import { toFormOptionGroups, useAssetMasterData } from "../../hooks/use-asset-master-data";
+import {
+  toFormOptionGroups,
+  useAssetMasterData,
+} from "../../hooks/use-asset-master-data";
 
 const statusClassMap: Record<AssetListItem["status"], string> = {
   "Draft Internal":
@@ -88,7 +91,7 @@ export function AssetListFeature() {
 
   const sourceItems: AssetListItem[] = useMemo(
     () => assetsQuery.data ?? [],
-    [assetsQuery.data]
+    [assetsQuery.data],
   );
 
   const filteredItems = useMemo(() => {
@@ -111,7 +114,7 @@ export function AssetListFeature() {
   const currentPage = Math.min(page, pageCount);
   const pagedItems = filteredItems.slice(
     (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    currentPage * pageSize,
   );
 
   const handleDeleteAsset = async (item: AssetListItem) => {
@@ -135,7 +138,8 @@ export function AssetListFeature() {
       await archiveMutation.mutateAsync(assetId);
       showToastSuccess("Aset dihapus", "Aset berhasil diarsipkan.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gagal menghapus aset";
+      const message =
+        error instanceof Error ? error.message : "Gagal menghapus aset";
       showToastError("Gagal menghapus aset", message);
     }
   };
@@ -145,7 +149,10 @@ export function AssetListFeature() {
       title="Daftar Aset"
       description="Kelola data aset utama tanpa elemen layout tambahan."
       actions={
-        <Button asChild className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+        <Button
+          asChild
+          className="gap-2 bg-indigo-600 text-white hover:bg-indigo-700"
+        >
           <Link href="/bumdes/asset/manajemen/tambah">
             <Plus className="h-4 w-4" />
             <span>Tambah Aset</span>
@@ -180,7 +187,9 @@ export function AssetListFeature() {
 
         {showQuickFilters ? (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-sm font-medium text-slate-500">Filter Cepat:</span>
+            <span className="mr-1 text-sm font-medium text-slate-500">
+              Filter Cepat:
+            </span>
             {quickFilters.map((filterItem) => (
               <button
                 key={filterItem}
@@ -193,7 +202,7 @@ export function AssetListFeature() {
                   "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                   filterItem === quickFilter
                     ? "border-indigo-200 bg-indigo-100 text-indigo-600"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300",
                 )}
               >
                 {filterItem}
@@ -203,7 +212,7 @@ export function AssetListFeature() {
         ) : null}
 
         <div className="overflow-hidden rounded-xl border border-slate-200">
-          <TableShell className="w-full">
+          <TableViewport className="w-full">
             <TableHeader className="bg-slate-50">
               <TableRow className="hover:bg-slate-50">
                 <TableCell as="th" scope="col" className="w-12 px-4">
@@ -229,14 +238,20 @@ export function AssetListFeature() {
             <tbody>
               {assetsQuery.isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <TableCell
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-slate-500"
+                  >
                     Memuat data aset...
                   </TableCell>
                 </TableRow>
               ) : null}
               {assetsQuery.isError ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="px-4 py-8 text-center text-red-600">
+                  <TableCell
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-red-600"
+                  >
                     Gagal memuat data aset.{" "}
                     <button
                       type="button"
@@ -248,80 +263,108 @@ export function AssetListFeature() {
                   </TableCell>
                 </TableRow>
               ) : null}
-              {!assetsQuery.isLoading && !assetsQuery.isError && pagedItems.length === 0 ? (
+              {!assetsQuery.isLoading &&
+              !assetsQuery.isError &&
+              pagedItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <TableCell
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-slate-500"
+                  >
                     Tidak ada data aset.
                   </TableCell>
                 </TableRow>
               ) : null}
               {!assetsQuery.isLoading && !assetsQuery.isError
                 ? pagedItems.map((item, index) => (
-                <TableRow key={item.id} className="bg-white">
-                  <TableCell className="px-4 text-sm text-slate-500">
-                    {(currentPage - 1) * pageSize + index + 1}
-                  </TableCell>
-                  <TableCell className="px-4">
-                    <div className="space-y-1">
-                      <Link
-                        href={`/bumdes/asset/manajemen/${encodeURIComponent(item.id)}`}
-                        className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
-                      >
-                        {item.name}
-                      </Link>
-                      <div className="text-xs text-slate-500">{item.assetTag}</div>
-                      <div className="text-xs text-slate-500">
-                        Status internal: {item.internalLifecycle} ·{" "}
-                        {item.publicReady ? "Siap diaktifkan untuk publik" : "Belum siap publik"}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 text-sm text-slate-600">{item.category}</TableCell>
-                  <TableCell className="px-4">
-                    <Badge className={cn("rounded-full px-2.5 py-0.5 text-xs", statusClassMap[item.status])}>
-                      {item.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 text-sm text-slate-600">{item.location}</TableCell>
-                  <TableCell className="px-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="icon"
-                        className="text-slate-500 hover:text-indigo-600"
-                        title="Edit aset"
-                      >
-                        <Link href={`/bumdes/asset/manajemen/edit?assetId=${encodeURIComponent(item.id)}`}>
-                          <SquarePen className="h-4 w-4" />
-                          <span className="sr-only">Edit aset</span>
-                        </Link>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-slate-500 hover:text-red-600"
-                        title="Hapus aset"
-                        disabled={archiveMutation.isPending}
-                        onClick={() => void handleDeleteAsset(item)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Hapus aset</span>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                    <TableRow key={item.id} className="bg-white">
+                      <TableCell className="px-4 text-sm text-slate-500">
+                        {(currentPage - 1) * pageSize + index + 1}
+                      </TableCell>
+                      <TableCell className="px-4">
+                        <div className="space-y-1">
+                          <Link
+                            href={`/bumdes/asset/manajemen/${encodeURIComponent(item.id)}`}
+                            className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
+                          >
+                            {item.name}
+                          </Link>
+                          <div className="text-xs text-slate-500">
+                            {item.assetTag}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            Status internal: {item.internalLifecycle} ·{" "}
+                            {item.publicReady
+                              ? "Siap diaktifkan untuk publik"
+                              : "Belum siap publik"}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 text-sm text-slate-600">
+                        {item.category}
+                      </TableCell>
+                      <TableCell className="px-4">
+                        <Badge
+                          className={cn(
+                            "rounded-full px-2.5 py-0.5 text-xs",
+                            statusClassMap[item.status],
+                          )}
+                        >
+                          {item.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-4 text-sm text-slate-600">
+                        {item.location}
+                      </TableCell>
+                      <TableCell className="px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-500 hover:text-indigo-600"
+                            title="Edit aset"
+                          >
+                            <Link
+                              href={`/bumdes/asset/manajemen/edit?assetId=${encodeURIComponent(item.id)}`}
+                            >
+                              <SquarePen className="h-4 w-4" />
+                              <span className="sr-only">Edit aset</span>
+                            </Link>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-500 hover:text-red-600"
+                            title="Hapus aset"
+                            disabled={archiveMutation.isPending}
+                            onClick={() => void handleDeleteAsset(item)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Hapus aset</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))
                 : null}
             </tbody>
-          </TableShell>
+          </TableViewport>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
           <p>
-            Menampilkan <span className="font-medium text-slate-900">{pagedItems.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, filteredItems.length)}</span> dari{" "}
-            <span className="font-medium text-slate-900">{filteredItems.length}</span> data
+            Menampilkan{" "}
+            <span className="font-medium text-slate-900">
+              {pagedItems.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
+              {Math.min(currentPage * pageSize, filteredItems.length)}
+            </span>{" "}
+            dari{" "}
+            <span className="font-medium text-slate-900">
+              {filteredItems.length}
+            </span>{" "}
+            data
           </p>
           <div className="flex gap-2">
             <Button

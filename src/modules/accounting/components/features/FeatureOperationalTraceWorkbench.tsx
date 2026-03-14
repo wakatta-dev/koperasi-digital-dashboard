@@ -9,14 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -391,74 +384,85 @@ export function FeatureOperationalTraceWorkbench() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Domain</TableHead>
-                <TableHead>Referensi</TableHead>
-                <TableHead>Status Operasional</TableHead>
-                <TableHead>Status Pembayaran</TableHead>
-                <TableHead>Status Accounting</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {!visibleRows.length ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center text-sm text-muted-foreground"
-                  >
-                    Belum ada transaksi operasional yang dapat ditelusuri.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {visibleRows.map((row) => (
-                <TableRow
-                  key={row.key}
-                  data-selected={row.key === selectedRow?.key || undefined}
-                >
-                  <TableCell>
-                    {row.domain === "marketplace" ? "Marketplace" : "Rental"}
-                  </TableCell>
-                  <TableCell className="font-medium">{row.reference}</TableCell>
-                  <TableCell>{row.operationalStatus}</TableCell>
-                  <TableCell>{row.paymentStatus}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-2">
-                      <Badge
-                        className={
-                          ACCOUNTING_STATUS_BADGE[row.accountingStatus] ||
-                          ACCOUNTING_STATUS_BADGE["Belum Siap"]
-                        }
-                      >
-                        {row.accountingStatus}
-                      </Badge>
-                      <Badge
-                        className={
-                          RECONCILIATION_BADGE[row.reconciliationStatus]
-                        }
-                      >
-                        {row.reconciliationStatus}
-                      </Badge>
-                      <Badge className={REPORTING_BADGE[row.reportingStatus]}>
-                        {row.reportingStatus}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedKey(row.key)}
+          <TableShell
+            columns={[
+              {
+                id: "domain",
+                header: <>Domain</>,
+                cell: ({ row }) =>
+                  row.original.domain === "marketplace"
+                    ? "Marketplace"
+                    : "Rental",
+              },
+              {
+                id: "reference",
+                header: <>Referensi</>,
+                meta: {
+                  cellClassName: "font-medium",
+                },
+              },
+              {
+                id: "operationalStatus",
+                header: <>Status Operasional</>,
+              },
+              {
+                id: "paymentStatus",
+                header: <>Status Pembayaran</>,
+              },
+              {
+                id: "accountingStatus",
+                header: <>Status Accounting</>,
+                cell: ({ row }) => (
+                  <div className="flex flex-col gap-2">
+                    <Badge
+                      className={
+                        ACCOUNTING_STATUS_BADGE[
+                          row.original.accountingStatus
+                        ] || ACCOUNTING_STATUS_BADGE["Belum Siap"]
+                      }
                     >
-                      Lihat Trace
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                      {row.original.accountingStatus}
+                    </Badge>
+                    <Badge
+                      className={
+                        RECONCILIATION_BADGE[row.original.reconciliationStatus]
+                      }
+                    >
+                      {row.original.reconciliationStatus}
+                    </Badge>
+                    <Badge
+                      className={REPORTING_BADGE[row.original.reportingStatus]}
+                    >
+                      {row.original.reportingStatus}
+                    </Badge>
+                  </div>
+                ),
+              },
+              {
+                id: "actions",
+                header: <>Aksi</>,
+                cell: ({ row }) => (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedKey(row.original.key)}
+                  >
+                    Lihat Trace
+                  </Button>
+                ),
+                meta: {
+                  headerClassName: "text-right",
+                  cellClassName: "text-right",
+                },
+              },
+            ]}
+            data={visibleRows}
+            getRowId={(row) => row.key}
+            emptyState="Belum ada transaksi operasional yang dapat ditelusuri."
+            rowClassName={(row) =>
+              row.key === selectedRow?.key ? "bg-muted/40" : undefined
+            }
+          />
         </CardContent>
       </Card>
 
@@ -968,7 +972,9 @@ export function FeatureOperationalTraceWorkbench() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Governance Source</p>
+                        <p className="text-xs text-slate-500">
+                          Governance Source
+                        </p>
                         <p className="text-sm font-medium text-slate-900">
                           {exceptionContextQuery.data?.governance_source ??
                             "standard_inheritance"}
@@ -1011,13 +1017,22 @@ export function FeatureOperationalTraceWorkbench() {
                       Governance Roles
                     </p>
                     <p className="mt-2 text-sm text-slate-700">
-                      Owner: {(exceptionContextQuery.data?.owner_roles ?? []).join(", ") || "-"}
+                      Owner:{" "}
+                      {(exceptionContextQuery.data?.owner_roles ?? []).join(
+                        ", ",
+                      ) || "-"}
                     </p>
                     <p className="mt-1 text-sm text-slate-700">
-                      Reviewer: {(exceptionContextQuery.data?.reviewer_roles ?? []).join(", ") || "-"}
+                      Reviewer:{" "}
+                      {(exceptionContextQuery.data?.reviewer_roles ?? []).join(
+                        ", ",
+                      ) || "-"}
                     </p>
                     <p className="mt-1 text-sm text-slate-700">
-                      Support: {(exceptionContextQuery.data?.support_roles ?? []).join(", ") || "-"}
+                      Support:{" "}
+                      {(exceptionContextQuery.data?.support_roles ?? []).join(
+                        ", ",
+                      ) || "-"}
                     </p>
                   </div>
                 </div>
