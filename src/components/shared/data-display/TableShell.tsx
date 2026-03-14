@@ -231,6 +231,7 @@ export function TableShell<Row>({
         columns={normalizeColumns(restProps.columns)}
         tableClassName={tableClassName}
         containerClassName={containerClassName}
+        wrapperClassName={cn(pagination ? "border-0" : "")}
         footer={footer}
       />
 

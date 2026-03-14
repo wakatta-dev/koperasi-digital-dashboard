@@ -10,7 +10,10 @@ import { MoreVertical, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import type { TaxRow } from "../../types/settings";
 
@@ -20,6 +23,8 @@ type FeatureTaxesTableProps = {
   onOpenActions?: (tax: TaxRow) => void;
   renderActions?: (tax: TaxRow) => ReactNode;
   onToggleStatus?: (tax: TaxRow, next: boolean) => void;
+  pagination?: TablePagePaginationMeta;
+  onPageChange?: (nextPage: number) => void;
 };
 
 const TAX_TYPE_CLASS: Record<TaxRow["tax_type"], string> = {
@@ -37,6 +42,8 @@ export function FeatureTaxesTable({
   onOpenActions,
   renderActions,
   onToggleStatus,
+  pagination,
+  onPageChange,
 }: FeatureTaxesTableProps) {
   const [statusByTaxId, setStatusByTaxId] = useState<Record<string, boolean>>(
     () =>
@@ -196,17 +203,34 @@ export function FeatureTaxesTable({
       </div>
 
       <div className="overflow-hidden rounded-xl bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <TableShell
-            tableClassName="text-sm"
-            columns={columns}
-            data={normalizedRows}
-            getRowId={(row) => row.tax_id}
-            emptyState="Data pajak belum tersedia."
-            headerClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
-            rowClassName="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
-          />
-        </div>
+        <TableShell
+          className="space-y-0"
+          containerClassName="overflow-x-auto"
+          tableClassName="text-sm"
+          columns={columns}
+          data={normalizedRows}
+          getRowId={(row) => row.tax_id}
+          emptyState="Data pajak belum tersedia."
+          headerClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+          rowClassName="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          surface="bare"
+          pagination={pagination}
+          paginationInfo={
+            pagination
+              ? `Showing ${rows.length ? (pagination.page - 1) * pagination.pageSize + 1 : 0} to ${Math.min((pagination.page - 1) * pagination.pageSize + rows.length, pagination.totalItems)} of ${pagination.totalItems} taxes`
+              : undefined
+          }
+          onPrevPage={() =>
+            pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+          }
+          onNextPage={() =>
+            pagination &&
+            onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+          }
+          paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
+        />
       </div>
     </div>
   );

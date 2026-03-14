@@ -2,12 +2,15 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import type { CoaAccountRow } from "../../types/settings";
 
@@ -16,6 +19,8 @@ type FeatureCoaTableProps = {
   onAddAccount?: () => void;
   onEditAccount?: (account: CoaAccountRow) => void;
   onDeleteAccount?: (account: CoaAccountRow) => void;
+  pagination?: TablePagePaginationMeta;
+  onPageChange?: (nextPage: number) => void;
 };
 
 const PAGE_SIZE = 12;
@@ -32,15 +37,13 @@ export function FeatureCoaTable({
   onAddAccount,
   onEditAccount,
   onDeleteAccount,
+  pagination,
+  onPageChange,
 }: FeatureCoaTableProps) {
-  const [page, setPage] = useState(1);
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-
-  const pagedRows = useMemo(
-    () => rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [rows, currentPage],
-  );
+  const pageCount = pagination?.totalPages ?? Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = pagination?.page ?? 1;
+  const resolvedPageSize = pagination?.pageSize ?? PAGE_SIZE;
+  const pagedRows = useMemo(() => rows, [rows]);
   const columns: ColumnDef<CoaAccountRow, unknown>[] = [
     {
       id: "code",
@@ -172,15 +175,25 @@ export function FeatureCoaTable({
                 : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
           }
           surface="bare"
-          pagination={{
-            page: currentPage,
-            pageSize: PAGE_SIZE,
-            totalItems: rows.length,
-            totalPages: pageCount,
-          }}
-          paginationInfo={`Showing ${pagedRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} to ${Math.min(currentPage * PAGE_SIZE, rows.length)} of ${rows.length} accounts`}
-          onPrevPage={() => setPage((value) => Math.max(1, value - 1))}
-          onNextPage={() => setPage((value) => Math.min(pageCount, value + 1))}
+          pagination={
+            pagination ?? {
+              page: currentPage,
+              pageSize: resolvedPageSize,
+              totalItems: rows.length,
+              totalPages: pageCount,
+            }
+          }
+          paginationInfo={`Showing ${pagedRows.length === 0 ? 0 : (currentPage - 1) * resolvedPageSize + 1} to ${Math.min((currentPage - 1) * resolvedPageSize + pagedRows.length, pagination?.totalItems ?? rows.length)} of ${pagination?.totalItems ?? rows.length} accounts`}
+          onPrevPage={
+            onPageChange
+              ? () => onPageChange(Math.max(1, currentPage - 1))
+              : undefined
+          }
+          onNextPage={
+            onPageChange
+              ? () => onPageChange(Math.min(pageCount, currentPage + 1))
+              : undefined
+          }
           paginationClassName="rounded-none border-x-0 border-b-0 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50"
           previousPageLabel="Previous"
           nextPageLabel="Next"

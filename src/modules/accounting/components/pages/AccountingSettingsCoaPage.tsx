@@ -16,7 +16,9 @@ import { mapCoaRows } from "../../utils/settings-api-mappers";
 import type { CoaAccountRow } from "../../types/settings";
 
 export function AccountingSettingsCoaPage() {
-  const coaQuery = useAccountingSettingsCoa({ page: 1, per_page: 45 });
+  const [page, setPage] = useState(1);
+  const perPage = 45;
+  const coaQuery = useAccountingSettingsCoa({ page, per_page: perPage });
   const { createCoa, updateCoa, deleteCoa } = useAccountingSettingsCoaMutations();
 
   const [isAddModalOpen, setAddModalOpen] = useState(false);
@@ -93,6 +95,22 @@ export function AccountingSettingsCoaPage() {
         onAddAccount={() => setAddModalOpen(true)}
         onEditAccount={(account) => setEditingAccount(account)}
         onDeleteAccount={(account) => setDeletingAccount(account)}
+        pagination={
+          coaQuery.data?.pagination
+            ? {
+                page: coaQuery.data.pagination.page,
+                pageSize: coaQuery.data.pagination.per_page,
+                totalItems: coaQuery.data.pagination.total_items,
+                totalPages: coaQuery.data.pagination.total_pages,
+              }
+            : {
+                page,
+                pageSize: perPage,
+                totalItems: rows.length,
+                totalPages: 1,
+              }
+        }
+        onPageChange={setPage}
       />
 
       <FeatureAddCoaAccountModal

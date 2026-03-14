@@ -9,7 +9,10 @@ import { Clock3, MoreVertical, Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import type { CurrencyRow } from "../../types/settings";
 
@@ -17,12 +20,16 @@ type FeatureCurrenciesTableProps = {
   rows?: CurrencyRow[];
   onUpdateRates?: () => void;
   onAddCurrency?: () => void;
+  pagination?: TablePagePaginationMeta;
+  onPageChange?: (nextPage: number) => void;
 };
 
 export function FeatureCurrenciesTable({
   rows = [],
   onUpdateRates,
   onAddCurrency,
+  pagination,
+  onPageChange,
 }: FeatureCurrenciesTableProps) {
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
 
@@ -191,43 +198,34 @@ export function FeatureCurrenciesTable({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <TableShell
-            tableClassName="text-sm"
-            columns={columns}
-            data={rowsWithSelection}
-            getRowId={(row) => row.currency_code}
-            emptyState="Data mata uang belum tersedia."
-            headerClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
-            rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
-          />
-        </div>
-
-        <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Showing{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {rows.length ? 1 : 0}
-            </span>{" "}
-            to{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {rows.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {rows.length}
-            </span>{" "}
-            currencies
-          </p>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" disabled>
-              Previous
-            </Button>
-            <Button type="button" variant="outline" size="sm">
-              Next
-            </Button>
-          </div>
-        </div>
+        <TableShell
+          className="space-y-0"
+          containerClassName="overflow-x-auto"
+          tableClassName="text-sm"
+          columns={columns}
+          data={rowsWithSelection}
+          getRowId={(row) => row.currency_code}
+          emptyState="Data mata uang belum tersedia."
+          headerClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+          rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          surface="bare"
+          pagination={pagination}
+          paginationInfo={
+            pagination
+              ? `Showing ${rows.length ? (pagination.page - 1) * pagination.pageSize + 1 : 0} to ${Math.min((pagination.page - 1) * pagination.pageSize + rows.length, pagination.totalItems)} of ${pagination.totalItems} currencies`
+              : undefined
+          }
+          onPrevPage={() =>
+            pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+          }
+          onNextPage={() =>
+            pagination &&
+            onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+          }
+          paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
+        />
       </div>
     </div>
   );

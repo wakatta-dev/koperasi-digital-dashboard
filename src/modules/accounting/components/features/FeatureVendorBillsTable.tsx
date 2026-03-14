@@ -11,7 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/shared/inputs/input";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import { VENDOR_BILL_STATUS_BADGE_CLASS } from "../../constants/stitch";
 import type { VendorBillListItem } from "../../types/vendor-bills-ap";
@@ -21,17 +24,17 @@ type FeatureVendorBillsTableProps = {
   selectedBillNumbers?: string[];
   onSelectionChange?: (selectedBillNumbers: string[]) => void;
   onRowOpen?: (row: VendorBillListItem) => void;
-  totalResults?: number;
+  pagination?: TablePagePaginationMeta;
+  onPageChange?: (nextPage: number) => void;
 };
-
-const PAGE_SIZE = 5;
 
 export function FeatureVendorBillsTable({
   rows = [],
   selectedBillNumbers,
   onSelectionChange,
   onRowOpen,
-  totalResults,
+  pagination,
+  onPageChange,
 }: FeatureVendorBillsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [internalSelectedBillNumbers, setInternalSelectedBillNumbers] =
@@ -39,15 +42,10 @@ export function FeatureVendorBillsTable({
 
   const currentSelection = selectedBillNumbers ?? internalSelectedBillNumbers;
 
-  const selectableRows = useMemo(
-    () => rows.filter((row) => row.is_selectable),
-    [rows],
-  );
-
   const filteredRows = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
     if (normalizedSearch.length === 0) {
-      return rows.slice(0, PAGE_SIZE);
+      return rows;
     }
 
     return rows
@@ -55,8 +53,7 @@ export function FeatureVendorBillsTable({
         `${row.bill_number} ${row.vendor_name}`
           .toLowerCase()
           .includes(normalizedSearch),
-      )
-      .slice(0, PAGE_SIZE);
+      );
   }, [rows, searchTerm]);
 
   const allVisibleSelectableNumbers = filteredRows
@@ -320,64 +317,48 @@ export function FeatureVendorBillsTable({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <TableShell
-            columns={columns}
-            data={filteredRows}
-            getRowId={(row) => row.bill_number}
-            emptyState="No bill rows found."
-            headerRowClassName="border-b border-gray-200 bg-gray-50/50 text-xs uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800/50"
-            rowClassName={(row) =>
-              row.is_selectable
-                ? "group border-b border-gray-100 transition-colors dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                : "group border-b border-gray-100 transition-colors dark:border-gray-700 cursor-not-allowed opacity-75"
+        <TableShell
+          className="space-y-0"
+          containerClassName="overflow-x-auto"
+          columns={columns}
+          data={filteredRows}
+          getRowId={(row) => row.bill_number}
+          emptyState="No bill rows found."
+          headerRowClassName="border-b border-gray-200 bg-gray-50/50 text-xs uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800/50"
+          rowClassName={(row) =>
+            row.is_selectable
+              ? "group border-b border-gray-100 transition-colors dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              : "group border-b border-gray-100 transition-colors dark:border-gray-700 cursor-not-allowed opacity-75"
+          }
+          onRowClick={(row) => {
+            if (row.is_selectable) {
+              onRowOpen?.(row);
             }
-            onRowClick={(row) => {
-              if (row.is_selectable) {
-                onRowOpen?.(row);
-              }
-            }}
-          />
-        </div>
-
-        <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Showing{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {filteredRows.length > 0 ? 1 : 0}
-            </span>{" "}
-            to{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {filteredRows.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {Math.max(totalResults ?? rows.length, selectableRows.length)}
-            </span>{" "}
-            results
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              disabled
-              className="h-8 w-8 border-gray-200 text-gray-500 dark:border-gray-700"
-            >
-              <span aria-hidden>‹</span>
-              <span className="sr-only">Previous page</span>
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 border-gray-200 text-gray-500 dark:border-gray-700"
-            >
-              <span aria-hidden>›</span>
-              <span className="sr-only">Next page</span>
-            </Button>
-          </div>
-        </div>
+          }}
+          surface="bare"
+          pagination={pagination}
+          paginationInfo={
+            pagination
+              ? `Showing ${filteredRows.length > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0} to ${Math.min((pagination.page - 1) * pagination.pageSize + filteredRows.length, pagination.totalItems)} of ${pagination.totalItems} results`
+              : undefined
+          }
+          onPrevPage={
+            pagination && onPageChange
+              ? () => onPageChange(Math.max(1, pagination.page - 1))
+              : undefined
+          }
+          onNextPage={
+            pagination && onPageChange
+              ? () =>
+                  onPageChange(
+                    Math.min(pagination.totalPages, pagination.page + 1),
+                  )
+              : undefined
+          }
+          paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
+        />
       </CardContent>
     </Card>
   );

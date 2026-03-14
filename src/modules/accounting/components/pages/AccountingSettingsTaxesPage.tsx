@@ -16,7 +16,9 @@ import { mapTaxRows } from "../../utils/settings-api-mappers";
 import type { TaxRow } from "../../types/settings";
 
 export function AccountingSettingsTaxesPage() {
-  const taxesQuery = useAccountingSettingsTaxes({ page: 1, per_page: 20 });
+  const [page, setPage] = useState(1);
+  const perPage = 20;
+  const taxesQuery = useAccountingSettingsTaxes({ page, per_page: perPage });
   const { createTax, updateTax, toggleTaxStatus, duplicateTax, deleteTax } =
     useAccountingSettingsTaxMutations();
 
@@ -111,6 +113,22 @@ export function AccountingSettingsTaxesPage() {
         rows={rows}
         onCreateTax={() => setCreateModalOpen(true)}
         onToggleStatus={handleToggleTax}
+        pagination={
+          taxesQuery.data?.pagination
+            ? {
+                page: taxesQuery.data.pagination.page,
+                pageSize: taxesQuery.data.pagination.per_page,
+                totalItems: taxesQuery.data.pagination.total_items,
+                totalPages: taxesQuery.data.pagination.total_pages,
+              }
+            : {
+                page,
+                pageSize: perPage,
+                totalItems: rows.length,
+                totalPages: 1,
+              }
+        }
+        onPageChange={setPage}
         renderActions={(tax) => (
           <FeatureTaxActionMenu
             tax={tax}

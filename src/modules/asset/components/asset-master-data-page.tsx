@@ -222,7 +222,7 @@ export function AssetMasterDataPage() {
         description="Kelola data referensi kategori, lokasi, dan status agar form aset konsisten dengan database."
       >
         {masterDataQuery.isLoading ? (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+          <div className="rounded-xl  bg-slate-50 px-4 py-6 text-sm text-slate-600">
             Memuat master data aset...
           </div>
         ) : null}
@@ -240,7 +240,7 @@ export function AssetMasterDataPage() {
               return (
                 <section
                   key={section.kind}
-                  className="space-y-3 rounded-xl border border-slate-200 bg-white p-4"
+                  className="space-y-3 rounded-xl  bg-white p-4"
                 >
                   <div>
                     <h4 className="text-base font-semibold text-slate-900">
@@ -273,7 +273,7 @@ export function AssetMasterDataPage() {
                     </Button>
                   </div>
 
-                  <div className="overflow-hidden rounded-lg border border-slate-200">
+                  <div className="overflow-hidden rounded-lg ">
                     <TableShell
                       columns={[
                         {

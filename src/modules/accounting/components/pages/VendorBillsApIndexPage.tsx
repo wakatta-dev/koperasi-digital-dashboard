@@ -41,11 +41,13 @@ function toVendorInitial(name: string) {
 
 export function VendorBillsApIndexPage() {
   const router = useRouter();
+  const [page, setPage] = useState(1);
+  const perPage = 24;
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedBillNumbers, setSelectedBillNumbers] = useState<string[]>([]);
   const [createErrorMessage, setCreateErrorMessage] = useState<string | null>(null);
   const overviewQuery = useAccountingApOverview();
-  const billsQuery = useAccountingApBills({ page: 1, per_page: 24 });
+  const billsQuery = useAccountingApBills({ page, per_page: perPage });
   const billMutations = useAccountingApBillMutations();
 
   const batchPaymentHref = useMemo(() => {
@@ -185,7 +187,22 @@ export function VendorBillsApIndexPage() {
         selectedBillNumbers={selectedBillNumbers}
         onSelectionChange={setSelectedBillNumbers}
         onRowOpen={(row) => router.push(VENDOR_BILLS_AP_ROUTES.detail(row.bill_number))}
-        totalResults={billsQuery.data?.pagination.total_items ?? tableRows.length}
+        pagination={
+          billsQuery.data?.pagination
+            ? {
+                page: billsQuery.data.pagination.page,
+                pageSize: billsQuery.data.pagination.per_page,
+                totalItems: billsQuery.data.pagination.total_items,
+                totalPages: billsQuery.data.pagination.total_pages,
+              }
+            : {
+                page,
+                pageSize: perPage,
+                totalItems: tableRows.length,
+                totalPages: 1,
+              }
+        }
+        onPageChange={setPage}
       />
 
       <FeatureCreateVendorBillModal

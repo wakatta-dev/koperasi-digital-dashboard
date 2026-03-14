@@ -13,7 +13,12 @@ import { FeatureCurrenciesTable } from "../features/FeatureCurrenciesTable";
 import { mapCurrencyRows } from "../../utils/settings-api-mappers";
 
 export function AccountingSettingsCurrenciesPage() {
-  const currenciesQuery = useAccountingSettingsCurrencies({ page: 1, per_page: 20 });
+  const [page, setPage] = useState(1);
+  const perPage = 20;
+  const currenciesQuery = useAccountingSettingsCurrencies({
+    page,
+    per_page: perPage,
+  });
   const { createCurrency, updateRates } = useAccountingSettingsCurrencyMutations();
 
   const [isAddModalOpen, setAddModalOpen] = useState(false);
@@ -66,6 +71,22 @@ export function AccountingSettingsCurrenciesPage() {
         rows={rows}
         onUpdateRates={handleUpdateRates}
         onAddCurrency={() => setAddModalOpen(true)}
+        pagination={
+          currenciesQuery.data?.pagination
+            ? {
+                page: currenciesQuery.data.pagination.page,
+                pageSize: currenciesQuery.data.pagination.per_page,
+                totalItems: currenciesQuery.data.pagination.total_items,
+                totalPages: currenciesQuery.data.pagination.total_pages,
+              }
+            : {
+                page,
+                pageSize: perPage,
+                totalItems: rows.length,
+                totalPages: 1,
+              }
+        }
+        onPageChange={setPage}
       />
       <FeatureAddCurrencyModal
         open={isAddModalOpen}
