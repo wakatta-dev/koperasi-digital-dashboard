@@ -50,8 +50,7 @@ export function FeatureUnreconciledTransactionsTable({
       header: "Description",
       meta: {
         headerClassName: "px-6 py-4",
-        cellClassName:
-          "px-6 py-4 font-medium text-gray-900 dark:text-white",
+        cellClassName: "px-6 py-4 font-medium text-gray-900 dark:text-white",
       },
       cell: ({ row }) => row.original.description,
     },
@@ -137,6 +136,7 @@ export function FeatureUnreconciledTransactionsTable({
 
       <div className="overflow-x-auto">
         <TableShell
+          className="m-4"
           columns={columns}
           data={filteredRows}
           getRowId={(row) => row.id}
