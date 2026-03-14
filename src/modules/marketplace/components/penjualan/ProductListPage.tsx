@@ -15,6 +15,7 @@ import {
   useInventoryProducts,
 } from "@/hooks/queries/inventory";
 import { mapInventoryProduct } from "@/modules/inventory/utils";
+import { parseOptionalPriceFilter } from "./product-list-filters";
 
 const PAGE_SIZE = 10;
 const DEFAULT_PRODUCT_STATUSES = ["Tersedia", "Menipis", "Habis"] as const;
@@ -98,8 +99,8 @@ export function ProductListPage() {
       .join(",");
   }, [appliedFilters.statuses]);
 
-  const minPriceValue = Number(appliedFilters.minPrice);
-  const maxPriceValue = Number(appliedFilters.maxPrice);
+  const minPriceValue = parseOptionalPriceFilter(appliedFilters.minPrice);
+  const maxPriceValue = parseOptionalPriceFilter(appliedFilters.maxPrice);
 
   const { data, isLoading, isError } = useInventoryProducts({
     q: searchValue || undefined,
@@ -110,8 +111,8 @@ export function ProductListPage() {
         ? appliedFilters.categories.join(",")
         : undefined,
     stock_status: statusParam || undefined,
-    min_price: Number.isFinite(minPriceValue) ? minPriceValue : undefined,
-    max_price: Number.isFinite(maxPriceValue) ? maxPriceValue : undefined,
+    min_price: minPriceValue,
+    max_price: maxPriceValue,
     start_date: appliedFilters.dateFrom || undefined,
     end_date: appliedFilters.dateTo || undefined,
   });
