@@ -1,9 +1,11 @@
 /** @format */
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TableCursorPaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SupportActivityLogItem } from "@/types/api";
 import {
@@ -14,8 +16,9 @@ import {
 type FeatureActivityLogTableProps = {
   rows: SupportActivityLogItem[];
   loading: boolean;
-  nextCursor?: string | number;
-  onLoadMore: () => void;
+  pagination?: TableCursorPaginationMeta;
+  onPreviousPage?: () => void;
+  onNextPage?: () => void;
 };
 
 const columns: ColumnDef<SupportActivityLogItem, unknown>[] = [
@@ -111,13 +114,15 @@ const columns: ColumnDef<SupportActivityLogItem, unknown>[] = [
 export function FeatureActivityLogTable({
   rows,
   loading,
-  nextCursor,
-  onLoadMore,
+  pagination,
+  onPreviousPage,
+  onNextPage,
 }: FeatureActivityLogTableProps) {
   return (
     <Card className={`${settingsSurfaceClassName} flex flex-col overflow-hidden`}>
       <CardContent className="p-0">
         <TableShell
+          className="space-y-0"
           columns={columns}
           data={rows}
           getRowId={(row, index) => `${row.id}-${index}`}
@@ -126,18 +131,18 @@ export function FeatureActivityLogTable({
           emptyState="Tidak ada data activity log untuk kombinasi filter saat ini."
           surface="bare"
           rowClassName="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-900/60"
-          footer={
-            <div className="flex justify-end border-t border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/70">
-              <Button
-                type="button"
-                className="bg-slate-950 text-white hover:bg-slate-800 focus-visible:ring-slate-900 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-slate-100"
-                disabled={!nextCursor || loading}
-                onClick={onLoadMore}
-              >
-                {loading ? "Memuat…" : "Muat Berikutnya"}
-              </Button>
-            </div>
-          }
+          pagination={pagination}
+          onPrevPage={!loading ? onPreviousPage : undefined}
+          onNextPage={!loading ? onNextPage : undefined}
+          paginationInfo={false}
+          paginationClassName="rounded-none border-x-0 border-b-0 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/70"
+          paginationButtonSize="default"
+          previousPageLabel="Sebelumnya"
+          nextPageLabel={loading ? "Memuat…" : "Muat Berikutnya"}
+          previousPageButtonVariant="outline"
+          nextPageButtonVariant="default"
+          previousPageButtonClassName="border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+          nextPageButtonClassName="bg-slate-950 text-white hover:bg-slate-800 focus-visible:ring-slate-900 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-slate-100"
         />
       </CardContent>
     </Card>

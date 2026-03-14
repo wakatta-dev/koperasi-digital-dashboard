@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ensureSuccess } from "@/lib/api";
 import { QK } from "./queryKeys";
-import type { Notification, NotificationMetrics } from "@/types/api";
+import type { ApiResponse, Notification, NotificationMetrics } from "@/types/api";
 import {
   listNotifications,
   markNotificationRead,
@@ -16,12 +16,16 @@ import {
 
 export function useNotifications(
   params?: Record<string, unknown>,
-  initialData?: Notification[],
+  initialData?: ApiResponse<Notification[]>,
   options?: { refetchInterval?: number },
 ) {
   return useQuery({
     queryKey: QK.notifications.list(params),
-    queryFn: async () => ensureSuccess(await listNotifications(params)),
+    queryFn: async () => {
+      const response = await listNotifications(params);
+      ensureSuccess(response);
+      return response;
+    },
     ...(initialData ? { initialData } : {}),
     ...(options?.refetchInterval
       ? { refetchInterval: options.refetchInterval }

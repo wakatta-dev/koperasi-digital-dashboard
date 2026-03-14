@@ -1,18 +1,76 @@
 /** @format */
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import type { ColumnDef, RowData } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { GenericTable } from "@/components/shared/data-display/GenericTable";
 import { cn } from "@/lib/utils";
 
-export type TablePaginationMeta = {
+export type TablePagePaginationMeta = {
   page: number;
   pageSize: number;
   totalItems: number;
   totalPages: number;
 };
+
+export type TableCursorPaginationMeta = {
+  mode: "cursor";
+  hasPrev: boolean;
+  hasNext: boolean;
+  prevCursor?: string | number | null;
+  nextCursor?: string | number | null;
+  pageSize?: number;
+  itemCount?: number;
+  totalItems?: number;
+};
+
+export type TablePaginationMeta =
+  | TablePagePaginationMeta
+  | TableCursorPaginationMeta;
+
+type CursorPaginationSource = {
+  next_cursor?: string | number | null;
+  prev_cursor?: string | number | null;
+  has_next?: boolean;
+  has_prev?: boolean;
+  limit?: number;
+};
+
+export function createCursorPaginationMeta(
+  pagination?: CursorPaginationSource,
+  options?: {
+    hasPrev?: boolean;
+    hasNext?: boolean;
+    itemCount?: number;
+    totalItems?: number;
+  },
+): TableCursorPaginationMeta | undefined {
+  if (
+    !pagination &&
+    typeof options?.hasPrev === "undefined" &&
+    typeof options?.hasNext === "undefined" &&
+    typeof options?.itemCount === "undefined" &&
+    typeof options?.totalItems === "undefined"
+  ) {
+    return undefined;
+  }
+
+  return {
+    mode: "cursor",
+    hasPrev:
+      options?.hasPrev ??
+      Boolean(pagination?.has_prev ?? pagination?.prev_cursor),
+    hasNext:
+      options?.hasNext ??
+      Boolean(pagination?.has_next ?? pagination?.next_cursor),
+    prevCursor: pagination?.prev_cursor ?? null,
+    nextCursor: pagination?.next_cursor ?? null,
+    pageSize: pagination?.limit,
+    itemCount: options?.itemCount,
+    totalItems: options?.totalItems,
+  };
+}
 
 type TableShellColumnDefinition<Row> = ColumnDef<Row, unknown> & {
   header?: ColumnDef<Row, unknown>["header"] | ReactNode;
@@ -36,6 +94,15 @@ type TableShellSharedProps = {
   onNextPage?: () => void;
   paginationInfo?: ReactNode;
   paginationClassName?: string;
+  paginationInfoClassName?: string;
+  previousPageLabel?: ReactNode;
+  nextPageLabel?: ReactNode;
+  paginationButtonSize?: ComponentProps<typeof Button>["size"];
+  paginationButtonVariant?: ComponentProps<typeof Button>["variant"];
+  previousPageButtonVariant?: ComponentProps<typeof Button>["variant"];
+  nextPageButtonVariant?: ComponentProps<typeof Button>["variant"];
+  previousPageButtonClassName?: string;
+  nextPageButtonClassName?: string;
 };
 
 type TableShellColumnModeProps<Row> = TableShellSharedProps & {
@@ -56,6 +123,12 @@ type TableShellColumnModeProps<Row> = TableShellSharedProps & {
 
 export type TableShellProps<Row> = TableShellColumnModeProps<Row>;
 
+function isCursorPagination(
+  pagination: TablePaginationMeta,
+): pagination is TableCursorPaginationMeta {
+  return "mode" in pagination && pagination.mode === "cursor";
+}
+
 function normalizeColumns<Row extends RowData>(
   columns: TableShellColumn<Row>[],
 ): ColumnDef<Row, unknown>[] {
@@ -70,6 +143,7 @@ function normalizeColumns<Row extends RowData>(
       return header as ColumnDef<Row, unknown>["header"];
     }
 
+    // eslint-disable-next-line react/display-name
     return () => <>{header}</>;
   };
 
@@ -100,20 +174,55 @@ export function TableShell<Row>({
   onNextPage,
   paginationInfo,
   paginationClassName,
+  paginationInfoClassName,
+  previousPageLabel = "Sebelumnya",
+  nextPageLabel = "Berikutnya",
+  paginationButtonSize = "sm",
+  paginationButtonVariant,
+  previousPageButtonVariant,
+  nextPageButtonVariant,
+  previousPageButtonClassName,
+  nextPageButtonClassName,
   ...restProps
 }: TableShellProps<Row>) {
-  const hasPrev = pagination ? pagination.page > 1 : false;
-  const hasNext = pagination
-    ? pagination.page < Math.max(1, pagination.totalPages)
+  const hasPrev = pagination
+    ? isCursorPagination(pagination)
+      ? pagination.hasPrev
+      : pagination.page > 1
     : false;
+  const hasNext = pagination
+    ? isCursorPagination(pagination)
+      ? pagination.hasNext
+      : pagination.page < Math.max(1, pagination.totalPages)
+    : false;
+  const canInvokePrev = hasPrev && Boolean(onPrevPage);
+  const canInvokeNext = hasNext && Boolean(onNextPage);
+  let defaultPaginationInfo: ReactNode = null;
 
-  const resolvedPaginationInfo = paginationInfo ?? (
-    <>
-      Halaman {pagination?.page ?? 1} dari{" "}
-      {Math.max(1, pagination?.totalPages ?? 1)} • {pagination?.totalItems ?? 0}{" "}
-      item
-    </>
-  );
+  if (pagination) {
+    if (isCursorPagination(pagination)) {
+      const itemCount = pagination.itemCount ?? pagination.pageSize ?? 0;
+
+      defaultPaginationInfo = pagination.totalItems ? (
+        <>
+          Menampilkan {itemCount} dari {pagination.totalItems} item
+        </>
+      ) : (
+        <>Menampilkan {itemCount} item</>
+      );
+    } else {
+      defaultPaginationInfo = (
+        <>
+          Halaman {pagination.page} dari {Math.max(1, pagination.totalPages)} •{" "}
+          {pagination.totalItems} item
+        </>
+      );
+    }
+  }
+
+  const resolvedPaginationInfo = paginationInfo ?? defaultPaginationInfo;
+  const showPaginationInfo =
+    resolvedPaginationInfo !== false && resolvedPaginationInfo != null;
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -128,31 +237,36 @@ export function TableShell<Row>({
       {pagination ? (
         <div
           className={cn(
-            "flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3",
+            "flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3",
+            showPaginationInfo ? "justify-between" : "justify-end",
             paginationClassName,
           )}
         >
-          <p className="text-sm text-muted-foreground">
-            {resolvedPaginationInfo}
-          </p>
+          {showPaginationInfo ? (
+            <p className={cn("text-sm text-muted-foreground", paginationInfoClassName)}>
+              {resolvedPaginationInfo}
+            </p>
+          ) : null}
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant={previousPageButtonVariant ?? paginationButtonVariant ?? "outline"}
+              size={paginationButtonSize}
               onClick={onPrevPage}
-              disabled={!hasPrev}
+              disabled={!canInvokePrev}
+              className={previousPageButtonClassName}
             >
-              Sebelumnya
+              {previousPageLabel}
             </Button>
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant={nextPageButtonVariant ?? paginationButtonVariant ?? "outline"}
+              size={paginationButtonSize}
               onClick={onNextPage}
-              disabled={!hasNext}
+              disabled={!canInvokeNext}
+              className={nextPageButtonClassName}
             >
-              Berikutnya
+              {nextPageLabel}
             </Button>
           </div>
         </div>

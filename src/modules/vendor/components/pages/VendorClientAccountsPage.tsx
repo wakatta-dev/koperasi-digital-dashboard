@@ -16,7 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  createCursorPaginationMeta,
+  TableShell,
+} from "@/components/shared/data-display/TableShell";
+import { useCursorStack } from "@/hooks/use-cursor-stack";
 import {
   useAdminTenantAccountActions,
   useAdminTenantAccounts,
@@ -34,7 +38,9 @@ export function VendorClientAccountsPage({
   tenantId,
 }: VendorClientAccountsPageProps) {
   const [search, setSearch] = useState("");
+  const cursorPagination = useCursorStack<string>();
   const accountsQuery = useAdminTenantAccounts(tenantId, {
+    cursor: cursorPagination.currentCursor,
     limit: 50,
     search: search.trim() || undefined,
   });
@@ -42,6 +48,14 @@ export function VendorClientAccountsPage({
   const actions = useAdminTenantAccountActions(tenantId);
 
   const rows = accountsQuery.data?.data?.items ?? [];
+  const accountsTablePagination = createCursorPaginationMeta(
+    accountsQuery.data?.meta?.pagination,
+    {
+      itemCount: rows.length,
+      hasPrev: cursorPagination.canGoBack,
+      hasNext: Boolean(accountsQuery.data?.meta?.pagination?.next_cursor),
+    },
+  );
   const availableInviteRoles = useMemo(() => {
     const mapped = (rolesQuery.data ?? []).filter((role) =>
       FALLBACK_ROLE_OPTIONS.includes(role.name.toUpperCase()),
@@ -400,7 +414,10 @@ export function VendorClientAccountsPage({
             className="sm:max-w-sm"
             placeholder="Cari nama atau email..."
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              cursorPagination.reset();
+            }}
           />
         </CardHeader>
         <CardContent>
@@ -414,7 +431,20 @@ export function VendorClientAccountsPage({
             columns={columns}
             data={rows}
             getRowId={(row) => String(row.id)}
+            loading={accountsQuery.isPending}
+            loadingState="Memuat akun tenant..."
             emptyState="Tidak ada akun tenant."
+            pagination={accountsTablePagination}
+            onPrevPage={
+              cursorPagination.canGoBack ? cursorPagination.goBack : undefined
+            }
+            onNextPage={() => {
+              const nextCursor =
+                accountsQuery.data?.meta?.pagination?.next_cursor;
+              if (!nextCursor) return;
+              cursorPagination.goNext(nextCursor);
+            }}
+            paginationInfo={`Menampilkan ${rows.length} akun tenant`}
           />
         </CardContent>
       </Card>

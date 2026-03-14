@@ -12,7 +12,10 @@ import {
   SummaryMetricsGrid,
   type SummaryMetricItem,
 } from "@/components/shared/data-display/SummaryMetricsGrid";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  createCursorPaginationMeta,
+  TableShell,
+} from "@/components/shared/data-display/TableShell";
 
 describe("shared accounting primitives", () => {
   it("renders select field with label and error state", () => {
@@ -100,6 +103,41 @@ describe("shared accounting primitives", () => {
     expect(screen.getByText(/Halaman 1 dari 1/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Sebelumnya" }).getAttribute("disabled")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Berikutnya" }).getAttribute("disabled")).not.toBeNull();
+  });
+
+  it("renders cursor pagination controls and triggers next navigation", () => {
+    const onNextPage = vi.fn();
+
+    render(
+      <TableShell
+        columns={[
+          {
+            accessorKey: "code",
+            header: "Kode",
+          },
+        ] as ColumnDef<{ code: string }, unknown>[]}
+        data={[{ code: "INV-0003" }]}
+        getRowId={(row) => row.code}
+        pagination={createCursorPaginationMeta(
+          {
+            has_next: true,
+            has_prev: false,
+            next_cursor: "next-1",
+            limit: 25,
+          },
+          { itemCount: 1 },
+        )}
+        onNextPage={onNextPage}
+      />
+    );
+
+    expect(screen.getByText("INV-0003")).toBeTruthy();
+    expect(screen.getByText(/Menampilkan 1 item/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Sebelumnya" }).getAttribute("disabled")).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Berikutnya" }));
+
+    expect(onNextPage).toHaveBeenCalledTimes(1);
   });
 
   it("renders table shell without pagination", () => {

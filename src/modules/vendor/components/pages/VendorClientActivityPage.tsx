@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +28,7 @@ const columns: ColumnDef<TenantAuditLogRow, unknown>[] = [
   {
     id: "time",
     header: "Waktu",
-    cell: ({ row }) => formatVendorDateTime(row.original.timestamp),
+    cell: ({ row }) => formatVendorDateTime(String(row.original.timestamp)),
   },
   {
     id: "actor",
@@ -54,12 +55,24 @@ const columns: ColumnDef<TenantAuditLogRow, unknown>[] = [
   },
 ];
 
+const PAGE_SIZE = 10;
+
 export function VendorClientActivityPage({
   tenantId,
 }: VendorClientActivityPageProps) {
   const detailQuery = useAdminTenantDetail(tenantId);
   const logs = detailQuery.data?.data?.audit_logs ?? [];
   const errorText = detailQuery.data?.data?.audit_logs_error;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
+  const visibleLogs = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return logs.slice(start, start + PAGE_SIZE);
+  }, [logs, page]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   return (
     <Card>
@@ -75,10 +88,23 @@ export function VendorClientActivityPage({
 
         <TableShell
           columns={columns}
-          data={logs}
+          data={visibleLogs}
           getRowId={(row) => String(row.id)}
+          loading={detailQuery.isPending}
+          loadingState="Memuat audit trail..."
           emptyState="Belum ada audit trail tenant."
           surface="bare"
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            totalItems: logs.length,
+            totalPages,
+          }}
+          onPrevPage={() => setPage((current) => Math.max(1, current - 1))}
+          onNextPage={() =>
+            setPage((current) => Math.min(totalPages, current + 1))
+          }
+          paginationInfo={`Menampilkan ${visibleLogs.length} dari ${logs.length} aktivitas`}
         />
       </CardContent>
     </Card>

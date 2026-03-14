@@ -5,7 +5,6 @@ import { MoreVertical } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TablePaginationFooter } from "@/components/shared/data-display/TablePaginationFooter";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import {
@@ -47,8 +46,6 @@ export function FeatureJournalEntriesTable({
     1,
     Math.ceil(pagination.total_items / pagination.per_page),
   );
-  const canGoPrevious = pagination.page > 1;
-  const canGoNext = pagination.page < totalPages;
   const hasItems = pagination.total_items > 0;
   const start = hasItems ? (pagination.page - 1) * pagination.per_page + 1 : 0;
   const end = hasItems
@@ -175,25 +172,26 @@ export function FeatureJournalEntriesTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-      <div className="overflow-x-auto">
-        <TableShell
-          tableClassName="text-left"
-          columns={columns}
-          data={rows}
-          getRowId={(row) => row.journal_number}
-          emptyState="No journal entries found."
-          headerRowClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
-          rowClassName="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
-        />
-      </div>
-      <TablePaginationFooter
-        page={pagination.page}
-        totalPages={totalPages}
-        canPrevious={canGoPrevious}
-        canNext={canGoNext}
-        onPrevious={() => onPageChange?.(Math.max(1, pagination.page - 1))}
-        onNext={() => onPageChange?.(Math.min(totalPages, pagination.page + 1))}
-        summary={
+      <TableShell
+        className="space-y-0"
+        tableClassName="text-left"
+        containerClassName="overflow-x-auto"
+        columns={columns}
+        data={rows}
+        getRowId={(row) => row.journal_number}
+        emptyState="No journal entries found."
+        headerRowClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+        rowClassName="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        surface="bare"
+        pagination={{
+          page: pagination.page,
+          pageSize: pagination.per_page,
+          totalItems: pagination.total_items,
+          totalPages,
+        }}
+        onPrevPage={() => onPageChange?.(Math.max(1, pagination.page - 1))}
+        onNextPage={() => onPageChange?.(Math.min(totalPages, pagination.page + 1))}
+        paginationInfo={
           <>
             Showing{" "}
             <span className="font-medium text-gray-900 dark:text-white">
@@ -210,7 +208,10 @@ export function FeatureJournalEntriesTable({
             entries
           </>
         }
-        className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700"
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        paginationInfoClassName="text-sm text-gray-500 dark:text-gray-400"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
     </div>
   );

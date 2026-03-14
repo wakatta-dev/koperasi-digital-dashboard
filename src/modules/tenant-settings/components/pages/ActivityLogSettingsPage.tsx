@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { createCursorPaginationMeta } from "@/components/shared/data-display/TableShell";
 import { useSupportActivityLogs } from "@/hooks/queries";
 import { FeatureActivityLogFilterCard } from "../features/FeatureActivityLogFilterCard";
 import { FeatureActivityLogTable } from "../features/FeatureActivityLogTable";
@@ -107,7 +108,12 @@ export function ActivityLogSettingsPage() {
 
   const logsQuery = useSupportActivityLogs(params);
   const rows = logsQuery.data?.data?.items ?? [];
-  const nextCursor = logsQuery.data?.meta?.pagination?.next_cursor;
+  const tablePagination = createCursorPaginationMeta(
+    logsQuery.data?.meta?.pagination,
+    {
+      itemCount: rows.length,
+    },
+  );
   const activeFilterCount = [module !== "all", action !== "all", Boolean(actorId), Boolean(fromDate), Boolean(toDate)].filter(Boolean).length;
 
   const updateFilters = useCallback(
@@ -162,7 +168,9 @@ export function ActivityLogSettingsPage() {
         },
         {
           label: "Pagination",
-          value: nextCursor ? "Ada halaman berikutnya" : "Tidak ada halaman berikutnya",
+          value: tablePagination?.hasNext
+            ? "Ada halaman berikutnya"
+            : "Tidak ada halaman berikutnya",
           helper: actorId || module !== "all" || action !== "all" ? "Berdasarkan filter aktif" : "Berdasarkan query default",
         },
       ]}
@@ -208,8 +216,15 @@ export function ActivityLogSettingsPage() {
       <FeatureActivityLogTable
         rows={rows}
         loading={logsQuery.isFetching}
-        nextCursor={nextCursor}
-        onLoadMore={() => updateFilters({ cursor: String(nextCursor) })}
+        pagination={tablePagination}
+        onPreviousPage={() => {
+          if (!tablePagination?.prevCursor) return;
+          updateFilters({ cursor: String(tablePagination.prevCursor) });
+        }}
+        onNextPage={() => {
+          if (!tablePagination?.nextCursor) return;
+          updateFilters({ cursor: String(tablePagination.nextCursor) });
+        }}
       />
     </TenantSettingsShell>
   );

@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +43,8 @@ type VendorTicketRow = {
   age_hours: number;
   occurred_at: string | number;
 };
+
+const PAGE_SIZE = 10;
 
 const columns: ColumnDef<VendorTicketRow, unknown>[] = [
   {
@@ -91,7 +93,8 @@ const columns: ColumnDef<VendorTicketRow, unknown>[] = [
   {
     id: "occurredAt",
     header: "Occurred",
-    cell: ({ row }) => formatVendorDateTime(row?.original?.occurred_at),
+    cell: ({ row }) =>
+      formatVendorDateTime(String(row?.original?.occurred_at ?? "")),
   },
   {
     id: "detail",
@@ -124,6 +127,7 @@ function statusBadgeClass(status: string) {
 
 export function VendorTicketsPage() {
   const [category, setCategory] = useState("all");
+  const [page, setPage] = useState(1);
   const queueQuery = useVendorSupportQueue();
   const items = useMemo(
     () => queueQuery.data?.items ?? [],
@@ -133,6 +137,15 @@ export function VendorTicketsPage() {
     if (category === "all") return items;
     return items.filter((item) => item.category === category);
   }, [category, items]);
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const visibleItems = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [filteredItems, page]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   const kpis = useMemo(
     () => [
@@ -184,7 +197,13 @@ export function VendorTicketsPage() {
       <Card className="border-border/70">
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <CardTitle>Support Queue</CardTitle>
-          <Select value={category} onValueChange={setCategory}>
+          <Select
+            value={category}
+            onValueChange={(value) => {
+              setCategory(value);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter category" />
             </SelectTrigger>
@@ -199,12 +218,23 @@ export function VendorTicketsPage() {
         <CardContent>
           <TableShell
             columns={columns}
-            data={filteredItems}
+            data={visibleItems}
             getRowId={(row) => String(row.id)}
             loading={queueQuery.isPending}
             loadingState="Memuat support queue..."
             emptyState="Belum ada support case pada filter saat ini."
             surface="bare"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              totalItems: filteredItems.length,
+              totalPages,
+            }}
+            onPrevPage={() => setPage((current) => Math.max(1, current - 1))}
+            onNextPage={() =>
+              setPage((current) => Math.min(totalPages, current + 1))
+            }
+            paginationInfo={`Menampilkan ${visibleItems.length} dari ${filteredItems.length} case`}
           />
         </CardContent>
       </Card>

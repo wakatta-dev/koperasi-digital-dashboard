@@ -5,7 +5,6 @@ import { Lock, Pencil, PlusCircle, Send, Trash } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TablePaginationFooter } from "@/components/shared/data-display/TablePaginationFooter";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import { JOURNAL_INITIAL_AUDIT_LOG_ROWS } from "../../constants/journal-initial-state";
@@ -171,27 +170,28 @@ export function FeatureAuditLogTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-      <div className="overflow-x-auto">
-        <TableShell
-          tableClassName="table-fixed text-left"
-          columns={columns}
-          data={rows}
-          getRowId={(row) =>
-            `${row.timestamp_date}-${row.timestamp_time}-${row.reference_no}`
-          }
-          emptyState="No audit log found."
-          headerRowClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
-          rowClassName="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
-        />
-      </div>
-      <TablePaginationFooter
-        page={page}
-        totalPages={totalPages}
-        canPrevious={page > 1}
-        canNext={page < totalPages}
-        onPrevious={() => onPageChange?.(Math.max(1, page - 1))}
-        onNext={() => onPageChange?.(Math.min(totalPages, page + 1))}
-        summary={
+      <TableShell
+        className="space-y-0"
+        tableClassName="table-fixed text-left"
+        containerClassName="overflow-x-auto"
+        columns={columns}
+        data={rows}
+        getRowId={(row) =>
+          `${row.timestamp_date}-${row.timestamp_time}-${row.reference_no}`
+        }
+        emptyState="No audit log found."
+        headerRowClassName="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+        rowClassName="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        surface="bare"
+        pagination={{
+          page,
+          pageSize: perPage,
+          totalItems,
+          totalPages,
+        }}
+        onPrevPage={() => onPageChange?.(Math.max(1, page - 1))}
+        onNextPage={() => onPageChange?.(Math.min(totalPages, page + 1))}
+        paginationInfo={
           <>
             Menampilkan{" "}
             <span className="font-medium text-gray-900 dark:text-white">
@@ -208,9 +208,10 @@ export function FeatureAuditLogTable({
             log
           </>
         }
-        previousLabel="Sebelumnya"
-        nextLabel="Selanjutnya"
-        className="flex items-center justify-between border-t border-gray-200 bg-gray-50/50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/30"
+        paginationClassName="rounded-none border-x-0 border-b-0 bg-gray-50/50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/30"
+        paginationInfoClassName="text-sm text-gray-500 dark:text-gray-400"
+        previousPageLabel="Sebelumnya"
+        nextPageLabel="Selanjutnya"
       />
     </div>
   );

@@ -23,7 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  createCursorPaginationMeta,
+  TableShell,
+} from "@/components/shared/data-display/TableShell";
+import { useCursorStack } from "@/hooks/use-cursor-stack";
 import {
   useAdminTenants,
   useNotificationActions,
@@ -61,8 +65,10 @@ function notificationStatusBadgeClass(status?: string, readAt?: string) {
 export function VendorNotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [channel, setChannel] = useState("all");
+  const cursorPagination = useCursorStack<string>();
   const notificationsQuery = useNotifications({
     limit: 100,
+    cursor: cursorPagination.currentCursor,
     filter,
     channel: channel === "all" ? undefined : channel,
   });
@@ -71,8 +77,8 @@ export function VendorNotificationsPage() {
   const actions = useNotificationActions();
 
   const notifications = useMemo(
-    () => notificationsQuery.data ?? [],
-    [notificationsQuery.data],
+    () => notificationsQuery.data?.data ?? [],
+    [notificationsQuery.data?.data],
   );
   const metrics = metricsQuery.data;
   const tenantMap = useMemo(() => {
@@ -100,6 +106,14 @@ export function VendorNotificationsPage() {
     });
     return Array.from(values);
   }, [metrics?.channel_summaries, notifications]);
+  const notificationsTablePagination = createCursorPaginationMeta(
+    notificationsQuery.data?.meta?.pagination,
+    {
+      itemCount: notifications.length,
+      hasPrev: cursorPagination.canGoBack,
+      hasNext: Boolean(notificationsQuery.data?.meta?.pagination?.next_cursor),
+    },
+  );
 
   const kpis = useMemo(
     () => [
@@ -253,7 +267,10 @@ export function VendorNotificationsPage() {
             <div className="flex gap-2">
               <Select
                 value={filter}
-                onValueChange={(value) => setFilter(value as "all" | "unread")}
+                onValueChange={(value) => {
+                  setFilter(value as "all" | "unread");
+                  cursorPagination.reset();
+                }}
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Filter" />
@@ -263,7 +280,13 @@ export function VendorNotificationsPage() {
                   <SelectItem value="unread">Unread</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={channel} onValueChange={setChannel}>
+              <Select
+                value={channel}
+                onValueChange={(value) => {
+                  setChannel(value);
+                  cursorPagination.reset();
+                }}
+              >
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Channel" />
                 </SelectTrigger>
@@ -292,6 +315,17 @@ export function VendorNotificationsPage() {
               loading={notificationsQuery.isPending}
               loadingState="Memuat notification queue..."
               emptyState="Belum ada notifikasi yang cocok dengan filter saat ini."
+              pagination={notificationsTablePagination}
+              onPrevPage={
+                cursorPagination.canGoBack ? cursorPagination.goBack : undefined
+              }
+              onNextPage={() => {
+                const nextCursor =
+                  notificationsQuery.data?.meta?.pagination?.next_cursor;
+                if (!nextCursor) return;
+                cursorPagination.goNext(nextCursor);
+              }}
+              paginationInfo={`Menampilkan ${notifications.length} notifikasi`}
             />
           </CardContent>
         </Card>

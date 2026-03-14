@@ -100,6 +100,7 @@ export function VendorTenantTable({
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <TableShell
+        className="space-y-0"
         columns={columns}
         data={items}
         getRowId={(row) => String(row.id)}
@@ -107,32 +108,28 @@ export function VendorTenantTable({
         loadingState="Memuat daftar tenant..."
         emptyState="Tidak ada tenant yang cocok dengan filter saat ini."
         surface="bare"
-        footer={
-          <div className="flex items-center justify-between border-t px-4 py-3">
-            <p className="text-xs text-muted-foreground">
-              Pagination berbasis cursor admin tenant management.
-            </p>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!canGoBack}
-                onClick={onPrevious}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Sebelumnya
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!canGoNext}
-                onClick={onNext}
-              >
-                Berikutnya
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+        pagination={{
+          mode: "cursor",
+          hasPrev: canGoBack,
+          hasNext: canGoNext,
+          itemCount: items.length,
+        }}
+        onPrevPage={canGoBack ? onPrevious : undefined}
+        onNextPage={canGoNext ? onNext : undefined}
+        paginationInfo="Pagination berbasis cursor admin tenant management."
+        paginationClassName="rounded-none border-x-0 border-b-0 bg-transparent px-4 py-3"
+        paginationInfoClassName="text-xs"
+        previousPageLabel={
+          <>
+            <ChevronLeft className="h-4 w-4" />
+            Sebelumnya
+          </>
+        }
+        nextPageLabel={
+          <>
+            Berikutnya
+            <ChevronRight className="h-4 w-4" />
+          </>
         }
       />
     </div>
