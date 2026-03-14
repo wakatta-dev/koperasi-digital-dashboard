@@ -26,7 +26,6 @@ import {
 import { FeaturePpnDetailFilterBar } from "../features/FeaturePpnDetailFilterBar";
 import { FeaturePpnDetailHeaderAction } from "../features/FeaturePpnDetailHeaderAction";
 import { FeaturePpnDetailTable } from "../features/FeaturePpnDetailTable";
-import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
 
 type TaxPpnDetailsPageProps = {
   period?: string;
@@ -290,11 +289,13 @@ export function TaxPpnDetailsPage({
         <FeaturePpnDetailTable
           rows={rows}
           vatAmountTotal={vatTransactionsQuery.data?.totals?.vat_amount_total}
-        />
-        <FeatureTaxPaginationBar
-          page={resolvedPage}
-          perPage={resolvedPerPage}
-          totalItems={totalItems}
+          pagination={{
+            page: resolvedPage,
+            pageSize: resolvedPerPage,
+            totalItems,
+            totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
+          }}
+          paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
           onPageChange={setPage}
         />
       </div>

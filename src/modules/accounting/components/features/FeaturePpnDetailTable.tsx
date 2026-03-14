@@ -3,7 +3,10 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import type { TaxPpnTransactionItem } from "../../types/tax";
 
@@ -18,11 +21,17 @@ function formatCurrency(value: number) {
 type FeaturePpnDetailTableProps = {
   rows: TaxPpnTransactionItem[];
   vatAmountTotal?: number;
+  pagination?: TablePagePaginationMeta;
+  paginationInfo?: string;
+  onPageChange?: (nextPage: number) => void;
 };
 
 export function FeaturePpnDetailTable({
   rows,
   vatAmountTotal,
+  pagination,
+  paginationInfo,
+  onPageChange,
 }: FeaturePpnDetailTableProps) {
   const resolvedTotal =
     vatAmountTotal ?? rows.reduce((total, row) => total + row.vat_amount, 0);
@@ -112,6 +121,7 @@ export function FeaturePpnDetailTable({
   return (
     <div className="overflow-x-auto">
       <TableShell
+        className="space-y-0"
         tableClassName="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
         columns={columns}
         data={rows}
@@ -132,6 +142,18 @@ export function FeaturePpnDetailTable({
             </div>
           </div>
         }
+        pagination={pagination}
+        paginationInfo={paginationInfo}
+        onPrevPage={() =>
+          pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+        }
+        onNextPage={() =>
+          pagination &&
+          onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+        }
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
     </div>
   );

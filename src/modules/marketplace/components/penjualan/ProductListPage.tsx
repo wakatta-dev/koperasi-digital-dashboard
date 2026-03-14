@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProductListHeader } from "./ProductListHeader";
 import { ProductTable } from "./ProductTable";
-import { ProductPagination } from "./ProductPagination";
 import { ProductFilterSheet } from "./ProductFilterSheet";
 import type { ProductListItem } from "@/modules/marketplace/types";
 import {
@@ -281,14 +280,13 @@ export function ProductListPage() {
           ];
           return actionsList;
         }}
-      />
-
-      <ProductPagination
-        page={page}
-        totalPages={totalPages}
-        from={rangeStart}
-        to={rangeEnd}
-        total={total}
+        pagination={{
+          page,
+          pageSize: PAGE_SIZE,
+          totalItems: total,
+          totalPages,
+        }}
+        paginationInfo={`Menampilkan ${rangeStart}-${rangeEnd} dari ${total} produk`}
         onPageChange={setPage}
       />
 

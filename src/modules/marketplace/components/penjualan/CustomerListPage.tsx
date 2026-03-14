@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CustomerListToolbar } from "./CustomerListToolbar";
 import { CustomerTable } from "./CustomerTable";
-import { CustomerPagination } from "./CustomerPagination";
 import { CustomerFilterSheet } from "./CustomerFilterSheet";
 import { CustomerCreateModal } from "./CustomerCreateModal";
 import {
@@ -147,14 +146,13 @@ export function CustomerListPage() {
             onSelect: () => router.push(`/bumdes/marketplace/pelanggan/${customer.id}`),
           },
         ]}
-      />
-
-      <CustomerPagination
-        page={page}
-        totalPages={totalPages}
-        from={from}
-        to={to}
-        total={total}
+        pagination={{
+          page,
+          pageSize: PAGE_SIZE,
+          totalItems: total,
+          totalPages,
+        }}
+        paginationInfo={`Menampilkan ${from}-${to} dari ${total} pelanggan`}
         onPageChange={setPage}
       />
 

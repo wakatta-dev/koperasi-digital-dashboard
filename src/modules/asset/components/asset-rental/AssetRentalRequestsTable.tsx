@@ -213,11 +213,24 @@ export function AssetRentalRequestsTable({
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <TableShell
+          className="space-y-0"
           columns={columns}
           data={pagedRows}
           getRowId={(row) => row.id}
           emptyState="Tidak ada pengajuan sewa."
           headerClassName="bg-slate-50"
+          pagination={{
+            page: currentPage,
+            pageSize: pageSize,
+            totalItems: rows.length,
+            totalPages: pageCount,
+          }}
+          paginationInfo={`Menampilkan ${pagedRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, rows.length)} dari ${rows.length} data`}
+          onPrevPage={() => setPage((value) => Math.max(1, value - 1))}
+          onNextPage={() => setPage((value) => Math.min(pageCount, value + 1))}
+          paginationClassName="rounded-none border-x-0 border-b-0 px-4 py-3"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
         />
       </div>
     </div>

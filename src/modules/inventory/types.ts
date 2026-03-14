@@ -13,6 +13,7 @@ export type InventoryItem = {
   trackStock: boolean;
   category?: string;
   image?: string;
+  sellerId?: string | number;
   images?: Array<{
     id: number;
     url: string;

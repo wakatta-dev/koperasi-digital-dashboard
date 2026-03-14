@@ -7,8 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 
-import { FeatureTaxPaginationBar } from "./FeatureTaxPaginationBar";
-
 import type { TaxEfakturReadyItem } from "../../types/tax";
 
 type FeatureEfakturReadyTableProps = {
@@ -124,23 +122,33 @@ export function FeatureEfakturReadyTable({
         </Badge>
       </div>
 
-      <div className="overflow-x-auto">
-        <TableShell
-          tableClassName="w-full text-left text-sm"
-          columns={columns}
-          data={rows}
-          getRowId={(row) => row.invoice_id}
-          emptyState="No e-Faktur-ready invoice found."
-          headerClassName="bg-gray-50 text-xs font-medium tracking-wider text-gray-500 uppercase dark:bg-gray-800 dark:text-gray-400"
-          rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
-        />
-      </div>
-
-      <FeatureTaxPaginationBar
-        page={page}
-        perPage={perPage}
-        totalItems={totalItems}
-        onPageChange={onPageChange}
+      <TableShell
+        className="space-y-0"
+        tableClassName="w-full text-left text-sm"
+        containerClassName="overflow-x-auto"
+        columns={columns}
+        data={rows}
+        getRowId={(row) => row.invoice_id}
+        emptyState="No e-Faktur-ready invoice found."
+        headerClassName="bg-gray-50 text-xs font-medium tracking-wider text-gray-500 uppercase dark:bg-gray-800 dark:text-gray-400"
+        rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        surface="bare"
+        pagination={{
+          page,
+          pageSize: perPage,
+          totalItems,
+          totalPages: Math.max(1, Math.ceil(totalItems / perPage)),
+        }}
+        paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
+        onPrevPage={() => onPageChange?.(Math.max(1, page - 1))}
+        onNextPage={() =>
+          onPageChange?.(
+            Math.min(Math.max(1, Math.ceil(totalItems / perPage)), page + 1),
+          )
+        }
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
     </div>
   );

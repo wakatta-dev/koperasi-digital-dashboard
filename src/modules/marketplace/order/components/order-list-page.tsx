@@ -83,11 +83,6 @@ export function OrderListPage() {
   const totalItems = data?.total ?? orders.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
-  const pageNumbers = useMemo(() => {
-    const maxPages = Math.min(3, totalPages);
-    return Array.from({ length: maxPages }, (_, idx) => idx + 1);
-  }, [totalPages]);
-
   const handleOpenInvoice = (orderId: number) => {
     setInvoiceOrderId(orderId);
     setInvoiceOpen(true);
@@ -332,6 +327,7 @@ export function OrderListPage() {
         </div>
       </div>
       <TableShell
+        className="space-y-0"
         columns={columns}
         data={rowsForTable}
         loading={isLoading}
@@ -340,56 +336,18 @@ export function OrderListPage() {
         getRowId={(row) => String(row.id)}
         containerClassName="w-full max-w-full"
         bodyClassName="bg-card"
-        footer={
-          <div className="flex items-center justify-end">
-            <div className="flex items-center space-x-2">
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
-                disabled={page <= 1}
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              >
-                <span className="material-icons-outlined mr-1 text-sm">
-                  chevron_left
-                </span>
-                Previous
-              </Button>
-              {pageNumbers.map((number) => (
-                <Button
-                  key={number}
-                  type="button"
-                  variant="ghost"
-                  className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                    number === page
-                      ? "border border-border bg-card text-indigo-600 dark:text-indigo-400"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                  onClick={() => setPage(number)}
-                >
-                  {number}
-                </Button>
-              ))}
-              {totalPages > 3 ? (
-                <span className="px-2 text-muted-foreground">...</span>
-              ) : null}
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
-                disabled={page >= totalPages}
-                onClick={() =>
-                  setPage((prev) => Math.min(totalPages, prev + 1))
-                }
-              >
-                Next
-                <span className="material-icons-outlined ml-1 text-sm">
-                  chevron_right
-                </span>
-              </Button>
-            </div>
-          </div>
-        }
+        pagination={{
+          page,
+          pageSize: PAGE_SIZE,
+          totalItems,
+          totalPages,
+        }}
+        paginationInfo={`Menampilkan ${rowsForTable.length} dari ${totalItems} pesanan`}
+        onPrevPage={() => setPage((prev) => Math.max(1, prev - 1))}
+        onNextPage={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
       <OrderInvoiceDialog
         open={invoiceOpen}

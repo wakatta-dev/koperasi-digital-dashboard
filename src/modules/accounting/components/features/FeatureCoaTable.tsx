@@ -156,60 +156,35 @@ export function FeatureCoaTable({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <TableShell
-            columns={columns}
-            data={pagedRows}
-            getRowId={(row) => row.account_code}
-            emptyState="Chart of accounts belum memiliki data."
-            headerClassName="bg-gray-50 dark:bg-gray-800/50"
-            rowClassName={(row) =>
-              row.is_highlighted
-                ? "border-l-2 border-indigo-500 bg-indigo-50/10 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                : row.is_group
-                  ? "bg-gray-50/50 font-semibold hover:bg-gray-100 dark:bg-gray-800/30 dark:hover:bg-gray-800"
-                  : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            }
-          />
-        </div>
-
-        <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Showing{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {pagedRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
-            </span>{" "}
-            to{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {Math.min(currentPage * PAGE_SIZE, rows.length)}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {rows.length}
-            </span>{" "}
-            accounts
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage <= 1}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage >= pageCount}
-              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <TableShell
+          className="space-y-0"
+          containerClassName="overflow-x-auto"
+          columns={columns}
+          data={pagedRows}
+          getRowId={(row) => row.account_code}
+          emptyState="Chart of accounts belum memiliki data."
+          headerClassName="bg-gray-50 dark:bg-gray-800/50"
+          rowClassName={(row) =>
+            row.is_highlighted
+              ? "border-l-2 border-indigo-500 bg-indigo-50/10 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              : row.is_group
+                ? "bg-gray-50/50 font-semibold hover:bg-gray-100 dark:bg-gray-800/30 dark:hover:bg-gray-800"
+                : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          }
+          surface="bare"
+          pagination={{
+            page: currentPage,
+            pageSize: PAGE_SIZE,
+            totalItems: rows.length,
+            totalPages: pageCount,
+          }}
+          paginationInfo={`Showing ${pagedRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} to ${Math.min(currentPage * PAGE_SIZE, rows.length)} of ${rows.length} accounts`}
+          onPrevPage={() => setPage((value) => Math.max(1, value - 1))}
+          onNextPage={() => setPage((value) => Math.min(pageCount, value + 1))}
+          paginationClassName="rounded-none border-x-0 border-b-0 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
+        />
       </div>
     </div>
   );

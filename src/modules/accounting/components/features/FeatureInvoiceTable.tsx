@@ -215,6 +215,7 @@ export function FeatureInvoiceTable({
 
       <CardContent className="p-0">
         <TableShell
+          className="space-y-0"
           columns={columns}
           data={pagedRows}
           getRowId={(row) => row.invoice_number}
@@ -222,43 +223,19 @@ export function FeatureInvoiceTable({
           headerClassName="bg-gray-50 dark:bg-gray-800/50"
           headerRowClassName="border-b border-gray-200 dark:border-gray-700"
           rowClassName="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
+          pagination={{
+            page: currentPage,
+            pageSize: PAGE_SIZE,
+            totalItems: filteredRows.length,
+            totalPages: pageCount,
+          }}
+          paginationInfo={`Showing ${filteredRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} to ${Math.min(currentPage * PAGE_SIZE, filteredRows.length)} of ${filteredRows.length} entries`}
+          onPrevPage={() => setPage((value) => Math.max(1, value - 1))}
+          onNextPage={() => setPage((value) => Math.min(pageCount, value + 1))}
+          paginationClassName="rounded-none border-x-0 border-b-0 p-4 dark:border-gray-700"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
         />
-
-        <div className="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Showing{" "}
-            {filteredRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}{" "}
-            to {Math.min(currentPage * PAGE_SIZE, filteredRows.length)} of{" "}
-            {filteredRows.length} entries
-          </span>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage <= 1}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="bg-indigo-600 text-white hover:bg-indigo-700"
-            >
-              {currentPage}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage >= pageCount}
-              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

@@ -84,6 +84,7 @@ export function mapInventoryProduct(product: InventoryProductResponse): Inventor
     categoryClassName: product.category ?? "",
     stock: product.stock,
     price: product.price_sell,
+    sellerId: (product as InventoryProductResponse & { seller_id?: string | number }).seller_id,
     image: primaryImage?.url,
     images,
     brand: product.brand,

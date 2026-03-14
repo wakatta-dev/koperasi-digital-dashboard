@@ -5,7 +5,10 @@ import { MoreVertical } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import type { TaxPphRecordItem } from "../../types/tax";
 
@@ -48,6 +51,9 @@ function resolvePphTypeStyle(type: TaxPphRecordItem["pph_type"]) {
 
 type FeaturePphRecordsTableProps = {
   rows: TaxPphRecordItem[];
+  pagination?: TablePagePaginationMeta;
+  paginationInfo?: string;
+  onPageChange?: (nextPage: number) => void;
 };
 
 const columns: ColumnDef<TaxPphRecordItem, unknown>[] = [
@@ -160,7 +166,12 @@ const columns: ColumnDef<TaxPphRecordItem, unknown>[] = [
   },
 ];
 
-export function FeaturePphRecordsTable({ rows }: FeaturePphRecordsTableProps) {
+export function FeaturePphRecordsTable({
+  rows,
+  pagination,
+  paginationInfo,
+  onPageChange,
+}: FeaturePphRecordsTableProps) {
   return (
     <div className="overflow-x-auto">
       <TableShell
@@ -171,6 +182,18 @@ export function FeaturePphRecordsTable({ rows }: FeaturePphRecordsTableProps) {
         emptyState="No PPh record found."
         headerClassName="bg-gray-50 dark:bg-gray-800/50"
         bodyClassName="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-slate-900"
+        pagination={pagination}
+        paginationInfo={paginationInfo}
+        onPrevPage={() =>
+          pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+        }
+        onNextPage={() =>
+          pagination &&
+          onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+        }
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
     </div>
   );

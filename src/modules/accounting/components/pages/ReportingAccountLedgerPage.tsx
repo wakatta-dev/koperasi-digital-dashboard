@@ -19,10 +19,7 @@ import {
   FeatureAccountLedgerSummaryCards,
   FeatureAccountLedgerTopActions,
 } from "../features/FeatureReportingLedgers";
-import {
-  FeatureReportingPaginationBar,
-  FeatureReportingSourceOfTruthCallout,
-} from "../features/FeatureReportingShared";
+import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 type ReportingAccountLedgerPageProps = {
   accountId?: string;
@@ -262,13 +259,21 @@ export function ReportingAccountLedgerPage({
           setResolvedSearch(value);
           setResolvedPage(1);
         }}
-      />
-
-      <FeatureReportingPaginationBar
-        page={accountLedgerQuery.data?.pagination.page ?? resolvedPage}
-        pageSize={accountLedgerQuery.data?.pagination.page_size ?? resolvedPageSize}
-        totalItems={accountLedgerQuery.data?.pagination.total_entries ?? 0}
-        totalLabel={
+        pagination={{
+          page: accountLedgerQuery.data?.pagination.page ?? resolvedPage,
+          pageSize:
+            accountLedgerQuery.data?.pagination.page_size ?? resolvedPageSize,
+          totalItems: accountLedgerQuery.data?.pagination.total_entries ?? 0,
+          totalPages: Math.max(
+            1,
+            Math.ceil(
+              (accountLedgerQuery.data?.pagination.total_entries ?? 0) /
+                (accountLedgerQuery.data?.pagination.page_size ??
+                  resolvedPageSize),
+            ),
+          ),
+        }}
+        paginationInfo={
           accountLedgerQuery.data
             ? `Showing ${accountLedgerQuery.data.entries.length} of ${accountLedgerQuery.data.pagination.total_entries} entries`
             : undefined

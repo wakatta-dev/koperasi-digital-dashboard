@@ -156,65 +156,29 @@ export function FeatureBankAccountTransactionsTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-      <div className="overflow-x-auto">
-        <TableShell
-          columns={columns}
-          data={pageRows}
-          getRowId={(row) => row.transaction_id}
-          emptyState="No transaction rows found."
-          headerRowClassName="bg-gray-50 text-[10px] font-bold tracking-widest text-gray-500 uppercase dark:bg-gray-800/50"
-          rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/30"
-        />
-      </div>
-
-      <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4 dark:border-gray-700">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Showing {pageRows.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}{" "}
-          to {Math.min(safePage * PAGE_SIZE, filteredRows.length)} of{" "}
-          {filteredRows.length} transactions
-        </p>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={safePage === 1}
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-            aria-label="Previous transaction page"
-          >
-            <span aria-hidden>{"<"}</span>
-          </Button>
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-            (pageNumber) => (
-              <Button
-                key={pageNumber}
-                type="button"
-                variant={pageNumber === safePage ? "default" : "ghost"}
-                onClick={() => setPage(pageNumber)}
-                className={
-                  pageNumber === safePage
-                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                    : "text-gray-600 dark:text-gray-400"
-                }
-              >
-                {pageNumber}
-              </Button>
-            ),
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={safePage === totalPages}
-            onClick={() =>
-              setPage((current) => Math.min(totalPages, current + 1))
-            }
-            aria-label="Next transaction page"
-          >
-            <span aria-hidden>{">"}</span>
-          </Button>
-        </div>
-      </div>
+      <TableShell
+        className="space-y-0"
+        containerClassName="overflow-x-auto"
+        columns={columns}
+        data={pageRows}
+        getRowId={(row) => row.transaction_id}
+        emptyState="No transaction rows found."
+        headerRowClassName="bg-gray-50 text-[10px] font-bold tracking-widest text-gray-500 uppercase dark:bg-gray-800/50"
+        rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/30"
+        surface="bare"
+        pagination={{
+          page: safePage,
+          pageSize: PAGE_SIZE,
+          totalItems: filteredRows.length,
+          totalPages,
+        }}
+        paginationInfo={`Showing ${pageRows.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1} to ${Math.min(safePage * PAGE_SIZE, filteredRows.length)} of ${filteredRows.length} transactions`}
+        onPrevPage={() => setPage((current) => Math.max(1, current - 1))}
+        onNextPage={() => setPage((current) => Math.min(totalPages, current + 1))}
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
+      />
     </div>
   );
 }

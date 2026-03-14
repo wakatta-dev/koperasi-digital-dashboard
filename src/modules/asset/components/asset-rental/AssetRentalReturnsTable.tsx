@@ -159,43 +159,25 @@ export function AssetRentalReturnsTable({
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <TableShell
+          className="space-y-0"
           columns={columns}
           data={pagedRows}
           getRowId={(row) => row.id}
           emptyState="Tidak ada data pengembalian."
           headerClassName="bg-slate-50"
+          pagination={{
+            page: currentPage,
+            pageSize: pageSize,
+            totalItems: rows.length,
+            totalPages: pageCount,
+          }}
+          paginationInfo={`Menampilkan ${pagedRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, rows.length)} dari ${rows.length} data`}
+          onPrevPage={() => setPage((value) => Math.max(1, value - 1))}
+          onNextPage={() => setPage((value) => Math.min(pageCount, value + 1))}
+          paginationClassName="rounded-none border-x-0 border-b-0 px-4 py-3"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
         />
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3 text-sm text-slate-500">
-          <p>
-            Menampilkan{" "}
-            <span className="font-medium text-slate-900">
-              {pagedRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
-              {Math.min(currentPage * pageSize, rows.length)}
-            </span>{" "}
-            dari <span className="font-medium text-slate-900">{rows.length}</span>{" "}
-            data
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 border-slate-200 px-3 text-slate-600"
-              disabled={currentPage === 1}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 border-slate-200 px-3 text-slate-700"
-              disabled={currentPage >= pageCount}
-              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   );

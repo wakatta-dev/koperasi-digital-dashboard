@@ -23,7 +23,6 @@ import {
   buildTaxSummaryQueryString,
   parseTaxSummaryQueryState,
 } from "../../utils/tax-query-state";
-import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
 import { FeatureTaxSummaryCards } from "../features/FeatureTaxSummaryCards";
 import { FeatureTaxSummaryFilterBar } from "../features/FeatureTaxSummaryFilterBar";
 import { FeatureTaxSummaryPeriodTable } from "../features/FeatureTaxSummaryPeriodTable";
@@ -206,6 +205,14 @@ export function TaxSummaryPeriodPage() {
         ) : null}
         <FeatureTaxSummaryPeriodTable
           rows={summaryRows}
+          pagination={{
+            page: resolvedPage,
+            pageSize: resolvedPerPage,
+            totalItems,
+            totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
+          }}
+          paginationInfo={`Showing ${summaryRows.length} of ${totalItems} results`}
+          onPageChange={setPage}
           onDetails={(row) => {
             const backQuery = buildTaxSummaryQueryString({
               filters,
@@ -217,12 +224,6 @@ export function TaxSummaryPeriodPage() {
               `${ACCOUNTING_TAX_ROUTES.ppnDetails}?period=${encodeURIComponent(row.period_code)}&from=${from}`,
             );
           }}
-        />
-        <FeatureTaxPaginationBar
-          page={resolvedPage}
-          perPage={resolvedPerPage}
-          totalItems={totalItems}
-          onPageChange={setPage}
         />
       </div>
     </div>

@@ -88,7 +88,6 @@ export { FeatureJournalEntriesTable } from "./components/features/FeatureJournal
 export { FeatureTaxTopActions } from "./components/features/FeatureTaxTopActions";
 export { FeatureTaxSummaryCards } from "./components/features/FeatureTaxSummaryCards";
 export { FeatureTaxTabNavigation } from "./components/features/FeatureTaxTabNavigation";
-export { FeatureTaxPaginationBar } from "./components/features/FeatureTaxPaginationBar";
 export { FeatureTaxSummaryFilterBar } from "./components/features/FeatureTaxSummaryFilterBar";
 export { FeatureTaxSummaryPeriodTable } from "./components/features/FeatureTaxSummaryPeriodTable";
 export { FeaturePpnDetailHeaderAction } from "./components/features/FeaturePpnDetailHeaderAction";

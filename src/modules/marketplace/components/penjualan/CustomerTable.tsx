@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Mail, MoreVertical, Phone, ChevronsUpDown } from "lucide-react";
 
@@ -13,7 +14,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CustomerListItem } from "@/modules/marketplace/types";
@@ -33,6 +37,9 @@ export type CustomerTableProps = Readonly<{
   customers: CustomerListItem[];
   onRowClick?: (customer: CustomerListItem) => void;
   getActions?: (customer: CustomerListItem) => CustomerAction[];
+  pagination?: TablePagePaginationMeta;
+  paginationInfo?: ReactNode;
+  onPageChange?: (nextPage: number) => void;
 }>;
 
 const AVATAR_STYLES = [
@@ -66,6 +73,9 @@ export function CustomerTable({
   customers,
   onRowClick,
   getActions,
+  pagination,
+  paginationInfo,
+  onPageChange,
 }: CustomerTableProps) {
   const columns: ColumnDef<CustomerListItem, unknown>[] = [
     {
@@ -268,6 +278,18 @@ export function CustomerTable({
             onRowClick ? "cursor-pointer" : "",
           )}
           onRowClick={onRowClick}
+          pagination={pagination}
+          paginationInfo={paginationInfo}
+          onPrevPage={() =>
+            pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+          }
+          onNextPage={() =>
+            pagination &&
+            onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+          }
+          paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4"
+          previousPageLabel="Sebelumnya"
+          nextPageLabel="Berikutnya"
         />
       </div>
     </div>

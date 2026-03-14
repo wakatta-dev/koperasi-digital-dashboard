@@ -5,7 +5,10 @@ import { Download, FileSpreadsheet, FileText, RotateCcw } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import type { TaxExportHistoryItem } from "../../types/tax";
 
@@ -53,12 +56,18 @@ function resolveStatusClass(status: TaxExportHistoryItem["status"]) {
 
 type FeatureTaxExportHistoryTableProps = {
   rows: TaxExportHistoryItem[];
+  pagination?: TablePagePaginationMeta;
+  paginationInfo?: string;
+  onPageChange?: (nextPage: number) => void;
   onDownload?: (row: TaxExportHistoryItem) => void;
   onRetry?: (row: TaxExportHistoryItem) => void;
 };
 
 export function FeatureTaxExportHistoryTable({
   rows,
+  pagination,
+  paginationInfo,
+  onPageChange,
   onDownload,
   onRetry,
 }: FeatureTaxExportHistoryTableProps) {
@@ -168,6 +177,18 @@ export function FeatureTaxExportHistoryTable({
         emptyState="No tax export history found."
         headerClassName="bg-gray-50 dark:bg-gray-800/50"
         rowClassName="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        pagination={pagination}
+        paginationInfo={paginationInfo}
+        onPrevPage={() =>
+          pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+        }
+        onNextPage={() =>
+          pagination &&
+          onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+        }
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
     </div>
   );

@@ -12,7 +12,6 @@ import type { ReportingAccountOption } from "../../types/reporting";
 import { buildReportingQueryString, parseReportingQueryState } from "../../utils/reporting-query-state";
 import {
   FeatureTrialBalanceFilterPanel,
-  FeatureTrialBalancePagination,
   FeatureTrialBalanceTable,
 } from "../features/FeatureReportingLedgers";
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
@@ -139,11 +138,16 @@ export function ReportingTrialBalancePage() {
             ending_balance: 0,
           }
         }
-      />
-      <FeatureTrialBalancePagination
-        page={page}
-        pageSize={TRIAL_BALANCE_PAGE_SIZE}
-        totalItems={allRows.length}
+        pagination={{
+          page,
+          pageSize: TRIAL_BALANCE_PAGE_SIZE,
+          totalItems: allRows.length,
+          totalPages: Math.max(
+            1,
+            Math.ceil(allRows.length / TRIAL_BALANCE_PAGE_SIZE),
+          ),
+        }}
+        paginationInfo={`Showing ${pagedRows.length} of ${allRows.length} entries`}
         onPageChange={setPage}
       />
     </div>

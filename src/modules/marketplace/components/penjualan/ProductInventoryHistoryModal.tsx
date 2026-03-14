@@ -368,43 +368,42 @@ export function ProductInventoryHistoryModal({
             </div>
 
             <div className="w-full min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-              <div className="w-full overflow-x-auto">
-                <TableShell
-                  tableClassName="min-w-[920px] w-full text-left"
-                  columns={columns}
-                  data={pagedRows}
-                  getRowId={(row) => row.id}
-                  emptyState="Belum ada riwayat inventory."
-                  headerClassName="bg-gray-50 dark:bg-gray-800/50"
-                  rowClassName="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={page === 1}
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Previous
-              </Button>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                Halaman {page} dari {totalPages}
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={page >= totalPages}
-                onClick={() =>
+              <TableShell
+                className="space-y-0"
+                containerClassName="w-full overflow-x-auto"
+                tableClassName="min-w-[920px] w-full text-left"
+                columns={columns}
+                data={pagedRows}
+                getRowId={(row) => row.id}
+                emptyState="Belum ada riwayat inventory."
+                headerClassName="bg-gray-50 dark:bg-gray-800/50"
+                rowClassName="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                surface="bare"
+                pagination={{
+                  page,
+                  pageSize: pageSize,
+                  totalItems: rows.length,
+                  totalPages,
+                }}
+                paginationInfo={`Halaman ${page} dari ${totalPages} • ${rows.length} aktivitas`}
+                onPrevPage={() => setPage((current) => Math.max(1, current - 1))}
+                onNextPage={() =>
                   setPage((current) => Math.min(totalPages, current + 1))
                 }
-              >
-                Next
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
+                paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+                previousPageLabel={
+                  <>
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </>
+                }
+                nextPageLabel={
+                  <>
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </>
+                }
+              />
             </div>
           </div>
         </div>

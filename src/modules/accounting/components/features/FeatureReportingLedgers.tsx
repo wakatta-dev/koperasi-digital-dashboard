@@ -333,11 +333,22 @@ export interface FeatureTrialBalanceTableProps {
     credit: number;
     ending_balance: number;
   };
+  readonly pagination?: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  readonly paginationInfo?: string;
+  readonly onPageChange?: (nextPage: number) => void;
 }
 
 export function FeatureTrialBalanceTable({
   rows,
   totals,
+  pagination,
+  paginationInfo,
+  onPageChange,
 }: FeatureTrialBalanceTableProps) {
   const tableRows: TrialBalanceTableRow[] = [
     ...rows.map((row, index) => ({
@@ -360,6 +371,7 @@ export function FeatureTrialBalanceTable({
   return (
     <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
       <TableShell
+        className="space-y-0"
         columns={[
           {
             id: "account",
@@ -445,6 +457,18 @@ export function FeatureTrialBalanceTable({
             ? "bg-gray-50 font-semibold dark:bg-gray-800/60"
             : undefined
         }
+        pagination={pagination}
+        paginationInfo={paginationInfo}
+        onPrevPage={() =>
+          pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+        }
+        onNextPage={() =>
+          pagination &&
+          onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+        }
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
     </Card>
   );
@@ -884,6 +908,14 @@ export interface FeatureAccountLedgerJournalTableProps {
   };
   readonly search?: string;
   readonly onSearchChange?: (value: string) => void;
+  readonly pagination?: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  readonly paginationInfo?: string;
+  readonly onPageChange?: (nextPage: number) => void;
 }
 
 export function FeatureAccountLedgerJournalTable({
@@ -891,6 +923,9 @@ export function FeatureAccountLedgerJournalTable({
   totals,
   search,
   onSearchChange,
+  pagination,
+  paginationInfo,
+  onPageChange,
 }: FeatureAccountLedgerJournalTableProps) {
   const tableRows: AccountLedgerJournalTableRow[] = [
     ...entries.map((entry, idx) => ({
@@ -929,6 +964,7 @@ export function FeatureAccountLedgerJournalTable({
       </CardHeader>
       <CardContent className="p-0">
         <TableShell
+          className="space-y-0"
           columns={[
             {
               id: "date",
@@ -1030,6 +1066,18 @@ export function FeatureAccountLedgerJournalTable({
               ? "bg-gray-50 font-semibold dark:bg-gray-800/60"
               : undefined
           }
+          pagination={pagination}
+          paginationInfo={paginationInfo}
+          onPrevPage={() =>
+            pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+          }
+          onNextPage={() =>
+            pagination &&
+            onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+          }
+          paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
         />
       </CardContent>
     </Card>

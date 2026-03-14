@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 
@@ -12,7 +13,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 import { formatCurrency } from "@/lib/format";
 import type { OrderListItem } from "@/modules/marketplace/types";
 import {
@@ -31,6 +35,9 @@ export type OrderTableProps = Readonly<{
   orders: OrderListItem[];
   onRowClick?: (order: OrderListItem) => void;
   getActions?: (order: OrderListItem) => OrderTableAction[];
+  pagination?: TablePagePaginationMeta;
+  paginationInfo?: ReactNode;
+  onPageChange?: (nextPage: number) => void;
 }>;
 
 const getInitials = (name: string) => {
@@ -53,6 +60,9 @@ export function OrderTable({
   orders,
   onRowClick,
   getActions,
+  pagination,
+  paginationInfo,
+  onPageChange,
 }: OrderTableProps) {
   const columns: ColumnDef<OrderListItem, unknown>[] = [
     {
@@ -202,6 +212,18 @@ export function OrderTable({
           headerRowClassName="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700"
           rowClassName="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
           onRowClick={onRowClick}
+          pagination={pagination}
+          paginationInfo={paginationInfo}
+          onPrevPage={() =>
+            pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+          }
+          onNextPage={() =>
+            pagination &&
+            onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+          }
+          paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4"
+          previousPageLabel="Sebelumnya"
+          nextPageLabel="Berikutnya"
         />
       </div>
     </div>

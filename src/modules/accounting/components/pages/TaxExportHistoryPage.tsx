@@ -26,7 +26,6 @@ import {
 } from "../../utils/tax-query-state";
 import { FeatureTaxExportHistoryFilterBar } from "../features/FeatureTaxExportHistoryFilterBar";
 import { FeatureTaxExportHistoryTable } from "../features/FeatureTaxExportHistoryTable";
-import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
 import { FeatureTaxSummaryCards } from "../features/FeatureTaxSummaryCards";
 import { FeatureTaxTopActions } from "../features/FeatureTaxTopActions";
 
@@ -211,15 +210,16 @@ export function TaxExportHistoryPage() {
 
         <FeatureTaxExportHistoryTable
           rows={rows}
+          pagination={{
+            page: resolvedPage,
+            pageSize: resolvedPerPage,
+            totalItems,
+            totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
+          }}
+          paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
+          onPageChange={setPage}
           onDownload={() => toast.success("Download link requested.")}
           onRetry={handleRetryExport}
-        />
-
-        <FeatureTaxPaginationBar
-          page={resolvedPage}
-          perPage={resolvedPerPage}
-          totalItems={totalItems}
-          onPageChange={setPage}
         />
       </div>
     </div>

@@ -27,7 +27,6 @@ import { FeaturePphFilterBar } from "../features/FeaturePphFilterBar";
 import { FeaturePphHeaderAction } from "../features/FeaturePphHeaderAction";
 import { FeaturePphRecordsTable } from "../features/FeaturePphRecordsTable";
 import { FeaturePphSummaryCards } from "../features/FeaturePphSummaryCards";
-import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
 
 const DEFAULT_PPH_FILTERS: TaxPphFilterValue = {
   q: "",
@@ -183,11 +182,15 @@ export function TaxPphRecordsPage() {
             Loading PPh records...
           </div>
         ) : null}
-        <FeaturePphRecordsTable rows={rows} />
-        <FeatureTaxPaginationBar
-          page={resolvedPage}
-          perPage={resolvedPerPage}
-          totalItems={totalItems}
+        <FeaturePphRecordsTable
+          rows={rows}
+          pagination={{
+            page: resolvedPage,
+            pageSize: resolvedPerPage,
+            totalItems,
+            totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
+          }}
+          paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
           onPageChange={setPage}
         />
       </div>
