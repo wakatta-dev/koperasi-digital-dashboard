@@ -17,7 +17,7 @@ import {
   type SummaryMetricItem,
 } from "@/components/shared/data-display/SummaryMetricsGrid";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { useAccountingReportingOverview } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -192,45 +192,44 @@ export default function AccountingDashboardPage() {
         <CardHeader>
           <CardTitle className="text-base">Recent Transactions</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <TableShell
-            columns={[
-              {
-                id: "date_display",
-                header: <>Date</>,
-                cell: ({ row }) => row.original.date_display,
+        <TableShell
+          className="mx-6"
+          columns={[
+            {
+              id: "date_display",
+              header: <>Date</>,
+              cell: ({ row }) => row.original.date_display,
+            },
+            {
+              id: "description",
+              header: <>Description</>,
+              cell: ({ row }) => row.original.description,
+            },
+            {
+              id: "category",
+              header: <>Category</>,
+              cell: ({ row }) => (
+                <Badge className={toBadgeClassName(row.original.category)}>
+                  {row.original.category}
+                </Badge>
+              ),
+            },
+            {
+              id: "amount_display",
+              header: <>Amount</>,
+              cell: ({ row }) => row.original.amount_display,
+              meta: {
+                headerClassName: "text-right",
+                cellClassName: "text-right font-medium",
               },
-              {
-                id: "description",
-                header: <>Description</>,
-                cell: ({ row }) => row.original.description,
-              },
-              {
-                id: "category",
-                header: <>Category</>,
-                cell: ({ row }) => (
-                  <Badge className={toBadgeClassName(row.original.category)}>
-                    {row.original.category}
-                  </Badge>
-                ),
-              },
-              {
-                id: "amount_display",
-                header: <>Amount</>,
-                cell: ({ row }) => row.original.amount_display,
-                meta: {
-                  headerClassName: "text-right",
-                  cellClassName: "text-right font-medium",
-                },
-              },
-            ]}
-            data={transactions}
-            getRowId={(row, index) => `${row.date_display}-${index}`}
-            loading={overviewQuery.isPending && !overviewQuery.data}
-            loadingState="Loading transactions..."
-            emptyState="No transaction data available."
-          />
-        </CardContent>
+            },
+          ]}
+          data={transactions}
+          getRowId={(row, index) => `${row.date_display}-${index}`}
+          loading={overviewQuery.isPending && !overviewQuery.data}
+          loadingState="Loading transactions..."
+          emptyState="No transaction data available."
+        />
       </Card>
     </div>
   );

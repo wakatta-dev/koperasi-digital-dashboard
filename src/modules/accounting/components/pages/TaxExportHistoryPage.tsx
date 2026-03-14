@@ -193,7 +193,7 @@ export function TaxExportHistoryPage() {
 
       <FeatureTaxSummaryCards cards={summaryCards} />
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
+      <div className="overflow-hidden bg-white space-y-2 dark:bg-slate-900">
         <FeatureTaxExportHistoryFilterBar
           value={filters}
           onChange={(next) => {

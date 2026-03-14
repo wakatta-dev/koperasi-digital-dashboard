@@ -118,6 +118,7 @@ type TableShellColumnModeProps<Row> = TableShellSharedProps & {
   headerClassName?: string;
   headerRowClassName?: string;
   bodyClassName?: string;
+  wrapperClassName?: string;
   surface?: "card" | "bare";
 };
 

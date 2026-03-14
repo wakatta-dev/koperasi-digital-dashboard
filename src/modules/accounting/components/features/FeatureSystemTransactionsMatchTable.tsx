@@ -200,7 +200,7 @@ export function FeatureSystemTransactionsMatchTable({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto p-2">
         <TableShell
           columns={columns}
           data={filteredRows}

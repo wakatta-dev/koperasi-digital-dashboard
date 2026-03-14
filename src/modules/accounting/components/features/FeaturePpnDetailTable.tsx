@@ -121,7 +121,7 @@ export function FeaturePpnDetailTable({
   return (
     <div className="overflow-x-auto">
       <TableShell
-        className="space-y-0"
+        className="space-y-0 border border-border rounded-xl overflow-hidden"
         tableClassName="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
         columns={columns}
         data={rows}

@@ -48,12 +48,11 @@ export function FeatureVendorBillsTable({
       return rows;
     }
 
-    return rows
-      .filter((row) =>
-        `${row.bill_number} ${row.vendor_name}`
-          .toLowerCase()
-          .includes(normalizedSearch),
-      );
+    return rows.filter((row) =>
+      `${row.bill_number} ${row.vendor_name}`
+        .toLowerCase()
+        .includes(normalizedSearch),
+    );
   }, [rows, searchTerm]);
 
   const allVisibleSelectableNumbers = filteredRows
@@ -281,7 +280,7 @@ export function FeatureVendorBillsTable({
   ];
 
   return (
-    <Card className="rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
+    <Card className="rounded-xl border border-gray-200 shadow-sm dark:border-gray-700 py-0 overflow-hidden">
       <CardContent className="p-0">
         <div className="flex flex-col justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">

@@ -46,6 +46,7 @@ export function FeatureTaxSummaryPeriodTable({
   return (
     <div className="overflow-x-auto">
       <TableShell
+        className="border border-border rounded-xl overflow-hidden"
         tableClassName="min-w-full"
         columns={[
           {

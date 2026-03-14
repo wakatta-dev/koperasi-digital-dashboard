@@ -170,6 +170,7 @@ export function FeatureTaxExportHistoryTable({
   return (
     <div className="overflow-x-auto">
       <TableShell
+        className="border border-border overflow-hidden rounded-xl"
         tableClassName="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
         columns={columns}
         data={rows}

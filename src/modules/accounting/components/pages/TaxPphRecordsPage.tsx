@@ -169,7 +169,7 @@ export function TaxPphRecordsPage() {
 
       <FeaturePphSummaryCards cards={summaryCards} />
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
+      <div className="overflow-hidden space-y-2 bg-white dark:bg-slate-900">
         <FeaturePphFilterBar
           value={filters}
           onChange={(next) => {

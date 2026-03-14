@@ -189,7 +189,7 @@ export function TaxSummaryPeriodPage() {
 
       <FeatureTaxSummaryCards cards={summaryCards} />
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
+      <div className="overflow-hidden bg-white dark:bg-slate-900 space-y-2">
         <FeatureTaxSummaryFilterBar
           value={filters}
           yearOptions={yearOptions}

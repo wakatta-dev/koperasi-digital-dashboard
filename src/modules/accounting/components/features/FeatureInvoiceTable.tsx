@@ -70,7 +70,10 @@ export function FeatureInvoiceTable({
         },
         cell: ({ row }) =>
           getInvoiceHref ? (
-            <Link className="hover:underline" href={getInvoiceHref(row.original)}>
+            <Link
+              className="hover:underline"
+              href={getInvoiceHref(row.original)}
+            >
               {row.original.invoice_number}
             </Link>
           ) : (
@@ -159,12 +162,12 @@ export function FeatureInvoiceTable({
         ),
       },
     ],
-    [getInvoiceHref]
+    [getInvoiceHref],
   );
 
   return (
     <Card className="border-gray-200 shadow-sm dark:border-gray-700">
-      <CardHeader className="flex flex-col gap-4 border-b border-gray-200 p-5 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
+      <CardHeader className="flex flex-col gap-4 border-b border-gray-200 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="whitespace-nowrap text-lg font-bold text-gray-900 dark:text-white">
           Daftar Invoice
         </h3>
@@ -213,9 +216,9 @@ export function FeatureInvoiceTable({
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="px-6">
         <TableShell
-          className="space-y-0"
+          className="border border-border rounded-xl overflow-hidden space-y-0"
           columns={columns}
           data={pagedRows}
           getRowId={(row) => row.invoice_number}

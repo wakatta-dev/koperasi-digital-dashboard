@@ -383,87 +383,85 @@ export function FeatureOperationalTraceWorkbench() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <TableShell
-            columns={[
-              {
-                id: "domain",
-                header: <>Domain</>,
-                cell: ({ row }) =>
-                  row.original.domain === "marketplace"
-                    ? "Marketplace"
-                    : "Rental",
+        <TableShell
+          className="mx-6"
+          columns={[
+            {
+              id: "domain",
+              header: <>Domain</>,
+              cell: ({ row }) =>
+                row.original.domain === "marketplace"
+                  ? "Marketplace"
+                  : "Rental",
+            },
+            {
+              id: "reference",
+              header: <>Referensi</>,
+              meta: {
+                cellClassName: "font-medium",
               },
-              {
-                id: "reference",
-                header: <>Referensi</>,
-                meta: {
-                  cellClassName: "font-medium",
-                },
-              },
-              {
-                id: "operationalStatus",
-                header: <>Status Operasional</>,
-              },
-              {
-                id: "paymentStatus",
-                header: <>Status Pembayaran</>,
-              },
-              {
-                id: "accountingStatus",
-                header: <>Status Accounting</>,
-                cell: ({ row }) => (
-                  <div className="flex flex-col gap-2">
-                    <Badge
-                      className={
-                        ACCOUNTING_STATUS_BADGE[
-                          row.original.accountingStatus
-                        ] || ACCOUNTING_STATUS_BADGE["Belum Siap"]
-                      }
-                    >
-                      {row.original.accountingStatus}
-                    </Badge>
-                    <Badge
-                      className={
-                        RECONCILIATION_BADGE[row.original.reconciliationStatus]
-                      }
-                    >
-                      {row.original.reconciliationStatus}
-                    </Badge>
-                    <Badge
-                      className={REPORTING_BADGE[row.original.reportingStatus]}
-                    >
-                      {row.original.reportingStatus}
-                    </Badge>
-                  </div>
-                ),
-              },
-              {
-                id: "actions",
-                header: <>Aksi</>,
-                cell: ({ row }) => (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedKey(row.original.key)}
+            },
+            {
+              id: "operationalStatus",
+              header: <>Status Operasional</>,
+            },
+            {
+              id: "paymentStatus",
+              header: <>Status Pembayaran</>,
+            },
+            {
+              id: "accountingStatus",
+              header: <>Status Accounting</>,
+              cell: ({ row }) => (
+                <div className="flex flex-col gap-2">
+                  <Badge
+                    className={
+                      ACCOUNTING_STATUS_BADGE[row.original.accountingStatus] ||
+                      ACCOUNTING_STATUS_BADGE["Belum Siap"]
+                    }
                   >
-                    Lihat Trace
-                  </Button>
-                ),
-                meta: {
-                  headerClassName: "text-right",
-                  cellClassName: "text-right",
-                },
+                    {row.original.accountingStatus}
+                  </Badge>
+                  <Badge
+                    className={
+                      RECONCILIATION_BADGE[row.original.reconciliationStatus]
+                    }
+                  >
+                    {row.original.reconciliationStatus}
+                  </Badge>
+                  <Badge
+                    className={REPORTING_BADGE[row.original.reportingStatus]}
+                  >
+                    {row.original.reportingStatus}
+                  </Badge>
+                </div>
+              ),
+            },
+            {
+              id: "actions",
+              header: <>Aksi</>,
+              cell: ({ row }) => (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedKey(row.original.key)}
+                >
+                  Lihat Trace
+                </Button>
+              ),
+              meta: {
+                headerClassName: "text-right",
+                cellClassName: "text-right",
               },
-            ]}
-            data={visibleRows}
-            getRowId={(row) => row.key}
-            emptyState="Belum ada transaksi operasional yang dapat ditelusuri."
-            rowClassName={(row) =>
-              row.key === selectedRow?.key ? "bg-muted/40" : undefined
-            }
-          />
-        </CardContent>
+            },
+          ]}
+          data={visibleRows}
+          getRowId={(row) => row.key}
+          emptyState="Belum ada transaksi operasional yang dapat ditelusuri."
+          rowClassName={(row) =>
+            row.key === selectedRow?.key ? "bg-muted/40" : undefined
+          }
+        />
       </Card>
 
       <Card>

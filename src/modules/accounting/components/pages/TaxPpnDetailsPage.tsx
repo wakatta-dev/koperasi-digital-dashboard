@@ -272,7 +272,7 @@ export function TaxPpnDetailsPage({
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
+      <div className="overflow-hidden space-y-2 bg-white dark:bg-slate-900">
         <FeaturePpnDetailFilterBar
           value={filters}
           periodOptions={periodOptions}

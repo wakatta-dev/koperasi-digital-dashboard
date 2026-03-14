@@ -36,7 +36,7 @@ export function FeatureTaxExportHistoryFilterBar({
   };
 
   return (
-    <div className="flex flex-col gap-4 bg-gray-50/50 p-5 dark:bg-gray-800/20 xl:flex-row xl:items-center xl:justify-between">
+    <div className="flex flex-col gap-4 bg-gray-50/50 p-5 dark:bg-gray-800/20 xl:flex-row xl:items-center xl:justify-between border border-border rounded-xl">
       <div className="relative w-full max-w-sm">
         <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input
@@ -49,10 +49,14 @@ export function FeatureTaxExportHistoryFilterBar({
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Filter By:</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Filter By:
+          </span>
           <Select
             value={value.type}
-            onValueChange={(next) => patch({ type: next as TaxExportHistoryFilterValue["type"] })}
+            onValueChange={(next) =>
+              patch({ type: next as TaxExportHistoryFilterValue["type"] })
+            }
           >
             <SelectTrigger className="w-[180px] border-gray-300 bg-white text-sm focus:ring-1 focus:ring-indigo-600 dark:border-gray-600 dark:bg-gray-800">
               <SelectValue />

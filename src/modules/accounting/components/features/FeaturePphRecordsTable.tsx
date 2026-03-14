@@ -129,7 +129,8 @@ const columns: ColumnDef<TaxPphRecordItem, unknown>[] = [
       align: "right",
       headerClassName:
         "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
-      cellClassName: "px-6 py-4 text-right text-sm text-gray-900 dark:text-white",
+      cellClassName:
+        "px-6 py-4 text-right text-sm text-gray-900 dark:text-white",
     },
     cell: ({ row }) => formatCurrency(row.original.gross_amount),
   },
@@ -175,6 +176,7 @@ export function FeaturePphRecordsTable({
   return (
     <div className="overflow-x-auto">
       <TableShell
+        className="border border-border overflow-hidden rounded-xl"
         tableClassName="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
         columns={columns}
         data={rows}

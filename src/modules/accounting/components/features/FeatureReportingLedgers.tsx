@@ -121,7 +121,7 @@ export function FeatureProfitLossComparativeTable({
   rows,
 }: FeatureProfitLossComparativeTableProps) {
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
+    <div className="overflow-hidden dark:bg-slate-900">
       <TableShell
         columns={[
           {
@@ -219,7 +219,7 @@ export function FeatureProfitLossComparativeTable({
               : undefined
         }
       />
-    </Card>
+    </div>
   );
 }
 
@@ -233,7 +233,7 @@ export function FeatureProfitLossComparativeMetaFooter({
   currency,
 }: FeatureProfitLossComparativeMetaFooterProps) {
   return (
-    <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+    <div className="flex items-center justify-between border-t mt-4 border-gray-200 px-6 py-4 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
       <p>
         Report generated on{" "}
         <span className="font-medium text-gray-700 dark:text-gray-300">
@@ -369,9 +369,9 @@ export function FeatureTrialBalanceTable({
   ];
 
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
+    <div className="overflow-hidden dark:bg-slate-900">
       <TableShell
-        className="space-y-0"
+        className="space-y-0 border border-border rounded-xl overflow-hidden"
         columns={[
           {
             id: "account",
@@ -470,7 +470,7 @@ export function FeatureTrialBalanceTable({
         previousPageLabel="Previous"
         nextPageLabel="Next"
       />
-    </Card>
+    </div>
   );
 }
 
@@ -633,6 +633,7 @@ export function FeatureGeneralLedgerGroupedTable({
 
               return (
                 <TableShell
+                  className="border border-border rounded-xl overflow-hidden"
                   columns={[
                     {
                       id: "date",
@@ -948,7 +949,7 @@ export function FeatureAccountLedgerJournalTable({
 
   return (
     <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
-      <CardHeader className="border-b border-gray-100 pb-3 dark:border-gray-800">
+      <CardHeader className="border-b border-gray-100  dark:border-gray-800 py-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-base">Journal Entries</CardTitle>
           <div className="relative w-full sm:w-64">
@@ -962,9 +963,9 @@ export function FeatureAccountLedgerJournalTable({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="py-0 px-4">
         <TableShell
-          className="space-y-0"
+          className="space-y-0 border border-border rounded-xl overflow-hidden"
           columns={[
             {
               id: "date",

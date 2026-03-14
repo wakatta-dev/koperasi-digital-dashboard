@@ -103,7 +103,7 @@ export function FeatureProfitLossDetailTable({
   rows,
 }: FeatureProfitLossDetailTableProps) {
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
+    <div className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
       <TableShell
         columns={[
           {
@@ -175,7 +175,7 @@ export function FeatureProfitLossDetailTable({
               : undefined
         }
       />
-    </Card>
+    </div>
   );
 }
 
@@ -261,7 +261,7 @@ export interface FeatureCashFlowTableProps {
 
 export function FeatureCashFlowTable({ rows }: FeatureCashFlowTableProps) {
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
+    <div className="overflow-hidden dark:bg-slate-900 p-0">
       <TableShell
         columns={[
           {
@@ -319,7 +319,7 @@ export function FeatureCashFlowTable({ rows }: FeatureCashFlowTableProps) {
             : undefined;
         }}
       />
-    </Card>
+    </div>
   );
 }
 
@@ -395,7 +395,7 @@ export function FeatureBalanceSheetTreeTable({
   ];
 
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
+    <div className="overflow-hidden dark:bg-slate-900">
       <TableShell
         columns={[
           {
@@ -438,7 +438,7 @@ export function FeatureBalanceSheetTreeTable({
             : undefined
         }
       />
-    </Card>
+    </div>
   );
 }
 
