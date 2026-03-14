@@ -19,7 +19,6 @@ import type {
   TaxExportHistoryItem,
   TaxSummaryMetricCard,
   TaxSummaryTone,
-  TaxTabKey,
 } from "../../types/tax";
 import {
   buildTaxExportHistoryQueryString,
@@ -29,7 +28,6 @@ import { FeatureTaxExportHistoryFilterBar } from "../features/FeatureTaxExportHi
 import { FeatureTaxExportHistoryTable } from "../features/FeatureTaxExportHistoryTable";
 import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
 import { FeatureTaxSummaryCards } from "../features/FeatureTaxSummaryCards";
-import { FeatureTaxTabNavigation } from "../features/FeatureTaxTabNavigation";
 import { FeatureTaxTopActions } from "../features/FeatureTaxTopActions";
 
 const DEFAULT_EXPORT_HISTORY_FILTERS: TaxExportHistoryFilterValue = {
@@ -41,7 +39,12 @@ const DEFAULT_EXPORT_HISTORY_FILTERS: TaxExportHistoryFilterValue = {
 const EXPORT_HISTORY_PER_PAGE = 5;
 
 function toSummaryTone(tone?: string): TaxSummaryTone {
-  if (tone === "warning" || tone === "success" || tone === "danger" || tone === "primary") {
+  if (
+    tone === "warning" ||
+    tone === "success" ||
+    tone === "danger" ||
+    tone === "primary"
+  ) {
     return tone;
   }
   return "primary";
@@ -79,7 +82,11 @@ export function TaxExportHistoryPage() {
   const mutations = useAccountingTaxMutations();
 
   useEffect(() => {
-    const nextQuery = buildTaxExportHistoryQueryString({ filters, page, perPage });
+    const nextQuery = buildTaxExportHistoryQueryString({
+      filters,
+      page,
+      perPage,
+    });
     const currentQuery = searchParams.toString();
     if (nextQuery === currentQuery) {
       return;
@@ -113,28 +120,11 @@ export function TaxExportHistoryPage() {
     }));
   }, [exportHistoryQuery.data?.items]);
 
-  const totalItems = exportHistoryQuery.data?.pagination?.total_items ?? rows.length;
+  const totalItems =
+    exportHistoryQuery.data?.pagination?.total_items ?? rows.length;
   const resolvedPage = exportHistoryQuery.data?.pagination?.page ?? page;
-  const resolvedPerPage = exportHistoryQuery.data?.pagination?.per_page ?? perPage;
-
-  const navigateTab = (tab: TaxTabKey) => {
-    if (tab === "summary") {
-      router.push(ACCOUNTING_TAX_ROUTES.summary);
-      return;
-    }
-    if (tab === "ppn-details") {
-      router.push(ACCOUNTING_TAX_ROUTES.ppnDetails);
-      return;
-    }
-    if (tab === "pph-records") {
-      router.push(ACCOUNTING_TAX_ROUTES.pphRecords);
-      return;
-    }
-    if (tab === "export-history") {
-      return;
-    }
-    router.push(ACCOUNTING_TAX_ROUTES.efakturExport);
-  };
+  const resolvedPerPage =
+    exportHistoryQuery.data?.pagination?.per_page ?? perPage;
 
   const handleGenerateTaxReport = async () => {
     const activePeriodCode = overviewQuery.data?.active_period
@@ -185,7 +175,9 @@ export function TaxExportHistoryPage() {
         </div>
         <FeatureTaxTopActions
           onGenerateTaxReport={handleGenerateTaxReport}
-          onExportEfaktur={() => router.push(ACCOUNTING_TAX_ROUTES.efakturExport)}
+          onExportEfaktur={() =>
+            router.push(ACCOUNTING_TAX_ROUTES.efakturExport)
+          }
         />
       </section>
 
@@ -203,10 +195,6 @@ export function TaxExportHistoryPage() {
       <FeatureTaxSummaryCards cards={summaryCards} />
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-        <div className="border-b border-gray-200 px-6 dark:border-gray-700">
-          <FeatureTaxTabNavigation value="export-history" onChange={navigateTab} />
-        </div>
-
         <FeatureTaxExportHistoryFilterBar
           value={filters}
           onChange={(next) => {

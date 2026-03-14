@@ -55,7 +55,9 @@ export function TaxEfakturExportPage() {
     [searchParams],
   );
 
-  const [filters, setFilters] = useState<TaxEfakturFilterValue>(initialQueryState.filters);
+  const [filters, setFilters] = useState<TaxEfakturFilterValue>(
+    initialQueryState.filters,
+  );
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -149,9 +151,11 @@ export function TaxEfakturExportPage() {
     }));
   }, [complianceQuery.data?.steps]);
 
-  const totalItems = efakturReadyQuery.data?.pagination?.total_items ?? rows.length;
+  const totalItems =
+    efakturReadyQuery.data?.pagination?.total_items ?? rows.length;
   const resolvedPage = efakturReadyQuery.data?.pagination?.page ?? page;
-  const resolvedPerPage = efakturReadyQuery.data?.pagination?.per_page ?? perPage;
+  const resolvedPerPage =
+    efakturReadyQuery.data?.pagination?.per_page ?? perPage;
 
   const toggleAllRows = (checked: boolean) => {
     if (!checked) {
@@ -262,7 +266,11 @@ export function TaxEfakturExportPage() {
           />
 
           <FeatureTaxComplianceCard
-            periodLabel={overviewQuery.data?.active_period?.label ?? complianceQuery.data?.as_of ?? "-"}
+            periodLabel={
+              overviewQuery.data?.active_period?.label ??
+              complianceQuery.data?.as_of ??
+              "-"
+            }
             steps={complianceSteps}
             deadline={complianceQuery.data?.deadline ?? "-"}
           />

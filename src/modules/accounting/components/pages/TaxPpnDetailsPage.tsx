@@ -27,7 +27,6 @@ import { FeaturePpnDetailFilterBar } from "../features/FeaturePpnDetailFilterBar
 import { FeaturePpnDetailHeaderAction } from "../features/FeaturePpnDetailHeaderAction";
 import { FeaturePpnDetailTable } from "../features/FeaturePpnDetailTable";
 import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
-import { FeatureTaxTabNavigation } from "../features/FeatureTaxTabNavigation";
 
 type TaxPpnDetailsPageProps = {
   period?: string;
@@ -89,7 +88,9 @@ export function TaxPpnDetailsPage({
     };
   }, [period, periodFromQuery, searchParams]);
 
-  const [filters, setFilters] = useState<TaxPpnFilterValue>(initialQueryState.filters);
+  const [filters, setFilters] = useState<TaxPpnFilterValue>(
+    initialQueryState.filters,
+  );
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
 
@@ -97,20 +98,27 @@ export function TaxPpnDetailsPage({
   const vatTransactionsQuery = useAccountingTaxVatTransactions({
     period: filters.period === "All Periods" ? undefined : filters.period,
     transaction_type:
-      filters.transaction_type === "All Types" ? undefined : filters.transaction_type,
+      filters.transaction_type === "All Types"
+        ? undefined
+        : filters.transaction_type,
     q: filters.q || undefined,
     page,
     per_page: perPage,
   });
   const mutations = useAccountingTaxMutations();
 
-  const periodOptions = useMemo<ReadonlyArray<{ label: string; value: string }>>(() => {
+  const periodOptions = useMemo<
+    ReadonlyArray<{ label: string; value: string }>
+  >(() => {
     const optionMap = new Map<string, string>([["All Periods", "All Periods"]]);
     const activePeriodCode = overviewQuery.data?.active_period
       ? `${overviewQuery.data.active_period.year}-${String(overviewQuery.data.active_period.month).padStart(2, "0")}`
       : "";
     if (activePeriodCode) {
-      optionMap.set(activePeriodCode, overviewQuery.data?.active_period.label || activePeriodCode);
+      optionMap.set(
+        activePeriodCode,
+        overviewQuery.data?.active_period.label || activePeriodCode,
+      );
     }
     if (filters.period !== "All Periods") {
       optionMap.set(filters.period, formatPeriodLabel(filters.period));
@@ -120,7 +128,10 @@ export function TaxPpnDetailsPage({
       optionMap.set(fromQuery, formatPeriodLabel(fromQuery));
     }
 
-    return Array.from(optionMap.entries()).map(([value, label]) => ({ value, label }));
+    return Array.from(optionMap.entries()).map(([value, label]) => ({
+      value,
+      label,
+    }));
   }, [
     filters.period,
     overviewQuery.data?.active_period,
@@ -140,7 +151,9 @@ export function TaxPpnDetailsPage({
     if (nextQuery === currentQuery) {
       return;
     }
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
   }, [filters, page, pathname, perPage, returnToQuery, router, searchParams]);
 
   const activePeriodCode =
@@ -167,9 +180,11 @@ export function TaxPpnDetailsPage({
     }));
   }, [activePeriodCode, vatTransactionsQuery.data?.items]);
 
-  const totalItems = vatTransactionsQuery.data?.pagination?.total_items ?? rows.length;
+  const totalItems =
+    vatTransactionsQuery.data?.pagination?.total_items ?? rows.length;
   const resolvedPage = vatTransactionsQuery.data?.pagination?.page ?? page;
-  const resolvedPerPage = vatTransactionsQuery.data?.pagination?.per_page ?? perPage;
+  const resolvedPerPage =
+    vatTransactionsQuery.data?.pagination?.per_page ?? perPage;
 
   const navigateTab = (tab: TaxTabKey) => {
     if (tab === "summary") {
@@ -206,7 +221,8 @@ export function TaxPpnDetailsPage({
   };
 
   const handleDownloadRecapitulation = async () => {
-    const selectedPeriod = filters.period === "All Periods" ? activePeriodCode : filters.period;
+    const selectedPeriod =
+      filters.period === "All Periods" ? activePeriodCode : filters.period;
     if (!selectedPeriod || selectedPeriod === "All Periods") {
       toast.error("Select a tax period before downloading recapitulation.");
       return;
@@ -217,7 +233,9 @@ export function TaxPpnDetailsPage({
         payload: {
           period: selectedPeriod,
           transaction_type:
-            filters.transaction_type === "All Types" ? undefined : filters.transaction_type,
+            filters.transaction_type === "All Types"
+              ? undefined
+              : filters.transaction_type,
         },
         idempotencyKey: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
       });
@@ -256,9 +274,6 @@ export function TaxPpnDetailsPage({
       ) : null}
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-        <div className="border-b border-gray-200 px-6 dark:border-gray-700">
-          <FeatureTaxTabNavigation value="ppn-details" onChange={navigateTab} />
-        </div>
         <FeaturePpnDetailFilterBar
           value={filters}
           periodOptions={periodOptions}
