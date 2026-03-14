@@ -70,9 +70,8 @@ export function GenericTable<TData>({
   return (
     <div
       className={cn(
-        "w-full min-w-0",
-        surface === "card" &&
-          "overflow-hidden rounded-lg border border-border bg-card shadow-sm",
+        "w-full min-w-0 rounded-xl",
+        surface === "card" && "overflow-hidden border border-border bg-card",
         wrapperClassName,
       )}
     >

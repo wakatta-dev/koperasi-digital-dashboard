@@ -23,11 +23,7 @@ export function TableViewport({
   return (
     <div className={cn("overflow-x-auto", containerClassName)}>
       <table
-        className={cn(
-          "min-w-full border-collapse",
-          densityClass,
-          className,
-        )}
+        className={cn("min-w-full border-collapse", densityClass, className)}
       >
         {children}
       </table>

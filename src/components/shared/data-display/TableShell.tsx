@@ -225,7 +225,7 @@ export function TableShell<Row>({
     resolvedPaginationInfo !== false && resolvedPaginationInfo != null;
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("", className)}>
       <GenericTable
         {...restProps}
         columns={normalizeColumns(restProps.columns)}
@@ -237,20 +237,29 @@ export function TableShell<Row>({
       {pagination ? (
         <div
           className={cn(
-            "flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3",
+            "flex items-center gap-3 rounded-lg bg-card px-4 py-3",
             showPaginationInfo ? "justify-between" : "justify-end",
             paginationClassName,
           )}
         >
           {showPaginationInfo ? (
-            <p className={cn("text-sm text-muted-foreground", paginationInfoClassName)}>
+            <p
+              className={cn(
+                "text-sm text-muted-foreground",
+                paginationInfoClassName,
+              )}
+            >
               {resolvedPaginationInfo}
             </p>
           ) : null}
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant={previousPageButtonVariant ?? paginationButtonVariant ?? "outline"}
+              variant={
+                previousPageButtonVariant ??
+                paginationButtonVariant ??
+                "outline"
+              }
               size={paginationButtonSize}
               onClick={onPrevPage}
               disabled={!canInvokePrev}
@@ -260,7 +269,9 @@ export function TableShell<Row>({
             </Button>
             <Button
               type="button"
-              variant={nextPageButtonVariant ?? paginationButtonVariant ?? "outline"}
+              variant={
+                nextPageButtonVariant ?? paginationButtonVariant ?? "outline"
+              }
               size={paginationButtonSize}
               onClick={onNextPage}
               disabled={!canInvokeNext}

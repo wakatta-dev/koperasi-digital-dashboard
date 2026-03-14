@@ -195,7 +195,7 @@ export function FeatureTaxesTable({
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-xl bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
         <div className="overflow-x-auto">
           <TableShell
             tableClassName="text-sm"
