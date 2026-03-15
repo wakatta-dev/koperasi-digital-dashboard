@@ -18,10 +18,14 @@ import type { CoaAccountRow } from "../../types/settings";
 export function AccountingSettingsCoaPage() {
   const [page, setPage] = useState(1);
   const perPage = 45;
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
   const coaQuery = useAccountingSettingsCoa({ page, per_page: perPage });
+  const coaLookupQuery = useAccountingSettingsCoa(
+    { page: 1, per_page: 100 },
+    { enabled: isAddModalOpen }
+  );
   const { createCoa, updateCoa, deleteCoa } = useAccountingSettingsCoaMutations();
 
-  const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<CoaAccountRow | null>(null);
   const [deletingAccount, setDeletingAccount] = useState<CoaAccountRow | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -30,7 +34,44 @@ export function AccountingSettingsCoaPage() {
     return mapCoaRows(coaQuery.data?.items ?? []);
   }, [coaQuery.data?.items]);
 
-  const queryErrorMessage = coaQuery.error ? toAccountingSettingsApiError(coaQuery.error).message : null;
+  const coaLookupItems = useMemo(() => {
+    if ((coaLookupQuery.data?.items?.length ?? 0) > 0) {
+      return coaLookupQuery.data?.items ?? [];
+    }
+
+    return coaQuery.data?.items ?? [];
+  }, [coaLookupQuery.data?.items, coaQuery.data?.items]);
+
+  const accountTypeOptions = useMemo(() => {
+    const seen = new Set<string>();
+
+    return coaLookupItems
+      .map((item) => item.account_type.trim())
+      .filter((value) => {
+        if (!value || seen.has(value)) return false;
+        seen.add(value);
+        return true;
+      })
+      .map((value) => ({
+        value,
+        label: value,
+      }));
+  }, [coaLookupItems]);
+
+  const parentAccountOptions = useMemo(() => {
+    return coaLookupItems
+      .filter((item) => item.is_active)
+      .map((item) => ({
+        value: item.account_code,
+        label: `${item.account_code} - ${item.account_name}`,
+      }));
+  }, [coaLookupItems]);
+
+  const queryErrorMessage = isAddModalOpen && coaLookupQuery.error
+    ? toAccountingSettingsApiError(coaLookupQuery.error).message
+    : coaQuery.error
+      ? toAccountingSettingsApiError(coaQuery.error).message
+      : null;
   const errorMessage = actionError ?? queryErrorMessage;
 
   const handleCreateAccount = async (payload: {
@@ -45,6 +86,7 @@ export function AccountingSettingsCoaPage() {
       await createCoa.mutateAsync({ payload });
     } catch (err) {
       setActionError(toAccountingSettingsApiError(err).message);
+      throw err;
     }
   };
 
@@ -116,6 +158,9 @@ export function AccountingSettingsCoaPage() {
       <FeatureAddCoaAccountModal
         open={isAddModalOpen}
         onOpenChange={setAddModalOpen}
+        accountTypeOptions={accountTypeOptions}
+        parentAccountOptions={parentAccountOptions}
+        optionsLoading={isAddModalOpen && coaLookupQuery.isLoading && coaLookupItems.length === 0}
         onSave={handleCreateAccount}
       />
 

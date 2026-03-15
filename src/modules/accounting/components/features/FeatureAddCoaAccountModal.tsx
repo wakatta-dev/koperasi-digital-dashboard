@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,48 +24,102 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/shared/inputs/textarea";
 
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
+const EMPTY_SELECT_OPTIONS: SelectOption[] = [];
+
 type FeatureAddCoaAccountModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  accountTypeOptions?: SelectOption[];
+  parentAccountOptions?: SelectOption[];
+  optionsLoading?: boolean;
   onSave?: (payload: {
     account_code: string;
     account_name: string;
     account_type: string;
     parent_account_code?: string;
     description?: string;
-  }) => void;
+  }) => void | Promise<void>;
 };
 
 export function FeatureAddCoaAccountModal({
   open,
   onOpenChange,
+  accountTypeOptions = EMPTY_SELECT_OPTIONS,
+  parentAccountOptions = EMPTY_SELECT_OPTIONS,
+  optionsLoading = false,
   onSave,
 }: FeatureAddCoaAccountModalProps) {
   const [accountCode, setAccountCode] = useState("");
   const [accountName, setAccountName] = useState("");
-  const [accountType, setAccountType] = useState("Asset");
-  const [parentAccount, setParentAccount] = useState("11000");
+  const [accountType, setAccountType] = useState("");
+  const [parentAccount, setParentAccount] = useState("root");
   const [description, setDescription] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    onSave?.({
-      account_code: accountCode.trim(),
-      account_name: accountName.trim(),
-      account_type: accountType,
-      parent_account_code:
-        parentAccount === "root" || parentAccount.trim() === "" ? undefined : parentAccount,
-      description: description.trim() || undefined,
-    });
-    onOpenChange(false);
+  useEffect(() => {
+    if (!open || accountTypeOptions.length === 0) return;
+
+    setAccountType((current) =>
+      accountTypeOptions.some((option) => option.value === current)
+        ? current
+        : accountTypeOptions[0]?.value ?? ""
+    );
+  }, [accountTypeOptions, open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setParentAccount((current) =>
+      current === "root" || parentAccountOptions.some((option) => option.value === current)
+        ? current
+        : "root"
+    );
+  }, [open, parentAccountOptions]);
+
+  const resetForm = () => {
     setAccountCode("");
     setAccountName("");
-    setAccountType("Asset");
-    setParentAccount("11000");
+    setAccountType(accountTypeOptions[0]?.value ?? "");
+    setParentAccount("root");
     setDescription("");
   };
 
+  const handleSave = async () => {
+    setIsSaving(true);
+
+    try {
+      await onSave?.({
+        account_code: accountCode.trim(),
+        account_name: accountName.trim(),
+        account_type: accountType,
+        parent_account_code:
+          parentAccount === "root" || parentAccount.trim() === "" ? undefined : parentAccount,
+        description: description.trim() || undefined,
+      });
+      resetForm();
+      onOpenChange(false);
+    } catch {
+      // Keep the modal open so the user can fix the payload after the page surfaces the error.
+    }
+    finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && !isSaving) {
+      resetForm();
+    }
+    onOpenChange(nextOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-lg overflow-hidden border-gray-200 p-0 dark:border-gray-700"
         overlayClassName="bg-gray-900/50 backdrop-blur-[2px]"
@@ -107,16 +161,26 @@ export function FeatureAddCoaAccountModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Tipe Akun
             </Label>
-            <Select value={accountType} onValueChange={setAccountType}>
+            <Select value={accountType} onValueChange={setAccountType} disabled={optionsLoading}>
               <SelectTrigger className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                 <SelectValue placeholder="Pilih tipe akun" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Asset">Asset</SelectItem>
-                <SelectItem value="Liability">Liability</SelectItem>
-                <SelectItem value="Equity">Equity</SelectItem>
-                <SelectItem value="Income">Income</SelectItem>
-                <SelectItem value="Expense">Expense</SelectItem>
+                {optionsLoading ? (
+                  <SelectItem value="__loading_account_type" disabled>
+                    Memuat tipe akun...
+                  </SelectItem>
+                ) : accountTypeOptions.length > 0 ? (
+                  accountTypeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="__empty_account_type" disabled>
+                    Tipe akun belum tersedia
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -125,15 +189,27 @@ export function FeatureAddCoaAccountModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Akun Induk / Parent Account
             </Label>
-            <Select value={parentAccount} onValueChange={setParentAccount}>
+            <Select value={parentAccount} onValueChange={setParentAccount} disabled={optionsLoading}>
               <SelectTrigger className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                 <SelectValue placeholder="Pilih akun induk" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="root">None (Root Account)</SelectItem>
-                <SelectItem value="10000">10000 - Assets</SelectItem>
-                <SelectItem value="11000">11000 - Current Assets</SelectItem>
-                <SelectItem value="11100">11100 - Cash &amp; Bank</SelectItem>
+                {optionsLoading ? (
+                  <SelectItem value="__loading_parent_account" disabled>
+                    Memuat akun induk...
+                  </SelectItem>
+                ) : parentAccountOptions.length > 0 ? (
+                  parentAccountOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="__empty_parent_account" disabled>
+                    Akun induk belum tersedia
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -156,7 +232,7 @@ export function FeatureAddCoaAccountModal({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             className="mt-0 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             Batal
@@ -164,9 +240,10 @@ export function FeatureAddCoaAccountModal({
           <Button
             type="button"
             onClick={handleSave}
+            disabled={isSaving}
             className="bg-indigo-600 text-white hover:bg-indigo-700"
           >
-            Simpan Akun
+            {isSaving ? "Menyimpan..." : "Simpan Akun"}
           </Button>
         </DialogFooter>
       </DialogContent>
