@@ -19,6 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
 import {
   useInventoryActions,
+  useInventoryStockAvailability,
+  useInventoryStockNodes,
   useInventoryProduct,
   useInventoryVariants,
 } from "@/hooks/queries/inventory";
@@ -42,6 +44,8 @@ export function InventoryDetailPage({ id }: Props) {
   const [stockInput, setStockInput] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const stockNodesQuery = useInventoryStockNodes();
+  const stockAvailabilityQuery = useInventoryStockAvailability(id);
 
   const item: InventoryItem | null = useMemo(
     () => (data ? mapInventoryProduct(data) : null),
@@ -309,6 +313,32 @@ export function InventoryDetailPage({ id }: Props) {
                   <p className="text-lg font-semibold text-foreground">
                     {item.costPrice ? formatCurrency(item.costPrice) : "-"}
                   </p>
+                </div>
+              </div>
+              <div className="rounded-lg border border-border/60 p-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Stock Nodes</p>
+                  <p className="text-base font-semibold text-foreground">
+                    {stockNodesQuery.data?.length ?? 0} node
+                  </p>
+                  {(stockAvailabilityQuery.data ?? []).map((entry) => (
+                    <div
+                      key={`${entry.stock_node_id}-${entry.channel}`}
+                      className="rounded-md border border-border/50 px-3 py-2 text-sm"
+                    >
+                      <p className="font-medium text-foreground">
+                        {entry.node_name} ({entry.node_type})
+                      </p>
+                      <p className="text-muted-foreground">
+                        Channel: {entry.channel} | On hand: {entry.on_hand_quantity} | Available: {entry.available_quantity}
+                      </p>
+                    </div>
+                  ))}
+                  {(stockAvailabilityQuery.data ?? []).length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      Belum ada availability per stock node.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>

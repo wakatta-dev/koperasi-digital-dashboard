@@ -10,6 +10,8 @@ import type {
   InventoryCategoryResponse,
   InventoryAdjustmentRequest,
   InventoryInitialStockRequest,
+  InventoryStockAvailabilityResponse,
+  InventoryStockNodeResponse,
   InventoryProductStatsResponse,
   InventoryProductListResponse,
   InventoryProductResponse,
@@ -93,6 +95,20 @@ export function getInventoryProduct(
   id: string | number
 ): Promise<ApiResponse<InventoryProductResponse>> {
   return api.get<InventoryProductResponse>(`${API_PREFIX}${E.product(id)}`);
+}
+
+export function listInventoryStockNodes(): Promise<
+  ApiResponse<InventoryStockNodeResponse[]>
+> {
+  return api.get<InventoryStockNodeResponse[]>(`${API_PREFIX}/inventory/stock/nodes`);
+}
+
+export function listInventoryStockAvailability(
+  id: string | number
+): Promise<ApiResponse<InventoryStockAvailabilityResponse[]>> {
+  return api.get<InventoryStockAvailabilityResponse[]>(
+    `${API_PREFIX}/inventory/products/${id}/stock/availability`
+  );
 }
 
 export function getInventoryProductStats(

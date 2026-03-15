@@ -98,6 +98,29 @@ export type InventoryStockHistoryEntry = {
   timestamp: number;
 };
 
+export type InventoryStockNodeResponse = {
+  id: number;
+  node_code: string;
+  node_name: string;
+  node_type: string;
+  outlet_code?: string;
+  is_active: boolean;
+};
+
+export type InventoryStockAvailabilityResponse = {
+  product_id: number;
+  stock_node_id: number;
+  node_code: string;
+  node_name: string;
+  node_type: string;
+  channel: string;
+  on_hand_quantity: number;
+  reserved_quantity: number;
+  blocked_quantity: number;
+  available_quantity: number;
+  deducted_quantity: number;
+};
+
 export type InventoryVariantGroupResponse = {
   id: number;
   product_id: number;
