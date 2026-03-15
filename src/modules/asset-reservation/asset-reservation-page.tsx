@@ -149,12 +149,18 @@ export function AssetReservationPage() {
   }, [items, selectedAssetId]);
 
   return (
-    <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
+    <div
+      className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col"
+      data-testid="asset-rental-catalog-page-root"
+    >
       <LandingNavbar activeLabel="Penyewaan Aset" />
       <div
         className={`asset-rental-guest ${plusJakarta.className} flex min-h-0 flex-1 flex-col`}
       >
-        <main className="flex-grow pt-20">
+        <main
+          className="flex-grow pt-20"
+          data-testid="asset-rental-catalog-page-main"
+        >
           <AssetCatalogFeature
             badgeLabel="Layanan Desa"
             title="Katalog Aset Desa"

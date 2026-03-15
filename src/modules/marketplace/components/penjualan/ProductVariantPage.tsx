@@ -1046,7 +1046,10 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8">
+    <div
+      className="max-w-6xl mx-auto p-8 space-y-8"
+      data-testid="marketplace-admin-product-variants-page-root"
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -1061,6 +1064,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             type="button"
             variant="outline"
             onClick={() => router.push(`/bumdes/marketplace/inventory/${id}`)}
+            data-testid="marketplace-admin-product-variants-cancel-button"
             className="px-5 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Batal
@@ -1069,6 +1073,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             type="button"
             onClick={handleSaveVariants}
             disabled={saving || hasErrors}
+            data-testid="marketplace-admin-product-variants-save-button"
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm text-sm font-medium disabled:opacity-70"
           >
             <Save className="h-4 w-4" />
@@ -1194,6 +1199,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
               type="button"
               variant="ghost"
               onClick={() => setNewAttributeOpen(true)}
+              data-testid="marketplace-admin-product-variants-add-attribute-button"
               className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors mt-2 h-auto px-0"
             >
               <Plus className="h-4 w-4" />
@@ -1202,7 +1208,10 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
           </div>
         </section>
 
-        <section className="surface-table">
+        <section
+          className="surface-table"
+          data-testid="marketplace-admin-product-variants-table"
+        >
           <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

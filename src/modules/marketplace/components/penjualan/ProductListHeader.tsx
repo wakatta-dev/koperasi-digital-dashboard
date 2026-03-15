@@ -30,12 +30,14 @@ export function ProductListHeader({
             value={searchValue}
             onValueChange={onSearchChange}
             placeholder="Cari nama produk, SKU..."
+            data-testid="marketplace-admin-inventory-search-input"
           />
         </div>
         <Button
           type="button"
           variant="outline"
           onClick={onOpenFilter}
+          data-testid="marketplace-admin-inventory-filter-button"
           className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-surface-dark hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium"
         >
           <Filter className="h-4 w-4" />
@@ -45,6 +47,7 @@ export function ProductListHeader({
       <Button
         type="button"
         onClick={onAddProduct}
+        data-testid="marketplace-admin-inventory-create-button"
         className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm text-sm font-medium"
       >
         <Plus className="h-4 w-4" />

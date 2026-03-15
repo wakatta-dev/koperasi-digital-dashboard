@@ -173,7 +173,10 @@ export function ProductCreatePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
+    <div
+      className="max-w-4xl mx-auto p-8 space-y-8"
+      data-testid="marketplace-admin-product-create-page-root"
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -187,6 +190,7 @@ export function ProductCreatePage() {
           type="button"
           variant="outline"
           onClick={handleCancel}
+          data-testid="marketplace-admin-product-create-cancel-button"
           className="px-5 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           Batal
@@ -206,6 +210,7 @@ export function ProductCreatePage() {
               <Input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
+                data-testid="marketplace-admin-product-create-name-input"
                 placeholder="Masukkan nama produk"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
@@ -217,6 +222,7 @@ export function ProductCreatePage() {
               <Input
                 value={sku}
                 onChange={(event) => setSku(event.target.value)}
+                data-testid="marketplace-admin-product-create-sku-input"
                 placeholder="Contoh: PROD-001"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
@@ -237,7 +243,10 @@ export function ProductCreatePage() {
                 Kategori
               </label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600">
+                <SelectTrigger
+                  className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600"
+                  data-testid="marketplace-admin-product-create-category-trigger"
+                >
                   <SelectValue placeholder="Pilih Kategori" />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,6 +273,7 @@ export function ProductCreatePage() {
                 min={hasVariants ? 0 : 1}
                 value={priceSell}
                 onChange={(event) => setPriceSell(event.target.value)}
+                data-testid="marketplace-admin-product-create-price-input"
                 placeholder={hasVariants ? "Contoh: 0 atau 15000" : "Contoh: 15000"}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
@@ -295,6 +305,7 @@ export function ProductCreatePage() {
                 min={0}
                 value={initialStockQty}
                 onChange={(event) => setInitialStockQty(event.target.value)}
+                data-testid="marketplace-admin-product-create-initial-stock-input"
                 placeholder={trackStock ? "Contoh: 10" : "Tidak dilacak"}
                 disabled={!trackStock}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600 disabled:opacity-60"
@@ -324,7 +335,11 @@ export function ProductCreatePage() {
                     Jika aktif, setelah simpan Anda akan diarahkan ke halaman pengaturan varian.
                   </p>
                 </div>
-                <Switch checked={hasVariants} onCheckedChange={setHasVariants} />
+                <Switch
+                  checked={hasVariants}
+                  onCheckedChange={setHasVariants}
+                  data-testid="marketplace-admin-product-create-has-variants-switch"
+                />
               </div>
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -335,7 +350,11 @@ export function ProductCreatePage() {
                     Matikan jika produk tidak memiliki batas stok.
                   </p>
                 </div>
-                <Switch checked={trackStock} onCheckedChange={setTrackStock} />
+                <Switch
+                  checked={trackStock}
+                  onCheckedChange={setTrackStock}
+                  data-testid="marketplace-admin-product-create-track-stock-switch"
+                />
               </div>
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -349,6 +368,7 @@ export function ProductCreatePage() {
                 <Switch
                   checked={showInMarketplace}
                   onCheckedChange={setShowInMarketplace}
+                  data-testid="marketplace-admin-product-create-show-marketplace-switch"
                 />
               </div>
             </div>
@@ -359,6 +379,7 @@ export function ProductCreatePage() {
               <Textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
+                data-testid="marketplace-admin-product-create-description-textarea"
                 placeholder="Tuliskan deskripsi lengkap produk..."
                 rows={4}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
@@ -373,6 +394,7 @@ export function ProductCreatePage() {
           </h3>
           <div
             className="p-12 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-center hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors cursor-pointer"
+            data-testid="marketplace-admin-product-create-media-dropzone"
             onClick={() => fileRef.current?.click()}
             onDragOver={(event) => {
               event.preventDefault();
@@ -412,6 +434,7 @@ export function ProductCreatePage() {
               id={uploadId}
               ref={fileRef}
               type="file"
+              data-testid="marketplace-admin-product-create-file-input"
               className="hidden"
               multiple
               onChange={(event) => {
@@ -441,6 +464,7 @@ export function ProductCreatePage() {
             type="button"
             variant="outline"
             onClick={handleCancel}
+            data-testid="marketplace-admin-product-create-cancel-button-footer"
             className="px-8 py-3 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Batal
@@ -449,6 +473,7 @@ export function ProductCreatePage() {
             type="button"
             disabled={submitting}
             onClick={handleSubmit}
+            data-testid="marketplace-admin-product-create-submit-button"
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors shadow-sm text-sm font-medium"
           >
             Simpan Produk

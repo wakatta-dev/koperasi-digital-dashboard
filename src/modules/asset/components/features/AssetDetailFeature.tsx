@@ -1,4 +1,5 @@
 /** @format */
+"use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Cpu, History, Copy, MapPin } from "lucide-react";
@@ -15,97 +16,101 @@ type AssetDetailFeatureProps = Readonly<{
 }>;
 
 export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
-  const specificationColumns: ColumnDef<(typeof detail.specifications)[number], unknown>[] =
-    [
-      {
-        id: "key",
-        header: "",
-        meta: {
-          cellClassName:
-            "w-1/3 bg-slate-50 px-4 text-sm font-medium text-slate-500",
-        },
-        cell: ({ row }) => row.original.key,
+  const specificationColumns: ColumnDef<
+    (typeof detail.specifications)[number],
+    unknown
+  >[] = [
+    {
+      id: "key",
+      header: "",
+      meta: {
+        cellClassName:
+          "w-1/3 bg-slate-50 px-4 text-sm font-medium text-slate-500",
       },
-      {
-        id: "value",
-        header: "",
-        meta: {
-          cellClassName: "px-4 text-sm text-slate-900",
-        },
-        cell: ({ row }) => row.original.value,
+      cell: ({ row }) => row.original.key,
+    },
+    {
+      id: "value",
+      header: "",
+      meta: {
+        cellClassName: "px-4 text-sm text-slate-900",
       },
-    ];
+      cell: ({ row }) => row.original.value,
+    },
+  ];
 
-  const activityColumns: ColumnDef<(typeof detail.activityRows)[number], unknown>[] =
-    [
-      {
-        id: "renter",
-        header: "Peminjam",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4",
-        },
-        cell: ({ row }) => (
-          <>
-            <div className="text-sm font-medium text-slate-900">
-              {row.original.renterName}
-            </div>
-            <div className="text-xs text-slate-500">
-              {row.original.renterContact}
-            </div>
-          </>
-        ),
+  const activityColumns: ColumnDef<
+    (typeof detail.activityRows)[number],
+    unknown
+  >[] = [
+    {
+      id: "renter",
+      header: "Peminjam",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4",
       },
-      {
-        id: "startDate",
-        header: "Tanggal Pinjam",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4 text-sm text-slate-600",
-        },
-        cell: ({ row }) => row.original.startDate,
+      cell: ({ row }) => (
+        <>
+          <div className="text-sm font-medium text-slate-900">
+            {row.original.renterName}
+          </div>
+          <div className="text-xs text-slate-500">
+            {row.original.renterContact}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: "startDate",
+      header: "Tanggal Pinjam",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4 text-sm text-slate-600",
       },
-      {
-        id: "endDate",
-        header: "Tanggal Kembali",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4 text-sm text-slate-600",
-        },
-        cell: ({ row }) => row.original.endDate,
+      cell: ({ row }) => row.original.startDate,
+    },
+    {
+      id: "endDate",
+      header: "Tanggal Kembali",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4 text-sm text-slate-600",
       },
-      {
-        id: "duration",
-        header: "Durasi",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4 text-sm text-slate-600",
-        },
-        cell: ({ row }) => row.original.duration,
+      cell: ({ row }) => row.original.endDate,
+    },
+    {
+      id: "duration",
+      header: "Durasi",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4 text-sm text-slate-600",
       },
-      {
-        id: "status",
-        header: "Status",
-        meta: {
-          align: "right",
-          headerClassName: "px-4 text-right",
-          cellClassName: "px-4 text-right",
-        },
-        cell: ({ row }) => (
-          <Badge
-            className={
-              row.original.status === "Selesai"
-                ? "rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
-                : row.original.status === "Menunggu"
-                  ? "rounded-full border border-amber-200 bg-amber-50 text-amber-700"
-                  : "rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"
-            }
-          >
-            {row.original.status}
-          </Badge>
-        ),
+      cell: ({ row }) => row.original.duration,
+    },
+    {
+      id: "status",
+      header: "Status",
+      meta: {
+        align: "right",
+        headerClassName: "px-4 text-right",
+        cellClassName: "px-4 text-right",
       },
-    ];
+      cell: ({ row }) => (
+        <Badge
+          className={
+            row.original.status === "Selesai"
+              ? "rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
+              : row.original.status === "Menunggu"
+                ? "rounded-full border border-amber-200 bg-amber-50 text-amber-700"
+                : "rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"
+          }
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <AssetRentalFeatureShell

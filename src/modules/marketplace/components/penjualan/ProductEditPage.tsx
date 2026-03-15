@@ -256,7 +256,10 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
+    <div
+      className="max-w-4xl mx-auto p-8 space-y-8"
+      data-testid="marketplace-admin-product-edit-page-root"
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -271,6 +274,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
             type="button"
             variant="outline"
             onClick={handleCancel}
+            data-testid="marketplace-admin-product-edit-cancel-button"
             className="px-5 py-2.5 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Batal
@@ -279,6 +283,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
             type="button"
             disabled={submitting}
             onClick={handleSave}
+            data-testid="marketplace-admin-product-edit-save-button"
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-sm text-sm font-medium"
           >
             Simpan Perubahan
@@ -299,6 +304,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               <Input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
+                data-testid="marketplace-admin-product-edit-name-input"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
@@ -309,6 +315,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               <Input
                 value={sku}
                 onChange={(event) => setSku(event.target.value)}
+                data-testid="marketplace-admin-product-edit-sku-input"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
@@ -327,7 +334,10 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
                 Kategori
               </label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600">
+                <SelectTrigger
+                  className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600"
+                  data-testid="marketplace-admin-product-edit-category-trigger"
+                >
                   <SelectValue placeholder="Pilih Kategori" />
                 </SelectTrigger>
                 <SelectContent>
@@ -365,6 +375,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={4}
+                data-testid="marketplace-admin-product-edit-description-textarea"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
@@ -523,6 +534,7 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               onClick={() =>
                 router.push(`/bumdes/marketplace/inventory/${id}/variants`)
               }
+              data-testid="marketplace-admin-product-edit-open-variants-button"
               className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
             >
               <Plus className="h-4 w-4" />

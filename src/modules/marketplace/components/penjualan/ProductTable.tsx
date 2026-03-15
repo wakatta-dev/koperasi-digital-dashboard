@@ -82,6 +82,7 @@ export function ProductTable({
       header: () => (
         <Checkbox
           checked={allSelected}
+          data-testid="marketplace-admin-inventory-select-all-checkbox"
           data-state={
             allSelected
               ? "checked"
@@ -102,6 +103,7 @@ export function ProductTable({
         <div onClick={(event) => event.stopPropagation()}>
           <Checkbox
             checked={selectedIds.includes(row.original.id)}
+            data-testid={`marketplace-admin-inventory-select-${row.original.id}`}
             onCheckedChange={() => onToggleSelect?.(row.original.id)}
             className="rounded border-gray-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 focus-visible:ring-indigo-600/20"
           />
@@ -219,6 +221,7 @@ export function ProductTable({
                 <button
                   className="text-gray-400 hover:text-indigo-600 transition-colors p-1"
                   type="button"
+                  data-testid={`marketplace-admin-inventory-actions-${row.original.id}`}
                 >
                   <MoreVertical className="h-4 w-4" />
                 </button>
@@ -244,6 +247,7 @@ export function ProductTable({
             <button
               className="text-gray-400 hover:text-indigo-600 transition-colors p-1"
               type="button"
+              data-testid={`marketplace-admin-inventory-actions-${row.original.id}`}
             >
               <MoreVertical className="h-4 w-4" />
             </button>
@@ -254,13 +258,16 @@ export function ProductTable({
   ];
 
   return (
-    <div className="surface-table">
+    <div className="surface-table" data-testid="marketplace-admin-inventory-table">
       <div className="overflow-x-auto">
         <TableShell
           tableClassName="w-full text-left border-collapse"
           columns={columns}
           data={products}
           getRowId={(row) => row.id}
+          rowProps={(row) => ({
+            "data-testid": `marketplace-admin-inventory-row-${row.id}`,
+          })}
           emptyState="Belum ada produk."
           headerRowClassName="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700"
           rowClassName="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"

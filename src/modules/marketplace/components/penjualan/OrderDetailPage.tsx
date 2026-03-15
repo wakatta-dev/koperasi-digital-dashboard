@@ -483,7 +483,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="marketplace-admin-order-detail-page-root">
       <OrderDetailHeader
         orderNumber={detail.orderCode}
         status={detail.status}

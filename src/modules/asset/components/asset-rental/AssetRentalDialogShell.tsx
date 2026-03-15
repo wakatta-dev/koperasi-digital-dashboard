@@ -18,6 +18,7 @@ type AssetRentalDialogShellProps = Readonly<{
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  contentTestId?: string;
 }>;
 
 export function AssetRentalDialogShell({
@@ -27,12 +28,16 @@ export function AssetRentalDialogShell({
   description,
   children,
   footer,
+  contentTestId,
 }: AssetRentalDialogShellProps) {
   const fallbackDescription = "Dialog aksi asset rental";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-slate-200 bg-white sm:max-w-lg">
+      <DialogContent
+        className="border-slate-200 bg-white sm:max-w-lg"
+        data-testid={contentTestId}
+      >
         <DialogHeader>
           <DialogTitle className="text-slate-800">{title}</DialogTitle>
           <DialogDescription className={description ? "text-slate-500" : "sr-only"}>

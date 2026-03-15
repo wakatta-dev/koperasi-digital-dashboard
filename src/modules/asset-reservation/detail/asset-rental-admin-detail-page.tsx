@@ -831,7 +831,10 @@ export function AssetRentalAdminDetailPage({
   const backPath = backPathBySection[section];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 text-foreground">
+    <div
+      className="mx-auto max-w-7xl space-y-6 text-foreground"
+      data-testid="asset-rental-admin-detail-page-root"
+    >
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -871,7 +874,10 @@ export function AssetRentalAdminDetailPage({
         {booking ? (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className={statusMeta.badgeClass}>
+              <Badge
+                className={statusMeta.badgeClass}
+                data-testid="asset-rental-admin-detail-status-badge"
+              >
                 {statusMeta.label}
               </Badge>
               <span className="text-xs text-slate-500">
@@ -1449,6 +1455,7 @@ export function AssetRentalAdminDetailPage({
                     className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                     onClick={handleComplete}
                     disabled={isBusy}
+                    data-testid="asset-rental-admin-detail-complete-return-button"
                   >
                     Tandai Selesai
                   </Button>
@@ -1568,11 +1575,12 @@ export function AssetRentalAdminDetailPage({
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                           Catatan Keputusan
                         </p>
-                        <Textarea
-                          className="mt-2 min-h-[96px] border-slate-200 bg-white"
-                          placeholder="Tambahkan catatan keputusan untuk kebutuhan audit dan tindak lanjut internal..."
-                          value={paymentDecisionNote}
-                          aria-invalid={Boolean(paymentDecisionError)}
+                          <Textarea
+                            className="mt-2 min-h-[96px] border-slate-200 bg-white"
+                            placeholder="Tambahkan catatan keputusan untuk kebutuhan audit dan tindak lanjut internal..."
+                            value={paymentDecisionNote}
+                            data-testid="asset-rental-admin-detail-payment-decision-note-textarea"
+                            aria-invalid={Boolean(paymentDecisionError)}
                           onChange={(event) => {
                             setPaymentDecisionNote(event.target.value);
                             if (paymentDecisionError) {
@@ -1596,6 +1604,7 @@ export function AssetRentalAdminDetailPage({
                           className="bg-emerald-600 text-white hover:bg-emerald-700"
                           onClick={handleConfirmPayment}
                           disabled={isBusy}
+                          data-testid="asset-rental-admin-detail-verify-payment-button"
                         >
                           Konfirmasi Pembayaran
                         </Button>
@@ -1605,6 +1614,7 @@ export function AssetRentalAdminDetailPage({
                           className="border-red-200 text-red-600 hover:bg-red-50"
                           onClick={handleRejectPayment}
                           disabled={isBusy}
+                          data-testid="asset-rental-admin-detail-reject-payment-button"
                         >
                           Tolak Pembayaran
                         </Button>

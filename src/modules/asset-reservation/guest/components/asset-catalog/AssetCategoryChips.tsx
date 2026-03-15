@@ -42,6 +42,7 @@ export function AssetCategoryChips({
               type="button"
               variant="ghost"
               onClick={() => onSelect(chip.key)}
+              data-testid={`asset-rental-catalog-category-chip-${chip.key}`}
               className={
                 active
                   ? "flex h-auto min-h-24 flex-col items-center gap-3 p-4 w-32 rounded-2xl bg-brand-primary text-white shadow-lg shadow-indigo-600/30 transform scale-105 transition-transform"

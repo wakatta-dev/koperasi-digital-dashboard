@@ -31,6 +31,7 @@ export function GuestRentalApplicationForm({
   return (
     <form
       className="space-y-6"
+      data-testid="asset-rental-application-form"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -51,6 +52,7 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, fullName: next })}
             placeholder="Masukkan nama lengkap Anda sesuai KTP"
             autoComplete="name"
+            data-testid="asset-rental-application-full-name-input"
           />
         </div>
 
@@ -66,6 +68,7 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, phone: next })}
             placeholder="Contoh: 08123456789"
             autoComplete="tel"
+            data-testid="asset-rental-application-phone-input"
           />
         </div>
 
@@ -81,6 +84,7 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, email: next })}
             placeholder="Contoh: nama@email.com"
             autoComplete="email"
+            data-testid="asset-rental-application-email-input"
           />
         </div>
 
@@ -97,6 +101,7 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, purpose: next })}
             placeholder="Jelaskan secara singkat kegiatan yang akan dilaksanakan..."
             rows={3}
+            data-testid="asset-rental-application-purpose-textarea"
           />
         </div>
 
@@ -119,6 +124,7 @@ export function GuestRentalApplicationForm({
                 onValuesChange({ ...values, startDate: next })
               }
               helperText="Mulai Sewa"
+              data-testid="asset-rental-application-start-date-input"
             />
             <InputField
               id="end-date"
@@ -134,6 +140,7 @@ export function GuestRentalApplicationForm({
               value={values.endDate}
               onValueChange={(next) => onValuesChange({ ...values, endDate: next })}
               helperText="Selesai Sewa"
+              data-testid="asset-rental-application-end-date-input"
             />
           </div>
         </div>
@@ -143,6 +150,7 @@ export function GuestRentalApplicationForm({
         <Button
           type="submit"
           disabled={Boolean(submitting)}
+          data-testid="asset-rental-application-submit-button"
           className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/30 text-sm font-bold text-white bg-brand-primary hover:bg-brand-primary-hover focus-visible:ring-2 focus-visible:ring-brand-primary transition-all hover:-translate-y-0.5"
         >
           Kirim Pengajuan

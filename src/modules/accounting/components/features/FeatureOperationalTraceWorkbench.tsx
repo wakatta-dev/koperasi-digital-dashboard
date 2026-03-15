@@ -422,7 +422,7 @@ export function FeatureOperationalTraceWorkbench() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="accounting-trace-workbench-root">
       <Card>
         <CardHeader className="space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -449,11 +449,16 @@ export function FeatureOperationalTraceWorkbench() {
                   size="sm"
                   onClick={() => openTraceDialog(selectedRow?.key)}
                   disabled={!selectedRow}
+                  data-testid="accounting-trace-open-detail-button"
                 >
                   <Workflow className="h-4 w-4" />
                   Trace Detail
                 </Button>
-                <Button size="sm" onClick={() => setIsQueueDialogOpen(true)}>
+                <Button
+                  size="sm"
+                  onClick={() => setIsQueueDialogOpen(true)}
+                  data-testid="accounting-trace-open-queue-button"
+                >
                   <ListTodo className="h-4 w-4" />
                   Follow-up Queue ({queueCounts.all})
                 </Button>
@@ -465,6 +470,7 @@ export function FeatureOperationalTraceWorkbench() {
               variant={filter === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter("all")}
+              data-testid="accounting-trace-filter-all-button"
             >
               Semua
             </Button>
@@ -472,6 +478,7 @@ export function FeatureOperationalTraceWorkbench() {
               variant={filter === "attention" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter("attention")}
+              data-testid="accounting-trace-filter-attention-button"
             >
               Perlu Rekonsiliasi
             </Button>
@@ -479,6 +486,7 @@ export function FeatureOperationalTraceWorkbench() {
               variant={filter === "matched" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter("matched")}
+              data-testid="accounting-trace-filter-matched-button"
             >
               Sinkron
             </Button>
@@ -546,6 +554,7 @@ export function FeatureOperationalTraceWorkbench() {
                   variant="outline"
                   size="sm"
                   onClick={() => openTraceDialog(row.original.key)}
+                  data-testid={`accounting-trace-open-detail-button-${row.original.key}`}
                 >
                   Lihat Trace
                 </Button>
@@ -558,6 +567,9 @@ export function FeatureOperationalTraceWorkbench() {
           ]}
           data={visibleRows}
           getRowId={(row) => row.key}
+          rowProps={(row) => ({
+            "data-testid": `accounting-trace-row-${row.key}`,
+          })}
           emptyState="Belum ada transaksi operasional yang dapat ditelusuri."
           rowClassName={(row) =>
             row.key === selectedRow?.key ? "bg-muted/40" : undefined
@@ -580,11 +592,16 @@ export function FeatureOperationalTraceWorkbench() {
               size="sm"
               onClick={() => openTraceDialog(selectedRow?.key)}
               disabled={!selectedRow}
+              data-testid="accounting-trace-open-detail-button-secondary"
             >
               <Workflow className="h-4 w-4" />
               Buka Trace Detail
             </Button>
-            <Button size="sm" onClick={() => setIsQueueDialogOpen(true)}>
+            <Button
+              size="sm"
+              onClick={() => setIsQueueDialogOpen(true)}
+              data-testid="accounting-trace-open-queue-button-secondary"
+            >
               <ListTodo className="h-4 w-4" />
               Buka Follow-up Queue
             </Button>
@@ -671,7 +688,10 @@ export function FeatureOperationalTraceWorkbench() {
       </Card>
 
       <Dialog open={isTraceDialogOpen} onOpenChange={setIsTraceDialogOpen}>
-        <DialogContent className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-5xl dark:border-slate-800 dark:bg-slate-950">
+        <DialogContent
+          className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-5xl dark:border-slate-800 dark:bg-slate-950"
+          data-testid="accounting-trace-detail-dialog"
+        >
           <div className="flex max-h-[92vh] flex-col">
             <DialogHeader className="border-b border-slate-200 bg-white px-6 py-5 text-left dark:border-slate-800 dark:bg-slate-950">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -719,6 +739,7 @@ export function FeatureOperationalTraceWorkbench() {
                           href={proofUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          data-testid="accounting-trace-detail-open-source-link"
                         >
                           Bukti Pembayaran
                           <ArrowUpRight className="h-4 w-4" />
@@ -726,7 +747,10 @@ export function FeatureOperationalTraceWorkbench() {
                       </Button>
                     ) : null}
                     <Button asChild size="sm">
-                      <Link href={selectedRow.detailHref}>
+                      <Link
+                        href={selectedRow.detailHref}
+                        data-testid="accounting-trace-detail-open-transaction-link"
+                      >
                         Detail Transaksi
                         <ArrowUpRight className="h-4 w-4" />
                       </Link>
@@ -1560,7 +1584,10 @@ export function FeatureOperationalTraceWorkbench() {
       </Dialog>
 
       <Dialog open={isQueueDialogOpen} onOpenChange={setIsQueueDialogOpen}>
-        <DialogContent className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-4xl dark:border-slate-800 dark:bg-slate-950">
+        <DialogContent
+          className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-4xl dark:border-slate-800 dark:bg-slate-950"
+          data-testid="accounting-trace-queue-dialog"
+        >
           <div className="flex max-h-[92vh] flex-col">
             <DialogHeader className="border-b border-slate-200 bg-white px-6 py-5 text-left dark:border-slate-800 dark:bg-slate-950">
               <div className="space-y-3">
@@ -1603,6 +1630,7 @@ export function FeatureOperationalTraceWorkbench() {
                         variant={queueScope === "all" ? "default" : "outline"}
                         size="sm"
                         onClick={() => setQueueScope("all")}
+                        data-testid="accounting-trace-queue-scope-all-button"
                       >
                         Semua
                       </Button>
@@ -1612,6 +1640,7 @@ export function FeatureOperationalTraceWorkbench() {
                         }
                         size="sm"
                         onClick={() => setQueueScope("operasional")}
+                        data-testid="accounting-trace-queue-scope-operasional-button"
                       >
                         Operasional
                       </Button>
@@ -1621,6 +1650,7 @@ export function FeatureOperationalTraceWorkbench() {
                         }
                         size="sm"
                         onClick={() => setQueueScope("pembayaran")}
+                        data-testid="accounting-trace-queue-scope-pembayaran-button"
                       >
                         Pembayaran
                       </Button>
@@ -1630,6 +1660,7 @@ export function FeatureOperationalTraceWorkbench() {
                         }
                         size="sm"
                         onClick={() => setQueueScope("accounting")}
+                        data-testid="accounting-trace-queue-scope-accounting-button"
                       >
                         Accounting
                       </Button>
@@ -1640,6 +1671,7 @@ export function FeatureOperationalTraceWorkbench() {
                         variant={queueDomain === "all" ? "default" : "outline"}
                         size="sm"
                         onClick={() => setQueueDomain("all")}
+                        data-testid="accounting-trace-queue-domain-all-button"
                       >
                         Semua Domain
                       </Button>
@@ -1649,6 +1681,7 @@ export function FeatureOperationalTraceWorkbench() {
                         }
                         size="sm"
                         onClick={() => setQueueDomain("marketplace")}
+                        data-testid="accounting-trace-queue-domain-marketplace-button"
                       >
                         Marketplace
                       </Button>
@@ -1658,6 +1691,7 @@ export function FeatureOperationalTraceWorkbench() {
                         }
                         size="sm"
                         onClick={() => setQueueDomain("rental")}
+                        data-testid="accounting-trace-queue-domain-rental-button"
                       >
                         Rental
                       </Button>
@@ -1668,6 +1702,7 @@ export function FeatureOperationalTraceWorkbench() {
                         value={queueCode}
                         onChange={(event) => setQueueCode(event.target.value)}
                         placeholder="Filter code exception, contoh ACC-PAYMENT"
+                        data-testid="accounting-trace-queue-code-input"
                       />
                       <Input
                         value={queueOwnerFilter}
@@ -1675,6 +1710,7 @@ export function FeatureOperationalTraceWorkbench() {
                           setQueueOwnerFilter(event.target.value)
                         }
                         placeholder="Filter owner, contoh Finance"
+                        data-testid="accounting-trace-queue-owner-input"
                       />
                     </div>
                   </div>
@@ -1768,12 +1804,16 @@ export function FeatureOperationalTraceWorkbench() {
                                   setIsQueueDialogOpen(false);
                                   openTraceDialog(row.key, "attention");
                                 }}
+                                data-testid={`accounting-trace-queue-focus-button-${row.key}`}
                               >
                                 <Workflow className="h-4 w-4" />
                                 Fokus ke Trace
                               </Button>
                               <Button asChild size="sm">
-                                <Link href={row.detailHref}>
+                                <Link
+                                  href={row.detailHref}
+                                  data-testid={`accounting-trace-queue-detail-link-${row.key}`}
+                                >
                                   Detail
                                   <ArrowUpRight className="h-4 w-4" />
                                 </Link>

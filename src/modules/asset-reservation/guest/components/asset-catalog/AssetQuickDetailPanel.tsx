@@ -18,7 +18,10 @@ export function AssetQuickDetailPanel({
   applyHref,
 }: AssetQuickDetailPanelProps) {
   return (
-    <div className="hidden lg:block w-1/3 xl:w-1/3 sticky top-28 h-[calc(100vh-140px)]">
+    <div
+      className="hidden lg:block w-1/3 xl:w-1/3 sticky top-28 h-[calc(100vh-140px)]"
+      data-testid="asset-rental-catalog-quick-detail-panel"
+    >
       <div className="bg-white dark:bg-surface-card-dark rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col h-full relative">
         <div className="relative h-48 w-full">
           <img
@@ -30,6 +33,7 @@ export function AssetQuickDetailPanel({
           <button
             type="button"
             onClick={onClose}
+            data-testid="asset-rental-catalog-quick-detail-close-button"
             className="absolute top-4 right-4 w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/50 transition-colors"
           >
             <span className="material-icons-outlined text-sm">close</span>
@@ -115,7 +119,10 @@ export function AssetQuickDetailPanel({
             type="button"
             className="w-full py-3.5 bg-brand-primary hover:bg-brand-primary-hover text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
           >
-            <Link href={applyHref}>
+            <Link
+              href={applyHref}
+              data-testid={`asset-rental-catalog-open-detail-${item.id}`}
+            >
               Ajukan Sewa
               <span className="material-icons-outlined text-sm">
                 calendar_month

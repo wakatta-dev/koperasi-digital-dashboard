@@ -101,6 +101,7 @@ export function AssetRentalRequestsTable({
           {buildDetailHref ? (
             <Link
               href={buildDetailHref(row.original.id)}
+              data-testid={`asset-rental-request-detail-link-${row.original.id}`}
               className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
             >
               {row.original.assetName}
@@ -156,6 +157,7 @@ export function AssetRentalRequestsTable({
               className="h-7 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
               onClick={() => onApprove(row.original.id)}
               disabled={actionDisabled}
+              data-testid={`asset-rental-request-approve-button-${row.original.id}`}
             >
               Setujui
             </Button>
@@ -164,6 +166,7 @@ export function AssetRentalRequestsTable({
               className="h-7 border-red-200 px-3 text-xs text-red-600 hover:bg-red-50"
               onClick={() => onReject(row.original.id)}
               disabled={actionDisabled}
+              data-testid={`asset-rental-request-reject-button-${row.original.id}`}
             >
               Tolak
             </Button>
@@ -175,7 +178,7 @@ export function AssetRentalRequestsTable({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="asset-rental-requests-table">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-sm font-medium text-slate-500">
           Total Pengajuan Baru
@@ -196,10 +199,14 @@ export function AssetRentalRequestsTable({
             placeholder="Cari aset atau nama peminjam..."
             value={search}
             onValueChange={onSearchChange}
+            data-testid="asset-rental-requests-search-input"
           />
         </div>
         <Select value={status} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[180px] border-slate-200 bg-white">
+          <SelectTrigger
+            className="w-[180px] border-slate-200 bg-white"
+            data-testid="asset-rental-requests-status-filter"
+          >
             <SelectValue placeholder="Kategori Aset" />
           </SelectTrigger>
           <SelectContent>
@@ -217,6 +224,9 @@ export function AssetRentalRequestsTable({
           columns={columns}
           data={pagedRows}
           getRowId={(row) => row.id}
+          rowProps={(row) => ({
+            "data-testid": `asset-rental-request-row-${row.id}`,
+          })}
           emptyState="Tidak ada pengajuan sewa."
           headerClassName="bg-slate-50"
           pagination={{

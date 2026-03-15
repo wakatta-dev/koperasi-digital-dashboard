@@ -357,7 +357,10 @@ export function GuestRequestStatusFeature({
   const activeStepIndex = result ? resolveActiveStepIndex(result, stepperFlow) : 2;
 
   return (
-    <section className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <section
+      className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 w-full"
+      data-testid="asset-rental-status-page-root"
+    >
       <div className="max-w-3xl w-full">
         <div className="text-center mb-10">
           <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-white mb-3">
@@ -369,7 +372,10 @@ export function GuestRequestStatusFeature({
           </p>
         </div>
 
-        <div className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div
+          className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden"
+          data-testid="asset-rental-status-page-main"
+        >
           <div className="p-8 md:p-10">
             <div className="flex flex-col gap-4 mb-8">
               <InputField
@@ -384,6 +390,7 @@ export function GuestRequestStatusFeature({
                 value={ticketValue}
                 onValueChange={onTicketValueChange}
                 placeholder="Masukkan Nomor Pengajuan (Contoh: #SQ-99210)"
+                data-testid="asset-rental-status-ticket-input"
               />
               <InputField
                 id="contact_lookup"
@@ -397,11 +404,13 @@ export function GuestRequestStatusFeature({
                 value={contactValue}
                 onValueChange={onContactValueChange}
                 placeholder="Masukkan kontak yang dipakai saat pengajuan"
+                data-testid="asset-rental-status-contact-input"
               />
               <Button
                 type="button"
                 disabled={Boolean(submitting)}
                 onClick={onSubmit}
+                data-testid="asset-rental-status-submit-button"
                 className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white text-base font-bold py-6 rounded-xl transition-all shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 active:scale-[0.99] flex items-center justify-center gap-2"
               >
                 <span className="material-icons-outlined">search</span>
@@ -430,6 +439,7 @@ export function GuestRequestStatusFeature({
                   </div>
 
                   <div
+                    data-testid="asset-rental-status-badge"
                     className={`px-4 py-1.5 rounded-full text-xs font-bold border flex items-center gap-1.5 ${badgeClasses(
                       result.variant,
                     )}`}
@@ -465,7 +475,11 @@ export function GuestRequestStatusFeature({
                       );
                       const icon = tone === "done" ? "check" : step.icon;
                       return (
-                        <div key={step.key} className="flex items-start gap-3">
+                        <div
+                          key={step.key}
+                          className="flex items-start gap-3"
+                          data-testid={`asset-rental-status-step-${step.key}`}
+                        >
                           <div
                             className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${stepCircleClasses(tone)}`}
                           >
@@ -488,7 +502,10 @@ export function GuestRequestStatusFeature({
                 </div>
 
                 {result.variant === "rejected" ? (
-                  <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-6">
+                  <div
+                    className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-6"
+                    data-testid="asset-rental-status-rejection-reason"
+                  >
                     <h4 className="text-lg font-bold text-red-800 dark:text-red-300 mb-2">
                       Alasan Penolakan
                     </h4>
@@ -570,6 +587,7 @@ export function GuestRequestStatusFeature({
                         className="bg-brand-primary hover:bg-brand-primary-hover text-white"
                         onClick={() => result.onOpenUploadProof?.()}
                         disabled={!result.onOpenUploadProof}
+                        data-testid="asset-rental-status-payment-cta"
                       >
                         <span className="material-icons-outlined text-sm mr-1">
                           upload_file

@@ -78,6 +78,7 @@ export function AssetRentalReturnsTable({
         buildDetailHref ? (
           <Link
             href={buildDetailHref(row.original.id)}
+            data-testid={`asset-rental-return-detail-link-${row.original.id}`}
             className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
           >
             {row.original.assetName}
@@ -128,6 +129,7 @@ export function AssetRentalReturnsTable({
           className="h-7 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
           onClick={() => onProcess(row.original.id)}
           disabled={actionDisabled}
+          data-testid={`asset-rental-return-process-button-${row.original.id}`}
         >
           Proses Kembali
         </Button>
@@ -136,7 +138,7 @@ export function AssetRentalReturnsTable({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="asset-rental-returns-table">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-sm font-medium text-slate-500">Menunggu Pengecekan</p>
         <h3 className="mt-2 text-3xl font-bold text-slate-900">{rows.length}</h3>
@@ -153,6 +155,7 @@ export function AssetRentalReturnsTable({
             placeholder="Cari aset atau nama peminjam..."
             value={search}
             onValueChange={onSearchChange}
+            data-testid="asset-rental-returns-search-input"
           />
         </div>
       </div>
@@ -163,6 +166,9 @@ export function AssetRentalReturnsTable({
           columns={columns}
           data={pagedRows}
           getRowId={(row) => row.id}
+          rowProps={(row) => ({
+            "data-testid": `asset-rental-return-row-${row.id}`,
+          })}
           emptyState="Tidak ada data pengembalian."
           headerClassName="bg-slate-50"
           pagination={{

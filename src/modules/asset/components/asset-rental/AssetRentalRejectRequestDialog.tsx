@@ -29,11 +29,13 @@ export function AssetRentalRejectRequestDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Tolak Pengajuan Sewa"
+      contentTestId="asset-rental-request-reject-dialog"
       footer={
         <>
           <Button
             className="bg-red-600 text-white hover:bg-red-500"
             disabled={reason.trim().length === 0}
+            data-testid="asset-rental-request-reject-confirm-button"
             onClick={() => {
               onConfirm?.(reason.trim());
               setReason("");
@@ -45,6 +47,7 @@ export function AssetRentalRejectRequestDialog({
           <Button
             variant="outline"
             className="border-slate-300"
+            data-testid="asset-rental-request-reject-cancel-button"
             onClick={() => {
               setReason("");
               onOpenChange(false);
@@ -61,6 +64,7 @@ export function AssetRentalRejectRequestDialog({
           id="reject-reason"
           rows={4}
           value={reason}
+          data-testid="asset-rental-request-reject-reason-textarea"
           onChange={(event) => setReason(event.target.value)}
           placeholder="Berikan alasan singkat mengapa pengajuan ini ditolak..."
           className="border-slate-300 bg-slate-50"

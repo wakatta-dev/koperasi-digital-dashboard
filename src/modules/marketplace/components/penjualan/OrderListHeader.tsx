@@ -41,6 +41,7 @@ export function OrderListHeader({
             value={searchValue}
             onValueChange={onSearchChange}
             placeholder="Cari ID atau nama pelanggan..."
+            data-testid="marketplace-admin-order-search-input"
           />
         </div>
         <InputField
@@ -50,6 +51,7 @@ export function OrderListHeader({
           type="date"
           value={dateValue}
           onValueChange={onDateChange}
+          data-testid="marketplace-admin-order-date-filter"
         />
         <label className="sr-only" htmlFor="order-status-filter">
           Filter status
@@ -59,6 +61,7 @@ export function OrderListHeader({
           aria-label="Filter status"
           value={statusValue}
           onChange={(event) => onStatusChange(event.target.value)}
+          data-testid="marketplace-admin-order-status-filter"
           className="h-11 rounded-md border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           {statusOptions.map((option) => (

@@ -123,7 +123,7 @@ export function FeatureCreateInvoiceForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} data-testid="accounting-ar-invoice-create-form">
       <Card className="border-gray-200 shadow-sm dark:border-gray-700">
         <CardContent className="space-y-8 p-6">
           <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
@@ -152,6 +152,7 @@ export function FeatureCreateInvoiceForm({
                 <Input
                   value={customerQuery}
                   onChange={(event) => setCustomerQuery(event.target.value)}
+                  data-testid="accounting-ar-invoice-customer-input"
                   placeholder="Search customer..."
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   list="invoice-customer-options"
@@ -172,6 +173,7 @@ export function FeatureCreateInvoiceForm({
               <Input
                 value={invoiceNumberPreview}
                 disabled
+                data-testid="accounting-ar-invoice-number-preview"
                 className="bg-gray-100 dark:bg-gray-900"
               />
             </div>
@@ -182,6 +184,7 @@ export function FeatureCreateInvoiceForm({
               <Input
                 type="date"
                 value={invoiceDate}
+                data-testid="accounting-ar-invoice-date-input"
                 onChange={(event) => setInvoiceDate(event.target.value)}
                 className="bg-gray-50 dark:bg-gray-800"
               />
@@ -193,6 +196,7 @@ export function FeatureCreateInvoiceForm({
               <Input
                 type="date"
                 value={dueDate}
+                data-testid="accounting-ar-invoice-due-date-input"
                 onChange={(event) => setDueDate(event.target.value)}
                 className="bg-gray-50 dark:bg-gray-800"
               />
@@ -209,6 +213,7 @@ export function FeatureCreateInvoiceForm({
                 variant="ghost"
                 className="gap-1 p-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
                 onClick={addLineItem}
+                data-testid="accounting-ar-invoice-add-line-button"
               >
                 <Plus className="h-4 w-4" />
                 Add Line Item
@@ -225,6 +230,7 @@ export function FeatureCreateInvoiceForm({
                       <>
                         <Input
                           value={row.original.product_or_service}
+                          data-testid={`accounting-ar-invoice-line-product-input-${row.original.id}`}
                           onChange={(event) =>
                             updateLineItem(
                               row.original.id,
@@ -258,6 +264,7 @@ export function FeatureCreateInvoiceForm({
                     cell: ({ row }) => (
                       <Input
                         value={row.original.description}
+                        data-testid={`accounting-ar-invoice-line-description-input-${row.original.id}`}
                         onChange={(event) =>
                           updateLineItem(
                             row.original.id,
@@ -280,6 +287,7 @@ export function FeatureCreateInvoiceForm({
                       <Input
                         type="number"
                         value={row.original.qty}
+                        data-testid={`accounting-ar-invoice-line-qty-input-${row.original.id}`}
                         onChange={(event) =>
                           updateLineItem(
                             row.original.id,
@@ -302,6 +310,7 @@ export function FeatureCreateInvoiceForm({
                     cell: ({ row }) => (
                       <Input
                         value={row.original.price}
+                        data-testid={`accounting-ar-invoice-line-price-input-${row.original.id}`}
                         onChange={(event) =>
                           updateLineItem(
                             row.original.id,
@@ -326,6 +335,7 @@ export function FeatureCreateInvoiceForm({
                         min={0}
                         step="0.01"
                         value={row.original.tax.replace(/[^\d.-]/g, "")}
+                        data-testid={`accounting-ar-invoice-line-tax-input-${row.original.id}`}
                         onChange={(event) =>
                           updateLineItem(
                             row.original.id,
@@ -370,6 +380,7 @@ export function FeatureCreateInvoiceForm({
                         size="icon"
                         className="h-8 w-8 text-gray-400 hover:text-red-500"
                         onClick={() => removeLineItem(row.original.id)}
+                        data-testid={`accounting-ar-invoice-line-remove-button-${row.original.id}`}
                         aria-label={`Remove line item ${row.original.id}`}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -398,6 +409,7 @@ export function FeatureCreateInvoiceForm({
                 rows={3}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
+                data-testid="accounting-ar-invoice-notes-textarea"
                 placeholder="Add any notes for internal reference..."
                 className="bg-gray-50 dark:bg-gray-800"
               />
@@ -429,16 +441,25 @@ export function FeatureCreateInvoiceForm({
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
             {errorMessage ? (
-              <p className="mr-auto text-sm font-medium text-red-600">
+              <p
+                className="mr-auto text-sm font-medium text-red-600"
+                data-testid="accounting-ar-invoice-error-alert"
+              >
                 {errorMessage}
               </p>
             ) : null}
-            <Button type="button" variant="ghost" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onCancel}
+              data-testid="accounting-ar-invoice-cancel-button"
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
+              data-testid="accounting-ar-invoice-submit-button"
               className="bg-indigo-600 text-white hover:bg-indigo-700"
             >
               {submitLabel}

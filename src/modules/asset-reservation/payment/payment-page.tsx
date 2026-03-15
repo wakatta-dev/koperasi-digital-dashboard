@@ -80,7 +80,13 @@ export function AssetPaymentPage({
       }
       breadcrumb={<PaymentBreadcrumb />}
       header={<PaymentHeader backHref="/penyewaan-aset/status" />}
-      summary={reservation ? <RentalSummaryCard reservation={reservation} /> : null}
+      summary={
+        reservation ? (
+          <div data-testid="asset-rental-payment-summary-card">
+            <RentalSummaryCard reservation={reservation} />
+          </div>
+        ) : null
+      }
       methods={
         reservation && paymentAccess?.allowed ? (
           <PaymentMethods

@@ -169,12 +169,18 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   };
 
   return (
-    <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
+    <div
+      className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col"
+      data-testid="asset-rental-application-page-root"
+    >
       <LandingNavbar activeLabel="Penyewaan Aset" />
       <div
         className={`asset-rental-guest ${plusJakarta.className} flex min-h-0 flex-1 flex-col`}
       >
-        <main className="flex-grow pt-20">
+        <main
+          className="flex-grow pt-20"
+          data-testid="asset-rental-application-page-main"
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {errorMessage || submissionMessage ? (
               <div className="mt-10 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-6 py-5 text-sm text-red-700 dark:text-red-200">

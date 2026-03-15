@@ -52,6 +52,10 @@ type PaymentStatus =
   | "failed"
   | "expired";
 
+function toPaymentTestId(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
 export function PaymentMethods({
   mode,
   methodGroups,
@@ -175,7 +179,10 @@ export function PaymentMethods({
   ]);
 
   return (
-    <section className="bg-white dark:bg-surface-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+    <section
+      className="bg-white dark:bg-surface-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm"
+      data-testid="asset-rental-payment-methods"
+    >
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-gray-800">
         <span className="material-icons-outlined text-brand-primary">
           payments
@@ -219,6 +226,7 @@ export function PaymentMethods({
             <div
               key={group.title}
               className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+              data-testid={`asset-rental-payment-method-group-${toPaymentTestId(group.title)}`}
             >
               <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
                 <span className="material-icons-outlined text-gray-500 text-sm">
@@ -235,6 +243,7 @@ export function PaymentMethods({
                     <Label
                       key={option.value}
                       htmlFor={id}
+                      data-testid={`asset-rental-payment-method-option-${toPaymentTestId(option.value)}`}
                       className="flex w-full items-center gap-0 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-brand-primary hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition group"
                     >
                       <RadioGroupItem value={option.value} id={id} />
@@ -280,6 +289,7 @@ export function PaymentMethods({
           </span>
           Status Pembayaran:{" "}
           <span
+            data-testid="asset-rental-payment-method-status"
             className={
               status === "succeeded"
                 ? "text-green-600 dark:text-green-400"
@@ -309,6 +319,7 @@ export function PaymentMethods({
           <input
             type="file"
             accept=".jpg,.jpeg,.png,.pdf"
+            data-testid="asset-rental-payment-proof-file-input"
             onChange={(e) => {
               const file = e.target.files?.[0];
               const validationError = validatePublicPaymentProofFile(file);
@@ -330,6 +341,7 @@ export function PaymentMethods({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
+              data-testid="asset-rental-payment-submit-button"
               className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
               disabled={actionsDisabled || !proofFile || isLoading}
               onClick={async () => {

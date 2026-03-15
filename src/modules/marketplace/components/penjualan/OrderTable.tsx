@@ -201,13 +201,16 @@ export function OrderTable({
   ];
 
   return (
-    <div className="surface-table">
+    <div className="surface-table" data-testid="marketplace-admin-order-table">
       <div className="overflow-x-auto">
         <TableShell
           tableClassName="w-full text-left border-collapse"
           columns={columns}
           data={orders}
           getRowId={(row) => row.id}
+          rowProps={(row) => ({
+            "data-testid": `marketplace-admin-order-row-${row.id}`,
+          })}
           emptyState="Belum ada pesanan."
           headerRowClassName="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700"
           rowClassName="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
