@@ -254,6 +254,8 @@ export const API_ENDPOINTS = {
     products: "/marketplace/products",
     product: (id: string | number) => `/marketplace/products/${id}`,
     productVariants: (id: string | number) => `/marketplace/products/${id}/variants`,
+    listingDiagnostics: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/diagnostics`,
     listingSubmission: (listingId: string | number) =>
       `/marketplace/listings/${listingId}/submission`,
     listingSubmissionReview: (listingId: string | number) =>

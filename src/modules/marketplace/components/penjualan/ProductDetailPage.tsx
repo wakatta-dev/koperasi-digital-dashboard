@@ -30,6 +30,7 @@ import {
 } from "@/modules/inventory/utils";
 import {
   createMarketplaceListingSubmission,
+  getMarketplaceListingDiagnostics,
   getMarketplaceListingChannels,
   getMarketplaceListingSubmission,
   reviewMarketplaceListingSubmission,
@@ -90,6 +91,12 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
     enabled: Boolean(listingId),
     queryFn: async () =>
       ensureSuccess(await getMarketplaceListingChannels(listingId as string | number)),
+  });
+  const diagnosticsQuery = useQuery({
+    queryKey: ["marketplace-listing-diagnostics", listingId],
+    enabled: Boolean(listingId),
+    queryFn: async () =>
+      ensureSuccess(await getMarketplaceListingDiagnostics(listingId as string | number)),
   });
   const invalidateListingQueries = async () => {
     if (!listingId) return;
@@ -503,6 +510,34 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
                 </div>
               ))
             )}
+          </div>
+          <div className="space-y-2 border-t border-border/40 pt-3">
+            <p className="font-medium text-gray-900 dark:text-white">Diagnostics</p>
+            {(diagnosticsQuery.data?.items ?? []).length === 0 ? (
+              <p className="text-xs text-muted-foreground">Belum ada blocker utama untuk listing ini.</p>
+            ) : (
+              (diagnosticsQuery.data?.items ?? []).map((diag) => (
+                <div key={`${diag.scope}-${diag.code}`} className="rounded-md border border-border/50 px-3 py-2">
+                  <p>
+                    <span className="font-medium text-gray-900 dark:text-white">{diag.scope}</span>: {diag.code}
+                  </p>
+                  <p>{diag.message}</p>
+                  {diag.next_action ? (
+                    <p className="text-xs text-muted-foreground">Next action: {diag.next_action}</p>
+                  ) : null}
+                </div>
+              ))
+            )}
+            {diagnosticsQuery.data?.finance_follow_up_reference ? (
+              <p className="text-xs text-muted-foreground">
+                Finance follow-up ref: {diagnosticsQuery.data.finance_follow_up_reference}
+              </p>
+            ) : null}
+            {diagnosticsQuery.data?.support_reference ? (
+              <p className="text-xs text-muted-foreground">
+                Support ref: {diagnosticsQuery.data.support_reference}
+              </p>
+            ) : null}
           </div>
         </div>
       </section>

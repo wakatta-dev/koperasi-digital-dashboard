@@ -10,6 +10,7 @@ import type {
   MarketplaceGuestOrderStatusDetailResponse,
   MarketplaceGuestTrackRequest,
   MarketplaceGuestTrackResponse,
+  MarketplaceListingDiagnosticsResponse,
   MarketplaceListingChannelStateResponse,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
@@ -257,6 +258,14 @@ export function getMarketplaceProductDetail(
   id: string | number
 ): Promise<ApiResponse<MarketplaceProductResponse>> {
   return api.get<MarketplaceProductResponse>(`${API_PREFIX}${E.product(id)}`);
+}
+
+export function getMarketplaceListingDiagnostics(
+  listingId: string | number
+): Promise<ApiResponse<MarketplaceListingDiagnosticsResponse>> {
+  return api.get<MarketplaceListingDiagnosticsResponse>(
+    `${API_PREFIX}${E.listingDiagnostics(listingId)}`
+  );
 }
 
 export function getMarketplaceListingSubmission(

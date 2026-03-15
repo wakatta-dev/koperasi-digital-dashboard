@@ -52,6 +52,25 @@ vi.mock("@/services/api/marketplace", () => ({
       { id: 2, channel: "pos", publishability_state: "blocked", blocker_code: "not_pos_enabled" },
     ],
   })),
+  getMarketplaceListingDiagnostics: vi.fn(async () => ({
+    success: true,
+    data: {
+      listing_id: 901,
+      ownership_mode: "merchant_payout",
+      source_stock_reference: "77",
+      items: [
+        {
+          scope: "publishability",
+          code: "not_pos_enabled",
+          severity: "medium",
+          message: "Channel pos diblokir.",
+          next_action: "Periksa blocker dan revisi listing.",
+        },
+      ],
+      finance_follow_up_reference: "listing:901",
+      support_reference: "tenant:1/listing:901",
+    },
+  })),
   createMarketplaceListingSubmission: vi.fn(),
   reviewMarketplaceListingSubmission: vi.fn(),
   updateMarketplaceListingChannel: vi.fn(),
@@ -104,6 +123,7 @@ describe("ProductDetailPage", () => {
     expect(screen.getByText("#901")).toBeTruthy();
     expect(screen.getByText("Submission review:")).toBeTruthy();
     expect(screen.getByText("Publishability per Channel")).toBeTruthy();
+    expect(screen.getByText("Diagnostics")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Ajukan Review" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Approve" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Hold for Revision" })).toBeTruthy();

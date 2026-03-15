@@ -97,6 +97,31 @@ export type MarketplaceUpdateListingChannelStateRequest = {
   blocker_code?: string;
 };
 
+export type MarketplaceListingDiagnosticsItemResponse = {
+  scope: string;
+  code: string;
+  severity: string;
+  message: string;
+  next_action?: string;
+};
+
+export type MarketplaceListingDiagnosticsResponse = {
+  listing_id: number;
+  seller_id?: number | null;
+  ownership_mode?: string;
+  economic_owner_type?: string;
+  economic_owner_reference?: string;
+  physical_custody_type?: string;
+  physical_custody_reference?: string;
+  source_stock_type?: string;
+  source_stock_reference?: string;
+  submission_state?: string;
+  publishability_state?: string;
+  items: MarketplaceListingDiagnosticsItemResponse[];
+  finance_follow_up_reference?: string;
+  support_reference?: string;
+};
+
 export type MarketplaceProductListResponse = {
   items: MarketplaceProductResponse[];
   total?: number;
