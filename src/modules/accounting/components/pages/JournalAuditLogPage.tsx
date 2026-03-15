@@ -18,6 +18,7 @@ import type {
   JournalAuditModule,
   JournalAuditSummaryCounter,
 } from "../../types/journal";
+import { normalizeJournalNumber } from "../../utils/journal-number";
 import { FeatureAuditLogFilterBar } from "../features/FeatureAuditLogFilterBar";
 import { FeatureAuditLogHeaderActions } from "../features/FeatureAuditLogHeaderActions";
 import { FeatureAuditLogSummaryCounters } from "../features/FeatureAuditLogSummaryCounters";
@@ -87,18 +88,22 @@ function toUserInitial(name: string): string {
 
 export function JournalAuditLogPage({ journalNumber }: JournalAuditLogPageProps) {
   const router = useRouter();
+  const normalizedJournalNumber = useMemo(
+    () => normalizeJournalNumber(journalNumber),
+    [journalNumber]
+  );
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<JournalAuditLogFilterValue>({
     ...JOURNAL_INITIAL_AUDIT_LOG_FILTERS,
-    journal_number: journalNumber ?? "",
+    journal_number: normalizedJournalNumber,
   });
 
   useEffect(() => {
     setFilters((current) => ({
       ...current,
-      journal_number: journalNumber ?? "",
+      journal_number: normalizedJournalNumber,
     }));
-  }, [journalNumber]);
+  }, [normalizedJournalNumber]);
 
   const queryParams = useMemo(() => {
     const userValueMap: Record<JournalAuditLogFilterValue["user"], string | undefined> = {

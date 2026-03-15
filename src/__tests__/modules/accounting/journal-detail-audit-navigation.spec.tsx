@@ -168,6 +168,14 @@ describe("journal detail and audit navigation", () => {
     );
   });
 
+  it("normalizes encoded journal number before loading detail data", () => {
+    render(<JournalEntryDetailPage journalNumber="JE%2F2023%2F0142" />);
+
+    expect(
+      screen.getByRole("heading", { name: "JE/2023/0142" })
+    ).toBeTruthy();
+  });
+
   it("forces audit back action to return to journal list", () => {
     render(<JournalAuditLogPage journalNumber="JE/2023/0142" />);
 
