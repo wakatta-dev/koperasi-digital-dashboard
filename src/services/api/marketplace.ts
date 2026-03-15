@@ -6,9 +6,11 @@ import type { ApiResponse } from "@/types/api";
 import type {
   MarketplaceCartResponse,
   MarketplaceCheckoutRequest,
+  MarketplaceCreateProductSubmissionRequest,
   MarketplaceGuestOrderStatusDetailResponse,
   MarketplaceGuestTrackRequest,
   MarketplaceGuestTrackResponse,
+  MarketplaceListingChannelStateResponse,
   MarketplaceOrderDetailResponse,
   MarketplaceOrderListResponse,
   MarketplaceOrderManualPaymentResponse,
@@ -18,11 +20,14 @@ import type {
   MarketplaceOrderStatusUpdateRequest,
   MarketplaceProductListResponse,
   MarketplaceProductResponse,
+  MarketplaceProductSubmissionResponse,
   MarketplaceProductVariantsResponse,
+  MarketplaceReviewProductSubmissionRequest,
   MarketplaceCustomerSummaryResponse,
   MarketplaceCustomerListResponse,
   MarketplaceCustomerDetailResponse,
   MarketplaceCustomerCreateRequest,
+  MarketplaceUpdateListingChannelStateRequest,
 } from "@/types/api/marketplace";
 
 const E = API_ENDPOINTS.marketplace;
@@ -252,6 +257,53 @@ export function getMarketplaceProductDetail(
   id: string | number
 ): Promise<ApiResponse<MarketplaceProductResponse>> {
   return api.get<MarketplaceProductResponse>(`${API_PREFIX}${E.product(id)}`);
+}
+
+export function getMarketplaceListingSubmission(
+  listingId: string | number
+): Promise<ApiResponse<MarketplaceProductSubmissionResponse>> {
+  return api.get<MarketplaceProductSubmissionResponse>(
+    `${API_PREFIX}${E.listingSubmission(listingId)}`
+  );
+}
+
+export function createMarketplaceListingSubmission(
+  listingId: string | number,
+  payload: MarketplaceCreateProductSubmissionRequest
+): Promise<ApiResponse<MarketplaceProductSubmissionResponse>> {
+  return api.post<MarketplaceProductSubmissionResponse>(
+    `${API_PREFIX}${E.listingSubmission(listingId)}`,
+    payload
+  );
+}
+
+export function reviewMarketplaceListingSubmission(
+  listingId: string | number,
+  payload: MarketplaceReviewProductSubmissionRequest
+): Promise<ApiResponse<MarketplaceProductSubmissionResponse>> {
+  return api.patch<MarketplaceProductSubmissionResponse>(
+    `${API_PREFIX}${E.listingSubmissionReview(listingId)}`,
+    payload
+  );
+}
+
+export function getMarketplaceListingChannels(
+  listingId: string | number
+): Promise<ApiResponse<MarketplaceListingChannelStateResponse[]>> {
+  return api.get<MarketplaceListingChannelStateResponse[]>(
+    `${API_PREFIX}${E.listingChannels(listingId)}`
+  );
+}
+
+export function updateMarketplaceListingChannel(
+  listingId: string | number,
+  channel: string,
+  payload: MarketplaceUpdateListingChannelStateRequest
+): Promise<ApiResponse<MarketplaceListingChannelStateResponse>> {
+  return api.patch<MarketplaceListingChannelStateResponse>(
+    `${API_PREFIX}${E.listingChannel(listingId, channel)}`,
+    payload
+  );
 }
 
 export function getMarketplaceProductVariants(

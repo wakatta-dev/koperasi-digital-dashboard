@@ -254,6 +254,14 @@ export const API_ENDPOINTS = {
     products: "/marketplace/products",
     product: (id: string | number) => `/marketplace/products/${id}`,
     productVariants: (id: string | number) => `/marketplace/products/${id}/variants`,
+    listingSubmission: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/submission`,
+    listingSubmissionReview: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/submission/review`,
+    listingChannels: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/channels`,
+    listingChannel: (listingId: string | number, channel: string) =>
+      `/marketplace/listings/${listingId}/channels/${encodeURIComponent(channel)}`,
     cart: "/marketplace/cart",
     cartItem: "/marketplace/cart/items",
     cartItemById: (id: string | number) => `/marketplace/cart/items/${id}`,

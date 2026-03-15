@@ -77,6 +77,7 @@ export function mapInventoryProduct(product: InventoryProductResponse): Inventor
   const primaryImage = images.find((img) => img.is_primary) ?? images[0];
   return {
     id: String(product.id),
+    listingId: product.listing_id ?? undefined,
     name: product.name,
     sku: product.sku,
     product,
@@ -85,6 +86,11 @@ export function mapInventoryProduct(product: InventoryProductResponse): Inventor
     stock: product.stock,
     price: product.price_sell,
     sellerId: (product as InventoryProductResponse & { seller_id?: string | number }).seller_id,
+    ownershipMode: product.ownership_mode,
+    channelTarget: product.channel_target,
+    publishabilityState: product.publishability_state,
+    sourceStockType: product.source_stock_type,
+    sourceStockReference: product.source_stock_reference,
     image: primaryImage?.url,
     images,
     brand: product.brand,

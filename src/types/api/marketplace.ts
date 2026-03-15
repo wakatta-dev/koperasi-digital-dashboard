@@ -34,7 +34,17 @@ export type MarketplaceManualPaymentStatus =
 
 export type MarketplaceProductResponse = {
   id: number;
+  listing_id?: number;
   name: string;
+  seller_id?: number;
+  ownership_mode?: string;
+  channel_target?: string;
+  publishability_state?: string;
+  source_stock_type?: string;
+  source_stock_reference?: string;
+  submission_state?: string;
+  submission_review_notes?: string;
+  channel_states?: MarketplaceListingChannelStateResponse[];
   sku: string;
   price: number;
   stock: number;
@@ -49,6 +59,42 @@ export type MarketplaceProductResponse = {
   display_image_url?: string;
   min_price?: number;
   max_price?: number;
+};
+
+export type MarketplaceProductSubmissionResponse = {
+  id: number;
+  seller_id: number;
+  listing_id: number;
+  proposed_inventory_product_id: number;
+  mapped_inventory_product_id?: number | null;
+  state: string;
+  review_notes?: string;
+  review_actor_id?: number | null;
+  reviewed_at?: string;
+};
+
+export type MarketplaceListingChannelStateResponse = {
+  id: number;
+  channel: string;
+  publishability_state: string;
+  blocker_code?: string;
+};
+
+export type MarketplaceCreateProductSubmissionRequest = {
+  seller_id: number;
+  inventory_product_id: number;
+  mapped_inventory_product_id?: number | null;
+};
+
+export type MarketplaceReviewProductSubmissionRequest = {
+  decision: string;
+  review_notes?: string;
+  mapped_inventory_product_id?: number | null;
+};
+
+export type MarketplaceUpdateListingChannelStateRequest = {
+  publishability_state: string;
+  blocker_code?: string;
 };
 
 export type MarketplaceProductListResponse = {
