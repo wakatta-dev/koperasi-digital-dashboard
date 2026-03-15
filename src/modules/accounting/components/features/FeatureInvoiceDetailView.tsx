@@ -1,19 +1,16 @@
 /** @format */
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { Check, Mail, FileText, Coins } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
-import type { InvoiceDetailModel, InvoiceStepperStatus } from "../../types/invoicing-ar";
+import type {
+  InvoiceDetailModel,
+  InvoiceStepperStatus,
+} from "../../types/invoicing-ar";
 
 type FeatureInvoiceDetailViewProps = {
   detail: InvoiceDetailModel;
@@ -36,6 +33,59 @@ export function FeatureInvoiceDetailView({
 }: FeatureInvoiceDetailViewProps) {
   const activeIndex = STEPS.indexOf(detail.current_step);
 
+  const columns: ColumnDef<InvoiceDetailModel["detail_rows"][number], unknown>[] =
+    [
+      {
+        id: "description",
+        header: "Description",
+        meta: {
+          headerClassName: "px-8 py-4",
+          cellClassName: "px-8 py-6",
+        },
+        cell: ({ row }) => (
+          <>
+            <div className="font-semibold text-gray-900 dark:text-white">
+              {row.original.product_or_service}
+            </div>
+            <p className="mt-1 text-xs italic text-gray-500">
+              {row.original.description}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: "qty",
+        header: "Qty",
+        meta: {
+          align: "center",
+          headerClassName: "px-6 py-4 text-center",
+          cellClassName: "px-6 py-6 text-center text-sm font-medium",
+        },
+        cell: ({ row }) => row.original.qty,
+      },
+      {
+        id: "price",
+        header: "Price",
+        meta: {
+          align: "right",
+          headerClassName: "px-6 py-4 text-right",
+          cellClassName: "px-6 py-6 text-right text-sm font-medium",
+        },
+        cell: ({ row }) => row.original.price,
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        meta: {
+          align: "right",
+          headerClassName: "px-8 py-4 text-right",
+          cellClassName:
+            "px-8 py-6 text-right text-sm font-bold text-gray-900 dark:text-white",
+        },
+        cell: ({ row }) => row.original.line_total,
+      },
+    ];
+
   return (
     <section className="space-y-6">
       <Card className="border-gray-200 dark:border-gray-700">
@@ -44,7 +94,10 @@ export function FeatureInvoiceDetailView({
             {STEPS.map((step, index) => {
               const active = index <= activeIndex;
               return (
-                <div key={step} className="relative z-10 flex flex-1 flex-col items-center">
+                <div
+                  key={step}
+                  className="relative z-10 flex flex-1 flex-col items-center"
+                >
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-full ring-4 ${
                       active
@@ -126,10 +179,14 @@ export function FeatureInvoiceDetailView({
             <div className="flex flex-col justify-between gap-6 md:flex-row">
               <div>
                 <div className="mb-4">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">3Portals Inc.</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    3Portals Inc.
+                  </h3>
                   <p className="text-xs text-gray-500">Jakarta, Indonesia</p>
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Customer</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                  Customer
+                </p>
                 <h4 className="text-lg font-bold text-gray-900 dark:text-white">
                   {detail.customer_identity.name}
                 </h4>
@@ -142,50 +199,35 @@ export function FeatureInvoiceDetailView({
                   Invoice
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Number: <span className="font-bold text-gray-900 dark:text-white">{detail.invoice_number}</span>
+                  Number:{" "}
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    {detail.invoice_number}
+                  </span>
                 </p>
                 <p className="text-sm text-gray-500">
                   Invoice Date:{" "}
-                  <span className="font-medium text-gray-900 dark:text-white">{detail.invoice_date}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {detail.invoice_date}
+                  </span>
                 </p>
                 <p className="text-sm text-gray-500">
-                  Due Date: <span className="font-medium text-red-500">{detail.due_date}</span>
+                  Due Date:{" "}
+                  <span className="font-medium text-red-500">
+                    {detail.due_date}
+                  </span>
                 </p>
               </div>
             </div>
           </div>
 
-          <Table>
-            <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-              <TableRow className="border-b border-gray-100 dark:border-gray-700">
-                <TableHead className="px-8 py-4">Description</TableHead>
-                <TableHead className="px-6 py-4 text-center">Qty</TableHead>
-                <TableHead className="px-6 py-4 text-right">Price</TableHead>
-                <TableHead className="px-8 py-4 text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {detail.detail_rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="px-8 py-6">
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {row.product_or_service}
-                    </div>
-                    <p className="mt-1 text-xs italic text-gray-500">{row.description}</p>
-                  </TableCell>
-                  <TableCell className="px-6 py-6 text-center text-sm font-medium">
-                    {row.qty}
-                  </TableCell>
-                  <TableCell className="px-6 py-6 text-right text-sm font-medium">
-                    {row.price}
-                  </TableCell>
-                  <TableCell className="px-8 py-6 text-right text-sm font-bold text-gray-900 dark:text-white">
-                    {row.line_total}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <TableShell
+            columns={columns}
+            data={detail.detail_rows}
+            getRowId={(row) => row.id}
+            emptyState="Belum ada detail invoice."
+            headerClassName="bg-gray-50 dark:bg-gray-800/50"
+            headerRowClassName="border-b border-gray-100 dark:border-gray-700"
+          />
 
           <div className="bg-gray-50/50 p-8 dark:bg-gray-800/20">
             <div className="ml-auto w-full max-w-xs space-y-3">
@@ -202,8 +244,12 @@ export function FeatureInvoiceDetailView({
                 </span>
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
-                <span className="text-base font-bold text-gray-900 dark:text-white">Total Amount</span>
-                <span className="text-xl font-black text-indigo-600">{detail.summary_totals.total}</span>
+                <span className="text-base font-bold text-gray-900 dark:text-white">
+                  Total Amount
+                </span>
+                <span className="text-xl font-black text-indigo-600">
+                  {detail.summary_totals.total}
+                </span>
               </div>
             </div>
           </div>

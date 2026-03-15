@@ -8,14 +8,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/shared/inputs/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import { INITIAL_CREDIT_NOTE_DRAFT } from "../../constants/invoicing-ar-initial-state";
 
@@ -58,9 +51,15 @@ export function FeatureCreditNoteCreateForm({
   invoiceReferenceOptions = [],
 }: FeatureCreditNoteCreateFormProps) {
   const [customer, setCustomer] = useState(INITIAL_CREDIT_NOTE_DRAFT.customer);
-  const [creditNoteDate, setCreditNoteDate] = useState(INITIAL_CREDIT_NOTE_DRAFT.credit_note_date);
-  const [invoiceRef, setInvoiceRef] = useState(INITIAL_CREDIT_NOTE_DRAFT.original_invoice_reference);
-  const [reason, setReason] = useState(INITIAL_CREDIT_NOTE_DRAFT.reason_for_credit);
+  const [creditNoteDate, setCreditNoteDate] = useState(
+    INITIAL_CREDIT_NOTE_DRAFT.credit_note_date,
+  );
+  const [invoiceRef, setInvoiceRef] = useState(
+    INITIAL_CREDIT_NOTE_DRAFT.original_invoice_reference,
+  );
+  const [reason, setReason] = useState(
+    INITIAL_CREDIT_NOTE_DRAFT.reason_for_credit,
+  );
   const [items, setItems] = useState<CreditLine[]>([
     { id: "credit-item-1", item_name: "", qty: 1, rate: "" },
   ]);
@@ -82,17 +81,26 @@ export function FeatureCreditNoteCreateForm({
   }, [items]);
 
   const addItem = () => {
-    setItems((current) => [...current, { id: `credit-item-${Date.now()}`, item_name: "", qty: 1, rate: "" }]);
+    setItems((current) => [
+      ...current,
+      { id: `credit-item-${Date.now()}`, item_name: "", qty: 1, rate: "" },
+    ]);
   };
 
-  const updateItem = (id: string, key: keyof CreditLine, value: string | number) => {
+  const updateItem = (
+    id: string,
+    key: keyof CreditLine,
+    value: string | number,
+  ) => {
     setItems((current) =>
-      current.map((row) => (row.id === id ? { ...row, [key]: value } : row))
+      current.map((row) => (row.id === id ? { ...row, [key]: value } : row)),
     );
   };
 
   const removeItem = (id: string) => {
-    setItems((current) => (current.length > 1 ? current.filter((row) => row.id !== id) : current));
+    setItems((current) =>
+      current.length > 1 ? current.filter((row) => row.id !== id) : current,
+    );
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -118,7 +126,9 @@ export function FeatureCreditNoteCreateForm({
             <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
               <Plus className="h-5 w-5" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">New Credit Note</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              New Credit Note
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -154,7 +164,8 @@ export function FeatureCreditNoteCreateForm({
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Original Invoice Reference <span className="font-normal text-gray-400">(Optional)</span>
+                Original Invoice Reference{" "}
+                <span className="font-normal text-gray-400">(Optional)</span>
               </label>
               <Input
                 value={invoiceRef}
@@ -189,86 +200,149 @@ export function FeatureCreditNoteCreateForm({
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
                 Items to be Credited
               </h3>
-              <Button type="button" variant="ghost" className="gap-1 p-0 text-xs font-semibold text-indigo-600" onClick={addItem}>
+              <Button
+                type="button"
+                variant="ghost"
+                className="gap-1 p-0 text-xs font-semibold text-indigo-600"
+                onClick={addItem}
+              >
                 <Plus className="h-4 w-4" />
                 Add Item
               </Button>
             </div>
             <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-              <Table>
-                <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-                  <TableRow>
-                    <TableHead className="px-4 py-3">Item Details</TableHead>
-                    <TableHead className="w-24 px-4 py-3">Qty</TableHead>
-                    <TableHead className="w-32 px-4 py-3 text-right">Rate</TableHead>
-                    <TableHead className="w-32 px-4 py-3 text-right">Amount</TableHead>
-                    <TableHead className="w-12 px-4 py-3 text-center" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => {
-                    const rate = Number(item.rate.replaceAll(",", "")) || 0;
-                    const amount = item.qty * rate;
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            value={item.item_name}
-                            onChange={(event) => updateItem(item.id, "item_name", event.target.value)}
-                            placeholder="Type item name..."
-                            className="border-none bg-transparent p-0 shadow-none"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            type="number"
-                            value={item.qty}
-                            onChange={(event) => updateItem(item.id, "qty", Number(event.target.value || "0"))}
-                            className="border-none bg-transparent p-0 shadow-none"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            value={item.rate}
-                            onChange={(event) => updateItem(item.id, "rate", event.target.value)}
-                            placeholder="0.00"
-                            className="border-none bg-transparent p-0 text-right shadow-none"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
-                          {`Rp ${amount.toLocaleString("id-ID")}`}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-center">
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-gray-400 hover:text-red-500"
-                            onClick={() => removeItem(item.id)}
-                            aria-label={`Remove credit item ${item.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <TableShell
+                columns={[
+                  {
+                    id: "item_name",
+                    header: <>Item Details</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.item_name}
+                        onChange={(event) =>
+                          updateItem(
+                            row.original.id,
+                            "item_name",
+                            event.target.value,
+                          )
+                        }
+                        placeholder="Type item name..."
+                        className="border-none bg-transparent p-0 shadow-none"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "px-4 py-3",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "qty",
+                    header: <>Qty</>,
+                    cell: ({ row }) => (
+                      <Input
+                        type="number"
+                        value={row.original.qty}
+                        onChange={(event) =>
+                          updateItem(
+                            row.original.id,
+                            "qty",
+                            Number(event.target.value || "0"),
+                          )
+                        }
+                        className="border-none bg-transparent p-0 shadow-none"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "w-24 px-4 py-3",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "rate",
+                    header: <>Rate</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.rate}
+                        onChange={(event) =>
+                          updateItem(
+                            row.original.id,
+                            "rate",
+                            event.target.value,
+                          )
+                        }
+                        placeholder="0.00"
+                        className="border-none bg-transparent p-0 text-right shadow-none"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "w-32 px-4 py-3 text-right",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "amount",
+                    header: <>Amount</>,
+                    cell: ({ row }) => {
+                      const rate =
+                        Number(row.original.rate.replaceAll(",", "")) || 0;
+                      const amount = row.original.qty * rate;
+
+                      return `Rp ${amount.toLocaleString("id-ID")}`;
+                    },
+                    meta: {
+                      headerClassName: "w-32 px-4 py-3 text-right",
+                      cellClassName:
+                        "px-4 py-3 text-right font-medium text-gray-900 dark:text-white",
+                    },
+                  },
+                  {
+                    id: "actions",
+                    header: "",
+                    cell: ({ row }) => (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-gray-400 hover:text-red-500"
+                        onClick={() => removeItem(row.original.id)}
+                        aria-label={`Remove credit item ${row.original.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ),
+                    meta: {
+                      headerClassName: "w-12 px-4 py-3 text-center",
+                      cellClassName: "px-4 py-3 text-center",
+                    },
+                  },
+                ]}
+                data={items}
+                getRowId={(row) => row.id}
+                headerClassName="bg-gray-50 dark:bg-gray-800/50"
+                rowHoverable={false}
+              />
             </div>
           </div>
 
           <div className="flex flex-col items-end space-y-2 pt-4">
             <div className="flex w-64 justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
-              <span className="font-medium">Rp {totals.subtotal.toLocaleString("id-ID")}</span>
+              <span className="font-medium">
+                Rp {totals.subtotal.toLocaleString("id-ID")}
+              </span>
             </div>
             <div className="flex w-64 justify-between border-b border-gray-200 pb-2 text-sm dark:border-gray-700">
-              <span className="text-gray-500 dark:text-gray-400">Tax (11%)</span>
-              <span className="font-medium">Rp {totals.tax.toLocaleString("id-ID")}</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                Tax (11%)
+              </span>
+              <span className="font-medium">
+                Rp {totals.tax.toLocaleString("id-ID")}
+              </span>
             </div>
             <div className="flex w-64 justify-between pt-2">
-              <span className="text-base font-bold text-gray-900 dark:text-white">Total Credit</span>
+              <span className="text-base font-bold text-gray-900 dark:text-white">
+                Total Credit
+              </span>
               <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
                 Rp {totals.totalCredit.toLocaleString("id-ID")}
               </span>
@@ -277,7 +351,9 @@ export function FeatureCreditNoteCreateForm({
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
             {errorMessage ? (
-              <p className="mr-auto text-sm font-medium text-red-600">{errorMessage}</p>
+              <p className="mr-auto text-sm font-medium text-red-600">
+                {errorMessage}
+              </p>
             ) : null}
             <Button type="button" variant="ghost" onClick={onCancel}>
               Cancel

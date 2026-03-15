@@ -4,7 +4,15 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { BellRing, CheckCheck, CheckCircle2, Mail, RadioTower, TriangleAlert } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  BellRing,
+  CheckCheck,
+  CheckCircle2,
+  Mail,
+  RadioTower,
+  TriangleAlert,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,14 +24,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useAdminTenants, useNotificationActions, useNotificationMetrics, useNotifications } from "@/hooks/queries";
+  createCursorPaginationMeta,
+  TableShell,
+} from "@/components/shared/data-display/TableShell";
+import { useCursorStack } from "@/hooks/use-cursor-stack";
+import {
+  useAdminTenants,
+  useNotificationActions,
+  useNotificationMetrics,
+  useNotifications,
+} from "@/hooks/queries";
 import { VendorPageHeader } from "../VendorPageHeader";
 import { VendorKpiGrid } from "../VendorKpiGrid";
 import { VENDOR_ROUTES } from "../../constants/routes";
@@ -55,8 +65,10 @@ function notificationStatusBadgeClass(status?: string, readAt?: string) {
 export function VendorNotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [channel, setChannel] = useState("all");
+  const cursorPagination = useCursorStack<string>();
   const notificationsQuery = useNotifications({
     limit: 100,
+    cursor: cursorPagination.currentCursor,
     filter,
     channel: channel === "all" ? undefined : channel,
   });
@@ -64,7 +76,10 @@ export function VendorNotificationsPage() {
   const tenantQuery = useAdminTenants({ limit: 100 });
   const actions = useNotificationActions();
 
-  const notifications = useMemo(() => notificationsQuery.data ?? [], [notificationsQuery.data]);
+  const notifications = useMemo(
+    () => notificationsQuery.data?.data ?? [],
+    [notificationsQuery.data?.data],
+  );
   const metrics = metricsQuery.data;
   const tenantMap = useMemo(() => {
     const entries = tenantQuery.data?.data?.items ?? [];
@@ -72,13 +87,13 @@ export function VendorNotificationsPage() {
       entries.map((tenant) => [
         tenant.id,
         tenant.display_name || tenant.name || tenant.tenant_code,
-      ])
+      ]),
     );
   }, [tenantQuery.data?.data?.items]);
 
   const unreadCount = useMemo(
     () => notifications.filter((item) => !item.read_at).length,
-    [notifications]
+    [notifications],
   );
 
   const channelOptions = useMemo(() => {
@@ -91,6 +106,14 @@ export function VendorNotificationsPage() {
     });
     return Array.from(values);
   }, [metrics?.channel_summaries, notifications]);
+  const notificationsTablePagination = createCursorPaginationMeta(
+    notificationsQuery.data?.meta?.pagination,
+    {
+      itemCount: notifications.length,
+      hasPrev: cursorPagination.canGoBack,
+      hasNext: Boolean(notificationsQuery.data?.meta?.pagination?.next_cursor),
+    },
+  );
 
   const kpis = useMemo(
     () => [
@@ -119,7 +142,93 @@ export function VendorNotificationsPage() {
         helper: "Proporsi failure di seluruh channel",
       },
     ],
-    [metrics?.failure_rate, metrics?.total_attempts, metrics?.total_failures, notifications.length, unreadCount]
+    [
+      metrics?.failure_rate,
+      metrics?.total_attempts,
+      metrics?.total_failures,
+      notifications.length,
+      unreadCount,
+    ],
+  );
+
+  const columns = useMemo<ColumnDef<(typeof notifications)[number], unknown>[]>(
+    () => [
+      {
+        id: "message",
+        header: "Message",
+        cell: ({ row }) => (
+          <div className="space-y-1 align-top">
+            <div className="font-medium">
+              {row.original.title || row.original.category || "Notification"}
+            </div>
+            <div className="max-w-xl whitespace-normal text-xs text-muted-foreground">
+              {row.original.body || "-"}
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "tenant",
+        header: "Tenant",
+        cell: ({ row }) =>
+          row.original.tenant_id
+            ? tenantMap.get(row.original.tenant_id) ||
+              `Tenant #${row.original.tenant_id}`
+            : "-",
+      },
+      {
+        id: "channel",
+        header: "Channel",
+        cell: ({ row }) => (
+          <Badge className={channelBadgeClass(row.original.channel)}>
+            {row.original.channel || "-"}
+          </Badge>
+        ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <Badge
+            className={notificationStatusBadgeClass(
+              row.original.status,
+              row.original.read_at,
+            )}
+          >
+            {row.original.read_at
+              ? "READ"
+              : row.original.status || row.original.send_status || "PENDING"}
+          </Badge>
+        ),
+      },
+      {
+        id: "time",
+        header: "Waktu",
+        cell: ({ row }) =>
+          formatVendorDateTime(row.original.created_at || row.original.sent_at),
+      },
+      {
+        id: "actions",
+        header: "Aksi",
+        meta: {
+          align: "right",
+          headerClassName: "text-right",
+          cellClassName: "text-right",
+        },
+        cell: ({ row }) => (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={Boolean(row.original.read_at) || actions.markRead.isPending}
+            onClick={() => actions.markRead.mutate(row.original.id)}
+          >
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            Mark Read
+          </Button>
+        ),
+      },
+    ],
+    [actions.markRead, tenantMap]
   );
 
   return (
@@ -158,7 +267,10 @@ export function VendorNotificationsPage() {
             <div className="flex gap-2">
               <Select
                 value={filter}
-                onValueChange={(value) => setFilter(value as "all" | "unread")}
+                onValueChange={(value) => {
+                  setFilter(value as "all" | "unread");
+                  cursorPagination.reset();
+                }}
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Filter" />
@@ -168,7 +280,13 @@ export function VendorNotificationsPage() {
                   <SelectItem value="unread">Unread</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={channel} onValueChange={setChannel}>
+              <Select
+                value={channel}
+                onValueChange={(value) => {
+                  setChannel(value);
+                  cursorPagination.reset();
+                }}
+              >
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Channel" />
                 </SelectTrigger>
@@ -190,75 +308,25 @@ export function VendorNotificationsPage() {
               </div>
             ) : null}
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Message</TableHead>
-                  <TableHead>Tenant</TableHead>
-                  <TableHead>Channel</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Waktu</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {notifications.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="align-top">
-                      <div className="space-y-1">
-                        <div className="font-medium">
-                          {item.title || item.category || "Notification"}
-                        </div>
-                        <div className="max-w-xl whitespace-normal text-xs text-muted-foreground">
-                          {item.body || "-"}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {item.tenant_id ? tenantMap.get(item.tenant_id) || `Tenant #${item.tenant_id}` : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={channelBadgeClass(item.channel)}>
-                        {item.channel || "-"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={notificationStatusBadgeClass(item.status, item.read_at)}>
-                        {item.read_at ? "READ" : item.status || item.send_status || "PENDING"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatVendorDateTime(item.created_at || item.sent_at)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={Boolean(item.read_at) || actions.markRead.isPending}
-                        onClick={() => actions.markRead.mutate(item.id)}
-                      >
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                        Mark Read
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-                {!notificationsQuery.isPending && notifications.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                      Belum ada notifikasi yang cocok dengan filter saat ini.
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-
-                {notificationsQuery.isPending ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                      Memuat notification queue...
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </TableBody>
-            </Table>
+            <TableShell
+              columns={columns}
+              data={notifications}
+              getRowId={(row) => String(row.id)}
+              loading={notificationsQuery.isPending}
+              loadingState="Memuat notification queue..."
+              emptyState="Belum ada notifikasi yang cocok dengan filter saat ini."
+              pagination={notificationsTablePagination}
+              onPrevPage={
+                cursorPagination.canGoBack ? cursorPagination.goBack : undefined
+              }
+              onNextPage={() => {
+                const nextCursor =
+                  notificationsQuery.data?.meta?.pagination?.next_cursor;
+                if (!nextCursor) return;
+                cursorPagination.goNext(nextCursor);
+              }}
+              paginationInfo={`Menampilkan ${notifications.length} notifikasi`}
+            />
           </CardContent>
         </Card>
 
@@ -270,16 +338,22 @@ export function VendorNotificationsPage() {
             <CardContent className="space-y-3">
               {metrics?.channel_summaries?.length ? (
                 metrics.channel_summaries.map((item) => (
-                  <div key={item.channel} className="rounded-lg border px-4 py-3">
+                  <div
+                    key={item.channel}
+                    className="rounded-lg border px-4 py-3"
+                  >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2 font-medium">
                         <RadioTower className="h-4 w-4 text-muted-foreground" />
                         {item.channel}
                       </div>
-                      <Badge className={channelBadgeClass(item.channel)}>{item.total ?? 0} events</Badge>
+                      <Badge className={channelBadgeClass(item.channel)}>
+                        {item.total ?? 0} events
+                      </Badge>
                     </div>
                     <div className="mt-2 text-xs text-muted-foreground">
-                      Delivered {item.delivered ?? 0} · Failed {item.failed ?? 0} · Success rate{" "}
+                      Delivered {item.delivered ?? 0} · Failed{" "}
+                      {item.failed ?? 0} · Success rate{" "}
                       {Math.round((item.success_rate ?? 0) * 100)}%
                     </div>
                   </div>
@@ -300,15 +374,16 @@ export function VendorNotificationsPage() {
               <div className="flex gap-3 rounded-lg border px-4 py-3">
                 <BellRing className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div className="text-muted-foreground">
-                  List notifikasi diambil dari endpoint notifications yang sudah ada, jadi halaman ini
-                  menampilkan event aktual, bukan dummy vendor feed.
+                  List notifikasi diambil dari endpoint notifications yang sudah
+                  ada, jadi halaman ini menampilkan event aktual, bukan dummy
+                  vendor feed.
                 </div>
               </div>
               <div className="flex gap-3 rounded-lg border px-4 py-3">
                 <TriangleAlert className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div className="text-muted-foreground">
-                  Composer broadcast vendor menggunakan support email templates sebagai jalur pengiriman
-                  yang tersedia saat ini.
+                  Composer broadcast vendor menggunakan support email templates
+                  sebagai jalur pengiriman yang tersedia saat ini.
                 </div>
               </div>
             </CardContent>

@@ -19,6 +19,7 @@ export * from "./assets";
 export * from "./assets";
 export * from "./marketplace";
 export * from "./inventory";
+export * from "./partner-management";
 export * from "./accounting-ar";
 export * from "./accounting-ap";
 export * from "./accounting-bank-cash";

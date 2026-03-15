@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSupportEmailActions, useSupportEmailTemplates } from "@/hooks/queries";
@@ -26,6 +26,7 @@ export function EmailCommunicationSettingsPage() {
   const { saveTemplate, sendTestEmail } = useSupportEmailActions();
   const templates = useMemo(() => templatesQuery.data ?? [], [templatesQuery.data]);
   const requestedTemplateId = searchParams.get("template") ?? "";
+  const pendingSelectedTemplateIdRef = useRef<string | null>(null);
 
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [draftTemplateId, setDraftTemplateId] = useState("");
@@ -34,11 +35,47 @@ export function EmailCommunicationSettingsPage() {
   const [testRecipientDraft, setTestRecipientDraft] = useState("");
   const [testVariablesDraft, setTestVariablesDraft] = useState<Record<string, string>>({});
 
+  const syncTemplateQuery = useCallback(
+    (templateId: string) => {
+      const nextQuery = buildQueryString(searchParams, {
+        template: templateId || null,
+      });
+      if (nextQuery === searchParams.toString()) {
+        return;
+      }
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const handleSelectTemplate = useCallback(
+    (templateId: string) => {
+      pendingSelectedTemplateIdRef.current = templateId;
+      setSelectedTemplateId(templateId);
+      syncTemplateQuery(templateId);
+    },
+    [syncTemplateQuery]
+  );
+
   useEffect(() => {
     if (!templates.length) {
+      pendingSelectedTemplateIdRef.current = null;
       setSelectedTemplateId("");
       return;
     }
+    const hasTemplate = (templateId: string) =>
+      templates.some((item) => String(item.id) === templateId);
+
+    if (pendingSelectedTemplateIdRef.current) {
+      if (requestedTemplateId === pendingSelectedTemplateIdRef.current) {
+        pendingSelectedTemplateIdRef.current = null;
+      } else if (hasTemplate(pendingSelectedTemplateIdRef.current)) {
+        return;
+      } else {
+        pendingSelectedTemplateIdRef.current = null;
+      }
+    }
+
     if (requestedTemplateId && templates.some((item) => String(item.id) === requestedTemplateId)) {
       if (selectedTemplateId !== requestedTemplateId) {
         setSelectedTemplateId(requestedTemplateId);
@@ -46,20 +83,12 @@ export function EmailCommunicationSettingsPage() {
       return;
     }
     if (!selectedTemplateId || !templates.some((item) => String(item.id) === selectedTemplateId)) {
-      setSelectedTemplateId(String(templates[0].id));
+      const fallbackTemplateId = String(templates[0].id);
+      pendingSelectedTemplateIdRef.current = fallbackTemplateId;
+      setSelectedTemplateId(fallbackTemplateId);
+      syncTemplateQuery(fallbackTemplateId);
     }
-  }, [requestedTemplateId, selectedTemplateId, templates]);
-
-  useEffect(() => {
-    if (!selectedTemplateId) {
-      return;
-    }
-    const nextQuery = buildQueryString(searchParams, { template: selectedTemplateId });
-    if (nextQuery === searchParams.toString()) {
-      return;
-    }
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams, selectedTemplateId]);
+  }, [requestedTemplateId, selectedTemplateId, syncTemplateQuery, templates]);
 
   const selectedTemplate = useMemo(
     () => templates.find((item) => String(item.id) === selectedTemplateId) ?? null,
@@ -128,7 +157,7 @@ export function EmailCommunicationSettingsPage() {
         templates={templates}
         selectedTemplateId={selectedTemplateId}
         disabled={!canManage || templatesQuery.isLoading}
-        onSelect={setSelectedTemplateId}
+        onSelect={handleSelectTemplate}
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">

@@ -3,13 +3,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableShell,
+  type TablePagePaginationMeta,
+} from "@/components/shared/data-display/TableShell";
 
 import type { TaxSummaryPeriodItem } from "../../types/tax";
 
@@ -34,81 +30,138 @@ function statusClassName(status: TaxSummaryPeriodItem["status"]) {
 
 type FeatureTaxSummaryPeriodTableProps = {
   rows: TaxSummaryPeriodItem[];
+  pagination?: TablePagePaginationMeta;
+  paginationInfo?: string;
+  onPageChange?: (nextPage: number) => void;
   onDetails?: (row: TaxSummaryPeriodItem) => void;
 };
 
 export function FeatureTaxSummaryPeriodTable({
   rows,
+  pagination,
+  paginationInfo,
+  onPageChange,
   onDetails,
 }: FeatureTaxSummaryPeriodTableProps) {
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-full">
-        <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-          <TableRow>
-            <TableHead className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Period
-            </TableHead>
-            <TableHead className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
-              PPN Keluaran
-            </TableHead>
-            <TableHead className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
-              PPN Masukan
-            </TableHead>
-            <TableHead className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Net (Payable/Refund)
-            </TableHead>
-            <TableHead className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Total PPh
-            </TableHead>
-            <TableHead className="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase">
-              Status
-            </TableHead>
-            <TableHead className="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase" />
-          </TableRow>
-        </TableHeader>
-        <TableBody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-slate-900">
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
-                No tax summary period found.
-              </TableCell>
-            </TableRow>
-          ) : null}
-          {rows.map((row) => (
-            <TableRow key={row.period_code} className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
-              <TableCell className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                {row.period_label}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
-                {formatCurrency(row.ppn_keluaran)}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
-                {formatCurrency(row.ppn_masukan)}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right text-sm font-medium text-gray-900 dark:text-white">
-                {formatCurrency(row.net_amount)}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300">
-                {formatCurrency(row.total_pph)}
-              </TableCell>
-              <TableCell className="px-6 py-4 text-center">
-                <Badge className={statusClassName(row.status)}>{row.status}</Badge>
-              </TableCell>
-              <TableCell className="px-6 py-4 text-right">
-                <Button
-                  type="button"
-                  variant="link"
-                  className="h-auto p-0 text-indigo-600 hover:text-indigo-700"
-                  onClick={() => onDetails?.(row)}
-                >
-                  Details
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <TableShell
+        className="border border-border rounded-xl overflow-hidden"
+        tableClassName="min-w-full"
+        columns={[
+          {
+            id: "period",
+            header: "Period",
+            meta: {
+              headerClassName:
+                "px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase",
+              cellClassName:
+                "px-6 py-4 text-sm font-medium text-gray-900 dark:text-white",
+            },
+            cell: ({ row }) => row.original.period_label,
+          },
+          {
+            id: "ppnKeluaran",
+            header: "PPN Keluaran",
+            meta: {
+              align: "right",
+              headerClassName:
+                "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
+              cellClassName:
+                "px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300",
+            },
+            cell: ({ row }) => formatCurrency(row.original.ppn_keluaran),
+          },
+          {
+            id: "ppnMasukan",
+            header: "PPN Masukan",
+            meta: {
+              align: "right",
+              headerClassName:
+                "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
+              cellClassName:
+                "px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300",
+            },
+            cell: ({ row }) => formatCurrency(row.original.ppn_masukan),
+          },
+          {
+            id: "net",
+            header: "Net (Payable/Refund)",
+            meta: {
+              align: "right",
+              headerClassName:
+                "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
+              cellClassName:
+                "px-6 py-4 text-right text-sm font-medium text-gray-900 dark:text-white",
+            },
+            cell: ({ row }) => formatCurrency(row.original.net_amount),
+          },
+          {
+            id: "totalPph",
+            header: "Total PPh",
+            meta: {
+              align: "right",
+              headerClassName:
+                "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
+              cellClassName:
+                "px-6 py-4 text-right text-sm text-gray-600 dark:text-gray-300",
+            },
+            cell: ({ row }) => formatCurrency(row.original.total_pph),
+          },
+          {
+            id: "status",
+            header: "Status",
+            meta: {
+              align: "center",
+              headerClassName:
+                "px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 uppercase",
+              cellClassName: "px-6 py-4 text-center",
+            },
+            cell: ({ row }) => (
+              <Badge className={statusClassName(row.original.status)}>
+                {row.original.status}
+              </Badge>
+            ),
+          },
+          {
+            id: "actions",
+            header: "",
+            meta: {
+              align: "right",
+              headerClassName:
+                "px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase",
+              cellClassName: "px-6 py-4 text-right",
+            },
+            cell: ({ row }) => (
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto p-0 text-indigo-600 hover:text-indigo-700"
+                onClick={() => onDetails?.(row.original)}
+              >
+                Details
+              </Button>
+            ),
+          },
+        ]}
+        data={rows}
+        getRowId={(row) => row.period_code}
+        emptyState="No tax summary period found."
+        headerClassName="bg-gray-50 dark:bg-gray-800/50"
+        bodyClassName="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-slate-900"
+        pagination={pagination}
+        paginationInfo={paginationInfo}
+        onPrevPage={() =>
+          pagination && onPageChange?.(Math.max(1, pagination.page - 1))
+        }
+        onNextPage={() =>
+          pagination &&
+          onPageChange?.(Math.min(pagination.totalPages, pagination.page + 1))
+        }
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
+      />
     </div>
   );
 }

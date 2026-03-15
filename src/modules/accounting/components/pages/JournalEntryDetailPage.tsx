@@ -17,6 +17,7 @@ import type {
   JournalDetailIntegrity,
   JournalDetailItem,
 } from "../../types/journal";
+import { normalizeJournalNumber } from "../../utils/journal-number";
 import { FeatureJournalDetailGeneralInfo } from "../features/FeatureJournalDetailGeneralInfo";
 import { FeatureJournalDetailHeader } from "../features/FeatureJournalDetailHeader";
 import { FeatureJournalDetailIntegrityFooter } from "../features/FeatureJournalDetailIntegrityFooter";
@@ -71,14 +72,18 @@ export function JournalEntryDetailPage({
   journalNumber,
   returnToQuery,
 }: JournalEntryDetailPageProps) {
-  const detailQuery = useAccountingJournalEntryDetail(journalNumber);
+  const resolvedJournalNumber = useMemo(
+    () => normalizeJournalNumber(journalNumber),
+    [journalNumber]
+  );
+  const detailQuery = useAccountingJournalEntryDetail(resolvedJournalNumber);
   const mutations = useAccountingJournalMutations();
 
   const header = useMemo<JournalDetailHeader>(() => {
     const data = detailQuery.data;
     if (!data) {
       return {
-        journal_number: journalNumber,
+        journal_number: resolvedJournalNumber,
         status: "Draft",
         posted_label: "Draft entry",
       };
@@ -95,7 +100,7 @@ export function JournalEntryDetailPage({
       status: data.header.status,
       posted_label: postedLabel,
     };
-  }, [detailQuery.data, journalNumber]);
+  }, [detailQuery.data, resolvedJournalNumber]);
 
   const generalInformation = useMemo<JournalDetailGeneralInformation>(() => {
     const data = detailQuery.data?.general_information;
@@ -139,7 +144,7 @@ export function JournalEntryDetailPage({
   const handleReverseEntry = async () => {
     try {
       await mutations.reverseEntry.mutateAsync({
-        journalNumber,
+        journalNumber: resolvedJournalNumber,
         idempotencyKey: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
       });
       toast.success("Journal entry reversed");
@@ -155,7 +160,7 @@ export function JournalEntryDetailPage({
 
   const handleExportPdf = async () => {
     try {
-      const response = await mutations.exportEntryPdf.mutateAsync(journalNumber);
+      const response = await mutations.exportEntryPdf.mutateAsync(resolvedJournalNumber);
       if (response.download_url) {
         window.open(response.download_url, "_blank", "noopener,noreferrer");
       }

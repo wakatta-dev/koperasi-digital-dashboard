@@ -18,6 +18,8 @@ import {
   getInventoryProductVariants,
   getInventoryProductStats,
   getInventoryStockHistory,
+  listInventoryStockAvailability,
+  listInventoryStockNodes,
   listInventoryCategories,
   listInventoryProducts,
   setInitialInventoryStock,
@@ -44,7 +46,9 @@ import type {
   InventoryProductResponse,
   InventoryProductStatsResponse,
   InventoryProductVariantsResponse,
+  InventoryStockAvailabilityResponse,
   InventoryStockHistoryEntry,
+  InventoryStockNodeResponse,
   UpdateInventoryVariantGroupRequest,
   UpdateInventoryVariantOptionRequest,
   UpdateInventoryProductRequest,
@@ -143,6 +147,27 @@ export function useInventoryStockHistory(
     enabled: Boolean(id) && (options?.enabled ?? true),
     queryFn: async (): Promise<InventoryStockHistoryEntry[]> =>
       ensureSuccess(await getInventoryStockHistory(id as string | number, params)),
+  });
+}
+
+export function useInventoryStockNodes(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ["inventory-stock-nodes"],
+    enabled: options?.enabled ?? true,
+    queryFn: async (): Promise<InventoryStockNodeResponse[]> =>
+      ensureSuccess(await listInventoryStockNodes()),
+  });
+}
+
+export function useInventoryStockAvailability(
+  id?: string | number,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: ["inventory-stock-availability", id ?? ""],
+    enabled: Boolean(id) && (options?.enabled ?? true),
+    queryFn: async (): Promise<InventoryStockAvailabilityResponse[]> =>
+      ensureSuccess(await listInventoryStockAvailability(id as string | number)),
   });
 }
 

@@ -3,6 +3,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { DateRangeField } from "@/components/shared/inputs/date-range-field";
 import { SelectField } from "@/components/shared/inputs/select-field";
@@ -12,8 +13,9 @@ import {
   type SummaryMetricItem,
 } from "@/components/shared/data-display/SummaryMetricsGrid";
 import {
-  PaginatedTableShell,
-} from "@/components/shared/data-display/PaginatedTableShell";
+  createCursorPaginationMeta,
+  TableShell,
+} from "@/components/shared/data-display/TableShell";
 
 describe("shared accounting primitives", () => {
   it("renders select field with label and error state", () => {
@@ -84,16 +86,15 @@ describe("shared accounting primitives", () => {
 
   it("renders paginated table shell with pagination controls", () => {
     render(
-      <PaginatedTableShell
+      <TableShell
         columns={[
           {
-            id: "code",
+            accessorKey: "code",
             header: "Kode",
-            render: (row: { code: string }) => row.code,
           },
-        ]}
-        rows={[{ code: "INV-0001" }]}
-        getRowKey={(row) => row.code}
+        ] as ColumnDef<{ code: string }, unknown>[]}
+        data={[{ code: "INV-0001" }]}
+        getRowId={(row) => row.code}
         pagination={{ page: 1, pageSize: 10, totalItems: 1, totalPages: 1 }}
       />
     );
@@ -102,5 +103,58 @@ describe("shared accounting primitives", () => {
     expect(screen.getByText(/Halaman 1 dari 1/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Sebelumnya" }).getAttribute("disabled")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Berikutnya" }).getAttribute("disabled")).not.toBeNull();
+  });
+
+  it("renders cursor pagination controls and triggers next navigation", () => {
+    const onNextPage = vi.fn();
+
+    render(
+      <TableShell
+        columns={[
+          {
+            accessorKey: "code",
+            header: "Kode",
+          },
+        ] as ColumnDef<{ code: string }, unknown>[]}
+        data={[{ code: "INV-0003" }]}
+        getRowId={(row) => row.code}
+        pagination={createCursorPaginationMeta(
+          {
+            has_next: true,
+            has_prev: false,
+            next_cursor: "next-1",
+            limit: 25,
+          },
+          { itemCount: 1 },
+        )}
+        onNextPage={onNextPage}
+      />
+    );
+
+    expect(screen.getByText("INV-0003")).toBeTruthy();
+    expect(screen.getByText(/Menampilkan 1 item/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Sebelumnya" }).getAttribute("disabled")).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Berikutnya" }));
+
+    expect(onNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders table shell without pagination", () => {
+    render(
+      <TableShell
+        columns={[
+          {
+            accessorKey: "code",
+            header: "Kode",
+          },
+        ] as ColumnDef<{ code: string }, unknown>[]}
+        data={[{ code: "INV-0002" }]}
+        getRowId={(row) => row.code}
+      />
+    );
+
+    expect(screen.getByText("INV-0002")).toBeTruthy();
+    expect(screen.queryByText(/Halaman/i)).toBeNull();
   });
 });

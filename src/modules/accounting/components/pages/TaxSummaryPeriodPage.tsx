@@ -18,17 +18,14 @@ import type {
   TaxSummaryFilterValue,
   TaxSummaryMetricCard,
   TaxSummaryTone,
-  TaxTabKey,
 } from "../../types/tax";
 import {
   buildTaxSummaryQueryString,
   parseTaxSummaryQueryState,
 } from "../../utils/tax-query-state";
-import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
 import { FeatureTaxSummaryCards } from "../features/FeatureTaxSummaryCards";
 import { FeatureTaxSummaryFilterBar } from "../features/FeatureTaxSummaryFilterBar";
 import { FeatureTaxSummaryPeriodTable } from "../features/FeatureTaxSummaryPeriodTable";
-import { FeatureTaxTabNavigation } from "../features/FeatureTaxTabNavigation";
 import { FeatureTaxTopActions } from "../features/FeatureTaxTopActions";
 
 const DEFAULT_SUMMARY_FILTERS: TaxSummaryFilterValue = {
@@ -40,7 +37,12 @@ const DEFAULT_SUMMARY_FILTERS: TaxSummaryFilterValue = {
 const SUMMARY_PER_PAGE = 5;
 
 function toSummaryTone(tone?: string): TaxSummaryTone {
-  if (tone === "warning" || tone === "success" || tone === "danger" || tone === "primary") {
+  if (
+    tone === "warning" ||
+    tone === "success" ||
+    tone === "danger" ||
+    tone === "primary"
+  ) {
     return tone;
   }
   return "primary";
@@ -61,7 +63,9 @@ export function TaxSummaryPeriodPage() {
     [searchParams],
   );
 
-  const [filters, setFilters] = useState<TaxSummaryFilterValue>(initialQueryState.filters);
+  const [filters, setFilters] = useState<TaxSummaryFilterValue>(
+    initialQueryState.filters,
+  );
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
 
@@ -81,7 +85,9 @@ export function TaxSummaryPeriodPage() {
     if (nextQuery === currentQuery) {
       return;
     }
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
   }, [filters, page, perPage, pathname, router, searchParams]);
 
   const summaryCards = useMemo<TaxSummaryMetricCard[]>(() => {
@@ -99,7 +105,8 @@ export function TaxSummaryPeriodPage() {
     [periodsQuery.data?.items],
   );
 
-  const totalItems = periodsQuery.data?.pagination?.total_items ?? summaryRows.length;
+  const totalItems =
+    periodsQuery.data?.pagination?.total_items ?? summaryRows.length;
   const resolvedPage = periodsQuery.data?.pagination?.page ?? page;
   const resolvedPerPage = periodsQuery.data?.pagination?.per_page ?? perPage;
 
@@ -115,28 +122,11 @@ export function TaxSummaryPeriodPage() {
       years.add(filters.year);
     }
 
-    return ["All Years", ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+    return [
+      "All Years",
+      ...Array.from(years).sort((a, b) => Number(b) - Number(a)),
+    ];
   }, [filters.year, summaryRows]);
-
-  const handleNavigateTab = (tab: TaxTabKey) => {
-    if (tab === "summary") {
-      return;
-    }
-
-    if (tab === "ppn-details") {
-      router.push(ACCOUNTING_TAX_ROUTES.ppnDetails);
-      return;
-    }
-    if (tab === "pph-records") {
-      router.push(ACCOUNTING_TAX_ROUTES.pphRecords);
-      return;
-    }
-    if (tab === "export-history") {
-      router.push(ACCOUNTING_TAX_ROUTES.exportHistory);
-      return;
-    }
-    router.push(ACCOUNTING_TAX_ROUTES.efakturExport);
-  };
 
   const handleGenerateTaxReport = async () => {
     const activePeriodCode = overviewQuery.data?.active_period
@@ -175,7 +165,9 @@ export function TaxSummaryPeriodPage() {
         </div>
         <FeatureTaxTopActions
           onGenerateTaxReport={handleGenerateTaxReport}
-          onExportEfaktur={() => router.push(ACCOUNTING_TAX_ROUTES.efakturExport)}
+          onExportEfaktur={() =>
+            router.push(ACCOUNTING_TAX_ROUTES.efakturExport)
+          }
         />
       </section>
 
@@ -197,10 +189,7 @@ export function TaxSummaryPeriodPage() {
 
       <FeatureTaxSummaryCards cards={summaryCards} />
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-        <div className="border-b border-gray-200 px-6 dark:border-gray-700">
-          <FeatureTaxTabNavigation value="summary" onChange={handleNavigateTab} />
-        </div>
+      <div className="overflow-hidden bg-white dark:bg-slate-900 space-y-2">
         <FeatureTaxSummaryFilterBar
           value={filters}
           yearOptions={yearOptions}
@@ -216,19 +205,25 @@ export function TaxSummaryPeriodPage() {
         ) : null}
         <FeatureTaxSummaryPeriodTable
           rows={summaryRows}
+          pagination={{
+            page: resolvedPage,
+            pageSize: resolvedPerPage,
+            totalItems,
+            totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
+          }}
+          paginationInfo={`Showing ${summaryRows.length} of ${totalItems} results`}
+          onPageChange={setPage}
           onDetails={(row) => {
-            const backQuery = buildTaxSummaryQueryString({ filters, page, perPage });
+            const backQuery = buildTaxSummaryQueryString({
+              filters,
+              page,
+              perPage,
+            });
             const from = encodeURIComponent(backQuery);
             router.push(
               `${ACCOUNTING_TAX_ROUTES.ppnDetails}?period=${encodeURIComponent(row.period_code)}&from=${from}`,
             );
           }}
-        />
-        <FeatureTaxPaginationBar
-          page={resolvedPage}
-          perPage={resolvedPerPage}
-          totalItems={totalItems}
-          onPageChange={setPage}
         />
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCursorStack } from "@/hooks/use-cursor-stack";
 import { useAdminTenants } from "@/hooks/queries";
 import { VendorPageHeader } from "../VendorPageHeader";
 import { VendorTenantTable } from "../VendorTenantTable";
@@ -19,17 +20,15 @@ export function VendorClientsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
   const [businessType, setBusinessType] = useState("ALL");
-  const [cursorStack, setCursorStack] = useState<string[]>([]);
-
-  const currentCursor = cursorStack.at(-1);
+  const cursorPagination = useCursorStack<string>();
   const queryParams = useMemo(
     () => ({
       limit: 20,
       search: search.trim() || undefined,
       status: status === "ALL" ? undefined : status,
-      cursor: currentCursor,
+      cursor: cursorPagination.currentCursor,
     }),
-    [currentCursor, search, status]
+    [cursorPagination.currentCursor, search, status]
   );
 
   const tenantsQuery = useAdminTenants(queryParams);
@@ -39,8 +38,6 @@ export function VendorClientsPage() {
     return tenantItems.filter((item) => item.business_type === businessType);
   }, [businessType, tenantsQuery.data?.data?.items]);
   const nextCursor = tenantsQuery.data?.meta?.pagination?.next_cursor;
-  const canGoBack = cursorStack.length > 0;
-  const canGoNext = Boolean(nextCursor);
 
   return (
     <div className="space-y-6">
@@ -55,14 +52,14 @@ export function VendorClientsPage() {
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
-            setCursorStack([]);
+            cursorPagination.reset();
           }}
         />
         <Select
           value={status}
           onValueChange={(value) => {
             setStatus(value);
-            setCursorStack([]);
+            cursorPagination.reset();
           }}
         >
           <SelectTrigger>
@@ -102,14 +99,12 @@ export function VendorClientsPage() {
       <VendorTenantTable
         items={items}
         loading={tenantsQuery.isLoading}
-        canGoBack={canGoBack}
-        canGoNext={canGoNext}
-        onPrevious={() => {
-          setCursorStack((current) => current.slice(0, -1));
-        }}
+        canGoBack={cursorPagination.canGoBack}
+        canGoNext={Boolean(nextCursor)}
+        onPrevious={cursorPagination.goBack}
         onNext={() => {
           if (!nextCursor) return;
-          setCursorStack((current) => [...current, nextCursor]);
+          cursorPagination.goNext(nextCursor);
         }}
       />
     </div>

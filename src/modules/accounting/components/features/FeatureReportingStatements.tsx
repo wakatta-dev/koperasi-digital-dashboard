@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import type {
   AccountingReportingBalanceLine,
   AccountingReportingCashFlowRow,
@@ -19,6 +19,13 @@ import type {
 } from "@/types/api/accounting-reporting";
 
 import { FeatureReportingDateRangeControl } from "./FeatureReportingShared";
+
+type BalanceSheetTreeRow = {
+  id: string;
+  rowType: "section" | "item";
+  label: string;
+  value_display?: string;
+};
 
 export interface FeatureProfitLossToolbarProps {
   readonly preset: string;
@@ -73,11 +80,15 @@ export function FeatureProfitLossSummaryHeader({
           <CardTitle className="text-base text-gray-900 dark:text-white">
             Profit &amp; Loss Statement
           </CardTitle>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{periodLabel}</p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {periodLabel}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-500 dark:text-gray-400">Net Profit</p>
-          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{netProfit}</p>
+          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+            {netProfit}
+          </p>
         </div>
       </CardHeader>
     </Card>
@@ -88,53 +99,83 @@ export interface FeatureProfitLossDetailTableProps {
   readonly rows: ReadonlyArray<AccountingReportingProfitLossRow>;
 }
 
-export function FeatureProfitLossDetailTable({ rows }: FeatureProfitLossDetailTableProps) {
+export function FeatureProfitLossDetailTable({
+  rows,
+}: FeatureProfitLossDetailTableProps) {
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50/70 dark:bg-gray-800/30">
-            <TableHead>Account Name</TableHead>
-            <TableHead className="w-32">Code</TableHead>
-            <TableHead className="w-48 text-right">Total</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row, index) => {
-            const key = `${row.type}-${row.label}-${index}`;
-            if (row.type === "section") {
-              return (
-                <TableRow key={key} className="bg-gray-50/60 dark:bg-gray-800/30">
-                  <TableCell colSpan={3} className="font-semibold text-gray-800 dark:text-gray-200">
-                    {row.label}
-                  </TableCell>
-                </TableRow>
-              );
-            }
+    <div className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
+      <TableShell
+        columns={[
+          {
+            id: "label",
+            header: <>Account Name</>,
+            cell: ({ row }) => row.original.label,
+            meta: {
+              cellProps: ({ row }) =>
+                row.original.type === "section"
+                  ? {
+                      colSpan: 3,
+                      className:
+                        "font-semibold text-gray-800 dark:text-gray-200",
+                    }
+                  : {
+                      className:
+                        row.original.type === "row"
+                          ? "pl-10 text-gray-700 dark:text-gray-300"
+                          : "font-semibold",
+                    },
+            },
+          },
+          {
+            id: "code",
+            header: <>Code</>,
+            cell: ({ row }) => row.original.code_display ?? "-",
+            meta: {
+              headerClassName: "w-32",
+              cellProps: ({ row }) =>
+                row.original.type === "section"
+                  ? { hidden: true }
+                  : { className: "font-mono text-xs text-gray-500" },
+            },
+          },
+          {
+            id: "value",
+            header: <>Total</>,
+            cell: ({ row }) => row.original.value_display ?? "-",
+            meta: {
+              headerClassName: "w-48 text-right",
+              cellProps: ({ row }) => {
+                if (row.original.type === "section") {
+                  return { hidden: true };
+                }
 
-            const isRow = row.type === "row";
-            const totalClassName =
-              row.type === "net"
-                ? "text-emerald-600 dark:text-emerald-400 text-base font-bold"
-                : row.type === "gross"
-                  ? "text-emerald-600 dark:text-emerald-400 font-bold"
-                  : "text-gray-900 dark:text-white font-semibold";
+                const totalClassName =
+                  row.original.type === "net"
+                    ? "text-base font-bold text-emerald-600 dark:text-emerald-400"
+                    : row.original.type === "gross"
+                      ? "font-bold text-emerald-600 dark:text-emerald-400"
+                      : "font-semibold text-gray-900 dark:text-white";
 
-            return (
-              <TableRow key={key} className={row.type === "net" ? "bg-gray-50 dark:bg-slate-950/50" : ""}>
-                <TableCell className={isRow ? "pl-10 text-gray-700 dark:text-gray-300" : "font-semibold"}>
-                  {row.label}
-                </TableCell>
-                <TableCell className="font-mono text-xs text-gray-500">{row.code_display ?? "-"}</TableCell>
-                <TableCell className={`text-right ${totalClassName}`}>
-                  {row.value_display ?? "-"}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </Card>
+                return {
+                  className: `text-right ${totalClassName}`,
+                };
+              },
+            },
+          },
+        ]}
+        data={[...rows]}
+        getRowId={(row, index) => `${row.type}-${row.label}-${index}`}
+        headerRowClassName="bg-gray-50/70 dark:bg-gray-800/30"
+        rowHoverable={false}
+        rowClassName={(row) =>
+          row.type === "section"
+            ? "bg-gray-50/60 dark:bg-gray-800/30"
+            : row.type === "net"
+              ? "bg-gray-50 dark:bg-slate-950/50"
+              : undefined
+        }
+      />
+    </div>
   );
 }
 
@@ -220,49 +261,65 @@ export interface FeatureCashFlowTableProps {
 
 export function FeatureCashFlowTable({ rows }: FeatureCashFlowTableProps) {
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-            <TableHead>Description</TableHead>
-            <TableHead className="w-48 text-right">Amount</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row, idx) => {
-            const key = `${row.type}-${row.label}-${idx}`;
-            if (row.type === "section") {
-              return (
-                <TableRow key={key} className="bg-gray-50/70 dark:bg-gray-800/30">
-                  <TableCell colSpan={2} className="font-bold text-gray-900 dark:text-white">
-                    {row.label}
-                  </TableCell>
-                </TableRow>
-              );
-            }
+    <div className="overflow-hidden dark:bg-slate-900 p-0">
+      <TableShell
+        columns={[
+          {
+            id: "label",
+            header: <>Description</>,
+            cell: ({ row }) => row.original.label,
+            meta: {
+              cellProps: ({ row }) =>
+                row.original.type === "section"
+                  ? {
+                      colSpan: 2,
+                      className: "font-bold text-gray-900 dark:text-white",
+                    }
+                  : {
+                      className: resolveCashFlowIndentClassName(
+                        row.original.indent,
+                      ),
+                    },
+            },
+          },
+          {
+            id: "value",
+            header: <>Amount</>,
+            cell: ({ row }) => row.original.value_display ?? "-",
+            meta: {
+              headerClassName: "w-48 text-right",
+              cellProps: ({ row }) =>
+                row.original.type === "section"
+                  ? { hidden: true }
+                  : { className: "text-right font-medium" },
+            },
+          },
+        ]}
+        data={[...rows]}
+        getRowId={(row, index) => `${row.type}-${row.label}-${index}`}
+        headerRowClassName="bg-gray-50 dark:bg-gray-800/50"
+        rowHoverable={false}
+        rowClassName={(row) => {
+          if (row.type === "section") {
+            return "bg-gray-50/70 dark:bg-gray-800/30";
+          }
 
-            const totalLike = ["total", "netPrimary", "summaryGray", "plainBold", "finalPrimary"].includes(
-              row.type,
-            );
-            const rowClassName =
-              row.type === "finalPrimary"
-                ? "bg-indigo-600 text-white"
-                : totalLike
-                  ? "bg-indigo-50/30 dark:bg-indigo-900/10"
-                  : "";
+          if (row.type === "finalPrimary") {
+            return "bg-indigo-600 text-white";
+          }
 
-            return (
-              <TableRow key={key} className={rowClassName}>
-                <TableCell className={resolveCashFlowIndentClassName(row.indent)}>
-                  {row.label}
-                </TableCell>
-                <TableCell className="text-right font-medium">{row.value_display ?? "-"}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </Card>
+          return [
+            "total",
+            "netPrimary",
+            "summaryGray",
+            "plainBold",
+            "finalPrimary",
+          ].includes(row.type)
+            ? "bg-indigo-50/30 dark:bg-indigo-900/10"
+            : undefined;
+        }}
+      />
+    </div>
   );
 }
 
@@ -313,52 +370,75 @@ export function FeatureBalanceSheetTreeTable({
   liabilities,
   equity,
 }: FeatureBalanceSheetTreeTableProps) {
+  const tableRows: BalanceSheetTreeRow[] = [
+    { id: "section-assets", rowType: "section", label: "Assets" },
+    ...assets.map((item, index) => ({
+      id: `asset-${item.label}-${index}`,
+      rowType: "item" as const,
+      label: item.label,
+      value_display: item.value_display,
+    })),
+    { id: "section-liabilities", rowType: "section", label: "Liabilities" },
+    ...liabilities.map((item, index) => ({
+      id: `liability-${item.label}-${index}`,
+      rowType: "item" as const,
+      label: item.label,
+      value_display: item.value_display,
+    })),
+    { id: "section-equity", rowType: "section", label: "Equity" },
+    ...equity.map((item, index) => ({
+      id: `equity-${item.label}-${index}`,
+      rowType: "item" as const,
+      label: item.label,
+      value_display: item.value_display,
+    })),
+  ];
+
   return (
-    <Card className="overflow-hidden border-gray-200 dark:border-gray-700 dark:bg-slate-900">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-            <TableHead>Account</TableHead>
-            <TableHead className="text-right">Balance</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow className="bg-gray-50/70 dark:bg-gray-800/30">
-            <TableCell colSpan={2} className="text-lg font-bold text-gray-900 dark:text-white">
-              Assets
-            </TableCell>
-          </TableRow>
-          {assets.map((item) => (
-            <TableRow key={`asset-${item.label}`}>
-              <TableCell className="pl-10 text-gray-700 dark:text-gray-300">{item.label}</TableCell>
-              <TableCell className="text-right font-medium">{item.value_display}</TableCell>
-            </TableRow>
-          ))}
-          <TableRow className="bg-gray-50/70 dark:bg-gray-800/30">
-            <TableCell colSpan={2} className="text-lg font-bold text-gray-900 dark:text-white">
-              Liabilities
-            </TableCell>
-          </TableRow>
-          {liabilities.map((item) => (
-            <TableRow key={`liability-${item.label}`}>
-              <TableCell className="pl-10 text-gray-700 dark:text-gray-300">{item.label}</TableCell>
-              <TableCell className="text-right font-medium">{item.value_display}</TableCell>
-            </TableRow>
-          ))}
-          <TableRow className="bg-gray-50/70 dark:bg-gray-800/30">
-            <TableCell colSpan={2} className="text-lg font-bold text-gray-900 dark:text-white">
-              Equity
-            </TableCell>
-          </TableRow>
-          {equity.map((item) => (
-            <TableRow key={`equity-${item.label}`}>
-              <TableCell className="pl-10 text-gray-700 dark:text-gray-300">{item.label}</TableCell>
-              <TableCell className="text-right font-medium">{item.value_display}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
+    <div className="overflow-hidden dark:bg-slate-900">
+      <TableShell
+        columns={[
+          {
+            id: "label",
+            header: <>Account</>,
+            cell: ({ row }) => row.original.label,
+            meta: {
+              cellProps: ({ row }) =>
+                row.original.rowType === "section"
+                  ? {
+                      colSpan: 2,
+                      className:
+                        "text-lg font-bold text-gray-900 dark:text-white",
+                    }
+                  : {
+                      className: "pl-10 text-gray-700 dark:text-gray-300",
+                    },
+            },
+          },
+          {
+            id: "value_display",
+            header: <>Balance</>,
+            cell: ({ row }) => row.original.value_display ?? "-",
+            meta: {
+              headerClassName: "text-right",
+              cellProps: ({ row }) =>
+                row.original.rowType === "section"
+                  ? { hidden: true }
+                  : { className: "text-right font-medium" },
+            },
+          },
+        ]}
+        data={tableRows}
+        getRowId={(row) => row.id}
+        headerRowClassName="bg-gray-50 dark:bg-gray-800/50"
+        rowHoverable={false}
+        rowClassName={(row) =>
+          row.rowType === "section"
+            ? "bg-gray-50/70 dark:bg-gray-800/30"
+            : undefined
+        }
+      />
+    </div>
   );
 }
 
@@ -373,8 +453,12 @@ export function FeatureBalanceSheetTotalFooter({
 }: FeatureBalanceSheetTotalFooterProps) {
   return (
     <div className="flex items-center justify-between rounded-lg border border-indigo-100 bg-indigo-50 px-6 py-4 dark:border-indigo-800 dark:bg-indigo-900/20">
-      <span className="text-base font-bold text-indigo-600 dark:text-indigo-300">{label}</span>
-      <span className="text-base font-bold text-indigo-600 dark:text-indigo-300">{value}</span>
+      <span className="text-base font-bold text-indigo-600 dark:text-indigo-300">
+        {label}
+      </span>
+      <span className="text-base font-bold text-indigo-600 dark:text-indigo-300">
+        {value}
+      </span>
     </div>
   );
 }

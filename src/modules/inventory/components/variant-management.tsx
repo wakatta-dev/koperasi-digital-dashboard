@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,15 +60,19 @@ const DEFAULT_OPTION_FORM: OptionFormState = {
 export function VariantManagement({ productId }: Props) {
   const { data, isLoading, isError, error } = useInventoryVariants(productId);
   const actions = useInventoryVariantActions();
-  const [groupForm, setGroupForm] = useState<GroupFormState>(DEFAULT_GROUP_FORM);
+  const [groupForm, setGroupForm] =
+    useState<GroupFormState>(DEFAULT_GROUP_FORM);
   const [editGroupId, setEditGroupId] = useState<number | null>(null);
-  const [editGroupForm, setEditGroupForm] = useState<GroupFormState>(DEFAULT_GROUP_FORM);
+  const [editGroupForm, setEditGroupForm] =
+    useState<GroupFormState>(DEFAULT_GROUP_FORM);
   const [groupFiles, setGroupFiles] = useState<Record<number, File | null>>({});
   const [groupError, setGroupError] = useState<string | null>(null);
 
-  const [optionForm, setOptionForm] = useState<OptionFormState>(DEFAULT_OPTION_FORM);
+  const [optionForm, setOptionForm] =
+    useState<OptionFormState>(DEFAULT_OPTION_FORM);
   const [editOptionId, setEditOptionId] = useState<number | null>(null);
-  const [editOptionForm, setEditOptionForm] = useState<OptionFormState>(DEFAULT_OPTION_FORM);
+  const [editOptionForm, setEditOptionForm] =
+    useState<OptionFormState>(DEFAULT_OPTION_FORM);
   const [optionError, setOptionError] = useState<string | null>(null);
 
   const groups = data?.variant_groups ?? EMPTY_GROUPS;
@@ -97,9 +102,11 @@ export function VariantManagement({ productId }: Props) {
       throw new Error("Attributes harus berbentuk objek JSON.");
     }
     const output: Record<string, string> = {};
-    Object.entries(parsed as Record<string, unknown>).forEach(([key, value]) => {
-      output[key] = String(value ?? "");
-    });
+    Object.entries(parsed as Record<string, unknown>).forEach(
+      ([key, value]) => {
+        output[key] = String(value ?? "");
+      },
+    );
     return output;
   };
 
@@ -152,7 +159,9 @@ export function VariantManagement({ productId }: Props) {
       });
       setEditGroupId(null);
     } catch (err) {
-      setGroupError((err as Error)?.message || "Gagal memperbarui grup varian.");
+      setGroupError(
+        (err as Error)?.message || "Gagal memperbarui grup varian.",
+      );
     }
   };
 
@@ -173,7 +182,9 @@ export function VariantManagement({ productId }: Props) {
     try {
       await actions.archiveGroup.mutateAsync({ productId, groupId });
     } catch (err) {
-      setGroupError((err as Error)?.message || "Gagal mengarsipkan grup varian.");
+      setGroupError(
+        (err as Error)?.message || "Gagal mengarsipkan grup varian.",
+      );
     }
   };
 
@@ -221,7 +232,9 @@ export function VariantManagement({ productId }: Props) {
     setEditOptionForm({
       groupId: String(option.variant_group_id),
       sku: option.sku,
-      attributes: option.attributes ? JSON.stringify(option.attributes, null, 2) : "",
+      attributes: option.attributes
+        ? JSON.stringify(option.attributes, null, 2)
+        : "",
       priceOverride:
         option.price_override !== null && option.price_override !== undefined
           ? String(option.price_override)
@@ -262,7 +275,9 @@ export function VariantManagement({ productId }: Props) {
       });
       setEditOptionId(null);
     } catch (err) {
-      setOptionError((err as Error)?.message || "Gagal memperbarui opsi varian.");
+      setOptionError(
+        (err as Error)?.message || "Gagal memperbarui opsi varian.",
+      );
     }
   };
 
@@ -271,7 +286,9 @@ export function VariantManagement({ productId }: Props) {
     try {
       await actions.archiveOption.mutateAsync({ productId, optionId });
     } catch (err) {
-      setOptionError((err as Error)?.message || "Gagal mengarsipkan opsi varian.");
+      setOptionError(
+        (err as Error)?.message || "Gagal mengarsipkan opsi varian.",
+      );
     }
   };
 
@@ -340,7 +357,10 @@ export function VariantManagement({ productId }: Props) {
                 }))
               }
             />
-            <Button onClick={handleCreateGroup} disabled={actions.createGroup.isPending}>
+            <Button
+              onClick={handleCreateGroup}
+              disabled={actions.createGroup.isPending}
+            >
               Tambah Grup
             </Button>
           </div>
@@ -351,7 +371,8 @@ export function VariantManagement({ productId }: Props) {
 
           {groups.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Belum ada grup varian. Tambahkan grup untuk mulai membuat opsi SKU.
+              Belum ada grup varian. Tambahkan grup untuk mulai membuat opsi
+              SKU.
             </p>
           ) : (
             <div className="space-y-3">
@@ -382,7 +403,13 @@ export function VariantManagement({ productId }: Props) {
                           <p className="text-sm font-semibold text-foreground">
                             {group.name}
                           </p>
-                          <Badge variant={group.status === "ACTIVE" ? "default" : "secondary"}>
+                          <Badge
+                            variant={
+                              group.status === "ACTIVE"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
                             {group.status}
                           </Badge>
                         </div>
@@ -397,24 +424,36 @@ export function VariantManagement({ productId }: Props) {
                         type="file"
                         accept="image/png,image/jpeg,image/webp"
                         onChange={(event) =>
-                          handleGroupFileChange(group.id, event.target.files?.[0] ?? null)
+                          handleGroupFileChange(
+                            group.id,
+                            event.target.files?.[0] ?? null,
+                          )
                         }
                         className="w-56"
                       />
                       <Button
                         variant="outline"
                         onClick={() => handleUploadGroupImage(group.id)}
-                        disabled={!groupFiles[group.id] || actions.uploadGroupImage.isPending}
+                        disabled={
+                          !groupFiles[group.id] ||
+                          actions.uploadGroupImage.isPending
+                        }
                       >
                         Upload Foto
                       </Button>
-                      <Button variant="outline" onClick={() => handleEditGroup(group)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleEditGroup(group)}
+                      >
                         Edit
                       </Button>
                       <Button
                         variant="destructive"
                         onClick={() => handleArchiveGroup(group.id)}
-                        disabled={group.status !== "ACTIVE" || actions.archiveGroup.isPending}
+                        disabled={
+                          group.status !== "ACTIVE" ||
+                          actions.archiveGroup.isPending
+                        }
                       >
                         Arsipkan
                       </Button>
@@ -431,7 +470,11 @@ export function VariantManagement({ productId }: Props) {
                 <h4 className="text-sm font-semibold text-foreground">
                   Edit Grup Varian
                 </h4>
-                <Button variant="ghost" size="sm" onClick={() => setEditGroupId(null)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditGroupId(null)}
+                >
                   Tutup
                 </Button>
               </div>
@@ -469,7 +512,10 @@ export function VariantManagement({ productId }: Props) {
                 />
               </div>
               <div className="mt-4 flex items-center gap-3">
-                <Button onClick={handleUpdateGroup} disabled={actions.updateGroup.isPending}>
+                <Button
+                  onClick={handleUpdateGroup}
+                  disabled={actions.updateGroup.isPending}
+                >
                   Simpan Perubahan
                 </Button>
                 <Button variant="outline" onClick={() => setEditGroupId(null)}>
@@ -499,7 +545,10 @@ export function VariantManagement({ productId }: Props) {
             <select
               value={optionForm.groupId}
               onChange={(event) =>
-                setOptionForm((prev) => ({ ...prev, groupId: event.target.value }))
+                setOptionForm((prev) => ({
+                  ...prev,
+                  groupId: event.target.value,
+                }))
               }
               className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
             >
@@ -527,7 +576,10 @@ export function VariantManagement({ productId }: Props) {
               type="number"
               value={optionForm.stock}
               onChange={(event) =>
-                setOptionForm((prev) => ({ ...prev, stock: event.target.value }))
+                setOptionForm((prev) => ({
+                  ...prev,
+                  stock: event.target.value,
+                }))
               }
             />
           </div>
@@ -555,7 +607,10 @@ export function VariantManagement({ productId }: Props) {
                 Lacak stok untuk opsi ini
               </span>
             </div>
-            <Button onClick={handleCreateOption} disabled={actions.createOption.isPending}>
+            <Button
+              onClick={handleCreateOption}
+              disabled={actions.createOption.isPending}
+            >
               Tambah Opsi
             </Button>
             {optionError ? (
@@ -569,87 +624,131 @@ export function VariantManagement({ productId }: Props) {
             </p>
           ) : (
             <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="min-w-full divide-y divide-border text-sm">
-                <thead className="bg-muted/40">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      SKU
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Grup
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Attributes
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                      Harga Override
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                      Stok
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {groupedOptions.map((option) => (
-                    <tr key={option.id}>
-                      <td className="px-4 py-3 font-medium text-foreground">
-                        {option.sku}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {option.groupName}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {option.attributes
-                          ? Object.entries(option.attributes)
-                              .map(([key, value]) => `${key}: ${value}`)
-                              .join(", ")
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">
-                        {option.price_override !== null &&
-                        option.price_override !== undefined
-                          ? formatCurrency(option.price_override)
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">
-                        {option.track_stock ? option.stock : "Tidak dilacak"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge
-                          variant={option.status === "ACTIVE" ? "default" : "secondary"}
+              <TableShell
+                tableClassName="min-w-full divide-y divide-border text-sm"
+                columns={[
+                  {
+                    id: "sku",
+                    header: <>SKU</>,
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-left font-medium text-muted-foreground whitespace-normal",
+                      cellClassName:
+                        "px-4 py-3 font-medium text-foreground whitespace-normal",
+                    },
+                  },
+                  {
+                    id: "groupName",
+                    header: <>Grup</>,
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-left font-medium text-muted-foreground whitespace-normal",
+                      cellClassName:
+                        "px-4 py-3 text-muted-foreground whitespace-normal",
+                    },
+                  },
+                  {
+                    id: "attributes",
+                    header: <>Attributes</>,
+                    cell: ({ row }) =>
+                      row.original.attributes
+                        ? Object.entries(row.original.attributes)
+                            .map(([key, value]) => `${key}: ${value}`)
+                            .join(", ")
+                        : "-",
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-left font-medium text-muted-foreground whitespace-normal",
+                      cellClassName:
+                        "px-4 py-3 text-muted-foreground whitespace-normal",
+                    },
+                  },
+                  {
+                    id: "price_override",
+                    header: <>Harga Override</>,
+                    cell: ({ row }) =>
+                      row.original.price_override !== null &&
+                      row.original.price_override !== undefined
+                        ? formatCurrency(row.original.price_override)
+                        : "-",
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-right font-medium text-muted-foreground whitespace-normal",
+                      cellClassName:
+                        "px-4 py-3 text-right text-muted-foreground whitespace-normal",
+                    },
+                  },
+                  {
+                    id: "stock",
+                    header: <>Stok</>,
+                    cell: ({ row }) =>
+                      row.original.track_stock
+                        ? row.original.stock
+                        : "Tidak dilacak",
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-right font-medium text-muted-foreground whitespace-normal",
+                      cellClassName:
+                        "px-4 py-3 text-right text-muted-foreground whitespace-normal",
+                    },
+                  },
+                  {
+                    id: "status",
+                    header: <>Status</>,
+                    cell: ({ row }) => (
+                      <Badge
+                        variant={
+                          row.original.status === "ACTIVE"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {row.original.status}
+                      </Badge>
+                    ),
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-left font-medium text-muted-foreground whitespace-normal",
+                      cellClassName: "px-4 py-3 whitespace-normal",
+                    },
+                  },
+                  {
+                    id: "actions",
+                    header: <>Aksi</>,
+                    cell: ({ row }) => (
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditOption(row.original)}
                         >
-                          {option.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditOption(option)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleArchiveOption(option.id)}
-                            disabled={option.status !== "ACTIVE" || actions.archiveOption.isPending}
-                          >
-                            Arsipkan
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleArchiveOption(row.original.id)}
+                          disabled={
+                            row.original.status !== "ACTIVE" ||
+                            actions.archiveOption.isPending
+                          }
+                        >
+                          Arsipkan
+                        </Button>
+                      </div>
+                    ),
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-right font-medium text-muted-foreground whitespace-normal",
+                      cellClassName: "px-4 py-3 text-right whitespace-normal",
+                    },
+                  },
+                ]}
+                data={groupedOptions}
+                getRowId={(row) => String(row.id)}
+                headerClassName="bg-muted/40"
+                bodyClassName="divide-y divide-border"
+              />
             </div>
           )}
 
@@ -659,7 +758,11 @@ export function VariantManagement({ productId }: Props) {
                 <h4 className="text-sm font-semibold text-foreground">
                   Edit Opsi Varian
                 </h4>
-                <Button variant="ghost" size="sm" onClick={() => setEditOptionId(null)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditOptionId(null)}
+                >
                   Tutup
                 </Button>
               </div>
@@ -733,7 +836,10 @@ export function VariantManagement({ productId }: Props) {
                     <Switch
                       checked={editOptionForm.trackStock}
                       onCheckedChange={(checked) =>
-                        setEditOptionForm((prev) => ({ ...prev, trackStock: checked }))
+                        setEditOptionForm((prev) => ({
+                          ...prev,
+                          trackStock: checked,
+                        }))
                       }
                     />
                     <span className="text-sm text-muted-foreground">
@@ -743,7 +849,10 @@ export function VariantManagement({ productId }: Props) {
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-3">
-                <Button onClick={handleUpdateOption} disabled={actions.updateOption.isPending}>
+                <Button
+                  onClick={handleUpdateOption}
+                  disabled={actions.updateOption.isPending}
+                >
                   Simpan Perubahan
                 </Button>
                 <Button variant="outline" onClick={() => setEditOptionId(null)}>

@@ -3,18 +3,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Filter, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/shared/inputs/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import type { UnreconciledTransactionItem } from "../../types/bank-cash";
 
@@ -36,14 +30,85 @@ export function FeatureUnreconciledTransactionsTable({
     return rows.filter((row) =>
       `${row.description} ${row.source} ${row.amount}`
         .toLowerCase()
-        .includes(normalized)
+        .includes(normalized),
     );
   }, [rows, searchTerm]);
+
+  const columns: ColumnDef<UnreconciledTransactionItem, unknown>[] = [
+    {
+      id: "date",
+      header: "Date",
+      meta: {
+        headerClassName: "px-6 py-4",
+        cellClassName:
+          "px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300",
+      },
+      cell: ({ row }) => row.original.date,
+    },
+    {
+      id: "description",
+      header: "Description",
+      meta: {
+        headerClassName: "px-6 py-4",
+        cellClassName: "px-6 py-4 font-medium text-gray-900 dark:text-white",
+      },
+      cell: ({ row }) => row.original.description,
+    },
+    {
+      id: "source",
+      header: "Source",
+      meta: {
+        headerClassName: "px-6 py-4",
+        cellClassName: "px-6 py-4 text-gray-500",
+      },
+      cell: ({ row }) => row.original.source,
+    },
+    {
+      id: "amount",
+      header: "Amount",
+      meta: {
+        align: "right",
+        headerClassName: "px-6 py-4 text-right",
+      },
+      cell: ({ row }) => (
+        <div
+          className={`px-6 py-4 text-right font-semibold ${
+            row.original.direction === "Credit"
+              ? "text-emerald-600 dark:text-emerald-400"
+              : "text-red-600 dark:text-red-400"
+          }`}
+        >
+          {row.original.amount}
+        </div>
+      ),
+    },
+    {
+      id: "action",
+      header: "Action",
+      meta: {
+        align: "right",
+        headerClassName: "px-6 py-4 text-right",
+        cellClassName: "px-6 py-4 text-right",
+      },
+      cell: () => (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+        >
+          Match
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
       <div className="flex flex-col gap-3 border-b border-gray-200 p-4 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Unreconciled Transactions</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+          Unreconciled Transactions
+        </h3>
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <div className="relative flex-1 sm:w-72">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -62,62 +127,22 @@ export function FeatureUnreconciledTransactionsTable({
             className="border-gray-200 text-gray-500 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
           >
             <Filter className="h-4 w-4" />
-            <span className="sr-only">Open unreconciled transaction filters</span>
+            <span className="sr-only">
+              Open unreconciled transaction filters
+            </span>
           </Button>
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50 text-[10px] font-bold tracking-widest text-gray-500 uppercase dark:bg-gray-800/50">
-              <TableHead className="px-6 py-4">Date</TableHead>
-              <TableHead className="px-6 py-4">Description</TableHead>
-              <TableHead className="px-6 py-4">Source</TableHead>
-              <TableHead className="px-6 py-4 text-right">Amount</TableHead>
-              <TableHead className="px-6 py-4 text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="divide-y divide-gray-100 text-sm dark:divide-gray-700">
-            {filteredRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">
-                  Tidak ada transaksi unreconciled.
-                </TableCell>
-              </TableRow>
-            ) : null}
-            {filteredRows.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300">
-                  {row.date}
-                </TableCell>
-                <TableCell className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                  {row.description}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-gray-500">{row.source}</TableCell>
-                <TableCell
-                  className={`px-6 py-4 text-right font-semibold ${
-                    row.direction === "Credit"
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-red-600 dark:text-red-400"
-                  }`}
-                >
-                  {row.amount}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-right">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
-                  >
-                    Match
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TableShell
+          className="m-4"
+          columns={columns}
+          data={filteredRows}
+          getRowId={(row) => row.id}
+          emptyState="Tidak ada transaksi unreconciled."
+          headerRowClassName="bg-gray-50 text-[10px] font-bold tracking-widest text-gray-500 uppercase dark:bg-gray-800/50"
+        />
       </div>
 
       <div className="flex items-center justify-end border-t border-gray-100 px-6 py-4 dark:border-gray-700">

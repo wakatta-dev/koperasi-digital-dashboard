@@ -55,6 +55,8 @@ export const API_ENDPOINTS = {
     configGlobal: "/support/config/global",
     configTenant: "/support/config/tenant",
     configReadiness: "/support/config/readiness",
+    configDiagnostics: "/support/config/diagnostics",
+    configPolicies: "/support/config/policies",
     configProfile: "/support/config/profile",
     configProfileIdentity: "/support/config/profile/identity",
     configProfileContactDomain: "/support/config/profile/contact-domain",
@@ -252,6 +254,16 @@ export const API_ENDPOINTS = {
     products: "/marketplace/products",
     product: (id: string | number) => `/marketplace/products/${id}`,
     productVariants: (id: string | number) => `/marketplace/products/${id}/variants`,
+    listingDiagnostics: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/diagnostics`,
+    listingSubmission: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/submission`,
+    listingSubmissionReview: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/submission/review`,
+    listingChannels: (listingId: string | number) =>
+      `/marketplace/listings/${listingId}/channels`,
+    listingChannel: (listingId: string | number, channel: string) =>
+      `/marketplace/listings/${listingId}/channels/${encodeURIComponent(channel)}`,
     cart: "/marketplace/cart",
     cartItem: "/marketplace/cart/items",
     cartItemById: (id: string | number) => `/marketplace/cart/items/${id}`,

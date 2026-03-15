@@ -30,6 +30,8 @@ const exemptPatterns = [
   /^navigation\/stepper\.tsx$/,
   /^data-display\/CheckoutSummaryBase\.tsx$/,
   /^data-display\/KpiCardBase\.tsx$/,
+  /^data-display\/TableShell\.tsx$/,
+  /^data-display\/TableViewport\.tsx$/,
   /^data-display\/PaginatedTableShell\.tsx$/,
   /^data-display\/SummaryMetricsGrid\.tsx$/,
   /^data-display\/TablePaginationFooter\.tsx$/,

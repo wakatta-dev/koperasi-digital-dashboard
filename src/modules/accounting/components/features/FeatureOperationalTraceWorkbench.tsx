@@ -3,21 +3,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowUpRight, ListTodo, Workflow } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useAccountingJournalPostingPolicies,
@@ -87,6 +88,9 @@ const EXCEPTION_SEVERITY_BADGE: Record<string, string> = {
 const EXCEPTION_STATUS_BADGE: Record<string, string> = {
   none: "bg-slate-100 text-slate-700 border border-slate-200",
   active: "bg-amber-50 text-amber-700 border border-amber-200",
+  approved: "bg-indigo-50 text-indigo-700 border border-indigo-200",
+  rejected: "bg-slate-100 text-slate-700 border border-slate-200",
+  closed: "bg-slate-100 text-slate-700 border border-slate-200",
   resolved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   escalated: "bg-rose-50 text-rose-700 border border-rose-200",
 };
@@ -94,6 +98,9 @@ const EXCEPTION_STATUS_BADGE: Record<string, string> = {
 const EXCEPTION_STATUS_LABEL: Record<string, string> = {
   none: "Belum Ada Catatan",
   active: "Aktif",
+  approved: "Disetujui",
+  rejected: "Ditolak",
+  closed: "Ditutup",
   resolved: "Terselesaikan",
   escalated: "Tereskalasi",
 };
@@ -113,9 +120,62 @@ function toSentenceCase(value?: string | null) {
   return normalized.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function DetailField({
+  label,
+  value,
+  className = "",
+}: {
+  label: string;
+  value: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {label}
+      </p>
+      <div className="mt-2 text-sm text-slate-900 dark:text-slate-100">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function WorkspaceSection({
+  title,
+  description,
+  children,
+  className = "",
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 ${className}`}
+    >
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+          {title}
+        </p>
+        {description ? (
+          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {description}
+          </p>
+        ) : null}
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
 export function FeatureOperationalTraceWorkbench() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "attention" | "matched">("all");
+  const [isTraceDialogOpen, setIsTraceDialogOpen] = useState(false);
+  const [isQueueDialogOpen, setIsQueueDialogOpen] = useState(false);
   const [queueScope, setQueueScope] = useState<
     "all" | "operasional" | "pembayaran" | "accounting"
   >("all");
@@ -166,6 +226,16 @@ export function FeatureOperationalTraceWorkbench() {
         owner: queueOwnerFilter,
       }),
     [queueCode, queueDomain, queueOwnerFilter, queueScope, rows],
+  );
+  const queueCounts = useMemo(
+    () => ({
+      all: filterFollowUpQueueRows(rows, { scope: "all" }).length,
+      pembayaran: filterFollowUpQueueRows(rows, { scope: "pembayaran" }).length,
+      accounting: filterFollowUpQueueRows(rows, { scope: "accounting" }).length,
+      operasional: filterFollowUpQueueRows(rows, { scope: "operasional" })
+        .length,
+    }),
+    [rows],
   );
 
   useEffect(() => {
@@ -338,11 +408,24 @@ export function FeatureOperationalTraceWorkbench() {
     [exceptionContextQuery.data, selectedRow, sourceTraceQuery.data],
   );
 
+  const openTraceDialog = (
+    rowKey?: string | null,
+    nextFilter?: "all" | "attention" | "matched",
+  ) => {
+    if (rowKey) {
+      setSelectedKey(rowKey);
+    }
+    if (nextFilter) {
+      setFilter(nextFilter);
+    }
+    setIsTraceDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <CardTitle className="text-base">
                 Operational Subledger Trace
@@ -352,12 +435,29 @@ export function FeatureOperationalTraceWorkbench() {
                 pembayaran, dan readiness accounting.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-              <span>Total {summary.total}</span>
-              <span>Siap {summary.ready}</span>
-              <span>Perlu tindak lanjut {summary.needsAttention}</span>
-              <span>Sesuai {summary.matched}</span>
-              <span>Layak lapor {summary.reportingReady}</span>
+            <div className="flex flex-col items-start gap-3 sm:items-end">
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                <span>Total {summary.total}</span>
+                <span>Siap {summary.ready}</span>
+                <span>Perlu tindak lanjut {summary.needsAttention}</span>
+                <span>Sesuai {summary.matched}</span>
+                <span>Layak lapor {summary.reportingReady}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openTraceDialog(selectedRow?.key)}
+                  disabled={!selectedRow}
+                >
+                  <Workflow className="h-4 w-4" />
+                  Trace Detail
+                </Button>
+                <Button size="sm" onClick={() => setIsQueueDialogOpen(true)}>
+                  <ListTodo className="h-4 w-4" />
+                  Follow-up Queue ({queueCounts.all})
+                </Button>
+              </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -384,810 +484,147 @@ export function FeatureOperationalTraceWorkbench() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Domain</TableHead>
-                <TableHead>Referensi</TableHead>
-                <TableHead>Status Operasional</TableHead>
-                <TableHead>Status Pembayaran</TableHead>
-                <TableHead>Status Accounting</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {!visibleRows.length ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center text-sm text-muted-foreground"
-                  >
-                    Belum ada transaksi operasional yang dapat ditelusuri.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {visibleRows.map((row) => (
-                <TableRow
-                  key={row.key}
-                  data-selected={row.key === selectedRow?.key || undefined}
-                >
-                  <TableCell>
-                    {row.domain === "marketplace" ? "Marketplace" : "Rental"}
-                  </TableCell>
-                  <TableCell className="font-medium">{row.reference}</TableCell>
-                  <TableCell>{row.operationalStatus}</TableCell>
-                  <TableCell>{row.paymentStatus}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-2">
-                      <Badge
-                        className={
-                          ACCOUNTING_STATUS_BADGE[row.accountingStatus] ||
-                          ACCOUNTING_STATUS_BADGE["Belum Siap"]
-                        }
-                      >
-                        {row.accountingStatus}
-                      </Badge>
-                      <Badge
-                        className={
-                          RECONCILIATION_BADGE[row.reconciliationStatus]
-                        }
-                      >
-                        {row.reconciliationStatus}
-                      </Badge>
-                      <Badge className={REPORTING_BADGE[row.reportingStatus]}>
-                        {row.reportingStatus}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedKey(row.key)}
-                    >
-                      Lihat Trace
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Trace Detail</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!selectedRow ? (
-            <p className="text-sm text-muted-foreground">
-              Pilih transaksi untuk melihat hubungan operasional, pembayaran,
-              dan accounting.
-            </p>
-          ) : (
-            <>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Transaksi
-                </p>
-                <p className="mt-1 font-semibold">{selectedRow.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedRow.reference}
-                </p>
-              </div>
-              <div className="space-y-2 text-sm">
-                <p>
-                  Status operasional:{" "}
-                  <span className="font-medium">
-                    {selectedRow.operationalStatus}
-                  </span>
-                </p>
-                <p>
-                  Status pembayaran:{" "}
-                  <span className="font-medium">
-                    {selectedRow.paymentStatus}
-                  </span>
-                </p>
-                <p>
-                  Status accounting:{" "}
-                  <span className="font-medium">
-                    {selectedRow.accountingStatus}
-                  </span>
-                </p>
-                <p>
-                  Status rekonsiliasi:{" "}
-                  <span className="font-medium">
-                    {selectedRow.reconciliationStatus}
-                  </span>
-                </p>
-                <p>
-                  Kelayakan pelaporan:{" "}
-                  <span className="font-medium">
-                    {selectedRow.reportingStatus}
-                  </span>
-                </p>
-                <p>
-                  Alasan/indikator:{" "}
-                  <span className="font-medium">
-                    {selectedRow.accountingReason}
-                  </span>
-                </p>
-                <p>
-                  Catatan pelaporan:{" "}
-                  <span className="font-medium">
-                    {selectedRow.reportingReason}
-                  </span>
-                </p>
-              </div>
-              {proofUrl ? (
-                <Button asChild variant="outline" size="sm">
-                  <a href={proofUrl} target="_blank" rel="noopener noreferrer">
-                    Lihat Bukti Pembayaran
-                  </a>
-                </Button>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Bukti pembayaran belum tersedia di transaksi terpilih.
-                </p>
-              )}
-              <Button asChild variant="ghost" className="px-0">
-                <Link href={selectedRow.detailHref}>Buka detail transaksi</Link>
-              </Button>
-              <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Jejak Status
-                </p>
-                <div className="mt-3 space-y-3">
-                  {historyItems.length > 0 ? (
-                    historyItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-lg border border-slate-200 bg-white p-3"
-                      >
-                        <p className="text-sm font-semibold text-slate-900">
-                          {item.title}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {item.description}
-                        </p>
-                        <p className="mt-2 text-xs text-slate-500">
-                          {item.time}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-500">
-                      Belum ada riwayat status untuk transaksi yang dipilih.
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
-                <div className="rounded-lg border border-slate-200 bg-white p-3">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Financial Maturity Workspace
-                      </p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        Settlement, refund, deposit, resolution, exception, dan
-                        trace reference dirangkum pada konteks transaksi yang
-                        sama.
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge
-                        className={
-                          MATURITY_TONE_BADGE[
-                            maturityWorkspace?.stageTone ?? "muted"
-                          ] || MATURITY_TONE_BADGE.muted
-                        }
-                      >
-                        Maturity:{" "}
-                        {maturityWorkspace?.stageLabel ?? "Menunggu Trace"}
-                      </Badge>
-                      <Badge
-                        className={
-                          READINESS_STATUS_BADGE[
-                            sourceTraceQuery.data?.readiness_status ||
-                              "not_ready"
-                          ] || READINESS_STATUS_BADGE.not_ready
-                        }
-                      >
-                        Readiness:{" "}
-                        {toSentenceCase(
-                          sourceTraceQuery.data?.readiness_status,
-                        )}
-                      </Badge>
-                      <Badge
-                        className={
-                          TRACE_STATUS_BADGE[
-                            sourceTraceQuery.data?.trace_status || "blocked"
-                          ] || TRACE_STATUS_BADGE.blocked
-                        }
-                      >
-                        Trace:{" "}
-                        {toSentenceCase(sourceTraceQuery.data?.trace_status)}
-                      </Badge>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm text-slate-700">
-                    {maturityWorkspace?.summary ??
-                      "Workspace maturity akan terisi saat trace transaksi tersedia."}
-                  </p>
-
-                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <div>
-                      <p className="text-xs text-slate-500">Policy Code</p>
-                      <p className="text-sm font-medium text-slate-900">
-                        {appliedPolicy?.policy_code ??
-                          sourceTraceQuery.data?.policy_code ??
-                          "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">Policy Name</p>
-                      <p className="text-sm font-medium text-slate-900">
-                        {appliedPolicy?.policy_name ?? "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">Source Reference</p>
-                      <p className="text-sm font-medium text-slate-900">
-                        {sourceTraceQuery.data?.source_reference ??
-                          selectedRow.reference}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">
-                        Document Reference
-                      </p>
-                      <p className="text-sm font-medium text-slate-900">
-                        {sourceTraceQuery.data?.source_document_reference ??
-                          "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">
-                        Journal Reference
-                      </p>
-                      <p className="text-sm font-medium text-slate-900">
-                        {sourceTraceQuery.data?.journal_reference ??
-                          sourceTraceQuery.data?.journal_number ??
-                          "-"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Policy Result
-                      </p>
-                      <p className="mt-2 text-sm text-slate-800">
-                        {appliedPolicy?.treatment_summary ??
-                          sourceTraceQuery.data?.readiness_reason ??
-                          selectedRow.accountingReason}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(appliedPolicy?.prerequisite_codes ?? []).map(
-                          (code) => (
-                            <Badge
-                              key={code}
-                              className="bg-slate-100 text-slate-700 border border-slate-200"
-                            >
-                              {code}
-                            </Badge>
-                          ),
-                        )}
-                      </div>
-                    </div>
-                    <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Governance Blocker
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Badge
-                          className={
-                            governanceStatus === "blocked"
-                              ? "bg-rose-50 text-rose-700 border border-rose-200"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          }
-                        >
-                          {governanceStatus === "blocked"
-                            ? "Blocked"
-                            : "Allowed"}
-                        </Badge>
-                        <Badge
-                          className={
-                            governanceStatus === "blocked"
-                              ? "bg-rose-50 text-rose-700 border border-rose-200"
-                              : "bg-slate-100 text-slate-700 border border-slate-200"
-                          }
-                        >
-                          {governanceCode}
-                        </Badge>
-                      </div>
-                      <p className="mt-3 text-sm text-slate-800">
-                        {governanceReason}
-                      </p>
-                    </div>
-                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Exception Context
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Badge
-                          className={
-                            EXCEPTION_STATUS_BADGE[exceptionStatus] ||
-                            EXCEPTION_STATUS_BADGE.none
-                          }
-                        >
-                          {EXCEPTION_STATUS_LABEL[exceptionStatus] ||
-                            "Belum Ada Catatan"}
-                        </Badge>
-                        <Badge
-                          className={
-                            EXCEPTION_SEVERITY_BADGE[
-                              String(resolutionSeverity)
-                            ] ||
-                            "bg-slate-100 text-slate-700 border border-slate-200"
-                          }
-                        >
-                          {maturityWorkspace?.activeExceptionCode ??
-                            resolutionExceptionCode}
-                        </Badge>
-                      </div>
-                      <div className="mt-3 grid gap-3 md:grid-cols-2">
-                        <div>
-                          <p className="text-xs text-slate-500">Owner</p>
-                          <p className="text-sm font-medium text-slate-900">
-                            {maturityWorkspace?.activeExceptionOwner ?? "-"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">Next Step</p>
-                          <p className="text-sm font-medium text-slate-900">
-                            {maturityWorkspace?.activeExceptionNextStep ?? "-"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">Summary</p>
-                          <p className="text-sm text-slate-800">
-                            {maturityWorkspace?.activeExceptionSummary ??
-                              resolutionRecommendation}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Trace References
-                      </p>
-                      <div className="mt-3 space-y-3">
-                        {maturityWorkspace?.traceReferences.length ? (
-                          maturityWorkspace.traceReferences.map((reference) => (
-                            <div
-                              key={`${reference.label}-${reference.value}`}
-                              className="rounded-lg border border-slate-200 bg-white p-3"
-                            >
-                              <p className="text-xs text-slate-500">
-                                {reference.label}
-                              </p>
-                              <p className="text-sm font-medium text-slate-900">
-                                {reference.value}
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-sm text-slate-500">
-                            Referensi trace akan muncul setelah
-                            source-to-journal trace tersedia.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Komponen Finansial Utama
-                    </p>
-                    <div className="mt-3 space-y-3">
-                      {maturityWorkspace?.components.length ? (
-                        maturityWorkspace.components.map((component) => (
-                          <div
-                            key={component.key}
-                            className="rounded-lg border border-slate-200 bg-white p-3"
-                          >
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div>
-                                <p className="text-xs text-slate-500">
-                                  {component.label}
-                                </p>
-                                <p className="text-sm font-semibold text-slate-900">
-                                  {component.statusLabel}
-                                </p>
-                              </div>
-                              <Badge
-                                className={
-                                  MATURITY_TONE_BADGE[component.tone] ||
-                                  MATURITY_TONE_BADGE.muted
-                                }
-                              >
-                                {component.label}
-                              </Badge>
-                            </div>
-                            <p className="mt-3 text-sm text-slate-700">
-                              {component.summary}
-                            </p>
-                            <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                              <div>
-                                <p className="text-xs text-slate-500">Event</p>
-                                <p className="text-sm font-medium text-slate-900">
-                                  {component.eventKey ?? "-"}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-slate-500">
-                                  Reference
-                                </p>
-                                <p className="text-sm font-medium text-slate-900">
-                                  {component.reference ?? "-"}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-slate-500">
-                                  Follow-up
-                                </p>
-                                <p className="text-sm font-medium text-slate-900">
-                                  {component.followUpReference ?? "-"}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-slate-500">
-                                  Evidence
-                                </p>
-                                <p className="text-sm font-medium text-slate-900">
-                                  {component.evidenceReference ?? "-"}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-slate-500">
-                          Belum ada komponen finansial maturity yang dapat
-                          diringkas untuk transaksi ini.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Exception Workspace
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Simpan owner, langkah lanjut, dan catatan penanganan tanpa
-                      keluar dari trace transaksi.
-                    </p>
-                  </div>
+        <TableShell
+          className="mx-6"
+          columns={[
+            {
+              id: "domain",
+              header: <>Domain</>,
+              cell: ({ row }) =>
+                row.original.domain === "marketplace"
+                  ? "Marketplace"
+                  : "Rental",
+            },
+            {
+              id: "reference",
+              header: <>Referensi</>,
+              meta: {
+                cellClassName: "font-medium",
+              },
+            },
+            {
+              id: "operationalStatus",
+              header: <>Status Operasional</>,
+            },
+            {
+              id: "paymentStatus",
+              header: <>Status Pembayaran</>,
+            },
+            {
+              id: "accountingStatus",
+              header: <>Status Accounting</>,
+              cell: ({ row }) => (
+                <div className="flex flex-col gap-2">
                   <Badge
                     className={
-                      EXCEPTION_STATUS_BADGE[exceptionStatus] ||
-                      EXCEPTION_STATUS_BADGE.none
+                      ACCOUNTING_STATUS_BADGE[row.original.accountingStatus] ||
+                      ACCOUNTING_STATUS_BADGE["Belum Siap"]
                     }
                   >
-                    {EXCEPTION_STATUS_LABEL[exceptionStatus] ||
-                      "Belum Ada Catatan"}
+                    {row.original.accountingStatus}
+                  </Badge>
+                  <Badge
+                    className={
+                      RECONCILIATION_BADGE[row.original.reconciliationStatus]
+                    }
+                  >
+                    {row.original.reconciliationStatus}
+                  </Badge>
+                  <Badge
+                    className={REPORTING_BADGE[row.original.reportingStatus]}
+                  >
+                    {row.original.reportingStatus}
                   </Badge>
                 </div>
+              ),
+            },
+            {
+              id: "actions",
+              header: <>Aksi</>,
+              cell: ({ row }) => (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openTraceDialog(row.original.key)}
+                >
+                  Lihat Trace
+                </Button>
+              ),
+              meta: {
+                headerClassName: "text-right",
+                cellClassName: "text-right",
+              },
+            },
+          ]}
+          data={visibleRows}
+          getRowId={(row) => row.key}
+          emptyState="Belum ada transaksi operasional yang dapat ditelusuri."
+          rowClassName={(row) =>
+            row.key === selectedRow?.key ? "bg-muted/40" : undefined
+          }
+        />
+      </Card>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 md:col-span-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Basis Resolusi
-                    </p>
-                    <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                      <div>
-                        <p className="text-xs text-slate-500">Transaksi</p>
-                        <p className="text-sm font-medium text-slate-900">
-                          {selectedRow.reference}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500">Pembayaran</p>
-                        <p className="text-sm font-medium text-slate-900">
-                          {selectedRow.paymentStatus}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500">Accounting</p>
-                        <p className="text-sm font-medium text-slate-900">
-                          {selectedRow.accountingStatus}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500">
-                          Bukti Pembayaran
-                        </p>
-                        <p className="text-sm font-medium text-slate-900">
-                          {proofUrl ? "Tersedia" : "Belum Tersedia"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500">Exception Code</p>
-                        <div className="mt-1">
-                          <Badge
-                            className={
-                              EXCEPTION_SEVERITY_BADGE[
-                                String(resolutionSeverity)
-                              ] ||
-                              "bg-slate-100 text-slate-700 border border-slate-200"
-                            }
-                          >
-                            {resolutionExceptionCode}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500">Severity</p>
-                        <div className="mt-1">
-                          <Badge
-                            className={
-                              EXCEPTION_SEVERITY_BADGE[
-                                String(resolutionSeverity)
-                              ] ||
-                              "bg-slate-100 text-slate-700 border border-slate-200"
-                            }
-                          >
-                            {String(resolutionSeverity).replace(
-                              /\b\w/g,
-                              (char) => char.toUpperCase(),
-                            )}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="md:col-span-2 xl:col-span-2">
-                        <p className="text-xs text-slate-500">
-                          Recommended Action
-                        </p>
-                        <p className="text-sm font-medium text-slate-900">
-                          {resolutionRecommendation}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Owner Penanganan
-                    </label>
-                    <Input
-                      value={exceptionOwner}
-                      onChange={(event) =>
-                        setExceptionOwner(event.target.value)
-                      }
-                      placeholder="Contoh: Finance, Admin Operasional"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Next Step
-                    </label>
-                    <Input
-                      value={exceptionNextStep}
-                      onChange={(event) =>
-                        setExceptionNextStep(event.target.value)
-                      }
-                      placeholder="Contoh: Konfirmasi bukti transfer"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3 space-y-2">
-                  <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                    Catatan Exception
-                  </label>
-                  <Textarea
-                    value={exceptionMessage}
-                    onChange={(event) =>
-                      setExceptionMessage(event.target.value)
-                    }
-                    placeholder="Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara."
-                    rows={4}
-                  />
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-3">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      if (!selectedRow) {
-                        return;
-                      }
-                      exceptionActions.saveNote.mutate({
-                        domain: selectedRow.domain,
-                        source_id: Number(selectedRow.sourceId),
-                        reference: selectedRow.reference,
-                        attention_scope:
-                          selectedRow.attentionScope ?? undefined,
-                        summary: selectedRow.attentionSummary ?? undefined,
-                        owner_label: exceptionOwner,
-                        next_step: exceptionNextStep,
-                        message: exceptionMessage,
-                      });
-                    }}
-                    disabled={
-                      !selectedRow || exceptionActions.saveNote.isPending
-                    }
-                  >
-                    {exceptionActions.saveNote.isPending
-                      ? "Menyimpan..."
-                      : "Simpan Catatan Exception"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (!selectedRow) {
-                        return;
-                      }
-                      exceptionActions.applyDecision.mutate({
-                        domain: selectedRow.domain,
-                        source_id: Number(selectedRow.sourceId),
-                        reference: selectedRow.reference,
-                        attention_scope:
-                          selectedRow.attentionScope ?? undefined,
-                        summary: selectedRow.attentionSummary ?? undefined,
-                        owner_label: exceptionOwner || undefined,
-                        next_step: exceptionNextStep || undefined,
-                        message: exceptionMessage,
-                        status: "resolved",
-                      });
-                    }}
-                    disabled={
-                      !selectedRow || exceptionActions.applyDecision.isPending
-                    }
-                  >
-                    {exceptionActions.applyDecision.isPending
-                      ? "Memproses..."
-                      : "Tandai Selesai"}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      if (!selectedRow) {
-                        return;
-                      }
-                      exceptionActions.applyDecision.mutate({
-                        domain: selectedRow.domain,
-                        source_id: Number(selectedRow.sourceId),
-                        reference: selectedRow.reference,
-                        attention_scope:
-                          selectedRow.attentionScope ?? undefined,
-                        summary: selectedRow.attentionSummary ?? undefined,
-                        owner_label: exceptionOwner || undefined,
-                        next_step: exceptionNextStep || undefined,
-                        message: exceptionMessage,
-                        status: "escalated",
-                      });
-                    }}
-                    disabled={
-                      !selectedRow || exceptionActions.applyDecision.isPending
-                    }
-                  >
-                    {exceptionActions.applyDecision.isPending
-                      ? "Memproses..."
-                      : "Eskalasi"}
-                  </Button>
-                  {exceptionContextQuery.data?.summary ? (
-                    <p className="text-sm text-slate-600">
-                      Konteks saat ini: {exceptionContextQuery.data.summary}
-                    </p>
-                  ) : selectedRow.attentionSummary ? (
-                    <p className="text-sm text-slate-600">
-                      Konteks saat ini: {selectedRow.attentionSummary}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  {exceptionContextQuery.isLoading ? (
-                    <p className="text-sm text-slate-500">
-                      Memuat catatan exception...
-                    </p>
-                  ) : exceptionContextQuery.data?.notes?.length ? (
-                    exceptionContextQuery.data.notes.map((note) => (
-                      <div
-                        key={`exception-note-${note.id}`}
-                        className="rounded-lg border border-slate-200 bg-white p-3"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-sm font-semibold text-slate-900">
-                            {note.action.replaceAll("_", " ")}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {new Date(note.timestamp).toLocaleString("id-ID")}
-                          </p>
-                        </div>
-                        <p className="mt-1 text-sm text-slate-700">
-                          {note.message}
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
-                          <span>Actor: {note.actor_label}</span>
-                          {note.owner_label ? (
-                            <span>Owner: {note.owner_label}</span>
-                          ) : null}
-                          {note.next_step ? (
-                            <span>Next step: {note.next_step}</span>
-                          ) : null}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-500">
-                      Belum ada catatan exception untuk transaksi yang dipilih.
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Audit Trail Exception
-                  </p>
-                  <div className="mt-3 space-y-3">
-                    {exceptionContextQuery.data?.audit_entries?.length ? (
-                      exceptionContextQuery.data.audit_entries.map((entry) => (
-                        <div
-                          key={`exception-audit-${entry.id}`}
-                          className="rounded-lg border border-slate-200 bg-slate-50/80 p-3"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-sm font-semibold text-slate-900">
-                              {entry.action.replaceAll("_", " ")}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {new Date(entry.timestamp).toLocaleString(
-                                "id-ID",
-                              )}
-                            </p>
-                          </div>
-                          <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
-                            <span>Actor: {entry.actor_label}</span>
-                            {entry.old_status || entry.new_status ? (
-                              <span>
-                                Status: {entry.old_status || "none"} -&gt;{" "}
-                                {entry.new_status || "none"}
-                              </span>
-                            ) : null}
-                            {entry.request_id ? (
-                              <span>Request: {entry.request_id}</span>
-                            ) : null}
-                          </div>
-                          {entry.reason ? (
-                            <p className="mt-2 text-sm text-slate-700">
-                              {entry.reason}
-                            </p>
-                          ) : null}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-slate-500">
-                        Belum ada audit trail exception untuk transaksi yang
-                        dipilih.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
+      <Card className="border-slate-200 py-0 shadow-sm dark:border-slate-800">
+        <CardHeader className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="text-base">Workspace Tools</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Trace Detail dan Follow-up Queue sekarang dibuka lewat dialog
+              scrollable agar area kerja utama tetap ringkas.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openTraceDialog(selectedRow?.key)}
+              disabled={!selectedRow}
+            >
+              <Workflow className="h-4 w-4" />
+              Buka Trace Detail
+            </Button>
+            <Button size="sm" onClick={() => setIsQueueDialogOpen(true)}>
+              <ListTodo className="h-4 w-4" />
+              Buka Follow-up Queue
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 px-6 pb-6 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Trace terpilih
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-50">
+              {selectedRow?.reference ?? "Belum ada transaksi dipilih"}
+            </p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              {selectedRow?.title ??
+                "Pilih salah satu transaksi pada tabel untuk membuka trace detail."}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/70 dark:bg-amber-950/40">
+            <p className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
+              Perlu tindak lanjut
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-amber-900 dark:text-amber-100">
+              {queueCounts.all}
+            </p>
+            <p className="mt-1 text-sm text-amber-800 dark:text-amber-200">
+              Queue aktif bisa dibuka kapan saja tanpa menggeser layout halaman.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900/70 dark:bg-emerald-950/40">
+            <p className="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+              Reporting ready
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-emerald-900 dark:text-emerald-100">
+              {summary.reportingReady}
+            </p>
+            <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-200">
+              Basis laporan yang sinkron tetap bisa dipantau dari panel utama.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -1233,173 +670,1126 @@ export function FeatureOperationalTraceWorkbench() {
         </CardContent>
       </Card>
 
-      <Card className="xl:col-span-2">
-        <CardHeader className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle className="text-base">Follow-up Queue</CardTitle>
-            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-              <span>
-                Aktif {filterFollowUpQueueRows(rows, { scope: "all" }).length}
-              </span>
-              <span>
-                Pembayaran{" "}
-                {filterFollowUpQueueRows(rows, { scope: "pembayaran" }).length}
-              </span>
-              <span>
-                Accounting{" "}
-                {filterFollowUpQueueRows(rows, { scope: "accounting" }).length}
-              </span>
-              <span>
-                Operasional{" "}
-                {filterFollowUpQueueRows(rows, { scope: "operasional" }).length}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={queueScope === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setQueueScope("all")}
-            >
-              Semua
-            </Button>
-            <Button
-              variant={queueScope === "operasional" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setQueueScope("operasional")}
-            >
-              Operasional
-            </Button>
-            <Button
-              variant={queueScope === "pembayaran" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setQueueScope("pembayaran")}
-            >
-              Pembayaran
-            </Button>
-            <Button
-              variant={queueScope === "accounting" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setQueueScope("accounting")}
-            >
-              Accounting
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={queueDomain === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setQueueDomain("all")}
-            >
-              Semua Domain
-            </Button>
-            <Button
-              variant={queueDomain === "marketplace" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setQueueDomain("marketplace")}
-            >
-              Marketplace
-            </Button>
-            <Button
-              variant={queueDomain === "rental" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setQueueDomain("rental")}
-            >
-              Rental
-            </Button>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <Input
-              value={queueCode}
-              onChange={(event) => setQueueCode(event.target.value)}
-              placeholder="Filter code exception, contoh ACC-PAYMENT"
-            />
-            <Input
-              value={queueOwnerFilter}
-              onChange={(event) => setQueueOwnerFilter(event.target.value)}
-              placeholder="Filter owner, contoh Finance"
-            />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {!queueRows.length ? (
-            <p className="text-sm text-muted-foreground">
-              Tidak ada transaksi aktif yang membutuhkan tindak lanjut pada
-              scope ini.
-            </p>
-          ) : (
-            queueRows.map((row) => (
-              <div
-                key={`queue-${row.key}`}
-                className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50/80 p-4 md:flex-row md:items-start md:justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-slate-900">
-                      {row.reference}
-                    </p>
-                    <Badge
-                      className={
-                        ATTENTION_SCOPE_BADGE[
-                          row.attentionScope || "operasional"
-                        ]
-                      }
-                    >
-                      {row.attentionScope === "pembayaran"
-                        ? "Pembayaran"
-                        : row.attentionScope === "accounting"
-                          ? "Accounting"
-                          : "Operasional"}
-                    </Badge>
-                    <Badge
-                      className={RECONCILIATION_BADGE[row.reconciliationStatus]}
-                    >
-                      {row.reconciliationStatus}
-                    </Badge>
-                    {row.exceptionCode ? (
+      <Dialog open={isTraceDialogOpen} onOpenChange={setIsTraceDialogOpen}>
+        <DialogContent className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-5xl dark:border-slate-800 dark:bg-slate-950">
+          <div className="flex max-h-[92vh] flex-col">
+            <DialogHeader className="border-b border-slate-200 bg-white px-6 py-5 text-left dark:border-slate-800 dark:bg-slate-950">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-3">
+                  {selectedRow ? (
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        {selectedRow.domain === "marketplace"
+                          ? "Marketplace"
+                          : "Rental"}
+                      </Badge>
                       <Badge
                         className={
-                          EXCEPTION_SEVERITY_BADGE[
-                            row.exceptionSeverity || "medium"
-                          ] ||
-                          "bg-slate-100 text-slate-700 border border-slate-200"
+                          ACCOUNTING_STATUS_BADGE[
+                            selectedRow.accountingStatus
+                          ] || ACCOUNTING_STATUS_BADGE["Belum Siap"]
                         }
                       >
-                        {row.exceptionCode}
+                        {selectedRow.accountingStatus}
                       </Badge>
-                    ) : null}
+                      <Badge
+                        className={
+                          RECONCILIATION_BADGE[selectedRow.reconciliationStatus]
+                        }
+                      >
+                        {selectedRow.reconciliationStatus}
+                      </Badge>
+                    </div>
+                  ) : null}
+                  <div>
+                    <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-50">
+                      Trace Detail
+                    </DialogTitle>
+                    <DialogDescription className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+                      Hubungan operasional, pembayaran, policy accounting, dan
+                      exception workspace.
+                    </DialogDescription>
                   </div>
-                  <p className="text-sm text-slate-800">{row.title}</p>
-                  <p className="text-sm text-slate-600">
-                    {row.attentionSummary}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Owner: {row.queueOwnerLabel || "-"} • Severity:{" "}
-                    {row.exceptionSeverity
-                      ? row.exceptionSeverity.replace(/\b\w/g, (char) =>
-                          char.toUpperCase(),
-                        )
-                      : "-"}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Rekomendasi: {row.exceptionRecommendation || "-"}
-                  </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedKey(row.key);
-                    setFilter("attention");
-                  }}
-                >
-                  Fokus ke Trace
-                </Button>
+                {selectedRow ? (
+                  <div className="flex flex-wrap gap-2">
+                    {proofUrl ? (
+                      <Button asChild variant="outline" size="sm">
+                        <a
+                          href={proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Bukti Pembayaran
+                          <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    ) : null}
+                    <Button asChild size="sm">
+                      <Link href={selectedRow.detailHref}>
+                        Detail Transaksi
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                ) : null}
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+            </DialogHeader>
+
+            {!selectedRow ? (
+              <div className="px-6 py-8 text-sm text-muted-foreground">
+                Pilih transaksi dari tabel trace untuk membuka detail.
+              </div>
+            ) : (
+              <div className="overflow-y-auto px-6 py-6">
+                <div className="space-y-5">
+                  <WorkspaceSection
+                    title="Ringkasan transaksi"
+                    description="Informasi utama yang biasanya dicari pertama kali saat menelusuri mismatch."
+                  >
+                    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.9fr)]">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Transaksi
+                        </p>
+                        <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-50">
+                          {selectedRow.title}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                          {selectedRow.reference}
+                        </p>
+                        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                          <DetailField
+                            label="Status operasional"
+                            value={selectedRow.operationalStatus}
+                          />
+                          <DetailField
+                            label="Status pembayaran"
+                            value={selectedRow.paymentStatus}
+                          />
+                          <DetailField
+                            label="Status accounting"
+                            value={selectedRow.accountingStatus}
+                          />
+                          <DetailField
+                            label="Status rekonsiliasi"
+                            value={selectedRow.reconciliationStatus}
+                          />
+                          <DetailField
+                            label="Kelayakan pelaporan"
+                            value={selectedRow.reportingStatus}
+                          />
+                          <DetailField
+                            label="Alasan utama"
+                            value={selectedRow.accountingReason}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-indigo-200 bg-indigo-50/80 p-4 dark:border-indigo-900/70 dark:bg-indigo-950/40">
+                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+                          Catatan pelaporan
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-indigo-900 dark:text-indigo-100">
+                          {selectedRow.reportingReason}
+                        </p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <Badge
+                            className={
+                              READINESS_STATUS_BADGE[
+                                sourceTraceQuery.data?.readiness_status ||
+                                  "not_ready"
+                              ] || READINESS_STATUS_BADGE.not_ready
+                            }
+                          >
+                            Readiness{" "}
+                            {toSentenceCase(
+                              sourceTraceQuery.data?.readiness_status,
+                            )}
+                          </Badge>
+                          <Badge
+                            className={
+                              TRACE_STATUS_BADGE[
+                                sourceTraceQuery.data?.trace_status || "blocked"
+                              ] || TRACE_STATUS_BADGE.blocked
+                            }
+                          >
+                            Trace{" "}
+                            {toSentenceCase(
+                              sourceTraceQuery.data?.trace_status,
+                            )}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </WorkspaceSection>
+
+                  <WorkspaceSection
+                    title="Jejak status"
+                    description="Riwayat event yang membantu membaca urutan perubahan status."
+                  >
+                    <div className="space-y-3">
+                      {historyItems.length > 0 ? (
+                        historyItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                                {item.title}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {item.time}
+                              </p>
+                            </div>
+                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                              {item.description}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          Belum ada riwayat status untuk transaksi yang dipilih.
+                        </p>
+                      )}
+                    </div>
+                  </WorkspaceSection>
+
+                  <WorkspaceSection
+                    title="Financial maturity workspace"
+                    description="Settlement, resolution, policy, blocker, dan referensi trace dirangkum pada konteks yang sama."
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      <Badge
+                        className={
+                          MATURITY_TONE_BADGE[
+                            maturityWorkspace?.stageTone ?? "muted"
+                          ] || MATURITY_TONE_BADGE.muted
+                        }
+                      >
+                        Maturity:{" "}
+                        {maturityWorkspace?.stageLabel ?? "Menunggu Trace"}
+                      </Badge>
+                      <Badge
+                        className={
+                          READINESS_STATUS_BADGE[
+                            sourceTraceQuery.data?.readiness_status ||
+                              "not_ready"
+                          ] || READINESS_STATUS_BADGE.not_ready
+                        }
+                      >
+                        Readiness:{" "}
+                        {toSentenceCase(
+                          sourceTraceQuery.data?.readiness_status,
+                        )}
+                      </Badge>
+                      <Badge
+                        className={
+                          TRACE_STATUS_BADGE[
+                            sourceTraceQuery.data?.trace_status || "blocked"
+                          ] || TRACE_STATUS_BADGE.blocked
+                        }
+                      >
+                        Trace:{" "}
+                        {toSentenceCase(sourceTraceQuery.data?.trace_status)}
+                      </Badge>
+                    </div>
+
+                    <p className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                      {maturityWorkspace?.summary ??
+                        "Workspace maturity akan terisi saat trace transaksi tersedia."}
+                    </p>
+
+                    <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                      <DetailField
+                        label="Policy Code"
+                        value={
+                          appliedPolicy?.policy_code ??
+                          sourceTraceQuery.data?.policy_code ??
+                          "-"
+                        }
+                      />
+                      <DetailField
+                        label="Policy Name"
+                        value={appliedPolicy?.policy_name ?? "-"}
+                      />
+                      <DetailField
+                        label="Source Reference"
+                        value={
+                          sourceTraceQuery.data?.source_reference ??
+                          selectedRow.reference
+                        }
+                      />
+                      <DetailField
+                        label="Document Reference"
+                        value={
+                          sourceTraceQuery.data?.source_document_reference ??
+                          "-"
+                        }
+                      />
+                      <DetailField
+                        label="Journal Reference"
+                        value={
+                          sourceTraceQuery.data?.journal_reference ??
+                          sourceTraceQuery.data?.journal_number ??
+                          "-"
+                        }
+                        className="md:col-span-2 xl:col-span-2"
+                      />
+                    </div>
+
+                    <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Policy result
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                          {appliedPolicy?.treatment_summary ??
+                            sourceTraceQuery.data?.readiness_reason ??
+                            selectedRow.accountingReason}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {(appliedPolicy?.prerequisite_codes ?? []).map(
+                            (code) => (
+                              <Badge
+                                key={code}
+                                className="border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                              >
+                                {code}
+                              </Badge>
+                            ),
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Governance blocker
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge
+                            className={
+                              governanceStatus === "blocked"
+                                ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            }
+                          >
+                            {governanceStatus === "blocked"
+                              ? "Blocked"
+                              : "Allowed"}
+                          </Badge>
+                          <Badge
+                            className={
+                              governanceStatus === "blocked"
+                                ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                : "bg-slate-100 text-slate-700 border border-slate-200"
+                            }
+                          >
+                            {governanceCode}
+                          </Badge>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                          {governanceReason}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Exception context
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge
+                            className={
+                              EXCEPTION_STATUS_BADGE[exceptionStatus] ||
+                              EXCEPTION_STATUS_BADGE.none
+                            }
+                          >
+                            {EXCEPTION_STATUS_LABEL[exceptionStatus] ||
+                              "Belum Ada Catatan"}
+                          </Badge>
+                          <Badge
+                            className={
+                              EXCEPTION_SEVERITY_BADGE[
+                                String(resolutionSeverity)
+                              ] ||
+                              "bg-slate-100 text-slate-700 border border-slate-200"
+                            }
+                          >
+                            {maturityWorkspace?.activeExceptionCode ??
+                              resolutionExceptionCode}
+                          </Badge>
+                        </div>
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+                          <DetailField
+                            label="Owner"
+                            value={
+                              maturityWorkspace?.activeExceptionOwner ?? "-"
+                            }
+                          />
+                          <DetailField
+                            label="Next Step"
+                            value={
+                              maturityWorkspace?.activeExceptionNextStep ?? "-"
+                            }
+                          />
+                          <DetailField
+                            label="Summary"
+                            value={
+                              maturityWorkspace?.activeExceptionSummary ??
+                              resolutionRecommendation
+                            }
+                            className="md:col-span-2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Trace references
+                        </p>
+                        <div className="mt-3 space-y-3">
+                          {maturityWorkspace?.traceReferences.length ? (
+                            maturityWorkspace.traceReferences.map(
+                              (reference) => (
+                                <div
+                                  key={`${reference.label}-${reference.value}`}
+                                  className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950"
+                                >
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {reference.label}
+                                  </p>
+                                  <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    {reference.value}
+                                  </p>
+                                </div>
+                              ),
+                            )
+                          ) : (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Referensi trace akan muncul setelah
+                              source-to-journal trace tersedia.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Komponen finansial utama
+                        </p>
+                        <div className="mt-3 space-y-3">
+                          {maturityWorkspace?.components.length ? (
+                            maturityWorkspace.components.map((component) => (
+                              <div
+                                key={component.key}
+                                className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950"
+                              >
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                  <div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                      {component.label}
+                                    </p>
+                                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                                      {component.statusLabel}
+                                    </p>
+                                  </div>
+                                  <Badge
+                                    className={
+                                      MATURITY_TONE_BADGE[component.tone] ||
+                                      MATURITY_TONE_BADGE.muted
+                                    }
+                                  >
+                                    {component.label}
+                                  </Badge>
+                                </div>
+                                <p className="mt-3 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                                  {component.summary}
+                                </p>
+                                <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                  <DetailField
+                                    label="Event"
+                                    value={component.eventKey ?? "-"}
+                                  />
+                                  <DetailField
+                                    label="Reference"
+                                    value={component.reference ?? "-"}
+                                  />
+                                  <DetailField
+                                    label="Follow-up"
+                                    value={component.followUpReference ?? "-"}
+                                  />
+                                  <DetailField
+                                    label="Evidence"
+                                    value={component.evidenceReference ?? "-"}
+                                  />
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Belum ada komponen finansial maturity yang dapat
+                              diringkas untuk transaksi ini.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </WorkspaceSection>
+
+                  <WorkspaceSection
+                    title="Exception workspace"
+                    description="Simpan owner, next step, dan keputusan penanganan tanpa keluar dari konteks trace."
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <Badge
+                        className={
+                          EXCEPTION_STATUS_BADGE[exceptionStatus] ||
+                          EXCEPTION_STATUS_BADGE.none
+                        }
+                      >
+                        {EXCEPTION_STATUS_LABEL[exceptionStatus] ||
+                          "Belum Ada Catatan"}
+                      </Badge>
+                      {exceptionContextQuery.data?.summary ? (
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
+                          Konteks saat ini: {exceptionContextQuery.data.summary}
+                        </p>
+                      ) : selectedRow.attentionSummary ? (
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
+                          Konteks saat ini: {selectedRow.attentionSummary}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 md:col-span-2 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Basis resolusi
+                        </p>
+                        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                          <DetailField
+                            label="Transaksi"
+                            value={selectedRow.reference}
+                          />
+                          <DetailField
+                            label="Pembayaran"
+                            value={selectedRow.paymentStatus}
+                          />
+                          <DetailField
+                            label="Accounting"
+                            value={selectedRow.accountingStatus}
+                          />
+                          <DetailField
+                            label="Bukti Pembayaran"
+                            value={proofUrl ? "Tersedia" : "Belum Tersedia"}
+                          />
+                          <DetailField
+                            label="Exception Code"
+                            value={
+                              <Badge
+                                className={
+                                  EXCEPTION_SEVERITY_BADGE[
+                                    String(resolutionSeverity)
+                                  ] ||
+                                  "bg-slate-100 text-slate-700 border border-slate-200"
+                                }
+                              >
+                                {resolutionExceptionCode}
+                              </Badge>
+                            }
+                          />
+                          <DetailField
+                            label="Severity"
+                            value={
+                              <Badge
+                                className={
+                                  EXCEPTION_SEVERITY_BADGE[
+                                    String(resolutionSeverity)
+                                  ] ||
+                                  "bg-slate-100 text-slate-700 border border-slate-200"
+                                }
+                              >
+                                {String(resolutionSeverity).replace(
+                                  /\b\w/g,
+                                  (char) => char.toUpperCase(),
+                                )}
+                              </Badge>
+                            }
+                          />
+                          <DetailField
+                            label="Recommended Action"
+                            value={resolutionRecommendation}
+                            className="md:col-span-2"
+                          />
+                          <DetailField
+                            label="Governance Source"
+                            value={
+                              exceptionContextQuery.data?.governance_source ??
+                              "standard_inheritance"
+                            }
+                          />
+                          <DetailField
+                            label="Reviewer"
+                            value={
+                              exceptionContextQuery.data?.reviewer_label ?? "-"
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Owner Penanganan
+                        </label>
+                        <Input
+                          value={exceptionOwner}
+                          onChange={(event) =>
+                            setExceptionOwner(event.target.value)
+                          }
+                          placeholder="Contoh: Finance, Admin Operasional"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Next Step
+                        </label>
+                        <Input
+                          value={exceptionNextStep}
+                          onChange={(event) =>
+                            setExceptionNextStep(event.target.value)
+                          }
+                          placeholder="Contoh: Konfirmasi bukti transfer"
+                        />
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 md:col-span-2 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          Governance roles
+                        </p>
+                        <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                          <p>
+                            Owner:{" "}
+                            {(
+                              exceptionContextQuery.data?.owner_roles ?? []
+                            ).join(", ") || "-"}
+                          </p>
+                          <p>
+                            Reviewer:{" "}
+                            {(
+                              exceptionContextQuery.data?.reviewer_roles ?? []
+                            ).join(", ") || "-"}
+                          </p>
+                          <p>
+                            Support:{" "}
+                            {(
+                              exceptionContextQuery.data?.support_roles ?? []
+                            ).join(", ") || "-"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <label className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Catatan Exception
+                      </label>
+                      <Textarea
+                        value={exceptionMessage}
+                        onChange={(event) =>
+                          setExceptionMessage(event.target.value)
+                        }
+                        placeholder="Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara."
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (!selectedRow) {
+                            return;
+                          }
+                          exceptionActions.saveNote.mutate({
+                            domain: selectedRow.domain,
+                            source_id: Number(selectedRow.sourceId),
+                            reference: selectedRow.reference,
+                            attention_scope:
+                              selectedRow.attentionScope ?? undefined,
+                            summary: selectedRow.attentionSummary ?? undefined,
+                            owner_label: exceptionOwner,
+                            next_step: exceptionNextStep,
+                            message: exceptionMessage,
+                          });
+                        }}
+                        disabled={
+                          !selectedRow || exceptionActions.saveNote.isPending
+                        }
+                      >
+                        {exceptionActions.saveNote.isPending
+                          ? "Menyimpan..."
+                          : "Simpan Catatan Exception"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (!selectedRow) {
+                            return;
+                          }
+                          exceptionActions.applyDecision.mutate({
+                            domain: selectedRow.domain,
+                            source_id: Number(selectedRow.sourceId),
+                            reference: selectedRow.reference,
+                            attention_scope:
+                              selectedRow.attentionScope ?? undefined,
+                            summary: selectedRow.attentionSummary ?? undefined,
+                            owner_label: exceptionOwner || undefined,
+                            next_step: exceptionNextStep || undefined,
+                            message: exceptionMessage,
+                            status: "approved",
+                          });
+                        }}
+                        disabled={
+                          !selectedRow ||
+                          exceptionActions.applyDecision.isPending
+                        }
+                      >
+                        {exceptionActions.applyDecision.isPending
+                          ? "Memproses..."
+                          : "Setujui"}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          if (!selectedRow) {
+                            return;
+                          }
+                          exceptionActions.applyDecision.mutate({
+                            domain: selectedRow.domain,
+                            source_id: Number(selectedRow.sourceId),
+                            reference: selectedRow.reference,
+                            attention_scope:
+                              selectedRow.attentionScope ?? undefined,
+                            summary: selectedRow.attentionSummary ?? undefined,
+                            owner_label: exceptionOwner || undefined,
+                            next_step: exceptionNextStep || undefined,
+                            message: exceptionMessage,
+                            status: "escalated",
+                          });
+                        }}
+                        disabled={
+                          !selectedRow ||
+                          exceptionActions.applyDecision.isPending
+                        }
+                      >
+                        {exceptionActions.applyDecision.isPending
+                          ? "Memproses..."
+                          : "Eskalasi"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (!selectedRow) {
+                            return;
+                          }
+                          exceptionActions.applyDecision.mutate({
+                            domain: selectedRow.domain,
+                            source_id: Number(selectedRow.sourceId),
+                            reference: selectedRow.reference,
+                            attention_scope:
+                              selectedRow.attentionScope ?? undefined,
+                            summary: selectedRow.attentionSummary ?? undefined,
+                            owner_label: exceptionOwner || undefined,
+                            next_step: exceptionNextStep || undefined,
+                            message: exceptionMessage,
+                            status: "rejected",
+                          });
+                        }}
+                        disabled={
+                          !selectedRow ||
+                          exceptionActions.applyDecision.isPending
+                        }
+                      >
+                        {exceptionActions.applyDecision.isPending
+                          ? "Memproses..."
+                          : "Tolak"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (!selectedRow) {
+                            return;
+                          }
+                          exceptionActions.applyDecision.mutate({
+                            domain: selectedRow.domain,
+                            source_id: Number(selectedRow.sourceId),
+                            reference: selectedRow.reference,
+                            attention_scope:
+                              selectedRow.attentionScope ?? undefined,
+                            summary: selectedRow.attentionSummary ?? undefined,
+                            owner_label: exceptionOwner || undefined,
+                            next_step: exceptionNextStep || undefined,
+                            message: exceptionMessage,
+                            status: "closed",
+                          });
+                        }}
+                        disabled={
+                          !selectedRow ||
+                          exceptionActions.applyDecision.isPending
+                        }
+                      >
+                        {exceptionActions.applyDecision.isPending
+                          ? "Memproses..."
+                          : "Tutup"}
+                      </Button>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                          Catatan exception
+                        </p>
+                        <div className="mt-3 space-y-3">
+                          {exceptionContextQuery.isLoading ? (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Memuat catatan exception...
+                            </p>
+                          ) : exceptionContextQuery.data?.notes?.length ? (
+                            exceptionContextQuery.data.notes.map((note) => (
+                              <div
+                                key={`exception-note-${note.id}`}
+                                className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                                    {note.action.replaceAll("_", " ")}
+                                  </p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {new Date(note.timestamp).toLocaleString(
+                                      "id-ID",
+                                    )}
+                                  </p>
+                                </div>
+                                <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+                                  {note.message}
+                                </p>
+                                <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
+                                  <span>Actor: {note.actor_label}</span>
+                                  {note.owner_label ? (
+                                    <span>Owner: {note.owner_label}</span>
+                                  ) : null}
+                                  {note.next_step ? (
+                                    <span>Next step: {note.next_step}</span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Belum ada catatan exception untuk transaksi yang
+                              dipilih.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                          Audit trail exception
+                        </p>
+                        <div className="mt-3 space-y-3">
+                          {exceptionContextQuery.data?.audit_entries?.length ? (
+                            exceptionContextQuery.data.audit_entries.map(
+                              (entry) => (
+                                <div
+                                  key={`exception-audit-${entry.id}`}
+                                  className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                                      {entry.action.replaceAll("_", " ")}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                      {new Date(entry.timestamp).toLocaleString(
+                                        "id-ID",
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
+                                    <span>Actor: {entry.actor_label}</span>
+                                    {entry.old_status || entry.new_status ? (
+                                      <span>
+                                        Status: {entry.old_status || "none"}{" "}
+                                        -&gt; {entry.new_status || "none"}
+                                      </span>
+                                    ) : null}
+                                    {entry.request_id ? (
+                                      <span>Request: {entry.request_id}</span>
+                                    ) : null}
+                                  </div>
+                                  {entry.reason ? (
+                                    <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+                                      {entry.reason}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              ),
+                            )
+                          ) : (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Belum ada audit trail exception untuk transaksi
+                              yang dipilih.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </WorkspaceSection>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isQueueDialogOpen} onOpenChange={setIsQueueDialogOpen}>
+        <DialogContent className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-4xl dark:border-slate-800 dark:bg-slate-950">
+          <div className="flex max-h-[92vh] flex-col">
+            <DialogHeader className="border-b border-slate-200 bg-white px-6 py-5 text-left dark:border-slate-800 dark:bg-slate-950">
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    Aktif {queueCounts.all}
+                  </Badge>
+                  <Badge className="border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300">
+                    Pembayaran {queueCounts.pembayaran}
+                  </Badge>
+                  <Badge className="border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300">
+                    Accounting {queueCounts.accounting}
+                  </Badge>
+                  <Badge className="border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    Operasional {queueCounts.operasional}
+                  </Badge>
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-50">
+                    Follow-up Queue
+                  </DialogTitle>
+                  <DialogDescription className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    Daftar tindak lanjut dibuka di dialog scrollable supaya
+                    penyaringan dan fokus ke trace tetap cepat saat queue
+                    panjang.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="overflow-y-auto px-6 py-6">
+              <div className="space-y-5">
+                <WorkspaceSection
+                  title="Filter queue"
+                  description="Atur scope, domain, dan kata kunci agar daftar tindak lanjut lebih mudah dipilah."
+                >
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={queueScope === "all" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setQueueScope("all")}
+                      >
+                        Semua
+                      </Button>
+                      <Button
+                        variant={
+                          queueScope === "operasional" ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setQueueScope("operasional")}
+                      >
+                        Operasional
+                      </Button>
+                      <Button
+                        variant={
+                          queueScope === "pembayaran" ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setQueueScope("pembayaran")}
+                      >
+                        Pembayaran
+                      </Button>
+                      <Button
+                        variant={
+                          queueScope === "accounting" ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setQueueScope("accounting")}
+                      >
+                        Accounting
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={queueDomain === "all" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setQueueDomain("all")}
+                      >
+                        Semua Domain
+                      </Button>
+                      <Button
+                        variant={
+                          queueDomain === "marketplace" ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setQueueDomain("marketplace")}
+                      >
+                        Marketplace
+                      </Button>
+                      <Button
+                        variant={
+                          queueDomain === "rental" ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setQueueDomain("rental")}
+                      >
+                        Rental
+                      </Button>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <Input
+                        value={queueCode}
+                        onChange={(event) => setQueueCode(event.target.value)}
+                        placeholder="Filter code exception, contoh ACC-PAYMENT"
+                      />
+                      <Input
+                        value={queueOwnerFilter}
+                        onChange={(event) =>
+                          setQueueOwnerFilter(event.target.value)
+                        }
+                        placeholder="Filter owner, contoh Finance"
+                      />
+                    </div>
+                  </div>
+                </WorkspaceSection>
+
+                <WorkspaceSection
+                  title="Daftar tindak lanjut"
+                  description="Gunakan tombol fokus untuk langsung membuka trace detail transaksi terkait."
+                >
+                  {!queueRows.length ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Tidak ada transaksi aktif yang membutuhkan tindak lanjut
+                      pada scope ini.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {queueRows.map((row) => (
+                        <div
+                          key={`queue-${row.key}`}
+                          className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70"
+                        >
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="space-y-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-medium text-slate-900 dark:text-slate-50">
+                                  {row.reference}
+                                </p>
+                                <Badge
+                                  className={
+                                    ATTENTION_SCOPE_BADGE[
+                                      row.attentionScope || "operasional"
+                                    ]
+                                  }
+                                >
+                                  {row.attentionScope === "pembayaran"
+                                    ? "Pembayaran"
+                                    : row.attentionScope === "accounting"
+                                      ? "Accounting"
+                                      : "Operasional"}
+                                </Badge>
+                                <Badge
+                                  className={
+                                    RECONCILIATION_BADGE[
+                                      row.reconciliationStatus
+                                    ]
+                                  }
+                                >
+                                  {row.reconciliationStatus}
+                                </Badge>
+                                {row.exceptionCode ? (
+                                  <Badge
+                                    className={
+                                      EXCEPTION_SEVERITY_BADGE[
+                                        row.exceptionSeverity || "medium"
+                                      ] ||
+                                      "bg-slate-100 text-slate-700 border border-slate-200"
+                                    }
+                                  >
+                                    {row.exceptionCode}
+                                  </Badge>
+                                ) : null}
+                              </div>
+                              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                                {row.title}
+                              </p>
+                              <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                {row.attentionSummary}
+                              </p>
+                              <div className="grid gap-3 text-xs text-slate-500 dark:text-slate-400 md:grid-cols-2">
+                                <p>
+                                  Owner: {row.queueOwnerLabel || "-"} •
+                                  Severity:{" "}
+                                  {row.exceptionSeverity
+                                    ? row.exceptionSeverity.replace(
+                                        /\b\w/g,
+                                        (char) => char.toUpperCase(),
+                                      )
+                                    : "-"}
+                                </p>
+                                <p>
+                                  Rekomendasi:{" "}
+                                  {row.exceptionRecommendation || "-"}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setIsQueueDialogOpen(false);
+                                  openTraceDialog(row.key, "attention");
+                                }}
+                              >
+                                <Workflow className="h-4 w-4" />
+                                Fokus ke Trace
+                              </Button>
+                              <Button asChild size="sm">
+                                <Link href={row.detailHref}>
+                                  Detail
+                                  <ArrowUpRight className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </WorkspaceSection>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -8,14 +8,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/shared/inputs/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Textarea } from "@/components/shared/inputs/textarea";
 
 import {
@@ -53,11 +46,17 @@ export function FeatureCreateInvoiceForm({
   customerOptions = [],
   productOptions = [],
 }: FeatureCreateInvoiceFormProps) {
-  const [customerQuery, setCustomerQuery] = useState(INITIAL_INVOICE_DRAFT.customer_query);
-  const [invoiceDate, setInvoiceDate] = useState(INITIAL_INVOICE_DRAFT.invoice_date);
+  const [customerQuery, setCustomerQuery] = useState(
+    INITIAL_INVOICE_DRAFT.customer_query,
+  );
+  const [invoiceDate, setInvoiceDate] = useState(
+    INITIAL_INVOICE_DRAFT.invoice_date,
+  );
   const [dueDate, setDueDate] = useState(INITIAL_INVOICE_DRAFT.due_date);
   const [notes, setNotes] = useState(INITIAL_INVOICE_DRAFT.internal_notes);
-  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(INITIAL_INVOICE_DRAFT.line_items);
+  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(
+    INITIAL_INVOICE_DRAFT.line_items,
+  );
 
   const totals = useMemo(() => {
     const subtotal = lineItems.reduce((sum, row) => {
@@ -69,7 +68,7 @@ export function FeatureCreateInvoiceForm({
       const normalized = Number(row.price.replaceAll(",", "")) || 0;
       const base = row.qty * normalized;
       const taxPercent = Number(row.tax.replace(/[^\d.-]/g, "")) || 0;
-      return sum + base*(taxPercent / 100);
+      return sum + base * (taxPercent / 100);
     }, 0);
     const grandTotal = subtotal + tax;
 
@@ -90,7 +89,11 @@ export function FeatureCreateInvoiceForm({
     ]);
   };
 
-  const updateLineItem = (id: string, key: keyof InvoiceLineItem, value: string | number) => {
+  const updateLineItem = (
+    id: string,
+    key: keyof InvoiceLineItem,
+    value: string | number,
+  ) => {
     setLineItems((current) =>
       current.map((row) => {
         if (row.id !== id) return row;
@@ -98,12 +101,14 @@ export function FeatureCreateInvoiceForm({
           ...row,
           [key]: value,
         };
-      })
+      }),
     );
   };
 
   const removeLineItem = (id: string) => {
-    setLineItems((current) => (current.length > 1 ? current.filter((row) => row.id !== id) : current));
+    setLineItems((current) =>
+      current.length > 1 ? current.filter((row) => row.id !== id) : current,
+    );
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -127,7 +132,9 @@ export function FeatureCreateInvoiceForm({
                 <Plus className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create New Invoice</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Create New Invoice
+                </h2>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Generate a new customer billing statement
                 </p>
@@ -209,100 +216,176 @@ export function FeatureCreateInvoiceForm({
             </div>
 
             <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-              <Table>
-                <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-                  <TableRow>
-                    <TableHead className="px-4 py-3 text-xs uppercase">Product / Service</TableHead>
-                    <TableHead className="px-4 py-3 text-xs uppercase">Description</TableHead>
-                    <TableHead className="px-4 py-3 text-center text-xs uppercase">Qty</TableHead>
-                    <TableHead className="px-4 py-3 text-right text-xs uppercase">Price</TableHead>
-                    <TableHead className="px-4 py-3 text-right text-xs uppercase">Tax (PPN)</TableHead>
-                    <TableHead className="px-4 py-3 text-right text-xs uppercase">Total</TableHead>
-                    <TableHead className="w-10 px-4 py-3" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lineItems.map((row) => {
-                    const price = Number(row.price.replaceAll(",", "")) || 0;
-                    const taxPercent = Number(row.tax.replace(/[^\d.-]/g, "")) || 0;
-                    const rowTotal = price * row.qty * (1 + taxPercent / 100);
-
-                    return (
-                      <TableRow key={row.id}>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            value={row.product_or_service}
-                            onChange={(event) =>
-                              updateLineItem(row.id, "product_or_service", event.target.value)
-                            }
-                            placeholder="Product or service"
-                            className="border-none bg-transparent px-0 shadow-none"
-                            list={`invoice-product-options-${row.id}`}
-                          />
-                          {productOptions.length > 0 ? (
-                            <datalist id={`invoice-product-options-${row.id}`}>
-                              {productOptions.map((option) => (
-                                <option key={option} value={option} />
-                              ))}
-                            </datalist>
-                          ) : null}
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            value={row.description}
-                            onChange={(event) => updateLineItem(row.id, "description", event.target.value)}
-                            className="border-none bg-transparent px-0 shadow-none"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            type="number"
-                            value={row.qty}
-                            onChange={(event) =>
-                              updateLineItem(row.id, "qty", Number(event.target.value || "0"))
-                            }
-                            className="border-none bg-transparent px-0 text-center shadow-none"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            value={row.price}
-                            onChange={(event) => updateLineItem(row.id, "price", event.target.value)}
-                            className="border-none bg-transparent px-0 text-right shadow-none"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={row.tax.replace(/[^\d.-]/g, "")}
-                            onChange={(event) =>
-                              updateLineItem(row.id, "tax", `${event.target.value}%`)
-                            }
-                            className="border-none bg-transparent px-0 text-right shadow-none"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white">
-                          {rowTotal.toLocaleString("id-ID")}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-center">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-400 hover:text-red-500"
-                            onClick={() => removeLineItem(row.id)}
-                            aria-label={`Remove line item ${row.id}`}
+              <TableShell
+                columns={[
+                  {
+                    id: "product_or_service",
+                    header: <>Product / Service</>,
+                    cell: ({ row }) => (
+                      <>
+                        <Input
+                          value={row.original.product_or_service}
+                          onChange={(event) =>
+                            updateLineItem(
+                              row.original.id,
+                              "product_or_service",
+                              event.target.value,
+                            )
+                          }
+                          placeholder="Product or service"
+                          className="border-none bg-transparent px-0 shadow-none"
+                          list={`invoice-product-options-${row.original.id}`}
+                        />
+                        {productOptions.length > 0 ? (
+                          <datalist
+                            id={`invoice-product-options-${row.original.id}`}
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                            {productOptions.map((option) => (
+                              <option key={option} value={option} />
+                            ))}
+                          </datalist>
+                        ) : null}
+                      </>
+                    ),
+                    meta: {
+                      headerClassName: "px-4 py-3 text-xs uppercase",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "description",
+                    header: <>Description</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.description}
+                        onChange={(event) =>
+                          updateLineItem(
+                            row.original.id,
+                            "description",
+                            event.target.value,
+                          )
+                        }
+                        className="border-none bg-transparent px-0 shadow-none"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "px-4 py-3 text-xs uppercase",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "qty",
+                    header: <>Qty</>,
+                    cell: ({ row }) => (
+                      <Input
+                        type="number"
+                        value={row.original.qty}
+                        onChange={(event) =>
+                          updateLineItem(
+                            row.original.id,
+                            "qty",
+                            Number(event.target.value || "0"),
+                          )
+                        }
+                        className="border-none bg-transparent px-0 text-center shadow-none"
+                      />
+                    ),
+                    meta: {
+                      headerClassName:
+                        "px-4 py-3 text-center text-xs uppercase",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "price",
+                    header: <>Price</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.price}
+                        onChange={(event) =>
+                          updateLineItem(
+                            row.original.id,
+                            "price",
+                            event.target.value,
+                          )
+                        }
+                        className="border-none bg-transparent px-0 text-right shadow-none"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "px-4 py-3 text-right text-xs uppercase",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "tax",
+                    header: <>Tax (PPN)</>,
+                    cell: ({ row }) => (
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={row.original.tax.replace(/[^\d.-]/g, "")}
+                        onChange={(event) =>
+                          updateLineItem(
+                            row.original.id,
+                            "tax",
+                            `${event.target.value}%`,
+                          )
+                        }
+                        className="border-none bg-transparent px-0 text-right shadow-none"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "px-4 py-3 text-right text-xs uppercase",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "total",
+                    header: <>Total</>,
+                    cell: ({ row }) => {
+                      const price =
+                        Number(row.original.price.replaceAll(",", "")) || 0;
+                      const taxPercent =
+                        Number(row.original.tax.replace(/[^\d.-]/g, "")) || 0;
+                      const rowTotal =
+                        price * row.original.qty * (1 + taxPercent / 100);
+
+                      return rowTotal.toLocaleString("id-ID");
+                    },
+                    meta: {
+                      headerClassName: "px-4 py-3 text-right text-xs uppercase",
+                      cellClassName:
+                        "px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-white",
+                    },
+                  },
+                  {
+                    id: "actions",
+                    header: "",
+                    cell: ({ row }) => (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:text-red-500"
+                        onClick={() => removeLineItem(row.original.id)}
+                        aria-label={`Remove line item ${row.original.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ),
+                    meta: {
+                      headerClassName: "w-10 px-4 py-3",
+                      cellClassName: "px-4 py-3 text-center",
+                    },
+                  },
+                ]}
+                data={lineItems}
+                getRowId={(row) => row.id}
+                headerClassName="bg-gray-50 dark:bg-gray-800/50"
+                rowHoverable={false}
+              />
             </div>
           </div>
 
@@ -323,22 +406,32 @@ export function FeatureCreateInvoiceForm({
             <div className="space-y-3 md:ml-auto md:w-72">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Subtotal</span>
-                <span className="font-medium text-gray-900 dark:text-white">Rp {totals.subtotal}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  Rp {totals.subtotal}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tax (PPN 11%)</span>
-                <span className="font-medium text-gray-900 dark:text-white">Rp {totals.tax}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  Rp {totals.tax}
+                </span>
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">Grand Total</span>
-                <span className="text-2xl font-black text-indigo-600">Rp {totals.grandTotal}</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white">
+                  Grand Total
+                </span>
+                <span className="text-2xl font-black text-indigo-600">
+                  Rp {totals.grandTotal}
+                </span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
             {errorMessage ? (
-              <p className="mr-auto text-sm font-medium text-red-600">{errorMessage}</p>
+              <p className="mr-auto text-sm font-medium text-red-600">
+                {errorMessage}
+              </p>
             ) : null}
             <Button type="button" variant="ghost" onClick={onCancel}>
               Cancel

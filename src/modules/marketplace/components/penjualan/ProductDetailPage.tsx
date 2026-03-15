@@ -3,9 +3,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ensureSuccess } from "@/lib/api";
 import { ProductDetailHeader } from "./ProductDetailHeader";
 import { ProductMediaCard } from "./ProductMediaCard";
 import { ProductBasicInfoCard } from "./ProductBasicInfoCard";
@@ -26,6 +28,14 @@ import {
   computeMarketplacePublicationReadiness,
   mapInventoryProduct,
 } from "@/modules/inventory/utils";
+import {
+  createMarketplaceListingSubmission,
+  getMarketplaceListingDiagnostics,
+  getMarketplaceListingChannels,
+  getMarketplaceListingSubmission,
+  reviewMarketplaceListingSubmission,
+  updateMarketplaceListingChannel,
+} from "@/services/api/marketplace";
 import type { InventoryEvent, ProductStatus, ProductVariant } from "@/modules/marketplace/types";
 
 export type ProductDetailPageProps = Readonly<{
@@ -55,6 +65,7 @@ const formatHistoryTimestamp = (timestamp: number) => {
 export function ProductDetailPage({ id }: ProductDetailPageProps) {
   const actions = useInventoryActions();
   const variantActions = useInventoryVariantActions();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { data, isLoading, isError, error } = useInventoryProduct(id);
   const { data: stats } = useInventoryProductStats(id);
@@ -68,6 +79,76 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
   const [uploadingVariantId, setUploadingVariantId] = useState<number | null>(null);
 
   const item = useMemo(() => (data ? mapInventoryProduct(data) : null), [data]);
+  const listingId = item?.listingId;
+  const submissionQuery = useQuery({
+    queryKey: ["marketplace-listing-submission", listingId],
+    enabled: Boolean(listingId),
+    queryFn: async () =>
+      ensureSuccess(await getMarketplaceListingSubmission(listingId as string | number)),
+  });
+  const channelsQuery = useQuery({
+    queryKey: ["marketplace-listing-channels", listingId],
+    enabled: Boolean(listingId),
+    queryFn: async () =>
+      ensureSuccess(await getMarketplaceListingChannels(listingId as string | number)),
+  });
+  const diagnosticsQuery = useQuery({
+    queryKey: ["marketplace-listing-diagnostics", listingId],
+    enabled: Boolean(listingId),
+    queryFn: async () =>
+      ensureSuccess(await getMarketplaceListingDiagnostics(listingId as string | number)),
+  });
+  const invalidateListingQueries = async () => {
+    if (!listingId) return;
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["marketplace-listing-submission", listingId] }),
+      queryClient.invalidateQueries({ queryKey: ["marketplace-listing-channels", listingId] }),
+      queryClient.invalidateQueries({ queryKey: ["inventory-detail", id] }),
+      queryClient.invalidateQueries({ queryKey: ["inventory"] }),
+    ]);
+  };
+  const submitForReviewMutation = useMutation({
+    mutationFn: async () =>
+      ensureSuccess(
+        await createMarketplaceListingSubmission(listingId as string | number, {
+          seller_id: Number(item?.sellerId),
+          inventory_product_id: Number(id),
+        }),
+      ),
+    onSuccess: async () => {
+      await invalidateListingQueries();
+      toast.success("Submission produk berhasil diajukan untuk review.");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal mengajukan review produk."),
+  });
+  const reviewSubmissionMutation = useMutation({
+    mutationFn: async (decision: "approved" | "held_for_revision" | "rejected") =>
+      ensureSuccess(
+        await reviewMarketplaceListingSubmission(listingId as string | number, {
+          decision,
+          mapped_inventory_product_id: Number(id),
+        }),
+      ),
+    onSuccess: async (_data, decision) => {
+      await invalidateListingQueries();
+      toast.success(`Submission berhasil diubah ke status ${decision}.`);
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui review submission."),
+  });
+  const updateChannelMutation = useMutation({
+    mutationFn: async (vars: { channel: string; state: string; blockerCode?: string }) =>
+      ensureSuccess(
+        await updateMarketplaceListingChannel(listingId as string | number, vars.channel, {
+          publishability_state: vars.state,
+          blocker_code: vars.blockerCode,
+        }),
+      ),
+    onSuccess: async () => {
+      await invalidateListingQueries();
+      toast.success("Publishability channel diperbarui.");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui publishability channel."),
+  });
   const publicationReadiness = useMemo(
     () =>
       data
@@ -215,6 +296,9 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
     }
   };
 
+  const submissionState = submissionQuery.data?.state || "belum_ada_submission";
+  const channelStates = channelsQuery.data ?? [];
+
   return (
     <div className="space-y-6">
       <ProductDetailHeader
@@ -245,6 +329,32 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
                 </span>
               </p>
               <p>
+                Listing ID:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {item.listingId ? `#${item.listingId}` : "Belum terbentuk"}
+                </span>
+              </p>
+              <p>
+                Ownership mode:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {item.ownershipMode || "Belum diatur"}
+                </span>
+              </p>
+              <p>
+                Publishability state:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {item.publishabilityState || "Belum tersedia"}
+                </span>
+              </p>
+              <p>
+                Source stock:{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {item.sourceStockType && item.sourceStockReference
+                    ? `${item.sourceStockType}:${item.sourceStockReference}`
+                    : "Belum tersedia"}
+                </span>
+              </p>
+              <p>
                 Kesiapan publikasi:{" "}
                 <span className="font-medium text-gray-900 dark:text-white">
                   {publicationReadiness.ready ? "Siap tayang" : "Belum siap"}
@@ -269,6 +379,44 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
               : "Publikasikan ke Marketplace"}
           </Button>
         </div>
+        <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!listingId || !item.sellerId || submitForReviewMutation.isPending}
+            onClick={() => void submitForReviewMutation.mutateAsync()}
+          >
+            Ajukan Review
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!listingId || reviewSubmissionMutation.isPending}
+            onClick={() => void reviewSubmissionMutation.mutateAsync("approved")}
+          >
+            Approve
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!listingId || reviewSubmissionMutation.isPending}
+            onClick={() => void reviewSubmissionMutation.mutateAsync("held_for_revision")}
+          >
+            Hold for Revision
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!listingId || reviewSubmissionMutation.isPending}
+            onClick={() => void reviewSubmissionMutation.mutateAsync("rejected")}
+          >
+            Reject
+          </Button>
+        </div>
         {!publicationReadiness.ready ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
             <p className="font-medium">Lengkapi data berikut sebelum produk bisa ditayangkan:</p>
@@ -279,6 +427,119 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
             </ul>
           </div>
         ) : null}
+        <div className="rounded-lg border border-border/60 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 space-y-2">
+          <p>
+            Submission review:{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{submissionState}</span>
+          </p>
+          {submissionQuery.data?.review_notes ? (
+            <p>
+              Catatan review:{" "}
+              <span className="font-medium text-gray-900 dark:text-white">
+                {submissionQuery.data.review_notes}
+              </span>
+            </p>
+          ) : null}
+          {submissionQuery.data?.mapped_inventory_product_id ? (
+            <p>
+              Inventory product mapping:{" "}
+              <span className="font-medium text-gray-900 dark:text-white">
+                #{submissionQuery.data.mapped_inventory_product_id}
+              </span>
+            </p>
+          ) : null}
+          <div className="space-y-2">
+            <p className="font-medium text-gray-900 dark:text-white">Publishability per Channel</p>
+            {channelStates.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Belum ada state publishability per channel.
+              </p>
+            ) : (
+              channelStates.map((state: any) => (
+                <div
+                  key={state.channel}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/50 px-3 py-2"
+                >
+                  <div className="space-y-1">
+                    <p>
+                      {state.channel}:{" "}
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {state.publishability_state}
+                      </span>
+                    </p>
+                    {state.blocker_code ? (
+                      <p>
+                        Blocker:{" "}
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {state.blocker_code}
+                        </span>
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!listingId || updateChannelMutation.isPending}
+                      onClick={() =>
+                        void updateChannelMutation.mutateAsync({
+                          channel: state.channel,
+                          state: "published",
+                        })
+                      }
+                    >
+                      Publish
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!listingId || updateChannelMutation.isPending}
+                      onClick={() =>
+                        void updateChannelMutation.mutateAsync({
+                          channel: state.channel,
+                          state: "blocked",
+                          blockerCode: "manual_hold",
+                        })
+                      }
+                    >
+                      Block
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="space-y-2 border-t border-border/40 pt-3">
+            <p className="font-medium text-gray-900 dark:text-white">Diagnostics</p>
+            {(diagnosticsQuery.data?.items ?? []).length === 0 ? (
+              <p className="text-xs text-muted-foreground">Belum ada blocker utama untuk listing ini.</p>
+            ) : (
+              (diagnosticsQuery.data?.items ?? []).map((diag) => (
+                <div key={`${diag.scope}-${diag.code}`} className="rounded-md border border-border/50 px-3 py-2">
+                  <p>
+                    <span className="font-medium text-gray-900 dark:text-white">{diag.scope}</span>: {diag.code}
+                  </p>
+                  <p>{diag.message}</p>
+                  {diag.next_action ? (
+                    <p className="text-xs text-muted-foreground">Next action: {diag.next_action}</p>
+                  ) : null}
+                </div>
+              ))
+            )}
+            {diagnosticsQuery.data?.finance_follow_up_reference ? (
+              <p className="text-xs text-muted-foreground">
+                Finance follow-up ref: {diagnosticsQuery.data.finance_follow_up_reference}
+              </p>
+            ) : null}
+            {diagnosticsQuery.data?.support_reference ? (
+              <p className="text-xs text-muted-foreground">
+                Support ref: {diagnosticsQuery.data.support_reference}
+              </p>
+            ) : null}
+          </div>
+        </div>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

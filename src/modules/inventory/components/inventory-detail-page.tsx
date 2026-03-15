@@ -19,9 +19,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
 import {
   useInventoryActions,
+  useInventoryStockAvailability,
+  useInventoryStockNodes,
   useInventoryProduct,
   useInventoryVariants,
 } from "@/hooks/queries/inventory";
+import { usePartnerManagementSeller } from "@/hooks/queries/partner-management";
 import { formatCurrency } from "@/lib/format";
 import { EditProductModal } from "./edit-product-modal";
 import { VariantManagement } from "./variant-management";
@@ -41,11 +44,16 @@ export function InventoryDetailPage({ id }: Props) {
   const [stockInput, setStockInput] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const stockNodesQuery = useInventoryStockNodes();
+  const stockAvailabilityQuery = useInventoryStockAvailability(id);
 
   const item: InventoryItem | null = useMemo(
     () => (data ? mapInventoryProduct(data) : null),
     [data]
   );
+  const sellerQuery = usePartnerManagementSeller(item?.sellerId, {
+    enabled: Boolean(item?.sellerId),
+  });
   const eligibility = useMemo(
     () => (data ? computeEligibility(data) : { eligible: false, reasons: [] }),
     [data]
@@ -262,6 +270,16 @@ export function InventoryDetailPage({ id }: Props) {
                   </p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">Seller Owner</p>
+                  <p className="text-lg font-medium text-foreground">
+                    {sellerQuery.data
+                      ? `${sellerQuery.data.seller_name} (${sellerQuery.data.lifecycle_state})`
+                      : item.sellerId
+                        ? `Seller #${item.sellerId}`
+                        : "-"}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Harga Jual</p>
                   <p className="text-lg font-medium text-foreground">
                     {formatCurrency(item.price)}
@@ -297,6 +315,32 @@ export function InventoryDetailPage({ id }: Props) {
                   </p>
                 </div>
               </div>
+              <div className="rounded-lg border border-border/60 p-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Stock Nodes</p>
+                  <p className="text-base font-semibold text-foreground">
+                    {stockNodesQuery.data?.length ?? 0} node
+                  </p>
+                  {(stockAvailabilityQuery.data ?? []).map((entry) => (
+                    <div
+                      key={`${entry.stock_node_id}-${entry.channel}`}
+                      className="rounded-md border border-border/50 px-3 py-2 text-sm"
+                    >
+                      <p className="font-medium text-foreground">
+                        {entry.node_name} ({entry.node_type})
+                      </p>
+                      <p className="text-muted-foreground">
+                        Channel: {entry.channel} | On hand: {entry.on_hand_quantity} | Available: {entry.available_quantity}
+                      </p>
+                    </div>
+                  ))}
+                  {(stockAvailabilityQuery.data ?? []).length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      Belum ada availability per stock node.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -315,6 +359,9 @@ export function InventoryDetailPage({ id }: Props) {
                   ) : (
                     <p className="text-xs text-emerald-600">Eligible</p>
                   )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Ownership seller: {item.sellerId ? `Seller #${item.sellerId}` : "belum ditautkan"}
+                  </p>
                   {activeVariantGroups.length > 0 ? (
                     <div className="mt-3 space-y-1">
                       <label className="text-xs font-medium text-muted-foreground">

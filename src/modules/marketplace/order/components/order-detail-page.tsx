@@ -5,15 +5,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { formatCurrency } from "@/lib/format";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
@@ -77,7 +71,93 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
 
   const shippingCost = 0;
   const discountValue = 0;
-  const totalPayment = order?.total ?? itemsSubtotal + shippingCost - discountValue;
+  const totalPayment =
+    order?.total ?? itemsSubtotal + shippingCost - discountValue;
+  const itemColumns = useMemo<ColumnDef<MarketplaceOrderItemResponse, unknown>[]>(
+    () => [
+      {
+        id: "product",
+        header: "Produk",
+        meta: {
+          headerClassName:
+            "px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground",
+          cellClassName: "px-6 py-4",
+        },
+        cell: ({ row }) => {
+          const item = row.original;
+          const variantLabel = formatVariantLabel(item);
+          const imageSrc = item.variant_image_url || item.product_photo;
+          return (
+            <div className="flex items-center">
+              <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-border">
+                {imageSrc ? (
+                  <Image
+                    alt={item.product_name}
+                    src={imageSrc}
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
+                    <span className="material-icons-outlined text-lg">image</span>
+                  </div>
+                )}
+              </div>
+              <div className="ml-4">
+                <div className="text-sm font-medium text-foreground">
+                  {item.product_name}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  SKU: {item.product_sku}
+                </div>
+                {variantLabel ? (
+                  <div className="text-xs text-muted-foreground">
+                    {variantLabel}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        id: "quantity",
+        header: "Jumlah",
+        meta: {
+          align: "right",
+          headerClassName:
+            "px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground",
+          cellClassName: "px-6 py-4 text-right text-sm text-foreground",
+        },
+        cell: ({ row }) => row.original.quantity,
+      },
+      {
+        id: "price",
+        header: "Harga Satuan",
+        meta: {
+          align: "right",
+          headerClassName:
+            "px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground",
+          cellClassName: "px-6 py-4 text-right text-sm text-foreground",
+        },
+        cell: ({ row }) => formatCurrency(row.original.price),
+      },
+      {
+        id: "subtotal",
+        header: "Subtotal",
+        meta: {
+          align: "right",
+          headerClassName:
+            "px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground",
+          cellClassName:
+            "px-6 py-4 text-right text-sm font-medium text-foreground",
+        },
+        cell: ({ row }) => formatCurrency(row.original.subtotal),
+      },
+    ],
+    []
+  );
 
   const paymentBadge = getPaymentBadge(order?.status);
   const shippingBadge = getShippingBadge(order?.status);
@@ -87,14 +167,14 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
   const statusHistory = useMemo(() => {
     if (!order?.status_history?.length) return [];
     return [...order.status_history].sort(
-      (a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0)
+      (a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0),
     );
   }, [order?.status_history]);
 
   const handleStatusUpdate = async (
     nextStatus: MarketplaceOrderStatusInput,
     actionKey: string,
-    reason?: string
+    reason?: string,
   ) => {
     if (!order) return;
     setPendingAction(actionKey);
@@ -166,7 +246,9 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             type="button"
           >
-            <span className="material-icons-outlined dark:hidden">dark_mode</span>
+            <span className="material-icons-outlined dark:hidden">
+              dark_mode
+            </span>
             <span className="material-icons-outlined hidden dark:block">
               light_mode
             </span>
@@ -274,93 +356,17 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                       </h2>
                     </div>
                     <div className="overflow-x-auto">
-                      <Table className="min-w-full divide-y divide-border">
-                        <TableHeader className="bg-muted/40">
-                          <TableRow>
-                            <TableHead
-                              className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                              scope="col"
-                            >
-                              Produk
-                            </TableHead>
-                            <TableHead
-                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                              scope="col"
-                            >
-                              Jumlah
-                            </TableHead>
-                            <TableHead
-                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                              scope="col"
-                            >
-                              Harga Satuan
-                            </TableHead>
-                            <TableHead
-                              className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                              scope="col"
-                            >
-                              Subtotal
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-border">
-                          {order.items.map((item) => {
-                            const variantLabel = formatVariantLabel(item);
-                            const imageSrc =
-                              item.variant_image_url || item.product_photo;
-                            return (
-                              <TableRow
-                                key={`${item.product_id}-${item.variant_option_id ?? item.product_sku}`}
-                                className="transition-colors hover:bg-muted/40"
-                              >
-                                <TableCell className="px-6 py-4">
-                                  <div className="flex items-center">
-                                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-border">
-                                      {imageSrc ? (
-                                        <Image
-                                          alt={item.product_name}
-                                          src={imageSrc}
-                                          width={40}
-                                          height={40}
-                                          className="h-full w-full object-cover"
-                                        />
-                                      ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
-                                          <span className="material-icons-outlined text-lg">
-                                            image
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="ml-4">
-                                      <div className="text-sm font-medium text-foreground">
-                                        {item.product_name}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground">
-                                        SKU: {item.product_sku}
-                                      </div>
-                                      {variantLabel ? (
-                                        <div className="text-xs text-muted-foreground">
-                                          {variantLabel}
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-right text-sm text-foreground">
-                                  {item.quantity}
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-right text-sm text-foreground">
-                                  {formatCurrency(item.price)}
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-right text-sm font-medium text-foreground">
-                                  {formatCurrency(item.subtotal)}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
+                      <TableShell
+                        tableClassName="min-w-full divide-y divide-border"
+                        columns={itemColumns}
+                        data={order.items}
+                        getRowId={(row) =>
+                          `${row.product_id}-${row.variant_option_id ?? row.product_sku}`
+                        }
+                        emptyState="Belum ada item pesanan."
+                        headerClassName="bg-muted/40"
+                        rowClassName="transition-colors hover:bg-muted/40"
+                      />
                     </div>
                   </div>
                   <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
@@ -411,9 +417,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Diskon
-                          </span>
+                          <span className="text-muted-foreground">Diskon</span>
                           <span className="font-medium text-emerald-500">
                             -{formatCurrency(discountValue)}
                           </span>
@@ -444,7 +448,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                           if (!statusAction) return;
                           void handleStatusUpdate(
                             statusAction.nextStatus,
-                            "status"
+                            "status",
                           );
                         }}
                         title={statusAction?.label ?? "Ubah Status Pengiriman"}
@@ -572,7 +576,10 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                           </li>
                         ) : (
                           statusHistory.map((entry, index) => (
-                            <li className="relative" key={`${entry.status}-${index}`}>
+                            <li
+                              className="relative"
+                              key={`${entry.status}-${index}`}
+                            >
                               <span
                                 className={`absolute -left-[31px] top-0 h-4 w-4 rounded-full border-2 border-background ${
                                   index === 0 ? "bg-indigo-500" : "bg-muted"

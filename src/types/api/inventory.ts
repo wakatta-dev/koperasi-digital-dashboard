@@ -9,6 +9,7 @@ export type InventoryProductImage = {
 
 export type InventoryProductResponse = {
   id: number;
+  listing_id?: number | null;
   name: string;
   sku: string;
   price_sell: number;
@@ -24,6 +25,12 @@ export type InventoryProductResponse = {
   description?: string;
   min_stock?: number;
   show_in_marketplace: boolean;
+  seller_id?: number | null;
+  ownership_mode?: string;
+  channel_target?: string;
+  publishability_state?: string;
+  source_stock_type?: string;
+  source_stock_reference?: string;
   has_variants?: boolean;
   variants_required?: boolean;
   variant_in_stock?: boolean;
@@ -89,6 +96,29 @@ export type InventoryStockHistoryEntry = {
   quantity: number;
   balance: number;
   timestamp: number;
+};
+
+export type InventoryStockNodeResponse = {
+  id: number;
+  node_code: string;
+  node_name: string;
+  node_type: string;
+  outlet_code?: string;
+  is_active: boolean;
+};
+
+export type InventoryStockAvailabilityResponse = {
+  product_id: number;
+  stock_node_id: number;
+  node_code: string;
+  node_name: string;
+  node_type: string;
+  channel: string;
+  on_hand_quantity: number;
+  reserved_quantity: number;
+  blocked_quantity: number;
+  available_quantity: number;
+  deducted_quantity: number;
 };
 
 export type InventoryVariantGroupResponse = {

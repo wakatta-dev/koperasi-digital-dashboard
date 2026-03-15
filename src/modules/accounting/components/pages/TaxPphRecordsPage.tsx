@@ -13,13 +13,11 @@ import {
 } from "@/hooks/queries";
 import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
 
-import { ACCOUNTING_TAX_ROUTES } from "../../constants/tax-routes";
 import type {
   TaxPphFilterValue,
   TaxPphRecordItem,
   TaxPphSummaryCard,
   TaxPphSummaryTone,
-  TaxTabKey,
 } from "../../types/tax";
 import {
   buildTaxPphQueryString,
@@ -29,8 +27,6 @@ import { FeaturePphFilterBar } from "../features/FeaturePphFilterBar";
 import { FeaturePphHeaderAction } from "../features/FeaturePphHeaderAction";
 import { FeaturePphRecordsTable } from "../features/FeaturePphRecordsTable";
 import { FeaturePphSummaryCards } from "../features/FeaturePphSummaryCards";
-import { FeatureTaxPaginationBar } from "../features/FeatureTaxPaginationBar";
-import { FeatureTaxTabNavigation } from "../features/FeatureTaxTabNavigation";
 
 const DEFAULT_PPH_FILTERS: TaxPphFilterValue = {
   q: "",
@@ -57,7 +53,9 @@ export function TaxPphRecordsPage() {
     [searchParams],
   );
 
-  const [filters, setFilters] = useState<TaxPphFilterValue>(initialQueryState.filters);
+  const [filters, setFilters] = useState<TaxPphFilterValue>(
+    initialQueryState.filters,
+  );
   const [page, setPage] = useState(initialQueryState.page);
   const perPage = initialQueryState.perPage;
 
@@ -77,7 +75,9 @@ export function TaxPphRecordsPage() {
     if (nextQuery === currentQuery) {
       return;
     }
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
   }, [filters, page, pathname, perPage, router, searchParams]);
 
   const summaryCards = useMemo<TaxPphSummaryCard[]>(() => {
@@ -104,28 +104,10 @@ export function TaxPphRecordsPage() {
     }));
   }, [pphRecordsQuery.data?.items]);
 
-  const totalItems = pphRecordsQuery.data?.pagination?.total_items ?? rows.length;
+  const totalItems =
+    pphRecordsQuery.data?.pagination?.total_items ?? rows.length;
   const resolvedPage = pphRecordsQuery.data?.pagination?.page ?? page;
   const resolvedPerPage = pphRecordsQuery.data?.pagination?.per_page ?? perPage;
-
-  const navigateTab = (tab: TaxTabKey) => {
-    if (tab === "summary") {
-      router.push(ACCOUNTING_TAX_ROUTES.summary);
-      return;
-    }
-    if (tab === "ppn-details") {
-      router.push(ACCOUNTING_TAX_ROUTES.ppnDetails);
-      return;
-    }
-    if (tab === "pph-records") {
-      return;
-    }
-    if (tab === "export-history") {
-      router.push(ACCOUNTING_TAX_ROUTES.exportHistory);
-      return;
-    }
-    router.push(ACCOUNTING_TAX_ROUTES.efakturExport);
-  };
 
   const handleExportPphReport = async () => {
     const activePeriodCode = overviewQuery.data?.active_period
@@ -133,7 +115,7 @@ export function TaxPphRecordsPage() {
       : undefined;
     const resolvedPeriod =
       filters.period === "All Periods"
-        ? searchParams.get("period") ?? activePeriodCode
+        ? (searchParams.get("period") ?? activePeriodCode)
         : filters.period;
 
     if (!resolvedPeriod) {
@@ -187,10 +169,7 @@ export function TaxPphRecordsPage() {
 
       <FeaturePphSummaryCards cards={summaryCards} />
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-        <div className="border-b border-gray-200 px-6 dark:border-gray-700">
-          <FeatureTaxTabNavigation value="pph-records" onChange={navigateTab} />
-        </div>
+      <div className="overflow-hidden space-y-2 bg-white dark:bg-slate-900">
         <FeaturePphFilterBar
           value={filters}
           onChange={(next) => {
@@ -203,11 +182,15 @@ export function TaxPphRecordsPage() {
             Loading PPh records...
           </div>
         ) : null}
-        <FeaturePphRecordsTable rows={rows} />
-        <FeatureTaxPaginationBar
-          page={resolvedPage}
-          perPage={resolvedPerPage}
-          totalItems={totalItems}
+        <FeaturePphRecordsTable
+          rows={rows}
+          pagination={{
+            page: resolvedPage,
+            pageSize: resolvedPerPage,
+            totalItems,
+            totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
+          }}
+          paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
           onPageChange={setPage}
         />
       </div>

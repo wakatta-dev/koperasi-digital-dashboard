@@ -5,7 +5,7 @@
 import { TableCell } from "@/components/shared/data-display/TableCell";
 import { TableHeader } from "@/components/shared/data-display/TableHeader";
 import { TableRow } from "@/components/shared/data-display/TableRow";
-import { TableShell } from "@/components/shared/data-display/TableShell";
+import { TableViewport } from "@/components/shared/data-display/TableViewport";
 import type { ProductPerformance } from "@/types/api";
 import {
   EmptyState,
@@ -20,7 +20,12 @@ type Props = {
   onRetry?: () => void;
 };
 
-export function TopProductsTable({ products, isLoading, isError, onRetry }: Props) {
+export function TopProductsTable({
+  products,
+  isLoading,
+  isError,
+  onRetry,
+}: Props) {
   if (isLoading) return <LoadingState lines={5} />;
   if (isError) return <ErrorState onRetry={onRetry} />;
   if (!products?.length)
@@ -36,21 +41,36 @@ export function TopProductsTable({ products, isLoading, isError, onRetry }: Prop
   return (
     <div className="rounded-xl border border-border/70 bg-card/80 shadow-sm">
       <div className="px-4 pt-4">
-        <h3 className="text-sm font-semibold text-foreground">Produk Terlaris</h3>
+        <h3 className="text-sm font-semibold text-foreground">
+          Produk Terlaris
+        </h3>
         <p className="text-xs text-muted-foreground">
           Urut berdasarkan unit terjual dan stok tersisa.
         </p>
       </div>
-      <TableShell containerClassName="overflow-x-auto" className="w-full text-sm">
+      <TableViewport
+        containerClassName="overflow-x-auto"
+        className="w-full text-sm"
+      >
         <TableHeader>
           <TableRow>
             <TableCell as="th" scope="col" className="text-left font-medium">
               Nama Produk
             </TableCell>
-            <TableCell as="th" scope="col" align="right" className="text-right font-medium">
+            <TableCell
+              as="th"
+              scope="col"
+              align="right"
+              className="text-right font-medium"
+            >
               Terjual
             </TableCell>
-            <TableCell as="th" scope="col" align="right" className="text-right font-medium">
+            <TableCell
+              as="th"
+              scope="col"
+              align="right"
+              className="text-right font-medium"
+            >
               Stok Tersedia
             </TableCell>
           </TableRow>
@@ -59,7 +79,11 @@ export function TopProductsTable({ products, isLoading, isError, onRetry }: Prop
           {sorted.map((p) => (
             <TableRow
               key={p.product_id}
-              className={p.low_stock ? "bg-amber-50 text-amber-900 dark:bg-amber-500/10" : undefined}
+              className={
+                p.low_stock
+                  ? "bg-amber-50 text-amber-900 dark:bg-amber-500/10"
+                  : undefined
+              }
             >
               <TableCell className="font-medium">
                 {p.name}
@@ -78,7 +102,7 @@ export function TopProductsTable({ products, isLoading, isError, onRetry }: Prop
             </TableRow>
           ))}
         </tbody>
-      </TableShell>
+      </TableViewport>
     </div>
   );
 }

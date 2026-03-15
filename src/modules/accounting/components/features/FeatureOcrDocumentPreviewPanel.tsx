@@ -7,14 +7,7 @@ import { Expand, Minimize2, Minus, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import type { OcrExtractionSession } from "../../types/vendor-bills-ap";
 
@@ -49,7 +42,7 @@ export function FeatureOcrDocumentPreviewPanel({
 }: FeatureOcrDocumentPreviewPanelProps) {
   const previewAreaRef = useRef<HTMLDivElement | null>(null);
   const [zoomPercent, setZoomPercent] = useState<number>(() =>
-    parseZoomPercent(session.zoom_percent_label)
+    parseZoomPercent(session.zoom_percent_label),
   );
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -81,12 +74,12 @@ export function FeatureOcrDocumentPreviewPanel({
           total: qty * price,
         };
       }),
-    [session.line_items]
+    [session.line_items],
   );
 
   const subtotal = useMemo(
     () => lineItemRows.reduce((total, row) => total + row.total, 0),
-    [lineItemRows]
+    [lineItemRows],
   );
 
   const totalDue = useMemo(() => {
@@ -99,11 +92,11 @@ export function FeatureOcrDocumentPreviewPanel({
 
   const decreaseZoom = () =>
     setZoomPercent((current) =>
-      Math.max(MIN_ZOOM_PERCENT, current - ZOOM_STEP_PERCENT)
+      Math.max(MIN_ZOOM_PERCENT, current - ZOOM_STEP_PERCENT),
     );
   const increaseZoom = () =>
     setZoomPercent((current) =>
-      Math.min(MAX_ZOOM_PERCENT, current + ZOOM_STEP_PERCENT)
+      Math.min(MAX_ZOOM_PERCENT, current + ZOOM_STEP_PERCENT),
     );
 
   const toggleFullscreen = async () => {
@@ -168,9 +161,15 @@ export function FeatureOcrDocumentPreviewPanel({
             onClick={() => {
               void toggleFullscreen();
             }}
-            aria-label={isFullscreen ? "Exit PDF fullscreen" : "Enter PDF fullscreen"}
+            aria-label={
+              isFullscreen ? "Exit PDF fullscreen" : "Enter PDF fullscreen"
+            }
           >
-            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+            {isFullscreen ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Expand className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
@@ -190,7 +189,9 @@ export function FeatureOcrDocumentPreviewPanel({
                   <h3 className="text-3xl font-black tracking-tight text-gray-900">
                     {session.general_info.vendor_name || "VENDOR"}
                   </h3>
-                  <p className="mt-1 text-sm text-gray-500">OCR Document Preview</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    OCR Document Preview
+                  </p>
                 </div>
                 <div className="text-right">
                   <span className="text-4xl font-light tracking-widest text-gray-300 uppercase">
@@ -201,7 +202,9 @@ export function FeatureOcrDocumentPreviewPanel({
 
               <div className="mb-12 flex justify-between">
                 <div>
-                  <p className="mb-2 text-xs font-bold text-gray-400 uppercase">Bill To</p>
+                  <p className="mb-2 text-xs font-bold text-gray-400 uppercase">
+                    Bill To
+                  </p>
                   <p className="font-bold text-gray-800">3Portals Enterprise</p>
                   <p className="text-sm text-gray-500">
                     Jalan Utama No. 45
@@ -210,54 +213,84 @@ export function FeatureOcrDocumentPreviewPanel({
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-right">
-                  <p className="text-xs font-bold text-gray-400 uppercase">Invoice #</p>
-                  <p className="text-sm font-medium">{session.general_info.bill_number}</p>
-                  <p className="text-xs font-bold text-gray-400 uppercase">Date</p>
-                  <p className="text-sm font-medium">{session.general_info.bill_date}</p>
-                  <p className="text-xs font-bold text-gray-400 uppercase">Due Date</p>
-                  <p className="text-sm font-medium">{session.general_info.due_date}</p>
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Invoice #
+                  </p>
+                  <p className="text-sm font-medium">
+                    {session.general_info.bill_number}
+                  </p>
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Date
+                  </p>
+                  <p className="text-sm font-medium">
+                    {session.general_info.bill_date}
+                  </p>
+                  <p className="text-xs font-bold text-gray-400 uppercase">
+                    Due Date
+                  </p>
+                  <p className="text-sm font-medium">
+                    {session.general_info.due_date}
+                  </p>
                 </div>
               </div>
 
-              <Table className="mb-12">
-                <TableHeader className="border-b-2 border-gray-900">
-                  <TableRow className="text-left text-xs font-bold text-gray-900 uppercase">
-                    <TableHead className="py-3">Description</TableHead>
-                    <TableHead className="w-24 py-3 text-center">Qty</TableHead>
-                    <TableHead className="w-32 py-3 text-right">Unit Price</TableHead>
-                    <TableHead className="w-32 py-3 text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="divide-y divide-gray-100">
-                  {lineItemRows.length === 0 ? (
-                    <TableRow className="text-sm">
-                      <TableCell className="py-4 text-center text-gray-500" colSpan={4}>
-                        No OCR line items detected.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                  {lineItemRows.map((line) => (
-                    <TableRow key={line.id} className="text-sm">
-                      <TableCell className="py-4">
-                        {line.description || "Line item description"}
-                      </TableCell>
-                      <TableCell className="py-4 text-center">{line.qty}</TableCell>
-                      <TableCell className="py-4 text-right">
-                        {formatIdNumber(line.price)}
-                      </TableCell>
-                      <TableCell className="py-4 text-right">
-                        {formatIdNumber(line.total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <TableShell
+                tableClassName="mb-12"
+                columns={[
+                  {
+                    id: "description",
+                    header: <>Description</>,
+                    cell: ({ row }) =>
+                      row.original.description || "Line item description",
+                    meta: {
+                      headerClassName: "py-3 border-b-2 border-gray-900",
+                      cellClassName: "py-4",
+                    },
+                  },
+                  {
+                    id: "qty",
+                    header: <>Qty</>,
+                    meta: {
+                      headerClassName: "w-24 py-3 text-center",
+                      cellClassName: "py-4 text-center",
+                    },
+                  },
+                  {
+                    id: "price",
+                    header: <>Unit Price</>,
+                    cell: ({ row }) => formatIdNumber(row.original.price),
+                    meta: {
+                      headerClassName: "w-32 py-3 text-right",
+                      cellClassName: "py-4 text-right",
+                    },
+                  },
+                  {
+                    id: "total",
+                    header: <>Total</>,
+                    cell: ({ row }) => formatIdNumber(row.original.total),
+                    meta: {
+                      headerClassName: "w-32 py-3 text-right",
+                      cellClassName: "py-4 text-right",
+                    },
+                  },
+                ]}
+                data={lineItemRows}
+                getRowId={(row) => row.id}
+                headerClassName="border-b-2 border-gray-900"
+                headerRowClassName="text-left text-xs font-bold text-gray-900 uppercase"
+                bodyClassName="divide-y divide-gray-100"
+                emptyState="No OCR line items detected."
+                rowHoverable={false}
+                rowClassName="text-sm"
+              />
 
               <div className="flex justify-end">
                 <div className="w-64 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Subtotal</span>
-                    <span className="font-medium">{formatIdNumber(subtotal)}</span>
+                    <span className="font-medium">
+                      {formatIdNumber(subtotal)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Tax (0%)</span>

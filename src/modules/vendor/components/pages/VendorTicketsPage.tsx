@@ -3,7 +3,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,14 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useVendorSupportQueue } from "@/hooks/queries";
 import { VendorKpiGrid } from "../VendorKpiGrid";
 import { VendorPageHeader } from "../VendorPageHeader";
@@ -37,6 +31,90 @@ function priorityBadgeClass(priority: string) {
   return "border-transparent bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
 }
 
+type VendorTicketRow = {
+  id: string | number;
+  title: string;
+  summary: string;
+  category: string;
+  reference: string;
+  tenant_label: string;
+  priority: string;
+  status: string;
+  age_hours: number;
+  occurred_at: string | number;
+};
+
+const PAGE_SIZE = 10;
+
+const columns: ColumnDef<VendorTicketRow, unknown>[] = [
+  {
+    id: "case",
+    header: "Case",
+    cell: ({ row }) => (
+      <div className="space-y-1">
+        <div className="font-medium">{row.original.title}</div>
+        <div className="max-w-xl whitespace-normal text-xs text-muted-foreground">
+          {row.original.summary}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {row.original.category} · {row.original.reference}
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: "tenant",
+    header: "Tenant",
+    cell: ({ row }) => row.original.tenant_label,
+  },
+  {
+    id: "priority",
+    header: "Priority",
+    cell: ({ row }) => (
+      <Badge className={priorityBadgeClass(row.original.priority)}>
+        {row.original.priority.toUpperCase()}
+      </Badge>
+    ),
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <Badge className={statusBadgeClass(row.original.status)}>
+        {row.original.status.toUpperCase()}
+      </Badge>
+    ),
+  },
+  {
+    id: "age",
+    header: "Age",
+    cell: ({ row }) => `${row.original.age_hours}h`,
+  },
+  {
+    id: "occurredAt",
+    header: "Occurred",
+    cell: ({ row }) =>
+      formatVendorDateTime(String(row?.original?.occurred_at ?? "")),
+  },
+  {
+    id: "detail",
+    header: "Detail",
+    meta: {
+      align: "right",
+    },
+    cell: ({ row }) => (
+      <div className="text-right">
+        <Link
+          href={VENDOR_ROUTES.ticketDetail(row.original.id)}
+          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+        >
+          View
+        </Link>
+      </div>
+    ),
+  },
+];
+
 function statusBadgeClass(status: string) {
   if (status === "open") {
     return "border-transparent bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300";
@@ -49,12 +127,25 @@ function statusBadgeClass(status: string) {
 
 export function VendorTicketsPage() {
   const [category, setCategory] = useState("all");
+  const [page, setPage] = useState(1);
   const queueQuery = useVendorSupportQueue();
-  const items = useMemo(() => queueQuery.data?.items ?? [], [queueQuery.data?.items]);
+  const items = useMemo(
+    () => queueQuery.data?.items ?? [],
+    [queueQuery.data?.items],
+  );
   const filteredItems = useMemo(() => {
     if (category === "all") return items;
     return items.filter((item) => item.category === category);
   }, [category, items]);
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const visibleItems = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [filteredItems, page]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   const kpis = useMemo(
     () => [
@@ -83,7 +174,7 @@ export function VendorTicketsPage() {
         helper: "Berasal dari invoice overdue",
       },
     ],
-    [queueQuery.data?.analytics]
+    [queueQuery.data?.analytics],
   );
 
   return (
@@ -106,7 +197,13 @@ export function VendorTicketsPage() {
       <Card className="border-border/70">
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <CardTitle>Support Queue</CardTitle>
-          <Select value={category} onValueChange={setCategory}>
+          <Select
+            value={category}
+            onValueChange={(value) => {
+              setCategory(value);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter category" />
             </SelectTrigger>
@@ -119,73 +216,26 @@ export function VendorTicketsPage() {
           </Select>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Case</TableHead>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Occurred</TableHead>
-                <TableHead className="text-right">Detail</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="align-top">
-                    <div className="space-y-1">
-                      <div className="font-medium">{item.title}</div>
-                      <div className="max-w-xl whitespace-normal text-xs text-muted-foreground">
-                        {item.summary}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {item.category} · {item.reference}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{item.tenant_label}</TableCell>
-                  <TableCell>
-                    <Badge className={priorityBadgeClass(item.priority)}>
-                      {item.priority.toUpperCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={statusBadgeClass(item.status)}>
-                      {item.status.toUpperCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{item.age_hours}h</TableCell>
-                  <TableCell>{formatVendorDateTime(item.occurred_at)}</TableCell>
-                  <TableCell className="text-right">
-                    <Link
-                      href={VENDOR_ROUTES.ticketDetail(item.id)}
-                      className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-                    >
-                      View
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
-
-              {!queueQuery.isPending && filteredItems.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                    Belum ada support case pada filter saat ini.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-
-              {queueQuery.isPending ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                    Memuat support queue...
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
+          <TableShell
+            columns={columns}
+            data={visibleItems}
+            getRowId={(row) => String(row.id)}
+            loading={queueQuery.isPending}
+            loadingState="Memuat support queue..."
+            emptyState="Belum ada support case pada filter saat ini."
+            surface="bare"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              totalItems: filteredItems.length,
+              totalPages,
+            }}
+            onPrevPage={() => setPage((current) => Math.max(1, current - 1))}
+            onNextPage={() =>
+              setPage((current) => Math.min(totalPages, current + 1))
+            }
+            paginationInfo={`Menampilkan ${visibleItems.length} dari ${filteredItems.length} case`}
+          />
         </CardContent>
       </Card>
     </div>

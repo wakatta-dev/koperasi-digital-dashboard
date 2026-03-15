@@ -22,8 +22,10 @@ import type {
 } from "@/types/api";
 import {
   getSupportGlobalConfig,
+  getSupportDiagnostics,
   getSupportOperationalExceptionContext,
   getSupportOperationalSettings,
+  getSupportPolicyDefinitions,
   getSupportProfileSettings,
   getSupportSystemReadiness,
   getSupportTenantConfig,
@@ -60,6 +62,20 @@ export function useSupportSystemReadiness() {
   return useQuery({
     queryKey: QK.settings.supportReadiness(),
     queryFn: async () => ensureSuccess(await getSupportSystemReadiness()),
+  });
+}
+
+export function useSupportDiagnostics() {
+  return useQuery({
+    queryKey: QK.settings.supportDiagnostics(),
+    queryFn: async () => ensureSuccess(await getSupportDiagnostics()),
+  });
+}
+
+export function useSupportPolicyDefinitions() {
+  return useQuery({
+    queryKey: [...QK.settings.supportOperationalSettings(), "policy-definitions"],
+    queryFn: async () => ensureSuccess(await getSupportPolicyDefinitions()),
   });
 }
 
@@ -289,11 +305,17 @@ export function useSupportOperationalExceptionActions(
       ensureSuccess(await updateSupportOperationalExceptionDecision(payload)),
     onSuccess: (_, vars) => {
       invalidateContext();
-      toast.success(
-        vars.status === "resolved"
-          ? "Exception ditandai selesai."
-          : "Exception berhasil dieskalasi."
-      );
+      const statusMessage =
+        vars.status === "approved"
+          ? "Exception disetujui."
+          : vars.status === "rejected"
+            ? "Exception ditolak."
+            : vars.status === "closed"
+              ? "Exception ditutup."
+              : vars.status === "resolved"
+                ? "Exception ditandai selesai."
+                : "Exception berhasil dieskalasi.";
+      toast.success(statusMessage);
     },
     onError: (error: any) => {
       toast.error(error?.message || "Gagal memperbarui status exception.");

@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  GenericTable,
-  type GenericTableColumn,
-} from "@/components/shared/data-display/GenericTable";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { formatCurrency } from "@/lib/format";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
 import {
@@ -85,11 +83,6 @@ export function OrderListPage() {
   const totalItems = data?.total ?? orders.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
-  const pageNumbers = useMemo(() => {
-    const maxPages = Math.min(3, totalPages);
-    return Array.from({ length: maxPages }, (_, idx) => idx + 1);
-  }, [totalPages]);
-
   const handleOpenInvoice = (orderId: number) => {
     setInvoiceOrderId(orderId);
     setInvoiceOpen(true);
@@ -139,56 +132,71 @@ export function OrderListPage() {
     "Tidak ada pesanan ditemukan."
   );
 
-  const columns: GenericTableColumn<MarketplaceOrderSummaryResponse>[] = [
+  const columns: ColumnDef<MarketplaceOrderSummaryResponse, unknown>[] = [
     {
       id: "orderNumber",
       header: "ID Pesanan",
-      cellClassName:
-        "whitespace-nowrap text-sm font-medium text-indigo-600 dark:text-indigo-400",
-      render: (order) => formatOrderNumber(order.order_number),
+      meta: {
+        cellClassName:
+          "whitespace-nowrap text-sm font-medium text-indigo-600 dark:text-indigo-400",
+      },
+      cell: ({ row }) => formatOrderNumber(row.original.order_number),
     },
     {
       id: "orderDate",
       header: "Tanggal Pesanan",
-      cellClassName: "whitespace-nowrap text-sm text-muted-foreground",
-      render: (order) => formatOrderDate(order.created_at),
+      meta: {
+        cellClassName: "whitespace-nowrap text-sm text-muted-foreground",
+      },
+      cell: ({ row }) => formatOrderDate(row.original.created_at),
     },
     {
       id: "customer",
       header: "Nama Pelanggan",
-      cellClassName: "whitespace-nowrap text-sm text-foreground",
-      render: (order) => order.customer_name,
+      meta: {
+        cellClassName: "whitespace-nowrap text-sm text-foreground",
+      },
+      cell: ({ row }) => row.original.customer_name,
     },
     {
       id: "total",
       header: "Total Pembayaran",
-      cellClassName: "whitespace-nowrap text-sm text-foreground",
-      render: (order) => formatCurrency(order.total),
+      meta: {
+        cellClassName: "whitespace-nowrap text-sm text-foreground",
+      },
+      cell: ({ row }) => formatCurrency(row.original.total),
     },
     {
       id: "payment",
       header: "Status Pembayaran",
-      cellClassName: "whitespace-nowrap",
-      render: (order) => {
-        const payment = getPaymentBadge(order.status);
+      meta: {
+        cellClassName: "whitespace-nowrap",
+      },
+      cell: ({ row }) => {
+        const payment = getPaymentBadge(row.original.status);
         return <Badge variant={payment.variant}>{payment.label}</Badge>;
       },
     },
     {
       id: "shipping",
       header: "Status Pengiriman",
-      cellClassName: "whitespace-nowrap",
-      render: (order) => {
-        const shipping = getShippingBadge(order.status);
+      meta: {
+        cellClassName: "whitespace-nowrap",
+      },
+      cell: ({ row }) => {
+        const shipping = getShippingBadge(row.original.status);
         return <Badge variant={shipping.variant}>{shipping.label}</Badge>;
       },
     },
     {
       id: "actions",
       header: "Aksi",
-      align: "right",
-      cellClassName: "whitespace-nowrap text-right text-sm font-medium",
-      render: (order) => {
+      meta: {
+        align: "right",
+        cellClassName: "whitespace-nowrap text-right text-sm font-medium",
+      },
+      cell: ({ row }) => {
+        const order = row.original;
         const action = getStatusAction(order.status);
         const isRowLoading = pendingAction?.id === order.id;
         const canCancel = canCancelOrder(order.status);
@@ -318,65 +326,28 @@ export function OrderListPage() {
           </div>
         </div>
       </div>
-      <GenericTable
+      <TableShell
+        className="space-y-0"
         columns={columns}
-        rows={rowsForTable}
+        data={rowsForTable}
         loading={isLoading}
         loadingState="Memuat pesanan..."
         emptyState={emptyState}
-        getRowKey={(row) => String(row.id)}
+        getRowId={(row) => String(row.id)}
         containerClassName="w-full max-w-full"
         bodyClassName="bg-card"
-        footer={
-          <div className="flex items-center justify-end">
-            <div className="flex items-center space-x-2">
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
-                disabled={page <= 1}
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              >
-                <span className="material-icons-outlined mr-1 text-sm">
-                  chevron_left
-                </span>
-                Previous
-              </Button>
-              {pageNumbers.map((number) => (
-                <Button
-                  key={number}
-                  type="button"
-                  variant="ghost"
-                  className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                    number === page
-                      ? "border border-border bg-card text-indigo-600 dark:text-indigo-400"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                  onClick={() => setPage(number)}
-                >
-                  {number}
-                </Button>
-              ))}
-              {totalPages > 3 ? (
-                <span className="px-2 text-muted-foreground">...</span>
-              ) : null}
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex items-center rounded-md px-3 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
-                disabled={page >= totalPages}
-                onClick={() =>
-                  setPage((prev) => Math.min(totalPages, prev + 1))
-                }
-              >
-                Next
-                <span className="material-icons-outlined ml-1 text-sm">
-                  chevron_right
-                </span>
-              </Button>
-            </div>
-          </div>
-        }
+        pagination={{
+          page,
+          pageSize: PAGE_SIZE,
+          totalItems,
+          totalPages,
+        }}
+        paginationInfo={`Menampilkan ${rowsForTable.length} dari ${totalItems} pesanan`}
+        onPrevPage={() => setPage((prev) => Math.max(1, prev - 1))}
+        onNextPage={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+        paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4"
+        previousPageLabel="Previous"
+        nextPageLabel="Next"
       />
       <OrderInvoiceDialog
         open={invoiceOpen}

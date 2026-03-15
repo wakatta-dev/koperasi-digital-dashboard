@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { EllipsisVertical, Funnel, Search } from "lucide-react";
 
 import { InputField } from "@/components/shared/inputs/input-field";
@@ -16,14 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { cn } from "@/lib/utils";
 
 import type { AssetRentalRentalsRow } from "../../types/asset-rental";
@@ -77,7 +71,14 @@ export function AssetRentalRentalsTable({
 
   const exportRowsAsCsv = () => {
     if (typeof window === "undefined") return;
-    const header = ["Nama Aset", "Peminjam", "Unit", "Tanggal Mulai", "Tanggal Kembali", "Status"];
+    const header = [
+      "Nama Aset",
+      "Peminjam",
+      "Unit",
+      "Tanggal Mulai",
+      "Tanggal Kembali",
+      "Status",
+    ];
     const body = rows.map((row) => [
       row.assetName,
       row.borrowerName,
@@ -86,7 +87,9 @@ export function AssetRentalRentalsTable({
       row.returnDate,
       row.status,
     ]);
-    const csvContent = [header, ...body].map((line) => line.map((item) => `"${item}"`).join(",")).join("\n");
+    const csvContent = [header, ...body]
+      .map((line) => line.map((item) => `"${item}"`).join(","))
+      .join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -96,22 +99,133 @@ export function AssetRentalRentalsTable({
     window.URL.revokeObjectURL(url);
   };
 
-  const activeCount = rows.filter((row) => row.status === "Berjalan" || row.status === "Terlambat")
-    .length;
+  const activeCount = rows.filter(
+    (row) => row.status === "Berjalan" || row.status === "Terlambat",
+  ).length;
   const dueSoonCount = rows.filter((row) => row.status !== "Selesai").length;
+
+  const columns: ColumnDef<AssetRentalRentalsRow, unknown>[] = [
+    {
+      id: "assetName",
+      header: "Nama Aset",
+      meta: {
+        headerClassName: "px-4 bg-slate-50",
+        cellClassName: "px-4",
+      },
+      cell: ({ row }) => (
+        <div className="space-y-1">
+          {buildDetailHref ? (
+            <Link
+              href={buildDetailHref(row.original.id)}
+              className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
+            >
+              {row.original.assetName}
+            </Link>
+          ) : (
+            <p className="text-sm font-semibold text-slate-900">
+              {row.original.assetName}
+            </p>
+          )}
+          <p className="text-xs text-slate-500">{row.original.assetTag}</p>
+        </div>
+      ),
+    },
+    {
+      id: "borrower",
+      header: "Peminjam",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4",
+      },
+      cell: ({ row }) => (
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-slate-900">
+            {row.original.borrowerName}
+          </p>
+          <p className="text-xs text-slate-500">{row.original.borrowerUnit}</p>
+        </div>
+      ),
+    },
+    {
+      id: "startDate",
+      header: "Tanggal Mulai",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4 text-sm text-slate-600",
+      },
+      cell: ({ row }) => row.original.startDate,
+    },
+    {
+      id: "returnDate",
+      header: "Tanggal Kembali",
+      meta: {
+        headerClassName: "px-4",
+      },
+      cell: ({ row }) => (
+        <div className="px-4 text-sm text-slate-600">{row.original.returnDate}</div>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      meta: {
+        align: "right",
+        headerClassName: "px-4 text-right",
+        cellClassName: "px-4 text-right",
+      },
+      cell: ({ row }) => (
+        <Badge className={cn("rounded-full px-2.5 py-0.5 text-xs", statusStyles[row.original.status])}>
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Aksi",
+      meta: {
+        align: "right",
+        headerClassName: "px-4 text-right",
+        cellClassName: "px-4 text-right",
+      },
+      cell: ({ row }) => (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-slate-400 hover:text-slate-600"
+          onClick={() => onRowAction?.(row.original.id)}
+          disabled={actionDisabled}
+        >
+          <EllipsisVertical className="h-4 w-4" />
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-medium text-slate-500">Total Penyewaan Aktif</p>
-          <h3 className="mt-2 text-3xl font-bold text-slate-900">{activeCount}</h3>
-          <p className="mt-1 text-xs font-medium text-emerald-600">Data berjalan saat ini</p>
+          <p className="text-sm font-medium text-slate-500">
+            Total Penyewaan Aktif
+          </p>
+          <h3 className="mt-2 text-3xl font-bold text-slate-900">
+            {activeCount}
+          </h3>
+          <p className="mt-1 text-xs font-medium text-emerald-600">
+            Data berjalan saat ini
+          </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-medium text-slate-500">Pengembalian Hari Ini</p>
-          <h3 className="mt-2 text-3xl font-bold text-slate-900">{dueSoonCount}</h3>
-          <p className="mt-1 text-xs font-medium text-amber-600">Perlu perhatian segera</p>
+          <p className="text-sm font-medium text-slate-500">
+            Pengembalian Hari Ini
+          </p>
+          <h3 className="mt-2 text-3xl font-bold text-slate-900">
+            {dueSoonCount}
+          </h3>
+          <p className="mt-1 text-xs font-medium text-amber-600">
+            Perlu perhatian segera
+          </p>
         </div>
       </div>
 
@@ -134,7 +248,9 @@ export function AssetRentalRentalsTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Semua">Semua Status</SelectItem>
-                <SelectItem value="Menunggu Pembayaran">Menunggu Pembayaran</SelectItem>
+                <SelectItem value="Menunggu Pembayaran">
+                  Menunggu Pembayaran
+                </SelectItem>
                 <SelectItem value="Menunggu Verifikasi Pembayaran">
                   Menunggu Verifikasi Pembayaran
                 </SelectItem>
@@ -163,106 +279,27 @@ export function AssetRentalRentalsTable({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <Table>
-          <TableHeader className="bg-slate-50">
-            <TableRow className="hover:bg-slate-50">
-              <TableHead className="px-4">Nama Aset</TableHead>
-              <TableHead className="px-4">Peminjam</TableHead>
-              <TableHead className="px-4">Tanggal Mulai</TableHead>
-              <TableHead className="px-4">Tanggal Kembali</TableHead>
-              <TableHead className="px-4 text-right">Status</TableHead>
-              <TableHead className="px-4 text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pagedRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                  Tidak ada data penyewaan.
-                </TableCell>
-              </TableRow>
-            ) : null}
-            {pagedRows.map((row) => (
-              <TableRow key={row.id} className="bg-white">
-                <TableCell className="px-4">
-                  <div className="space-y-1">
-                    {buildDetailHref ? (
-                      <Link
-                        href={buildDetailHref(row.id)}
-                        className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
-                      >
-                        {row.assetName}
-                      </Link>
-                    ) : (
-                      <p className="text-sm font-semibold text-slate-900">{row.assetName}</p>
-                    )}
-                    <p className="text-xs text-slate-500">{row.assetTag}</p>
-                  </div>
-                </TableCell>
-                <TableCell className="px-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-slate-900">{row.borrowerName}</p>
-                    <p className="text-xs text-slate-500">{row.borrowerUnit}</p>
-                  </div>
-                </TableCell>
-                <TableCell className="px-4 text-sm text-slate-600">{row.startDate}</TableCell>
-                <TableCell
-                  className={cn(
-                    "px-4 text-sm",
-                    row.status === "Terlambat" ? "font-medium text-red-500" : "text-slate-600"
-                  )}
-                >
-                  {row.returnDate}
-                </TableCell>
-                <TableCell className="px-4 text-right">
-                  <Badge className={cn("rounded-full px-2.5 py-1 text-xs", statusStyles[row.status])}>
-                    {row.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="px-4 text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-slate-500 hover:text-indigo-600"
-                    onClick={() => onRowAction?.(row.id)}
-                    disabled={actionDisabled}
-                  >
-                    <EllipsisVertical className="h-4 w-4" />
-                    <span className="sr-only">Aksi</span>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3 text-sm text-slate-500">
-          <p>
-            Menampilkan{" "}
-            <span className="font-medium text-slate-900">
-              {pagedRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, rows.length)}
-            </span>{" "}
-            dari{" "}
-            <span className="font-medium text-slate-900">{rows.length}</span> data
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="h-8 border-slate-200 px-3 text-slate-500"
-              disabled={currentPage === 1}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 border-slate-200 px-3 text-slate-700"
-              disabled={currentPage >= pageCount}
-              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <TableShell
+          className="space-y-0"
+          columns={columns}
+          data={pagedRows}
+          getRowId={(row) => row.id}
+          emptyState="Tidak ada data penyewaan."
+          headerClassName="bg-slate-50"
+          headerRowClassName="hover:bg-slate-50"
+          pagination={{
+            page: currentPage,
+            pageSize: pageSize,
+            totalItems: rows.length,
+            totalPages: pageCount,
+          }}
+          paginationInfo={`Menampilkan ${pagedRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, rows.length)} dari ${rows.length} data`}
+          onPrevPage={() => setPage((value) => Math.max(1, value - 1))}
+          onNextPage={() => setPage((value) => Math.min(pageCount, value + 1))}
+          paginationClassName="rounded-none border-x-0 border-b-0 px-4 py-3"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
+        />
       </div>
     </div>
   );

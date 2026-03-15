@@ -3,181 +3,114 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import type { ColumnDef } from "@tanstack/react-table";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useInventoryCategories } from "@/hooks/queries/inventory";
-import { QK } from "@/hooks/queries/queryKeys";
-import { ConfirmActionDialog } from "@/modules/marketplace/components/shared/ConfirmActionDialog";
-import { ensureSuccess } from "@/lib/api";
-import {
-  createInventoryCategory,
-  deleteInventoryCategory,
-  updateInventoryCategory,
-} from "@/services/api";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
-type CategoryItem = {
-  id: number;
+type CategoryRow = {
+  id: string;
   name: string;
   count: number;
   isActive: boolean;
 };
 
-export function ProductCategoryManagementPage() {
-  const qc = useQueryClient();
-  const { data, isLoading, isError } = useInventoryCategories();
+type ProductCategoryManagementPageProps = {
+  categories?: CategoryRow[];
+  isLoading?: boolean;
+  isError?: boolean;
+  onToggleActive?: (row: CategoryRow) => void;
+};
+
+export function ProductCategoryManagementPage({
+  categories = [],
+  isLoading = false,
+  isError = false,
+  onToggleActive,
+}: ProductCategoryManagementPageProps) {
   const [searchValue, setSearchValue] = useState("");
   const [newCategoryOpen, setNewCategoryOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [renameTarget, setRenameTarget] = useState<CategoryItem | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<CategoryItem | null>(null);
 
-  const categories = useMemo(() => {
-    const items = (data ?? []).map((item) => ({
-      id: item.id,
-      name: item.name,
-      count: item.count,
-      isActive: item.is_active,
-    }));
-    if (!searchValue.trim()) return items;
-    const keyword = searchValue.toLowerCase();
-    return items.filter((item) => item.name.toLowerCase().includes(keyword));
-  }, [data, searchValue]);
+  const filteredCategories = useMemo(() => {
+    const normalized = searchValue.trim().toLowerCase();
+    if (!normalized) return categories;
+    return categories.filter((item) =>
+      item.name.toLowerCase().includes(normalized),
+    );
+  }, [categories, searchValue]);
 
-  const invalidateLists = () => {
-    qc.invalidateQueries({ queryKey: QK.inventory.categories() });
-    qc.invalidateQueries({ queryKey: QK.inventory.lists() });
-  };
-
-  const createMutation = useMutation({
-    mutationFn: async (vars: { name: string }) =>
-      ensureSuccess(await createInventoryCategory({ name: vars.name })),
-    onSuccess: () => {
-      invalidateLists();
-      toast.success("Kategori berhasil ditambahkan.");
+  const columns: ColumnDef<CategoryRow, unknown>[] = [
+    {
+      id: "name",
+      header: "Nama Kategori",
+      meta: {
+        headerClassName:
+          "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+        cellClassName:
+          "px-6 py-4 text-sm font-medium text-gray-900 dark:text-white",
+      },
+      cell: ({ row }) => row.original.name,
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Gagal menambahkan kategori.");
+    {
+      id: "count",
+      header: "Jumlah Produk",
+      meta: {
+        headerClassName:
+          "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-40",
+        cellClassName: "px-6 py-4 text-sm text-gray-600 dark:text-gray-300",
+      },
+      cell: ({ row }) => `${row.original.count} produk`,
     },
-  });
-
-  const renameMutation = useMutation({
-    mutationFn: async (vars: { id: number; name: string; isActive: boolean }) =>
-      ensureSuccess(
-        await updateInventoryCategory(vars.id, {
-          name: vars.name,
-          is_active: vars.isActive,
-        })
+    {
+      id: "status",
+      header: "Status",
+      meta: {
+        headerClassName:
+          "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-40",
+        cellClassName: "px-6 py-4 text-sm",
+      },
+      cell: ({ row }) => (
+        <Badge
+          variant={row.original.isActive ? "default" : "secondary"}
+          className={
+            row.original.isActive
+              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300"
+              : "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300"
+          }
+        >
+          {row.original.isActive ? "Aktif" : "Nonaktif"}
+        </Badge>
       ),
-    onSuccess: (_data, vars) => {
-      invalidateLists();
-      toast.success(`Kategori diperbarui menjadi "${vars.name}".`);
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Gagal memperbarui kategori.");
-    },
-  });
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: async (vars: CategoryItem) =>
-      ensureSuccess(
-        await updateInventoryCategory(vars.id, {
-          name: vars.name,
-          is_active: !vars.isActive,
-        })
+    {
+      id: "actions",
+      header: "Aksi",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right",
+        cellClassName: "px-6 py-4 text-right space-x-2",
+      },
+      cell: ({ row }) => (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onToggleActive?.(row.original)}
+          >
+            {row.original.isActive ? "Nonaktifkan" : "Aktifkan"}
+          </Button>
+        </>
       ),
-    onSuccess: (_data, vars) => {
-      invalidateLists();
-      toast.success(
-        vars.isActive
-          ? `Kategori "${vars.name}" dinonaktifkan.`
-          : `Kategori "${vars.name}" diaktifkan.`
-      );
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Gagal memperbarui status kategori.");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (vars: { id: number }) =>
-      ensureSuccess(await deleteInventoryCategory(vars.id)),
-    onSuccess: () => {
-      invalidateLists();
-      toast.success("Kategori berhasil dihapus.");
-    },
-    onError: (err: any) => {
-      toast.error(err?.message || "Gagal menghapus kategori.");
-    },
-  });
-
-  const handleOpenRename = (item: CategoryItem) => {
-    setRenameTarget(item);
-    setRenameValue(item.name);
-  };
-
-  const handleConfirmRename = async () => {
-    if (!renameTarget) return;
-    const nextName = renameValue.trim();
-    if (!nextName) {
-      toast.error("Nama kategori baru wajib diisi.");
-      return;
-    }
-    if (nextName === renameTarget.name) {
-      setRenameTarget(null);
-      return;
-    }
-    await renameMutation.mutateAsync({
-      id: renameTarget.id,
-      name: nextName,
-      isActive: renameTarget.isActive,
-    });
-    setRenameTarget(null);
-  };
-
-  const handleToggleActive = async (item: CategoryItem) => {
-    await toggleActiveMutation.mutateAsync(item);
-  };
-
-  const handleConfirmClear = async () => {
-    if (!deleteTarget) return;
-    await deleteMutation.mutateAsync({ id: deleteTarget.id });
-    setDeleteTarget(null);
-  };
-
-  const handleCreateCategory = async () => {
-    const name = newCategoryName.trim();
-    if (!name) {
-      toast.error("Nama kategori wajib diisi.");
-      return;
-    }
-    await createMutation.mutateAsync({ name });
-    setNewCategoryName("");
-    setNewCategoryOpen(false);
-  };
-
-  const busy =
-    renameMutation.isPending ||
-    toggleActiveMutation.isPending ||
-    deleteMutation.isPending ||
-    createMutation.isPending;
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col gap-3">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             Manajemen Kategori Produk
@@ -211,223 +144,23 @@ export function ProductCategoryManagementPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <Table className="w-full text-left">
-            <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-              <TableRow>
-                <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                  Nama Kategori
-                </TableHead>
-                <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-40">
-                  Jumlah Produk
-                </TableHead>
-                <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase w-40">
-                  Status
-                </TableHead>
-                <TableHead className="px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right">
-                  Aksi
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    Memuat kategori...
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {isError ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="px-6 py-10 text-center text-sm text-red-500"
-                  >
-                    Gagal memuat kategori.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {!isLoading && !isError && categories.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    Belum ada kategori yang tersedia.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {!isLoading &&
-                !isError &&
-                categories.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                      {item.name}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      {item.count} produk
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm">
-                      <Badge
-                        variant={item.isActive ? "default" : "secondary"}
-                        className={
-                          item.isActive
-                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300"
-                            : "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300"
-                        }
-                      >
-                        {item.isActive ? "Aktif" : "Nonaktif"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleActive(item)}
-                        disabled={busy}
-                        className={
-                          item.isActive
-                            ? "text-amber-600 border-amber-200 hover:bg-amber-50"
-                            : "text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-                        }
-                      >
-                        {item.isActive ? "Nonaktifkan" : "Aktifkan"}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenRename(item)}
-                        disabled={busy}
-                        className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-                      >
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Ubah
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeleteTarget(item)}
-                        disabled={busy}
-                        className="text-red-500 border-red-200 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Hapus
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
+          <TableShell
+            tableClassName="w-full text-left"
+            columns={columns}
+            data={isLoading || isError ? [] : filteredCategories}
+            getRowId={(row) => row.id}
+            loading={isLoading}
+            loadingState="Memuat kategori..."
+            emptyState={
+              isError
+                ? "Gagal memuat kategori."
+                : "Belum ada kategori yang tersedia."
+            }
+            headerClassName="bg-gray-50 dark:bg-gray-800/50"
+            bodyClassName="divide-y divide-gray-100 dark:divide-gray-700"
+          />
         </div>
       </div>
-
-      <Dialog
-        open={Boolean(renameTarget)}
-        onOpenChange={() => setRenameTarget(null)}
-      >
-        <DialogContent className="max-w-md">
-          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-            Ubah Nama Kategori
-          </DialogTitle>
-          <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Nama kategori baru
-            </label>
-            <Input
-              value={renameValue}
-              onChange={(event) => setRenameValue(event.target.value)}
-              placeholder="Masukkan nama kategori baru"
-              className="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Perubahan akan diterapkan ke seluruh produk pada kategori
-              tersebut.
-            </p>
-          </div>
-          <div className="mt-6 flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setRenameTarget(null)}
-              className="px-4 py-2 text-sm"
-            >
-              Batal
-            </Button>
-            <Button
-              type="button"
-              onClick={handleConfirmRename}
-              disabled={busy}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm"
-            >
-              {renameMutation.isPending ? "Menyimpan..." : "Simpan"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={newCategoryOpen} onOpenChange={setNewCategoryOpen}>
-        <DialogContent className="max-w-md">
-          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-            Tambah Kategori Baru
-          </DialogTitle>
-          <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Nama kategori
-            </label>
-            <Input
-              value={newCategoryName}
-              onChange={(event) => setNewCategoryName(event.target.value)}
-              placeholder="Masukkan nama kategori"
-              className="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
-            />
-          </div>
-          <div className="mt-6 flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setNewCategoryOpen(false)}
-              className="px-4 py-2 text-sm"
-            >
-              Batal
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCreateCategory}
-              disabled={busy}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm"
-            >
-              {createMutation.isPending ? "Menyimpan..." : "Simpan"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <ConfirmActionDialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-        title="Hapus Kategori?"
-        description={
-          deleteTarget ? (
-            <>
-              Semua produk dengan kategori{" "}
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {deleteTarget.name}
-              </span>{" "}
-              akan dihapus kategorinya. Tindakan ini tidak dapat dibatalkan.
-            </>
-          ) : null
-        }
-        confirmLabel="Hapus Kategori"
-        onConfirm={handleConfirmClear}
-        tone="destructive"
-      />
     </div>
   );
 }

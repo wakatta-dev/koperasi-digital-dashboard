@@ -31,7 +31,6 @@ import {
 } from "@/modules/marketplace/utils/status";
 import { OrderListHeader } from "./OrderListHeader";
 import { OrderTable } from "./OrderTable";
-import { OrderPagination } from "./OrderPagination";
 
 const PAGE_SIZE = 10;
 
@@ -198,14 +197,13 @@ export function OrderListPage() {
             },
           ];
         }}
-      />
-
-      <OrderPagination
-        page={page}
-        totalPages={totalPages}
-        from={rangeStart}
-        to={rangeEnd}
-        total={totalItems}
+        pagination={{
+          page,
+          pageSize: PAGE_SIZE,
+          totalItems,
+          totalPages,
+        }}
+        paginationInfo={`Menampilkan ${rangeStart}-${rangeEnd} dari ${totalItems} hasil`}
         onPageChange={setPage}
       />
 

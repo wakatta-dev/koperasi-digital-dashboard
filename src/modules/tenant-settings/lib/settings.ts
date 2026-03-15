@@ -19,7 +19,7 @@ const MANAGE_ROLES = new Set([
 const SETTINGS_TENANT_TYPE_FALLBACK = "bumdes";
 
 export const settingsSurfaceClassName =
-  "overflow-hidden p-0 rounded-[24px] border border-slate-200/80 bg-white/95 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/90";
+  "overflow-hidden p-0 rounded-md border border-slate-200/80 bg-white/95 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/90";
 
 export const settingsHeaderClassName =
   "border-b border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50/70 px-6 py-5 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/80";

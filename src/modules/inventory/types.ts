@@ -2,6 +2,7 @@
 
 export type InventoryItem = {
   id: string;
+  listingId?: string | number;
   name: string;
   sku: string;
   price: number;
@@ -13,6 +14,12 @@ export type InventoryItem = {
   trackStock: boolean;
   category?: string;
   image?: string;
+  sellerId?: string | number;
+  ownershipMode?: string;
+  channelTarget?: string;
+  publishabilityState?: string;
+  sourceStockType?: string;
+  sourceStockReference?: string;
   images?: Array<{
     id: number;
     url: string;

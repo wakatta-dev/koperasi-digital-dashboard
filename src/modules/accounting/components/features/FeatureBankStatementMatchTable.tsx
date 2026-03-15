@@ -2,19 +2,13 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/shared/inputs/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import type { BankStatementLineItem } from "../../types/bank-cash";
 
@@ -28,7 +22,8 @@ export function FeatureBankStatementMatchTable({
   onRowsChange,
 }: FeatureBankStatementMatchTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [internalRows, setInternalRows] = useState<BankStatementLineItem[]>(rows);
+  const [internalRows, setInternalRows] =
+    useState<BankStatementLineItem[]>(rows);
 
   useEffect(() => {
     if (!onRowsChange) {
@@ -46,7 +41,7 @@ export function FeatureBankStatementMatchTable({
     return currentRows.filter((row) =>
       `${row.description} ${row.amount} ${row.reference_no ?? ""}`
         .toLowerCase()
-        .includes(normalized)
+        .includes(normalized),
     );
   }, [currentRows, searchTerm]);
 
@@ -54,39 +49,127 @@ export function FeatureBankStatementMatchTable({
   const allSelected =
     selectableLineIds.length > 0 &&
     selectableLineIds.every((lineId) =>
-      currentRows.some((row) => row.line_id === lineId && row.is_selected)
+      currentRows.some((row) => row.line_id === lineId && row.is_selected),
     );
 
-  const applyRowsUpdate = (nextRows: BankStatementLineItem[]) => {
-    if (!onRowsChange) {
-      setInternalRows(nextRows);
-    }
-    onRowsChange?.(nextRows);
-  };
+  const applyRowsUpdate = useCallback(
+    (nextRows: BankStatementLineItem[]) => {
+      if (!onRowsChange) {
+        setInternalRows(nextRows);
+      }
+      onRowsChange?.(nextRows);
+    },
+    [onRowsChange],
+  );
 
-  const toggleRow = (lineId: string, checked: boolean) => {
-    applyRowsUpdate(
-      currentRows.map((row) =>
-        row.line_id === lineId ? { ...row, is_selected: checked } : row
-      )
-    );
-  };
+  const toggleRow = useCallback(
+    (lineId: string, checked: boolean) => {
+      applyRowsUpdate(
+        currentRows.map((row) =>
+          row.line_id === lineId ? { ...row, is_selected: checked } : row,
+        ),
+      );
+    },
+    [applyRowsUpdate, currentRows],
+  );
 
-  const toggleAllVisible = (checked: boolean) => {
-    applyRowsUpdate(
-      currentRows.map((row) =>
-        selectableLineIds.includes(row.line_id)
-          ? { ...row, is_selected: checked }
-          : row
-      )
-    );
-  };
+  const toggleAllVisible = useCallback(
+    (checked: boolean) => {
+      applyRowsUpdate(
+        currentRows.map((row) =>
+          selectableLineIds.includes(row.line_id)
+            ? { ...row, is_selected: checked }
+            : row,
+        ),
+      );
+    },
+    [applyRowsUpdate, selectableLineIds, currentRows],
+  );
+  const columns = useMemo<ColumnDef<BankStatementLineItem, unknown>[]>(
+    () => [
+      {
+        id: "select",
+        header: () => (
+          <Checkbox
+            checked={allSelected}
+            onCheckedChange={(checked) => toggleAllVisible(Boolean(checked))}
+            aria-label="Select all bank statement rows"
+          />
+        ),
+        meta: {
+          headerClassName: "w-8 px-4 py-3",
+          cellClassName: "px-4 py-3",
+        },
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.original.is_selected}
+            onCheckedChange={(checked) =>
+              toggleRow(row.original.line_id, Boolean(checked))
+            }
+            aria-label={`Select ${row.original.line_id}`}
+          />
+        ),
+      },
+      {
+        id: "date",
+        header: "Date",
+        meta: {
+          headerClassName: "px-4 py-3",
+          cellClassName:
+            "px-4 py-3 whitespace-nowrap text-gray-600 dark:text-gray-300",
+        },
+        cell: ({ row }) => row.original.date,
+      },
+      {
+        id: "description",
+        header: "Description",
+        meta: {
+          headerClassName: "px-4 py-3",
+          cellClassName: "px-4 py-3",
+        },
+        cell: ({ row }) => (
+          <>
+            <p className="font-medium text-gray-900 dark:text-white">
+              {row.original.description}
+            </p>
+            {row.original.reference_no ? (
+              <p className="text-xs text-gray-500">
+                Ref: {row.original.reference_no}
+              </p>
+            ) : null}
+          </>
+        ),
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        meta: {
+          align: "right",
+          headerClassName: "px-4 py-3 text-right",
+        },
+        cell: ({ row }) => (
+          <div
+            className={`px-4 py-3 text-right font-medium ${
+              row.original.direction === "Credit"
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-gray-900 dark:text-white"
+            }`}
+          >
+            {row.original.amount}
+          </div>
+        ),
+      },
+    ],
+    [allSelected, toggleAllVisible, toggleRow],
+  );
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
       <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50/50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Bank Statement</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">
+            Bank Statement
+          </h3>
           <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
             {currentRows.length} lines
           </span>
@@ -106,66 +189,17 @@ export function FeatureBankStatementMatchTable({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:bg-gray-800">
-              <TableHead className="w-8 px-4 py-3">
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={(checked) => toggleAllVisible(Boolean(checked))}
-                  aria-label="Select all bank statement rows"
-                />
-              </TableHead>
-              <TableHead className="px-4 py-3">Date</TableHead>
-              <TableHead className="px-4 py-3">Description</TableHead>
-              <TableHead className="px-4 py-3 text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredRows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="px-4 py-10 text-center text-sm text-gray-500">
-                  Tidak ada bank statement line.
-                </TableCell>
-              </TableRow>
-            ) : null}
-            {filteredRows.map((row) => (
-              <TableRow
-                key={row.line_id}
-                className={row.is_selected ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""}
-              >
-                <TableCell className="px-4 py-3">
-                  <Checkbox
-                    checked={row.is_selected}
-                    onCheckedChange={(checked) =>
-                      toggleRow(row.line_id, Boolean(checked))
-                    }
-                    aria-label={`Select ${row.line_id}`}
-                  />
-                </TableCell>
-                <TableCell className="px-4 py-3 whitespace-nowrap text-gray-600 dark:text-gray-300">
-                  {row.date}
-                </TableCell>
-                <TableCell className="px-4 py-3">
-                  <p className="font-medium text-gray-900 dark:text-white">{row.description}</p>
-                  {row.reference_no ? (
-                    <p className="text-xs text-gray-500">Ref: {row.reference_no}</p>
-                  ) : null}
-                </TableCell>
-                <TableCell
-                  className={`px-4 py-3 text-right font-medium ${
-                    row.direction === "Credit"
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-gray-900 dark:text-white"
-                  }`}
-                >
-                  {row.amount}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <TableShell
+          columns={columns}
+          data={filteredRows}
+          getRowId={(row) => row.line_id}
+          emptyState="Tidak ada bank statement line."
+          headerRowClassName="bg-gray-50 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:bg-gray-800"
+          rowClassName={(row) =>
+            row.is_selected ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""
+          }
+        />
       </div>
     </div>
   );

@@ -3,19 +3,17 @@
 "use client";
 
 import Link from "next/link";
+import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import type { AdminTenantListItem } from "@/types/api";
-import { formatVendorDate, normalizeTenantStatus, tenantStatusBadgeClass } from "../utils/format";
+import {
+  formatVendorDate,
+  normalizeTenantStatus,
+  tenantStatusBadgeClass,
+} from "../utils/format";
 import { VENDOR_ROUTES } from "../constants/routes";
 
 type VendorTenantTableProps = {
@@ -27,6 +25,70 @@ type VendorTenantTableProps = {
   loading?: boolean;
 };
 
+const columns: ColumnDef<AdminTenantListItem, unknown>[] = [
+  {
+    id: "tenant",
+    header: "Tenant",
+    cell: ({ row }) => (
+      <div className="space-y-1">
+        <div className="font-medium text-foreground">
+          {row.original.display_name || row.original.name}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {row.original.tenant_code} · {row.original.contact_email || "-"}
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: "type",
+    header: "Tipe",
+    cell: ({ row }) => (
+      <span className="uppercase">{row.original.business_type}</span>
+    ),
+  },
+  {
+    id: "domain",
+    header: "Domain",
+    cell: ({ row }) => row.original.domain || "-",
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <Badge
+        className={tenantStatusBadgeClass(
+          row.original.status,
+          row.original.is_active,
+        )}
+      >
+        {normalizeTenantStatus(row.original.status, row.original.is_active)}
+      </Badge>
+    ),
+  },
+  {
+    id: "createdAt",
+    header: "Dibuat",
+    cell: ({ row }) => formatVendorDate(row.original.created_at),
+  },
+  {
+    id: "actions",
+    header: "Aksi",
+    meta: {
+      align: "right",
+    },
+    cell: ({ row }) => (
+      <div className="text-right">
+        <Button asChild size="sm" variant="outline">
+          <Link href={VENDOR_ROUTES.clientOverview(row.original.id)}>
+            Detail
+          </Link>
+        </Button>
+      </div>
+    ),
+  },
+];
+
 export function VendorTenantTable({
   items,
   canGoBack,
@@ -37,77 +99,39 @@ export function VendorTenantTable({
 }: VendorTenantTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Tenant</TableHead>
-            <TableHead>Tipe</TableHead>
-            <TableHead>Domain</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Dibuat</TableHead>
-            <TableHead className="text-right">Aksi</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="font-medium text-foreground">{item.display_name || item.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {item.tenant_code} · {item.contact_email || "-"}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className="uppercase">{item.business_type}</TableCell>
-              <TableCell>{item.domain || "-"}</TableCell>
-              <TableCell>
-                <Badge className={tenantStatusBadgeClass(item.status, item.is_active)}>
-                  {normalizeTenantStatus(item.status, item.is_active)}
-                </Badge>
-              </TableCell>
-              <TableCell>{formatVendorDate(item.created_at)}</TableCell>
-              <TableCell className="text-right">
-                <Button asChild size="sm" variant="outline">
-                  <Link href={VENDOR_ROUTES.clientOverview(item.id)}>Detail</Link>
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-
-          {!loading && items.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                Tidak ada tenant yang cocok dengan filter saat ini.
-              </TableCell>
-            </TableRow>
-          ) : null}
-
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                Memuat daftar tenant...
-              </TableCell>
-            </TableRow>
-          ) : null}
-        </TableBody>
-      </Table>
-
-      <div className="flex items-center justify-between border-t px-4 py-3">
-        <p className="text-xs text-muted-foreground">
-          Pagination berbasis cursor admin tenant management.
-        </p>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={!canGoBack} onClick={onPrevious}>
-            <ChevronLeft className="mr-2 h-4 w-4" />
+      <TableShell
+        className="space-y-0"
+        columns={columns}
+        data={items}
+        getRowId={(row) => String(row.id)}
+        loading={loading}
+        loadingState="Memuat daftar tenant..."
+        emptyState="Tidak ada tenant yang cocok dengan filter saat ini."
+        surface="bare"
+        pagination={{
+          mode: "cursor",
+          hasPrev: canGoBack,
+          hasNext: canGoNext,
+          itemCount: items.length,
+        }}
+        onPrevPage={canGoBack ? onPrevious : undefined}
+        onNextPage={canGoNext ? onNext : undefined}
+        paginationInfo="Pagination berbasis cursor admin tenant management."
+        paginationClassName="rounded-none border-x-0 border-b-0 bg-transparent px-4 py-3"
+        paginationInfoClassName="text-xs"
+        previousPageLabel={
+          <>
+            <ChevronLeft className="h-4 w-4" />
             Sebelumnya
-          </Button>
-          <Button size="sm" variant="outline" disabled={!canGoNext} onClick={onNext}>
+          </>
+        }
+        nextPageLabel={
+          <>
             Berikutnya
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+            <ChevronRight className="h-4 w-4" />
+          </>
+        }
+      />
     </div>
   );
 }

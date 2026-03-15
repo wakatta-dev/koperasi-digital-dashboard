@@ -22,14 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import { INITIAL_CREATE_VENDOR_BILL_DRAFT } from "../../constants/vendor-bills-ap-initial-state";
 import type {
@@ -54,7 +47,9 @@ export function FeatureCreateVendorBillModal({
   errorMessage,
   vendorOptions = [],
 }: FeatureCreateVendorBillModalProps) {
-  const [draft, setDraft] = useState<CreateVendorBillDraft>(INITIAL_CREATE_VENDOR_BILL_DRAFT);
+  const [draft, setDraft] = useState<CreateVendorBillDraft>(
+    INITIAL_CREATE_VENDOR_BILL_DRAFT,
+  );
 
   const computedTotals = useMemo(() => {
     const subtotalValue = draft.line_items.reduce((total, item) => {
@@ -64,7 +59,10 @@ export function FeatureCreateVendorBillModal({
     const taxValue = 0;
 
     return {
-      subtotal: subtotalValue > 0 ? `Rp ${subtotalValue.toLocaleString("id-ID")}` : "Rp 0",
+      subtotal:
+        subtotalValue > 0
+          ? `Rp ${subtotalValue.toLocaleString("id-ID")}`
+          : "Rp 0",
       tax: taxValue > 0 ? `Rp ${taxValue.toLocaleString("id-ID")}` : "Rp 0",
       total:
         subtotalValue + taxValue > 0
@@ -75,11 +73,13 @@ export function FeatureCreateVendorBillModal({
 
   const updateLineItem = (
     lineId: string,
-    updater: (current: CreateVendorBillLineItem) => CreateVendorBillLineItem
+    updater: (current: CreateVendorBillLineItem) => CreateVendorBillLineItem,
   ) => {
     setDraft((current) => ({
       ...current,
-      line_items: current.line_items.map((line) => (line.id === lineId ? updater(line) : line)),
+      line_items: current.line_items.map((line) =>
+        line.id === lineId ? updater(line) : line,
+      ),
     }));
   };
 
@@ -110,7 +110,10 @@ export function FeatureCreateVendorBillModal({
                 value={draft.vendor_name}
                 placeholder="Type vendor name"
                 onChange={(event) =>
-                  setDraft((current) => ({ ...current, vendor_name: event.target.value }))
+                  setDraft((current) => ({
+                    ...current,
+                    vendor_name: event.target.value,
+                  }))
                 }
                 className="border-gray-200 bg-gray-50 text-sm dark:border-gray-700 dark:bg-gray-800"
                 list="vendor-bill-vendor-options"
@@ -133,7 +136,10 @@ export function FeatureCreateVendorBillModal({
                 value={draft.bill_number}
                 placeholder="e.g. INV-2024-001"
                 onChange={(event) =>
-                  setDraft((current) => ({ ...current, bill_number: event.target.value }))
+                  setDraft((current) => ({
+                    ...current,
+                    bill_number: event.target.value,
+                  }))
                 }
                 className="border-gray-200 bg-gray-50 text-sm dark:border-gray-700 dark:bg-gray-800"
               />
@@ -156,7 +162,10 @@ export function FeatureCreateVendorBillModal({
                 type="date"
                 value={draft.bill_date}
                 onChange={(event) =>
-                  setDraft((current) => ({ ...current, bill_date: event.target.value }))
+                  setDraft((current) => ({
+                    ...current,
+                    bill_date: event.target.value,
+                  }))
                 }
                 className="border-gray-200 bg-gray-50 text-sm dark:border-gray-700 dark:bg-gray-800"
               />
@@ -170,7 +179,10 @@ export function FeatureCreateVendorBillModal({
                 type="date"
                 value={draft.due_date}
                 onChange={(event) =>
-                  setDraft((current) => ({ ...current, due_date: event.target.value }))
+                  setDraft((current) => ({
+                    ...current,
+                    due_date: event.target.value,
+                  }))
                 }
                 className="border-gray-200 bg-gray-50 text-sm dark:border-gray-700 dark:bg-gray-800"
               />
@@ -179,7 +191,9 @@ export function FeatureCreateVendorBillModal({
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white">Line Items</h3>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                Line Items
+              </h3>
               <Button
                 type="button"
                 variant="ghost"
@@ -208,120 +222,167 @@ export function FeatureCreateVendorBillModal({
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
-              <Table>
-                <TableHeader className="bg-gray-50 text-[10px] tracking-wider text-gray-500 uppercase dark:bg-gray-800/50">
-                  <TableRow>
-                    <TableHead className="w-48 px-4 py-3">Product/Service</TableHead>
-                    <TableHead className="px-4 py-3">Description</TableHead>
-                    <TableHead className="w-20 px-4 py-3 text-center">Qty</TableHead>
-                    <TableHead className="w-32 px-4 py-3">Price</TableHead>
-                    <TableHead className="w-28 px-4 py-3">Tax</TableHead>
-                    <TableHead className="w-32 px-4 py-3 text-right">Amount</TableHead>
-                    <TableHead className="w-10 px-4 py-3" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {draft.line_items.map((line) => (
-                    <TableRow key={line.id}>
-                      <TableCell className="px-4 py-3">
-                        <Input
-                          value={line.product_or_service}
-                          placeholder="Search product..."
-                          onChange={(event) =>
-                            updateLineItem(line.id, (current) => ({
-                              ...current,
-                              product_or_service: event.target.value,
-                            }))
-                          }
-                          className="border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <Input
-                          value={line.description}
-                          placeholder="Detailed description..."
-                          onChange={(event) =>
-                            updateLineItem(line.id, (current) => ({
-                              ...current,
-                              description: event.target.value,
-                            }))
-                          }
-                          className="border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <Input
-                          value={line.qty}
-                          type="number"
-                          onChange={(event) =>
-                            updateLineItem(line.id, (current) => ({
-                              ...current,
-                              qty: event.target.value,
-                            }))
-                          }
-                          className="border-none bg-transparent p-0 text-center text-sm shadow-none focus-visible:ring-0"
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <Input
-                          value={line.price}
-                          placeholder="0.00"
-                          onChange={(event) =>
-                            updateLineItem(line.id, (current) => ({
-                              ...current,
-                              price: event.target.value,
-                              amount: event.target.value || "0",
-                            }))
-                          }
-                          className="border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                          <Select
-                          value={line.tax_name || "__empty"}
-                          onValueChange={(value) =>
-                            updateLineItem(line.id, (current) => ({
-                              ...current,
-                              tax_name: value === "__empty" ? "" : value,
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="h-auto border-none bg-transparent p-0 text-sm shadow-none focus:ring-0">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__empty">No tax</SelectItem>
-                            <SelectItem value="VAT 11%">VAT 11%</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
-                        {line.amount || "0.00"}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            setDraft((current) => ({
-                              ...current,
-                              line_items:
-                                current.line_items.length === 1
-                                  ? current.line_items
-                                  : current.line_items.filter((item) => item.id !== line.id),
-                            }))
-                          }
-                          className="h-8 w-8 text-gray-400 hover:text-red-500"
-                          aria-label={`Remove line ${line.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <TableShell
+                columns={[
+                  {
+                    id: "product_or_service",
+                    header: <>Product/Service</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.product_or_service}
+                        placeholder="Search product..."
+                        onChange={(event) =>
+                          updateLineItem(row.original.id, (current) => ({
+                            ...current,
+                            product_or_service: event.target.value,
+                          }))
+                        }
+                        className="border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "w-48 px-4 py-3",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "description",
+                    header: <>Description</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.description}
+                        placeholder="Detailed description..."
+                        onChange={(event) =>
+                          updateLineItem(row.original.id, (current) => ({
+                            ...current,
+                            description: event.target.value,
+                          }))
+                        }
+                        className="border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "px-4 py-3",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "qty",
+                    header: <>Qty</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.qty}
+                        type="number"
+                        onChange={(event) =>
+                          updateLineItem(row.original.id, (current) => ({
+                            ...current,
+                            qty: event.target.value,
+                          }))
+                        }
+                        className="border-none bg-transparent p-0 text-center text-sm shadow-none focus-visible:ring-0"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "w-20 px-4 py-3 text-center",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "price",
+                    header: <>Price</>,
+                    cell: ({ row }) => (
+                      <Input
+                        value={row.original.price}
+                        placeholder="0.00"
+                        onChange={(event) =>
+                          updateLineItem(row.original.id, (current) => ({
+                            ...current,
+                            price: event.target.value,
+                            amount: event.target.value || "0",
+                          }))
+                        }
+                        className="border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+                      />
+                    ),
+                    meta: {
+                      headerClassName: "w-32 px-4 py-3",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "tax_name",
+                    header: <>Tax</>,
+                    cell: ({ row }) => (
+                      <Select
+                        value={row.original.tax_name || "__empty"}
+                        onValueChange={(value) =>
+                          updateLineItem(row.original.id, (current) => ({
+                            ...current,
+                            tax_name: value === "__empty" ? "" : value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="h-auto border-none bg-transparent p-0 text-sm shadow-none focus:ring-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__empty">No tax</SelectItem>
+                          <SelectItem value="VAT 11%">VAT 11%</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ),
+                    meta: {
+                      headerClassName: "w-28 px-4 py-3",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                  {
+                    id: "amount",
+                    header: <>Amount</>,
+                    cell: ({ row }) => row.original.amount || "0.00",
+                    meta: {
+                      headerClassName: "w-32 px-4 py-3 text-right",
+                      cellClassName:
+                        "px-4 py-3 text-right font-medium text-gray-900 dark:text-white",
+                    },
+                  },
+                  {
+                    id: "actions",
+                    header: "",
+                    cell: ({ row }) => (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            line_items:
+                              current.line_items.length === 1
+                                ? current.line_items
+                                : current.line_items.filter(
+                                    (item) => item.id !== row.original.id,
+                                  ),
+                          }))
+                        }
+                        className="h-8 w-8 text-gray-400 hover:text-red-500"
+                        aria-label={`Remove line ${row.original.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ),
+                    meta: {
+                      headerClassName: "w-10 px-4 py-3",
+                      cellClassName: "px-4 py-3",
+                    },
+                  },
+                ]}
+                data={draft.line_items}
+                getRowId={(row) => row.id}
+                headerClassName="bg-gray-50 text-[10px] tracking-wider text-gray-500 uppercase dark:bg-gray-800/50"
+                bodyClassName="divide-y divide-gray-100 dark:divide-gray-700"
+                rowHoverable={false}
+              />
             </div>
 
             <div className="flex flex-col items-end gap-2 text-sm">
@@ -334,8 +395,12 @@ export function FeatureCreateVendorBillModal({
                 <span className="font-medium">{computedTotals.tax}</span>
               </div>
               <div className="flex w-48 justify-between border-t border-gray-100 py-2 dark:border-gray-700">
-                <span className="font-bold text-gray-900 dark:text-white">Total</span>
-                <span className="font-bold text-indigo-600">{computedTotals.total}</span>
+                <span className="font-bold text-gray-900 dark:text-white">
+                  Total
+                </span>
+                <span className="font-bold text-indigo-600">
+                  {computedTotals.total}
+                </span>
               </div>
             </div>
           </div>

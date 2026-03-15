@@ -3,6 +3,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Calendar, Search, MoreVertical } from "lucide-react";
 import Link from "next/link";
 
@@ -17,14 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 
 import { INVOICE_STATUS_BADGE_CLASS } from "../../constants/stitch";
 import type { InvoiceListItem, InvoiceStatus } from "../../types/invoicing-ar";
@@ -62,12 +56,118 @@ export function FeatureInvoiceTable({
   const currentPage = Math.min(page, pageCount);
   const pagedRows = filteredRows.slice(
     (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+    currentPage * PAGE_SIZE,
+  );
+  const columns = useMemo<ColumnDef<InvoiceListItem, unknown>[]>(
+    () => [
+      {
+        id: "invoiceNumber",
+        header: "Invoice Number",
+        meta: {
+          headerClassName: "px-6 py-3",
+          cellClassName:
+            "px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400",
+        },
+        cell: ({ row }) =>
+          getInvoiceHref ? (
+            <Link
+              className="hover:underline"
+              href={getInvoiceHref(row.original)}
+            >
+              {row.original.invoice_number}
+            </Link>
+          ) : (
+            row.original.invoice_number
+          ),
+      },
+      {
+        id: "customer",
+        header: "Customer",
+        meta: {
+          headerClassName: "px-6 py-3",
+          cellClassName: "px-6 py-4 text-gray-900 dark:text-white",
+        },
+        cell: ({ row }) => row.original.customer_name,
+      },
+      {
+        id: "date",
+        header: "Date",
+        meta: {
+          headerClassName: "px-6 py-3",
+          cellClassName: "px-6 py-4 text-gray-500",
+        },
+        cell: ({ row }) => row.original.invoice_date,
+      },
+      {
+        id: "dueDate",
+        header: "Due Date",
+        meta: { headerClassName: "px-6 py-3" },
+        cell: ({ row }) => (
+          <div
+            className={`px-6 py-4 ${
+              row.original.status === "Overdue"
+                ? "font-medium text-red-500"
+                : "text-gray-500"
+            }`}
+          >
+            {row.original.due_date}
+          </div>
+        ),
+      },
+      {
+        id: "totalAmount",
+        header: "Total Amount",
+        meta: {
+          align: "right",
+          headerClassName: "px-6 py-3 text-right",
+          cellClassName:
+            "px-6 py-4 text-right font-medium text-gray-900 dark:text-white",
+        },
+        cell: ({ row }) => row.original.total_amount,
+      },
+      {
+        id: "status",
+        header: "Status",
+        meta: {
+          align: "center",
+          headerClassName: "px-6 py-3 text-center",
+          cellClassName: "px-6 py-4 text-center",
+        },
+        cell: ({ row }) => (
+          <Badge
+            className={`rounded-full px-2.5 py-0.5 text-xs ${INVOICE_STATUS_BADGE_CLASS[row.original.status]}`}
+          >
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        id: "action",
+        header: "Action",
+        meta: {
+          align: "right",
+          headerClassName: "px-6 py-3 text-right",
+          cellClassName: "px-6 py-4 text-right",
+        },
+        cell: () => (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-gray-400 hover:text-indigo-600"
+          >
+            <MoreVertical className="h-4 w-4" />
+            <span className="sr-only">Open invoice action</span>
+          </Button>
+        ),
+      },
+    ],
+    [getInvoiceHref],
   );
 
   return (
     <Card className="border-gray-200 shadow-sm dark:border-gray-700">
-      <CardHeader className="flex flex-col gap-4 border-b border-gray-200 p-5 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
+      <CardHeader className="flex flex-col gap-4 border-b border-gray-200 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="whitespace-nowrap text-lg font-bold text-gray-900 dark:text-white">
           Daftar Invoice
         </h3>
@@ -116,108 +216,29 @@ export function FeatureInvoiceTable({
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-            <TableRow className="border-b border-gray-200 dark:border-gray-700">
-              <TableHead className="px-6 py-3">Invoice Number</TableHead>
-              <TableHead className="px-6 py-3">Customer</TableHead>
-              <TableHead className="px-6 py-3">Date</TableHead>
-              <TableHead className="px-6 py-3">Due Date</TableHead>
-              <TableHead className="px-6 py-3 text-right">Total Amount</TableHead>
-              <TableHead className="px-6 py-3 text-center">Status</TableHead>
-              <TableHead className="px-6 py-3 text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pagedRows.length === 0 ? (
-              <TableRow>
-                <TableCell className="px-6 py-10 text-center text-sm text-gray-500" colSpan={7}>
-                  No invoice rows found.
-                </TableCell>
-              </TableRow>
-            ) : null}
-
-            {pagedRows.map((row) => (
-              <TableRow
-                key={row.invoice_number}
-                className="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
-              >
-                <TableCell className="px-6 py-4 font-medium text-indigo-600 dark:text-indigo-400">
-                  {getInvoiceHref ? (
-                    <Link className="hover:underline" href={getInvoiceHref(row)}>
-                      {row.invoice_number}
-                    </Link>
-                  ) : (
-                    row.invoice_number
-                  )}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-gray-900 dark:text-white">
-                  {row.customer_name}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-gray-500">{row.invoice_date}</TableCell>
-                <TableCell
-                  className={`px-6 py-4 ${
-                    row.status === "Overdue" ? "font-medium text-red-500" : "text-gray-500"
-                  }`}
-                >
-                  {row.due_date}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-right font-medium text-gray-900 dark:text-white">
-                  {row.total_amount}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-center">
-                  <Badge
-                    className={`rounded-full px-2.5 py-0.5 text-xs ${INVOICE_STATUS_BADGE_CLASS[row.status]}`}
-                  >
-                    {row.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="px-6 py-4 text-right">
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-gray-400 hover:text-indigo-600"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">Open invoice action</span>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        <div className="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Showing {filteredRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} to{" "}
-            {Math.min(currentPage * PAGE_SIZE, filteredRows.length)} of {filteredRows.length} entries
-          </span>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage <= 1}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
-            >
-              Previous
-            </Button>
-            <Button type="button" size="sm" className="bg-indigo-600 text-white hover:bg-indigo-700">
-              {currentPage}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={currentPage >= pageCount}
-              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+      <CardContent className="px-6">
+        <TableShell
+          className="border border-border rounded-xl overflow-hidden space-y-0"
+          columns={columns}
+          data={pagedRows}
+          getRowId={(row) => row.invoice_number}
+          emptyState="No invoice rows found."
+          headerClassName="bg-gray-50 dark:bg-gray-800/50"
+          headerRowClassName="border-b border-gray-200 dark:border-gray-700"
+          rowClassName="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50"
+          pagination={{
+            page: currentPage,
+            pageSize: PAGE_SIZE,
+            totalItems: filteredRows.length,
+            totalPages: pageCount,
+          }}
+          paginationInfo={`Showing ${filteredRows.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} to ${Math.min(currentPage * PAGE_SIZE, filteredRows.length)} of ${filteredRows.length} entries`}
+          onPrevPage={() => setPage((value) => Math.max(1, value - 1))}
+          onNextPage={() => setPage((value) => Math.min(pageCount, value + 1))}
+          paginationClassName="rounded-none border-x-0 border-b-0 p-4 dark:border-gray-700"
+          previousPageLabel="Previous"
+          nextPageLabel="Next"
+        />
       </CardContent>
     </Card>
   );

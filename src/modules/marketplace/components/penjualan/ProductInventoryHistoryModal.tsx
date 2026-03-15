@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Calendar,
   ChevronLeft,
@@ -10,6 +11,7 @@ import {
   Download,
   Search,
 } from "lucide-react";
+
 import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -20,14 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableShell } from "@/components/shared/data-display/TableShell";
 import { toDayBounds } from "@/lib/datetime";
 import type { InventoryEvent } from "@/modules/marketplace/types";
 
@@ -149,14 +144,7 @@ export function ProductInventoryHistoryModal({
 
   const handleExport = () => {
     const csvRows = [
-      [
-        "Tanggal",
-        "Waktu",
-        "Tipe Aktivitas",
-        "Referensi",
-        "Perubahan",
-        "Stok Akhir",
-      ],
+      ["Tanggal", "Waktu", "Tipe Aktivitas", "Referensi", "Perubahan", "Stok Akhir"],
       ...rows.map((row) => [
         row.date,
         row.time,
@@ -175,6 +163,92 @@ export function ProductInventoryHistoryModal({
     URL.revokeObjectURL(link.href);
   };
 
+  const columns: ColumnDef<HistoryRow, unknown>[] = [
+    {
+      id: "dateTime",
+      header: "Tanggal & Waktu",
+      meta: {
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+        cellClassName: "px-6 py-4 whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <>
+          <div className="text-sm font-medium text-gray-900 dark:text-white">
+            {row.original.date}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {row.original.time}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: "type",
+      header: "Tipe Aktivitas",
+      meta: {
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+        cellClassName: "px-6 py-4 whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <span
+          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${badgeClass[row.original.type]}`}
+        >
+          {row.original.type}
+        </span>
+      ),
+    },
+    {
+      id: "reference",
+      header: "Referensi",
+      meta: {
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase",
+        cellClassName: "px-6 py-4",
+      },
+      cell: ({ row }) => (
+        <span className="text-sm text-indigo-600 hover:underline font-medium break-words">
+          {row.original.reference}
+        </span>
+      ),
+    },
+    {
+      id: "delta",
+      header: "Perubahan (+/-)",
+      meta: {
+        align: "center",
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-center",
+        cellClassName: "px-6 py-4 whitespace-nowrap text-center",
+      },
+      cell: ({ row }) => (
+        <span
+          className={`text-sm font-bold ${
+            row.original.delta >= 0
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400"
+          }`}
+        >
+          {row.original.delta >= 0 ? "+" : ""}
+          {row.original.delta} Unit
+        </span>
+      ),
+    },
+    {
+      id: "balance",
+      header: "Stok Akhir",
+      meta: {
+        align: "right",
+        headerClassName:
+          "px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right",
+        cellClassName:
+          "px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900 dark:text-white",
+      },
+      cell: ({ row }) => `${row.original.balance} Unit`,
+    },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -182,9 +256,7 @@ export function ProductInventoryHistoryModal({
         className="w-[calc(100vw-2rem)] !max-w-[calc(100vw-2rem)] xl:!max-w-[1260px] rounded-2xl border border-white/50 bg-white p-0 shadow-[0_30px_90px_rgba(2,6,23,0.5)] dark:border-slate-700 dark:bg-slate-900"
         showCloseButton={false}
       >
-        <DialogTitle className="sr-only">
-          Riwayat Inventaris Lengkap
-        </DialogTitle>
+        <DialogTitle className="sr-only">Riwayat Inventaris Lengkap</DialogTitle>
         <div className="flex h-[min(92vh,960px)] min-w-0 flex-col">
           <div className="min-w-0 space-y-6 overflow-y-auto overflow-x-hidden p-6 md:p-8 lg:p-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -296,106 +368,42 @@ export function ProductInventoryHistoryModal({
             </div>
 
             <div className="w-full min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-slate-900">
-              <div className="w-full overflow-x-auto">
-                <Table className="min-w-[920px] w-full text-left">
-                <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
-                  <TableRow>
-                    <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                      Tanggal & Waktu
-                    </TableHead>
-                    <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                      Tipe Aktivitas
-                    </TableHead>
-                    <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                      Referensi
-                    </TableHead>
-                    <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-center">
-                      Perubahan (+/-)
-                    </TableHead>
-                    <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase text-right">
-                      Stok Akhir
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {pagedRows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    >
-                      <TableCell className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {row.date}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {row.time}
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${badgeClass[row.type]}`}
-                        >
-                          {row.type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <span className="text-sm text-indigo-600 hover:underline font-medium break-words">
-                          {row.reference}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 whitespace-nowrap text-center">
-                        <span
-                          className={`text-sm font-bold ${
-                            row.delta >= 0
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                          }`}
-                        >
-                          {row.delta >= 0 ? "+" : ""}
-                          {row.delta} Unit
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900 dark:text-white">
-                        {row.balance} Unit
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-                </Table>
-              </div>
-              <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Menampilkan {pagedRows.length} dari {rows.length} riwayat
-                  ditemukan
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
-                    disabled={page <= 1}
-                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  >
+              <TableShell
+                className="space-y-0"
+                containerClassName="w-full overflow-x-auto"
+                tableClassName="min-w-[920px] w-full text-left"
+                columns={columns}
+                data={pagedRows}
+                getRowId={(row) => row.id}
+                emptyState="Belum ada riwayat inventory."
+                headerClassName="bg-gray-50 dark:bg-gray-800/50"
+                rowClassName="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                surface="bare"
+                pagination={{
+                  page,
+                  pageSize: pageSize,
+                  totalItems: rows.length,
+                  totalPages,
+                }}
+                paginationInfo={`Halaman ${page} dari ${totalPages} • ${rows.length} aktivitas`}
+                onPrevPage={() => setPage((current) => Math.max(1, current - 1))}
+                onNextPage={() =>
+                  setPage((current) => Math.min(totalPages, current + 1))
+                }
+                paginationClassName="rounded-none border-x-0 border-b-0 px-6 py-4 dark:border-gray-700"
+                previousPageLabel={
+                  <>
                     <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-900 dark:border-gray-700 dark:bg-slate-900 dark:text-white">
-                    {page}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-indigo-600 transition-colors"
-                    disabled={page >= totalPages}
-                    onClick={() =>
-                      setPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                  >
+                    Previous
+                  </>
+                }
+                nextPageLabel={
+                  <>
+                    Next
                     <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                  </>
+                }
+              />
             </div>
           </div>
         </div>

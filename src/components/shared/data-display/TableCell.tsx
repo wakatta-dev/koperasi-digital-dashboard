@@ -25,12 +25,16 @@ export function TableCell({
   scope,
 }: TableCellProps) {
   const alignClass =
-    align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+    align === "right"
+      ? "text-right"
+      : align === "center"
+        ? "text-center"
+        : "text-left";
 
   const cellClassName = cn(
     "px-6 py-4 align-middle text-sm text-foreground",
     alignClass,
-    className
+    className,
   );
 
   if (as === "th") {
