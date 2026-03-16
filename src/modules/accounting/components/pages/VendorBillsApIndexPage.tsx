@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 import {
   useAccountingApBillMutations,
@@ -23,7 +24,6 @@ import {
   normalizeVendorBillStatus,
 } from "../../utils/formatters";
 import { FeatureCreateVendorBillModal } from "../features/FeatureCreateVendorBillModal";
-import { FeatureVendorBillsSummaryCards } from "../features/FeatureVendorBillsSummaryCards";
 import { FeatureVendorBillsTable } from "../features/FeatureVendorBillsTable";
 
 const AVATAR_TONES = [
@@ -58,14 +58,16 @@ export function VendorBillsApIndexPage() {
     return `${VENDOR_BILLS_AP_ROUTES.batchPayment}?bills=${encodeURIComponent(selectedBillNumbers.join(","))}`;
   }, [selectedBillNumbers]);
 
-  const summaryMetrics = useMemo(
+  const summaryItems = useMemo<KpiItem[]>(
     () =>
-      overviewQuery.data?.cards?.map((card) => ({
-        key: card.key,
+      (overviewQuery.data?.cards ?? []).map((card) => ({
+        id: card.key,
         label: card.label,
         value: card.value,
-        helper_text: card.helper_text,
-        status_tone: card.status_tone,
+        tone: card.status_tone,
+        footer: (
+          <p className="text-xs text-muted-foreground">{card.helper_text}</p>
+        ),
       })),
     [overviewQuery.data?.cards]
   );
@@ -174,7 +176,14 @@ export function VendorBillsApIndexPage() {
         </div>
       ) : null}
 
-      <FeatureVendorBillsSummaryCards metrics={summaryMetrics} />
+      <KpiCards
+        items={summaryItems ?? []}
+        emptyState={
+          <div className="rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500">
+            Ringkasan vendor bill belum tersedia.
+          </div>
+        }
+      />
 
       {billsQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

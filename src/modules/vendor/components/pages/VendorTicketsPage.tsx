@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useVendorSupportQueue } from "@/hooks/queries";
-import { VendorKpiGrid } from "../VendorKpiGrid";
 import { VendorPageHeader } from "../VendorPageHeader";
 import { VENDOR_ROUTES } from "../../constants/routes";
 import { formatVendorDateTime } from "../../utils/format";
@@ -147,31 +147,47 @@ export function VendorTicketsPage() {
     setPage((current) => Math.min(current, totalPages));
   }, [totalPages]);
 
-  const kpis = useMemo(
+  const kpiItems = useMemo<KpiItem[]>(
     () => [
       {
         id: "support_total_open",
         label: "Open Cases",
         value: queueQuery.data?.analytics.total_open ?? 0,
-        helper: "Case turunan dari signal operasional yang butuh follow-up",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Case turunan dari signal operasional yang butuh follow-up
+          </p>
+        ),
       },
       {
         id: "support_high_priority",
         label: "High Priority",
         value: queueQuery.data?.analytics.total_high_priority ?? 0,
-        helper: "Prioritas tinggi di queue saat ini",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Prioritas tinggi di queue saat ini
+          </p>
+        ),
       },
       {
         id: "support_sla_breach",
         label: "SLA Breach",
         value: queueQuery.data?.analytics.sla_breaches ?? 0,
-        helper: "Case yang melewati target working SLA",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Case yang melewati target working SLA
+          </p>
+        ),
       },
       {
         id: "support_billing_cases",
         label: "Billing Cases",
         value: queueQuery.data?.analytics.billing_cases ?? 0,
-        helper: "Berasal dari invoice overdue",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Berasal dari invoice overdue
+          </p>
+        ),
       },
     ],
     [queueQuery.data?.analytics],
@@ -192,7 +208,7 @@ export function VendorTicketsPage() {
         }
       />
 
-      <VendorKpiGrid items={kpis} />
+      <KpiCards items={kpiItems} columns={{ md: 2, xl: 4 }} />
 
       <Card className="border-border/70">
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

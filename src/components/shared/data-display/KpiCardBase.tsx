@@ -16,7 +16,10 @@ export type KpiTone =
   | "info"
   | "success"
   | "warning"
-  | "danger";
+  | "danger"
+  | "purple"
+  | "teal"
+  | "orange";
 
 export type KpiItem = {
   id: string;
@@ -32,6 +35,10 @@ export type KpiItem = {
   labelClassName?: string;
   valueClassName?: string;
   contentClassName?: string;
+  className?: string;
+  interactive?: boolean;
+  ariaLabel?: string;
+  onClick?: () => void;
 };
 
 type KpiCardBaseProps = {
@@ -82,6 +89,30 @@ function toneStyles(tone: KpiTone) {
         icon: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
         accent: "bg-red-500",
       };
+    case "purple":
+      return {
+        card: "border-violet-200 dark:border-violet-900/50",
+        label: "text-violet-700 dark:text-violet-300",
+        value: "text-violet-700 dark:text-violet-300",
+        icon: "bg-violet-50 text-violet-600 dark:bg-violet-900/20 dark:text-violet-400",
+        accent: "bg-violet-500",
+      };
+    case "teal":
+      return {
+        card: "border-teal-200 dark:border-teal-900/50",
+        label: "text-teal-700 dark:text-teal-300",
+        value: "text-teal-700 dark:text-teal-300",
+        icon: "bg-teal-50 text-teal-600 dark:bg-teal-900/20 dark:text-teal-400",
+        accent: "bg-teal-500",
+      };
+    case "orange":
+      return {
+        card: "border-orange-200 dark:border-orange-900/50",
+        label: "text-orange-700 dark:text-orange-300",
+        value: "text-orange-600 dark:text-orange-400",
+        icon: "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+        accent: "bg-orange-500",
+      };
     default:
       return {
         card: "border-gray-200 dark:border-gray-700",
@@ -110,6 +141,7 @@ export function KpiCardBase({ item, className, trendSlot }: KpiCardBaseProps) {
       className={cn(
         "relative overflow-hidden rounded-xl bg-white shadow-sm transition-colors dark:bg-slate-900",
         styles.card,
+        item.className,
         className,
       )}
     >

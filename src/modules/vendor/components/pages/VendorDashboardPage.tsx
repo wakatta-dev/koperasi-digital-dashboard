@@ -3,14 +3,21 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import { useVendorDashboard } from "@/hooks/queries";
-import { VendorKpiGrid } from "../VendorKpiGrid";
 import { VendorPageHeader } from "../VendorPageHeader";
 import { formatVendorCurrency, formatVendorDateTime } from "../../utils/format";
 
 export function VendorDashboardPage() {
   const dashboardQuery = useVendorDashboard();
   const data = dashboardQuery.data;
+  const kpiItems: KpiItem[] =
+    data?.kpis.map((item) => ({
+      id: item.id,
+      label: item.label,
+      value: item.value,
+      footer: <p className="text-xs text-muted-foreground">{item.helper}</p>,
+    })) ?? [];
 
   return (
     <div className="space-y-6">
@@ -31,7 +38,7 @@ export function VendorDashboardPage() {
         </div>
       ) : null}
 
-      {data ? <VendorKpiGrid items={data.kpis} /> : null}
+      {data ? <KpiCards items={kpiItems} columns={{ md: 2, xl: 5 }} /> : null}
 
       <div className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-1">

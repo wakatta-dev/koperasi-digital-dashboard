@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import {
   useAccountingTaxMutations,
   useAccountingTaxOverview,
@@ -16,7 +17,6 @@ import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
 import type {
   TaxPphFilterValue,
   TaxPphRecordItem,
-  TaxPphSummaryCard,
   TaxPphSummaryTone,
 } from "../../types/tax";
 import {
@@ -26,7 +26,6 @@ import {
 import { FeaturePphFilterBar } from "../features/FeaturePphFilterBar";
 import { FeaturePphHeaderAction } from "../features/FeaturePphHeaderAction";
 import { FeaturePphRecordsTable } from "../features/FeaturePphRecordsTable";
-import { FeaturePphSummaryCards } from "../features/FeaturePphSummaryCards";
 
 const DEFAULT_PPH_FILTERS: TaxPphFilterValue = {
   q: "",
@@ -80,14 +79,17 @@ export function TaxPphRecordsPage() {
     });
   }, [filters, page, pathname, perPage, router, searchParams]);
 
-  const summaryCards = useMemo<TaxPphSummaryCard[]>(() => {
+  const summaryItems = useMemo<KpiItem[]>(() => {
     return (pphRecordsQuery.data?.summary_cards ?? []).map((card, index) => ({
-      key: card.key,
+      id: card.key,
       label: card.label,
-      helper_text: card.helper_text ?? "",
       value: card.value,
-      note: card.helper_text ?? "",
       tone: PPH_TONES[index] ?? "neutral",
+      footer: (
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {[card.helper_text, card.helper_text].filter(Boolean).join(" • ")}
+        </span>
+      ),
     }));
   }, [pphRecordsQuery.data?.summary_cards]);
 
@@ -167,7 +169,7 @@ export function TaxPphRecordsPage() {
         </div>
       ) : null}
 
-      <FeaturePphSummaryCards cards={summaryCards} />
+      <KpiCards items={summaryItems} />
 
       <div className="overflow-hidden space-y-2 bg-white dark:bg-slate-900">
         <FeaturePphFilterBar

@@ -4,10 +4,10 @@
 
 import { useState } from "react";
 
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { DUMMY_BANK_ACCOUNT_TRANSACTION_FILTERS } from "../../constants/bank-cash-dummy";
 import type { BankCashTransactionFilters } from "../../types/bank-cash";
 import { FeatureBankAccountTransactionFilters } from "../features/FeatureBankAccountTransactionFilters";
-import { FeatureBankAccountTransactionSummaryCards } from "../features/FeatureBankAccountTransactionSummaryCards";
 import { FeatureBankAccountTransactionsTable } from "../features/FeatureBankAccountTransactionsTable";
 
 export function BankAccountTransactionsFeatureDemo() {
@@ -17,7 +17,24 @@ export function BankAccountTransactionsFeatureDemo() {
 
   return (
     <section className="space-y-6">
-      <FeatureBankAccountTransactionSummaryCards />
+      <KpiCards
+        items={[
+          {
+            id: "current-balance",
+            label: "Current Balance",
+            value: "Rp 0",
+            tone: "primary",
+            footer: <p className="text-xs text-emerald-500">No movement</p>,
+          },
+          {
+            id: "last-synced",
+            label: "Last Synced",
+            value: "-",
+            tone: "success",
+          },
+        ]}
+        columns={{ md: 2, xl: 2 }}
+      />
       <FeatureBankAccountTransactionFilters value={filters} onChange={setFilters} />
       <FeatureBankAccountTransactionsTable filters={filters} />
     </section>

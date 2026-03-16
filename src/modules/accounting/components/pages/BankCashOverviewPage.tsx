@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { FileUp, Landmark } from "lucide-react";
 import { toast } from "sonner";
 
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 import {
   useAccountingBankCashAccounts,
@@ -24,7 +25,6 @@ import {
 import type {
   AddBankAccountDraft,
   BankAccountCardItem,
-  BankCashSummaryCard,
   CashRegisterItem,
   ImportStatementDraft,
   UnreconciledTransactionItem,
@@ -36,7 +36,6 @@ import {
 } from "../../utils/bank-cash-formatters";
 import { FeatureAddBankAccountModal } from "../features/FeatureAddBankAccountModal";
 import { FeatureBankAccountsGrid } from "../features/FeatureBankAccountsGrid";
-import { FeatureBankCashSummaryCards } from "../features/FeatureBankCashSummaryCards";
 import { FeatureCashRegistersGrid } from "../features/FeatureCashRegistersGrid";
 import { FeatureImportBankStatementModal } from "../features/FeatureImportBankStatementModal";
 import { FeatureUnreconciledTransactionsTable } from "../features/FeatureUnreconciledTransactionsTable";
@@ -64,14 +63,17 @@ export function BankCashOverviewPage() {
   });
   const mutations = useAccountingBankCashMutations();
 
-  const summaryCards = useMemo<BankCashSummaryCard[]>(
+  const summaryItems = useMemo<KpiItem[]>(
     () =>
       (overviewQuery.data?.cards ?? []).map((card) => ({
-        key: card.key,
+        id: card.key,
         label: card.label,
         value: card.value,
-        helper_text: card.helper_text,
         tone: card.tone,
+        showAccent: true,
+        footer: card.helper_text ? (
+          <p className="text-xs text-muted-foreground">{card.helper_text}</p>
+        ) : undefined,
       })),
     [overviewQuery.data?.cards]
   );
@@ -219,7 +221,14 @@ export function BankCashOverviewPage() {
         </div>
       ) : null}
 
-      <FeatureBankCashSummaryCards cards={summaryCards} />
+      <KpiCards
+        items={summaryItems}
+        emptyState={
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
+            Ringkasan bank & kas belum tersedia.
+          </div>
+        }
+      />
 
       <FeatureBankAccountsGrid
         accounts={accountCards}

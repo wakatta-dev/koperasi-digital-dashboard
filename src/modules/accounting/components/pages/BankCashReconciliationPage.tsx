@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { FileUp } from "lucide-react";
 import { toast } from "sonner";
 
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 import {
   useAccountingBankCashAccounts,
@@ -30,7 +31,6 @@ import {
 import { FeatureBankStatementMatchTable } from "../features/FeatureBankStatementMatchTable";
 import { FeatureImportBankStatementModal } from "../features/FeatureImportBankStatementModal";
 import { FeatureReconciliationActions } from "../features/FeatureReconciliationActions";
-import { FeatureReconciliationBalanceCards } from "../features/FeatureReconciliationBalanceCards";
 import { FeatureReconciliationDifferenceBanner } from "../features/FeatureReconciliationDifferenceBanner";
 import { FeatureReconciliationSelectionBar } from "../features/FeatureReconciliationSelectionBar";
 import { FeatureSystemTransactionsMatchTable } from "../features/FeatureSystemTransactionsMatchTable";
@@ -346,18 +346,47 @@ export function BankCashReconciliationPage({
         </div>
       ) : null}
 
-      <FeatureReconciliationBalanceCards
-        cards={{
-          statement_balance_amount: formatBankCashCurrency(
-            sessionQuery.data?.statement_balance_amount ?? 0,
-          ),
-          system_balance_amount: formatBankCashCurrency(
-            sessionQuery.data?.system_balance_amount ?? 0,
-          ),
-          difference_amount: formatBankCashCurrency(
-            sessionQuery.data?.difference_amount ?? 0,
-          ),
-        }}
+      <KpiCards
+        items={[
+          {
+            id: "statement-balance",
+            label: "Statement Balance",
+            value: formatBankCashCurrency(
+              sessionQuery.data?.statement_balance_amount ?? 0,
+            ),
+            tone: "info",
+            labelClassName: "text-xs font-medium uppercase",
+            valueClassName: "text-lg",
+            contentClassName: "min-h-[88px]",
+            iconContainerClassName:
+              "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+          },
+          {
+            id: "system-balance",
+            label: "System Balance",
+            value: formatBankCashCurrency(
+              sessionQuery.data?.system_balance_amount ?? 0,
+            ),
+            tone: "primary",
+            labelClassName: "text-xs font-medium uppercase",
+            valueClassName: "text-lg",
+            contentClassName: "min-h-[88px]",
+            iconContainerClassName:
+              "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400",
+          },
+          {
+            id: "difference-balance",
+            label: "Difference to Reconcile",
+            value: formatBankCashCurrency(sessionQuery.data?.difference_amount ?? 0),
+            tone: "warning",
+            showAccent: true,
+            labelClassName: "text-xs font-medium uppercase",
+            valueClassName: "text-lg text-orange-600 dark:text-orange-400",
+            contentClassName: "min-h-[88px]",
+            iconContainerClassName:
+              "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+          },
+        ]}
       />
 
       {confirmedHref ? (

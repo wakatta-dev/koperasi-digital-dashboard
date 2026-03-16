@@ -1,11 +1,11 @@
 /** @format */
 
 import { fireEvent, render, screen } from "@testing-library/react";
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 
 import {
   FeatureCreditNotesTable,
   FeatureInvoiceDetailView,
-  FeatureInvoiceSummaryCards,
   FeatureInvoiceTable,
   FeaturePaymentsTable,
 } from "@/modules/accounting";
@@ -13,12 +13,12 @@ import {
 describe("invoicing-ar non-overlay features", () => {
   it("renders invoice summary cards with key labels", () => {
     render(
-      <FeatureInvoiceSummaryCards
-        metrics={[
-          { id: "draft", label: "Total Drafts", displayValue: "4" },
-          { id: "sent", label: "Total Sent", displayValue: "12" },
-          { id: "paid", label: "Total Paid", displayValue: "18" },
-          { id: "overdue", label: "Total Overdue", displayValue: "3" },
+      <KpiCards
+        items={[
+          { id: "draft", label: "Total Drafts", value: "4" },
+          { id: "sent", label: "Total Sent", value: "12" },
+          { id: "paid", label: "Total Paid", value: "18" },
+          { id: "overdue", label: "Total Overdue", value: "3" },
         ]}
       />
     );

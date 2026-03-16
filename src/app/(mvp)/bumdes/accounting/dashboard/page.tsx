@@ -19,9 +19,9 @@ import {
 } from "lucide-react";
 
 import {
-  SummaryMetricsGrid,
-  type SummaryMetricItem,
-} from "@/components/shared/data-display/SummaryMetricsGrid";
+  KpiCards,
+  type KpiItem,
+} from "@/components/shared/data-display/KpiCards";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ const DASHBOARD_PRESET = "today";
 
 type MetricVisual = {
   Icon: LucideIcon;
-  tone: SummaryMetricItem["tone"];
+  tone: KpiItem["tone"];
   iconContainerClassName: string;
   showAccent: boolean;
 };
@@ -300,7 +300,7 @@ export default function AccountingDashboardPage() {
     preset: DASHBOARD_PRESET,
   });
 
-  const metrics = useMemo<SummaryMetricItem[]>(() => {
+  const metrics = useMemo<KpiItem[]>(() => {
     return (overviewQuery.data?.kpis ?? []).map((kpi, index) => {
       const visual = resolveKpiVisual(kpi.icon_key, kpi.title);
       const Icon = visual.Icon;
@@ -308,7 +308,7 @@ export default function AccountingDashboardPage() {
       return {
         id: `${kpi.title}-${index}`,
         label: kpi.title,
-        displayValue: kpi.value_display,
+        value: kpi.value_display,
         icon: <Icon className="h-5 w-5" />,
         tone: visual.tone,
         showAccent: visual.showAccent,
@@ -517,8 +517,8 @@ export default function AccountingDashboardPage() {
           </Badge>
         </div>
 
-        <SummaryMetricsGrid
-          metrics={metrics}
+        <KpiCards
+          items={metrics}
           isLoading={overviewQuery.isPending && !overview}
           isError={Boolean(overviewQuery.error)}
         />

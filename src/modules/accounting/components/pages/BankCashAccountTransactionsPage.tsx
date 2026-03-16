@@ -7,6 +7,7 @@ import { Download, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 import {
   useAccountingBankCashAccounts,
@@ -29,7 +30,6 @@ import {
   formatBankCashSignedAmount,
 } from "../../utils/bank-cash-formatters";
 import { FeatureBankAccountTransactionFilters } from "../features/FeatureBankAccountTransactionFilters";
-import { FeatureBankAccountTransactionSummaryCards } from "../features/FeatureBankAccountTransactionSummaryCards";
 import { FeatureBankAccountTransactionsTable } from "../features/FeatureBankAccountTransactionsTable";
 
 type BankCashAccountTransactionsPageProps = {
@@ -100,7 +100,11 @@ export function BankCashAccountTransactionsPage({
 
   const summary = useMemo(() => {
     if (!transactionsQuery.data?.summary) {
-      return undefined;
+      return {
+        current_balance: "Rp 0",
+        current_balance_delta_label: "No movement",
+        last_synced_at: "-",
+      };
     }
 
     return {
@@ -238,7 +242,45 @@ export function BankCashAccountTransactionsPage({
         </div>
       ) : null}
 
-      <FeatureBankAccountTransactionSummaryCards summary={summary} />
+      <KpiCards
+        items={[
+          {
+            id: "current-balance",
+            label: "Current Balance",
+            value: summary.current_balance,
+            tone: "primary",
+            className: "rounded-xl border border-gray-200 shadow-sm dark:border-gray-700",
+            labelClassName:
+              "text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400",
+            valueClassName: "mt-1 text-3xl font-bold text-gray-900 dark:text-white",
+            footer: (
+              <p className="mt-2 flex items-center gap-1 text-xs text-emerald-500">
+                {summary.current_balance_delta_label}
+              </p>
+            ),
+          },
+          {
+            id: "last-synced",
+            label: "Last Synced",
+            value: summary.last_synced_at,
+            tone: "success",
+            className: "rounded-xl border border-gray-200 shadow-sm dark:border-gray-700",
+            labelClassName:
+              "text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400",
+            valueClassName: "mt-1 text-2xl font-bold text-gray-900 dark:text-white",
+            footer: (
+              <Button
+                type="button"
+                variant="link"
+                className="mt-2 h-auto p-0 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+              >
+                Sync Now
+              </Button>
+            ),
+          },
+        ]}
+        columns={{ md: 2, xl: 2 }}
+      />
       <FeatureBankAccountTransactionFilters value={filters} onChange={setFilters} />
       <FeatureBankAccountTransactionsTable filters={filters} rows={rows} />
     </div>

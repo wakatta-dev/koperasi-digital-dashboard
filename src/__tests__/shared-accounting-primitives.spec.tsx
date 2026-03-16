@@ -9,9 +9,9 @@ import { DateRangeField } from "@/components/shared/inputs/date-range-field";
 import { SelectField } from "@/components/shared/inputs/select-field";
 import { FilterToolbar } from "@/components/shared/filters/FilterToolbar";
 import {
-  SummaryMetricsGrid,
-  type SummaryMetricItem,
-} from "@/components/shared/data-display/SummaryMetricsGrid";
+  KpiCards,
+  type KpiItem,
+} from "@/components/shared/data-display/KpiCards";
 import {
   createCursorPaginationMeta,
   TableShell,
@@ -72,13 +72,13 @@ describe("shared accounting primitives", () => {
     expect(screen.getByRole("button", { name: "Reset" })).toBeTruthy();
   });
 
-  it("renders summary metrics grid labels", () => {
-    const metrics: SummaryMetricItem[] = [
-      { id: "open-invoices", label: "Invoice Terbuka", displayValue: "12" },
-      { id: "overdue", label: "Jatuh Tempo", displayValue: "3" },
+  it("renders KPI card labels", () => {
+    const items: KpiItem[] = [
+      { id: "open-invoices", label: "Invoice Terbuka", value: "12" },
+      { id: "overdue", label: "Jatuh Tempo", value: "3" },
     ];
 
-    render(<SummaryMetricsGrid metrics={metrics} />);
+    render(<KpiCards items={items} />);
 
     expect(screen.getByText("Invoice Terbuka")).toBeTruthy();
     expect(screen.getByText("Jatuh Tempo")).toBeTruthy();
