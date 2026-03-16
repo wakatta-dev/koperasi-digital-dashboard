@@ -96,6 +96,7 @@ export function AssetCreateFormFeature({
   return (
     <form
       className="space-y-6"
+      data-testid="asset-admin-create-form"
       onSubmit={async (event) => {
         event.preventDefault();
 
@@ -131,6 +132,7 @@ export function AssetCreateFormFeature({
               placeholder="Contoh: MacBook Pro M2"
               value={name}
               onChange={(event) => setName(event.target.value)}
+              data-testid="asset-admin-create-name-input"
               required
             />
           </div>
@@ -144,12 +146,16 @@ export function AssetCreateFormFeature({
               placeholder="Contoh: SN-12345"
               value={serialNumber}
               onChange={(event) => setSerialNumber(event.target.value)}
+              data-testid="asset-admin-create-serial-number-input"
             />
           </div>
           <div>
             <Label className="mb-1 block">{STITCH_FORM_TEXT.fields.category}</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger disabled={isLoadingOptions || categories.length === 0}>
+              <SelectTrigger
+                disabled={isLoadingOptions || categories.length === 0}
+                data-testid="asset-admin-create-category-trigger"
+              >
                 <SelectValue placeholder="Pilih Kategori" />
               </SelectTrigger>
               <SelectContent>
@@ -164,7 +170,10 @@ export function AssetCreateFormFeature({
           <div>
             <Label className="mb-1 block">{STITCH_FORM_TEXT.fields.status}</Label>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger disabled={isLoadingOptions || statuses.length === 0}>
+              <SelectTrigger
+                disabled={isLoadingOptions || statuses.length === 0}
+                data-testid="asset-admin-create-status-trigger"
+              >
                 <SelectValue placeholder="Pilih Status" />
               </SelectTrigger>
               <SelectContent>
@@ -203,6 +212,7 @@ export function AssetCreateFormFeature({
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
                   className="hidden"
+                  data-testid="asset-admin-create-file-input"
                   onChange={(event) => {
                     const selected = event.target.files?.[0] ?? null;
                     setImageFile(selected);
@@ -227,6 +237,7 @@ export function AssetCreateFormFeature({
                   type="button"
                   variant="outline"
                   className="border-slate-300"
+                  data-testid="asset-admin-create-file-select-button"
                   onClick={() => imageInputRef.current?.click()}
                 >
                   Pilih Gambar
@@ -237,6 +248,7 @@ export function AssetCreateFormFeature({
                     type="button"
                     variant="ghost"
                     className="text-slate-600 hover:text-slate-900"
+                    data-testid="asset-admin-create-file-clear-button"
                     onClick={() => {
                       if (objectURLRef.current) {
                         URL.revokeObjectURL(objectURLRef.current);
@@ -268,7 +280,10 @@ export function AssetCreateFormFeature({
           <div className="md:col-span-2">
             <Label className="mb-1 block">Lokasi Utama</Label>
             <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger disabled={isLoadingOptions || locations.length === 0}>
+              <SelectTrigger
+                disabled={isLoadingOptions || locations.length === 0}
+                data-testid="asset-admin-create-location-trigger"
+              >
                 <SelectValue placeholder="Pilih Lokasi" />
               </SelectTrigger>
               <SelectContent>
@@ -289,6 +304,7 @@ export function AssetCreateFormFeature({
               placeholder="Cari nama karyawan..."
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
+              data-testid="asset-admin-create-assigned-to-input"
             />
             <p className="mt-1 text-xs text-slate-500">Ketik untuk mencari karyawan dari database.</p>
           </div>
@@ -306,6 +322,7 @@ export function AssetCreateFormFeature({
               required
               value={rentalPriceDisplay}
               onChange={(event) => setRentalPriceDisplay(event.target.value)}
+              data-testid="asset-admin-create-rental-price-input"
               placeholder="Contoh: 250000"
             />
           </div>
@@ -316,6 +333,7 @@ export function AssetCreateFormFeature({
               min={0}
               value={purchasePriceDisplay}
               onChange={(event) => setPurchasePriceDisplay(event.target.value)}
+              data-testid="asset-admin-create-purchase-price-input"
               placeholder="Contoh: 15000000"
             />
           </div>
@@ -325,11 +343,16 @@ export function AssetCreateFormFeature({
               type="date"
               value={purchaseDate}
               onChange={(event) => setPurchaseDate(event.target.value)}
+              data-testid="asset-admin-create-purchase-date-input"
             />
           </div>
           <div>
             <Label className="mb-1 block">Supplier</Label>
-            <Input value={vendor} onChange={(event) => setVendor(event.target.value)} />
+            <Input
+              value={vendor}
+              onChange={(event) => setVendor(event.target.value)}
+              data-testid="asset-admin-create-vendor-input"
+            />
           </div>
           <div className="md:col-span-2">
             <Label className="mb-1 block">Masa Garansi Berakhir</Label>
@@ -337,6 +360,7 @@ export function AssetCreateFormFeature({
               type="date"
               value={warrantyEndDate}
               onChange={(event) => setWarrantyEndDate(event.target.value)}
+              data-testid="asset-admin-create-warranty-end-date-input"
             />
           </div>
         </div>
@@ -349,14 +373,26 @@ export function AssetCreateFormFeature({
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Tuliskan deskripsi aset, kondisi, dan catatan penting lainnya..."
           rows={5}
+          data-testid="asset-admin-create-description-textarea"
         />
       </section>
 
       <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+          data-testid="asset-admin-create-cancel-button"
+        >
           Batal
         </Button>
-        <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="bg-indigo-600 text-white hover:bg-indigo-700"
+          disabled={isSubmitting}
+          data-testid="asset-admin-create-submit-button"
+        >
           {isSubmitting ? "Menyimpan..." : "Simpan Aset"}
         </Button>
       </div>

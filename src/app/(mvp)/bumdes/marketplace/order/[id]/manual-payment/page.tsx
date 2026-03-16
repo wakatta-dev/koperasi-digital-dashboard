@@ -10,5 +10,9 @@ export default async function MarketplaceOrderManualPaymentPage({
   params,
 }: PageProps) {
   const { id } = await params;
-  return <OrderManualPaymentPage id={id} />;
+  return (
+    <div data-testid="marketplace-admin-order-manual-payment-route-root">
+      <OrderManualPaymentPage id={id} />
+    </div>
+  );
 }

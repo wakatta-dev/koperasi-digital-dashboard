@@ -130,7 +130,7 @@ export function CustomerDetailPage({ id }: CustomerDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6" data-testid="marketplace-admin-customer-detail-page-root">
         <CustomerDetailHeader onEdit={() => undefined} />
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Memuat detail pelanggan...
@@ -141,7 +141,7 @@ export function CustomerDetailPage({ id }: CustomerDetailPageProps) {
 
   if (isError || !detail) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6" data-testid="marketplace-admin-customer-detail-page-root">
         <CustomerDetailHeader onEdit={() => undefined} />
         <p className="text-sm text-red-500">Data pelanggan tidak ditemukan.</p>
       </div>
@@ -152,7 +152,7 @@ export function CustomerDetailPage({ id }: CustomerDetailPageProps) {
   const address = data?.address?.trim() ? data.address : DEFAULT_ADDRESS;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="marketplace-admin-customer-detail-page-root">
       <CustomerDetailHeader onEdit={() => undefined} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

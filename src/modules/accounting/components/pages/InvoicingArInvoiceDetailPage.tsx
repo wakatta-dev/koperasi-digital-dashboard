@@ -121,7 +121,7 @@ export function InvoicingArInvoiceDetailPage({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="accounting-ar-invoice-detail-page-root">
       {!normalizedInvoiceNumber ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           Invoice number is required.

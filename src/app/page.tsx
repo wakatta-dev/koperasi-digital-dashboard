@@ -17,7 +17,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export default function HomePage() {
   return (
-    <div className={plusJakarta.className}>
+    <div className={plusJakarta.className} data-testid="guest-home-page-root">
       <LandingPage />
     </div>
   );

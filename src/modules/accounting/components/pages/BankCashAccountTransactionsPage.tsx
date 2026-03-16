@@ -184,7 +184,7 @@ export function BankCashAccountTransactionsPage({
   }
 
   return (
-    <div className="space-y-6 overflow-y-auto">
+    <div className="space-y-6 overflow-y-auto" data-testid="accounting-bank-cash-account-transactions-page-root">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="flex items-center gap-4">
           <Button

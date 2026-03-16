@@ -14,7 +14,9 @@ export default function MarketplacePelangganPage() {
       allowedRoles={MARKETPLACE_ADMIN_ALLOWED_ROLES}
       fallbackPath="/bumdes/dashboard"
     >
-      <CustomerListPage />
+      <div data-testid="marketplace-admin-customer-route-root">
+        <CustomerListPage />
+      </div>
     </ProtectedRoute>
   );
 }

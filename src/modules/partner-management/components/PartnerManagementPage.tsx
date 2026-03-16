@@ -54,7 +54,7 @@ export function PartnerManagementPage() {
   const items = sellersQuery.data?.items ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="bumdes-partner-management-page-root">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Partner Management</h1>
         <p className="text-sm text-muted-foreground">

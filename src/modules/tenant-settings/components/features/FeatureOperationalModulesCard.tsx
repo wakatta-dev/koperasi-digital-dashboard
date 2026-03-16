@@ -95,6 +95,7 @@ export function FeatureOperationalModulesCard({
                   checked={Boolean(value[item.key])}
                   disabled={disabled}
                   onCheckedChange={(checked) => onChange({ ...value, [item.key]: checked })}
+                  data-testid={`bumdes-settings-modules-switch-${item.key}`}
                   className="mt-1 data-[state=checked]:bg-slate-950 dark:data-[state=checked]:bg-white"
                 />
               </div>
@@ -105,6 +106,8 @@ export function FeatureOperationalModulesCard({
           <SettingsStickyActionBar
             onReset={onReset}
             onSave={onSave}
+            resetTestId="bumdes-settings-modules-reset-button"
+            saveTestId="bumdes-settings-modules-save-button"
             saveLabel="Simpan Pengaturan"
             dirty={dirty}
             resetDisabled={disabled || !dirty || saving}

@@ -8,5 +8,9 @@ type PageProps = {
 
 export default async function MarketplaceOrderDetailPage({ params }: PageProps) {
   const { id } = await params;
-  return <OrderDetailPage id={id} />;
+  return (
+    <div data-testid="marketplace-admin-order-detail-route-root">
+      <OrderDetailPage id={id} />
+    </div>
+  );
 }

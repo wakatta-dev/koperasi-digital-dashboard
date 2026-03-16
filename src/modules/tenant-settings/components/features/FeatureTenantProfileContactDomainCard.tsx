@@ -122,6 +122,8 @@ export function FeatureTenantProfileContactDomainCard({
         <SettingsStickyActionBar
           onReset={onReset}
           onSave={onSave}
+          resetTestId="bumdes-settings-profile-contact-reset-button"
+          saveTestId="bumdes-settings-profile-contact-save-button"
           saveLabel="Simpan Perubahan"
           dirty={dirty}
           resetDisabled={disabled || !dirty || saving}

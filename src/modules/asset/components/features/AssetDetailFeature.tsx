@@ -117,7 +117,10 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
       title="Detail Aset"
       description="Struktur informasi aset utama dari desain Stitch."
     >
-      <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        data-testid="asset-admin-detail-summary-grid"
+      >
         {detail.summaryCards.map((card) => (
           <section
             key={card.id}
@@ -135,7 +138,10 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px,1fr]">
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+        <section
+          className="space-y-4 rounded-xl border border-slate-200 bg-white p-5"
+          data-testid="asset-admin-detail-sidebar"
+        >
           {detail.photoUrl ? (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
               <img
@@ -162,6 +168,7 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-slate-500 hover:text-indigo-600"
+                data-testid="asset-admin-detail-copy-asset-tag-button"
               >
                 <Copy className="h-4 w-4" />
                 <span className="sr-only">Salin Asset Tag</span>
@@ -228,7 +235,10 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
         </section>
 
         <div className="space-y-4">
-          <section className="rounded-xl border border-slate-200 bg-white p-5">
+          <section
+            className="rounded-xl border border-slate-200 bg-white p-5"
+            data-testid="asset-admin-detail-specifications"
+          >
             <div className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
               <Cpu className="h-4 w-4 text-indigo-600" />
               <span>Spesifikasi</span>
@@ -243,7 +253,10 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <section
+            className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+            data-testid="asset-admin-detail-activity-table"
+          >
             <div className="flex items-center justify-between border-b border-slate-200 p-5">
               <div className="flex items-center gap-2 text-base font-semibold text-slate-900">
                 <History className="h-4 w-4 text-indigo-600" />
@@ -253,6 +266,7 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
                 type="button"
                 variant="ghost"
                 className="px-0 text-indigo-600 hover:text-indigo-700"
+                data-testid="asset-admin-detail-view-all-activity-button"
               >
                 Lihat Semua
               </Button>

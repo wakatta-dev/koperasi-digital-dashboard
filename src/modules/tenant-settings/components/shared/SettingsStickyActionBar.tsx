@@ -16,6 +16,8 @@ type SettingsStickyActionBarProps = {
   idleMessage?: string;
   dirtyMessage?: string;
   savingMessage?: string;
+  resetTestId?: string;
+  saveTestId?: string;
 };
 
 export function SettingsStickyActionBar({
@@ -31,6 +33,8 @@ export function SettingsStickyActionBar({
   idleMessage = "Tidak ada perubahan aktif.",
   dirtyMessage = "Perubahan belum disimpan.",
   savingMessage = "Menyimpan…",
+  resetTestId,
+  saveTestId,
 }: SettingsStickyActionBarProps) {
   const statusMessage = saving ? savingMessage : dirty ? dirtyMessage : idleMessage;
 
@@ -57,6 +61,7 @@ export function SettingsStickyActionBar({
               className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
               onClick={onReset}
               disabled={resetDisabled}
+              data-testid={resetTestId}
             >
               {resetLabel}
             </Button>
@@ -66,6 +71,7 @@ export function SettingsStickyActionBar({
             className="bg-slate-950 text-white shadow-sm hover:bg-slate-800 focus-visible:ring-slate-900 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-slate-100"
             onClick={onSave}
             disabled={saveDisabled}
+            data-testid={saveTestId}
           >
             {saving ? "Menyimpan…" : saveLabel}
           </Button>

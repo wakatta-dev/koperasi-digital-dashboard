@@ -1330,6 +1330,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                               sku: event.target.value,
                             })
                           }
+                          data-testid={`marketplace-admin-product-variants-sku-input-${row.original.optionId ?? row.original.signature}`}
                           className={`w-full rounded-md border-gray-300 py-1.5 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:text-white ${
                             errors?.sku
                               ? "border-red-500 focus-visible:ring-red-500"
@@ -1365,6 +1366,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                         startIcon={<span className="text-sm">Rp</span>}
                         type="number"
                         value={row.original.price}
+                        data-testid={`marketplace-admin-product-variants-price-input-${row.original.optionId ?? row.original.signature}`}
                         onValueChange={(value) =>
                           updateVariant(row.original.signature, {
                             price: Number(value) || 0,
@@ -1398,6 +1400,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                               stock: Number(event.target.value) || 0,
                             })
                           }
+                          data-testid={`marketplace-admin-product-variants-stock-input-${row.original.optionId ?? row.original.signature}`}
                           className={`w-full rounded-md border-gray-300 py-1.5 text-sm focus-visible:border-indigo-600 focus-visible:ring-indigo-600 dark:border-gray-600 dark:bg-gray-800 dark:text-white ${
                             errors?.stock
                               ? "border-red-500 focus-visible:ring-red-500"
@@ -1441,6 +1444,9 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
               ]}
               data={variants}
               getRowId={(row) => row.signature}
+              rowProps={(row) => ({
+                "data-testid": `marketplace-admin-product-variants-row-${row.optionId ?? row.signature}`,
+              })}
               headerClassName="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700"
               bodyClassName="divide-y divide-gray-100 dark:divide-gray-700"
               emptyState="Belum ada varian. Tambahkan nilai atribut untuk membuat kombinasi."
@@ -1458,7 +1464,10 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
       </div>
 
       <Dialog open={newAttributeOpen} onOpenChange={setNewAttributeOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent
+          className="max-w-md"
+          data-testid="marketplace-admin-product-variants-add-attribute-dialog"
+        >
           <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
             Tambah Atribut Baru
           </DialogTitle>
@@ -1470,6 +1479,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
               value={newAttributeName}
               onChange={(event) => setNewAttributeName(event.target.value)}
               placeholder="Contoh: Ukuran, RAM, Warna"
+              data-testid="marketplace-admin-product-variants-new-attribute-input"
               className="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
             />
           </div>
@@ -1478,6 +1488,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
               type="button"
               variant="outline"
               onClick={() => setNewAttributeOpen(false)}
+              data-testid="marketplace-admin-product-variants-new-attribute-cancel-button"
               className="px-4 py-2 text-sm"
             >
               Batal
@@ -1486,6 +1497,7 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
               type="button"
               onClick={handleCreateAttribute}
               disabled={createGroupMutation.isPending}
+              data-testid="marketplace-admin-product-variants-new-attribute-save-button"
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm"
             >
               {createGroupMutation.isPending ? "Menyimpan..." : "Simpan"}
