@@ -72,6 +72,7 @@ describe("FeatureReadinessDiagnosticsCard", () => {
         Boolean(element?.textContent?.includes("tenant config")),
       ).length,
     ).toBeGreaterThan(0);
+    expect(screen.getByText("Runtime aktif, tetapi baseline belum lengkap.")).toBeTruthy();
     expect(screen.getByText("Output baseline yang belum terbukti")).toBeTruthy();
     expect(screen.getByText("selected")).toBeTruthy();
   });

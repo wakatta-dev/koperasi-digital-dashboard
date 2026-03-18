@@ -14,6 +14,7 @@ import type {
   PaymentSessionRequest,
   ReservationDetailResponse,
 } from "@/types/api/reservation";
+import { extractReservationIdFromTicket, normalizeTicketInput } from "../guest/utils/ticket";
 
 export function useLookupReservationByTicket() {
   return useMutation({
@@ -21,9 +22,16 @@ export function useLookupReservationByTicket() {
       ticket: string;
       contact: string;
     }): Promise<ReservationDetailResponse> => {
-      const res = await lookupReservationByTicket(args.ticket, args.contact);
+      const normalizedTicket = normalizeTicketInput(args.ticket);
+      if (!extractReservationIdFromTicket(normalizedTicket)) {
+        throw new Error("Nomor pengajuan tidak valid. Gunakan format seperti #SQ-00001.");
+      }
+      const res = await lookupReservationByTicket(normalizedTicket, args.contact);
       if (!res.success || !res.data) {
-        throw new Error(res.message || "Gagal memuat status pengajuan");
+        const firstError = Object.values(res.errors ?? {})
+          .flat()
+          .find((value) => typeof value === "string" && value.trim().length > 0);
+        throw new Error(firstError ?? res.message ?? "Gagal memuat status pengajuan");
       }
       return res.data;
     },
@@ -35,7 +43,10 @@ export function useCreateGuestReservation() {
     mutationFn: async (payload: CreateReservationRequest) => {
       const res = await createReservation(payload);
       if (!res.success || !res.data) {
-        throw new Error(res.message || "Gagal membuat pengajuan");
+        const firstError = Object.values(res.errors ?? {})
+          .flat()
+          .find((value) => typeof value === "string" && value.trim().length > 0);
+        throw new Error(firstError ?? res.message ?? "Gagal membuat pengajuan");
       }
       return res.data;
     },

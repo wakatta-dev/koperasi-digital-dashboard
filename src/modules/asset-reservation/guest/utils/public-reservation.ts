@@ -41,6 +41,7 @@ export async function buildPublicReservationSuccessState(
 export function resolvePublicReservationSubmissionErrorMessage(
   message: string | null | undefined
 ): string {
+  const original = (message ?? "").trim();
   const normalized = (message ?? "").trim().toLowerCase();
 
   if (
@@ -55,6 +56,10 @@ export function resolvePublicReservationSubmissionErrorMessage(
     normalized.includes("asset archived")
   ) {
     return "Aset ini sudah tidak tersedia untuk diajukan. Silakan pilih aset lain yang tersedia.";
+  }
+
+  if (normalized.includes("invalid input:")) {
+    return original;
   }
 
   if (normalized.includes("invalid input")) {

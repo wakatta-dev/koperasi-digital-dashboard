@@ -35,6 +35,9 @@ function toRentalStatus(booking: AssetRentalBooking): AssetRentalRentalsRow["sta
   if (status === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification) {
     return "Menunggu Verifikasi Pembayaran";
   }
+  if (status === ASSET_RENTAL_BOOKING_STATUS.confirmedDP) {
+    return "Menunggu Hari Pakai/Pengambilan";
+  }
   if (status === ASSET_RENTAL_BOOKING_STATUS.completed) return "Selesai";
   const endAt = new Date((booking.end_time || 0) * 1000).getTime();
   const isLate = endAt > 0 && endAt < Date.now();
@@ -131,6 +134,7 @@ export function splitAssetRentalBookings(
     if (
       normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingDP ||
       normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingPaymentVerification ||
+      normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedDP ||
       normalized === ASSET_RENTAL_BOOKING_STATUS.awaitingSettlement ||
       normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedFull ||
       normalized === ASSET_RENTAL_BOOKING_STATUS.booked ||

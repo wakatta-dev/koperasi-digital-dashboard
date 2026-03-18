@@ -55,8 +55,9 @@ export function FeatureReadinessDiagnosticsCard({
           <div>
             <h2 className={settingsSectionTitleClassName}>Readiness & Diagnostics</h2>
             <p className={`mt-1 ${settingsMutedTextClassName}`}>
-              State canonical per module, blocker yang nyata, dan jejak source policy yang
-              dipakai saat runtime.
+              State canonical per module, blocker yang nyata, jejak source policy runtime,
+              dan bukti baseline yang sudah tercatat. Module bisa aktif saat runtime tetapi
+              tetap blocked bila baseline belum terverifikasi.
             </p>
           </div>
           <Badge className={stateBadgeClass(data?.state ?? "draft")}>
@@ -97,8 +98,13 @@ export function FeatureReadinessDiagnosticsCard({
                         {module.label}
                       </h3>
                       <p className="mt-1 text-xs text-slate-500">
-                        {module.enabled ? "Module enabled" : "Module belum diaktifkan"}
+                        {module.enabled ? "Runtime module enabled" : "Module belum diaktifkan"}
                       </p>
+                      {module.enabled && module.missing_outputs?.length ? (
+                        <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-300">
+                          Runtime aktif, tetapi baseline belum lengkap.
+                        </p>
+                      ) : null}
                     </div>
                     <Badge className={stateBadgeClass(module.state)}>{module.state}</Badge>
                   </div>

@@ -28,6 +28,14 @@ type AssetFormOptionGroups = Readonly<{
 
 const DRAFT_INTERNAL_STATUS = "Draft Internal";
 
+export function resolveCreateAssetStatusOption(statuses: string[]): string {
+  return (
+    statuses.find(
+      (option) => option.toLowerCase() === DRAFT_INTERNAL_STATUS.toLowerCase()
+    ) ?? ""
+  );
+}
+
 type AssetCreateFormFeatureProps = Readonly<{
   onCancel?: () => void;
   onSubmit?: (payload: AssetFormModel) => void | Promise<void>;
@@ -80,10 +88,10 @@ export function AssetCreateFormFeature({
 
   useEffect(() => {
     if (!status && statuses.length > 0) {
-      setStatus(
-        statuses.find((option) => option.toLowerCase() === DRAFT_INTERNAL_STATUS.toLowerCase()) ??
-          statuses[0],
-      );
+      const nextStatus = resolveCreateAssetStatusOption(statuses);
+      if (nextStatus) {
+        setStatus(nextStatus);
+      }
     }
   }, [status, statuses]);
 
