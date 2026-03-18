@@ -138,6 +138,27 @@ export type ReservationTimelineItem = {
   meta?: Record<string, string>;
 };
 
+export type RentalDiagnosticsItemResponse = {
+  scope: string;
+  code: string;
+  severity: string;
+  message: string;
+  next_action?: string;
+};
+
+export type RentalDiagnosticsResponse = {
+  booking_id: number;
+  booking_state?: string;
+  payment_state?: string;
+  normalized_payment_status?: string;
+  usage_state?: string;
+  return_state?: string;
+  items: RentalDiagnosticsItemResponse[];
+  finance_follow_up_reference?: string;
+  support_reference?: string;
+  hardening_evidence_reference?: string;
+};
+
 export type ReservationDetailResponse = {
   reservation_id: number;
   asset_id: number;
@@ -180,6 +201,7 @@ export type ReservationDetailResponse = {
   payment_flow?: "dp" | "settlement_direct" | "pending_decision" | string;
   hold_expires_at?: Rfc3339String;
   timeline?: ReservationTimelineItem[];
+  diagnostics?: RentalDiagnosticsResponse | null;
 };
 
 export type AvailabilityCheckApiResponse =

@@ -550,6 +550,7 @@ export function AssetRentalAdminDetailPage({
     reservationDetailQuery.data?.financial_resolutions ??
     booking?.financial_resolutions ??
     [];
+  const rentalDiagnostics = reservationDetailQuery.data?.diagnostics;
   const fixedAssetRegister = assetQuery.data?.fixed_asset_register;
   const fixedAssetCategoryValue =
     fixedAssetCategory.trim() ||
@@ -1409,6 +1410,50 @@ export function AssetRentalAdminDetailPage({
                     </p>
                   </div>
                 </div>
+              </div>
+              <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Diagnostics
+                </p>
+                {(rentalDiagnostics?.items ?? []).length === 0 ? (
+                  <p className="mt-2 text-sm text-slate-600">
+                    Belum ada blocker utama untuk booking rental ini.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {(rentalDiagnostics?.items ?? []).map((diag) => (
+                      <div
+                        key={`${diag.scope}-${diag.code}`}
+                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      >
+                        <p className="font-medium text-slate-900">
+                          {diag.scope}: {diag.code}
+                        </p>
+                        <p className="text-slate-600">{diag.message}</p>
+                        {diag.next_action ? (
+                          <p className="text-xs text-slate-500">
+                            Next action: {diag.next_action}
+                          </p>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {rentalDiagnostics?.finance_follow_up_reference ? (
+                  <p className="mt-3 text-xs text-slate-500">
+                    Finance follow-up ref: {rentalDiagnostics.finance_follow_up_reference}
+                  </p>
+                ) : null}
+                {rentalDiagnostics?.hardening_evidence_reference ? (
+                  <p className="text-xs text-slate-500">
+                    Hardening evidence ref: {rentalDiagnostics.hardening_evidence_reference}
+                  </p>
+                ) : null}
+                {rentalDiagnostics?.support_reference ? (
+                  <p className="text-xs text-slate-500">
+                    Support ref: {rentalDiagnostics.support_reference}
+                  </p>
+                ) : null}
               </div>
             </section>
 
