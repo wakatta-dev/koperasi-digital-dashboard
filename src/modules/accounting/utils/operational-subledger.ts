@@ -206,12 +206,17 @@ function toPaymentStatusLabel(status?: string) {
     .toLowerCase();
 
   switch (normalized) {
+    case "paid":
     case "succeeded":
     case "confirmed":
       return "Terverifikasi";
+    case "pending_review":
+      return "Menunggu Verifikasi";
     case "failed":
     case "rejected":
       return "Bermasalah";
+    case "pending_payment":
+      return "Menunggu Pembayaran";
     case "pending_verification":
       return "Menunggu Verifikasi";
     case "pending":
@@ -538,7 +543,11 @@ export function buildRentalTraceRows(
   if (!bookings?.length) return [];
 
   return bookings.map((booking) => {
-    const paymentStatus = toPaymentStatusLabel(booking.latest_payment?.status);
+    const paymentStatus = toPaymentStatusLabel(
+      booking.normalized_payment_status ||
+        booking.latest_payment?.normalized_status ||
+        booking.latest_payment?.status,
+    );
     const accountingStatus = toAccountingStatusLabel(booking.accounting_readiness);
     const accountingReason =
       booking.accounting_readiness?.reason ||

@@ -273,8 +273,16 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
     };
   }
 
-  const bookingStatus = (booking?.status || "").trim().toUpperCase();
+  const bookingStatus = (
+    booking?.booking_state ||
+    booking?.status ||
+    ""
+  )
+    .trim()
+    .toUpperCase();
   const paymentStatus = (
+    reservation?.payment_state ||
+    booking?.payment_state ||
     reservation?.latest_payment?.status ||
     booking?.latest_payment?.status ||
     ""
@@ -574,12 +582,14 @@ export function AssetRentalAdminDetailPage({
     fixedAssetRegisterMutation.isPending ||
     fixedAssetProfileMutation.isPending;
 
-  const canApprove = (booking?.status || "").toUpperCase() === "PENDING_REVIEW";
+  const canApprove =
+    (booking?.booking_state || booking?.status || "").toUpperCase() ===
+    "PENDING_REVIEW";
   const canReject = ["PENDING_REVIEW", "BOOKED"].includes(
-    (booking?.status || "").toUpperCase(),
+    (booking?.booking_state || booking?.status || "").toUpperCase(),
   );
   const canComplete = ["CONFIRMED_FULL"].includes(
-    (booking?.status || "").toUpperCase(),
+    (booking?.booking_state || booking?.status || "").toUpperCase(),
   );
   const latestPayment = booking?.latest_payment;
   const latestPaymentStatus = (latestPayment?.status || "")
@@ -600,7 +610,7 @@ export function AssetRentalAdminDetailPage({
   const rejectionReason = booking?.rejection_reason?.trim() || "-";
   const returnConditionLabel = toReturnConditionLabel(
     booking?.return_condition,
-    booking?.status,
+    booking?.booking_state || booking?.status,
   );
   const returnConditionNotes = booking?.return_condition_notes?.trim() || "-";
   const nextValidAction = canConfirmPayment

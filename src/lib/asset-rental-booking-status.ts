@@ -20,10 +20,21 @@ export function normalizeAssetRentalBookingStatus(status?: string): string {
 }
 
 export function resolveAssetRentalBookingStatus(
-  booking?: Pick<AssetRentalBooking, "status" | "latest_payment">
+  booking?: Pick<
+    AssetRentalBooking,
+    "status" | "latest_payment" | "booking_state" | "payment_state"
+  >
 ): string {
-  const baseStatus = normalizeAssetRentalBookingStatus(booking?.status);
-  const paymentStatus = (booking?.latest_payment?.status || "").trim().toLowerCase();
+  const baseStatus = normalizeAssetRentalBookingStatus(
+    booking?.booking_state || booking?.status,
+  );
+  const paymentStatus = (
+    booking?.payment_state ||
+    booking?.latest_payment?.status ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
   if (
     paymentStatus === "pending_verification" &&
     (baseStatus === ASSET_RENTAL_BOOKING_STATUS.awaitingDP ||

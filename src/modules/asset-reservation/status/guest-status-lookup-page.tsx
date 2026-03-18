@@ -132,13 +132,6 @@ function resolvePaymentFlow(input: {
   return "settlement_direct";
 }
 
-function shouldForceSettlementBySchedule(startDate?: string): boolean {
-  if (!startDate) return false;
-  const start = new Date(startDate);
-  if (Number.isNaN(start.getTime())) return false;
-  return start.getTime() <= Date.now() + 72 * 60 * 60 * 1000;
-}
-
 export function GuestStatusLookupPage() {
   const [ticket, setTicket] = useState("");
   const [contact, setContact] = useState("");
@@ -152,13 +145,7 @@ export function GuestStatusLookupPage() {
 
   const reservation = lookup.data ?? null;
   const status = reservation ? toReservationStatus(reservation.status) : null;
-  const effectiveStatus = useMemo(() => {
-    if (!status) return null;
-    if (status === "awaiting_dp" && shouldForceSettlementBySchedule(reservation?.start_date)) {
-      return "awaiting_settlement" as ReservationStatus;
-    }
-    return status;
-  }, [reservation?.start_date, status]);
+  const effectiveStatus = useMemo(() => status, [status]);
   const latestPaymentType = useMemo(
     () => resolveLatestPaymentType(reservation?.latest_payment?.type),
     [reservation?.latest_payment?.type]

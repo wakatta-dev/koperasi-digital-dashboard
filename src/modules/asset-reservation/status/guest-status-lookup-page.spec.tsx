@@ -78,4 +78,26 @@ describe("GuestStatusLookupPage", () => {
       )
     ).toBeTruthy();
   });
+
+  it("does not force settlement status from local schedule heuristics", () => {
+    lookupMock.mockReturnValue({
+      data: {
+        reservation_id: 26,
+        asset_name: "Mobil Desa",
+        renter_name: "Sari",
+        renter_contact: "0812000000",
+        start_date: "2026-03-13T10:00:00Z",
+        end_date: "2026-03-13T15:00:00Z",
+        status: "awaiting_dp",
+        payment_flow: "dp",
+        amounts: { total: 750000, dp: 300000, remaining: 450000 },
+      },
+      mutate: vi.fn(),
+      isPending: false,
+    });
+
+    render(<GuestStatusLookupPage />);
+
+    expect(screen.getByText("result-badge:Menunggu Pembayaran")).toBeTruthy();
+  });
 });

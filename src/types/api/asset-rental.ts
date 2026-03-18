@@ -48,6 +48,7 @@ export type AssetRentalBookingPayment = {
   method?: string;
   amount: number;
   status?: string;
+  normalized_status?: string;
   proof_url?: string;
   proof_note?: string;
   pay_by?: number;
@@ -99,6 +100,11 @@ export type AssetRentalBooking = {
   start_time: number;
   end_time: number;
   status: "BOOKED" | "COMPLETED" | "AWAITING_PAYMENT_VERIFICATION" | string;
+  booking_state?: string;
+  payment_state?: string;
+  normalized_payment_status?: string;
+  usage_state?: string;
+  return_state?: string;
   rejection_reason?: string;
   total_amount: number;
   completed_at?: number;

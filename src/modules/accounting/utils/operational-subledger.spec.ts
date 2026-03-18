@@ -39,8 +39,14 @@ describe("operational subledger utils", () => {
           asset_name: "Gedung",
           renter_name: "Karang Taruna",
           status: "AWAITING_SETTLEMENT",
+          normalized_payment_status: "pending_review",
           total_amount: 500000,
-          latest_payment: { id: "pay-22", amount: 200000, status: "pending_verification" },
+          latest_payment: {
+            id: "pay-22",
+            amount: 200000,
+            status: "pending_verification",
+            normalized_status: "pending_review",
+          },
           accounting_readiness: {
             status: "not_ready",
             reason: "Menunggu settlement",
