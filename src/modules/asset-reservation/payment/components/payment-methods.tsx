@@ -214,12 +214,12 @@ export function PaymentMethods({
         patchPaymentState((current) => ({
           ...current,
           session:
-          current
+          current.session
             ? {
-                ...current,
+                ...current.session,
                 status: res?.data?.status as PaymentStatus,
               }
-            : current.session,
+            : null,
         }));
         handleStatusUpdate(res.data.status as PaymentStatus);
         return;

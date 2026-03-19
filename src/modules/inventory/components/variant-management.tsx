@@ -89,6 +89,51 @@ export function VariantManagement({ productId }: Props) {
       typeof updates === "function" ? updates(current) : { ...current, ...updates },
     );
   };
+  const setGroupForm = (
+    updates: GroupFormState | ((current: GroupFormState) => GroupFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      groupForm:
+        typeof updates === "function" ? updates(current.groupForm) : updates,
+    }));
+  };
+  const setEditGroupId = (value: number | null) => {
+    patchUiState({ editGroupId: value });
+  };
+  const setEditGroupForm = (
+    updates: GroupFormState | ((current: GroupFormState) => GroupFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      editGroupForm:
+        typeof updates === "function" ? updates(current.editGroupForm) : updates,
+    }));
+  };
+  const setOptionForm = (
+    updates: OptionFormState | ((current: OptionFormState) => OptionFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      optionForm:
+        typeof updates === "function" ? updates(current.optionForm) : updates,
+    }));
+  };
+  const setEditOptionId = (value: number | null) => {
+    patchUiState({ editOptionId: value });
+  };
+  const setEditOptionForm = (
+    updates: OptionFormState | ((current: OptionFormState) => OptionFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      editOptionForm:
+        typeof updates === "function" ? updates(current.editOptionForm) : updates,
+    }));
+  };
+  const setOptionError = (value: string | null) => {
+    patchUiState({ optionError: value });
+  };
 
   const groups = data?.variant_groups ?? EMPTY_GROUPS;
   const options = data?.options ?? EMPTY_OPTIONS;

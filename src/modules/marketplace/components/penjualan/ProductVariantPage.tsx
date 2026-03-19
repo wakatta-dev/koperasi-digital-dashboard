@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import { Image as ImageIcon, Plus, Save, Trash2, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

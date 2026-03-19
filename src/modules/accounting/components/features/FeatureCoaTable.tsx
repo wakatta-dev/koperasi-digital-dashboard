@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 
@@ -44,6 +43,7 @@ export function FeatureCoaTable({
   const pageCount = pagination?.totalPages ?? Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = pagination?.page ?? 1;
   const resolvedPageSize = pagination?.pageSize ?? PAGE_SIZE;
+  const visibleRowCount = rows.length;
   const columns: ColumnDef<CoaAccountRow, unknown>[] = [
     {
       id: "code",
@@ -183,7 +183,7 @@ export function FeatureCoaTable({
               totalPages: pageCount,
             }
           }
-          paginationInfo={`Showing ${pagedRows.length === 0 ? 0 : (currentPage - 1) * resolvedPageSize + 1} to ${Math.min((currentPage - 1) * resolvedPageSize + pagedRows.length, pagination?.totalItems ?? rows.length)} of ${pagination?.totalItems ?? rows.length} accounts`}
+          paginationInfo={`Showing ${visibleRowCount === 0 ? 0 : (currentPage - 1) * resolvedPageSize + 1} to ${Math.min((currentPage - 1) * resolvedPageSize + visibleRowCount, pagination?.totalItems ?? rows.length)} of ${pagination?.totalItems ?? rows.length} accounts`}
           onPrevPage={
             onPageChange
               ? () => onPageChange(Math.max(1, currentPage - 1))

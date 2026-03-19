@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SetStateAction } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { LandingFooter } from "../landing/components/footer";
@@ -201,6 +201,57 @@ export function MarketplaceShippingPage() {
       typeof updates === "function" ? updates(current) : { ...current, ...updates },
     );
   };
+  const resolveUpdate = <T,>(current: T, next: SetStateAction<T>): T =>
+    typeof next === "function" ? (next as (prev: T) => T)(current) : next;
+  const setView = (next: SetStateAction<TrackingView>) =>
+    patchUiState((current) => ({
+      ...current,
+      view: resolveUpdate(current.view, next),
+    }));
+  const setOrderNumber = (next: SetStateAction<string>) =>
+    patchUiState((current) => ({
+      ...current,
+      orderNumber: resolveUpdate(current.orderNumber, next),
+    }));
+  const setContact = (next: SetStateAction<string>) =>
+    patchUiState((current) => ({
+      ...current,
+      contact: resolveUpdate(current.contact, next),
+    }));
+  const setFieldErrors = (
+    next: SetStateAction<{ orderNumber?: string; contact?: string }>,
+  ) =>
+    patchUiState((current) => ({
+      ...current,
+      fieldErrors: resolveUpdate(current.fieldErrors, next),
+    }));
+  const setErrorMessage = (next: SetStateAction<string | undefined>) =>
+    patchUiState((current) => ({
+      ...current,
+      errorMessage: resolveUpdate(current.errorMessage, next),
+    }));
+  const setReviewOpen = (next: SetStateAction<boolean>) =>
+    patchUiState((current) => ({
+      ...current,
+      reviewOpen: resolveUpdate(current.reviewOpen, next),
+    }));
+  const setReviewError = (next: SetStateAction<string | undefined>) =>
+    patchUiState((current) => ({
+      ...current,
+      reviewError: resolveUpdate(current.reviewError, next),
+    }));
+  const setTrackResult = (
+    next: SetStateAction<MarketplaceGuestTrackResponse | null>,
+  ) =>
+    patchUiState((current) => ({
+      ...current,
+      trackResult: resolveUpdate(current.trackResult, next),
+    }));
+  const setLocalPreview = (next: SetStateAction<LocalTrackingPreview | null>) =>
+    patchUiState((current) => ({
+      ...current,
+      localPreview: resolveUpdate(current.localPreview, next),
+    }));
 
   const trackingLookup = useMutation({
     mutationFn: async (payload: { order_number: string; contact: string }) =>
