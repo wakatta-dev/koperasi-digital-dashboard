@@ -128,12 +128,34 @@ export function AssetStatusPage({
   token,
   accessToken,
 }: AssetStatusPageProps) {
-  const [cancelOpen, setCancelOpen] = useState(false);
-  const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [decoded, setDecoded] = useState<ReservationSummary | null>(null);
-  const [tokenError, setTokenError] = useState<string | null>(null);
-  const [actionMessage, setActionMessage] = useState<{ text: string; tone: "info" | "success" | "error" } | null>(null);
-  const [actionLoading, setActionLoading] = useState<"cancel" | "reschedule" | null>(null);
+  const [uiState, setUiState] = useState({
+    cancelOpen: false,
+    rescheduleOpen: false,
+    decoded: null as ReservationSummary | null,
+    tokenError: null as string | null,
+    actionMessage: null as {
+      text: string;
+      tone: "info" | "success" | "error";
+    } | null,
+    actionLoading: null as "cancel" | "reschedule" | null,
+  });
+  const {
+    cancelOpen,
+    rescheduleOpen,
+    decoded,
+    tokenError,
+    actionMessage,
+    actionLoading,
+  } = uiState;
+  const patchUiState = (
+    updates:
+      | Partial<typeof uiState>
+      | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const {
     data: reservation,
     isLoading: loading,
@@ -220,8 +242,10 @@ export function AssetStatusPage({
     nextDecoded: ReservationSummary | null,
     nextTokenError: string | null,
   ) => {
-    setTokenError(nextTokenError);
-    setDecoded(nextDecoded);
+    patchUiState({
+      tokenError: nextTokenError,
+      decoded: nextDecoded,
+    });
   };
 
   useEffect(() => {
@@ -248,23 +272,25 @@ export function AssetStatusPage({
   }, [token, status]);
 
   const handleCancel = async () => {
-    setActionLoading("cancel");
-    setActionMessage({
-      text: "Pembatalan online belum tersedia. Hubungi admin BUMDes untuk memproses pembatalan.",
-      tone: "info",
+    patchUiState({
+      actionLoading: "cancel",
+      actionMessage: {
+        text: "Pembatalan online belum tersedia. Hubungi admin BUMDes untuk memproses pembatalan.",
+        tone: "info",
+      },
     });
-    setActionLoading(null);
-    setCancelOpen(false);
+    patchUiState({ actionLoading: null, cancelOpen: false });
   };
 
   const handleReschedule = async () => {
-    setActionLoading("reschedule");
-    setActionMessage({
-      text: "Penjadwalan ulang online belum tersedia. Hubungi admin BUMDes untuk penjadwalan ulang.",
-      tone: "info",
+    patchUiState({
+      actionLoading: "reschedule",
+      actionMessage: {
+        text: "Penjadwalan ulang online belum tersedia. Hubungi admin BUMDes untuk penjadwalan ulang.",
+        tone: "info",
+      },
     });
-    setActionLoading(null);
-    setRescheduleOpen(false);
+    patchUiState({ actionLoading: null, rescheduleOpen: false });
   };
 
   return (
@@ -419,8 +445,8 @@ export function AssetStatusPage({
                   amounts={reservation?.amounts}
                   reservationId={resolvedReservationId}
                   accessToken={accessToken ?? reservation?.guestToken}
-                  onCancel={() => setCancelOpen(true)}
-                  onReschedule={() => setRescheduleOpen(true)}
+                  onCancel={() => patchUiState({ cancelOpen: true })}
+                  onReschedule={() => patchUiState({ rescheduleOpen: true })}
                 />
               </div>
             </div>
@@ -432,13 +458,13 @@ export function AssetStatusPage({
         <AssetReservationFooter />
         <CancelRequestModal
           open={cancelOpen}
-          onOpenChange={setCancelOpen}
+          onOpenChange={(open) => patchUiState({ cancelOpen: open })}
           submitting={actionLoading === "cancel"}
           onConfirm={handleCancel}
         />
         <CancelRequestModal
           open={rescheduleOpen}
-          onOpenChange={setRescheduleOpen}
+          onOpenChange={(open) => patchUiState({ rescheduleOpen: open })}
           mode="reschedule"
           submitting={actionLoading === "reschedule"}
           onConfirm={handleReschedule}
