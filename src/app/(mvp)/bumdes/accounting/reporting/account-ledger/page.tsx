@@ -1,5 +1,7 @@
 /** @format */
 
+import type { Metadata } from "next";
+
 import { ReportingAccountLedgerPage } from "@/modules/accounting";
 
 type AccountingReportingAccountLedgerRouteProps = {
@@ -13,6 +15,11 @@ type AccountingReportingAccountLedgerRouteProps = {
     page?: string;
     page_size?: string;
   }>;
+};
+
+export const metadata: Metadata = {
+  title: "Bumdes - Accounting - Reporting - Account Ledger - Koperasi Digital",
+  description: "Bumdes - Accounting - Reporting - Account Ledger page.",
 };
 
 export default async function AccountingReportingAccountLedgerRoute({

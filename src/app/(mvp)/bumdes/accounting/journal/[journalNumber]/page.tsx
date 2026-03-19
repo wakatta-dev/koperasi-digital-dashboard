@@ -1,5 +1,7 @@
 /** @format */
 
+import type { Metadata } from "next";
+
 import { JournalEntryDetailPage } from "@/modules/accounting";
 
 type AccountingJournalDetailPageProps = {
@@ -9,6 +11,11 @@ type AccountingJournalDetailPageProps = {
   searchParams?: Promise<{
     from?: string;
   }>;
+};
+
+export const metadata: Metadata = {
+  title: "Bumdes - Accounting - Journal - Detail - Koperasi Digital",
+  description: "Bumdes - Accounting - Journal - Detail page.",
 };
 
 export default async function AccountingJournalDetailPage({

@@ -1,5 +1,7 @@
 /** @format */
 
+import type { Metadata } from "next";
+
 import React from "react";
 import { notFound } from "next/navigation";
 
@@ -7,6 +9,11 @@ import { AssetDetailView } from "@/modules/asset/components/asset-detail-view";
 import { mapContractAssetToDetailWithBookings } from "@/modules/asset/utils/stitch-contract-mappers";
 import { getAssetRentalBookings } from "@/services/api/asset-rental";
 import { getAssetById } from "@/services/api/assets";
+
+export const metadata: Metadata = {
+  title: "Bumdes - Asset - Manajemen - Detail - Koperasi Digital",
+  description: "Bumdes - Asset - Manajemen - Detail page.",
+};
 
 export default async function AssetDetailPage({
   params,

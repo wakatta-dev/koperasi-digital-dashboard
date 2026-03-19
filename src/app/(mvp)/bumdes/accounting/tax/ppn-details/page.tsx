@@ -1,5 +1,7 @@
 /** @format */
 
+import type { Metadata } from "next";
+
 import { TaxPpnDetailsPage } from "@/modules/accounting";
 
 type AccountingTaxPpnDetailsRouteProps = {
@@ -7,6 +9,11 @@ type AccountingTaxPpnDetailsRouteProps = {
     period?: string;
     from?: string;
   }>;
+};
+
+export const metadata: Metadata = {
+  title: "Bumdes - Accounting - Tax - Ppn Details - Koperasi Digital",
+  description: "Bumdes - Accounting - Tax - Ppn Details page.",
 };
 
 export default async function AccountingTaxPpnDetailsRoute({
