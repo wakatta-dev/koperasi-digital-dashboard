@@ -45,20 +45,47 @@ type Props = {
 };
 
 export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [recipientName, setRecipientName] = useState("");
-  const [recipientPhone, setRecipientPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [province, setProvince] = useState("");
-  const [city, setCity] = useState("");
-  const [district, setDistrict] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [shippingOption, setShippingOption] = useState(DEFAULT_SHIPPING_OPTION);
-  const [paymentMethod, setPaymentMethod] = useState(DEFAULT_PAYMENT_METHOD);
-  const [bankOption, setBankOption] = useState("BCA");
-  const [submitting, setSubmitting] = useState(false);
-  const [showValidation, setShowValidation] = useState(false);
+  const [formState, setFormState] = useState({
+    email: "",
+    phone: "",
+    recipientName: "",
+    recipientPhone: "",
+    address: "",
+    province: "",
+    city: "",
+    district: "",
+    postalCode: "",
+    shippingOption: DEFAULT_SHIPPING_OPTION,
+    paymentMethod: DEFAULT_PAYMENT_METHOD,
+    bankOption: "BCA",
+    submitting: false,
+    showValidation: false,
+  });
+  const {
+    email,
+    phone,
+    recipientName,
+    recipientPhone,
+    address,
+    province,
+    city,
+    district,
+    postalCode,
+    shippingOption,
+    paymentMethod,
+    bankOption,
+    submitting,
+    showValidation,
+  } = formState;
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const submittingRef = useRef(false);
   const qc = useQueryClient();
 
@@ -165,14 +192,14 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
       return;
     }
 
-    setShowValidation(true);
+    patchFormState({ showValidation: true });
     if (!isValid) {
       showToastError("Data checkout belum lengkap", validationErrors.join(" "));
       return;
     }
 
     submittingRef.current = true;
-    setSubmitting(true);
+    patchFormState({ submitting: true });
     try {
       const order = ensureMarketplaceSuccess(
         await checkoutMarketplace({
@@ -236,7 +263,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
       }
     } finally {
       submittingRef.current = false;
-      setSubmitting(false);
+      patchFormState({ submitting: false });
     }
   };
 
@@ -257,7 +284,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               type="email"
               placeholder="contoh@email.com"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ email: event.target.value })
+              }
               aria-invalid={
                 showValidation && (!email.trim() || !email.includes("@"))
               }
@@ -270,7 +299,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               type="tel"
               placeholder="812-3456-7890"
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ phone: event.target.value })
+              }
               aria-invalid={showValidation && !phone.trim()}
             />
           </FieldRow>
@@ -289,7 +320,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 data-testid="marketplace-checkout-recipient-name-input"
                 placeholder="Nama Lengkap Penerima"
                 value={recipientName}
-                onChange={(event) => setRecipientName(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ recipientName: event.target.value })
+                }
                 aria-invalid={showValidation && !recipientName.trim()}
               />
             </FieldRow>
@@ -298,7 +331,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 data-testid="marketplace-checkout-recipient-phone-input"
                 placeholder="0812xxxx"
                 value={recipientPhone}
-                onChange={(event) => setRecipientPhone(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ recipientPhone: event.target.value })
+                }
                 aria-invalid={showValidation && !recipientPhone.trim()}
               />
             </FieldRow>
@@ -310,7 +345,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               className="h-24 resize-none"
               placeholder="Nama Jalan, No. Rumah, RT/RW, Patokan (Cth: Seberang Masjid Al-Ikhlas)"
               value={address}
-              onChange={(event) => setAddress(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ address: event.target.value })
+              }
               aria-invalid={showValidation && !address.trim()}
             />
           </FieldRow>
@@ -321,7 +358,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 data-testid="marketplace-checkout-province-input"
                 placeholder="Pilih Provinsi"
                 value={province}
-                onChange={(event) => setProvince(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ province: event.target.value })
+                }
                 aria-invalid={showValidation && !province.trim()}
               />
             </FieldRow>
@@ -330,7 +369,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 data-testid="marketplace-checkout-city-input"
                 placeholder="Pilih Kota/Kabupaten"
                 value={city}
-                onChange={(event) => setCity(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ city: event.target.value })
+                }
                 aria-invalid={showValidation && !city.trim()}
               />
             </FieldRow>
@@ -342,7 +383,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 data-testid="marketplace-checkout-district-input"
                 placeholder="Pilih Kecamatan"
                 value={district}
-                onChange={(event) => setDistrict(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ district: event.target.value })
+                }
                 aria-invalid={showValidation && !district.trim()}
               />
             </FieldRow>
@@ -351,7 +394,9 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 data-testid="marketplace-checkout-postal-code-input"
                 placeholder="Contoh: 16750"
                 value={postalCode}
-                onChange={(event) => setPostalCode(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ postalCode: event.target.value })
+                }
                 aria-invalid={showValidation && !postalCode.trim()}
               />
             </FieldRow>
@@ -367,7 +412,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 subtitle="Estimasi 2-3 Hari"
                 value="JNE_REGULER"
                 selected={shippingOption === "JNE_REGULER"}
-                onSelect={setShippingOption}
+                onSelect={(value) => patchFormState({ shippingOption: value })}
                 testId="marketplace-checkout-shipping-option-jne"
                 rightSlot={
                   <span className="text-sm font-bold text-indigo-600">
@@ -380,7 +425,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                 subtitle="Estimasi 6-8 Jam"
                 value="GOJEK_SAME_DAY"
                 selected={shippingOption === "GOJEK_SAME_DAY"}
-                onSelect={setShippingOption}
+                onSelect={(value) => patchFormState({ shippingOption: value })}
                 testId="marketplace-checkout-shipping-option-gojek"
                 rightSlot={
                   <span className="text-sm font-bold text-indigo-600">
@@ -405,7 +450,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               subtitle="Gopay, OVO, Dana"
               value="QRIS"
               selected={paymentMethod === "QRIS"}
-              onSelect={setPaymentMethod}
+              onSelect={(value) => patchFormState({ paymentMethod: value })}
               testId="marketplace-checkout-payment-option-qris"
             />
             <OptionTile
@@ -413,7 +458,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               subtitle="BCA, Mandiri, BRI"
               value="TRANSFER_BANK"
               selected={paymentMethod === "TRANSFER_BANK"}
-              onSelect={setPaymentMethod}
+              onSelect={(value) => patchFormState({ paymentMethod: value })}
               testId="marketplace-checkout-payment-option-transfer"
             />
             <OptionTile
@@ -421,7 +466,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
               subtitle="LinkAja, ShopeePay"
               value="EWALLET"
               selected={paymentMethod === "EWALLET"}
-              onSelect={setPaymentMethod}
+              onSelect={(value) => patchFormState({ paymentMethod: value })}
               testId="marketplace-checkout-payment-option-ewallet"
             />
           </div>
@@ -438,7 +483,7 @@ export function CheckoutForm({ cart, onSuccess, onCostChange }: Props) {
                     data-testid={`marketplace-checkout-bank-option-${bank.toLowerCase()}`}
                     type="button"
                     variant="outline"
-                    onClick={() => setBankOption(bank)}
+                    onClick={() => patchFormState({ bankOption: bank })}
                     className={`h-11 rounded-lg border text-sm font-bold transition ${
                       bankOption === bank
                         ? "border-indigo-600 bg-indigo-50 text-indigo-600"

@@ -501,7 +501,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         orderNumber={detail.orderCode}
         status={detail.status}
         createdAt={detail.createdAt}
-        onPrintInvoice={() => setInvoiceOpen(true)}
+        onPrintInvoice={() => patchUiState({ invoiceOpen: true })}
         onSendMessage={() => undefined}
         onUpdateStatus={handleOpenStatus}
       />
@@ -693,7 +693,10 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             shippingAddress={detail.shippingAddress.line1}
             billingSameAsShipping
           />
-          <OrderNotesForm value={internalNotes} onChange={setInternalNotes} />
+          <OrderNotesForm
+            value={internalNotes}
+            onChange={(value) => patchUiState({ internalNotes: value })}
+          />
           <div className="surface-card p-6">
             <h3 className="text-base font-semibold text-gray-900 dark:text-white">Riwayat Status</h3>
             <div className="mt-4 space-y-4">
