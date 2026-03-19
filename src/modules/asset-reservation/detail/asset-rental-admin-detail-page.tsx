@@ -24,6 +24,7 @@ import {
   ASSET_RENTAL_BOOKING_STATUS,
   resolveAssetRentalBookingStatus,
 } from "@/lib/asset-rental-booking-status";
+import { formatLocalDateOnly, inclusiveEndDate, todayLocalDateOnly } from "@/lib/date-only";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import {
   getAssetById,
@@ -62,6 +63,13 @@ function formatDateTime(unixSeconds?: number) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatEndDateTime(unixSeconds?: number) {
+  if (!unixSeconds) return "-";
+  const date = inclusiveEndDate(new Date(unixSeconds * 1000));
+  if (!date) return "-";
+  return `${formatLocalDateOnly(date)}, 23:59`;
 }
 
 function formatCurrency(amount?: number) {
@@ -398,6 +406,9 @@ export function AssetRentalAdminDetailPage({
       return response.data;
     },
   });
+  const reservationDetailQueryKey = QK.assetRental.reservation(
+    `admin:${booking?.id ?? "unknown"}`,
+  );
 
   const updateStatusMutation = useMutation({
     mutationFn: async (status: string) => {
@@ -418,6 +429,9 @@ export function AssetRentalAdminDetailPage({
       await queryClient.invalidateQueries({
         queryKey: ["asset-rental", "bookings"],
       });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
+      });
     },
   });
 
@@ -436,6 +450,9 @@ export function AssetRentalAdminDetailPage({
       await queryClient.invalidateQueries({
         queryKey: ["asset-rental", "bookings"],
       });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
+      });
     },
   });
 
@@ -447,7 +464,9 @@ export function AssetRentalAdminDetailPage({
       status: "succeeded" | "failed";
       reason?: string;
     }) => {
-      const paymentID = booking?.latest_payment?.id?.trim();
+      const paymentID =
+        reservationDetailQuery.data?.latest_payment?.id?.trim() ||
+        booking?.latest_payment?.id?.trim();
       if (!paymentID) {
         throw new Error("Pembayaran belum tersedia");
       }
@@ -460,6 +479,9 @@ export function AssetRentalAdminDetailPage({
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["asset-rental", "bookings"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
       });
     },
   });
@@ -561,7 +583,7 @@ export function AssetRentalAdminDetailPage({
     fixedAssetRecognitionDate ||
     fixedAssetRegister?.recognition_date ||
     assetQuery.data?.purchase_date ||
-    new Date().toISOString().slice(0, 10);
+    todayLocalDateOnly();
   const depreciationMethodValue =
     depreciationMethod || fixedAssetRegister?.depreciation_method || "";
   const usefulLifeMonthsValue =
@@ -592,7 +614,8 @@ export function AssetRentalAdminDetailPage({
   const canComplete = ["CONFIRMED_FULL"].includes(
     (booking?.booking_state || booking?.status || "").toUpperCase(),
   );
-  const latestPayment = booking?.latest_payment;
+  const latestPayment =
+    reservationDetailQuery.data?.latest_payment ?? booking?.latest_payment;
   const latestPaymentStatus = (latestPayment?.status || "")
     .trim()
     .toLowerCase();
@@ -1471,7 +1494,7 @@ export function AssetRentalAdminDetailPage({
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs text-slate-500">Selesai</p>
                   <p className="mt-1 text-sm font-medium text-slate-900">
-                    {formatDateTime(booking.end_time)}
+                    {formatEndDateTime(booking.end_time)}
                   </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">

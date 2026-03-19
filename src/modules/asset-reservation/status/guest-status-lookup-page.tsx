@@ -21,6 +21,7 @@ import {
   type GuestRequestStatusResult,
 } from "../guest/components/status/GuestRequestStatusFeature";
 import { UploadPaymentProofModalFeature } from "../guest/components/status/UploadPaymentProofModalFeature";
+import { inclusiveEndDate, parseLocalDateInput } from "@/lib/date-only";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -34,8 +35,8 @@ function formatCurrency(amount?: number) {
 }
 
 function formatDateRange(start?: string, end?: string) {
-  const s = start ? new Date(start) : null;
-  const e = end ? new Date(end) : null;
+  const s = parseLocalDateInput(start);
+  const e = inclusiveEndDate(end);
   const validS = s && !Number.isNaN(s.getTime()) ? s : null;
   const validE = e && !Number.isNaN(e.getTime()) ? e : null;
   if (!validS || !validE) return "-";
@@ -90,7 +91,7 @@ function paymentInstructionForStatus(
       ctaLabel: "Unggah Bukti DP",
     };
   }
-  if (status === "awaiting_settlement") {
+  if (status === "confirmed_dp" || status === "awaiting_settlement") {
     const isDirectSettlement = paymentFlow === "settlement_direct";
     return {
       mode: "settlement",
@@ -190,6 +191,14 @@ export function GuestStatusLookupPage() {
       paymentInstruction,
       paymentFlow,
       latestPaymentType,
+      paymentHref:
+        paymentInstruction && reservation.guest_token
+          ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(
+              String(reservation.reservation_id),
+            )}&type=${encodeURIComponent(
+              paymentInstruction.mode,
+            )}&sig=${encodeURIComponent(reservation.guest_token)}`
+          : undefined,
       onOpenUploadProof: paymentInstruction
         ? async () => {
             try {

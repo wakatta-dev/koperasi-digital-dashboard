@@ -128,7 +128,7 @@ export function AssetRentalReturnsTable({
         <Button
           className="h-7 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
           onClick={() => onProcess(row.original.id)}
-          disabled={actionDisabled}
+          disabled={actionDisabled || row.original.status === "Selesai"}
           data-testid={`asset-rental-return-process-button-${row.original.id}`}
         >
           Proses Kembali

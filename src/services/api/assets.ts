@@ -18,6 +18,7 @@ import type {
   UpdateAssetRentalRequest,
 } from "@/types/api/asset-rental";
 import type { AssetFilterQuery } from "@/types/api/asset";
+import { addLocalDays, formatLocalDateOnly } from "@/lib/date-only";
 
 const E = API_ENDPOINTS.assets;
 
@@ -46,11 +47,10 @@ export function getAssetAvailability(
   params?: { start_date?: string; end_date?: string }
 ): Promise<AssetAvailabilityApiResponse> {
   const now = new Date();
-  const start = params?.start_date ?? now.toISOString().slice(0, 10);
-  const endDate = params?.end_date
-    ? new Date(params.end_date)
-    : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-  const end = endDate.toISOString().slice(0, 10);
+  const start = params?.start_date ?? formatLocalDateOnly(now);
+  const end = params?.end_date
+    ? formatLocalDateOnly(new Date(params.end_date))
+    : formatLocalDateOnly(addLocalDays(now, 30));
   const search = new URLSearchParams({ start_date: start, end_date: end });
   return api
     .get<AssetAvailabilityResponse>(

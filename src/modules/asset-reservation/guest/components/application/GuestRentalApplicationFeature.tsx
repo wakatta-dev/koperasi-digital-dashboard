@@ -10,7 +10,7 @@ type GuestRentalApplicationFeatureProps = Readonly<{
   description: string;
   values: GuestRentalApplicationFormValues;
   onValuesChange: (next: GuestRentalApplicationFormValues) => void;
-  onSubmit: () => void;
+  onSubmit: (values?: GuestRentalApplicationFormValues) => void;
   submitting?: boolean;
   selectedAsset: SelectedAssetSummary;
 }>;

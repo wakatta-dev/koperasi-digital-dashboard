@@ -3,6 +3,7 @@
 import type { ReservationSummary } from "../../types";
 import { humanizeReservationStatus } from "../../utils/status";
 import { formatPublicReservationIdentifier } from "../../guest/utils/public-status";
+import { inclusiveEndDate, parseLocalDateInput } from "@/lib/date-only";
 
 type RentalSummaryCardProps = {
   reservation: ReservationSummary;
@@ -10,7 +11,7 @@ type RentalSummaryCardProps = {
 
 export function RentalSummaryCard({ reservation }: RentalSummaryCardProps) {
   const startDate = reservation.startDate
-    ? new Date(reservation.startDate).toLocaleDateString("id-ID", {
+    ? parseLocalDateInput(reservation.startDate)?.toLocaleDateString("id-ID", {
         weekday: "long",
         day: "2-digit",
         month: "short",
@@ -18,7 +19,7 @@ export function RentalSummaryCard({ reservation }: RentalSummaryCardProps) {
       })
     : "-";
   const endDate = reservation.endDate
-    ? new Date(reservation.endDate).toLocaleDateString("id-ID", {
+    ? inclusiveEndDate(reservation.endDate)?.toLocaleDateString("id-ID", {
         weekday: "long",
         day: "2-digit",
         month: "short",

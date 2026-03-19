@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { PaymentMode } from "../../types";
 import {
@@ -74,6 +74,16 @@ export function PaymentMethods({
   const [isLoading, setIsLoading] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const actionsDisabled = !hasMethods || !reservationId || !ownershipToken;
+  const onSessionChangeRef = useRef(onSessionChange);
+  const onStatusChangeRef = useRef(onStatusChange);
+
+  useEffect(() => {
+    onSessionChangeRef.current = onSessionChange;
+  }, [onSessionChange]);
+
+  useEffect(() => {
+    onStatusChangeRef.current = onStatusChange;
+  }, [onStatusChange]);
 
   const payByText = useMemo(() => {
     if (!session?.payBy) return null;
@@ -88,7 +98,7 @@ export function PaymentMethods({
   const handleStatusUpdate = (next: PaymentStatus) => {
     setStatus(next);
     if (session?.paymentId) {
-      onStatusChange?.({ paymentId: session.paymentId, status: next });
+      onStatusChangeRef.current?.({ paymentId: session.paymentId, status: next });
     }
   };
 
@@ -133,7 +143,7 @@ export function PaymentMethods({
             status: res.data.status,
           });
           setStatus(res.data.status as PaymentStatus);
-          onSessionChange?.({
+          onSessionChangeRef.current?.({
             paymentId: res.data.payment_id,
             reservationId: res.data.reservation_id,
             amount: res.data.amount,
@@ -148,7 +158,7 @@ export function PaymentMethods({
               res.message || "Tidak dapat membuat sesi pembayaran",
             ),
           );
-          onSessionChange?.(null);
+          onSessionChangeRef.current?.(null);
         }
       } catch (err) {
         if (!ignore) {
@@ -159,7 +169,7 @@ export function PaymentMethods({
                 : "Gagal membuat sesi pembayaran",
             ),
           );
-          onSessionChange?.(null);
+          onSessionChangeRef.current?.(null);
         }
       } finally {
         if (!ignore) setIsLoading(false);
@@ -174,7 +184,6 @@ export function PaymentMethods({
     reservationId,
     selected,
     hasMethods,
-    onSessionChange,
     ownershipToken,
   ]);
 

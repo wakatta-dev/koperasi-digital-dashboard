@@ -24,6 +24,7 @@ import {
   resolvePublicReservationSubmissionErrorMessage,
   type PublicReservationSuccessState,
 } from "../guest/utils/public-reservation";
+import { addLocalDays, formatLocalDateOnly } from "@/lib/date-only";
 
 type AssetDetailPageProps = {
   assetId?: string;
@@ -77,7 +78,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   );
 
   const tomorrow = useMemo(
-    () => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    () => formatLocalDateOnly(addLocalDays(new Date(), 1)),
     [],
   );
 
@@ -118,18 +119,21 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     };
   }, [asset]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (
+    submittedValues?: GuestRentalApplicationFormValues,
+  ) => {
     if (!asset?.id) return;
     setSubmissionMessage(null);
     setReservationSuccess(null);
-    const parsed = formSchema.safeParse(values);
+    const effectiveValues = submittedValues ?? values;
+    const parsed = formSchema.safeParse(effectiveValues);
     if (!parsed.success) {
       setSubmissionMessage("Mohon lengkapi data pengajuan dengan benar sebelum dikirim.");
       return;
     }
 
-    const start = values.startDate;
-    const end = values.endDate;
+    const start = effectiveValues.startDate;
+    const end = effectiveValues.endDate;
     if (start > end) {
       setSubmissionMessage(
         "Tanggal selesai harus sama dengan atau setelah tanggal mulai."
@@ -152,10 +156,12 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         asset_id: asset.id,
         start_date: start,
         end_date: end,
-        purpose: values.purpose.trim(),
-        renter_name: values.fullName.trim(),
-        renter_contact: values.phone.trim(),
-        renter_email: values.email.trim() ? values.email.trim() : undefined,
+        purpose: effectiveValues.purpose.trim(),
+        renter_name: effectiveValues.fullName.trim(),
+        renter_contact: effectiveValues.phone.trim(),
+        renter_email: effectiveValues.email.trim()
+          ? effectiveValues.email.trim()
+          : undefined,
       });
 
       setReservationSuccess(await buildPublicReservationSuccessState(creation));

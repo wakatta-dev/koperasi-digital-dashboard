@@ -2,6 +2,8 @@
 
 "use client";
 
+import Link from "next/link";
+
 import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import type { ReservationStatus } from "@/modules/asset-reservation/types";
@@ -51,6 +53,7 @@ export type GuestRequestStatusResult = {
   paymentInstruction?: GuestRequestPaymentInstruction;
   paymentFlow?: GuestRequestPaymentFlow;
   latestPaymentType?: PaymentType;
+  paymentHref?: string;
   onOpenUploadProof?: () => void;
 };
 
@@ -584,15 +587,31 @@ export function GuestRequestStatusFeature({
                       </div>
                       <Button
                         type="button"
+                        asChild={Boolean(result.paymentHref)}
                         className="bg-brand-primary hover:bg-brand-primary-hover text-white"
-                        onClick={() => result.onOpenUploadProof?.()}
-                        disabled={!result.onOpenUploadProof}
+                        onClick={
+                          result.paymentHref
+                            ? undefined
+                            : () => result.onOpenUploadProof?.()
+                        }
+                        disabled={!result.paymentHref && !result.onOpenUploadProof}
                         data-testid="asset-rental-status-payment-cta"
                       >
-                        <span className="material-icons-outlined text-sm mr-1">
-                          upload_file
-                        </span>
-                        {result.paymentInstruction.ctaLabel}
+                        {result.paymentHref ? (
+                          <Link href={result.paymentHref}>
+                            <span className="material-icons-outlined text-sm mr-1">
+                              upload_file
+                            </span>
+                            {result.paymentInstruction.ctaLabel}
+                          </Link>
+                        ) : (
+                          <>
+                            <span className="material-icons-outlined text-sm mr-1">
+                              upload_file
+                            </span>
+                            {result.paymentInstruction.ctaLabel}
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>

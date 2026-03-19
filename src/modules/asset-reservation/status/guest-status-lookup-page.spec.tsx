@@ -39,6 +39,7 @@ vi.mock("../guest/components/status/GuestRequestStatusFeature", () => ({
       <div>result-ticket:{result?.ticketLabel ?? "-"}</div>
       <div>result-badge:{result?.badgeLabel ?? "-"}</div>
       <div>result-description:{result?.statusDescription ?? "-"}</div>
+      <div>result-payment-href:{result?.paymentHref ?? "-"}</div>
     </div>
   ),
 }));
@@ -99,5 +100,32 @@ describe("GuestStatusLookupPage", () => {
     render(<GuestStatusLookupPage />);
 
     expect(screen.getByText("result-badge:Menunggu Pembayaran")).toBeTruthy();
+  });
+
+  it("provides settlement payment href once dp is confirmed", () => {
+    lookupMock.mockReturnValue({
+      data: {
+        reservation_id: 27,
+        asset_name: "Balai Desa",
+        renter_name: "Sari",
+        renter_contact: "0812000001",
+        start_date: "2026-03-20T08:00:00Z",
+        end_date: "2026-03-21T15:00:00Z",
+        status: "confirmed_dp",
+        payment_flow: "dp",
+        guest_token: "token-27",
+        amounts: { total: 750000, dp: 300000, remaining: 450000 },
+      },
+      mutate: vi.fn(),
+      isPending: false,
+    });
+
+    render(<GuestStatusLookupPage />);
+
+    expect(
+      screen.getByText(
+        "result-payment-href:/penyewaan-aset/payment?reservationId=27&type=settlement&sig=token-27",
+      ),
+    ).toBeTruthy();
   });
 });

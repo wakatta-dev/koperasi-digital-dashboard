@@ -5,6 +5,7 @@ import {
   ASSET_RENTAL_BOOKING_STATUS,
   resolveAssetRentalBookingStatus,
 } from "@/lib/asset-rental-booking-status";
+import { dateOnlyFromUnixSeconds, formatLocalDateOnly, inclusiveEndDate } from "@/lib/date-only";
 
 import type {
   AssetRentalRentalsRow,
@@ -19,10 +20,12 @@ type AssetRentalBookingCollections = Readonly<{
 }>;
 
 function toDateText(unixSeconds?: number) {
-  if (!unixSeconds) return "-";
-  const date = new Date(unixSeconds * 1000);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toISOString().slice(0, 10);
+  return dateOnlyFromUnixSeconds(unixSeconds);
+}
+
+function toEndDateText(unixSeconds?: number) {
+  const date = inclusiveEndDate(unixSeconds ? new Date(unixSeconds * 1000) : null);
+  return date ? formatLocalDateOnly(date) : "-";
 }
 
 function toBookingStatus(status?: string) {
@@ -77,7 +80,7 @@ export function mapContractBookingToRental(
     borrowerName: booking.renter_name,
     borrowerUnit: booking.renter_contact || booking.purpose || "-",
     startDate: toDateText(booking.start_time),
-    returnDate: toDateText(booking.end_time),
+    returnDate: toEndDateText(booking.end_time),
     status: toRentalStatus(booking),
   };
 }
@@ -92,7 +95,7 @@ export function mapContractBookingToRequest(
     assetName: booking.asset_name,
     assetTypeLabel: "-",
     startDate: toDateText(booking.start_time),
-    endDate: toDateText(booking.end_time),
+    endDate: toEndDateText(booking.end_time),
     purpose: booking.purpose || "-",
     status: toRequestStatus(booking.status),
   };
@@ -105,7 +108,7 @@ export function mapContractBookingToReturn(
     id: String(booking.id),
     assetName: booking.asset_name,
     borrowerName: booking.renter_name,
-    dueDate: toDateText(booking.end_time),
+    dueDate: toEndDateText(booking.end_time),
     plannedReturnDate: null,
     status: toReturnStatus(booking.status),
   };
@@ -143,10 +146,7 @@ export function splitAssetRentalBookings(
       rentalRows.push(mapContractBookingToRental(booking));
     }
 
-    if (
-      normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedFull ||
-      normalized === ASSET_RENTAL_BOOKING_STATUS.completed
-    ) {
+    if (normalized === ASSET_RENTAL_BOOKING_STATUS.confirmedFull) {
       returnRows.push(mapContractBookingToReturn(booking));
     }
   }

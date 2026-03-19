@@ -18,7 +18,7 @@ export type GuestRentalApplicationFormValues = {
 type GuestRentalApplicationFormProps = Readonly<{
   values: GuestRentalApplicationFormValues;
   onValuesChange: (next: GuestRentalApplicationFormValues) => void;
-  onSubmit: () => void;
+  onSubmit: (values?: GuestRentalApplicationFormValues) => void;
   submitting?: boolean;
 }>;
 
@@ -34,7 +34,15 @@ export function GuestRentalApplicationForm({
       data-testid="asset-rental-application-form"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit();
+        const formData = new FormData(e.currentTarget);
+        onSubmit({
+          fullName: String(formData.get("full-name") ?? values.fullName),
+          phone: String(formData.get("phone") ?? values.phone),
+          email: String(formData.get("email") ?? values.email),
+          purpose: String(formData.get("purpose") ?? values.purpose),
+          startDate: String(formData.get("start-date") ?? values.startDate),
+          endDate: String(formData.get("end-date") ?? values.endDate),
+        });
       }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

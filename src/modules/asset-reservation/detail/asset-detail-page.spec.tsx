@@ -50,7 +50,7 @@ vi.mock("../guest/components/application/GuestRentalApplicationFeature", () => (
     onSubmit,
     onValuesChange,
   }: {
-    onSubmit: () => void;
+    onSubmit: (values?: Record<string, string>) => void;
     onValuesChange: (next: Record<string, string>) => void;
   }) => {
     React.useEffect(() => {
@@ -65,7 +65,19 @@ vi.mock("../guest/components/application/GuestRentalApplicationFeature", () => (
     }, [onValuesChange]);
 
     return (
-      <button type="button" onClick={onSubmit}>
+      <button
+        type="button"
+        onClick={() =>
+          onSubmit({
+            fullName: "Budi Santoso",
+            phone: "08123456789",
+            email: "budi@example.com",
+            purpose: "Rapat warga",
+            startDate: "2026-03-10",
+            endDate: "2026-03-11",
+          })
+        }
+      >
         submit-rental
       </button>
     );

@@ -62,7 +62,19 @@ export function resolveApiBaseUrl(
   const origin =
     runtime?.origin ?? (typeof window !== "undefined" ? window.location.origin : undefined);
 
-  if (!isBrowser || !normalized || !origin) {
+  if (!isBrowser || !origin) {
+    return normalized;
+  }
+
+  if (!normalized) {
+    try {
+      const appUrl = new URL(origin);
+      if (nodeEnv !== "production" && isLocalLikeHost(appUrl.hostname)) {
+        return `${appUrl.protocol}//${appUrl.hostname}:8080`;
+      }
+    } catch {
+      return normalized;
+    }
     return normalized;
   }
 
