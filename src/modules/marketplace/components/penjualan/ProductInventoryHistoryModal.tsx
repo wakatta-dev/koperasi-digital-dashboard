@@ -100,10 +100,22 @@ export function ProductInventoryHistoryModal({
   sku,
   entries,
 }: ProductInventoryHistoryModalProps) {
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [activityType, setActivityType] = useState("Semua Aktivitas");
-  const [searchValue, setSearchValue] = useState("");
+  const [filterState, setFilterState] = useState({
+    dateFrom: "",
+    dateTo: "",
+    activityType: "Semua Aktivitas",
+    searchValue: "",
+  });
+  const { dateFrom, dateTo, activityType, searchValue } = filterState;
+  const patchFilterState = (
+    updates:
+      | Partial<typeof filterState>
+      | ((current: typeof filterState) => typeof filterState),
+  ) => {
+    setFilterState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const pageKey = `${dateFrom}::${dateTo}::${activityType}::${searchValue}::${entries.length}`;
   const [pageState, setPageState] = useState<{
     key: string;
@@ -316,7 +328,9 @@ export function ProductInventoryHistoryModal({
                       startIcon={<Calendar className="h-4 w-4" />}
                       type="date"
                       value={dateFrom}
-                      onValueChange={setDateFrom}
+                      onValueChange={(value) =>
+                        patchFilterState({ dateFrom: value })
+                      }
                     />
                     <InputField
                       ariaLabel="Tanggal akhir"
@@ -324,7 +338,9 @@ export function ProductInventoryHistoryModal({
                       startIcon={<Calendar className="h-4 w-4" />}
                       type="date"
                       value={dateTo}
-                      onValueChange={setDateTo}
+                      onValueChange={(value) =>
+                        patchFilterState({ dateTo: value })
+                      }
                     />
                   </div>
                 </div>
@@ -335,7 +351,12 @@ export function ProductInventoryHistoryModal({
                   >
                     Tipe Aktivitas
                   </label>
-                  <Select value={activityType} onValueChange={setActivityType}>
+                  <Select
+                    value={activityType}
+                    onValueChange={(value) =>
+                      patchFilterState({ activityType: value })
+                    }
+                  >
                     <SelectTrigger
                       id="product-history-activity-type"
                       className="w-full rounded-lg border-gray-200 bg-white py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
@@ -359,7 +380,9 @@ export function ProductInventoryHistoryModal({
                     size="lg"
                     startIcon={<Search className="h-4 w-4" />}
                     value={searchValue}
-                    onValueChange={setSearchValue}
+                    onValueChange={(value) =>
+                      patchFilterState({ searchValue: value })
+                    }
                     placeholder="ID Invoice / Gudang"
                   />
                 </div>
@@ -368,10 +391,12 @@ export function ProductInventoryHistoryModal({
                     type="button"
                     variant="ghost"
                     onClick={() => {
-                      setDateFrom("");
-                      setDateTo("");
-                      setActivityType("Semua Aktivitas");
-                      setSearchValue("");
+                      patchFilterState({
+                        dateFrom: "",
+                        dateTo: "",
+                        activityType: "Semua Aktivitas",
+                        searchValue: "",
+                      });
                     }}
                     className="h-[42px] rounded-lg px-5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800"
                   >

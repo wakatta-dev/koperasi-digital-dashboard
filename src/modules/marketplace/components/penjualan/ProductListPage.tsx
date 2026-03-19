@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProductListHeader } from "./ProductListHeader";
 import { ProductTable } from "./ProductTable";
 import { ProductFilterSheet } from "./ProductFilterSheet";
@@ -14,6 +14,7 @@ import {
 } from "@/hooks/queries/inventory";
 import { mapInventoryProduct } from "@/modules/inventory/utils";
 import { parseOptionalPriceFilter } from "./product-list-filters";
+import { useRouter } from "next/navigation";
 
 const PAGE_SIZE = 10;
 const DEFAULT_PRODUCT_STATUSES = ["Tersedia", "Menipis", "Habis"] as const;
@@ -75,13 +76,20 @@ export function ProductListPage({
     draftFilters,
     page,
   } = uiState;
-  const patchUiState = (
-    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
-  ) => {
-    setUiState((current) =>
-      typeof updates === "function" ? updates(current) : { ...current, ...updates },
-    );
-  };
+  const patchUiState = useCallback(
+    (
+      updates:
+        | Partial<typeof uiState>
+        | ((current: typeof uiState) => typeof uiState),
+    ) => {
+      setUiState((current) =>
+        typeof updates === "function"
+          ? updates(current)
+          : { ...current, ...updates },
+      );
+    },
+    [],
+  );
   const { data: categoriesData } = useInventoryCategories();
 
   useEffect(() => {
@@ -108,7 +116,7 @@ export function ProductListPage({
         dateTo: "",
       },
     }));
-  }, [createdProductId, searchValue]);
+  }, [createdProductId, patchUiState, searchValue]);
 
   useEffect(() => {
     if (filterOpen) {
@@ -117,7 +125,7 @@ export function ProductListPage({
         draftFilters: current.appliedFilters,
       }));
     }
-  }, [filterOpen, appliedFilters]);
+  }, [filterOpen, appliedFilters, patchUiState]);
 
   const statusParam = useMemo(() => {
     const map: Record<string, string> = {
@@ -168,7 +176,9 @@ export function ProductListPage({
             : item.showInMarketplace
               ? "Tayang di marketplace"
               : "Draft internal",
-        sellerLabel: item.sellerId ? `Seller #${item.sellerId}` : "Tanpa seller",
+        sellerLabel: item.sellerId
+          ? `Seller #${item.sellerId}`
+          : "Tanpa seller",
         status: resolveStockStatus(
           item.stock,
           item.minStock,
@@ -177,11 +187,15 @@ export function ProductListPage({
           item.product.variant_in_stock,
           item.product.variant_price_valid,
         ),
-        stockCount: item.product.has_variants ? item.stock : item.trackStock ? item.stock : 0,
+        stockCount: item.product.has_variants
+          ? item.stock
+          : item.trackStock
+            ? item.stock
+            : 0,
         price: item.price,
         thumbnailUrl: item.image,
       })),
-    [inventoryItems]
+    [inventoryItems],
   );
 
   const categoryOptions = useMemo(() => {
@@ -190,9 +204,11 @@ export function ProductListPage({
       .filter((name): name is string => Boolean(name));
     const fromProducts = products
       .map((product) => product.category)
-      .filter((category): category is string => Boolean(category && category !== "-"));
+      .filter((category): category is string =>
+        Boolean(category && category !== "-"),
+      );
     const labels = Array.from(
-      new Set([...fromApi, ...fromProducts, ...draftFilters.categories])
+      new Set([...fromApi, ...fromProducts, ...draftFilters.categories]),
     );
     return labels.map((label) => ({
       label,
@@ -297,14 +313,19 @@ export function ProductListPage({
         selectedIds={selectedIds}
         onToggleSelect={handleToggleSelect}
         onToggleAll={handleToggleAll}
-        onRowClick={(product) => router.push(`/bumdes/marketplace/inventory/${product.id}`)}
+        onRowClick={(product) =>
+          router.push(`/bumdes/marketplace/inventory/${product.id}`)
+        }
         getActions={(product) => {
-          const inventoryItem = inventoryItems.find((item) => item.id === product.id);
+          const inventoryItem = inventoryItems.find(
+            (item) => item.id === product.id,
+          );
           if (!inventoryItem) return [];
           const actionsList = [
             {
               label: "Lihat Detail",
-              onSelect: () => router.push(`/bumdes/marketplace/inventory/${product.id}`),
+              onSelect: () =>
+                router.push(`/bumdes/marketplace/inventory/${product.id}`),
             },
             inventoryItem.status !== "ARCHIVED"
               ? {
@@ -323,7 +344,9 @@ export function ProductListPage({
               onSelect: () =>
                 actions.update.mutate({
                   id: inventoryItem.id,
-                  payload: { show_in_marketplace: !inventoryItem.showInMarketplace },
+                  payload: {
+                    show_in_marketplace: !inventoryItem.showInMarketplace,
+                  },
                 }),
               disabled: inventoryItem.status !== "ACTIVE",
             },
@@ -352,23 +375,25 @@ export function ProductListPage({
         onToggleCategory={handleToggleCategory}
         onToggleStatus={handleToggleStatus}
         onMinPriceChange={(value) =>
-          setDraftFilters((prev) => ({ ...prev, minPrice: value }))
+          setUiState((prev) => ({ ...prev, minPrice: value }))
         }
         onMaxPriceChange={(value) =>
-          setDraftFilters((prev) => ({ ...prev, maxPrice: value }))
+          setUiState((prev) => ({ ...prev, maxPrice: value }))
         }
         onDateFromChange={(value) =>
-          setDraftFilters((prev) => ({ ...prev, dateFrom: value }))
+          setUiState((prev) => ({ ...prev, dateFrom: value }))
         }
         onDateToChange={(value) =>
-          setDraftFilters((prev) => ({ ...prev, dateTo: value }))
+          setUiState((prev) => ({ ...prev, dateTo: value }))
         }
         onReset={handleResetFilters}
         onApply={handleApplyFilters}
       />
 
       {isLoading ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">Memuat data inventaris...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Memuat data inventaris...
+        </p>
       ) : null}
       {isError ? (
         <p className="text-sm text-red-500">Gagal memuat data inventaris.</p>
