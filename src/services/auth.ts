@@ -45,6 +45,11 @@ function setClientSessionCache(session: any): ClientSessionCache | null {
     return null;
   }
 
+  if (session?.error) {
+    clientSessionCache = null;
+    return null;
+  }
+
   const expiresAt = computeClientExpiry(parseExpiry(session.expires));
 
   clientSessionCache = {
@@ -149,6 +154,9 @@ export async function getAccessToken(): Promise<string | null> {
     const { getServerSession } = await import("next-auth");
     const { authOptions } = await import("@/lib/authOptions");
     const session: any = await getServerSession(authOptions);
+    if (session?.error) {
+      return null;
+    }
     return session?.accessToken ?? null;
   } catch {
     return null;
