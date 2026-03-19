@@ -28,13 +28,31 @@ export function AccountingSettingsAnalyticBudgetPage() {
   const { createAnalyticAccount } = useAccountingSettingsAnalyticMutations();
   const { createBudget, updateBudget, deleteBudget } = useAccountingSettingsBudgetMutations();
 
-  const [isCreateBudgetOpen, setCreateBudgetOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<BudgetRow | null>(null);
-  const [isDeleteBudgetOpen, setDeleteBudgetOpen] = useState(false);
-  const [deletingBudget, setDeletingBudget] = useState<BudgetRow | null>(null);
-  const [isAddAnalyticOpen, setAddAnalyticOpen] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const [uiState, setUiState] = useState({
+    isCreateBudgetOpen: false,
+    editingBudget: null as BudgetRow | null,
+    isDeleteBudgetOpen: false,
+    deletingBudget: null as BudgetRow | null,
+    isAddAnalyticOpen: false,
+    showSuccessToast: false,
+    actionError: null as string | null,
+  });
+  const {
+    isCreateBudgetOpen,
+    editingBudget,
+    isDeleteBudgetOpen,
+    deletingBudget,
+    isAddAnalyticOpen,
+    showSuccessToast,
+    actionError,
+  } = uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const budgetRows = useMemo(() => {
     return mapBudgetRows(budgetsQuery.data?.items ?? []);
@@ -58,12 +76,12 @@ export function AccountingSettingsAnalyticBudgetPage() {
     currency_code: string;
     target_amount: number;
   }) => {
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await createBudget.mutateAsync({ payload });
-      setShowSuccessToast(true);
+      patchUiState({ showSuccessToast: true });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
@@ -77,29 +95,27 @@ export function AccountingSettingsAnalyticBudgetPage() {
   }) => {
     if (!editingBudget) return;
 
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await updateBudget.mutateAsync({
         budgetId: editingBudget.budget_id,
         payload,
       });
-      setEditingBudget(null);
-      setShowSuccessToast(true);
+      patchUiState({ editingBudget: null, showSuccessToast: true });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
   const handleDeleteBudget = async () => {
     if (!deletingBudget) return;
 
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await deleteBudget.mutateAsync({ budgetId: deletingBudget.budget_id });
-      setDeletingBudget(null);
-      setDeleteBudgetOpen(false);
+      patchUiState({ deletingBudget: null, isDeleteBudgetOpen: false });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
@@ -108,11 +124,11 @@ export function AccountingSettingsAnalyticBudgetPage() {
     reference_code: string;
     parent_analytic_account_id?: string;
   }) => {
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await createAnalyticAccount.mutateAsync({ payload });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
@@ -127,40 +143,44 @@ export function AccountingSettingsAnalyticBudgetPage() {
       <FeatureAnalyticBudgetWorkspace
         budgetRows={budgetRows}
         analyticAccountCards={analyticAccountCards}
-        onCreateBudget={() => setCreateBudgetOpen(true)}
-        onAddAnalyticAccount={() => setAddAnalyticOpen(true)}
+        onCreateBudget={() => patchUiState({ isCreateBudgetOpen: true })}
+        onAddAnalyticAccount={() => patchUiState({ isAddAnalyticOpen: true })}
         onEditBudget={(budgetId) => {
           const selectedBudget = budgetRows.find((item) => item.budget_id === budgetId) ?? null;
-          setEditingBudget(selectedBudget);
+          patchUiState({ editingBudget: selectedBudget });
         }}
       />
 
       <FeatureCreateBudgetModal
         open={isCreateBudgetOpen}
-        onOpenChange={setCreateBudgetOpen}
+        onOpenChange={(open) => patchUiState({ isCreateBudgetOpen: open })}
         onSave={handleCreateBudget}
       />
 
       <FeatureEditBudgetModal
         open={Boolean(editingBudget)}
         onOpenChange={(open) => {
-          if (!open) setEditingBudget(null);
+          if (!open) patchUiState({ editingBudget: null });
         }}
         onSave={handleUpdateBudget}
         onRequestDelete={() => {
           if (editingBudget) {
-            setDeletingBudget(editingBudget);
+            patchUiState({ deletingBudget: editingBudget });
           }
-          setEditingBudget(null);
-          setDeleteBudgetOpen(true);
+          patchUiState({
+            editingBudget: null,
+            isDeleteBudgetOpen: true,
+          });
         }}
       />
 
       <FeatureDeleteBudgetModal
         open={isDeleteBudgetOpen}
         onOpenChange={(open) => {
-          setDeleteBudgetOpen(open);
-          if (!open) setDeletingBudget(null);
+          patchUiState({
+            isDeleteBudgetOpen: open,
+            deletingBudget: open ? deletingBudget : null,
+          });
         }}
         budgetName={deletingBudget?.budget_name}
         onDelete={handleDeleteBudget}
@@ -168,13 +188,13 @@ export function AccountingSettingsAnalyticBudgetPage() {
 
       <FeatureAddAnalyticAccountModal
         open={isAddAnalyticOpen}
-        onOpenChange={setAddAnalyticOpen}
+        onOpenChange={(open) => patchUiState({ isAddAnalyticOpen: open })}
         onSave={handleCreateAnalyticAccount}
       />
 
       <FeatureAnalyticBudgetSuccessToast
         open={showSuccessToast}
-        onClose={() => setShowSuccessToast(false)}
+        onClose={() => patchUiState({ showSuccessToast: false })}
       />
     </>
   );
