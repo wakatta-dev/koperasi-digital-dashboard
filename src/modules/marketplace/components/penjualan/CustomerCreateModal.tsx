@@ -39,20 +39,35 @@ export function CustomerCreateModal({
   onCancel,
 }: CustomerCreateModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [name, setName] = useState("");
-  const [type, setType] = useState("Individu");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [npwp, setNpwp] = useState("");
+  const [formState, setFormState] = useState({
+    name: "",
+    type: "Individu",
+    email: "",
+    phone: "",
+    address: "",
+    npwp: "",
+  });
+  const { name, type, email, phone, address, npwp } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const resetForm = () => {
-    setName("");
-    setType("Individu");
-    setEmail("");
-    setPhone("");
-    setAddress("");
-    setNpwp("");
+    setFormState({
+      name: "",
+      type: "Individu",
+      email: "",
+      phone: "",
+      address: "",
+      npwp: "",
+    });
   };
 
   const handleClose = (next: boolean) => {
@@ -115,7 +130,9 @@ export function CustomerCreateModal({
                 <Input
                   id="customer-create-name"
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ name: event.target.value })
+                  }
                   placeholder="Masukkan nama lengkap"
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus-visible:ring-indigo-600/20 focus-visible:border-indigo-600 sm:text-sm transition-shadow"
                 />
@@ -124,7 +141,10 @@ export function CustomerCreateModal({
                 <label htmlFor="customer-create-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Tipe Pelanggan
                 </label>
-                <Select value={type} onValueChange={setType}>
+                <Select
+                  value={type}
+                  onValueChange={(value) => patchFormState({ type: value })}
+                >
                   <SelectTrigger id="customer-create-type" className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:ring-indigo-600/20">
                     <SelectValue placeholder="Individu" />
                   </SelectTrigger>
@@ -144,7 +164,9 @@ export function CustomerCreateModal({
                   id="customer-create-email"
                   type="email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ email: event.target.value })
+                  }
                   placeholder="contoh@email.com"
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus-visible:ring-indigo-600/20 focus-visible:border-indigo-600 sm:text-sm transition-shadow"
                 />
@@ -156,7 +178,9 @@ export function CustomerCreateModal({
                 <Input
                   id="customer-create-phone"
                   value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ phone: event.target.value })
+                  }
                   placeholder="0812..."
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus-visible:ring-indigo-600/20 focus-visible:border-indigo-600 sm:text-sm transition-shadow"
                 />
@@ -169,7 +193,9 @@ export function CustomerCreateModal({
               <Textarea
                 id="customer-create-address"
                 value={address}
-                onChange={(event) => setAddress(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ address: event.target.value })
+                }
                 placeholder="Alamat lengkap..."
                 rows={3}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus-visible:ring-indigo-600/20 focus-visible:border-indigo-600 sm:text-sm transition-shadow"
@@ -182,7 +208,9 @@ export function CustomerCreateModal({
               <Input
                 id="customer-create-npwp"
                 value={npwp}
-                onChange={(event) => setNpwp(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ npwp: event.target.value })
+                }
                 placeholder="Nomor Pokok Wajib Pajak"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus-visible:ring-indigo-600/20 focus-visible:border-indigo-600 sm:text-sm transition-shadow"
               />

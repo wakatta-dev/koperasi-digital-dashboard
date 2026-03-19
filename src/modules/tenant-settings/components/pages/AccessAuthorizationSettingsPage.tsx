@@ -30,6 +30,19 @@ type AccessAuthorizationSettingsPageProps = {
   queryString?: string;
 };
 
+function dedupeByAlias<T extends { alias: string }>(items: T[]) {
+  const seenAliases = new Set<string>();
+
+  return items.filter((item) => {
+    if (seenAliases.has(item.alias)) {
+      return false;
+    }
+
+    seenAliases.add(item.alias);
+    return true;
+  });
+}
+
 export function AccessAuthorizationSettingsPage({
   queryString = "",
 }: AccessAuthorizationSettingsPageProps) {
@@ -66,13 +79,16 @@ export function AccessAuthorizationSettingsPage({
     selectedPermissionAlias,
   } = uiState;
 
-  const patchUiState = (
-    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
-  ) => {
-    setUiState((current) =>
-      typeof updates === "function" ? updates(current) : { ...current, ...updates },
-    );
-  };
+  const patchUiState = useCallback(
+    (
+      updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+    ) => {
+      setUiState((current) =>
+        typeof updates === "function" ? updates(current) : { ...current, ...updates },
+      );
+    },
+    [],
+  );
   const handleSearchChange = useCallback((value: string) => {
     setUiState((current) => ({ ...current, search: value }));
   }, []);
@@ -90,7 +106,14 @@ export function AccessAuthorizationSettingsPage({
     [roles, selectedRoleId]
   );
   const rolePermissionsQuery = useRolePermissions(selectedRoleId || undefined, { limit: 200 });
-  const permissions = useMemo(() => rolePermissionsQuery.data ?? [], [rolePermissionsQuery.data]);
+  const permissions = useMemo(
+    () => dedupeByAlias(rolePermissionsQuery.data ?? []),
+    [rolePermissionsQuery.data]
+  );
+  const permissionCatalog = useMemo(
+    () => dedupeByAlias(permissionCatalogQuery.data ?? []),
+    [permissionCatalogQuery.data]
+  );
 
   const syncRoleQuery = useCallback(
     (roleId: string) => {
@@ -108,7 +131,7 @@ export function AccessAuthorizationSettingsPage({
       patchUiState({ selectedRoleId: roleId });
       syncRoleQuery(roleId);
     },
-    [syncRoleQuery]
+    [patchUiState, syncRoleQuery]
   );
 
   useEffect(() => {
@@ -137,7 +160,7 @@ export function AccessAuthorizationSettingsPage({
     if (nextRoleId) {
       syncRoleQuery(nextRoleId);
     }
-  }, [requestedRoleId, roles, selectedRoleId, syncRoleQuery]);
+  }, [patchUiState, requestedRoleId, roles, selectedRoleId, syncRoleQuery]);
 
   const syncSelectedRoleDraft = useCallback((role: typeof selectedRole) => {
     if (!role) {
@@ -151,7 +174,7 @@ export function AccessAuthorizationSettingsPage({
       editRoleName: role.name,
       editRoleDescription: role.description ?? "",
     });
-  }, []);
+  }, [patchUiState]);
 
   useEffect(() => {
     syncSelectedRoleDraft(selectedRole);
@@ -162,9 +185,8 @@ export function AccessAuthorizationSettingsPage({
     [permissions]
   );
   const availablePermissionCatalog = useMemo(
-    () =>
-      (permissionCatalogQuery.data ?? []).filter((item) => !assignedAliases.has(item.alias)),
-    [assignedAliases, permissionCatalogQuery.data]
+    () => permissionCatalog.filter((item) => !assignedAliases.has(item.alias)),
+    [assignedAliases, permissionCatalog]
   );
 
   useEffect(() => {
@@ -177,7 +199,7 @@ export function AccessAuthorizationSettingsPage({
         selectedPermissionAlias: availablePermissionCatalog[0].alias,
       });
     }
-  }, [availablePermissionCatalog, selectedPermissionAlias]);
+  }, [availablePermissionCatalog, patchUiState, selectedPermissionAlias]);
 
   return (
     <TenantSettingsShell

@@ -27,19 +27,39 @@ import { FeatureVendorBillsTable } from "../features/FeatureVendorBillsTable";
 type DemoStep = "list" | "batch" | "ocr" | "confirmation";
 
 export function VendorBillsApFeatureDemo() {
-  const [step, setStep] = useState<DemoStep>("list");
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [selectedBillNumbers, setSelectedBillNumbers] = useState<string[]>([]);
-  const [batchBills, setBatchBills] = useState<BatchPaymentBillItem[]>([]);
-  const [batchDraft, setBatchDraft] = useState(() => ({
-    ...buildInitialBatchPaymentDraft(new Date()),
-    reference_number: "DEMO-BATCH",
-  }));
-  const [ocrSession, setOcrSession] = useState<OcrExtractionSession>({
-    ...EMPTY_OCR_SESSION,
-    file_name: "sample.pdf",
-    file_size_label: "0 MB",
+  const [demoState, setDemoState] = useState({
+    step: "list" as DemoStep,
+    createModalOpen: false,
+    selectedBillNumbers: [] as string[],
+    batchBills: [] as BatchPaymentBillItem[],
+    batchDraft: {
+      ...buildInitialBatchPaymentDraft(new Date()),
+      reference_number: "DEMO-BATCH",
+    },
+    ocrSession: {
+      ...EMPTY_OCR_SESSION,
+      file_name: "sample.pdf",
+      file_size_label: "0 MB",
+    } as OcrExtractionSession,
   });
+  const {
+    step,
+    createModalOpen,
+    selectedBillNumbers,
+    batchBills,
+    batchDraft,
+    ocrSession,
+  } = demoState;
+
+  const patchDemoState = (
+    updates:
+      | Partial<typeof demoState>
+      | ((current: typeof demoState) => typeof demoState),
+  ) => {
+    setDemoState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   return (
     <section className="space-y-4">
@@ -51,16 +71,16 @@ export function VendorBillsApFeatureDemo() {
       </header>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant={step === "list" ? "default" : "outline"} onClick={() => setStep("list")} className={step === "list" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
+        <Button type="button" variant={step === "list" ? "default" : "outline"} onClick={() => patchDemoState({ step: "list" })} className={step === "list" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
           List
         </Button>
-        <Button type="button" variant={step === "batch" ? "default" : "outline"} onClick={() => setStep("batch")} className={step === "batch" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
+        <Button type="button" variant={step === "batch" ? "default" : "outline"} onClick={() => patchDemoState({ step: "batch" })} className={step === "batch" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
           Batch
         </Button>
-        <Button type="button" variant={step === "ocr" ? "default" : "outline"} onClick={() => setStep("ocr")} className={step === "ocr" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
+        <Button type="button" variant={step === "ocr" ? "default" : "outline"} onClick={() => patchDemoState({ step: "ocr" })} className={step === "ocr" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
           OCR
         </Button>
-        <Button type="button" variant={step === "confirmation" ? "default" : "outline"} onClick={() => setStep("confirmation")} className={step === "confirmation" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
+        <Button type="button" variant={step === "confirmation" ? "default" : "outline"} onClick={() => patchDemoState({ step: "confirmation" })} className={step === "confirmation" ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-gray-200 dark:border-gray-700"}>
           Confirmation
         </Button>
       </div>
@@ -71,7 +91,7 @@ export function VendorBillsApFeatureDemo() {
             <Button
               type="button"
               className="bg-indigo-600 text-white hover:bg-indigo-700"
-              onClick={() => setCreateModalOpen(true)}
+              onClick={() => patchDemoState({ createModalOpen: true })}
             >
               New Bill
             </Button>
@@ -86,12 +106,14 @@ export function VendorBillsApFeatureDemo() {
           />
           <FeatureVendorBillsTable
             selectedBillNumbers={selectedBillNumbers}
-            onSelectionChange={setSelectedBillNumbers}
+            onSelectionChange={(value) =>
+              patchDemoState({ selectedBillNumbers: value })
+            }
           />
           <FeatureCreateVendorBillModal
             open={createModalOpen}
-            onOpenChange={setCreateModalOpen}
-            onSubmit={() => setCreateModalOpen(false)}
+            onOpenChange={(open) => patchDemoState({ createModalOpen: open })}
+            onSubmit={() => patchDemoState({ createModalOpen: false })}
           />
         </div>
       ) : null}
@@ -99,14 +121,17 @@ export function VendorBillsApFeatureDemo() {
       {step === "batch" ? (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           <div className="space-y-6 xl:col-span-2">
-            <FeatureBatchSelectedBillsTable rows={batchBills} onRowsChange={setBatchBills} />
+            <FeatureBatchSelectedBillsTable
+              rows={batchBills}
+              onRowsChange={(value) => patchDemoState({ batchBills: value })}
+            />
             <FeatureBatchProcessingNote />
           </div>
           <div className="space-y-6">
             <FeatureBatchPaymentDetailsCard
               draft={batchDraft}
-              onDraftChange={setBatchDraft}
-              onConfirm={() => setStep("confirmation")}
+              onDraftChange={(value) => patchDemoState({ batchDraft: value })}
+              onConfirm={() => patchDemoState({ step: "confirmation" })}
             />
             <FeatureBatchVendorCreditsPanel />
           </div>
@@ -117,8 +142,13 @@ export function VendorBillsApFeatureDemo() {
         <div className="grid h-[720px] grid-cols-1 gap-0 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 xl:grid-cols-[1fr_450px]">
           <FeatureOcrDocumentPreviewPanel session={ocrSession} />
           <div className="flex h-full flex-col border-l border-gray-200 dark:border-gray-700">
-            <FeatureOcrExtractedDataPanel session={ocrSession} onSessionChange={setOcrSession} />
-            <FeatureOcrAccuracyFooter onSaveProgress={() => setStep("list")} />
+            <FeatureOcrExtractedDataPanel
+              session={ocrSession}
+              onSessionChange={(value) => patchDemoState({ ocrSession: value })}
+            />
+            <FeatureOcrAccuracyFooter
+              onSaveProgress={() => patchDemoState({ step: "list" })}
+            />
           </div>
         </div>
       ) : null}
@@ -126,7 +156,7 @@ export function VendorBillsApFeatureDemo() {
       {step === "confirmation" ? (
         <FeaturePaymentSchedulingSuccessCard
           confirmation={EMPTY_PAYMENT_CONFIRMATION}
-          onDone={() => setStep("list")}
+          onDone={() => patchDemoState({ step: "list" })}
         />
       ) : null}
     </section>

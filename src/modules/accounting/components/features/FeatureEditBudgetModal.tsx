@@ -44,11 +44,25 @@ export function FeatureEditBudgetModal({
   onSave,
   onRequestDelete,
 }: FeatureEditBudgetModalProps) {
-  const [budgetName, setBudgetName] = useState("Q1 Marketing Campaign");
-  const [analyticAccount, setAnalyticAccount] = useState("marketing");
-  const [startDate, setStartDate] = useState("2024-01-01");
-  const [endDate, setEndDate] = useState("2024-03-31");
-  const [targetAmount, setTargetAmount] = useState("50,000.00");
+  const [formState, setFormState] = useState({
+    budgetName: "Q1 Marketing Campaign",
+    analyticAccount: "marketing",
+    startDate: "2024-01-01",
+    endDate: "2024-03-31",
+    targetAmount: "50,000.00",
+  });
+  const { budgetName, analyticAccount, startDate, endDate, targetAmount } =
+    formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const handleSave = () => {
     onSave?.({
@@ -94,7 +108,9 @@ export function FeatureEditBudgetModal({
             </Label>
             <Input
               value={budgetName}
-              onChange={(event) => setBudgetName(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ budgetName: event.target.value })
+              }
               className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             />
           </div>
@@ -103,7 +119,12 @@ export function FeatureEditBudgetModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Analytic Account
             </Label>
-            <Select value={analyticAccount} onValueChange={setAnalyticAccount}>
+            <Select
+              value={analyticAccount}
+              onValueChange={(value) =>
+                patchFormState({ analyticAccount: value })
+              }
+            >
               <SelectTrigger className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                 <SelectValue />
               </SelectTrigger>
@@ -124,7 +145,9 @@ export function FeatureEditBudgetModal({
               <Input
                 type="date"
                 value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ startDate: event.target.value })
+                }
                 className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
@@ -135,7 +158,9 @@ export function FeatureEditBudgetModal({
               <Input
                 type="date"
                 value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ endDate: event.target.value })
+                }
                 className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
@@ -151,7 +176,9 @@ export function FeatureEditBudgetModal({
               </span>
               <Input
                 value={targetAmount}
-                onChange={(event) => setTargetAmount(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ targetAmount: event.target.value })
+                }
                 placeholder="0.00"
                 className="border-gray-300 pl-7 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               />
