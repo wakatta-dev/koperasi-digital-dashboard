@@ -3,7 +3,12 @@
 import { API_PREFIX, api } from "./base";
 import { API_ENDPOINTS } from "@/constants/api";
 import type { ApiResponse } from "@/types/api";
-import type { AssetRentalBooking } from "@/types/api/asset-rental";
+import type {
+  AssetRentalBooking,
+  AssetRentalFinancialResolutionRequest,
+  AssetRentalPaymentClassificationRequest,
+} from "@/types/api/asset-rental";
+import type { ReservationDetailResponse } from "@/types/api/reservation";
 
 const BOOKINGS_ENDPOINT = `${API_PREFIX}${API_ENDPOINTS.assetReservation.bookings}`;
 
@@ -49,6 +54,30 @@ export function updateAssetBookingStatus(
   }
   return api.patch<AssetRentalBooking>(
     `${API_PREFIX}${API_ENDPOINTS.assetReservation.bookingStatus(bookingId)}`,
+    payload
+  );
+}
+
+export function classifyAssetRentalPayment(
+  bookingId: string | number,
+  payload: AssetRentalPaymentClassificationRequest
+): Promise<ApiResponse<ReservationDetailResponse>> {
+  return api.patch<ReservationDetailResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.assetReservation.bookingPaymentClassification(
+      bookingId
+    )}`,
+    payload
+  );
+}
+
+export function resolveAssetRentalFinancialOutcome(
+  bookingId: string | number,
+  payload: AssetRentalFinancialResolutionRequest
+): Promise<ApiResponse<ReservationDetailResponse>> {
+  return api.patch<ReservationDetailResponse>(
+    `${API_PREFIX}${API_ENDPOINTS.assetReservation.bookingFinancialResolution(
+      bookingId
+    )}`,
     payload
   );
 }

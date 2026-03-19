@@ -9,6 +9,8 @@ import { AssetRentalAdminDetailPage } from "./asset-rental-admin-detail-page";
 const getAssetRentalBookingsMock = vi.fn();
 const updateAssetBookingStatusMock = vi.fn();
 const completeAssetBookingMock = vi.fn();
+const classifyAssetRentalPaymentMock = vi.fn();
+const resolveAssetRentalFinancialOutcomeMock = vi.fn();
 const getAssetByIdMock = vi.fn();
 const registerAssetFixedAssetMock = vi.fn();
 const updateAssetFixedAssetProfileMock = vi.fn();
@@ -22,6 +24,10 @@ vi.mock("@/services/api/asset-rental", () => ({
     updateAssetBookingStatusMock(...args),
   completeAssetBooking: (...args: unknown[]) =>
     completeAssetBookingMock(...args),
+  classifyAssetRentalPayment: (...args: unknown[]) =>
+    classifyAssetRentalPaymentMock(...args),
+  resolveAssetRentalFinancialOutcome: (...args: unknown[]) =>
+    resolveAssetRentalFinancialOutcomeMock(...args),
 }));
 
 vi.mock("@/services/api/assets", () => ({
@@ -42,6 +48,8 @@ describe("AssetRentalAdminDetailPage", () => {
     getAssetRentalBookingsMock.mockReset();
     updateAssetBookingStatusMock.mockReset();
     completeAssetBookingMock.mockReset();
+    classifyAssetRentalPaymentMock.mockReset();
+    resolveAssetRentalFinancialOutcomeMock.mockReset();
     getAssetByIdMock.mockReset();
     registerAssetFixedAssetMock.mockReset();
     updateAssetFixedAssetProfileMock.mockReset();
@@ -155,6 +163,14 @@ describe("AssetRentalAdminDetailPage", () => {
       data: {},
     });
     finalizePaymentMock.mockResolvedValue({ success: true, data: {} });
+    classifyAssetRentalPaymentMock.mockResolvedValue({
+      success: true,
+      data: {},
+    });
+    resolveAssetRentalFinancialOutcomeMock.mockResolvedValue({
+      success: true,
+      data: {},
+    });
   });
 
   it("renders rental workspace with separated operational and payment states", async () => {
@@ -420,8 +436,11 @@ describe("AssetRentalAdminDetailPage", () => {
       <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
     );
 
+    fireEvent.click(
+      screen.getByRole("button", { name: "Register Aset Tetap" }),
+    );
+
     await waitFor(() => {
-      expect(screen.getByText("Register Aset Tetap")).toBeTruthy();
       expect(
         screen.getByDisplayValue("Bangunan Operasional"),
       ).toBeTruthy();
@@ -436,6 +455,10 @@ describe("AssetRentalAdminDetailPage", () => {
   it("can register rental asset into fixed asset register", async () => {
     renderFeature(
       <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Register Aset Tetap" }),
     );
 
     await waitFor(() => {
@@ -485,6 +508,10 @@ describe("AssetRentalAdminDetailPage", () => {
 
     renderFeature(
       <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Register Aset Tetap" }),
     );
 
     await waitFor(() => {
