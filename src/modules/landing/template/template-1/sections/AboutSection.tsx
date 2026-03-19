@@ -62,8 +62,8 @@ export function TemplateOneAboutSection({ data }: TemplateOneAboutSectionProps) 
             <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">{description}</p>
 
             <ul className="space-y-4 mb-8">
-              {highlights.map((item, index) => (
-                <li key={`${item.text}-${index}`} className="flex items-center gap-3">
+              {highlights.map((item) => (
+                <li key={item.text} className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-green-500">check_circle</span>
                   <span className="text-slate-700 dark:text-slate-300 font-medium">{item.text}</span>
                 </li>

@@ -131,6 +131,18 @@ const SEGMENT_BAR_CLASS_NAMES = [
   "bg-amber-500",
   "bg-rose-500",
 ];
+const PERFORMANCE_SKELETON_IDS = [
+  "performance-skeleton-1",
+  "performance-skeleton-2",
+  "performance-skeleton-3",
+  "performance-skeleton-4",
+];
+const SEGMENT_SKELETON_IDS = [
+  "segment-skeleton-1",
+  "segment-skeleton-2",
+  "segment-skeleton-3",
+  "segment-skeleton-4",
+];
 
 function normalizeVisualKey(value?: string): string {
   return (value ?? "")
@@ -541,9 +553,9 @@ export default function AccountingDashboardPage() {
           <CardContent className="min-h-0 flex-1 px-6 pb-6">
             {overviewQuery.isPending && !overview ? (
               <div className="max-h-[24rem] space-y-3 overflow-y-auto pr-2">
-                {Array.from({ length: 4 }).map((_, index) => (
+                {PERFORMANCE_SKELETON_IDS.map((skeletonId) => (
                   <div
-                    key={`performance-skeleton-${index}`}
+                    key={skeletonId}
                     className="animate-pulse rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70"
                   >
                     <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-700" />
@@ -622,9 +634,9 @@ export default function AccountingDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4 px-6 pb-6">
             {overviewQuery.isPending && !overview ? (
-              Array.from({ length: 4 }).map((_, index) => (
+              SEGMENT_SKELETON_IDS.map((skeletonId) => (
                 <div
-                  key={`segment-skeleton-${index}`}
+                  key={skeletonId}
                   className="animate-pulse space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70"
                 >
                   <div className="h-4 w-28 rounded bg-slate-200 dark:bg-slate-700" />
@@ -635,7 +647,7 @@ export default function AccountingDashboardPage() {
               <>
                 {revenueSegments.map((segment, index) => (
                   <div
-                    key={`${segment.label_display}-${index}`}
+                    key={`${segment.label_display}-${segment.pct}`}
                     className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/70"
                   >
                     <div className="flex items-center justify-between gap-3">

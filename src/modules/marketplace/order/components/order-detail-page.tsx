@@ -578,7 +578,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
                           statusHistory.map((entry, index) => (
                             <li
                               className="relative"
-                              key={`${entry.status}-${index}`}
+                              key={`${entry.status}-${entry.timestamp ?? "no-time"}-${entry.reason ?? "no-reason"}`}
                             >
                               <span
                                 className={`absolute -left-[31px] top-0 h-4 w-4 rounded-full border-2 border-background ${

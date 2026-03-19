@@ -71,8 +71,8 @@ export function TemplateThreeFooterSection({ data }: TemplateThreeFooterSectionP
             <div className="flex flex-col gap-6">
               <h3 className="text-accent font-black text-sm uppercase tracking-[0.2em]">Layanan</h3>
               <div className="flex flex-col gap-4">
-                {serviceLinks.map((link, index) => (
-                  <a key={`${link.label}-${index}`} className="text-indigo-50 hover:text-accent transition-colors" href={link.url}>
+                {serviceLinks.map((link) => (
+                  <a key={`${link.label}-${link.url}`} className="text-indigo-50 hover:text-accent transition-colors" href={link.url}>
                     {link.label}
                   </a>
                 ))}
@@ -82,8 +82,8 @@ export function TemplateThreeFooterSection({ data }: TemplateThreeFooterSectionP
             <div className="flex flex-col gap-6">
               <h3 className="text-accent font-black text-sm uppercase tracking-[0.2em]">Perusahaan</h3>
               <div className="flex flex-col gap-4">
-                {companyLinks.map((link, index) => (
-                  <a key={`${link.label}-${index}`} className="text-indigo-50 hover:text-accent transition-colors" href={link.url}>
+                {companyLinks.map((link) => (
+                  <a key={`${link.label}-${link.url}`} className="text-indigo-50 hover:text-accent transition-colors" href={link.url}>
                     {link.label}
                   </a>
                 ))}
@@ -93,8 +93,8 @@ export function TemplateThreeFooterSection({ data }: TemplateThreeFooterSectionP
             <div className="flex flex-col gap-6">
               <h3 className="text-accent font-black text-sm uppercase tracking-[0.2em]">Bantuan</h3>
               <div className="flex flex-col gap-4">
-                {helpLinks.map((link, index) => (
-                  <a key={`${link.label}-${index}`} className="text-indigo-50 hover:text-accent transition-colors" href={link.url}>
+                {helpLinks.map((link) => (
+                  <a key={`${link.label}-${link.url}`} className="text-indigo-50 hover:text-accent transition-colors" href={link.url}>
                     {link.label}
                   </a>
                 ))}

@@ -124,6 +124,10 @@ function defaultValueForField(field: LandingTemplateFieldSchema): any {
 
 function buildRepeaterItem(fields: LandingTemplateFieldSchema[] = []) {
   const item: Record<string, any> = {};
+  item.__itemKey =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `repeater-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   fields.forEach((field) => {
     item[field.key] = defaultValueForField(field);
   });
@@ -693,8 +697,13 @@ export function LandingPageManagement() {
 
                 {list.map((item, index) => {
                   const itemMap = item && typeof item === "object" ? item : {};
+                  const itemKey =
+                    typeof itemMap.__itemKey === "string" &&
+                    itemMap.__itemKey.length > 0
+                      ? itemMap.__itemKey
+                      : `${field.key}-${JSON.stringify(itemMap)}`;
                   return (
-                    <Card key={`${field.key}-${index}`} className="gap-3">
+                    <Card key={itemKey} className="gap-3">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-sm">
                           Item #{index + 1}

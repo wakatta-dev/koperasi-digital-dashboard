@@ -85,8 +85,8 @@ export function TemplateThreeStatsSection({ data }: TemplateThreeStatsSectionPro
             <h2 className="text-white text-4xl lg:text-5xl font-black mt-4 mb-8">{title}</h2>
             <p className="text-indigo-100 text-lg mb-10 leading-relaxed">{description}</p>
             <div className="grid grid-cols-2 gap-8">
-              {statsItems.map((item, index) => (
-                <div key={`${item.label}-${index}`}>
+              {statsItems.map((item) => (
+                <div key={`${item.label}-${item.value}`}>
                   <div className="text-5xl font-black text-accent mb-2">{item.value}</div>
                   <div className="text-indigo-200 font-medium text-lg">{item.label}</div>
                 </div>
@@ -102,9 +102,9 @@ export function TemplateThreeStatsSection({ data }: TemplateThreeStatsSectionPro
                 Kata Anggota Kami
               </h3>
 
-              {testimonials.map((item, index) => (
+              {testimonials.map((item) => (
                 <div
-                  key={`${item.name}-${index}`}
+                  key={`${item.name}-${item.role}`}
                   className="bg-white/10 p-6 rounded-2xl border border-white/5 hover:bg-white/15 transition-colors"
                 >
                   <div className="flex items-center gap-4 mb-4">

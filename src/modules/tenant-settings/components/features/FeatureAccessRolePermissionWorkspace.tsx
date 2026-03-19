@@ -273,9 +273,9 @@ export function FeatureAccessRolePermissionWorkspace({
                     </div>
 
                     <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto pr-1 overscroll-contain">
-                      {permissions.map((permission, index) => (
+                      {permissions.map((permission) => (
                         <div
-                          key={`${permission.alias}-${index}`}
+                          key={permission.alias}
                           className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:flex-row sm:items-start sm:justify-between dark:border-slate-800 dark:bg-slate-900/60"
                         >
                           <div className="min-w-0">
@@ -335,9 +335,9 @@ export function FeatureAccessRolePermissionWorkspace({
                               <SelectValue placeholder="Pilih alias permission" />
                             </SelectTrigger>
                             <SelectContent>
-                              {permissionCatalog.map((item, index) => (
+                              {permissionCatalog.map((item) => (
                                 <SelectItem
-                                  key={`${item.alias}-${index}`}
+                                  key={item.alias}
                                   value={item.alias}
                                 >
                                   {item.label} ({item.alias})

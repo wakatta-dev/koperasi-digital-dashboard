@@ -5,6 +5,32 @@ import { LandingFooter } from "@/modules/landing/components/footer";
 import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { CART_BADGE } from "../../constants";
 
+const SHIPPING_STEP_SKELETON_IDS = [
+  "shipping-step-1",
+  "shipping-step-2",
+  "shipping-step-3",
+  "shipping-step-4",
+];
+const SHIPPING_FIELD_SKELETON_IDS = [
+  "shipping-field-1",
+  "shipping-field-2",
+  "shipping-field-3",
+  "shipping-field-4",
+  "shipping-field-5",
+  "shipping-field-6",
+];
+const SHIPPING_OPTION_SKELETON_IDS = [
+  "shipping-option-1",
+  "shipping-option-2",
+  "shipping-option-3",
+];
+const SHIPPING_SUMMARY_SKELETON_IDS = [
+  "shipping-summary-1",
+  "shipping-summary-2",
+  "shipping-summary-3",
+  "shipping-summary-4",
+];
+
 function StepSkeleton() {
   return (
     <div className="relative flex flex-col items-center z-10 group cursor-default">
@@ -25,8 +51,8 @@ export function MarketplaceShippingSkeleton() {
             <div className="relative flex items-center justify-between">
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-border rounded-full z-0"></div>
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/3 h-1 bg-indigo-600 rounded-full z-0"></div>
-              {[...Array(4)].map((_, idx) => (
-                <StepSkeleton key={idx} />
+              {SHIPPING_STEP_SKELETON_IDS.map((id) => (
+                <StepSkeleton key={id} />
               ))}
             </div>
           </div>
@@ -36,8 +62,8 @@ export function MarketplaceShippingSkeleton() {
               <div className="bg-card rounded-2xl shadow-sm border border-border p-6">
                 <Skeleton className="h-5 w-32 mb-6" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[...Array(6)].map((_, idx) => (
-                    <div key={idx} className="space-y-2">
+                  {SHIPPING_FIELD_SKELETON_IDS.map((id) => (
+                    <div key={id} className="space-y-2">
                       <Skeleton className="h-4 w-24" />
                       <Skeleton className="h-11 w-full rounded-xl" />
                     </div>
@@ -50,8 +76,8 @@ export function MarketplaceShippingSkeleton() {
               </div>
               <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
                 <Skeleton className="h-5 w-48" />
-                {[...Array(3)].map((_, idx) => (
-                  <Skeleton key={idx} className="h-16 w-full rounded-xl" />
+                {SHIPPING_OPTION_SKELETON_IDS.map((id) => (
+                  <Skeleton key={id} className="h-16 w-full rounded-xl" />
                 ))}
               </div>
               <Skeleton className="h-4 w-48" />
@@ -59,8 +85,8 @@ export function MarketplaceShippingSkeleton() {
             <div className="lg:col-span-4">
               <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
                 <Skeleton className="h-5 w-40" />
-                {[...Array(4)].map((_, idx) => (
-                  <div key={idx} className="flex justify-between items-center">
+                {SHIPPING_SUMMARY_SKELETON_IDS.map((id) => (
+                  <div key={id} className="flex justify-between items-center">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-20" />
                   </div>

@@ -66,7 +66,7 @@ export function TemplateThreeAdvantagesSection({ data }: TemplateThreeAdvantages
           {items.map((item, index) => {
             return (
               <div
-                key={`${item.title}-${index}`}
+                key={`${item.title}-${item.icon}`}
                 className="bg-off-white p-8 rounded-[2rem] border border-gray-100 hover:shadow-xl transition-all duration-300 group"
               >
                 <div className={ADVANTAGE_ICON_CLASS[index % ADVANTAGE_ICON_CLASS.length]}>

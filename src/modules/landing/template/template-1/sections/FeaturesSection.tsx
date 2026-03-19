@@ -48,7 +48,7 @@ export function TemplateOneFeaturesSection({ data }: TemplateOneFeaturesSectionP
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {items.map((item, index) => (
             <div
-              key={`${item.title}-${index}`}
+              key={`${item.title}-${item.description}`}
               className="flex flex-col items-start gap-4 p-6 rounded-xl bg-background-light dark:bg-background-dark/50 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
             >
               <div className="size-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary">

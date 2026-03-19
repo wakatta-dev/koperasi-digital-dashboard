@@ -89,8 +89,8 @@ export function TemplateOneFooterSection({ data }: TemplateOneFooterSectionProps
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider mb-4 text-slate-200">Perusahaan</h3>
             <ul className="flex flex-col gap-3 text-sm text-slate-400">
-              {companyLinks.map((link, index) => (
-                <li key={`${link.label}-${index}`}>
+              {companyLinks.map((link) => (
+                <li key={`${link.label}-${link.url}`}>
                   <a className="hover:text-primary transition-colors" href={link.url}>
                     {link.label}
                   </a>
@@ -102,8 +102,8 @@ export function TemplateOneFooterSection({ data }: TemplateOneFooterSectionProps
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider mb-4 text-slate-200">Kategori</h3>
             <ul className="flex flex-col gap-3 text-sm text-slate-400">
-              {categoryLinks.map((link, index) => (
-                <li key={`${link.label}-${index}`}>
+              {categoryLinks.map((link) => (
+                <li key={`${link.label}-${link.url}`}>
                   <a className="hover:text-primary transition-colors" href={link.url}>
                     {link.label}
                   </a>

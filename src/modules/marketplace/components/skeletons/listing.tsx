@@ -5,12 +5,35 @@ import { CART_BADGE } from "../../constants";
 import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { LandingFooter } from "@/modules/landing/components/footer";
 
+const FILTER_ROW_SKELETON_IDS = [
+  "filter-row-1",
+  "filter-row-2",
+  "filter-row-3",
+  "filter-row-4",
+  "filter-row-5",
+];
+const PRODUCT_CARD_SKELETON_IDS = [
+  "product-card-1",
+  "product-card-2",
+  "product-card-3",
+  "product-card-4",
+  "product-card-5",
+  "product-card-6",
+];
+const PAGINATION_SKELETON_IDS = [
+  "pagination-1",
+  "pagination-2",
+  "pagination-3",
+  "pagination-4",
+  "pagination-5",
+];
+
 function FilterCardSkeleton() {
   return (
     <div className="bg-card rounded-xl shadow-sm border border-border p-6 space-y-3">
       <Skeleton className="h-5 w-24" />
-      {[...Array(5)].map((_, idx) => (
-        <div key={idx} className="flex items-center gap-3">
+      {FILTER_ROW_SKELETON_IDS.map((id) => (
+        <div key={id} className="flex items-center gap-3">
           <Skeleton className="h-4 w-4 rounded" />
           <Skeleton className="h-4 w-32" />
         </div>
@@ -74,16 +97,13 @@ export function MarketplaceListingSkeleton() {
                 <Skeleton className="h-9 w-32" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, idx) => (
-                  <ProductCardSkeleton key={idx} />
+                {PRODUCT_CARD_SKELETON_IDS.map((id) => (
+                  <ProductCardSkeleton key={id} />
                 ))}
               </div>
               <div className="mt-12 flex justify-center gap-2">
-                {[...Array(5)].map((_, idx) => (
-                  <Skeleton
-                    key={idx}
-                    className="h-10 w-10 rounded-lg"
-                  />
+                {PAGINATION_SKELETON_IDS.map((id) => (
+                  <Skeleton key={id} className="h-10 w-10 rounded-lg" />
                 ))}
               </div>
             </div>

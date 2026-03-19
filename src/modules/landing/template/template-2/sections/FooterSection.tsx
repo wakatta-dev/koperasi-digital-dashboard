@@ -64,8 +64,8 @@ export function TemplateTwoFooterSection({ data }: TemplateTwoFooterSectionProps
           <div>
             <h5 className="font-black text-lg mb-6 text-market-yellow">Kategori</h5>
             <ul className="space-y-3 font-bold text-white/60">
-              {categoryLinks.map((link, index) => (
-                <li key={`${link.label}-${index}`}>
+              {categoryLinks.map((link) => (
+                <li key={`${link.label}-${link.url}`}>
                   <a className="hover:text-white transition-colors" href={link.url}>
                     {link.label}
                   </a>

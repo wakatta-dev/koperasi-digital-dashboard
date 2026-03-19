@@ -687,7 +687,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
               {detail.statusHistory.length > 0 ? (
                 detail.statusHistory.map((entry, index) => (
                   <div
-                    key={`${entry.status}-${entry.timestamp}-${index}`}
+                    key={`${entry.status}-${entry.timestamp}-${entry.reason ?? "no-reason"}`}
                     className="rounded-lg border border-border bg-muted/20 p-4"
                   >
                     <p className="text-sm font-semibold text-foreground">

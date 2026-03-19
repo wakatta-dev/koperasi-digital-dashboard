@@ -86,7 +86,7 @@ export function TemplateThreeServicesSection({ data }: TemplateThreeServicesSect
           {items.map((item, index) => {
             const variant = SERVICE_CARD_VARIANTS[index % SERVICE_CARD_VARIANTS.length];
             return (
-              <div key={`${item.title}-${index}`} className={variant.wrapper}>
+              <div key={`${item.title}-${item.description}`} className={variant.wrapper}>
                 <div className={variant.iconBackground}>
                   <span className={variant.iconBackgroundSize}>{item.icon}</span>
                 </div>

@@ -183,7 +183,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
       <div className="flex overflow-x-auto pb-4 gap-3 justify-start md:justify-center mb-10 no-scrollbar">
         {tabs.map((tab, index) => (
           <button
-            key={`${tab.label}-${index}`}
+            key={tab.label}
             className={
               index === 0 ? TAB_BUTTON_CLASSES[0] : TAB_BUTTON_CLASSES[((index - 1) % (TAB_BUTTON_CLASSES.length - 1)) + 1]
             }
@@ -198,7 +198,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
         {cards.map((card, index) => {
           const theme = CARD_THEME[index % CARD_THEME.length];
           return (
-            <div key={`${card.title}-${index}`} className={theme.card}>
+            <div key={`${card.title}-${card.price}`} className={theme.card}>
               <div
                 className={`aspect-[4/3] rounded-2xl overflow-hidden mb-4 relative bg-gray-100 ${
                   card.image_url ? "" : "flex items-center justify-center"

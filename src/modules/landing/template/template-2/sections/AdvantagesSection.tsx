@@ -90,7 +90,7 @@ export function TemplateTwoAdvantagesSection({ data }: TemplateTwoAdvantagesSect
               {items.map((item, index) => {
                 const theme = ITEM_THEME[index % ITEM_THEME.length];
                 return (
-                  <div key={`${item.title}-${index}`} className={theme.itemClass}>
+                  <div key={`${item.title}-${item.icon}`} className={theme.itemClass}>
                     <div className={theme.iconWrap}>
                       <span className="material-symbols-outlined font-bold">{item.icon}</span>
                     </div>

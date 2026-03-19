@@ -76,9 +76,9 @@ export function TemplateOneProductsSection({ data }: TemplateOneProductsSectionP
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {items.map((item, index) => (
+          {items.map((item) => (
             <div
-              key={`${item.title}-${index}`}
+              key={`${item.title}-${item.category}`}
               className="group flex flex-col bg-background-light dark:bg-background-dark rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-lg transition-all duration-300"
             >
               <div
