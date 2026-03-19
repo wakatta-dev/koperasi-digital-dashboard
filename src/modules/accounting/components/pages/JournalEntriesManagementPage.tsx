@@ -113,17 +113,23 @@ export function JournalEntriesManagementPage({
     [searchParams],
   );
 
-  const [filters, setFilters] = useState<JournalEntriesFilterValue>(
-    initialQueryState.filters,
-  );
-  const [pagination, setPagination] = useState<JournalEntriesPagination>(
-    initialQueryState.pagination,
-  );
-  const [sort] = useState(initialQueryState.sort);
-  const [lockPeriodOpen, setLockPeriodOpen] = useState(false);
-  const [lockPeriodSelection, setLockPeriodSelection] = useState({
-    ...JOURNAL_INITIAL_LOCK_PERIOD,
-  });
+  const [uiState, setUiState] = useState(() => ({
+    filters: initialQueryState.filters,
+    pagination: initialQueryState.pagination,
+    lockPeriodOpen: false,
+    lockPeriodSelection: {
+      ...JOURNAL_INITIAL_LOCK_PERIOD,
+    },
+  }));
+  const { filters, pagination, lockPeriodOpen, lockPeriodSelection } = uiState;
+  const sort = initialQueryState.sort;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const overviewQuery = useAccountingJournalOverview();
   const entriesQuery = useAccountingJournalEntries({
@@ -164,19 +170,22 @@ export function JournalEntriesManagementPage({
       return;
     }
 
-    setLockPeriodSelection((current) => ({
-      month: String(
-        periodLockMonth ??
-          (Number.isFinite(Number.parseInt(current.month, 10))
-            ? Number.parseInt(current.month, 10)
-            : 1),
-      ),
-      year: String(
-        periodLockYear ??
-          (Number.isFinite(Number.parseInt(current.year, 10))
-            ? Number.parseInt(current.year, 10)
-            : Number.parseInt(JOURNAL_INITIAL_LOCK_PERIOD.year, 10)),
-      ),
+    patchUiState((current) => ({
+      ...current,
+      lockPeriodSelection: {
+        month: String(
+          periodLockMonth ??
+            (Number.isFinite(Number.parseInt(current.lockPeriodSelection.month, 10))
+              ? Number.parseInt(current.lockPeriodSelection.month, 10)
+              : 1),
+        ),
+        year: String(
+          periodLockYear ??
+            (Number.isFinite(Number.parseInt(current.lockPeriodSelection.year, 10))
+              ? Number.parseInt(current.lockPeriodSelection.year, 10)
+              : Number.parseInt(JOURNAL_INITIAL_LOCK_PERIOD.year, 10)),
+        ),
+      },
     }));
   }, [periodLockMonth, periodLockYear]);
 
@@ -301,7 +310,9 @@ export function JournalEntriesManagementPage({
             tone: isPosted ? "success" : isLocked ? "danger" : "warning",
             showAccent: true,
             interactive: isLocked,
-            onClick: isLocked ? () => setLockPeriodOpen(true) : undefined,
+            onClick: isLocked
+              ? () => patchUiState({ lockPeriodOpen: true })
+              : undefined,
             ariaLabel: isLocked ? "Open lock accounting period modal" : undefined,
             className: isLocked
               ? "cursor-pointer border-indigo-400/60 hover:border-indigo-500 dark:hover:border-indigo-400"
@@ -333,8 +344,7 @@ export function JournalEntriesManagementPage({
         value={filters}
         onChange={(next) => {
           const nextPagination = { ...pagination, page: 1 };
-          setFilters(next);
-          setPagination(nextPagination);
+          patchUiState({ filters: next, pagination: nextPagination });
           updateQueryState(next, nextPagination);
         }}
       />
@@ -364,16 +374,18 @@ export function JournalEntriesManagementPage({
               ...resolvedPagination,
               page: nextPage,
             };
-            setPagination(nextPagination);
+            patchUiState({ pagination: nextPagination });
             updateQueryState(filters, nextPagination);
           }
         }
       />
       <FeatureLockAccountingPeriodModal
         open={lockPeriodOpen}
-        onOpenChange={setLockPeriodOpen}
+        onOpenChange={(open) => patchUiState({ lockPeriodOpen: open })}
         selection={lockPeriodSelection}
-        onSelectionChange={setLockPeriodSelection}
+        onSelectionChange={(selection) =>
+          patchUiState({ lockPeriodSelection: selection })
+        }
         onConfirm={async () => {
           try {
             const month = Number(lockPeriodSelection.month);
@@ -392,7 +404,7 @@ export function JournalEntriesManagementPage({
                 globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
             });
             toast.success("Period locked");
-            setLockPeriodOpen(false);
+            patchUiState({ lockPeriodOpen: false });
           } catch (error) {
             toast.error(toAccountingJournalApiError(error).message);
           }

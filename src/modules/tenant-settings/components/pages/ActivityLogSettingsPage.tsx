@@ -27,12 +27,15 @@ export function ActivityLogSettingsPage({
     [queryString],
   );
 
-  const [cursor, setCursor] = useState<string | undefined>(searchParams.get("cursor") ?? undefined);
-  const [module, setModule] = useState(searchParams.get("module") ?? "all");
-  const [action, setAction] = useState(searchParams.get("action") ?? "all");
-  const [actorId, setActorId] = useState(searchParams.get("actorId") ?? "");
-  const [fromDate, setFromDate] = useState(searchParams.get("fromDate") ?? "");
-  const [toDate, setToDate] = useState(searchParams.get("toDate") ?? "");
+  const [filterState, setFilterState] = useState({
+    cursor: searchParams.get("cursor") ?? undefined,
+    module: searchParams.get("module") ?? "all",
+    action: searchParams.get("action") ?? "all",
+    actorId: searchParams.get("actorId") ?? "",
+    fromDate: searchParams.get("fromDate") ?? "",
+    toDate: searchParams.get("toDate") ?? "",
+  });
+  const { cursor, module, action, actorId, fromDate, toDate } = filterState;
 
   const syncFiltersQuery = useCallback(
     (nextState: {
@@ -53,10 +56,10 @@ export function ActivityLogSettingsPage({
       });
 
       if (nextQuery === searchParams.toString()) {
-        return;
-      }
+      return;
+    }
 
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
     },
     [pathname, router, searchParams]
   );
@@ -104,12 +107,7 @@ export function ActivityLogSettingsPage({
         toDate,
         ...updates,
       };
-      setCursor(nextState.cursor);
-      setModule(nextState.module);
-      setAction(nextState.action);
-      setActorId(nextState.actorId);
-      setFromDate(nextState.fromDate);
-      setToDate(nextState.toDate);
+      setFilterState(nextState);
       syncFiltersQuery(nextState);
     },
     [action, actorId, cursor, fromDate, module, syncFiltersQuery, toDate]
