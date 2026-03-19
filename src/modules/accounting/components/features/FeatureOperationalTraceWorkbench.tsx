@@ -172,21 +172,46 @@ function WorkspaceSection({
 }
 
 export function FeatureOperationalTraceWorkbench() {
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "attention" | "matched">("all");
-  const [isTraceDialogOpen, setIsTraceDialogOpen] = useState(false);
-  const [isQueueDialogOpen, setIsQueueDialogOpen] = useState(false);
-  const [queueScope, setQueueScope] = useState<
-    "all" | "operasional" | "pembayaran" | "accounting"
-  >("all");
-  const [queueDomain, setQueueDomain] = useState<
-    "all" | "marketplace" | "rental"
-  >("all");
-  const [queueCode, setQueueCode] = useState("");
-  const [queueOwnerFilter, setQueueOwnerFilter] = useState("");
-  const [exceptionOwner, setExceptionOwner] = useState("");
-  const [exceptionNextStep, setExceptionNextStep] = useState("");
-  const [exceptionMessage, setExceptionMessage] = useState("");
+  const [uiState, setUiState] = useState({
+    selectedKey: null as string | null,
+    filter: "all" as "all" | "attention" | "matched",
+    isTraceDialogOpen: false,
+    isQueueDialogOpen: false,
+    queueScope: "all" as
+      | "all"
+      | "operasional"
+      | "pembayaran"
+      | "accounting",
+    queueDomain: "all" as "all" | "marketplace" | "rental",
+    queueCode: "",
+    queueOwnerFilter: "",
+    exceptionOwner: "",
+    exceptionNextStep: "",
+    exceptionMessage: "",
+  });
+  const {
+    selectedKey,
+    filter,
+    isTraceDialogOpen,
+    isQueueDialogOpen,
+    queueScope,
+    queueDomain,
+    queueCode,
+    queueOwnerFilter,
+    exceptionOwner,
+    exceptionNextStep,
+    exceptionMessage,
+  } = uiState;
+
+  const patchUiState = (
+    updates:
+      | Partial<typeof uiState>
+      | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const marketplaceOrdersQuery = useMarketplaceOrders({
     limit: 8,
@@ -240,23 +265,25 @@ export function FeatureOperationalTraceWorkbench() {
 
   useEffect(() => {
     if (!rows.length) {
-      setSelectedKey(null);
+      patchUiState({ selectedKey: null });
       return;
     }
-    setSelectedKey((current) =>
-      current && rows.some((row) => row.key === current)
-        ? current
-        : rows[0].key,
-    );
+    patchUiState((current) => ({
+      ...current,
+      selectedKey:
+        current.selectedKey && rows.some((row) => row.key === current.selectedKey)
+          ? current.selectedKey
+          : rows[0].key,
+    }));
   }, [rows]);
 
   useEffect(() => {
     if (!visibleRows.length) {
-      setSelectedKey(null);
+      patchUiState({ selectedKey: null });
       return;
     }
     if (!selectedKey || !visibleRows.some((row) => row.key === selectedKey)) {
-      setSelectedKey(visibleRows[0].key);
+      patchUiState({ selectedKey: visibleRows[0].key });
     }
   }, [selectedKey, visibleRows]);
 
@@ -357,9 +384,11 @@ export function FeatureOperationalTraceWorkbench() {
     ownerLabel?: string | null,
     nextStep?: string | null,
   ) => {
-    setExceptionOwner(ownerLabel ?? "");
-    setExceptionNextStep(nextStep ?? "");
-    setExceptionMessage("");
+    patchUiState({
+      exceptionOwner: ownerLabel ?? "",
+      exceptionNextStep: nextStep ?? "",
+      exceptionMessage: "",
+    });
   };
 
   useEffect(() => {
@@ -420,13 +449,12 @@ export function FeatureOperationalTraceWorkbench() {
     rowKey?: string | null,
     nextFilter?: "all" | "attention" | "matched",
   ) => {
-    if (rowKey) {
-      setSelectedKey(rowKey);
-    }
-    if (nextFilter) {
-      setFilter(nextFilter);
-    }
-    setIsTraceDialogOpen(true);
+    patchUiState((current) => ({
+      ...current,
+      selectedKey: rowKey ?? current.selectedKey,
+      filter: nextFilter ?? current.filter,
+      isTraceDialogOpen: true,
+    }));
   };
 
   return (
@@ -464,7 +492,7 @@ export function FeatureOperationalTraceWorkbench() {
                 </Button>
                 <Button
                   size="sm"
-                  onClick={() => setIsQueueDialogOpen(true)}
+                  onClick={() => patchUiState({ isQueueDialogOpen: true })}
                   data-testid="accounting-trace-open-queue-button"
                 >
                   <ListTodo className="h-4 w-4" />
@@ -477,7 +505,7 @@ export function FeatureOperationalTraceWorkbench() {
             <Button
               variant={filter === "all" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("all")}
+              onClick={() => patchUiState({ filter: "all" })}
               data-testid="accounting-trace-filter-all-button"
             >
               Semua
@@ -485,7 +513,7 @@ export function FeatureOperationalTraceWorkbench() {
             <Button
               variant={filter === "attention" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("attention")}
+              onClick={() => patchUiState({ filter: "attention" })}
               data-testid="accounting-trace-filter-attention-button"
             >
               Perlu Rekonsiliasi
@@ -493,7 +521,7 @@ export function FeatureOperationalTraceWorkbench() {
             <Button
               variant={filter === "matched" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilter("matched")}
+              onClick={() => patchUiState({ filter: "matched" })}
               data-testid="accounting-trace-filter-matched-button"
             >
               Sinkron
@@ -607,7 +635,7 @@ export function FeatureOperationalTraceWorkbench() {
             </Button>
             <Button
               size="sm"
-              onClick={() => setIsQueueDialogOpen(true)}
+              onClick={() => patchUiState({ isQueueDialogOpen: true })}
               data-testid="accounting-trace-open-queue-button-secondary"
             >
               <ListTodo className="h-4 w-4" />
@@ -695,7 +723,10 @@ export function FeatureOperationalTraceWorkbench() {
         </CardContent>
       </Card>
 
-      <Dialog open={isTraceDialogOpen} onOpenChange={setIsTraceDialogOpen}>
+      <Dialog
+        open={isTraceDialogOpen}
+        onOpenChange={(open) => patchUiState({ isTraceDialogOpen: open })}
+      >
         <DialogContent
           className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-5xl dark:border-slate-800 dark:bg-slate-950"
           data-testid="accounting-trace-detail-dialog"
@@ -1283,7 +1314,9 @@ export function FeatureOperationalTraceWorkbench() {
                           id="exception-owner"
                           value={exceptionOwner}
                           onChange={(event) =>
-                            setExceptionOwner(event.target.value)
+                            patchUiState({
+                              exceptionOwner: event.target.value,
+                            })
                           }
                           placeholder="Contoh: Finance, Admin Operasional"
                         />
@@ -1299,7 +1332,9 @@ export function FeatureOperationalTraceWorkbench() {
                           id="exception-next-step"
                           value={exceptionNextStep}
                           onChange={(event) =>
-                            setExceptionNextStep(event.target.value)
+                            patchUiState({
+                              exceptionNextStep: event.target.value,
+                            })
                           }
                           placeholder="Contoh: Konfirmasi bukti transfer"
                         />
@@ -1343,7 +1378,9 @@ export function FeatureOperationalTraceWorkbench() {
                         id="exception-message"
                         value={exceptionMessage}
                         onChange={(event) =>
-                          setExceptionMessage(event.target.value)
+                          patchUiState({
+                            exceptionMessage: event.target.value,
+                          })
                         }
                         placeholder="Tuliskan konteks masalah, alasan follow-up, atau keputusan sementara."
                         rows={4}
@@ -1603,7 +1640,10 @@ export function FeatureOperationalTraceWorkbench() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isQueueDialogOpen} onOpenChange={setIsQueueDialogOpen}>
+      <Dialog
+        open={isQueueDialogOpen}
+        onOpenChange={(open) => patchUiState({ isQueueDialogOpen: open })}
+      >
         <DialogContent
           className="max-h-[92vh] overflow-hidden border-slate-200 bg-slate-50 p-0 shadow-2xl sm:max-w-4xl dark:border-slate-800 dark:bg-slate-950"
           data-testid="accounting-trace-queue-dialog"
@@ -1649,7 +1689,7 @@ export function FeatureOperationalTraceWorkbench() {
                       <Button
                         variant={queueScope === "all" ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setQueueScope("all")}
+                        onClick={() => patchUiState({ queueScope: "all" })}
                         data-testid="accounting-trace-queue-scope-all-button"
                       >
                         Semua
@@ -1659,7 +1699,9 @@ export function FeatureOperationalTraceWorkbench() {
                           queueScope === "operasional" ? "default" : "outline"
                         }
                         size="sm"
-                        onClick={() => setQueueScope("operasional")}
+                        onClick={() =>
+                          patchUiState({ queueScope: "operasional" })
+                        }
                         data-testid="accounting-trace-queue-scope-operasional-button"
                       >
                         Operasional
@@ -1669,7 +1711,9 @@ export function FeatureOperationalTraceWorkbench() {
                           queueScope === "pembayaran" ? "default" : "outline"
                         }
                         size="sm"
-                        onClick={() => setQueueScope("pembayaran")}
+                        onClick={() =>
+                          patchUiState({ queueScope: "pembayaran" })
+                        }
                         data-testid="accounting-trace-queue-scope-pembayaran-button"
                       >
                         Pembayaran
@@ -1679,7 +1723,9 @@ export function FeatureOperationalTraceWorkbench() {
                           queueScope === "accounting" ? "default" : "outline"
                         }
                         size="sm"
-                        onClick={() => setQueueScope("accounting")}
+                        onClick={() =>
+                          patchUiState({ queueScope: "accounting" })
+                        }
                         data-testid="accounting-trace-queue-scope-accounting-button"
                       >
                         Accounting
@@ -1690,7 +1736,7 @@ export function FeatureOperationalTraceWorkbench() {
                       <Button
                         variant={queueDomain === "all" ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setQueueDomain("all")}
+                        onClick={() => patchUiState({ queueDomain: "all" })}
                         data-testid="accounting-trace-queue-domain-all-button"
                       >
                         Semua Domain
@@ -1700,7 +1746,9 @@ export function FeatureOperationalTraceWorkbench() {
                           queueDomain === "marketplace" ? "default" : "outline"
                         }
                         size="sm"
-                        onClick={() => setQueueDomain("marketplace")}
+                        onClick={() =>
+                          patchUiState({ queueDomain: "marketplace" })
+                        }
                         data-testid="accounting-trace-queue-domain-marketplace-button"
                       >
                         Marketplace
@@ -1710,7 +1758,7 @@ export function FeatureOperationalTraceWorkbench() {
                           queueDomain === "rental" ? "default" : "outline"
                         }
                         size="sm"
-                        onClick={() => setQueueDomain("rental")}
+                        onClick={() => patchUiState({ queueDomain: "rental" })}
                         data-testid="accounting-trace-queue-domain-rental-button"
                       >
                         Rental
@@ -1720,14 +1768,18 @@ export function FeatureOperationalTraceWorkbench() {
                     <div className="grid gap-3 md:grid-cols-2">
                       <Input
                         value={queueCode}
-                        onChange={(event) => setQueueCode(event.target.value)}
+                        onChange={(event) =>
+                          patchUiState({ queueCode: event.target.value })
+                        }
                         placeholder="Filter code exception, contoh ACC-PAYMENT"
                         data-testid="accounting-trace-queue-code-input"
                       />
                       <Input
                         value={queueOwnerFilter}
                         onChange={(event) =>
-                          setQueueOwnerFilter(event.target.value)
+                          patchUiState({
+                            queueOwnerFilter: event.target.value,
+                          })
                         }
                         placeholder="Filter owner, contoh Finance"
                         data-testid="accounting-trace-queue-owner-input"
@@ -1821,7 +1873,7 @@ export function FeatureOperationalTraceWorkbench() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
-                                  setIsQueueDialogOpen(false);
+                                  patchUiState({ isQueueDialogOpen: false });
                                   openTraceDialog(row.key, "attention");
                                 }}
                                 data-testid={`accounting-trace-queue-focus-button-${row.key}`}

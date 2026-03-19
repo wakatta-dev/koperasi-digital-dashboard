@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type SetStateAction } from "react";
 import {
   ArrowLeft,
   CalendarClock,
@@ -412,35 +412,242 @@ export function AssetRentalAdminDetailPage({
   section,
 }: AssetRentalAdminDetailPageProps) {
   const queryClient = useQueryClient();
-  const [fixedAssetDialogOpen, setFixedAssetDialogOpen] = useState(false);
-  const [classificationDialogOpen, setClassificationDialogOpen] = useState(false);
-  const [financialResolutionDialogOpen, setFinancialResolutionDialogOpen] =
-    useState(false);
-  const [paymentDecisionNote, setPaymentDecisionNote] = useState("");
-  const [paymentDecisionError, setPaymentDecisionError] = useState<
-    string | null
-  >(null);
-  const [classificationType, setClassificationType] = useState("REVENUE_RECOGNITION");
-  const [classificationAmount, setClassificationAmount] = useState("");
-  const [classificationReason, setClassificationReason] = useState("");
-  const [classificationFollowUpRef, setClassificationFollowUpRef] = useState("");
-  const [classificationEvidenceRef, setClassificationEvidenceRef] = useState("");
-  const [financialOutcomeType, setFinancialOutcomeType] = useState("DEPOSIT_REFUNDED");
-  const [financialOutcomeAmount, setFinancialOutcomeAmount] = useState("");
-  const [financialOutcomeReason, setFinancialOutcomeReason] = useState("");
-  const [financialOutcomeReviewType, setFinancialOutcomeReviewType] = useState("return_inspection");
-  const [financialOutcomeReviewId, setFinancialOutcomeReviewId] = useState("");
-  const [financialOutcomeFollowUpRef, setFinancialOutcomeFollowUpRef] = useState("");
-  const [financialOutcomeEvidenceRef, setFinancialOutcomeEvidenceRef] = useState("");
-  const [fixedAssetCategory, setFixedAssetCategory] = useState("");
-  const [fixedAssetRecognitionDate, setFixedAssetRecognitionDate] =
-    useState("");
-  const [depreciationMethod, setDepreciationMethod] = useState("");
-  const [usefulLifeMonths, setUsefulLifeMonths] = useState("");
-  const [residualValue, setResidualValue] = useState("");
-  const [maintenanceClassification, setMaintenanceClassification] =
-    useState("");
-  const [maintenanceNotes, setMaintenanceNotes] = useState("");
+  const [dialogState, setDialogState] = useState({
+    fixedAssetDialogOpen: false,
+    classificationDialogOpen: false,
+    financialResolutionDialogOpen: false,
+    paymentDecisionNote: "",
+    paymentDecisionError: null as string | null,
+  });
+  const [classificationState, setClassificationState] = useState({
+    classificationType: "REVENUE_RECOGNITION",
+    classificationAmount: "",
+    classificationReason: "",
+    classificationFollowUpRef: "",
+    classificationEvidenceRef: "",
+  });
+  const [financialOutcomeState, setFinancialOutcomeState] = useState({
+    financialOutcomeType: "DEPOSIT_REFUNDED",
+    financialOutcomeAmount: "",
+    financialOutcomeReason: "",
+    financialOutcomeReviewType: "return_inspection",
+    financialOutcomeReviewId: "",
+    financialOutcomeFollowUpRef: "",
+    financialOutcomeEvidenceRef: "",
+  });
+  const [fixedAssetState, setFixedAssetState] = useState({
+    fixedAssetCategory: "",
+    fixedAssetRecognitionDate: "",
+    depreciationMethod: "",
+    usefulLifeMonths: "",
+    residualValue: "",
+    maintenanceClassification: "",
+    maintenanceNotes: "",
+  });
+  const {
+    fixedAssetDialogOpen,
+    classificationDialogOpen,
+    financialResolutionDialogOpen,
+    paymentDecisionNote,
+    paymentDecisionError,
+  } = dialogState;
+  const {
+    classificationType,
+    classificationAmount,
+    classificationReason,
+    classificationFollowUpRef,
+    classificationEvidenceRef,
+  } = classificationState;
+  const {
+    financialOutcomeType,
+    financialOutcomeAmount,
+    financialOutcomeReason,
+    financialOutcomeReviewType,
+    financialOutcomeReviewId,
+    financialOutcomeFollowUpRef,
+    financialOutcomeEvidenceRef,
+  } = financialOutcomeState;
+  const {
+    fixedAssetCategory,
+    fixedAssetRecognitionDate,
+    depreciationMethod,
+    usefulLifeMonths,
+    residualValue,
+    maintenanceClassification,
+    maintenanceNotes,
+  } = fixedAssetState;
+
+  const resolveStateUpdate = <T,>(
+    current: T,
+    next: SetStateAction<T>,
+  ): T =>
+    typeof next === "function"
+      ? (next as (prev: T) => T)(current)
+      : next;
+
+  const setFixedAssetDialogOpen = (next: SetStateAction<boolean>) =>
+    setDialogState((current) => ({
+      ...current,
+      fixedAssetDialogOpen: resolveStateUpdate(current.fixedAssetDialogOpen, next),
+    }));
+  const setClassificationDialogOpen = (next: SetStateAction<boolean>) =>
+    setDialogState((current) => ({
+      ...current,
+      classificationDialogOpen: resolveStateUpdate(
+        current.classificationDialogOpen,
+        next,
+      ),
+    }));
+  const setFinancialResolutionDialogOpen = (next: SetStateAction<boolean>) =>
+    setDialogState((current) => ({
+      ...current,
+      financialResolutionDialogOpen: resolveStateUpdate(
+        current.financialResolutionDialogOpen,
+        next,
+      ),
+    }));
+
+  const setPaymentDecisionNote = (next: SetStateAction<string>) =>
+    setDialogState((current) => ({
+      ...current,
+      paymentDecisionNote: resolveStateUpdate(current.paymentDecisionNote, next),
+    }));
+  const setPaymentDecisionError = (next: SetStateAction<string | null>) =>
+    setDialogState((current) => ({
+      ...current,
+      paymentDecisionError: resolveStateUpdate(
+        current.paymentDecisionError,
+        next,
+      ),
+    }));
+
+  const setClassificationType = (next: SetStateAction<string>) =>
+    setClassificationState((current) => ({
+      ...current,
+      classificationType: resolveStateUpdate(current.classificationType, next),
+    }));
+  const setClassificationAmount = (next: SetStateAction<string>) =>
+    setClassificationState((current) => ({
+      ...current,
+      classificationAmount: resolveStateUpdate(current.classificationAmount, next),
+    }));
+  const setClassificationReason = (next: SetStateAction<string>) =>
+    setClassificationState((current) => ({
+      ...current,
+      classificationReason: resolveStateUpdate(current.classificationReason, next),
+    }));
+  const setClassificationFollowUpRef = (next: SetStateAction<string>) =>
+    setClassificationState((current) => ({
+      ...current,
+      classificationFollowUpRef: resolveStateUpdate(
+        current.classificationFollowUpRef,
+        next,
+      ),
+    }));
+  const setClassificationEvidenceRef = (next: SetStateAction<string>) =>
+    setClassificationState((current) => ({
+      ...current,
+      classificationEvidenceRef: resolveStateUpdate(
+        current.classificationEvidenceRef,
+        next,
+      ),
+    }));
+
+  const setFinancialOutcomeType = (next: SetStateAction<string>) =>
+    setFinancialOutcomeState((current) => ({
+      ...current,
+      financialOutcomeType: resolveStateUpdate(current.financialOutcomeType, next),
+    }));
+  const setFinancialOutcomeAmount = (next: SetStateAction<string>) =>
+    setFinancialOutcomeState((current) => ({
+      ...current,
+      financialOutcomeAmount: resolveStateUpdate(
+        current.financialOutcomeAmount,
+        next,
+      ),
+    }));
+  const setFinancialOutcomeReason = (next: SetStateAction<string>) =>
+    setFinancialOutcomeState((current) => ({
+      ...current,
+      financialOutcomeReason: resolveStateUpdate(
+        current.financialOutcomeReason,
+        next,
+      ),
+    }));
+  const setFinancialOutcomeReviewType = (next: SetStateAction<string>) =>
+    setFinancialOutcomeState((current) => ({
+      ...current,
+      financialOutcomeReviewType: resolveStateUpdate(
+        current.financialOutcomeReviewType,
+        next,
+      ),
+    }));
+  const setFinancialOutcomeReviewId = (next: SetStateAction<string>) =>
+    setFinancialOutcomeState((current) => ({
+      ...current,
+      financialOutcomeReviewId: resolveStateUpdate(
+        current.financialOutcomeReviewId,
+        next,
+      ),
+    }));
+  const setFinancialOutcomeFollowUpRef = (next: SetStateAction<string>) =>
+    setFinancialOutcomeState((current) => ({
+      ...current,
+      financialOutcomeFollowUpRef: resolveStateUpdate(
+        current.financialOutcomeFollowUpRef,
+        next,
+      ),
+    }));
+  const setFinancialOutcomeEvidenceRef = (next: SetStateAction<string>) =>
+    setFinancialOutcomeState((current) => ({
+      ...current,
+      financialOutcomeEvidenceRef: resolveStateUpdate(
+        current.financialOutcomeEvidenceRef,
+        next,
+      ),
+    }));
+
+  const setFixedAssetCategory = (next: SetStateAction<string>) =>
+    setFixedAssetState((current) => ({
+      ...current,
+      fixedAssetCategory: resolveStateUpdate(current.fixedAssetCategory, next),
+    }));
+  const setFixedAssetRecognitionDate = (next: SetStateAction<string>) =>
+    setFixedAssetState((current) => ({
+      ...current,
+      fixedAssetRecognitionDate: resolveStateUpdate(
+        current.fixedAssetRecognitionDate,
+        next,
+      ),
+    }));
+  const setDepreciationMethod = (next: SetStateAction<string>) =>
+    setFixedAssetState((current) => ({
+      ...current,
+      depreciationMethod: resolveStateUpdate(current.depreciationMethod, next),
+    }));
+  const setUsefulLifeMonths = (next: SetStateAction<string>) =>
+    setFixedAssetState((current) => ({
+      ...current,
+      usefulLifeMonths: resolveStateUpdate(current.usefulLifeMonths, next),
+    }));
+  const setResidualValue = (next: SetStateAction<string>) =>
+    setFixedAssetState((current) => ({
+      ...current,
+      residualValue: resolveStateUpdate(current.residualValue, next),
+    }));
+  const setMaintenanceClassification = (next: SetStateAction<string>) =>
+    setFixedAssetState((current) => ({
+      ...current,
+      maintenanceClassification: resolveStateUpdate(
+        current.maintenanceClassification,
+        next,
+      ),
+    }));
+  const setMaintenanceNotes = (next: SetStateAction<string>) =>
+    setFixedAssetState((current) => ({
+      ...current,
+      maintenanceNotes: resolveStateUpdate(current.maintenanceNotes, next),
+    }));
 
   const bookingsQuery = useQuery({
     queryKey: QK.assetRental.bookings({
