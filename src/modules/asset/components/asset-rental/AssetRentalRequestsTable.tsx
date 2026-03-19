@@ -2,7 +2,6 @@
 
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
@@ -33,6 +32,24 @@ type AssetRentalRequestsTableProps = Readonly<{
   buildDetailHref?: (id: string) => string;
   actionDisabled?: boolean;
 }>;
+
+function navigateWithFallback(
+  event: React.MouseEvent<HTMLAnchorElement>,
+  href: string,
+) {
+  if (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    event.button !== 0
+  ) {
+    return;
+  }
+  event.preventDefault();
+  window.location.assign(href);
+}
 
 const statusStyles: Record<AssetRentalRequestsRow["status"], string> = {
   Menunggu:
@@ -99,13 +116,16 @@ export function AssetRentalRequestsTable({
       cell: ({ row }) => (
         <div className="space-y-1">
           {buildDetailHref ? (
-            <Link
+            <a
               href={buildDetailHref(row.original.id)}
               data-testid={`asset-rental-request-detail-link-${row.original.id}`}
               className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
+              onClick={(event) =>
+                navigateWithFallback(event, buildDetailHref(row.original.id))
+              }
             >
               {row.original.assetName}
-            </Link>
+            </a>
           ) : (
             <p className="text-sm font-semibold text-slate-900">
               {row.original.assetName}
@@ -154,6 +174,7 @@ export function AssetRentalRequestsTable({
         row.original.status === "Menunggu" ? (
           <div className="flex items-center justify-end gap-2">
             <Button
+              type="button"
               className="h-7 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
               onClick={() => onApprove(row.original.id)}
               disabled={actionDisabled}
@@ -162,6 +183,7 @@ export function AssetRentalRequestsTable({
               Setujui
             </Button>
             <Button
+              type="button"
               variant="outline"
               className="h-7 border-red-200 px-3 text-xs text-red-600 hover:bg-red-50"
               onClick={() => onReject(row.original.id)}

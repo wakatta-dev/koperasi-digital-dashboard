@@ -2,8 +2,6 @@
 
 "use client";
 
-import Link from "next/link";
-
 import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import type { ReservationStatus } from "@/modules/asset-reservation/types";
@@ -66,6 +64,24 @@ type GuestRequestStatusFeatureProps = Readonly<{
   submitting?: boolean;
   result?: GuestRequestStatusResult | null;
 }>;
+
+function navigateWithFallback(
+  event: React.MouseEvent<HTMLAnchorElement>,
+  href: string,
+) {
+  if (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    event.button !== 0
+  ) {
+    return;
+  }
+  event.preventDefault();
+  window.location.assign(href);
+}
 
 const DP_STEPS: StepItem[] = [
   {
@@ -598,12 +614,17 @@ export function GuestRequestStatusFeature({
                         data-testid="asset-rental-status-payment-cta"
                       >
                         {result.paymentHref ? (
-                          <Link href={result.paymentHref}>
+                          <a
+                            href={result.paymentHref}
+                            onClick={(event) =>
+                              navigateWithFallback(event, result.paymentHref!)
+                            }
+                          >
                             <span className="material-icons-outlined text-sm mr-1">
                               upload_file
                             </span>
                             {result.paymentInstruction.ctaLabel}
-                          </Link>
+                          </a>
                         ) : (
                           <>
                             <span className="material-icons-outlined text-sm mr-1">

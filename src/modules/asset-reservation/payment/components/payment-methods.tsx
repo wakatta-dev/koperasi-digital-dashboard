@@ -102,6 +102,55 @@ export function PaymentMethods({
     }
   };
 
+  const handleSubmitProof = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (!session?.paymentId || !proofFile || !reservationId || !ownershipToken) {
+      return;
+    }
+    const validationError = validatePublicPaymentProofFile(proofFile);
+    if (validationError) {
+      setSessionError(validationError);
+      return;
+    }
+    setIsLoading(true);
+    setSessionError(null);
+    try {
+      const res = await uploadPaymentProof(
+        session.paymentId,
+        proofFile,
+        undefined,
+        { reservationId, ownershipToken },
+      );
+      if (res.success && res.data) {
+        setSession((current) =>
+          current
+            ? {
+                ...current,
+                status: res?.data?.status as PaymentStatus,
+              }
+            : current,
+        );
+        handleStatusUpdate(res.data.status as PaymentStatus);
+        return;
+      }
+      setSessionError(
+        resolvePublicPaymentProofErrorMessage(
+          res.message || "Tidak dapat mengunggah bukti pembayaran.",
+        ),
+      );
+    } catch (err) {
+      setSessionError(
+        resolvePublicPaymentProofErrorMessage(
+          err instanceof Error
+            ? err.message
+            : "Tidak dapat mengunggah bukti pembayaran.",
+        ),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     let ignore = false;
     async function bootstrapSession(methodValue: string) {
@@ -321,7 +370,7 @@ export function PaymentMethods({
           </span>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <form className="flex flex-col gap-2" onSubmit={handleSubmitProof}>
           <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
             Unggah bukti pembayaran (jpg/png/pdf)
           </label>
@@ -349,62 +398,10 @@ export function PaymentMethods({
           ) : null}
           <div className="flex flex-wrap items-center gap-2">
             <button
-              type="button"
+              type="submit"
               data-testid="asset-rental-payment-submit-button"
               className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
               disabled={actionsDisabled || !proofFile || isLoading}
-              onClick={async () => {
-                if (
-                  !session?.paymentId ||
-                  !proofFile ||
-                  !reservationId ||
-                  !ownershipToken
-                )
-                  return;
-                const validationError =
-                  validatePublicPaymentProofFile(proofFile);
-                if (validationError) {
-                  setSessionError(validationError);
-                  return;
-                }
-                setIsLoading(true);
-                setSessionError(null);
-                try {
-                  const res = await uploadPaymentProof(
-                    session.paymentId,
-                    proofFile,
-                    undefined,
-                    { reservationId, ownershipToken },
-                  );
-                  if (res.success && res.data) {
-                    setSession((current) =>
-                      current
-                        ? {
-                            ...current,
-                            status: res?.data?.status as PaymentStatus,
-                          }
-                        : current,
-                    );
-                    handleStatusUpdate(res.data.status as PaymentStatus);
-                    return;
-                  }
-                  setSessionError(
-                    resolvePublicPaymentProofErrorMessage(
-                      res.message || "Tidak dapat mengunggah bukti pembayaran.",
-                    ),
-                  );
-                } catch (err) {
-                  setSessionError(
-                    resolvePublicPaymentProofErrorMessage(
-                      err instanceof Error
-                        ? err.message
-                        : "Tidak dapat mengunggah bukti pembayaran.",
-                    ),
-                  );
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
             >
               {isLoading ? "Memproses..." : "Kirim bukti pembayaran"}
             </button>
@@ -412,7 +409,7 @@ export function PaymentMethods({
               Bukti akan diverifikasi admin sebelum status sewa berjalan.
             </p>
           </div>
-        </div>
+        </form>
       </div>
     </section>
   );

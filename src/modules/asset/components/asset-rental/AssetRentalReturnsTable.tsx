@@ -2,7 +2,6 @@
 
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
@@ -23,6 +22,24 @@ type AssetRentalReturnsTableProps = Readonly<{
   buildDetailHref?: (id: string) => string;
   actionDisabled?: boolean;
 }>;
+
+function navigateWithFallback(
+  event: React.MouseEvent<HTMLAnchorElement>,
+  href: string,
+) {
+  if (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    event.button !== 0
+  ) {
+    return;
+  }
+  event.preventDefault();
+  window.location.assign(href);
+}
 
 const statusStyles: Record<AssetRentalReturnsRow["status"], string> = {
   "Menunggu Pengembalian":
@@ -76,13 +93,16 @@ export function AssetRentalReturnsTable({
       },
       cell: ({ row }) =>
         buildDetailHref ? (
-          <Link
+          <a
             href={buildDetailHref(row.original.id)}
             data-testid={`asset-rental-return-detail-link-${row.original.id}`}
             className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
+            onClick={(event) =>
+              navigateWithFallback(event, buildDetailHref(row.original.id))
+            }
           >
             {row.original.assetName}
-          </Link>
+          </a>
         ) : (
           <p className="text-sm font-semibold text-slate-900">
             {row.original.assetName}
