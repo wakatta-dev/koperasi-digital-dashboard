@@ -42,12 +42,32 @@ export function FeatureCreateBudgetModal({
   onOpenChange,
   onSave,
 }: FeatureCreateBudgetModalProps) {
-  const [budgetName, setBudgetName] = useState("");
-  const [analyticAccount, setAnalyticAccount] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [targetAmount, setTargetAmount] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [formState, setFormState] = useState({
+    budgetName: "",
+    analyticAccount: "",
+    startDate: "",
+    endDate: "",
+    targetAmount: "",
+    currency: "USD",
+  });
+  const {
+    budgetName,
+    analyticAccount,
+    startDate,
+    endDate,
+    targetAmount,
+    currency,
+  } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const handleSave = () => {
     onSave?.({
@@ -59,12 +79,14 @@ export function FeatureCreateBudgetModal({
       target_amount: Number(targetAmount || 0),
     });
     onOpenChange(false);
-    setBudgetName("");
-    setAnalyticAccount("");
-    setStartDate("");
-    setEndDate("");
-    setTargetAmount("");
-    setCurrency("USD");
+    setFormState({
+      budgetName: "",
+      analyticAccount: "",
+      startDate: "",
+      endDate: "",
+      targetAmount: "",
+      currency: "USD",
+    });
   };
 
   return (
@@ -98,7 +120,9 @@ export function FeatureCreateBudgetModal({
             </Label>
             <Input
               value={budgetName}
-              onChange={(event) => setBudgetName(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ budgetName: event.target.value })
+              }
               placeholder="e.g. Q2 Marketing Campaign"
               className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
@@ -112,7 +136,9 @@ export function FeatureCreateBudgetModal({
               <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 value={analyticAccount}
-                onChange={(event) => setAnalyticAccount(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ analyticAccount: event.target.value })
+                }
                 placeholder="Search department or project..."
                 className="border-gray-300 pl-10 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
@@ -132,7 +158,9 @@ export function FeatureCreateBudgetModal({
                 <Input
                   type="date"
                   value={startDate}
-                  onChange={(event) => setStartDate(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ startDate: event.target.value })
+                  }
                   className="border-gray-300 pl-10 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 />
               </div>
@@ -146,7 +174,9 @@ export function FeatureCreateBudgetModal({
                 <Input
                   type="date"
                   value={endDate}
-                  onChange={(event) => setEndDate(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ endDate: event.target.value })
+                  }
                   className="border-gray-300 pl-10 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 />
               </div>
@@ -164,7 +194,9 @@ export function FeatureCreateBudgetModal({
                 </span>
                 <Input
                   value={targetAmount}
-                  onChange={(event) => setTargetAmount(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ targetAmount: event.target.value })
+                  }
                   placeholder="0.00"
                   type="number"
                   className="border-gray-300 pl-7 pr-12 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -178,7 +210,10 @@ export function FeatureCreateBudgetModal({
               <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Currency
               </Label>
-              <Select value={currency} onValueChange={setCurrency}>
+              <Select
+                value={currency}
+                onValueChange={(value) => patchFormState({ currency: value })}
+              >
                 <SelectTrigger className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
