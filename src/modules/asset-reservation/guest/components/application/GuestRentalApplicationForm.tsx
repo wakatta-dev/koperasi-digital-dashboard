@@ -3,8 +3,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DatePickerField } from "@/components/shared/inputs/date-picker-field";
 import { InputField } from "@/components/shared/inputs/input-field";
 import { TextareaField } from "@/components/shared/inputs/textarea-field";
+import { parseLocalDateInput } from "@/lib/date-only";
 
 export type GuestRentalApplicationFormValues = {
   fullName: string;
@@ -116,38 +118,34 @@ export function GuestRentalApplicationForm({
         <div className="col-span-2 space-y-2">
           <p className="text-sm font-medium">Rentang Tanggal Sewa</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <InputField
+            <DatePickerField
               id="start-date"
               name="start-date"
-              type="date"
               ariaLabel="Mulai sewa"
-              size="lg"
-              startIcon={
-                <span className="material-symbols-outlined text-xl">
-                  calendar_today
-                </span>
-              }
               value={values.startDate}
               onValueChange={(next) =>
                 onValuesChange({ ...values, startDate: next })
               }
               helperText="Mulai Sewa"
+              placeholder="Pilih tanggal mulai"
+              dialogTitle="Pilih Tanggal Mulai Sewa"
+              minDate={new Date()}
               data-testid="asset-rental-application-start-date-input"
             />
-            <InputField
+            <DatePickerField
               id="end-date"
               name="end-date"
-              type="date"
               ariaLabel="Selesai sewa"
-              size="lg"
-              startIcon={
-                <span className="material-symbols-outlined text-xl">
-                  event_busy
-                </span>
-              }
               value={values.endDate}
               onValueChange={(next) => onValuesChange({ ...values, endDate: next })}
               helperText="Selesai Sewa"
+              placeholder="Pilih tanggal selesai"
+              dialogTitle="Pilih Tanggal Selesai Sewa"
+              minDate={
+                values.startDate
+                  ? parseLocalDateInput(values.startDate) ?? new Date()
+                  : new Date()
+              }
               data-testid="asset-rental-application-end-date-input"
             />
           </div>

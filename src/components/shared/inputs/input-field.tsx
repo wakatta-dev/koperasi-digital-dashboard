@@ -29,9 +29,10 @@ type InputFieldProps = AccessibleLabel & {
   onValueChange?: (value: string) => void
 } & Omit<
     React.ComponentProps<"input">,
-    "size" | "className" | "disabled" | "id" | "onChange"
+    "size" | "className" | "disabled" | "id" | "onChange" | "onInput"
   > & {
     onChange?: React.ChangeEventHandler<HTMLInputElement>
+    onInput?: React.FormEventHandler<HTMLInputElement>
   }
 
 function InputField({
@@ -51,6 +52,7 @@ function InputField({
   startIconClassName,
   endIconClassName,
   onChange,
+  onInput,
   onValueChange,
   ...props
 }: InputFieldProps) {
@@ -77,6 +79,10 @@ function InputField({
       <Input
         {...props}
         disabled={disabled}
+        onInput={(event) => {
+          onInput?.(event)
+          onValueChange?.(event.currentTarget.value)
+        }}
         onChange={(event) => {
           onChange?.(event)
           onValueChange?.(event.currentTarget.value)

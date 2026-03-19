@@ -4,6 +4,7 @@
 
 import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { ReservationStatus } from "@/modules/asset-reservation/types";
 
 export type GuestRequestStatusVariant =
@@ -601,39 +602,36 @@ export function GuestRequestStatusFeature({
                           {result.paymentInstruction.amountLabel}
                         </p>
                       </div>
-                      <Button
-                        type="button"
-                        asChild={Boolean(result.paymentHref)}
-                        className="bg-brand-primary hover:bg-brand-primary-hover text-white"
-                        onClick={
-                          result.paymentHref
-                            ? undefined
-                            : () => result.onOpenUploadProof?.()
-                        }
-                        disabled={!result.paymentHref && !result.onOpenUploadProof}
-                        data-testid="asset-rental-status-payment-cta"
-                      >
-                        {result.paymentHref ? (
-                          <a
-                            href={result.paymentHref}
-                            onClick={(event) =>
-                              navigateWithFallback(event, result.paymentHref!)
-                            }
-                          >
-                            <span className="material-icons-outlined text-sm mr-1">
-                              upload_file
-                            </span>
-                            {result.paymentInstruction.ctaLabel}
-                          </a>
-                        ) : (
-                          <>
-                            <span className="material-icons-outlined text-sm mr-1">
-                              upload_file
-                            </span>
-                            {result.paymentInstruction.ctaLabel}
-                          </>
-                        )}
-                      </Button>
+                      {result.paymentHref ? (
+                        <a
+                          href={result.paymentHref}
+                          onClick={(event) =>
+                            navigateWithFallback(event, result.paymentHref!)
+                          }
+                          data-testid="asset-rental-status-payment-cta"
+                          className={cn(
+                            "inline-flex items-center justify-center rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover",
+                          )}
+                        >
+                          <span className="material-icons-outlined text-sm mr-1">
+                            upload_file
+                          </span>
+                          {result.paymentInstruction.ctaLabel}
+                        </a>
+                      ) : (
+                        <Button
+                          type="button"
+                          className="bg-brand-primary hover:bg-brand-primary-hover text-white"
+                          onClick={() => result.onOpenUploadProof?.()}
+                          disabled={!result.onOpenUploadProof}
+                          data-testid="asset-rental-status-payment-cta"
+                        >
+                          <span className="material-icons-outlined text-sm mr-1">
+                            upload_file
+                          </span>
+                          {result.paymentInstruction.ctaLabel}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ) : null}
