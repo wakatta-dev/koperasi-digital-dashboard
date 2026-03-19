@@ -37,33 +37,42 @@ const PAGE_SIZE = 10;
 export function OrderListPage() {
   const router = useRouter();
   const confirm = useConfirm();
-  const [filterState, setFilterState] = useState({
+  const [uiState, setUiState] = useState({
     search: "",
     dateFilter: "",
     statusFilter: "all",
+    pageState: {
+      key: "",
+      value: 1,
+    },
+    invoiceOrderId: undefined as number | undefined,
+    invoiceOpen: false,
+    pendingAction: null as { id: number; action: string } | null,
   });
-  const { search, dateFilter, statusFilter } = filterState;
+  const { search, dateFilter, statusFilter, invoiceOrderId, invoiceOpen, pendingAction } =
+    uiState;
   const pageKey = `${search}::${dateFilter}::${statusFilter}`;
-  const [pageState, setPageState] = useState<{
-    key: string;
-    value: number;
-  }>({ key: pageKey, value: 1 });
+  const pageState =
+    uiState.pageState.key === ""
+      ? { key: pageKey, value: 1 }
+      : uiState.pageState;
   const page = pageState.key === pageKey ? pageState.value : 1;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const setPage = (
     next: number | ((current: number) => number),
   ) => {
     const current = pageState.key === pageKey ? pageState.value : 1;
     const value = typeof next === "function" ? next(current) : next;
-    setPageState({ key: pageKey, value });
+    patchUiState({
+      pageState: { key: pageKey, value },
+    });
   };
-  const [invoiceOrderId, setInvoiceOrderId] = useState<number | undefined>(
-    undefined,
-  );
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{
-    id: number;
-    action: string;
-  } | null>(null);
 
   const queryParams = useMemo(
     () => ({
@@ -80,12 +89,24 @@ export function OrderListPage() {
 
   const patchFilterState = (
     updates:
-      | Partial<typeof filterState>
-      | ((current: typeof filterState) => typeof filterState),
+      | Partial<Pick<typeof uiState, "search" | "dateFilter" | "statusFilter">>
+      | ((
+          current: Pick<typeof uiState, "search" | "dateFilter" | "statusFilter">,
+        ) => Pick<typeof uiState, "search" | "dateFilter" | "statusFilter">),
   ) => {
-    setFilterState((current) =>
-      typeof updates === "function" ? updates(current) : { ...current, ...updates },
-    );
+    patchUiState((current) => {
+      const base = {
+        search: current.search,
+        dateFilter: current.dateFilter,
+        statusFilter: current.statusFilter,
+      };
+      const next =
+        typeof updates === "function" ? updates(base) : { ...base, ...updates };
+      return {
+        ...current,
+        ...next,
+      };
+    });
   };
 
   const { data, isLoading, isError, error } = useMarketplaceOrders(queryParams);
@@ -115,8 +136,10 @@ export function OrderListPage() {
   );
 
   const handleOpenInvoice = (orderId: number) => {
-    setInvoiceOrderId(orderId);
-    setInvoiceOpen(true);
+    patchUiState({
+      invoiceOrderId: orderId,
+      invoiceOpen: true,
+    });
   };
 
   const handleStatusUpdate = async (
@@ -130,14 +153,14 @@ export function OrderListPage() {
       return;
     }
 
-    setPendingAction({ id: order.id, action: actionKey });
+    patchUiState({ pendingAction: { id: order.id, action: actionKey } });
     try {
       await updateStatus.mutateAsync({
         id: order.id,
         payload: { status: nextStatus, reason },
       });
     } finally {
-      setPendingAction(null);
+      patchUiState({ pendingAction: null });
     }
   };
 
@@ -250,7 +273,12 @@ export function OrderListPage() {
 
       <OrderInvoiceDialog
         open={invoiceOpen}
-        onOpenChange={setInvoiceOpen}
+        onOpenChange={(open) =>
+          patchUiState({
+            invoiceOpen: open,
+            invoiceOrderId: open ? invoiceOrderId : undefined,
+          })
+        }
         orderId={invoiceOrderId}
       />
     </div>
