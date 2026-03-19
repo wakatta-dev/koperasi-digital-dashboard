@@ -102,9 +102,17 @@ export function LandingNavbar({
   navigation,
 }: LandingNavbarProps) {
   const [showShortcutLinks, setShowShortcutLinks] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const safePathname = typeof pathname === "string" ? pathname : "";
+  const [mobileMenuState, setMobileMenuState] = useState<{
+    pathname: string;
+    open: boolean;
+  }>({ pathname: safePathname, open: false });
+  const isMobileMenuOpen =
+    mobileMenuState.pathname === safePathname ? mobileMenuState.open : false;
+  const setIsMobileMenuOpen = (open: boolean) => {
+    setMobileMenuState({ pathname: safePathname, open });
+  };
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -116,10 +124,6 @@ export function LandingNavbar({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
-
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
 
   const navConfig = navigation;
   const baseItems: LocalNavItem[] =

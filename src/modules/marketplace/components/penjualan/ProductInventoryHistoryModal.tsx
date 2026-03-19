@@ -104,7 +104,19 @@ export function ProductInventoryHistoryModal({
   const [dateTo, setDateTo] = useState("");
   const [activityType, setActivityType] = useState("Semua Aktivitas");
   const [searchValue, setSearchValue] = useState("");
-  const [page, setPage] = useState(1);
+  const pageKey = `${dateFrom}::${dateTo}::${activityType}::${searchValue}::${entries.length}`;
+  const [pageState, setPageState] = useState<{
+    key: string;
+    value: number;
+  }>({ key: pageKey, value: 1 });
+  const page = pageState.key === pageKey ? pageState.value : 1;
+  const setPage = (
+    next: number | ((current: number) => number),
+  ) => {
+    const current = pageState.key === pageKey ? pageState.value : 1;
+    const value = typeof next === "function" ? next(current) : next;
+    setPageState({ key: pageKey, value });
+  };
   const pageSize = 10;
 
   const rows = useMemo(() => {
@@ -133,10 +145,6 @@ export function ProductInventoryHistoryModal({
     const start = (page - 1) * pageSize;
     return rows.slice(start, start + pageSize);
   }, [rows, page]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [dateFrom, dateTo, activityType, searchValue, entries]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);

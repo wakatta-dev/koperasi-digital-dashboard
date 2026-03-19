@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
@@ -44,17 +44,25 @@ export function OrderListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
-  const [page, setPage] = useState(1);
+  const pageKey = `${search}::${statusFilter}::${dateFilter}`;
+  const [pageState, setPageState] = useState<{
+    key: string;
+    value: number;
+  }>({ key: pageKey, value: 1 });
+  const page = pageState.key === pageKey ? pageState.value : 1;
+  const setPage = (
+    next: number | ((current: number) => number),
+  ) => {
+    const current = pageState.key === pageKey ? pageState.value : 1;
+    const value = typeof next === "function" ? next(current) : next;
+    setPageState({ key: pageKey, value });
+  };
   const [invoiceOrderId, setInvoiceOrderId] = useState<number | null>(null);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     id: number;
     action: string;
   } | null>(null);
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, statusFilter, dateFilter]);
 
   const statusParam = useMemo(() => {
     if (statusFilter === "pending") return "PENDING";

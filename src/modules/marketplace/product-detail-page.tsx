@@ -27,6 +27,10 @@ type Props = {
 };
 
 export function MarketplaceProductDetailPage({ productId }: Props) {
+  return <MarketplaceProductDetailPageContent key={productId} productId={productId} />;
+}
+
+function MarketplaceProductDetailPageContent({ productId }: Props) {
   const { data, isLoading, isError, error, refetch } =
     useMarketplaceProductDetail(productId);
   const { data: variants } = useMarketplaceProductVariants(productId);
@@ -42,10 +46,6 @@ export function MarketplaceProductDetailPage({ productId }: Props) {
       router.replace("/404");
     }
   }, [notFoundLike, router]);
-  useEffect(() => {
-    setSelectedGroupId(null);
-    setSelectedOptionId(null);
-  }, [productId]);
 
   const variantGroups = useMemo(
     () => variants?.groups ?? [],

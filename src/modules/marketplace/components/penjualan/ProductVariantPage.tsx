@@ -395,6 +395,10 @@ const buildInitialState = (
 };
 
 export function ProductVariantPage({ id }: ProductVariantPageProps) {
+  return <ProductVariantPageContent key={id} id={id} />;
+}
+
+function ProductVariantPageContent({ id }: ProductVariantPageProps) {
   const router = useRouter();
   const qc = useQueryClient();
   const variantActions = useInventoryVariantActions();
@@ -438,14 +442,6 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     () => variantsData?.options?.map((option) => option.id) ?? [],
     [variantsData],
   );
-
-  useEffect(() => {
-    // Reset local draft when opening another product variant page.
-    setAttributes([]);
-    setVariants([]);
-    setValueInputs({});
-    setIsDirty(false);
-  }, [id]);
 
   useEffect(() => {
     if (!variantsData || !product || isDirty) return;

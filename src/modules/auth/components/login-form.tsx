@@ -78,8 +78,6 @@ export function AuthLoginForm() {
     }
   };
   const emailInputId = "auth-login-email";
-  const passwordInputId = "auth-login-password";
-
   return (
     <div className="rounded-2xl border bg-card/80 p-6 shadow-lg backdrop-blur-sm">
       <Form {...form}>
@@ -117,7 +115,7 @@ export function AuthLoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel htmlFor={passwordInputId}>Kata sandi</FormLabel>
+                  <FormLabel htmlFor="auth-login-password">Kata sandi</FormLabel>
                   <Link
                     href="/forgot-password"
                     className="text-sm font-medium text-primary hover:text-primary/90"
@@ -129,7 +127,7 @@ export function AuthLoginForm() {
                   <div className="relative">
                     <Input
                       {...field}
-                      id={passwordInputId}
+                      id="auth-login-password"
                       type={passwordToggle.type}
                       placeholder="Masukkan kata sandi"
                       autoComplete="current-password"

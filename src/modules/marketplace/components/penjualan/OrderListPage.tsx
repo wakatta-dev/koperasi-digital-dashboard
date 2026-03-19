@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
@@ -40,7 +40,19 @@ export function OrderListPage() {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [page, setPage] = useState(1);
+  const pageKey = `${search}::${dateFilter}::${statusFilter}`;
+  const [pageState, setPageState] = useState<{
+    key: string;
+    value: number;
+  }>({ key: pageKey, value: 1 });
+  const page = pageState.key === pageKey ? pageState.value : 1;
+  const setPage = (
+    next: number | ((current: number) => number),
+  ) => {
+    const current = pageState.key === pageKey ? pageState.value : 1;
+    const value = typeof next === "function" ? next(current) : next;
+    setPageState({ key: pageKey, value });
+  };
   const [invoiceOrderId, setInvoiceOrderId] = useState<number | undefined>(
     undefined,
   );
@@ -49,10 +61,6 @@ export function OrderListPage() {
     id: number;
     action: string;
   } | null>(null);
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, dateFilter, statusFilter]);
 
   const queryParams = useMemo(
     () => ({

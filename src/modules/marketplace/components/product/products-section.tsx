@@ -3,7 +3,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useEffect } from "react";
 
 import { formatCurrency } from "@/lib/format";
 import {
@@ -26,7 +25,19 @@ type Props = {
 
 export function ProductsSection({ search, filters }: Props) {
   const [sort, setSort] = useState<string>(SORT_OPTIONS[0]);
-  const [offset, setOffset] = useState(0);
+  const paginationKey = `${search}::${filters.priceMin ?? ""}::${filters.priceMax ?? ""}`;
+  const [offsetState, setOffsetState] = useState<{
+    key: string;
+    value: number;
+  }>({ key: paginationKey, value: 0 });
+  const offset = offsetState.key === paginationKey ? offsetState.value : 0;
+  const setOffset = (
+    next: number | ((current: number) => number),
+  ) => {
+    const current = offsetState.key === paginationKey ? offsetState.value : 0;
+    const value = typeof next === "function" ? next(current) : next;
+    setOffsetState({ key: paginationKey, value });
+  };
   const limit = 20;
 
   const params = useMemo(
@@ -42,10 +53,6 @@ export function ProductsSection({ search, filters }: Props) {
     [filters.priceMax, filters.priceMin, offset, search, sort]
   );
   const { data, isLoading, isError, refetch, isFetching } = useMarketplaceProducts(params);
-
-  useEffect(() => {
-    setOffset(0);
-  }, [search, filters.priceMin, filters.priceMax]);
 
   const items = data?.items ?? [];
   const total = data?.total ?? items.length;

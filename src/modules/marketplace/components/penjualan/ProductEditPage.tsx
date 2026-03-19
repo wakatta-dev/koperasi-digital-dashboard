@@ -110,9 +110,33 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [editableVariants, setEditableVariants] = useState<
-    EditableVariantRow[]
-  >([]);
+  const editableVariantsKey = useMemo(
+    () =>
+      variantRows
+        .map((row) => `${row.optionId}:${row.sku}:${row.stock}:${row.price}`)
+        .join("|"),
+    [variantRows],
+  );
+  const [editableVariantsState, setEditableVariantsState] = useState<{
+    key: string;
+    rows: EditableVariantRow[];
+  }>({ key: editableVariantsKey, rows: variantRows });
+  const editableVariants =
+    editableVariantsState.key === editableVariantsKey
+      ? editableVariantsState.rows
+      : variantRows;
+  const setEditableVariants = (
+    next:
+      | EditableVariantRow[]
+      | ((current: EditableVariantRow[]) => EditableVariantRow[]),
+  ) => {
+    const current =
+      editableVariantsState.key === editableVariantsKey
+        ? editableVariantsState.rows
+        : variantRows;
+    const rows = typeof next === "function" ? next(current) : next;
+    setEditableVariantsState({ key: editableVariantsKey, rows });
+  };
   const [pendingDeleteVariant, setPendingDeleteVariant] =
     useState<EditableVariantRow | null>(null);
 
@@ -146,10 +170,6 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
     setDescription(product.description ?? "");
     setPendingFiles([]);
   }, [product]);
-
-  useEffect(() => {
-    setEditableVariants(variantRows);
-  }, [variantRows]);
 
   const submitting =
     update.isPending ||
