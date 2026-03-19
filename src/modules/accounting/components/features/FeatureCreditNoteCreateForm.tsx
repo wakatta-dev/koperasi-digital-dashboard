@@ -53,19 +53,24 @@ export function FeatureCreditNoteCreateForm({
   customerOptions = EMPTY_CUSTOMER_OPTIONS,
   invoiceReferenceOptions = EMPTY_INVOICE_REFERENCE_OPTIONS,
 }: FeatureCreditNoteCreateFormProps) {
-  const [customer, setCustomer] = useState(INITIAL_CREDIT_NOTE_DRAFT.customer);
-  const [creditNoteDate, setCreditNoteDate] = useState(
-    INITIAL_CREDIT_NOTE_DRAFT.credit_note_date,
-  );
-  const [invoiceRef, setInvoiceRef] = useState(
-    INITIAL_CREDIT_NOTE_DRAFT.original_invoice_reference,
-  );
-  const [reason, setReason] = useState(
-    INITIAL_CREDIT_NOTE_DRAFT.reason_for_credit,
-  );
-  const [items, setItems] = useState<CreditLine[]>([
-    { id: "credit-item-1", item_name: "", qty: 1, rate: "" },
-  ]);
+  const [formState, setFormState] = useState(() => ({
+    customer: INITIAL_CREDIT_NOTE_DRAFT.customer,
+    creditNoteDate: INITIAL_CREDIT_NOTE_DRAFT.credit_note_date,
+    invoiceRef: INITIAL_CREDIT_NOTE_DRAFT.original_invoice_reference,
+    reason: INITIAL_CREDIT_NOTE_DRAFT.reason_for_credit,
+    items: [{ id: "credit-item-1", item_name: "", qty: 1, rate: "" }] as CreditLine[],
+  }));
+  const { customer, creditNoteDate, invoiceRef, reason, items } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => {
@@ -84,10 +89,13 @@ export function FeatureCreditNoteCreateForm({
   }, [items]);
 
   const addItem = () => {
-    setItems((current) => [
+    patchFormState((current) => ({
       ...current,
-      { id: `credit-item-${Date.now()}`, item_name: "", qty: 1, rate: "" },
-    ]);
+      items: [
+        ...current.items,
+        { id: `credit-item-${Date.now()}`, item_name: "", qty: 1, rate: "" },
+      ],
+    }));
   };
 
   const updateItem = (
@@ -95,15 +103,22 @@ export function FeatureCreditNoteCreateForm({
     key: keyof CreditLine,
     value: string | number,
   ) => {
-    setItems((current) =>
-      current.map((row) => (row.id === id ? { ...row, [key]: value } : row)),
-    );
+    patchFormState((current) => ({
+      ...current,
+      items: current.items.map((row) =>
+        row.id === id ? { ...row, [key]: value } : row,
+      ),
+    }));
   };
 
   const removeItem = (id: string) => {
-    setItems((current) =>
-      current.length > 1 ? current.filter((row) => row.id !== id) : current,
-    );
+    patchFormState((current) => ({
+      ...current,
+      items:
+        current.items.length > 1
+          ? current.items.filter((row) => row.id !== id)
+          : current.items,
+    }));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -145,7 +160,9 @@ export function FeatureCreditNoteCreateForm({
               <Input
                 id="credit-note-customer"
                 value={customer}
-                onChange={(event) => setCustomer(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ customer: event.target.value })
+                }
                 placeholder="Type customer name"
                 className="bg-gray-50 text-sm dark:bg-gray-800"
                 list="credit-note-customer-options"
@@ -169,7 +186,9 @@ export function FeatureCreditNoteCreateForm({
                 id="credit-note-date"
                 type="date"
                 value={creditNoteDate}
-                onChange={(event) => setCreditNoteDate(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ creditNoteDate: event.target.value })
+                }
                 className="bg-gray-50 text-sm dark:bg-gray-800"
               />
             </div>
@@ -184,7 +203,9 @@ export function FeatureCreditNoteCreateForm({
               <Input
                 id="credit-note-invoice-ref"
                 value={invoiceRef}
-                onChange={(event) => setInvoiceRef(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ invoiceRef: event.target.value })
+                }
                 placeholder="e.g. INV-2023-108"
                 className="bg-gray-50 text-sm dark:bg-gray-800"
                 list="credit-note-invoice-options"
@@ -207,7 +228,9 @@ export function FeatureCreditNoteCreateForm({
               <Input
                 id="credit-note-reason"
                 value={reason}
-                onChange={(event) => setReason(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ reason: event.target.value })
+                }
                 placeholder="Describe credit reason"
                 className="bg-gray-50 text-sm dark:bg-gray-800"
               />

@@ -57,22 +57,32 @@ export function FeaturePaymentCreateForm({
   paymentMethodOptions = EMPTY_PAYMENT_METHOD_OPTIONS,
   destinationAccountOptions = EMPTY_DESTINATION_ACCOUNT_OPTIONS,
 }: FeaturePaymentCreateFormProps) {
-  const [customer, setCustomer] = useState(INITIAL_PAYMENT_DRAFT.customer);
-  const [paymentDate, setPaymentDate] = useState(
-    INITIAL_PAYMENT_DRAFT.payment_date,
-  );
-  const [paymentMethod, setPaymentMethod] = useState(
-    INITIAL_PAYMENT_DRAFT.payment_method,
-  );
-  const [destinationAccount, setDestinationAccount] = useState(
-    INITIAL_PAYMENT_DRAFT.destination_account,
-  );
-  const [amountReceived, setAmountReceived] = useState(
-    INITIAL_PAYMENT_DRAFT.amount_received,
-  );
-  const [selectedInvoiceNumbers, setSelectedInvoiceNumbers] = useState<
-    string[]
-  >(INITIAL_PAYMENT_DRAFT.selected_invoice_numbers);
+  const [formState, setFormState] = useState(() => ({
+    customer: INITIAL_PAYMENT_DRAFT.customer,
+    paymentDate: INITIAL_PAYMENT_DRAFT.payment_date,
+    paymentMethod: INITIAL_PAYMENT_DRAFT.payment_method,
+    destinationAccount: INITIAL_PAYMENT_DRAFT.destination_account,
+    amountReceived: INITIAL_PAYMENT_DRAFT.amount_received,
+    selectedInvoiceNumbers: INITIAL_PAYMENT_DRAFT.selected_invoice_numbers,
+  }));
+  const {
+    customer,
+    paymentDate,
+    paymentMethod,
+    destinationAccount,
+    amountReceived,
+    selectedInvoiceNumbers,
+  } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const allChecked =
     outstandingInvoices.length > 0 &&
@@ -86,9 +96,17 @@ export function FeaturePaymentCreateForm({
   );
 
   const toggleInvoice = (invoiceNumber: string, checked: boolean) => {
-    setSelectedInvoiceNumbers((current) => {
-      if (checked) return Array.from(new Set([...current, invoiceNumber]));
-      return current.filter((item) => item !== invoiceNumber);
+    patchFormState((current) => {
+      return {
+        ...current,
+        selectedInvoiceNumbers: checked
+          ? Array.from(
+              new Set([...current.selectedInvoiceNumbers, invoiceNumber]),
+            )
+          : current.selectedInvoiceNumbers.filter(
+              (item) => item !== invoiceNumber,
+            ),
+      };
     });
   };
 
@@ -135,7 +153,9 @@ export function FeaturePaymentCreateForm({
                 <Input
                   id="payment-create-customer"
                   value={customer}
-                  onChange={(event) => setCustomer(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ customer: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   placeholder="Customer name"
                   list="payment-customer-options"
@@ -163,7 +183,9 @@ export function FeaturePaymentCreateForm({
                   id="payment-create-date"
                   type="date"
                   value={paymentDate}
-                  onChange={(event) => setPaymentDate(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ paymentDate: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                 />
               </div>
@@ -181,7 +203,9 @@ export function FeaturePaymentCreateForm({
                 <Input
                   id="payment-create-method"
                   value={paymentMethod}
-                  onChange={(event) => setPaymentMethod(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ paymentMethod: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   placeholder="Payment method"
                   list="payment-method-options"
@@ -209,7 +233,9 @@ export function FeaturePaymentCreateForm({
                   id="payment-create-destination-account"
                   value={destinationAccount}
                   onChange={(event) =>
-                    setDestinationAccount(event.target.value)
+                    patchFormState({
+                      destinationAccount: event.target.value,
+                    })
                   }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   placeholder="Destination account"
@@ -239,7 +265,9 @@ export function FeaturePaymentCreateForm({
                 <Input
                   id="payment-create-amount"
                   value={amountReceived}
-                  onChange={(event) => setAmountReceived(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ amountReceived: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 font-bold dark:bg-gray-800"
                 />
               </div>
@@ -264,13 +292,13 @@ export function FeaturePaymentCreateForm({
                           <Checkbox
                             checked={allChecked}
                             onCheckedChange={(checked) => {
-                              setSelectedInvoiceNumbers(
-                                checked
+                              patchFormState({
+                                selectedInvoiceNumbers: checked
                                   ? outstandingInvoices.map(
                                       (item) => item.invoice_number,
                                     )
                                   : [],
-                              );
+                              });
                             }}
                             aria-label="Select all outstanding invoices"
                           />

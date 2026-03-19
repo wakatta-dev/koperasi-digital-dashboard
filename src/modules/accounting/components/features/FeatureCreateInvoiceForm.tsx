@@ -49,17 +49,24 @@ export function FeatureCreateInvoiceForm({
   customerOptions = EMPTY_CUSTOMER_OPTIONS,
   productOptions = EMPTY_PRODUCT_OPTIONS,
 }: FeatureCreateInvoiceFormProps) {
-  const [customerQuery, setCustomerQuery] = useState(
-    INITIAL_INVOICE_DRAFT.customer_query,
-  );
-  const [invoiceDate, setInvoiceDate] = useState(
-    INITIAL_INVOICE_DRAFT.invoice_date,
-  );
-  const [dueDate, setDueDate] = useState(INITIAL_INVOICE_DRAFT.due_date);
-  const [notes, setNotes] = useState(INITIAL_INVOICE_DRAFT.internal_notes);
-  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(
-    INITIAL_INVOICE_DRAFT.line_items,
-  );
+  const [formState, setFormState] = useState(() => ({
+    customerQuery: INITIAL_INVOICE_DRAFT.customer_query,
+    invoiceDate: INITIAL_INVOICE_DRAFT.invoice_date,
+    dueDate: INITIAL_INVOICE_DRAFT.due_date,
+    notes: INITIAL_INVOICE_DRAFT.internal_notes,
+    lineItems: INITIAL_INVOICE_DRAFT.line_items,
+  }));
+  const { customerQuery, invoiceDate, dueDate, notes, lineItems } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const totals = useMemo(() => {
     const subtotal = lineItems.reduce((sum, row) => {
@@ -83,13 +90,16 @@ export function FeatureCreateInvoiceForm({
   }, [lineItems]);
 
   const addLineItem = () => {
-    setLineItems((current) => [
+    patchFormState((current) => ({
       ...current,
-      {
-        ...INITIAL_INVOICE_LINE_ITEM,
-        id: `line-${Date.now()}`,
-      },
-    ]);
+      lineItems: [
+        ...current.lineItems,
+        {
+          ...INITIAL_INVOICE_LINE_ITEM,
+          id: `line-${Date.now()}`,
+        },
+      ],
+    }));
   };
 
   const updateLineItem = (
@@ -97,21 +107,26 @@ export function FeatureCreateInvoiceForm({
     key: keyof InvoiceLineItem,
     value: string | number,
   ) => {
-    setLineItems((current) =>
-      current.map((row) => {
+    patchFormState((current) => ({
+      ...current,
+      lineItems: current.lineItems.map((row) => {
         if (row.id !== id) return row;
         return {
           ...row,
           [key]: value,
         };
       }),
-    );
+    }));
   };
 
   const removeLineItem = (id: string) => {
-    setLineItems((current) =>
-      current.length > 1 ? current.filter((row) => row.id !== id) : current,
-    );
+    patchFormState((current) => ({
+      ...current,
+      lineItems:
+        current.lineItems.length > 1
+          ? current.lineItems.filter((row) => row.id !== id)
+          : current.lineItems,
+    }));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -158,7 +173,9 @@ export function FeatureCreateInvoiceForm({
                 <Input
                   id="invoice-create-customer"
                   value={customerQuery}
-                  onChange={(event) => setCustomerQuery(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ customerQuery: event.target.value })
+                  }
                   data-testid="accounting-ar-invoice-customer-input"
                   placeholder="Search customer..."
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
@@ -200,7 +217,9 @@ export function FeatureCreateInvoiceForm({
                 type="date"
                 value={invoiceDate}
                 data-testid="accounting-ar-invoice-date-input"
-                onChange={(event) => setInvoiceDate(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ invoiceDate: event.target.value })
+                }
                 className="bg-gray-50 dark:bg-gray-800"
               />
             </div>
@@ -216,7 +235,9 @@ export function FeatureCreateInvoiceForm({
                 type="date"
                 value={dueDate}
                 data-testid="accounting-ar-invoice-due-date-input"
-                onChange={(event) => setDueDate(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ dueDate: event.target.value })
+                }
                 className="bg-gray-50 dark:bg-gray-800"
               />
             </div>
@@ -431,7 +452,9 @@ export function FeatureCreateInvoiceForm({
                 id="invoice-create-notes"
                 rows={3}
                 value={notes}
-                onChange={(event) => setNotes(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ notes: event.target.value })
+                }
                 data-testid="accounting-ar-invoice-notes-textarea"
                 placeholder="Add any notes for internal reference..."
                 className="bg-gray-50 dark:bg-gray-800"
