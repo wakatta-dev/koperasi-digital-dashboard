@@ -41,9 +41,22 @@ const PAGE_SIZE = 10;
 
 export function OrderListPage() {
   const confirm = useConfirm();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("");
+  const [uiState, setUiState] = useState({
+    search: "",
+    statusFilter: "all",
+    dateFilter: "",
+    invoiceOrderId: null as number | null,
+    invoiceOpen: false,
+  });
+  const { search, statusFilter, dateFilter, invoiceOrderId, invoiceOpen } =
+    uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const pageKey = `${search}::${statusFilter}::${dateFilter}`;
   const [pageState, setPageState] = useState<{
     key: string;
@@ -57,8 +70,6 @@ export function OrderListPage() {
     const value = typeof next === "function" ? next(current) : next;
     setPageState({ key: pageKey, value });
   };
-  const [invoiceOrderId, setInvoiceOrderId] = useState<number | null>(null);
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     id: number;
     action: string;
@@ -92,8 +103,7 @@ export function OrderListPage() {
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const handleOpenInvoice = (orderId: number) => {
-    setInvoiceOrderId(orderId);
-    setInvoiceOpen(true);
+    patchUiState({ invoiceOrderId: orderId, invoiceOpen: true });
   };
 
   const handleStatusUpdate = async (
@@ -295,7 +305,7 @@ export function OrderListPage() {
             placeholder="Cari ID Pesanan, nama pelanggan, atau produk..."
             type="text"
             value={search}
-            onValueChange={setSearch}
+            onValueChange={(value) => patchUiState({ search: value })}
             data-testid="marketplace-admin-order-search-input"
           />
         </div>
@@ -321,7 +331,9 @@ export function OrderListPage() {
                   className="w-full text-xs"
                   type="date"
                   value={dateFilter}
-                  onChange={(event) => setDateFilter(event.target.value)}
+                  onChange={(event) =>
+                    patchUiState({ dateFilter: event.target.value })
+                  }
                   data-testid="marketplace-admin-order-date-filter"
                 />
               </div>
@@ -329,7 +341,12 @@ export function OrderListPage() {
                 <label htmlFor="marketplace-order-filter-status" className="mb-1 block text-xs font-medium text-muted-foreground">
                   Status Pembayaran
                 </label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) =>
+                    patchUiState({ statusFilter: value })
+                  }
+                >
                   <SelectTrigger
                     id="marketplace-order-filter-status"
                     className="w-full h-auto rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
@@ -378,8 +395,10 @@ export function OrderListPage() {
       <OrderInvoiceDialog
         open={invoiceOpen}
         onOpenChange={(open) => {
-          setInvoiceOpen(open);
-          if (!open) setInvoiceOrderId(null);
+          patchUiState({
+            invoiceOpen: open,
+            invoiceOrderId: open ? invoiceOrderId : null,
+          });
         }}
         orderId={invoiceOrderId ?? undefined}
       />

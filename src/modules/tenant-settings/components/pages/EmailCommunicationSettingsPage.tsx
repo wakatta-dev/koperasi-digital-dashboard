@@ -69,16 +69,19 @@ export function EmailCommunicationSettingsPage({
   } = testState;
 
   const patchEditorState = useCallback(
-    updates:
-      | Partial<typeof editorState>
-      | ((current: typeof editorState) => typeof editorState),
-  ) => {
-    setEditorState((current) =>
-      typeof updates === "function"
-        ? updates(current)
-        : { ...current, ...updates },
-    );
-  }, []);
+    (
+      updates:
+        | Partial<typeof editorState>
+        | ((current: typeof editorState) => typeof editorState),
+    ) => {
+      setEditorState((current) =>
+        typeof updates === "function"
+          ? updates(current)
+          : { ...current, ...updates },
+      );
+    },
+    [],
+  );
 
   const patchTestState = (
     updates:
@@ -137,7 +140,13 @@ export function EmailCommunicationSettingsPage({
     if (nextTemplateId) {
       syncTemplateQuery(nextTemplateId);
     }
-  }, [requestedTemplateId, selectedTemplateId, syncTemplateQuery, templates]);
+  }, [
+    patchEditorState,
+    requestedTemplateId,
+    selectedTemplateId,
+    syncTemplateQuery,
+    templates,
+  ]);
 
   const selectedTemplate = useMemo(
     () =>

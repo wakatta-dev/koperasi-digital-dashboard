@@ -37,7 +37,29 @@ type VendorClientAccountsPageProps = {
 export function VendorClientAccountsPage({
   tenantId,
 }: VendorClientAccountsPageProps) {
-  const [search, setSearch] = useState("");
+  const [uiState, setUiState] = useState({
+    search: "",
+    inviteForm: {
+      email_baru: "",
+      role: "",
+      reason: "",
+      otp: "",
+    },
+    emailChangeForm: {
+      userId: "",
+      email_baru: "",
+      reason: "",
+      otp: "",
+    },
+  });
+  const { search, inviteForm, emailChangeForm } = uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const cursorPagination = useCursorStack<string>();
   const accountsQuery = useAdminTenantAccounts(tenantId, {
     cursor: cursorPagination.currentCursor,
@@ -63,18 +85,6 @@ export function VendorClientAccountsPage({
     return mapped;
   }, [rolesQuery.data]);
 
-  const [inviteForm, setInviteForm] = useState({
-    email_baru: "",
-    role: "",
-    reason: "",
-    otp: "",
-  });
-  const [emailChangeForm, setEmailChangeForm] = useState({
-    userId: "",
-    email_baru: "",
-    reason: "",
-    otp: "",
-  });
   const [roleDrafts, setRoleDrafts] = useState<Record<number, string>>({});
   const [statusReason, setStatusReason] = useState<Record<number, string>>({});
   const columns: ColumnDef<(typeof rows)[number], unknown>[] = [
@@ -220,9 +230,12 @@ export function VendorClientAccountsPage({
                 id="invite-email"
                 value={inviteForm.email_baru}
                 onChange={(event) =>
-                  setInviteForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    email_baru: event.target.value,
+                    inviteForm: {
+                      ...current.inviteForm,
+                      email_baru: event.target.value,
+                    },
                   }))
                 }
               />
@@ -232,9 +245,12 @@ export function VendorClientAccountsPage({
               <Select
                 value={inviteForm.role}
                 onValueChange={(value) =>
-                  setInviteForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    role: value,
+                    inviteForm: {
+                      ...current.inviteForm,
+                      role: value,
+                    },
                   }))
                 }
               >
@@ -256,9 +272,12 @@ export function VendorClientAccountsPage({
                 id="invite-reason"
                 value={inviteForm.reason}
                 onChange={(event) =>
-                  setInviteForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    reason: event.target.value,
+                    inviteForm: {
+                      ...current.inviteForm,
+                      reason: event.target.value,
+                    },
                   }))
                 }
               />
@@ -269,9 +288,12 @@ export function VendorClientAccountsPage({
                 id="invite-otp"
                 value={inviteForm.otp}
                 onChange={(event) =>
-                  setInviteForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    otp: event.target.value,
+                    inviteForm: {
+                      ...current.inviteForm,
+                      otp: event.target.value,
+                    },
                   }))
                 }
               />
@@ -290,11 +312,13 @@ export function VendorClientAccountsPage({
                   },
                   {
                     onSuccess: () => {
-                      setInviteForm({
-                        email_baru: "",
-                        role: "",
-                        reason: "",
-                        otp: "",
+                      patchUiState({
+                        inviteForm: {
+                          email_baru: "",
+                          role: "",
+                          reason: "",
+                          otp: "",
+                        },
                       });
                     },
                   },
@@ -316,9 +340,12 @@ export function VendorClientAccountsPage({
               <Select
                 value={emailChangeForm.userId}
                 onValueChange={(value) =>
-                  setEmailChangeForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    userId: value,
+                    emailChangeForm: {
+                      ...current.emailChangeForm,
+                      userId: value,
+                    },
                   }))
                 }
               >
@@ -340,9 +367,12 @@ export function VendorClientAccountsPage({
                 id="change-email"
                 value={emailChangeForm.email_baru}
                 onChange={(event) =>
-                  setEmailChangeForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    email_baru: event.target.value,
+                    emailChangeForm: {
+                      ...current.emailChangeForm,
+                      email_baru: event.target.value,
+                    },
                   }))
                 }
               />
@@ -353,9 +383,12 @@ export function VendorClientAccountsPage({
                 id="change-reason"
                 value={emailChangeForm.reason}
                 onChange={(event) =>
-                  setEmailChangeForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    reason: event.target.value,
+                    emailChangeForm: {
+                      ...current.emailChangeForm,
+                      reason: event.target.value,
+                    },
                   }))
                 }
               />
@@ -366,9 +399,12 @@ export function VendorClientAccountsPage({
                 id="change-otp"
                 value={emailChangeForm.otp}
                 onChange={(event) =>
-                  setEmailChangeForm((current) => ({
+                  patchUiState((current) => ({
                     ...current,
-                    otp: event.target.value,
+                    emailChangeForm: {
+                      ...current.emailChangeForm,
+                      otp: event.target.value,
+                    },
                   }))
                 }
               />
@@ -390,11 +426,13 @@ export function VendorClientAccountsPage({
                   },
                   {
                     onSuccess: () => {
-                      setEmailChangeForm({
-                        userId: "",
-                        email_baru: "",
-                        reason: "",
-                        otp: "",
+                      patchUiState({
+                        emailChangeForm: {
+                          userId: "",
+                          email_baru: "",
+                          reason: "",
+                          otp: "",
+                        },
                       });
                     },
                   },
@@ -415,7 +453,7 @@ export function VendorClientAccountsPage({
             placeholder="Cari nama atau email..."
             value={search}
             onChange={(event) => {
-              setSearch(event.target.value);
+              patchUiState({ search: event.target.value });
               cursorPagination.reset();
             }}
           />
