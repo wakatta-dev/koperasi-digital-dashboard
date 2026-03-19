@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -30,6 +30,7 @@ import { FeaturePpnDetailTable } from "../features/FeaturePpnDetailTable";
 type TaxPpnDetailsPageProps = {
   period?: string;
   returnToQuery?: string;
+  queryString?: string;
 };
 
 const DEFAULT_PPN_FILTERS: TaxPpnFilterValue = {
@@ -62,10 +63,14 @@ function formatPeriodLabel(periodCode: string): string {
 export function TaxPpnDetailsPage({
   period,
   returnToQuery,
+  queryString = "",
 }: TaxPpnDetailsPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const periodFromQuery = searchParams.get("period") ?? "";
 
   const initialQueryState = useMemo(() => {
@@ -138,8 +143,15 @@ export function TaxPpnDetailsPage({
     period,
   ]);
 
-  useEffect(() => {
-    const baseQuery = buildTaxPpnQueryString({ filters, page, perPage });
+  const updateQueryState = (
+    nextFilters: TaxPpnFilterValue,
+    nextPage: number,
+  ) => {
+    const baseQuery = buildTaxPpnQueryString({
+      filters: nextFilters,
+      page: nextPage,
+      perPage,
+    });
     const params = new URLSearchParams(baseQuery);
     const fromValue = searchParams.get("from") ?? returnToQuery;
     if (fromValue) {
@@ -153,7 +165,7 @@ export function TaxPpnDetailsPage({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, page, pathname, perPage, returnToQuery, router, searchParams]);
+  };
 
   const activePeriodCode =
     filters.period === "All Periods"
@@ -279,6 +291,7 @@ export function TaxPpnDetailsPage({
           onChange={(next) => {
             setFilters(next);
             setPage(1);
+            updateQueryState(next, 1);
           }}
         />
         {vatTransactionsQuery.isPending && !vatTransactionsQuery.data ? (
@@ -296,7 +309,10 @@ export function TaxPpnDetailsPage({
             totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
           }}
           paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
-          onPageChange={setPage}
+          onPageChange={(nextPage) => {
+            setPage(nextPage);
+            updateQueryState(filters, nextPage);
+          }}
         />
       </div>
     </div>

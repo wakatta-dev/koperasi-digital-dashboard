@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
@@ -48,10 +48,19 @@ function toSummaryTone(tone?: string): TaxSummaryTone {
   return "primary";
 }
 
-export function TaxExportHistoryPage() {
+type TaxExportHistoryPageProps = {
+  queryString?: string;
+};
+
+export function TaxExportHistoryPage({
+  queryString = "",
+}: TaxExportHistoryPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialQueryState = useMemo(
     () =>
@@ -79,10 +88,13 @@ export function TaxExportHistoryPage() {
   });
   const mutations = useAccountingTaxMutations();
 
-  useEffect(() => {
+  const updateQueryState = (
+    nextFilters: TaxExportHistoryFilterValue,
+    nextPage: number,
+  ) => {
     const nextQuery = buildTaxExportHistoryQueryString({
-      filters,
-      page,
+      filters: nextFilters,
+      page: nextPage,
       perPage,
     });
     const currentQuery = searchParams.toString();
@@ -93,7 +105,7 @@ export function TaxExportHistoryPage() {
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, page, pathname, perPage, router, searchParams]);
+  };
 
   const summaryItems = useMemo<KpiItem[]>(() => {
     return (overviewQuery.data?.cards ?? []).map((card) => ({
@@ -200,6 +212,7 @@ export function TaxExportHistoryPage() {
           onChange={(next) => {
             setFilters(next);
             setPage(1);
+            updateQueryState(next, 1);
           }}
         />
 
@@ -218,7 +231,10 @@ export function TaxExportHistoryPage() {
             totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
           }}
           paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
-          onPageChange={setPage}
+          onPageChange={(nextPage) => {
+            setPage(nextPage);
+            updateQueryState(filters, nextPage);
+          }}
           onDownload={() => toast.success("Download link requested.")}
           onRetry={handleRetryExport}
         />

@@ -45,9 +45,17 @@ export function FeatureAuditLogFilterBar({
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium tracking-wide text-gray-500 uppercase">User:</label>
+            <label
+              htmlFor="audit-log-user-filter"
+              className="text-xs font-medium tracking-wide text-gray-500 uppercase"
+            >
+              User:
+            </label>
             <Select value={value.user} onValueChange={(next) => patch({ user: next as JournalAuditLogFilterValue["user"] })}>
-              <SelectTrigger className="min-w-[140px] border-gray-200 bg-white text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
+              <SelectTrigger
+                id="audit-log-user-filter"
+                className="min-w-[140px] border-gray-200 bg-white text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -59,11 +67,17 @@ export function FeatureAuditLogFilterBar({
             </Select>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+            <label
+              htmlFor="audit-log-module-filter"
+              className="text-xs font-medium tracking-wide text-gray-500 uppercase"
+            >
               Module:
             </label>
             <Select value={value.module} onValueChange={(next) => patch({ module: next as JournalAuditLogFilterValue["module"] })}>
-              <SelectTrigger className="min-w-[140px] border-gray-200 bg-white text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
+              <SelectTrigger
+                id="audit-log-module-filter"
+                className="min-w-[140px] border-gray-200 bg-white text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -79,11 +93,15 @@ export function FeatureAuditLogFilterBar({
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+            <label
+              htmlFor="audit-log-date-from"
+              className="text-xs font-medium tracking-wide text-gray-500 uppercase"
+            >
               Rentang Waktu:
             </label>
             <div className="flex items-center gap-1">
               <Input
+                id="audit-log-date-from"
                 type="date"
                 value={value.date_from}
                 onChange={(event) => patch({ date_from: event.target.value })}
@@ -91,6 +109,7 @@ export function FeatureAuditLogFilterBar({
               />
               <span className="text-gray-400">-</span>
               <Input
+                id="audit-log-date-to"
                 type="date"
                 value={value.date_to}
                 onChange={(event) => patch({ date_to: event.target.value })}

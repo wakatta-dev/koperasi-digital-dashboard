@@ -71,17 +71,17 @@ export function CustomerFilterSheet({
 
           <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50/50 dark:bg-gray-900/20">
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-gray-900 dark:text-gray-200">
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-200">
                 Status Pelanggan
-              </label>
+              </span>
               <RadioGroup
                 value={statusValue}
                 onValueChange={onStatusChange}
                 className="grid grid-cols-2 gap-3"
               >
                 {["Active", "Inactive"].map((status) => (
-                  <label key={status} className="cursor-pointer group">
-                    <RadioGroupItem value={status} className="peer sr-only" />
+                <label key={status} className="cursor-pointer group">
+                  <RadioGroupItem value={status} className="peer sr-only" />
                     <div
                       className={cn(
                         "border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark text-gray-600 dark:text-gray-400 rounded-lg px-4 py-2.5 text-sm font-medium text-center flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all",
@@ -102,9 +102,9 @@ export function CustomerFilterSheet({
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold text-gray-900 dark:text-gray-200">
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-200">
                   Total Belanja
-                </label>
+                </span>
                 <button
                   type="button"
                   onClick={onReset}
@@ -144,9 +144,9 @@ export function CustomerFilterSheet({
             <hr className="border-gray-200 dark:border-gray-700 border-dashed" />
 
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-gray-900 dark:text-gray-200">
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-200">
                 Total Pesanan
-              </label>
+              </span>
               <div className="flex items-center gap-3">
                 <InputField
                   className="flex-1"

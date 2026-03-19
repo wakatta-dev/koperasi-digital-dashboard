@@ -25,6 +25,9 @@ type FeatureManualJournalLinesTableProps = {
   onChange?: (next: ManualJournalLineItem[]) => void;
 };
 
+const EMPTY_MANUAL_JOURNAL_LINES: ManualJournalLineItem[] = [];
+const EMPTY_MANUAL_JOURNAL_ACCOUNT_OPTIONS: ManualJournalAccountOption[] = [];
+
 function parseCurrencyInput(value: string) {
   const numericOnly = value.replace(/[^\d]/g, "");
   if (!numericOnly) {
@@ -38,8 +41,8 @@ function formatCurrency(value: number) {
 }
 
 export function FeatureManualJournalLinesTable({
-  lines = [],
-  accountOptions = [],
+  lines = EMPTY_MANUAL_JOURNAL_LINES,
+  accountOptions = EMPTY_MANUAL_JOURNAL_ACCOUNT_OPTIONS,
   onChange,
 }: FeatureManualJournalLinesTableProps) {
   const patch = (next: ManualJournalLineItem[]) => {

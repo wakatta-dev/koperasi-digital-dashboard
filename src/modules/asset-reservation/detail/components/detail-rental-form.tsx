@@ -46,23 +46,42 @@ export function DetailRentalForm({
   onRangeChange,
   onSubmit,
 }: DetailRentalFormProps) {
-  const [error, setError] = useState<string | null>(null);
-  const [suggestion, setSuggestion] = useState<{
-    start: string;
-    end: string;
-  } | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [reservationInfo, setReservationInfo] =
-    useState<ReservationSummary | null>(null);
-  const [dates, setDates] = useState<{ start: string; end: string }>({
-    start: startDate,
-    end: endDate,
+  const [uiState, setUiState] = useState<{
+    error: string | null;
+    suggestion: { start: string; end: string } | null;
+    fieldErrors: Record<string, string>;
+    serverError: string | null;
+    reservationInfo: ReservationSummary | null;
+    dates: { start: string; end: string };
+  }>({
+    error: null,
+    suggestion: null,
+    fieldErrors: {},
+    serverError: null,
+    reservationInfo: null,
+    dates: {
+      start: startDate,
+      end: endDate,
+    },
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { error, suggestion, fieldErrors, serverError, reservationInfo, dates } =
+    uiState;
+
+  const patchUiState = (
+    updates:
+      | Partial<typeof uiState>
+      | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   useEffect(() => {
-    setDates({ start: startDate, end: endDate });
+    patchUiState({
+      dates: { start: startDate, end: endDate },
+    });
   }, [startDate, endDate]);
 
   const durationDays = useMemo(() => {
@@ -89,16 +108,18 @@ export function DetailRentalForm({
     if (endTs < startTs) {
       next.end = next.start;
     }
-    setDates(next);
+    patchUiState({ dates: next });
     onRangeChange?.({ start: next.start, end: next.end });
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setServerError(null);
-    setReservationInfo(null);
-    setFieldErrors({});
-    setError(null);
+    patchUiState({
+      serverError: null,
+      reservationInfo: null,
+      fieldErrors: {},
+      error: null,
+    });
     const formData = new FormData(event.currentTarget);
     const start = String(formData.get("start_date") ?? dates.start);
     const end = String(formData.get("end_date") ?? dates.end);
@@ -126,26 +147,40 @@ export function DetailRentalForm({
       Object.entries(flattened.fieldErrors).forEach(([key, messages]) => {
         if (messages && messages.length > 0) byField[key] = messages[0];
       });
-      setFieldErrors(byField);
-      setError("Mohon lengkapi data yang wajib diisi.");
+      patchUiState({
+        fieldErrors: byField,
+        error: "Mohon lengkapi data yang wajib diisi.",
+      });
       return;
     }
 
     if (start > end) {
-      setFieldErrors((prev) => ({ ...prev, end_date: "Tanggal selesai harus setelah tanggal mulai." }));
-      setError("Tanggal selesai harus setelah tanggal mulai atau di hari yang sama.");
+      patchUiState((current) => ({
+        ...current,
+        fieldErrors: {
+          ...current.fieldErrors,
+          end_date: "Tanggal selesai harus setelah tanggal mulai.",
+        },
+        error: "Tanggal selesai harus setelah tanggal mulai atau di hari yang sama.",
+      }));
       return;
     }
 
     if (start < now) {
-      setFieldErrors((prev) => ({ ...prev, start_date: "Tanggal mulai tidak boleh di masa lalu." }));
-      setError("Tanggal mulai tidak boleh di masa lalu.");
+      patchUiState((current) => ({
+        ...current,
+        fieldErrors: {
+          ...current.fieldErrors,
+          start_date: "Tanggal mulai tidak boleh di masa lalu.",
+        },
+        error: "Tanggal mulai tidak boleh di masa lalu.",
+      }));
       return;
     }
 
     setIsSubmitting(true);
     if (!numericAssetId) {
-      setServerError("Aset tidak valid untuk diajukan.");
+      patchUiState({ serverError: "Aset tidak valid untuk diajukan." });
       setIsSubmitting(false);
       return;
     }
@@ -153,8 +188,10 @@ export function DetailRentalForm({
     try {
       const availability = await checkAvailability({ start, end, assetId: numericAssetId });
       if (!availability.ok) {
-        setError("Rentang tanggal bertabrakan dengan jadwal lain.");
-        setSuggestion(availability.suggestion ?? null);
+        patchUiState({
+          error: "Rentang tanggal bertabrakan dengan jadwal lain.",
+          suggestion: availability.suggestion ?? null,
+        });
         setIsSubmitting(false);
         return;
       }
@@ -193,14 +230,17 @@ export function DetailRentalForm({
         amounts,
       };
 
-      setReservationInfo(info);
-      setError(null);
-      setSuggestion(null);
+      patchUiState({
+        reservationInfo: info,
+        error: null,
+        suggestion: null,
+      });
       await onSubmit?.({ ...info, statusHref: signed.url });
     } catch (err) {
-      setServerError(
-        err instanceof Error ? err.message : "Gagal memproses permintaan"
-      );
+      patchUiState({
+        serverError:
+          err instanceof Error ? err.message : "Gagal memproses permintaan",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -214,10 +254,11 @@ export function DetailRentalForm({
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-start-date" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Mulai Sewa
             </label>
             <Input
+              id="detail-rental-start-date"
               type="date"
               value={dates.start}
               onChange={(e) => handleDateUpdate("start", e.target.value)}
@@ -231,10 +272,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-end-date" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Selesai Sewa
             </label>
             <Input
+              id="detail-rental-end-date"
               type="date"
               value={dates.end}
               onChange={(e) => handleDateUpdate("end", e.target.value)}
@@ -285,10 +327,11 @@ export function DetailRentalForm({
 
         <div className="space-y-3 pt-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-full-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nama Lengkap
             </label>
             <Input
+              id="detail-rental-full-name"
               type="text"
               placeholder="Nama Anda"
               name="full_name"
@@ -301,10 +344,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nomor Telepon (WhatsApp)
             </label>
             <Input
+              id="detail-rental-phone"
               type="tel"
               placeholder="0812..."
               name="phone"
@@ -317,10 +361,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Email
             </label>
             <Input
+              id="detail-rental-email"
               type="email"
               placeholder="email@contoh.com"
               name="email"
@@ -333,10 +378,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-purpose" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Tujuan Sewa
             </label>
             <Textarea
+              id="detail-rental-purpose"
               placeholder="Jelaskan acara atau kebutuhan Anda..."
               rows={3}
               name="purpose"

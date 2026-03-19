@@ -66,22 +66,67 @@ export function AssetEditFormFeature({
       warrantyEndDate: "",
       description: "",
     } as const);
-  const [name, setName] = useState(sourceModel.name);
-  const [serialNumber, setSerialNumber] = useState(sourceModel.serialNumber);
-  const [category, setCategory] = useState(sourceModel.category);
-  const [status, setStatus] = useState(sourceModel.status);
-  const [location, setLocation] = useState(sourceModel.location);
-  const [assignedTo, setAssignedTo] = useState(sourceModel.assignedTo);
-  const [purchaseDate, setPurchaseDate] = useState(sourceModel.purchaseDate);
-  const [vendor, setVendor] = useState(sourceModel.vendor);
-  const [rentalPriceDisplay, setRentalPriceDisplay] = useState(sourceModel.rentalPriceDisplay);
-  const [purchasePriceDisplay, setPurchasePriceDisplay] = useState(sourceModel.purchasePriceDisplay);
-  const [warrantyEndDate, setWarrantyEndDate] = useState(sourceModel.warrantyEndDate);
-  const [description, setDescription] = useState(sourceModel.description);
+  const [formState, setFormState] = useState(() => ({
+    name: sourceModel.name,
+    serialNumber: sourceModel.serialNumber,
+    category: sourceModel.category,
+    status: sourceModel.status,
+    location: sourceModel.location,
+    assignedTo: sourceModel.assignedTo,
+    purchaseDate: sourceModel.purchaseDate,
+    vendor: sourceModel.vendor,
+    rentalPriceDisplay: sourceModel.rentalPriceDisplay,
+    purchasePriceDisplay: sourceModel.purchasePriceDisplay,
+    warrantyEndDate: sourceModel.warrantyEndDate,
+    description: sourceModel.description,
+  }));
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewURL, setImagePreviewURL] = useState(sourceModel.photoUrl);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const objectURLRef = useRef<string | null>(null);
+  const {
+    name,
+    serialNumber,
+    category,
+    status,
+    location,
+    assignedTo,
+    purchaseDate,
+    vendor,
+    rentalPriceDisplay,
+    purchasePriceDisplay,
+    warrantyEndDate,
+    description,
+  } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
+
+  const hydrateFromInitialModel = (nextModel: AssetFormModel) => {
+    patchFormState({
+      name: nextModel.name,
+      serialNumber: nextModel.serialNumber,
+      category: nextModel.category,
+      status: nextModel.status,
+      location: nextModel.location,
+      assignedTo: nextModel.assignedTo,
+      purchaseDate: nextModel.purchaseDate,
+      vendor: nextModel.vendor,
+      rentalPriceDisplay: nextModel.rentalPriceDisplay,
+      purchasePriceDisplay: nextModel.purchasePriceDisplay,
+      warrantyEndDate: nextModel.warrantyEndDate,
+      description: nextModel.description,
+    });
+    setImageFile(null);
+    setImagePreviewURL(nextModel.photoUrl);
+  };
 
   useEffect(() => {
     if (!initialModel) return;
@@ -89,20 +134,7 @@ export function AssetEditFormFeature({
       URL.revokeObjectURL(objectURLRef.current);
       objectURLRef.current = null;
     }
-    setName(initialModel.name);
-    setSerialNumber(initialModel.serialNumber);
-    setCategory(initialModel.category);
-    setStatus(initialModel.status);
-    setLocation(initialModel.location);
-    setAssignedTo(initialModel.assignedTo);
-    setPurchaseDate(initialModel.purchaseDate);
-    setVendor(initialModel.vendor);
-    setRentalPriceDisplay(initialModel.rentalPriceDisplay);
-    setPurchasePriceDisplay(initialModel.purchasePriceDisplay);
-    setWarrantyEndDate(initialModel.warrantyEndDate);
-    setDescription(initialModel.description);
-    setImageFile(null);
-    setImagePreviewURL(initialModel.photoUrl);
+    hydrateFromInitialModel(initialModel);
     if (imageInputRef.current) {
       imageInputRef.current.value = "";
     }
@@ -110,19 +142,19 @@ export function AssetEditFormFeature({
 
   useEffect(() => {
     if (!category && categories.length > 0) {
-      setCategory(categories[0]);
+      patchFormState({ category: categories[0] });
     }
   }, [category, categories]);
 
   useEffect(() => {
     if (!status && statuses.length > 0) {
-      setStatus(statuses[0]);
+      patchFormState({ status: statuses[0] });
     }
   }, [status, statuses]);
 
   useEffect(() => {
     if (!location && locations.length > 0) {
-      setLocation(locations[0]);
+      patchFormState({ location: locations[0] });
     }
   }, [location, locations]);
 
@@ -135,30 +167,9 @@ export function AssetEditFormFeature({
   }, []);
 
   return (
-    <form
+    <div
       className="space-y-6"
       data-testid="asset-admin-edit-form"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        await onSubmit?.({
-          mode: "edit",
-          name: name.trim(),
-          photoUrl: imagePreviewURL,
-          imageFile,
-          assetTag: sourceModel.assetTag,
-          serialNumber: serialNumber.trim(),
-          category,
-          status,
-          location: location.trim(),
-          assignedTo: assignedTo.trim(),
-          purchaseDate,
-          vendor: vendor.trim(),
-          rentalPriceDisplay: rentalPriceDisplay.trim(),
-          purchasePriceDisplay: purchasePriceDisplay.trim(),
-          warrantyEndDate,
-          description: description.trim(),
-        });
-      }}
     >
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
         <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">
@@ -170,7 +181,7 @@ export function AssetEditFormFeature({
             <Label className="mb-1 block">Nama Aset</Label>
             <Input
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => patchFormState({ name: event.target.value })}
               required
               data-testid="asset-admin-edit-name-input"
             />
@@ -183,13 +194,18 @@ export function AssetEditFormFeature({
             <Label className="mb-1 block">Serial Number</Label>
             <Input
               value={serialNumber}
-              onChange={(event) => setSerialNumber(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ serialNumber: event.target.value })
+              }
               data-testid="asset-admin-edit-serial-number-input"
             />
           </div>
           <div>
             <Label className="mb-1 block">Kategori</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select
+              value={category}
+              onValueChange={(value) => patchFormState({ category: value })}
+            >
               <SelectTrigger
                 disabled={isLoadingOptions || categories.length === 0}
                 data-testid="asset-admin-edit-category-trigger"
@@ -207,7 +223,10 @@ export function AssetEditFormFeature({
           </div>
           <div>
             <Label className="mb-1 block">Status</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select
+              value={status}
+              onValueChange={(value) => patchFormState({ status: value })}
+            >
               <SelectTrigger
                 disabled={isLoadingOptions || statuses.length === 0}
                 data-testid="asset-admin-edit-status-trigger"
@@ -315,7 +334,10 @@ export function AssetEditFormFeature({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <Label className="mb-1 block">Lokasi Utama</Label>
-            <Select value={location} onValueChange={setLocation}>
+            <Select
+              value={location}
+              onValueChange={(value) => patchFormState({ location: value })}
+            >
               <SelectTrigger
                 disabled={isLoadingOptions || locations.length === 0}
                 data-testid="asset-admin-edit-location-trigger"
@@ -338,7 +360,9 @@ export function AssetEditFormFeature({
             <Label className="mb-1 block">Penanggung Jawab</Label>
             <Input
               value={assignedTo}
-              onChange={(event) => setAssignedTo(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ assignedTo: event.target.value })
+              }
               placeholder="Cari nama karyawan..."
               data-testid="asset-admin-edit-assigned-to-input"
             />
@@ -357,7 +381,9 @@ export function AssetEditFormFeature({
               min={1}
               required
               value={rentalPriceDisplay}
-              onChange={(event) => setRentalPriceDisplay(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ rentalPriceDisplay: event.target.value })
+              }
               placeholder="Contoh: 250000"
               data-testid="asset-admin-edit-rental-price-input"
             />
@@ -368,7 +394,9 @@ export function AssetEditFormFeature({
               type="number"
               min={0}
               value={purchasePriceDisplay}
-              onChange={(event) => setPurchasePriceDisplay(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ purchasePriceDisplay: event.target.value })
+              }
               placeholder="Contoh: 15000000"
               data-testid="asset-admin-edit-purchase-price-input"
             />
@@ -378,7 +406,9 @@ export function AssetEditFormFeature({
             <Input
               type="date"
               value={purchaseDate}
-              onChange={(event) => setPurchaseDate(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ purchaseDate: event.target.value })
+              }
               data-testid="asset-admin-edit-purchase-date-input"
             />
           </div>
@@ -386,7 +416,7 @@ export function AssetEditFormFeature({
             <Label className="mb-1 block">Supplier</Label>
             <Input
               value={vendor}
-              onChange={(event) => setVendor(event.target.value)}
+              onChange={(event) => patchFormState({ vendor: event.target.value })}
               data-testid="asset-admin-edit-vendor-input"
             />
           </div>
@@ -395,7 +425,9 @@ export function AssetEditFormFeature({
             <Input
               type="date"
               value={warrantyEndDate}
-              onChange={(event) => setWarrantyEndDate(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ warrantyEndDate: event.target.value })
+              }
               data-testid="asset-admin-edit-warranty-end-date-input"
             />
           </div>
@@ -406,7 +438,9 @@ export function AssetEditFormFeature({
         <h4 className="text-base font-semibold text-slate-900">Deskripsi Aset</h4>
         <Textarea
           value={description}
-          onChange={(event) => setDescription(event.target.value)}
+          onChange={(event) =>
+            patchFormState({ description: event.target.value })
+          }
           placeholder="Tuliskan deskripsi aset, kondisi, dan catatan penting lainnya..."
           rows={5}
           data-testid="asset-admin-edit-description-textarea"
@@ -424,14 +458,34 @@ export function AssetEditFormFeature({
           Batal
         </Button>
         <Button
-          type="submit"
+          type="button"
           className="bg-indigo-600 text-white hover:bg-indigo-700"
           disabled={isSubmitting}
           data-testid="asset-admin-edit-submit-button"
+          onClick={async () => {
+            await onSubmit?.({
+              mode: "edit",
+              name: name.trim(),
+              photoUrl: imagePreviewURL,
+              imageFile,
+              assetTag: sourceModel.assetTag,
+              serialNumber: serialNumber.trim(),
+              category,
+              status,
+              location: location.trim(),
+              assignedTo: assignedTo.trim(),
+              purchaseDate,
+              vendor: vendor.trim(),
+              rentalPriceDisplay: rentalPriceDisplay.trim(),
+              purchasePriceDisplay: purchasePriceDisplay.trim(),
+              warrantyEndDate,
+              description: description.trim(),
+            });
+          }}
         >
           {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
         </Button>
       </div>
-    </form>
+    </div>
   );
 }

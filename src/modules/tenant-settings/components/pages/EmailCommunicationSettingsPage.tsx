@@ -2,10 +2,13 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useSupportEmailActions, useSupportEmailTemplates } from "@/hooks/queries";
+import {
+  useSupportEmailActions,
+  useSupportEmailTemplates,
+} from "@/hooks/queries";
 import { FeatureEmailTemplateEditorCard } from "../features/FeatureEmailTemplateEditorCard";
 import { FeatureEmailTemplateSelectorCard } from "../features/FeatureEmailTemplateSelectorCard";
 import { FeatureEmailTestCard } from "../features/FeatureEmailTestCard";
@@ -16,24 +19,81 @@ import { isDeepEqual } from "../../lib/forms";
 import { buildQueryString, canManageTenantSettings } from "../../lib/settings";
 import type { EmailTemplateFormState } from "../../types/forms";
 
-export function EmailCommunicationSettingsPage() {
+type EmailCommunicationSettingsPageProps = {
+  queryString?: string;
+};
+
+export function EmailCommunicationSettingsPage({
+  queryString = "",
+}: EmailCommunicationSettingsPageProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const { data: session } = useSession();
-  const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
+  const canManage = canManageTenantSettings(
+    (session?.user as { role?: string } | undefined)?.role,
+  );
   const templatesQuery = useSupportEmailTemplates();
   const { saveTemplate, sendTestEmail } = useSupportEmailActions();
-  const templates = useMemo(() => templatesQuery.data ?? [], [templatesQuery.data]);
+  const templates = useMemo(
+    () => templatesQuery.data ?? [],
+    [templatesQuery.data],
+  );
   const requestedTemplateId = searchParams.get("template") ?? "";
-  const pendingSelectedTemplateIdRef = useRef<string | null>(null);
+  const [editorState, setEditorState] = useState<{
+    selectedTemplateId: string;
+    draftTemplateId: string;
+    formDraft: EmailTemplateFormState | null;
+  }>({
+    selectedTemplateId: "",
+    draftTemplateId: "",
+    formDraft: null,
+  });
+  const [testState, setTestState] = useState<{
+    templateId: string;
+    recipient: string;
+    variables: Record<string, string>;
+  }>({
+    templateId: "",
+    recipient: "",
+    variables: {},
+  });
+  const { selectedTemplateId, draftTemplateId, formDraft } = editorState;
+  const {
+    templateId: testStateTemplateId,
+    recipient: testRecipientDraft,
+    variables: testVariablesDraft,
+  } = testState;
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState("");
-  const [draftTemplateId, setDraftTemplateId] = useState("");
-  const [formDraft, setFormDraft] = useState<EmailTemplateFormState | null>(null);
-  const [testStateTemplateId, setTestStateTemplateId] = useState("");
-  const [testRecipientDraft, setTestRecipientDraft] = useState("");
-  const [testVariablesDraft, setTestVariablesDraft] = useState<Record<string, string>>({});
+  const patchEditorState = useCallback(
+    (
+      updates:
+        | Partial<typeof editorState>
+        | ((current: typeof editorState) => typeof editorState),
+    ) => {
+      setEditorState((current) =>
+        typeof updates === "function"
+          ? updates(current)
+          : { ...current, ...updates },
+      );
+    },
+    [],
+  );
+
+  const patchTestState = (
+    updates:
+      | Partial<typeof testState>
+      | ((current: typeof testState) => typeof testState),
+  ) => {
+    setTestState((current) =>
+      typeof updates === "function"
+        ? updates(current)
+        : { ...current, ...updates },
+    );
+  };
 
   const syncTemplateQuery = useCallback(
     (templateId: string) => {
@@ -43,56 +103,55 @@ export function EmailCommunicationSettingsPage() {
       if (nextQuery === searchParams.toString()) {
         return;
       }
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+        scroll: false,
+      });
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams],
   );
 
   const handleSelectTemplate = useCallback(
     (templateId: string) => {
-      pendingSelectedTemplateIdRef.current = templateId;
-      setSelectedTemplateId(templateId);
+      patchEditorState({ selectedTemplateId: templateId });
       syncTemplateQuery(templateId);
     },
-    [syncTemplateQuery]
+    [patchEditorState, syncTemplateQuery],
   );
 
   useEffect(() => {
+    let nextTemplateId = selectedTemplateId;
     if (!templates.length) {
-      pendingSelectedTemplateIdRef.current = null;
-      setSelectedTemplateId("");
+      nextTemplateId = "";
+    } else if (
+      requestedTemplateId &&
+      templates.some((item) => String(item.id) === requestedTemplateId)
+    ) {
+      nextTemplateId = requestedTemplateId;
+    } else if (
+      !selectedTemplateId ||
+      !templates.some((item) => String(item.id) === selectedTemplateId)
+    ) {
+      nextTemplateId = String(templates[0].id);
+    }
+    if (nextTemplateId === selectedTemplateId) {
       return;
     }
-    const hasTemplate = (templateId: string) =>
-      templates.some((item) => String(item.id) === templateId);
-
-    if (pendingSelectedTemplateIdRef.current) {
-      if (requestedTemplateId === pendingSelectedTemplateIdRef.current) {
-        pendingSelectedTemplateIdRef.current = null;
-      } else if (hasTemplate(pendingSelectedTemplateIdRef.current)) {
-        return;
-      } else {
-        pendingSelectedTemplateIdRef.current = null;
-      }
+    patchEditorState({ selectedTemplateId: nextTemplateId });
+    if (nextTemplateId) {
+      syncTemplateQuery(nextTemplateId);
     }
-
-    if (requestedTemplateId && templates.some((item) => String(item.id) === requestedTemplateId)) {
-      if (selectedTemplateId !== requestedTemplateId) {
-        setSelectedTemplateId(requestedTemplateId);
-      }
-      return;
-    }
-    if (!selectedTemplateId || !templates.some((item) => String(item.id) === selectedTemplateId)) {
-      const fallbackTemplateId = String(templates[0].id);
-      pendingSelectedTemplateIdRef.current = fallbackTemplateId;
-      setSelectedTemplateId(fallbackTemplateId);
-      syncTemplateQuery(fallbackTemplateId);
-    }
-  }, [requestedTemplateId, selectedTemplateId, syncTemplateQuery, templates]);
+  }, [
+    patchEditorState,
+    requestedTemplateId,
+    selectedTemplateId,
+    syncTemplateQuery,
+    templates,
+  ]);
 
   const selectedTemplate = useMemo(
-    () => templates.find((item) => String(item.id) === selectedTemplateId) ?? null,
-    [selectedTemplateId, templates]
+    () =>
+      templates.find((item) => String(item.id) === selectedTemplateId) ?? null,
+    [selectedTemplateId, templates],
   );
 
   const initialTemplateForm = useMemo<EmailTemplateFormState>(
@@ -100,21 +159,29 @@ export function EmailCommunicationSettingsPage() {
       subject: selectedTemplate?.subject ?? "",
       body: selectedTemplate?.body ?? "",
     }),
-    [selectedTemplate]
+    [selectedTemplate],
   );
 
   const defaultTestVariables = useMemo(
     () =>
       Object.fromEntries(
-        (selectedTemplate?.placeholders ?? []).map((placeholder) => [placeholder, ""])
+        (selectedTemplate?.placeholders ?? []).map((placeholder) => [
+          placeholder,
+          "",
+        ]),
       ),
-    [selectedTemplate]
+    [selectedTemplate],
   );
-  const form = draftTemplateId === selectedTemplateId && formDraft ? formDraft : initialTemplateForm;
+  const form =
+    draftTemplateId === selectedTemplateId && formDraft
+      ? formDraft
+      : initialTemplateForm;
   const testRecipient =
     testStateTemplateId === selectedTemplateId ? testRecipientDraft : "";
   const testVariables =
-    testStateTemplateId === selectedTemplateId ? testVariablesDraft : defaultTestVariables;
+    testStateTemplateId === selectedTemplateId
+      ? testVariablesDraft
+      : defaultTestVariables;
   const isTemplateDirty =
     draftTemplateId === selectedTemplateId && formDraft
       ? !isDeepEqual(formDraft, initialTemplateForm)
@@ -131,7 +198,9 @@ export function EmailCommunicationSettingsPage() {
         {
           label: "Template Tersedia",
           value: `${templates.length} Template`,
-          helper: templatesQuery.isLoading ? "Sedang memuat template…" : "Template sistem tenant",
+          helper: templatesQuery.isLoading
+            ? "Sedang memuat template…"
+            : "Template sistem tenant",
         },
         {
           label: "Template Aktif",
@@ -141,7 +210,9 @@ export function EmailCommunicationSettingsPage() {
         {
           label: "Placeholder",
           value: `${selectedTemplate?.placeholders?.length ?? 0} Variabel`,
-          helper: canManage ? "Template dapat diperbarui" : "Mode read-only untuk role Anda",
+          helper: canManage
+            ? "Template dapat diperbarui"
+            : "Mode read-only untuk role Anda",
         },
       ]}
     >
@@ -150,7 +221,9 @@ export function EmailCommunicationSettingsPage() {
       ) : null}
 
       {templatesQuery.error ? (
-        <SettingsErrorBanner message={(templatesQuery.error as Error).message} />
+        <SettingsErrorBanner
+          message={(templatesQuery.error as Error).message}
+        />
       ) : null}
 
       <FeatureEmailTemplateSelectorCard
@@ -168,8 +241,10 @@ export function EmailCommunicationSettingsPage() {
           dirty={isTemplateDirty}
           saving={saveTemplate.isPending}
           onChange={(next) => {
-            setDraftTemplateId(selectedTemplateId);
-            setFormDraft(next);
+            patchEditorState({
+              draftTemplateId: selectedTemplateId,
+              formDraft: next,
+            });
           }}
           onSave={() =>
             selectedTemplate &&
@@ -188,14 +263,24 @@ export function EmailCommunicationSettingsPage() {
           disabled={!canManage || !selectedTemplate}
           sending={sendTestEmail.isPending}
           onRecipientChange={(value) => {
-            setTestStateTemplateId(selectedTemplateId);
-            setTestRecipientDraft(value);
+            patchTestState({
+              templateId: selectedTemplateId,
+              recipient: value,
+            });
           }}
           onVariableChange={(key, value) => {
-            setTestStateTemplateId(selectedTemplateId);
-            setTestVariablesDraft((prev) => ({
-              ...(testStateTemplateId === selectedTemplateId ? prev : defaultTestVariables),
-              [key]: value,
+            patchTestState((current) => ({
+              templateId: selectedTemplateId,
+              recipient:
+                current.templateId === selectedTemplateId
+                  ? current.recipient
+                  : "",
+              variables: {
+                ...(current.templateId === selectedTemplateId
+                  ? current.variables
+                  : defaultTestVariables),
+                [key]: value,
+              },
             }));
           }}
           onSend={() =>
@@ -208,11 +293,13 @@ export function EmailCommunicationSettingsPage() {
               },
               {
                 onSuccess: () => {
-                  setTestStateTemplateId(selectedTemplateId);
-                  setTestRecipientDraft("");
-                  setTestVariablesDraft(defaultTestVariables);
+                  patchTestState({
+                    templateId: selectedTemplateId,
+                    recipient: "",
+                    variables: defaultTestVariables,
+                  });
                 },
-              }
+              },
             )
           }
         />

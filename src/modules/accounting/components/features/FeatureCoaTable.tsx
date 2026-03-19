@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 
@@ -24,6 +23,7 @@ type FeatureCoaTableProps = {
 };
 
 const PAGE_SIZE = 12;
+const EMPTY_COA_ROWS: CoaAccountRow[] = [];
 
 function indentClass(level: number) {
   if (level <= 0) return "";
@@ -33,7 +33,7 @@ function indentClass(level: number) {
 }
 
 export function FeatureCoaTable({
-  rows = [],
+  rows = EMPTY_COA_ROWS,
   onAddAccount,
   onEditAccount,
   onDeleteAccount,
@@ -43,7 +43,7 @@ export function FeatureCoaTable({
   const pageCount = pagination?.totalPages ?? Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = pagination?.page ?? 1;
   const resolvedPageSize = pagination?.pageSize ?? PAGE_SIZE;
-  const pagedRows = useMemo(() => rows, [rows]);
+  const visibleRowCount = rows.length;
   const columns: ColumnDef<CoaAccountRow, unknown>[] = [
     {
       id: "code",
@@ -163,7 +163,7 @@ export function FeatureCoaTable({
           className="space-y-0"
           containerClassName="overflow-x-auto"
           columns={columns}
-          data={pagedRows}
+      data={rows}
           getRowId={(row) => row.account_code}
           emptyState="Chart of accounts belum memiliki data."
           headerClassName="bg-gray-50 dark:bg-gray-800/50"
@@ -183,7 +183,7 @@ export function FeatureCoaTable({
               totalPages: pageCount,
             }
           }
-          paginationInfo={`Showing ${pagedRows.length === 0 ? 0 : (currentPage - 1) * resolvedPageSize + 1} to ${Math.min((currentPage - 1) * resolvedPageSize + pagedRows.length, pagination?.totalItems ?? rows.length)} of ${pagination?.totalItems ?? rows.length} accounts`}
+          paginationInfo={`Showing ${visibleRowCount === 0 ? 0 : (currentPage - 1) * resolvedPageSize + 1} to ${Math.min((currentPage - 1) * resolvedPageSize + visibleRowCount, pagination?.totalItems ?? rows.length)} of ${pagination?.totalItems ?? rows.length} accounts`}
           onPrevPage={
             onPageChange
               ? () => onPageChange(Math.max(1, currentPage - 1))

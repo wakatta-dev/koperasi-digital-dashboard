@@ -26,12 +26,31 @@ import { VendorPageHeader } from "../VendorPageHeader";
 type AudienceMode = "all" | "business_type" | "manual";
 
 export function VendorNotificationComposePage() {
-  const [audienceMode, setAudienceMode] = useState<AudienceMode>("all");
-  const [businessType, setBusinessType] = useState("koperasi");
-  const [selectedTenantIds, setSelectedTenantIds] = useState<string[]>([]);
-  const [templateId, setTemplateId] = useState("");
-  const [campaignLabel, setCampaignLabel] = useState("");
-  const [message, setMessage] = useState("");
+  const [composeState, setComposeState] = useState({
+    audienceMode: "all" as AudienceMode,
+    businessType: "koperasi",
+    selectedTenantIds: [] as string[],
+    templateId: "",
+    campaignLabel: "",
+    message: "",
+  });
+  const {
+    audienceMode,
+    businessType,
+    selectedTenantIds,
+    templateId,
+    campaignLabel,
+    message,
+  } = composeState;
+  const patchComposeState = (
+    updates:
+      | Partial<typeof composeState>
+      | ((current: typeof composeState) => typeof composeState),
+  ) => {
+    setComposeState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const tenantsQuery = useAdminTenants({ limit: 100 });
   const templatesQuery = useSupportEmailTemplates();
@@ -115,7 +134,9 @@ export function VendorNotificationComposePage() {
                 <Label>Audience Mode</Label>
                 <Select
                   value={audienceMode}
-                  onValueChange={(value) => setAudienceMode(value as AudienceMode)}
+                  onValueChange={(value) =>
+                    patchComposeState({ audienceMode: value as AudienceMode })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih audience" />
@@ -130,7 +151,12 @@ export function VendorNotificationComposePage() {
 
               <div className="space-y-2">
                 <Label>Template Email</Label>
-                <Select value={templateId} onValueChange={setTemplateId}>
+                <Select
+                  value={templateId}
+                  onValueChange={(value) =>
+                    patchComposeState({ templateId: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih template" />
                   </SelectTrigger>
@@ -148,7 +174,12 @@ export function VendorNotificationComposePage() {
             {audienceMode === "business_type" ? (
               <div className="space-y-2">
                 <Label>Tipe Tenant</Label>
-                <Select value={businessType} onValueChange={setBusinessType}>
+                <Select
+                  value={businessType}
+                  onValueChange={(value) =>
+                    patchComposeState({ businessType: value })
+                  }
+                >
                   <SelectTrigger className="max-w-xs">
                     <SelectValue placeholder="Pilih tipe tenant" />
                   </SelectTrigger>
@@ -171,7 +202,7 @@ export function VendorNotificationComposePage() {
                     .map((tenant) => {
                       const checked = selectedTenantIds.includes(String(tenant.id));
                       return (
-                        <label
+                        <div
                           key={tenant.id}
                           className="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2"
                         >
@@ -179,9 +210,14 @@ export function VendorNotificationComposePage() {
                             checked={checked}
                             onCheckedChange={(next) => {
                               const id = String(tenant.id);
-                              setSelectedTenantIds((current) =>
-                                next ? [...current, id] : current.filter((item) => item !== id)
-                              );
+                              patchComposeState((current) => ({
+                                ...current,
+                                selectedTenantIds: next
+                                  ? [...current.selectedTenantIds, id]
+                                  : current.selectedTenantIds.filter(
+                                      (item) => item !== id,
+                                    ),
+                              }));
                             }}
                           />
                           <div className="space-y-1">
@@ -192,7 +228,7 @@ export function VendorNotificationComposePage() {
                               {tenant.contact_email} · {tenant.business_type} · {tenant.domain || "-"}
                             </div>
                           </div>
-                        </label>
+                        </div>
                       );
                     })}
                 </div>
@@ -205,7 +241,9 @@ export function VendorNotificationComposePage() {
                 id="campaign-label"
                 placeholder="Contoh: Maret 2026 Billing Reminder"
                 value={campaignLabel}
-                onChange={(event) => setCampaignLabel(event.target.value)}
+                onChange={(event) =>
+                  patchComposeState({ campaignLabel: event.target.value })
+                }
               />
             </div>
 
@@ -215,7 +253,9 @@ export function VendorNotificationComposePage() {
                 id="campaign-message"
                 placeholder="Pesan tambahan yang dikirim sebagai variable template."
                 value={message}
-                onChange={(event) => setMessage(event.target.value)}
+                onChange={(event) =>
+                  patchComposeState({ message: event.target.value })
+                }
               />
             </div>
 

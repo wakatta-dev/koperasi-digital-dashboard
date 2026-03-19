@@ -160,9 +160,9 @@ export function FeatureSystemReadinessCard({
                 </p>
               </div>
               <ul className="grid gap-3 md:grid-cols-2">
-                {data.foundation_items.map((item, index) => (
+                {data.foundation_items.map((item) => (
                   <li
-                    key={`${item.key}-${index}`}
+                    key={item.key}
                     className="rounded-lg border border-gray-200 p-4 dark:border-gray-800"
                   >
                     <div className="flex items-start justify-between gap-3">

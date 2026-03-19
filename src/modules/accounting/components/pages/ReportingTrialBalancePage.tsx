@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAccountingReportingTrialBalance } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -18,10 +18,19 @@ import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReporti
 
 const TRIAL_BALANCE_PAGE_SIZE = 12;
 
-export function ReportingTrialBalancePage() {
+type ReportingTrialBalancePageProps = {
+  queryString?: string;
+};
+
+export function ReportingTrialBalancePage({
+  queryString = "",
+}: ReportingTrialBalancePageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialState = useMemo(
     () =>
@@ -33,32 +42,45 @@ export function ReportingTrialBalancePage() {
     [searchParams],
   );
 
-  const [start, setStart] = useState(initialState.start ?? "");
-  const [end, setEnd] = useState(initialState.end ?? "");
-  const [branch, setBranch] = useState(initialState.branch ?? "all");
-  const [page, setPage] = useState(initialState.page ?? 1);
+  const [filtersState, setFiltersState] = useState(() => ({
+    start: initialState.start ?? "",
+    end: initialState.end ?? "",
+    branch: initialState.branch ?? "all",
+    page: initialState.page ?? 1,
+  }));
+  const { start, end, branch, page } = filtersState;
 
   useEffect(() => {
-    setStart(initialState.start ?? "");
-    setEnd(initialState.end ?? "");
-    setBranch(initialState.branch ?? "all");
-    setPage(initialState.page ?? 1);
+    setFiltersState({
+      start: initialState.start ?? "",
+      end: initialState.end ?? "",
+      branch: initialState.branch ?? "all",
+      page: initialState.page ?? 1,
+    });
   }, [initialState.branch, initialState.end, initialState.page, initialState.start]);
 
-  useEffect(() => {
-    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
+  const updateQueryState = (
+    nextStart: string,
+    nextEnd: string,
+    nextBranch: string,
+    nextPage: number,
+  ) => {
+    const resolvedPreset =
+      nextStart && nextEnd ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
       preset: resolvedPreset,
-      start: start || undefined,
-      end: end || undefined,
-      branch,
-      page,
+      start: nextStart || undefined,
+      end: nextEnd || undefined,
+      branch: nextBranch,
+      page: nextPage,
       page_size: undefined,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [branch, end, initialState, page, pathname, router, searchParams, start]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reportQuery = useAccountingReportingTrialBalance({
     preset: start && end ? "custom" : initialState.preset || "today",
@@ -98,16 +120,16 @@ export function ReportingTrialBalancePage() {
         branch={branch}
         branches={branchOptions}
         onStartChange={(value) => {
-          setStart(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, start: value, page: 1 }));
+          updateQueryState(value, end, branch, 1);
         }}
         onEndChange={(value) => {
-          setEnd(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, end: value, page: 1 }));
+          updateQueryState(start, value, branch, 1);
         }}
         onBranchChange={(value) => {
-          setBranch(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, branch: value, page: 1 }));
+          updateQueryState(start, end, value, 1);
         }}
       />
 
@@ -148,7 +170,10 @@ export function ReportingTrialBalancePage() {
           ),
         }}
         paginationInfo={`Showing ${pagedRows.length} of ${allRows.length} entries`}
-        onPageChange={setPage}
+        onPageChange={(nextPage) => {
+          setFiltersState((current) => ({ ...current, page: nextPage }));
+          updateQueryState(start, end, branch, nextPage);
+        }}
       />
     </div>
   );

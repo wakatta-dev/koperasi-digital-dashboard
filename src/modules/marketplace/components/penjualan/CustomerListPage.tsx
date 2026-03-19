@@ -35,16 +35,38 @@ const downloadCsv = (rows: string[][], filename: string) => {
 export function CustomerListPage() {
   const router = useRouter();
   const { createCustomer } = useMarketplaceCustomerActions();
-  const [searchValue, setSearchValue] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [statusValue, setStatusValue] = useState(DEFAULT_STATUS);
-  const [minOrders, setMinOrders] = useState("");
-  const [maxOrders, setMaxOrders] = useState("");
-  const [appliedStatus, setAppliedStatus] = useState("");
-  const [appliedMinOrders, setAppliedMinOrders] = useState("");
-  const [appliedMaxOrders, setAppliedMaxOrders] = useState("");
-  const [page, setPage] = useState(1);
+  const [uiState, setUiState] = useState({
+    searchValue: "",
+    filterOpen: false,
+    createOpen: false,
+    statusValue: DEFAULT_STATUS,
+    minOrders: "",
+    maxOrders: "",
+    appliedStatus: "",
+    appliedMinOrders: "",
+    appliedMaxOrders: "",
+    page: 1,
+  });
+  const {
+    searchValue,
+    filterOpen,
+    createOpen,
+    statusValue,
+    minOrders,
+    maxOrders,
+    appliedStatus,
+    appliedMinOrders,
+    appliedMaxOrders,
+    page,
+  } = uiState;
+
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const minOrdersValue =
     appliedMinOrders.trim() === "" ? undefined : Number(appliedMinOrders);
@@ -104,21 +126,25 @@ export function CustomerListPage() {
   };
 
   const handleApplyFilters = () => {
-    setAppliedStatus(statusValue);
-    setAppliedMinOrders(minOrders);
-    setAppliedMaxOrders(maxOrders);
-    setFilterOpen(false);
-    setPage(1);
+    patchUiState({
+      appliedStatus: statusValue,
+      appliedMinOrders: minOrders,
+      appliedMaxOrders: maxOrders,
+      filterOpen: false,
+      page: 1,
+    });
   };
 
   const handleResetFilters = () => {
-    setStatusValue(DEFAULT_STATUS);
-    setMinOrders("");
-    setMaxOrders("");
-    setAppliedStatus("");
-    setAppliedMinOrders("");
-    setAppliedMaxOrders("");
-    setPage(1);
+    patchUiState({
+      statusValue: DEFAULT_STATUS,
+      minOrders: "",
+      maxOrders: "",
+      appliedStatus: "",
+      appliedMinOrders: "",
+      appliedMaxOrders: "",
+      page: 1,
+    });
   };
 
   const from = total === 0 ? 0 : start + 1;
@@ -129,12 +155,11 @@ export function CustomerListPage() {
       <CustomerListToolbar
         searchValue={searchValue}
         onSearchChange={(value) => {
-          setSearchValue(value);
-          setPage(1);
+          patchUiState({ searchValue: value, page: 1 });
         }}
-        onOpenFilter={() => setFilterOpen(true)}
+        onOpenFilter={() => patchUiState({ filterOpen: true })}
         onExport={handleExport}
-        onAddCustomer={() => setCreateOpen(true)}
+        onAddCustomer={() => patchUiState({ createOpen: true })}
       />
 
       <CustomerTable
@@ -153,26 +178,26 @@ export function CustomerListPage() {
           totalPages,
         }}
         paginationInfo={`Menampilkan ${from}-${to} dari ${total} pelanggan`}
-        onPageChange={setPage}
+        onPageChange={(nextPage) => patchUiState({ page: nextPage })}
       />
 
       <CustomerFilterSheet
         open={filterOpen}
-        onOpenChange={setFilterOpen}
+        onOpenChange={(open) => patchUiState({ filterOpen: open })}
         statusValue={statusValue}
-        onStatusChange={setStatusValue}
+        onStatusChange={(value) => patchUiState({ statusValue: value })}
         minOrders={minOrders}
         maxOrders={maxOrders}
-        onMinOrdersChange={setMinOrders}
-        onMaxOrdersChange={setMaxOrders}
+        onMinOrdersChange={(value) => patchUiState({ minOrders: value })}
+        onMaxOrdersChange={(value) => patchUiState({ maxOrders: value })}
         onReset={handleResetFilters}
         onApply={handleApplyFilters}
       />
 
       <CustomerCreateModal
         open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCancel={() => setCreateOpen(false)}
+        onOpenChange={(open) => patchUiState({ createOpen: open })}
+        onCancel={() => patchUiState({ createOpen: false })}
         onSubmit={async (payload) => {
           const name = payload.name.trim();
           const email = payload.email.trim();

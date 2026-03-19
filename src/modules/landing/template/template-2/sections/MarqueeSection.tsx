@@ -32,9 +32,9 @@ export function TemplateTwoMarqueeSection({ data }: TemplateTwoMarqueeSectionPro
   return (
     <section className="py-4 bg-market-yellow -rotate-1 border-y-4 border-village-dark overflow-hidden">
       <div className="flex items-center gap-12 animate-marquee whitespace-nowrap px-4">
-        {marqueeItems.map((item, index) => (
+        {marqueeItems.map((item) => (
           <span
-            key={`${item.text}-${index}`}
+            key={`${item.text}-${item.icon}-${item.tone}`}
             className={`text-2xl font-black flex items-center gap-2 ${
               item.tone.toLowerCase() === "light" ? "text-white" : "text-village-dark"
             }`}

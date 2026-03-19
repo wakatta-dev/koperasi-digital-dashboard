@@ -54,39 +54,63 @@ export function FeatureAddCoaAccountModal({
   optionsLoading = false,
   onSave,
 }: FeatureAddCoaAccountModalProps) {
-  const [accountCode, setAccountCode] = useState("");
-  const [accountName, setAccountName] = useState("");
-  const [accountType, setAccountType] = useState("");
-  const [parentAccount, setParentAccount] = useState("root");
-  const [description, setDescription] = useState("");
+  const [formState, setFormState] = useState({
+    accountCode: "",
+    accountName: "",
+    accountType: "",
+    parentAccount: "root",
+    description: "",
+  });
   const [isSaving, setIsSaving] = useState(false);
+  const { accountCode, accountName, accountType, parentAccount, description } =
+    formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   useEffect(() => {
     if (!open || accountTypeOptions.length === 0) return;
 
-    setAccountType((current) =>
-      accountTypeOptions.some((option) => option.value === current)
-        ? current
-        : accountTypeOptions[0]?.value ?? ""
-    );
+    patchFormState((current) => ({
+      ...current,
+      accountType: accountTypeOptions.some(
+        (option) => option.value === current.accountType,
+      )
+        ? current.accountType
+        : accountTypeOptions[0]?.value ?? "",
+    }));
   }, [accountTypeOptions, open]);
 
   useEffect(() => {
     if (!open) return;
 
-    setParentAccount((current) =>
-      current === "root" || parentAccountOptions.some((option) => option.value === current)
-        ? current
-        : "root"
-    );
+    patchFormState((current) => ({
+      ...current,
+      parentAccount:
+        current.parentAccount === "root" ||
+        parentAccountOptions.some(
+          (option) => option.value === current.parentAccount,
+        )
+          ? current.parentAccount
+          : "root",
+    }));
   }, [open, parentAccountOptions]);
 
   const resetForm = () => {
-    setAccountCode("");
-    setAccountName("");
-    setAccountType(accountTypeOptions[0]?.value ?? "");
-    setParentAccount("root");
-    setDescription("");
+    setFormState({
+      accountCode: "",
+      accountName: "",
+      accountType: accountTypeOptions[0]?.value ?? "",
+      parentAccount: "root",
+      description: "",
+    });
   };
 
   const handleSave = async () => {
@@ -139,7 +163,9 @@ export function FeatureAddCoaAccountModal({
             </Label>
             <Input
               value={accountCode}
-              onChange={(event) => setAccountCode(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ accountCode: event.target.value })
+              }
               placeholder="e.g. 11103"
               className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
@@ -151,7 +177,9 @@ export function FeatureAddCoaAccountModal({
             </Label>
             <Input
               value={accountName}
-              onChange={(event) => setAccountName(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ accountName: event.target.value })
+              }
               placeholder="e.g. Mandiri Bank"
               className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
@@ -161,7 +189,11 @@ export function FeatureAddCoaAccountModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Tipe Akun
             </Label>
-            <Select value={accountType} onValueChange={setAccountType} disabled={optionsLoading}>
+            <Select
+              value={accountType}
+              onValueChange={(value) => patchFormState({ accountType: value })}
+              disabled={optionsLoading}
+            >
               <SelectTrigger className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                 <SelectValue placeholder="Pilih tipe akun" />
               </SelectTrigger>
@@ -189,7 +221,13 @@ export function FeatureAddCoaAccountModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Akun Induk / Parent Account
             </Label>
-            <Select value={parentAccount} onValueChange={setParentAccount} disabled={optionsLoading}>
+            <Select
+              value={parentAccount}
+              onValueChange={(value) =>
+                patchFormState({ parentAccount: value })
+              }
+              disabled={optionsLoading}
+            >
               <SelectTrigger className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                 <SelectValue placeholder="Pilih akun induk" />
               </SelectTrigger>
@@ -220,7 +258,9 @@ export function FeatureAddCoaAccountModal({
             </Label>
             <Textarea
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ description: event.target.value })
+              }
               placeholder="Optional description for this account..."
               rows={3}
               className="border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"

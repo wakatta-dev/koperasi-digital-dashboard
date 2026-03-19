@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import {
@@ -22,61 +22,57 @@ import {
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 type ReportingAccountLedgerPageProps = {
-  accountId?: string;
-  preset?: string;
-  start?: string;
-  end?: string;
-  branch?: string;
-  search?: string;
-  page?: number;
-  pageSize?: number;
+  queryString?: string;
 };
 
 const DEFAULT_PAGE_SIZE = 20;
 
 export function ReportingAccountLedgerPage({
-  accountId,
-  preset,
-  start,
-  end,
-  branch,
-  search,
-  page,
-  pageSize,
+  queryString = "",
 }: ReportingAccountLedgerPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: preset ?? "today",
-        start,
-        end,
-        branch,
-        accountId,
-        search,
-        page: page ?? 1,
-        page_size: pageSize ?? DEFAULT_PAGE_SIZE,
+        preset: "today",
+        page: 1,
+        page_size: DEFAULT_PAGE_SIZE,
       }),
-    [accountId, branch, end, page, pageSize, preset, search, searchParams, start],
+    [searchParams],
   );
 
-  const [resolvedAccountId, setResolvedAccountId] = useState(initialState.accountId ?? "");
-  const [resolvedStart, setResolvedStart] = useState(initialState.start ?? "");
-  const [resolvedEnd, setResolvedEnd] = useState(initialState.end ?? "");
-  const [resolvedSearch, setResolvedSearch] = useState(initialState.search ?? "");
-  const [resolvedPage, setResolvedPage] = useState(initialState.page ?? 1);
-  const [resolvedPageSize, setResolvedPageSize] = useState(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+  const [filtersState, setFiltersState] = useState(() => ({
+    accountId: initialState.accountId ?? "",
+    start: initialState.start ?? "",
+    end: initialState.end ?? "",
+    search: initialState.search ?? "",
+    page: initialState.page ?? 1,
+    pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+  }));
+  const {
+    accountId: resolvedAccountId,
+    start: resolvedStart,
+    end: resolvedEnd,
+    search: resolvedSearch,
+    page: resolvedPage,
+    pageSize: resolvedPageSize,
+  } = filtersState;
 
   useEffect(() => {
-    setResolvedAccountId(initialState.accountId ?? "");
-    setResolvedStart(initialState.start ?? "");
-    setResolvedEnd(initialState.end ?? "");
-    setResolvedSearch(initialState.search ?? "");
-    setResolvedPage(initialState.page ?? 1);
-    setResolvedPageSize(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+    setFiltersState({
+      accountId: initialState.accountId ?? "",
+      start: initialState.start ?? "",
+      end: initialState.end ?? "",
+      search: initialState.search ?? "",
+      page: initialState.page ?? 1,
+      pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+    });
   }, [
     initialState.accountId,
     initialState.end,
@@ -86,33 +82,31 @@ export function ReportingAccountLedgerPage({
     initialState.start,
   ]);
 
-  useEffect(() => {
+  const updateQueryState = (
+    nextAccountId: string,
+    nextStart: string,
+    nextEnd: string,
+    nextSearch: string,
+    nextPage: number,
+    nextPageSize: number,
+  ) => {
     const resolvedPreset =
-      resolvedStart && resolvedEnd ? "custom" : initialState.preset || "today";
+      nextStart && nextEnd ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
       preset: resolvedPreset,
-      start: resolvedStart || undefined,
-      end: resolvedEnd || undefined,
-      accountId: resolvedAccountId,
-      search: resolvedSearch,
-      page: resolvedPage,
-      page_size: resolvedPageSize,
+      start: nextStart || undefined,
+      end: nextEnd || undefined,
+      accountId: nextAccountId,
+      search: nextSearch,
+      page: nextPage,
+      page_size: nextPageSize,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [
-    initialState,
-    pathname,
-    resolvedAccountId,
-    resolvedEnd,
-    resolvedPage,
-    resolvedPageSize,
-    resolvedSearch,
-    resolvedStart,
-    router,
-    searchParams,
-  ]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const effectivePreset =
     resolvedStart && resolvedEnd ? "custom" : initialState.preset || "today";
@@ -137,13 +131,14 @@ export function ReportingAccountLedgerPage({
 
     const firstAccount = fallbackContextQuery.data.groups[0]?.account_id;
     if (!firstAccount) return;
-    setResolvedAccountId(firstAccount);
-    setResolvedPage(1);
+    setFiltersState((current) => ({
+      ...current,
+      accountId: firstAccount,
+      page: 1,
+    }));
   }, [
     fallbackContextQuery.data,
     resolvedAccountId,
-    setResolvedAccountId,
-    setResolvedPage,
   ]);
 
   const accountLedgerQuery = useAccountingReportingAccountLedger(
@@ -200,16 +195,41 @@ export function ReportingAccountLedgerPage({
         start={resolvedStart}
         end={resolvedEnd}
         onAccountChange={(value) => {
-          setResolvedAccountId(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({
+            ...current,
+            accountId: value,
+            page: 1,
+          }));
+          updateQueryState(
+            value,
+            resolvedStart,
+            resolvedEnd,
+            resolvedSearch,
+            1,
+            resolvedPageSize,
+          );
         }}
         onStartChange={(value) => {
-          setResolvedStart(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({ ...current, start: value, page: 1 }));
+          updateQueryState(
+            resolvedAccountId,
+            value,
+            resolvedEnd,
+            resolvedSearch,
+            1,
+            resolvedPageSize,
+          );
         }}
         onEndChange={(value) => {
-          setResolvedEnd(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({ ...current, end: value, page: 1 }));
+          updateQueryState(
+            resolvedAccountId,
+            resolvedStart,
+            value,
+            resolvedSearch,
+            1,
+            resolvedPageSize,
+          );
         }}
       />
 
@@ -285,8 +305,19 @@ export function ReportingAccountLedgerPage({
         }
         search={resolvedSearch}
         onSearchChange={(value) => {
-          setResolvedSearch(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({
+            ...current,
+            search: value,
+            page: 1,
+          }));
+          updateQueryState(
+            resolvedAccountId,
+            resolvedStart,
+            resolvedEnd,
+            value,
+            1,
+            resolvedPageSize,
+          );
         }}
         pagination={{
           page: accountLedgerQuery.data?.pagination.page ?? resolvedPage,
@@ -307,7 +338,17 @@ export function ReportingAccountLedgerPage({
             ? `Showing ${accountLedgerQuery.data.entries.length} of ${accountLedgerQuery.data.pagination.total_entries} entries`
             : undefined
         }
-        onPageChange={setResolvedPage}
+        onPageChange={(nextPage) => {
+          setFiltersState((current) => ({ ...current, page: nextPage }));
+          updateQueryState(
+            resolvedAccountId,
+            resolvedStart,
+            resolvedEnd,
+            resolvedSearch,
+            nextPage,
+            resolvedPageSize,
+          );
+        }}
       />
     </div>
   );

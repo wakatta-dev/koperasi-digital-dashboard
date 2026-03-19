@@ -28,9 +28,12 @@ type FeatureAnalyticBudgetWorkspaceProps = {
   onEditBudget?: (budgetId: string) => void;
 };
 
+const EMPTY_BUDGET_ROWS: BudgetRow[] = [];
+const EMPTY_ANALYTIC_ACCOUNT_CARDS: AnalyticAccountCard[] = [];
+
 export function FeatureAnalyticBudgetWorkspace({
-  budgetRows = [],
-  analyticAccountCards = [],
+  budgetRows = EMPTY_BUDGET_ROWS,
+  analyticAccountCards = EMPTY_ANALYTIC_ACCOUNT_CARDS,
   onCreateBudget,
   onAddAnalyticAccount,
   onEditBudget,

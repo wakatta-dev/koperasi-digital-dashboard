@@ -1,5 +1,6 @@
 /** @format */
 
+import Link from "next/link";
 import { asArray, asRecord, asString } from "../../shared/content";
 
 const DEFAULT_ITEMS = [
@@ -85,7 +86,7 @@ export function TemplateThreeServicesSection({ data }: TemplateThreeServicesSect
           {items.map((item, index) => {
             const variant = SERVICE_CARD_VARIANTS[index % SERVICE_CARD_VARIANTS.length];
             return (
-              <div key={`${item.title}-${index}`} className={variant.wrapper}>
+              <div key={`${item.title}-${item.description}`} className={variant.wrapper}>
                 <div className={variant.iconBackground}>
                   <span className={variant.iconBackgroundSize}>{item.icon}</span>
                 </div>
@@ -96,9 +97,9 @@ export function TemplateThreeServicesSection({ data }: TemplateThreeServicesSect
                   </div>
                   <h3 className={variant.title}>{item.title}</h3>
                   <p className={variant.description}>{item.description}</p>
-                  <a className={variant.link} href="#">
+                  <Link className={variant.link} href="/">
                     Selengkapnya <span className="material-symbols-outlined">arrow_forward</span>
-                  </a>
+                  </Link>
                 </div>
               </div>
             );

@@ -1,9 +1,16 @@
 /** @format */
 
+import type { Metadata } from "next";
+
 import { redirect } from "next/navigation";
 
 type StatusReservationRouteProps = {
   searchParams?: Promise<{ state?: string; sig?: string; id?: string }>;
+};
+
+export const metadata: Metadata = {
+  title: "Penyewaan Aset - Status Reservasi - Koperasi Digital",
+  description: "Penyewaan Aset - Status Reservasi page.",
 };
 
 export default async function StatusReservasiPage({

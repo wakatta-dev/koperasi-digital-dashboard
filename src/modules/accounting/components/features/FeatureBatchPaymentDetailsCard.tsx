@@ -16,6 +16,8 @@ type FeatureBatchPaymentDetailsCardProps = {
   payFromOptions?: string[];
 };
 
+const EMPTY_PAY_FROM_OPTIONS: string[] = [];
+
 export function FeatureBatchPaymentDetailsCard({
   draft,
   onDraftChange,
@@ -23,7 +25,7 @@ export function FeatureBatchPaymentDetailsCard({
   isConfirming = false,
   confirmationDisabled = false,
   errorMessage,
-  payFromOptions = [],
+  payFromOptions = EMPTY_PAY_FROM_OPTIONS,
 }: FeatureBatchPaymentDetailsCardProps) {
   return (
     <section className="sticky top-0 flex flex-col rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
@@ -36,10 +38,14 @@ export function FeatureBatchPaymentDetailsCard({
 
       <div className="space-y-4 p-5">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="batch-payment-pay-from"
+            className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300"
+          >
             Pay From
           </label>
           <Input
+            id="batch-payment-pay-from"
             type="text"
             value={draft.pay_from}
             onChange={(event) =>
@@ -66,10 +72,14 @@ export function FeatureBatchPaymentDetailsCard({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="batch-payment-date"
+              className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300"
+            >
               Payment Date
             </label>
             <Input
+              id="batch-payment-date"
               type="date"
               value={draft.payment_date}
               onChange={(event) =>
@@ -82,10 +92,14 @@ export function FeatureBatchPaymentDetailsCard({
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="batch-payment-reference"
+              className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300"
+            >
               Reference #
             </label>
             <Input
+              id="batch-payment-reference"
               type="text"
               value={draft.reference_number}
               onChange={(event) =>

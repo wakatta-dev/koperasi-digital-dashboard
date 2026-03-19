@@ -423,6 +423,38 @@ describe("tenant-settings pages", () => {
     expect(screen.getByText("Role aktif: Manager")).toBeTruthy();
   });
 
+  it("deduplicates permission aliases before rendering the access workspace", async () => {
+    const consoleErrorMock = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    mockUsePermissionCatalog.mockReturnValue({
+      data: [
+        { alias: "landingpage-read", label: "Landing Page Read", description: "Lihat landing page" },
+        { alias: "landingpage-read", label: "Landing Page Read", description: "Lihat landing page" },
+      ],
+      error: null,
+    });
+    mockUseRolePermissions.mockReturnValue({
+      data: [
+        { id: 200, alias: "landingpage-read", label: "Landing Page Read", description: "Lihat landing page" },
+        { id: 201, alias: "landingpage-read", label: "Landing Page Read", description: "Lihat landing page" },
+      ],
+      error: null,
+    });
+    setNavigation("/bumdes/settings/akses-otorisasi", "role=11");
+
+    render(<AccessAuthorizationSettingsPage />);
+
+    expect(await screen.findByText("landingpage-read")).toBeTruthy();
+    expect(screen.getAllByText("landingpage-read")).toHaveLength(1);
+    expect(consoleErrorMock.mock.calls.flat().join(" ")).not.toContain(
+      "Encountered two children with the same key"
+    );
+
+    consoleErrorMock.mockRestore();
+  });
+
   it("keeps the newly selected role active while the URL query catches up", async () => {
     setNavigation("/bumdes/settings/akses-otorisasi", "role=10");
 

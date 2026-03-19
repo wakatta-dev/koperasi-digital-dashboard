@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/shared/confirm-dialog-provider";
@@ -37,22 +37,42 @@ const PAGE_SIZE = 10;
 export function OrderListPage() {
   const router = useRouter();
   const confirm = useConfirm();
-  const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [page, setPage] = useState(1);
-  const [invoiceOrderId, setInvoiceOrderId] = useState<number | undefined>(
-    undefined,
-  );
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{
-    id: number;
-    action: string;
-  } | null>(null);
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, dateFilter, statusFilter]);
+  const [uiState, setUiState] = useState({
+    search: "",
+    dateFilter: "",
+    statusFilter: "all",
+    pageState: {
+      key: "",
+      value: 1,
+    },
+    invoiceOrderId: undefined as number | undefined,
+    invoiceOpen: false,
+    pendingAction: null as { id: number; action: string } | null,
+  });
+  const { search, dateFilter, statusFilter, invoiceOrderId, invoiceOpen, pendingAction } =
+    uiState;
+  const pageKey = `${search}::${dateFilter}::${statusFilter}`;
+  const pageState =
+    uiState.pageState.key === ""
+      ? { key: pageKey, value: 1 }
+      : uiState.pageState;
+  const page = pageState.key === pageKey ? pageState.value : 1;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
+  const setPage = (
+    next: number | ((current: number) => number),
+  ) => {
+    const current = pageState.key === pageKey ? pageState.value : 1;
+    const value = typeof next === "function" ? next(current) : next;
+    patchUiState({
+      pageState: { key: pageKey, value },
+    });
+  };
 
   const queryParams = useMemo(
     () => ({
@@ -66,6 +86,28 @@ export function OrderListPage() {
     }),
     [search, statusFilter, dateFilter, page],
   );
+
+  const patchFilterState = (
+    updates:
+      | Partial<Pick<typeof uiState, "search" | "dateFilter" | "statusFilter">>
+      | ((
+          current: Pick<typeof uiState, "search" | "dateFilter" | "statusFilter">,
+        ) => Pick<typeof uiState, "search" | "dateFilter" | "statusFilter">),
+  ) => {
+    patchUiState((current) => {
+      const base = {
+        search: current.search,
+        dateFilter: current.dateFilter,
+        statusFilter: current.statusFilter,
+      };
+      const next =
+        typeof updates === "function" ? updates(base) : { ...base, ...updates };
+      return {
+        ...current,
+        ...next,
+      };
+    });
+  };
 
   const { data, isLoading, isError, error } = useMarketplaceOrders(queryParams);
   const { updateStatus } = useMarketplaceOrderActions();
@@ -94,8 +136,10 @@ export function OrderListPage() {
   );
 
   const handleOpenInvoice = (orderId: number) => {
-    setInvoiceOrderId(orderId);
-    setInvoiceOpen(true);
+    patchUiState({
+      invoiceOrderId: orderId,
+      invoiceOpen: true,
+    });
   };
 
   const handleStatusUpdate = async (
@@ -109,14 +153,14 @@ export function OrderListPage() {
       return;
     }
 
-    setPendingAction({ id: order.id, action: actionKey });
+    patchUiState({ pendingAction: { id: order.id, action: actionKey } });
     try {
       await updateStatus.mutateAsync({
         id: order.id,
         payload: { status: nextStatus, reason },
       });
     } finally {
-      setPendingAction(null);
+      patchUiState({ pendingAction: null });
     }
   };
 
@@ -154,9 +198,9 @@ export function OrderListPage() {
         dateValue={dateFilter}
         statusValue={statusFilter}
         statusOptions={MARKETPLACE_ORDER_FILTER_OPTIONS}
-        onSearchChange={setSearch}
-        onDateChange={setDateFilter}
-        onStatusChange={setStatusFilter}
+        onSearchChange={(value) => patchFilterState({ search: value })}
+        onDateChange={(value) => patchFilterState({ dateFilter: value })}
+        onStatusChange={(value) => patchFilterState({ statusFilter: value })}
       />
 
       <OrderTable
@@ -229,7 +273,12 @@ export function OrderListPage() {
 
       <OrderInvoiceDialog
         open={invoiceOpen}
-        onOpenChange={setInvoiceOpen}
+        onOpenChange={(open) =>
+          patchUiState({
+            invoiceOpen: open,
+            invoiceOrderId: open ? invoiceOrderId : undefined,
+          })
+        }
         orderId={invoiceOrderId}
       />
     </div>

@@ -1,6 +1,7 @@
 /** @format */
 
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -115,13 +116,13 @@ export function CartItemCard({
               <div className="flex-1 flex flex-col justify-between">
                 <div className="flex justify-between items-start gap-4">
                   <div>
-                    <a
+                    <Link
                       data-testid={`marketplace-cart-item-name-${item.id}`}
                       className="font-bold text-lg text-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition line-clamp-2"
-                      href="#"
+                      href="/marketplace"
                     >
                       {item.product_name}
-                    </a>
+                    </Link>
                     <div className="flex items-center gap-1.5 mt-1">
                       <span className="material-icons-outlined text-sm text-muted-foreground">
                         storefront

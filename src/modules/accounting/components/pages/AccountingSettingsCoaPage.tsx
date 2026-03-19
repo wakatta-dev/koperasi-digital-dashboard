@@ -16,19 +16,29 @@ import { mapCoaRows } from "../../utils/settings-api-mappers";
 import type { CoaAccountRow } from "../../types/settings";
 
 export function AccountingSettingsCoaPage() {
-  const [page, setPage] = useState(1);
+  const [uiState, setUiState] = useState({
+    page: 1,
+    isAddModalOpen: false,
+    editingAccount: null as CoaAccountRow | null,
+    deletingAccount: null as CoaAccountRow | null,
+    actionError: null as string | null,
+  });
   const perPage = 45;
-  const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const { page, isAddModalOpen, editingAccount, deletingAccount, actionError } =
+    uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const coaQuery = useAccountingSettingsCoa({ page, per_page: perPage });
   const coaLookupQuery = useAccountingSettingsCoa(
     { page: 1, per_page: 100 },
     { enabled: isAddModalOpen }
   );
   const { createCoa, updateCoa, deleteCoa } = useAccountingSettingsCoaMutations();
-
-  const [editingAccount, setEditingAccount] = useState<CoaAccountRow | null>(null);
-  const [deletingAccount, setDeletingAccount] = useState<CoaAccountRow | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const rows = useMemo(() => {
     return mapCoaRows(coaQuery.data?.items ?? []);
@@ -81,11 +91,11 @@ export function AccountingSettingsCoaPage() {
     parent_account_code?: string;
     description?: string;
   }) => {
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await createCoa.mutateAsync({ payload });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
       throw err;
     }
   };
@@ -96,7 +106,7 @@ export function AccountingSettingsCoaPage() {
     account_type: string;
     parent_account_code?: string;
   }) => {
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await updateCoa.mutateAsync({
         accountCode: editingAccount?.account_code ?? payload.account_code,
@@ -106,21 +116,21 @@ export function AccountingSettingsCoaPage() {
           parent_account_code: payload.parent_account_code,
         },
       });
-      setEditingAccount(null);
+      patchUiState({ editingAccount: null });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
   const handleDeleteAccount = async () => {
     if (!deletingAccount) return;
 
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await deleteCoa.mutateAsync({ accountCode: deletingAccount.account_code });
-      setDeletingAccount(null);
+      patchUiState({ deletingAccount: null });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
@@ -134,9 +144,9 @@ export function AccountingSettingsCoaPage() {
 
       <FeatureCoaTable
         rows={rows}
-        onAddAccount={() => setAddModalOpen(true)}
-        onEditAccount={(account) => setEditingAccount(account)}
-        onDeleteAccount={(account) => setDeletingAccount(account)}
+        onAddAccount={() => patchUiState({ isAddModalOpen: true })}
+        onEditAccount={(account) => patchUiState({ editingAccount: account })}
+        onDeleteAccount={(account) => patchUiState({ deletingAccount: account })}
         pagination={
           coaQuery.data?.pagination
             ? {
@@ -152,12 +162,12 @@ export function AccountingSettingsCoaPage() {
                 totalPages: 1,
               }
         }
-        onPageChange={setPage}
+        onPageChange={(nextPage) => patchUiState({ page: nextPage })}
       />
 
       <FeatureAddCoaAccountModal
         open={isAddModalOpen}
-        onOpenChange={setAddModalOpen}
+        onOpenChange={(open) => patchUiState({ isAddModalOpen: open })}
         accountTypeOptions={accountTypeOptions}
         parentAccountOptions={parentAccountOptions}
         optionsLoading={isAddModalOpen && coaLookupQuery.isLoading && coaLookupItems.length === 0}
@@ -167,7 +177,7 @@ export function AccountingSettingsCoaPage() {
       <FeatureEditCoaAccountModal
         open={Boolean(editingAccount)}
         onOpenChange={(open) => {
-          if (!open) setEditingAccount(null);
+          if (!open) patchUiState({ editingAccount: null });
         }}
         account={editingAccount}
         onSave={handleUpdateAccount}
@@ -176,7 +186,7 @@ export function AccountingSettingsCoaPage() {
       <FeatureDeleteCoaAccountModal
         open={Boolean(deletingAccount)}
         onOpenChange={(open) => {
-          if (!open) setDeletingAccount(null);
+          if (!open) patchUiState({ deletingAccount: null });
         }}
         accountLabel={
           deletingAccount

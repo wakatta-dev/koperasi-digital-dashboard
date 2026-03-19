@@ -11,8 +11,10 @@ type FeatureCashRegistersGridProps = {
   items?: CashRegisterItem[];
 };
 
+const EMPTY_CASH_REGISTER_ITEMS: CashRegisterItem[] = [];
+
 export function FeatureCashRegistersGrid({
-  items = [],
+  items = EMPTY_CASH_REGISTER_ITEMS,
 }: FeatureCashRegistersGridProps) {
   const gridClass =
     items.length >= 2

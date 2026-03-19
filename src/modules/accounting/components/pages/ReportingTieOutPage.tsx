@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowRightLeft, FileStack, Link2 } from "lucide-react";
 
@@ -74,10 +74,19 @@ function toSourceOfTruthLabel(sourceOfTruth?: string) {
       : sourceOfTruth ?? "-";
 }
 
-export function ReportingTieOutPage() {
+type ReportingTieOutPageProps = {
+  queryString?: string;
+};
+
+export function ReportingTieOutPage({
+  queryString = "",
+}: ReportingTieOutPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
@@ -95,20 +104,20 @@ export function ReportingTieOutPage() {
     setEnd(initialState.end ?? "");
   }, [initialState.end, initialState.start]);
 
-  useEffect(() => {
+  const updateDateRange = (nextStart: string, nextEnd: string) => {
     const resolvedPreset =
-      start && end ? "custom" : initialState.preset || "month";
+      nextStart && nextEnd ? "custom" : initialState.preset || "month";
     const nextQuery = buildReportingQueryString({
       ...initialState,
       preset: resolvedPreset,
-      start: start || undefined,
-      end: end || undefined,
+      start: nextStart || undefined,
+      end: nextEnd || undefined,
     });
     if (nextQuery === searchParams.toString()) return;
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [end, initialState, pathname, router, searchParams, start]);
+  };
 
   const reportQuery = useAccountingReportingTieOut({
     preset: start && end ? "custom" : initialState.preset || "month",
@@ -299,8 +308,14 @@ export function ReportingTieOutPage() {
             <FeatureReportingDateRangeControl
               start={start}
               end={end}
-              onStartChange={setStart}
-              onEndChange={setEnd}
+              onStartChange={(value) => {
+                setStart(value);
+                updateDateRange(value, end);
+              }}
+              onEndChange={(value) => {
+                setEnd(value);
+                updateDateRange(start, value);
+              }}
             />
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950">
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">

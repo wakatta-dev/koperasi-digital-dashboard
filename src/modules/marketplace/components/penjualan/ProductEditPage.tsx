@@ -99,22 +99,58 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
     });
   }, [variantsData, product?.price]);
 
-  const [category, setCategory] = useState("");
+  const [formState, setFormState] = useState({
+    category: "",
+    name: "",
+    sku: "",
+    brand: "",
+    weight: "",
+    description: "",
+  });
+  const { category, name, sku, brand, weight, description } = formState;
   const categoryOptions = useMemo(() => {
     return selectableInventoryCategoryNames(categoriesData, category);
   }, [categoriesData, category]);
-
-  const [name, setName] = useState("");
-  const [sku, setSku] = useState("");
-  const [brand, setBrand] = useState("");
-  const [weight, setWeight] = useState("");
-  const [description, setDescription] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [editableVariants, setEditableVariants] = useState<
-    EditableVariantRow[]
-  >([]);
+  const editableVariantsKey = useMemo(
+    () =>
+      variantRows
+        .map((row) => `${row.optionId}:${row.sku}:${row.stock}:${row.price}`)
+        .join("|"),
+    [variantRows],
+  );
+  const [editableVariantsState, setEditableVariantsState] = useState<{
+    key: string;
+    rows: EditableVariantRow[];
+  }>({ key: editableVariantsKey, rows: variantRows });
+  const editableVariants =
+    editableVariantsState.key === editableVariantsKey
+      ? editableVariantsState.rows
+      : variantRows;
+  const setEditableVariants = (
+    next:
+      | EditableVariantRow[]
+      | ((current: EditableVariantRow[]) => EditableVariantRow[]),
+  ) => {
+    const current =
+      editableVariantsState.key === editableVariantsKey
+        ? editableVariantsState.rows
+        : variantRows;
+    const rows = typeof next === "function" ? next(current) : next;
+    setEditableVariantsState({ key: editableVariantsKey, rows });
+  };
   const [pendingDeleteVariant, setPendingDeleteVariant] =
     useState<EditableVariantRow | null>(null);
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const appendValidatedFiles = (files: File[]) => {
     if (files.length === 0) return;
@@ -132,24 +168,26 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
     }
   };
 
-  useEffect(() => {
-    if (!product) return;
-    setName(product.name);
-    setSku(product.sku);
-    setBrand(product.brand ?? "");
-    setCategory(product.category ?? "");
-    setWeight(
-      typeof product.weightKg === "number" && !Number.isNaN(product.weightKg)
-        ? String(product.weightKg)
-        : "",
-    );
-    setDescription(product.description ?? "");
+  const hydrateProductForm = (nextProduct: NonNullable<typeof product>) => {
+    patchFormState({
+      name: nextProduct.name,
+      sku: nextProduct.sku,
+      brand: nextProduct.brand ?? "",
+      category: nextProduct.category ?? "",
+      weight:
+        typeof nextProduct.weightKg === "number" &&
+        !Number.isNaN(nextProduct.weightKg)
+          ? String(nextProduct.weightKg)
+          : "",
+      description: nextProduct.description ?? "",
+    });
     setPendingFiles([]);
-  }, [product]);
+  };
 
   useEffect(() => {
-    setEditableVariants(variantRows);
-  }, [variantRows]);
+    if (!product) return;
+    hydrateProductForm(product);
+  }, [product]);
 
   const submitting =
     update.isPending ||
@@ -298,43 +336,50 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nama Produk
               </label>
               <Input
+                id="product-edit-name"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) => patchFormState({ name: event.target.value })}
                 data-testid="marketplace-admin-product-edit-name-input"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-sku" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 SKU
               </label>
               <Input
+                id="product-edit-sku"
                 value={sku}
-                onChange={(event) => setSku(event.target.value)}
+                onChange={(event) => patchFormState({ sku: event.target.value })}
                 data-testid="marketplace-admin-product-edit-sku-input"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-brand" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Merek
               </label>
               <Input
+                id="product-edit-brand"
                 value={brand}
-                onChange={(event) => setBrand(event.target.value)}
+                onChange={(event) => patchFormState({ brand: event.target.value })}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Kategori
               </label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select
+                value={category}
+                onValueChange={(value) => patchFormState({ category: value })}
+              >
                 <SelectTrigger
+                  id="product-edit-category"
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600"
                   data-testid="marketplace-admin-product-edit-category-trigger"
                 >
@@ -356,24 +401,28 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-weight" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Berat (kg)
               </label>
               <Input
+                id="product-edit-weight"
                 type="number"
                 value={weight}
-                onChange={(event) => setWeight(event.target.value)}
+                onChange={(event) => patchFormState({ weight: event.target.value })}
                 step="0.1"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Deskripsi
               </label>
               <Textarea
+                id="product-edit-description"
                 value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ description: event.target.value })
+                }
                 rows={4}
                 data-testid="marketplace-admin-product-edit-description-textarea"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"

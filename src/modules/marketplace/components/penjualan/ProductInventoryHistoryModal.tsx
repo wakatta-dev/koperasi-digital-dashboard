@@ -100,11 +100,35 @@ export function ProductInventoryHistoryModal({
   sku,
   entries,
 }: ProductInventoryHistoryModalProps) {
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [activityType, setActivityType] = useState("Semua Aktivitas");
-  const [searchValue, setSearchValue] = useState("");
-  const [page, setPage] = useState(1);
+  const [filterState, setFilterState] = useState({
+    dateFrom: "",
+    dateTo: "",
+    activityType: "Semua Aktivitas",
+    searchValue: "",
+  });
+  const { dateFrom, dateTo, activityType, searchValue } = filterState;
+  const patchFilterState = (
+    updates:
+      | Partial<typeof filterState>
+      | ((current: typeof filterState) => typeof filterState),
+  ) => {
+    setFilterState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
+  const pageKey = `${dateFrom}::${dateTo}::${activityType}::${searchValue}::${entries.length}`;
+  const [pageState, setPageState] = useState<{
+    key: string;
+    value: number;
+  }>({ key: pageKey, value: 1 });
+  const page = pageState.key === pageKey ? pageState.value : 1;
+  const setPage = (
+    next: number | ((current: number) => number),
+  ) => {
+    const current = pageState.key === pageKey ? pageState.value : 1;
+    const value = typeof next === "function" ? next(current) : next;
+    setPageState({ key: pageKey, value });
+  };
   const pageSize = 10;
 
   const rows = useMemo(() => {
@@ -133,10 +157,6 @@ export function ProductInventoryHistoryModal({
     const start = (page - 1) * pageSize;
     return rows.slice(start, start + pageSize);
   }, [rows, page]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [dateFrom, dateTo, activityType, searchValue, entries]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -298,9 +318,9 @@ export function ProductInventoryHistoryModal({
             <div className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-900">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
                 <div className="lg:col-span-7 min-w-0">
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
+                  <span className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Rentang Tanggal
-                  </label>
+                  </span>
                   <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
                     <InputField
                       ariaLabel="Tanggal mulai"
@@ -308,7 +328,9 @@ export function ProductInventoryHistoryModal({
                       startIcon={<Calendar className="h-4 w-4" />}
                       type="date"
                       value={dateFrom}
-                      onValueChange={setDateFrom}
+                      onValueChange={(value) =>
+                        patchFilterState({ dateFrom: value })
+                      }
                     />
                     <InputField
                       ariaLabel="Tanggal akhir"
@@ -316,16 +338,29 @@ export function ProductInventoryHistoryModal({
                       startIcon={<Calendar className="h-4 w-4" />}
                       type="date"
                       value={dateTo}
-                      onValueChange={setDateTo}
+                      onValueChange={(value) =>
+                        patchFilterState({ dateTo: value })
+                      }
                     />
                   </div>
                 </div>
                 <div className="lg:col-span-5 min-w-0">
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
+                  <label
+                    htmlFor="product-history-activity-type"
+                    className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider"
+                  >
                     Tipe Aktivitas
                   </label>
-                  <Select value={activityType} onValueChange={setActivityType}>
-                    <SelectTrigger className="w-full rounded-lg border-gray-200 bg-white py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900">
+                  <Select
+                    value={activityType}
+                    onValueChange={(value) =>
+                      patchFilterState({ activityType: value })
+                    }
+                  >
+                    <SelectTrigger
+                      id="product-history-activity-type"
+                      className="w-full rounded-lg border-gray-200 bg-white py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -345,7 +380,9 @@ export function ProductInventoryHistoryModal({
                     size="lg"
                     startIcon={<Search className="h-4 w-4" />}
                     value={searchValue}
-                    onValueChange={setSearchValue}
+                    onValueChange={(value) =>
+                      patchFilterState({ searchValue: value })
+                    }
                     placeholder="ID Invoice / Gudang"
                   />
                 </div>
@@ -354,10 +391,12 @@ export function ProductInventoryHistoryModal({
                     type="button"
                     variant="ghost"
                     onClick={() => {
-                      setDateFrom("");
-                      setDateTo("");
-                      setActivityType("Semua Aktivitas");
-                      setSearchValue("");
+                      patchFilterState({
+                        dateFrom: "",
+                        dateTo: "",
+                        activityType: "Semua Aktivitas",
+                        searchValue: "",
+                      });
                     }}
                     className="h-[42px] rounded-lg px-5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800"
                   >

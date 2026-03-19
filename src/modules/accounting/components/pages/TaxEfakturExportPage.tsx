@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -40,10 +40,19 @@ const DEFAULT_EFAKTUR_FILTERS: TaxEfakturFilterValue = {
 
 const EFAKTUR_PER_PAGE = 5;
 
-export function TaxEfakturExportPage() {
+type TaxEfakturExportPageProps = {
+  queryString?: string;
+};
+
+export function TaxEfakturExportPage({
+  queryString = "",
+}: TaxEfakturExportPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialQueryState = useMemo(
     () =>
@@ -74,8 +83,15 @@ export function TaxEfakturExportPage() {
   const complianceQuery = useAccountingTaxCompliance();
   const mutations = useAccountingTaxMutations();
 
-  useEffect(() => {
-    const nextQuery = buildTaxEfakturQueryString({ filters, page, perPage });
+  const updateQueryState = (
+    nextFilters: TaxEfakturFilterValue,
+    nextPage: number,
+  ) => {
+    const nextQuery = buildTaxEfakturQueryString({
+      filters: nextFilters,
+      page: nextPage,
+      perPage,
+    });
     const currentQuery = searchParams.toString();
     if (nextQuery === currentQuery) {
       return;
@@ -84,7 +100,7 @@ export function TaxEfakturExportPage() {
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, page, pathname, perPage, router, searchParams]);
+  };
 
   useEffect(() => {
     const defaults = (efakturReadyQuery.data?.items ?? [])
@@ -237,6 +253,7 @@ export function TaxEfakturExportPage() {
             onChange={(next) => {
               setFilters(next);
               setPage(1);
+              updateQueryState(next, 1);
             }}
           />
 
@@ -254,7 +271,10 @@ export function TaxEfakturExportPage() {
             totalItems={totalItems}
             onToggleAll={toggleAllRows}
             onToggleRow={toggleRow}
-            onPageChange={setPage}
+            onPageChange={(nextPage) => {
+              setPage(nextPage);
+              updateQueryState(filters, nextPage);
+            }}
           />
         </div>
 

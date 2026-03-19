@@ -43,11 +43,24 @@ export function FeatureCreateTaxModal({
   onOpenChange,
   onSave,
 }: FeatureCreateTaxModalProps) {
-  const [taxName, setTaxName] = useState("");
-  const [taxType, setTaxType] = useState("Sales");
-  const [taxRate, setTaxRate] = useState("0");
-  const [taxAccount, setTaxAccount] = useState("none");
-  const [isActive, setIsActive] = useState(true);
+  const [formState, setFormState] = useState({
+    taxName: "",
+    taxType: "Sales",
+    taxRate: "0",
+    taxAccount: "none",
+    isActive: true,
+  });
+  const { taxName, taxType, taxRate, taxAccount, isActive } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const handleSave = () => {
     onSave?.({
@@ -59,11 +72,13 @@ export function FeatureCreateTaxModal({
       is_active: isActive,
     });
     onOpenChange(false);
-    setTaxName("");
-    setTaxType("Sales");
-    setTaxRate("0");
-    setTaxAccount("none");
-    setIsActive(true);
+    setFormState({
+      taxName: "",
+      taxType: "Sales",
+      taxRate: "0",
+      taxAccount: "none",
+      isActive: true,
+    });
   };
 
   return (
@@ -97,7 +112,7 @@ export function FeatureCreateTaxModal({
             </Label>
             <Input
               value={taxName}
-              onChange={(event) => setTaxName(event.target.value)}
+              onChange={(event) => patchFormState({ taxName: event.target.value })}
               placeholder="Contoh: PPN 11%"
               className="border-gray-300 bg-white py-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
@@ -108,7 +123,10 @@ export function FeatureCreateTaxModal({
               <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Tipe Pajak
               </Label>
-              <Select value={taxType} onValueChange={setTaxType}>
+              <Select
+                value={taxType}
+                onValueChange={(value) => patchFormState({ taxType: value })}
+              >
                 <SelectTrigger className="border-gray-300 bg-white py-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -127,7 +145,7 @@ export function FeatureCreateTaxModal({
               <div className="relative">
                 <Input
                   value={taxRate}
-                  onChange={(event) => setTaxRate(event.target.value)}
+                  onChange={(event) => patchFormState({ taxRate: event.target.value })}
                   placeholder="0"
                   type="number"
                   className="border-gray-300 bg-white py-2.5 pr-8 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -143,7 +161,10 @@ export function FeatureCreateTaxModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Akun Pajak
             </Label>
-            <Select value={taxAccount} onValueChange={setTaxAccount}>
+            <Select
+              value={taxAccount}
+              onValueChange={(value) => patchFormState({ taxAccount: value })}
+            >
               <SelectTrigger className="border-gray-300 bg-white py-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                 <SelectValue placeholder="Pilih Akun COA..." />
               </SelectTrigger>
@@ -165,7 +186,9 @@ export function FeatureCreateTaxModal({
             </div>
             <Switch
               checked={isActive}
-              onCheckedChange={setIsActive}
+              onCheckedChange={(checked) =>
+                patchFormState({ isActive: checked })
+              }
               className="data-[state=checked]:bg-indigo-600"
             />
           </div>

@@ -28,8 +28,10 @@ type FeatureVendorBillsTableProps = {
   onPageChange?: (nextPage: number) => void;
 };
 
+const EMPTY_VENDOR_BILL_ROWS: VendorBillListItem[] = [];
+
 export function FeatureVendorBillsTable({
-  rows = [],
+  rows = EMPTY_VENDOR_BILL_ROWS,
   selectedBillNumbers,
   onSelectionChange,
   onRowOpen,

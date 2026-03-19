@@ -1,5 +1,6 @@
 /** @format */
 
+import Link from "next/link";
 import { asArray, asHref, asRecord, asString } from "../../shared/content";
 
 const DEFAULT_MAP_IMAGE =
@@ -76,20 +77,20 @@ export function TemplateOneFooterSection({ data }: TemplateOneFooterSectionProps
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
             <div className="flex gap-4 mt-2">
-              <a className="text-slate-400 hover:text-white transition-colors" href="#">
+              <Link className="text-slate-400 hover:text-white transition-colors" href="/">
                 <span className="material-symbols-outlined">social_leaderboard</span>
-              </a>
-              <a className="text-slate-400 hover:text-white transition-colors" href="#">
+              </Link>
+              <Link className="text-slate-400 hover:text-white transition-colors" href="/">
                 <span className="material-symbols-outlined">photo_camera</span>
-              </a>
+              </Link>
             </div>
           </div>
 
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider mb-4 text-slate-200">Perusahaan</h3>
             <ul className="flex flex-col gap-3 text-sm text-slate-400">
-              {companyLinks.map((link, index) => (
-                <li key={`${link.label}-${index}`}>
+              {companyLinks.map((link) => (
+                <li key={`${link.label}-${link.url}`}>
                   <a className="hover:text-primary transition-colors" href={link.url}>
                     {link.label}
                   </a>
@@ -101,8 +102,8 @@ export function TemplateOneFooterSection({ data }: TemplateOneFooterSectionProps
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider mb-4 text-slate-200">Kategori</h3>
             <ul className="flex flex-col gap-3 text-sm text-slate-400">
-              {categoryLinks.map((link, index) => (
-                <li key={`${link.label}-${index}`}>
+              {categoryLinks.map((link) => (
+                <li key={`${link.label}-${link.url}`}>
                   <a className="hover:text-primary transition-colors" href={link.url}>
                     {link.label}
                   </a>

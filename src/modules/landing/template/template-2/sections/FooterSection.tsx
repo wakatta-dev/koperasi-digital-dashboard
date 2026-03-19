@@ -1,5 +1,6 @@
 /** @format */
 
+import Link from "next/link";
 import { asArray, asHref, asRecord, asString } from "../../shared/content";
 
 const DEFAULT_CATEGORY_LINKS = [
@@ -63,8 +64,8 @@ export function TemplateTwoFooterSection({ data }: TemplateTwoFooterSectionProps
           <div>
             <h5 className="font-black text-lg mb-6 text-market-yellow">Kategori</h5>
             <ul className="space-y-3 font-bold text-white/60">
-              {categoryLinks.map((link, index) => (
-                <li key={`${link.label}-${index}`}>
+              {categoryLinks.map((link) => (
+                <li key={`${link.label}-${link.url}`}>
                   <a className="hover:text-white transition-colors" href={link.url}>
                     {link.label}
                   </a>
@@ -95,18 +96,18 @@ export function TemplateTwoFooterSection({ data }: TemplateTwoFooterSectionProps
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10 gap-6">
           <p className="text-sm font-bold text-white/40">{copyrightText}</p>
           <div className="flex gap-4">
-            <a
+            <Link
               className="size-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-market-blue transition-colors"
-              href="#"
+              href="/"
             >
               <span className="material-symbols-outlined text-sm">public</span>
-            </a>
-            <a
+            </Link>
+            <Link
               className="size-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-market-red transition-colors"
-              href="#"
+              href="/"
             >
               <span className="material-symbols-outlined text-sm">favorite</span>
-            </a>
+            </Link>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 type SubmissionSuccessCardFeatureProps = Readonly<{
@@ -73,9 +74,9 @@ export function SubmissionSuccessCardFeature({
 
           <p className="mt-6 text-xs text-gray-500 dark:text-gray-400">
             Butuh bantuan?{" "}
-            <a className="font-medium text-brand-primary hover:text-brand-primary-hover" href="#">
+            <Link className="font-medium text-brand-primary hover:text-brand-primary-hover" href="/">
               Hubungi Support
-            </a>
+            </Link>
           </p>
         </div>
       </div>

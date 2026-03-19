@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { createCursorPaginationMeta } from "@/components/shared/data-display/TableShell";
 import { useSupportActivityLogs } from "@/hooks/queries";
 import { FeatureActivityLogFilterCard } from "../features/FeatureActivityLogFilterCard";
@@ -13,26 +13,29 @@ import { TenantSettingsShell } from "../shared/TenantSettingsShell";
 import { fromDateInputValue, rfc3339ToDateInput } from "../../lib/forms";
 import { buildQueryString } from "../../lib/settings";
 
-export function ActivityLogSettingsPage() {
+type ActivityLogSettingsPageProps = {
+  queryString?: string;
+};
+
+export function ActivityLogSettingsPage({
+  queryString = "",
+}: ActivityLogSettingsPageProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
-  const pendingFiltersRef = useRef<{
-    cursor?: string;
-    module: string;
-    action: string;
-    actorId: string;
-    fromDate: string;
-    toDate: string;
-  } | null>(null);
-
-  const [cursor, setCursor] = useState<string | undefined>(searchParams.get("cursor") ?? undefined);
-  const [module, setModule] = useState(searchParams.get("module") ?? "all");
-  const [action, setAction] = useState(searchParams.get("action") ?? "all");
-  const [actorId, setActorId] = useState(searchParams.get("actorId") ?? "");
-  const [fromDate, setFromDate] = useState(searchParams.get("fromDate") ?? "");
-  const [toDate, setToDate] = useState(searchParams.get("toDate") ?? "");
+  const [filterState, setFilterState] = useState({
+    cursor: searchParams.get("cursor") ?? undefined,
+    module: searchParams.get("module") ?? "all",
+    action: searchParams.get("action") ?? "all",
+    actorId: searchParams.get("actorId") ?? "",
+    fromDate: searchParams.get("fromDate") ?? "",
+    toDate: searchParams.get("toDate") ?? "",
+  });
+  const { cursor, module, action, actorId, fromDate, toDate } = filterState;
 
   const syncFiltersQuery = useCallback(
     (nextState: {
@@ -53,45 +56,13 @@ export function ActivityLogSettingsPage() {
       });
 
       if (nextQuery === searchParams.toString()) {
-        return;
-      }
+      return;
+    }
 
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
     },
     [pathname, router, searchParams]
   );
-
-  useEffect(() => {
-    const nextCursor = searchParams.get("cursor") ?? undefined;
-    const nextModule = searchParams.get("module") ?? "all";
-    const nextAction = searchParams.get("action") ?? "all";
-    const nextActorId = searchParams.get("actorId") ?? "";
-    const nextFromDate = searchParams.get("fromDate") ?? "";
-    const nextToDate = searchParams.get("toDate") ?? "";
-
-    if (pendingFiltersRef.current) {
-      const pending = pendingFiltersRef.current;
-      const synced =
-        pending.cursor === nextCursor &&
-        pending.module === nextModule &&
-        pending.action === nextAction &&
-        pending.actorId === nextActorId &&
-        pending.fromDate === nextFromDate &&
-        pending.toDate === nextToDate;
-      if (synced) {
-        pendingFiltersRef.current = null;
-      } else {
-        return;
-      }
-    }
-
-    if (cursor !== nextCursor) setCursor(nextCursor);
-    if (module !== nextModule) setModule(nextModule);
-    if (action !== nextAction) setAction(nextAction);
-    if (actorId !== nextActorId) setActorId(nextActorId);
-    if (fromDate !== nextFromDate) setFromDate(nextFromDate);
-    if (toDate !== nextToDate) setToDate(nextToDate);
-  }, [action, actorId, cursor, fromDate, module, searchParams, toDate]);
 
   const params = useMemo(
     () => ({
@@ -136,13 +107,7 @@ export function ActivityLogSettingsPage() {
         toDate,
         ...updates,
       };
-      pendingFiltersRef.current = nextState;
-      setCursor(nextState.cursor);
-      setModule(nextState.module);
-      setAction(nextState.action);
-      setActorId(nextState.actorId);
-      setFromDate(nextState.fromDate);
-      setToDate(nextState.toDate);
+      setFilterState(nextState);
       syncFiltersQuery(nextState);
     },
     [action, actorId, cursor, fromDate, module, syncFiltersQuery, toDate]

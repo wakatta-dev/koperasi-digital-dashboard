@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAccountingReportingProfitLoss } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -16,10 +16,19 @@ import {
 } from "../features/FeatureReportingStatements";
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
-export function ReportingProfitLossPage() {
+type ReportingProfitLossPageProps = {
+  queryString?: string;
+};
+
+export function ReportingProfitLossPage({
+  queryString = "",
+}: ReportingProfitLossPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialState = useMemo(
     () =>
@@ -35,16 +44,19 @@ export function ReportingProfitLossPage() {
     setPreset(initialState.preset ?? "");
   }, [initialState.preset]);
 
-  useEffect(() => {
+  const handlePresetChange = (nextPreset: string) => {
+    setPreset(nextPreset);
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset: preset || undefined,
+      preset: nextPreset || undefined,
       page: undefined,
       page_size: undefined,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [initialState, pathname, preset, router, searchParams]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reportQuery = useAccountingReportingProfitLoss({
     preset: preset || undefined,
@@ -65,7 +77,10 @@ export function ReportingProfitLossPage() {
             Detailed statement of income, costs, and expenses.
           </p>
         </div>
-        <FeatureProfitLossToolbar preset={preset} onPresetChange={setPreset} />
+        <FeatureProfitLossToolbar
+          preset={preset}
+          onPresetChange={handlePresetChange}
+        />
       </section>
 
       {reportQuery.error ? (

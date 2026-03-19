@@ -2,8 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 import { useAccountingReportingProfitLossComparative } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -19,10 +18,17 @@ import {
 } from "../features/FeatureReportingLedgers";
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
-export function ReportingProfitLossComparativePage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+type ReportingProfitLossComparativePageProps = {
+  queryString?: string;
+};
+
+export function ReportingProfitLossComparativePage({
+  queryString = "",
+}: ReportingProfitLossComparativePageProps) {
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
@@ -31,24 +37,7 @@ export function ReportingProfitLossComparativePage() {
     [searchParams],
   );
 
-  const [preset, setPreset] = useState(initialState.preset ?? "");
-
-  useEffect(() => {
-    setPreset(initialState.preset ?? "");
-  }, [initialState.preset]);
-
-  useEffect(() => {
-    const nextQuery = buildReportingQueryString({
-      ...initialState,
-      preset: preset || undefined,
-      page: undefined,
-      page_size: undefined,
-    });
-    if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-      scroll: false,
-    });
-  }, [initialState, pathname, preset, router, searchParams]);
+  const preset = initialState.preset ?? "";
 
   const reportQuery = useAccountingReportingProfitLossComparative({
     preset: preset || undefined,

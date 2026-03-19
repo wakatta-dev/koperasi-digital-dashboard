@@ -21,8 +21,10 @@ type FeaturePaymentsTableProps = {
   createHref?: string;
 };
 
+const EMPTY_PAYMENT_ROWS: PaymentListItem[] = [];
+
 export function FeaturePaymentsTable({
-  rows = [],
+  rows = EMPTY_PAYMENT_ROWS,
   createHref,
 }: FeaturePaymentsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");

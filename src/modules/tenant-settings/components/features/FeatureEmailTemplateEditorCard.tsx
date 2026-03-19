@@ -73,9 +73,9 @@ export function FeatureEmailTemplateEditorCard({
             Placeholder Tersedia:
           </p>
           <div className="flex flex-wrap gap-2">
-            {placeholders.map((placeholder, index) => (
+            {placeholders.map((placeholder) => (
               <Badge
-                key={`${placeholder}-${index}`}
+                key={placeholder}
                 className="border-transparent bg-white font-mono text-[11px] text-slate-700 dark:bg-slate-950 dark:text-slate-300"
               >
                 {`{{${placeholder}}}`}

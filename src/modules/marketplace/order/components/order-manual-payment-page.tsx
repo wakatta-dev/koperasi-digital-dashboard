@@ -342,9 +342,9 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                     <div className="p-6 space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-muted-foreground mb-2">
+                          <span className="block text-sm font-medium text-muted-foreground mb-2">
                             Metode Pembayaran
-                          </label>
+                          </span>
                           <div className="flex items-center p-3 border border-border rounded-md bg-muted/30">
                             <span className="material-icons-outlined text-muted-foreground mr-2">
                               account_balance
@@ -459,7 +459,10 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                     </div>
                     <div className="p-6 space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
+                        <label
+                          htmlFor="manual-payment-status"
+                          className="block text-sm font-medium text-foreground mb-2"
+                        >
                           Ubah Status Pembayaran
                         </label>
                         <Select
@@ -470,6 +473,7 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                           }}
                         >
                           <SelectTrigger
+                            id="manual-payment-status"
                             className="w-full"
                             data-testid="marketplace-admin-order-manual-payment-status-trigger"
                           >

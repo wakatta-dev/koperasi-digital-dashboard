@@ -3,6 +3,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { CalendarDays, CheckCircle2, Copy, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -151,9 +152,9 @@ export function ReservationConfirmationView({
         </div>
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Butuh bantuan?{" "}
-          <a className="text-primary hover:underline" href="#">
+          <Link className="text-primary hover:underline" href="/">
             Hubungi Layanan Pelanggan
-          </a>
+          </Link>
         </p>
       </div>
     </div>

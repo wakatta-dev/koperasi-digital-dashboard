@@ -317,7 +317,7 @@ export function ReservationSummaryCard({
                   className="w-full sm:w-auto px-6 py-3 bg-brand-primary hover:bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2"
                   asChild
                 >
-                  <a href="#">Bagikan Tautan Aman</a>
+                  <Link href="/">Bagikan Tautan Aman</Link>
                 </Button>
               </div>
             ) : null}

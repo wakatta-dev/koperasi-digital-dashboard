@@ -35,11 +35,30 @@ export function FeatureAddCurrencyModal({
   onOpenChange,
   onAddCurrency,
 }: FeatureAddCurrencyModalProps) {
-  const [currencyName, setCurrencyName] = useState("");
-  const [currencyCode, setCurrencyCode] = useState("");
-  const [symbol, setSymbol] = useState("");
-  const [exchangeRate, setExchangeRate] = useState("");
-  const [autoRateUpdate, setAutoRateUpdate] = useState(true);
+  const [formState, setFormState] = useState({
+    currencyName: "",
+    currencyCode: "",
+    symbol: "",
+    exchangeRate: "",
+    autoRateUpdate: true,
+  });
+  const {
+    currencyName,
+    currencyCode,
+    symbol,
+    exchangeRate,
+    autoRateUpdate,
+  } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const handleAddCurrency = () => {
     onAddCurrency?.({
@@ -50,11 +69,13 @@ export function FeatureAddCurrencyModal({
       auto_rate_update_enabled: autoRateUpdate,
     });
     onOpenChange(false);
-    setCurrencyName("");
-    setCurrencyCode("");
-    setSymbol("");
-    setExchangeRate("");
-    setAutoRateUpdate(true);
+    setFormState({
+      currencyName: "",
+      currencyCode: "",
+      symbol: "",
+      exchangeRate: "",
+      autoRateUpdate: true,
+    });
   };
 
   return (
@@ -88,7 +109,9 @@ export function FeatureAddCurrencyModal({
             </Label>
             <Input
               value={currencyName}
-              onChange={(event) => setCurrencyName(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ currencyName: event.target.value })
+              }
               placeholder="e.g. British Pound"
               className="border-gray-300 bg-white py-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
@@ -101,7 +124,11 @@ export function FeatureAddCurrencyModal({
               </Label>
               <Input
                 value={currencyCode}
-                onChange={(event) => setCurrencyCode(event.target.value.toUpperCase())}
+                onChange={(event) =>
+                  patchFormState({
+                    currencyCode: event.target.value.toUpperCase(),
+                  })
+                }
                 placeholder="e.g. GBP"
                 className="border-gray-300 bg-white py-2.5 uppercase dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
@@ -112,7 +139,7 @@ export function FeatureAddCurrencyModal({
               </Label>
               <Input
                 value={symbol}
-                onChange={(event) => setSymbol(event.target.value)}
+                onChange={(event) => patchFormState({ symbol: event.target.value })}
                 placeholder="e.g. £"
                 className="border-gray-300 bg-white py-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               />
@@ -126,7 +153,9 @@ export function FeatureAddCurrencyModal({
             <div className="relative rounded-md shadow-sm">
               <Input
                 value={exchangeRate}
-                onChange={(event) => setExchangeRate(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ exchangeRate: event.target.value })
+                }
                 placeholder="0.0000"
                 type="number"
                 className="border-gray-300 bg-white py-2.5 pr-12 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -151,7 +180,9 @@ export function FeatureAddCurrencyModal({
             </div>
             <Switch
               checked={autoRateUpdate}
-              onCheckedChange={setAutoRateUpdate}
+              onCheckedChange={(checked) =>
+                patchFormState({ autoRateUpdate: checked })
+              }
               className="data-[state=checked]:bg-indigo-600"
             />
           </div>

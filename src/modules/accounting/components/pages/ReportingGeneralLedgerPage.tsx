@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAccountingReportingGeneralLedger } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -21,10 +21,19 @@ import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReporti
 
 const DEFAULT_PAGE_SIZE = 20;
 
-export function ReportingGeneralLedgerPage() {
+type ReportingGeneralLedgerPageProps = {
+  queryString?: string;
+};
+
+export function ReportingGeneralLedgerPage({
+  queryString = "",
+}: ReportingGeneralLedgerPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
@@ -36,34 +45,48 @@ export function ReportingGeneralLedgerPage() {
     [searchParams],
   );
 
-  const [start, setStart] = useState(initialState.start ?? "");
-  const [end, setEnd] = useState(initialState.end ?? "");
-  const [accountId, setAccountId] = useState(initialState.accountId ?? "all");
-  const [page, setPage] = useState(initialState.page ?? 1);
-  const [pageSize, setPageSize] = useState(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+  const [filtersState, setFiltersState] = useState(() => ({
+    start: initialState.start ?? "",
+    end: initialState.end ?? "",
+    accountId: initialState.accountId ?? "all",
+    page: initialState.page ?? 1,
+    pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+  }));
+  const { start, end, accountId, page, pageSize } = filtersState;
 
   useEffect(() => {
-    setStart(initialState.start ?? "");
-    setEnd(initialState.end ?? "");
-    setAccountId(initialState.accountId ?? "all");
-    setPage(initialState.page ?? 1);
-    setPageSize(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+    setFiltersState({
+      start: initialState.start ?? "",
+      end: initialState.end ?? "",
+      accountId: initialState.accountId ?? "all",
+      page: initialState.page ?? 1,
+      pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+    });
   }, [initialState.accountId, initialState.end, initialState.page, initialState.page_size, initialState.start]);
 
-  useEffect(() => {
-    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
+  const updateQueryState = (
+    nextStart: string,
+    nextEnd: string,
+    nextAccountId: string,
+    nextPage: number,
+    nextPageSize: number,
+  ) => {
+    const resolvedPreset =
+      nextStart && nextEnd ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
       preset: resolvedPreset,
-      start: start || undefined,
-      end: end || undefined,
-      accountId,
-      page,
-      page_size: pageSize,
+      start: nextStart || undefined,
+      end: nextEnd || undefined,
+      accountId: nextAccountId,
+      page: nextPage,
+      page_size: nextPageSize,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [accountId, end, initialState, page, pageSize, pathname, router, searchParams, start]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reportQuery = useAccountingReportingGeneralLedger({
     preset: start && end ? "custom" : initialState.preset || "today",
@@ -118,16 +141,20 @@ export function ReportingGeneralLedgerPage() {
         accountId={accountId}
         accountOptions={accountOptions}
         onStartChange={(value) => {
-          setStart(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, start: value, page: 1 }));
+          updateQueryState(value, end, accountId, 1, pageSize);
         }}
         onEndChange={(value) => {
-          setEnd(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, end: value, page: 1 }));
+          updateQueryState(start, value, accountId, 1, pageSize);
         }}
         onAccountChange={(value) => {
-          setAccountId(value);
-          setPage(1);
+          setFiltersState((current) => ({
+            ...current,
+            accountId: value,
+            page: 1,
+          }));
+          updateQueryState(start, end, value, 1, pageSize);
         }}
       />
 
@@ -161,7 +188,10 @@ export function ReportingGeneralLedgerPage() {
             ? `Showing ${reportQuery.data.groups.length} of ${reportQuery.data.pagination.total_accounts} accounts`
             : undefined
         }
-        onPageChange={setPage}
+        onPageChange={(nextPage) => {
+          setFiltersState((current) => ({ ...current, page: nextPage }));
+          updateQueryState(start, end, accountId, nextPage, pageSize);
+        }}
       />
     </div>
   );

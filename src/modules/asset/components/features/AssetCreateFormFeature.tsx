@@ -51,22 +51,49 @@ export function AssetCreateFormFeature({
   options,
   isLoadingOptions = false,
 }: AssetCreateFormFeatureProps) {
-  const [name, setName] = useState("");
-  const [serialNumber, setSerialNumber] = useState("");
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("");
-  const [location, setLocation] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState("");
-  const [vendor, setVendor] = useState("");
-  const [rentalPriceDisplay, setRentalPriceDisplay] = useState("");
-  const [purchasePriceDisplay, setPurchasePriceDisplay] = useState("");
-  const [warrantyEndDate, setWarrantyEndDate] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewURL, setImagePreviewURL] = useState("");
+  const [formState, setFormState] = useState({
+    name: "",
+    serialNumber: "",
+    category: "",
+    status: "",
+    location: "",
+    assignedTo: "",
+    purchaseDate: "",
+    vendor: "",
+    rentalPriceDisplay: "",
+    purchasePriceDisplay: "",
+    warrantyEndDate: "",
+    description: "",
+    imageFile: null as File | null,
+    imagePreviewURL: "",
+  });
+  const {
+    name,
+    serialNumber,
+    category,
+    status,
+    location,
+    assignedTo,
+    purchaseDate,
+    vendor,
+    rentalPriceDisplay,
+    purchasePriceDisplay,
+    warrantyEndDate,
+    description,
+    imageFile,
+    imagePreviewURL,
+  } = formState;
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const objectURLRef = useRef<string | null>(null);
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   useEffect(() => {
     return () => {
@@ -82,7 +109,7 @@ export function AssetCreateFormFeature({
 
   useEffect(() => {
     if (!category && categories.length > 0) {
-      setCategory(categories[0]);
+      patchFormState({ category: categories[0] });
     }
   }, [category, categories]);
 
@@ -90,43 +117,21 @@ export function AssetCreateFormFeature({
     if (!status && statuses.length > 0) {
       const nextStatus = resolveCreateAssetStatusOption(statuses);
       if (nextStatus) {
-        setStatus(nextStatus);
+        patchFormState({ status: nextStatus });
       }
     }
   }, [status, statuses]);
 
   useEffect(() => {
     if (!location && locations.length > 0) {
-      setLocation(locations[0]);
+      patchFormState({ location: locations[0] });
     }
   }, [location, locations]);
 
   return (
-    <form
+    <div
       className="space-y-6"
       data-testid="asset-admin-create-form"
-      onSubmit={async (event) => {
-        event.preventDefault();
-
-        await onSubmit?.({
-          mode: "create",
-          name: name.trim(),
-          photoUrl: imagePreviewURL,
-          imageFile,
-          assetTag: "",
-          serialNumber: serialNumber.trim(),
-          category,
-          status,
-          location: location.trim(),
-          assignedTo: assignedTo.trim(),
-          purchaseDate,
-          vendor: vendor.trim(),
-          rentalPriceDisplay: rentalPriceDisplay.trim(),
-          purchasePriceDisplay: purchasePriceDisplay.trim(),
-          warrantyEndDate,
-          description: description.trim(),
-        });
-      }}
     >
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
         <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">
@@ -139,7 +144,7 @@ export function AssetCreateFormFeature({
             <Input
               placeholder="Contoh: MacBook Pro M2"
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => patchFormState({ name: event.target.value })}
               data-testid="asset-admin-create-name-input"
               required
             />
@@ -153,13 +158,18 @@ export function AssetCreateFormFeature({
             <Input
               placeholder="Contoh: SN-12345"
               value={serialNumber}
-              onChange={(event) => setSerialNumber(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ serialNumber: event.target.value })
+              }
               data-testid="asset-admin-create-serial-number-input"
             />
           </div>
           <div>
             <Label className="mb-1 block">{STITCH_FORM_TEXT.fields.category}</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select
+              value={category}
+              onValueChange={(value) => patchFormState({ category: value })}
+            >
               <SelectTrigger
                 disabled={isLoadingOptions || categories.length === 0}
                 data-testid="asset-admin-create-category-trigger"
@@ -177,7 +187,10 @@ export function AssetCreateFormFeature({
           </div>
           <div>
             <Label className="mb-1 block">{STITCH_FORM_TEXT.fields.status}</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select
+              value={status}
+              onValueChange={(value) => patchFormState({ status: value })}
+            >
               <SelectTrigger
                 disabled={isLoadingOptions || statuses.length === 0}
                 data-testid="asset-admin-create-status-trigger"
@@ -223,7 +236,7 @@ export function AssetCreateFormFeature({
                   data-testid="asset-admin-create-file-input"
                   onChange={(event) => {
                     const selected = event.target.files?.[0] ?? null;
-                    setImageFile(selected);
+                    patchFormState({ imageFile: selected });
 
                     if (objectURLRef.current) {
                       URL.revokeObjectURL(objectURLRef.current);
@@ -231,13 +244,13 @@ export function AssetCreateFormFeature({
                     }
 
                     if (!selected) {
-                      setImagePreviewURL("");
+                      patchFormState({ imagePreviewURL: "" });
                       return;
                     }
 
                     const objectURL = URL.createObjectURL(selected);
                     objectURLRef.current = objectURL;
-                    setImagePreviewURL(objectURL);
+                    patchFormState({ imagePreviewURL: objectURL });
                   }}
                 />
 
@@ -265,8 +278,10 @@ export function AssetCreateFormFeature({
                       if (imageInputRef.current) {
                         imageInputRef.current.value = "";
                       }
-                      setImageFile(null);
-                      setImagePreviewURL("");
+                      patchFormState({
+                        imageFile: null,
+                        imagePreviewURL: "",
+                      });
                     }}
                   >
                     Hapus Gambar
@@ -287,7 +302,10 @@ export function AssetCreateFormFeature({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <Label className="mb-1 block">Lokasi Utama</Label>
-            <Select value={location} onValueChange={setLocation}>
+            <Select
+              value={location}
+              onValueChange={(value) => patchFormState({ location: value })}
+            >
               <SelectTrigger
                 disabled={isLoadingOptions || locations.length === 0}
                 data-testid="asset-admin-create-location-trigger"
@@ -311,7 +329,9 @@ export function AssetCreateFormFeature({
             <Input
               placeholder="Cari nama karyawan..."
               value={assignedTo}
-              onChange={(event) => setAssignedTo(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ assignedTo: event.target.value })
+              }
               data-testid="asset-admin-create-assigned-to-input"
             />
             <p className="mt-1 text-xs text-slate-500">Ketik untuk mencari karyawan dari database.</p>
@@ -329,7 +349,9 @@ export function AssetCreateFormFeature({
               min={1}
               required
               value={rentalPriceDisplay}
-              onChange={(event) => setRentalPriceDisplay(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ rentalPriceDisplay: event.target.value })
+              }
               data-testid="asset-admin-create-rental-price-input"
               placeholder="Contoh: 250000"
             />
@@ -340,7 +362,9 @@ export function AssetCreateFormFeature({
               type="number"
               min={0}
               value={purchasePriceDisplay}
-              onChange={(event) => setPurchasePriceDisplay(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ purchasePriceDisplay: event.target.value })
+              }
               data-testid="asset-admin-create-purchase-price-input"
               placeholder="Contoh: 15000000"
             />
@@ -350,7 +374,9 @@ export function AssetCreateFormFeature({
             <Input
               type="date"
               value={purchaseDate}
-              onChange={(event) => setPurchaseDate(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ purchaseDate: event.target.value })
+              }
               data-testid="asset-admin-create-purchase-date-input"
             />
           </div>
@@ -358,7 +384,7 @@ export function AssetCreateFormFeature({
             <Label className="mb-1 block">Supplier</Label>
             <Input
               value={vendor}
-              onChange={(event) => setVendor(event.target.value)}
+              onChange={(event) => patchFormState({ vendor: event.target.value })}
               data-testid="asset-admin-create-vendor-input"
             />
           </div>
@@ -367,7 +393,9 @@ export function AssetCreateFormFeature({
             <Input
               type="date"
               value={warrantyEndDate}
-              onChange={(event) => setWarrantyEndDate(event.target.value)}
+              onChange={(event) =>
+                patchFormState({ warrantyEndDate: event.target.value })
+              }
               data-testid="asset-admin-create-warranty-end-date-input"
             />
           </div>
@@ -378,7 +406,9 @@ export function AssetCreateFormFeature({
         <h4 className="text-base font-semibold text-slate-900">Deskripsi Aset</h4>
         <Textarea
           value={description}
-          onChange={(event) => setDescription(event.target.value)}
+          onChange={(event) =>
+            patchFormState({ description: event.target.value })
+          }
           placeholder="Tuliskan deskripsi aset, kondisi, dan catatan penting lainnya..."
           rows={5}
           data-testid="asset-admin-create-description-textarea"
@@ -396,14 +426,34 @@ export function AssetCreateFormFeature({
           Batal
         </Button>
         <Button
-          type="submit"
+          type="button"
           className="bg-indigo-600 text-white hover:bg-indigo-700"
           disabled={isSubmitting}
           data-testid="asset-admin-create-submit-button"
+          onClick={async () => {
+            await onSubmit?.({
+              mode: "create",
+              name: name.trim(),
+              photoUrl: imagePreviewURL,
+              imageFile,
+              assetTag: "",
+              serialNumber: serialNumber.trim(),
+              category,
+              status,
+              location: location.trim(),
+              assignedTo: assignedTo.trim(),
+              purchaseDate,
+              vendor: vendor.trim(),
+              rentalPriceDisplay: rentalPriceDisplay.trim(),
+              purchasePriceDisplay: purchasePriceDisplay.trim(),
+              warrantyEndDate,
+              description: description.trim(),
+            });
+          }}
         >
           {isSubmitting ? "Menyimpan..." : "Simpan Aset"}
         </Button>
       </div>
-    </form>
+    </div>
   );
 }

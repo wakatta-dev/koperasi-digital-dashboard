@@ -39,8 +39,8 @@ export function FeatureEmailTemplateSelectorCard({
               <SelectValue placeholder="Pilih template email" />
             </SelectTrigger>
             <SelectContent>
-              {templates.map((template, index) => (
-                <SelectItem key={`${template.id}-${index}`} value={String(template.id)}>
+              {templates.map((template) => (
+                <SelectItem key={String(template.id)} value={String(template.id)}>
                   {template.name} ({template.code})
                 </SelectItem>
               ))}

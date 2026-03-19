@@ -104,17 +104,30 @@ export function PaymentMethods({
     () => toReusablePaymentSession({ existingPayment, reservationId, mode }),
     [existingPayment, mode, reservationId],
   );
-  const [selected, setSelected] = useState<string>(
-    () => reusableSession?.method || (methodGroups?.[0]?.options?.[0]?.value ?? ""),
-  );
-  const [status, setStatus] = useState<PaymentStatus>("initiated");
-  const [proofFile, setProofFile] = useState<File | null>(null);
-  const [session, setSession] = useState<PaymentSession | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [paymentState, setPaymentState] = useState(() => ({
+    selected:
+      reusableSession?.method || (methodGroups?.[0]?.options?.[0]?.value ?? ""),
+    status: "initiated" as PaymentStatus,
+    proofFile: null as File | null,
+    session: null as PaymentSession | null,
+    isLoading: false,
+    sessionError: null as string | null,
+  }));
+  const { selected, status, proofFile, session, isLoading, sessionError } =
+    paymentState;
   const actionsDisabled = !hasMethods || !reservationId || !ownershipToken;
   const onSessionChangeRef = useRef(onSessionChange);
   const onStatusChangeRef = useRef(onStatusChange);
+
+  const patchPaymentState = (
+    updates:
+      | Partial<typeof paymentState>
+      | ((current: typeof paymentState) => typeof paymentState),
+  ) => {
+    setPaymentState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   useEffect(() => {
     onSessionChangeRef.current = onSessionChange;
@@ -126,7 +139,10 @@ export function PaymentMethods({
 
   useEffect(() => {
     if (!reusableSession?.method) return;
-    setSelected((current) => current || reusableSession.method);
+    patchPaymentState((current) => ({
+      ...current,
+      selected: current.selected || reusableSession.method,
+    }));
   }, [reusableSession?.method]);
 
   const payByText = useMemo(() => {
@@ -140,10 +156,40 @@ export function PaymentMethods({
   }, [session?.amount]);
 
   const handleStatusUpdate = (next: PaymentStatus) => {
-    setStatus(next);
+    patchPaymentState({ status: next });
     if (session?.paymentId) {
       onStatusChangeRef.current?.({ paymentId: session.paymentId, status: next });
     }
+  };
+
+  const applyBootstrapFailure = (
+    message: string,
+    options?: { session?: PaymentSession | null; clearCallback?: boolean },
+  ) => {
+    if (options && "session" in options) {
+      patchPaymentState({ session: options.session ?? null });
+    }
+    patchPaymentState({ sessionError: message });
+    if (options?.clearCallback) {
+      onSessionChangeRef.current?.(null);
+    }
+  };
+
+  const applyBootstrapSession = (nextSession: PaymentSession) => {
+    patchPaymentState({
+      session: nextSession,
+      status: nextSession.status,
+      sessionError: null,
+    });
+    onSessionChangeRef.current?.(nextSession);
+  };
+
+  const beginBootstrapRequest = () => {
+    patchPaymentState({ isLoading: true, sessionError: null });
+  };
+
+  const finishBootstrapRequest = () => {
+    patchPaymentState({ isLoading: false });
   };
 
   const handleSubmitProof = async (event?: React.FormEvent<HTMLFormElement>) => {
@@ -153,11 +199,10 @@ export function PaymentMethods({
     }
     const validationError = validatePublicPaymentProofFile(proofFile);
     if (validationError) {
-      setSessionError(validationError);
+      patchPaymentState({ sessionError: validationError });
       return;
     }
-    setIsLoading(true);
-    setSessionError(null);
+    patchPaymentState({ isLoading: true, sessionError: null });
     try {
       const res = await uploadPaymentProof(
         session.paymentId,
@@ -166,32 +211,36 @@ export function PaymentMethods({
         { reservationId, ownershipToken },
       );
       if (res.success && res.data) {
-        setSession((current) =>
-          current
+        patchPaymentState((current) => ({
+          ...current,
+          session:
+          current.session
             ? {
-                ...current,
+                ...current.session,
                 status: res?.data?.status as PaymentStatus,
               }
-            : current,
-        );
+            : null,
+        }));
         handleStatusUpdate(res.data.status as PaymentStatus);
         return;
       }
-      setSessionError(
+      patchPaymentState({
+        sessionError:
         resolvePublicPaymentProofErrorMessage(
           res.message || "Tidak dapat mengunggah bukti pembayaran.",
         ),
-      );
+      });
     } catch (err) {
-      setSessionError(
+      patchPaymentState({
+        sessionError:
         resolvePublicPaymentProofErrorMessage(
           err instanceof Error
             ? err.message
             : "Tidak dapat mengunggah bukti pembayaran.",
         ),
-      );
+      });
     } finally {
-      setIsLoading(false);
+      patchPaymentState({ isLoading: false });
     }
   };
 
@@ -199,18 +248,19 @@ export function PaymentMethods({
     let ignore = false;
     async function bootstrapSession(methodValue: string) {
       if (!hasMethods || !methodValue) {
-        setSession(null);
-        setSessionError("Metode pembayaran belum tersedia.");
+        applyBootstrapFailure("Metode pembayaran belum tersedia.", {
+          session: null,
+        });
         return;
       }
       if (!reservationId) {
-        setSessionError(
+        applyBootstrapFailure(
           "ID reservasi wajib diisi sebelum membuat sesi pembayaran.",
         );
         return;
       }
       if (!ownershipToken) {
-        setSessionError(
+        applyBootstrapFailure(
           "Token kepemilikan reservasi tidak tersedia. Gunakan tautan resmi terbaru.",
         );
         return;
@@ -220,14 +270,10 @@ export function PaymentMethods({
         reusableSession.method === methodValue &&
         reusableSession.type === mode
       ) {
-        setSession(reusableSession);
-        setStatus(reusableSession.status);
-        setSessionError(null);
-        onSessionChangeRef.current?.(reusableSession);
+        applyBootstrapSession(reusableSession);
         return;
       }
-      setIsLoading(true);
-      setSessionError(null);
+      beginBootstrapRequest();
       try {
         const res = await createPaymentSession({
           reservation_id: reservationId,
@@ -237,7 +283,7 @@ export function PaymentMethods({
         });
         if (ignore) return;
         if (res.success && res.data) {
-          setSession({
+          applyBootstrapSession({
             paymentId: res.data.payment_id,
             reservationId: res.data.reservation_id,
             amount: res.data.amount,
@@ -246,37 +292,29 @@ export function PaymentMethods({
             payBy: res.data.pay_by,
             status: res.data.status,
           });
-          setStatus(res.data.status as PaymentStatus);
-          onSessionChangeRef.current?.({
-            paymentId: res.data.payment_id,
-            reservationId: res.data.reservation_id,
-            amount: res.data.amount,
-            type: res.data.type as PaymentMode,
-            method: res.data.method,
-            payBy: res.data.pay_by,
-            status: res.data.status as PaymentStatus,
-          });
         } else {
-          setSessionError(
+          applyBootstrapFailure(
             resolvePublicPaymentSessionErrorMessage(
               res.message || "Tidak dapat membuat sesi pembayaran",
             ),
+            { clearCallback: true },
           );
-          onSessionChangeRef.current?.(null);
         }
       } catch (err) {
         if (!ignore) {
-          setSessionError(
+          applyBootstrapFailure(
             resolvePublicPaymentSessionErrorMessage(
               err instanceof Error
                 ? err.message
                 : "Gagal membuat sesi pembayaran",
             ),
+            { clearCallback: true },
           );
-          onSessionChangeRef.current?.(null);
         }
       } finally {
-        if (!ignore) setIsLoading(false);
+        if (!ignore) {
+          finishBootstrapRequest();
+        }
       }
     }
     bootstrapSession(selected);
@@ -333,7 +371,7 @@ export function PaymentMethods({
       {hasMethods ? (
         <RadioGroup
           value={selected}
-          onValueChange={setSelected}
+          onValueChange={(value) => patchPaymentState({ selected: value })}
           className="space-y-4"
         >
           {methodGroups?.map((group) => (
@@ -457,12 +495,16 @@ export function PaymentMethods({
               const file = e.target.files?.[0];
               const validationError = validatePublicPaymentProofFile(file);
               if (validationError) {
-                setProofFile(null);
-                setSessionError(validationError);
+                patchPaymentState({
+                  proofFile: null,
+                  sessionError: validationError,
+                });
                 return;
               }
-              setSessionError(null);
-              setProofFile(file ?? null);
+              patchPaymentState({
+                sessionError: null,
+                proofFile: file ?? null,
+              });
             }}
             className="block w-full rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-950 px-4 py-4 text-sm text-slate-700 dark:text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-500"
           />

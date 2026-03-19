@@ -19,27 +19,27 @@ export function FeatureJournalDetailGeneralInfo({
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-8 p-6 md:grid-cols-3">
         <div>
-          <label className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
+          <p className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
             Reference Number
-          </label>
+          </p>
           <p className="text-sm font-medium text-gray-900 dark:text-white">{data.reference_number}</p>
         </div>
         <div>
-          <label className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
+          <p className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
             Journal Date
-          </label>
+          </p>
           <p className="text-sm font-medium text-gray-900 dark:text-white">{data.journal_date}</p>
         </div>
         <div>
-          <label className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
+          <p className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
             Partner / Entity
-          </label>
+          </p>
           <p className="text-sm font-medium text-gray-900 dark:text-white">{data.partner_entity}</p>
         </div>
         <div className="md:col-span-3">
-          <label className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
+          <p className="mb-2 block text-xs font-semibold tracking-wider text-gray-400 uppercase">
             Journal Name
-          </label>
+          </p>
           <p className="text-sm font-medium text-gray-900 dark:text-white">{data.journal_name}</p>
         </div>
       </CardContent>

@@ -41,33 +41,48 @@ type FeaturePaymentCreateFormProps = {
   destinationAccountOptions?: string[];
 };
 
+const EMPTY_OUTSTANDING_INVOICES: OutstandingInvoiceOption[] = [];
+const EMPTY_CUSTOMER_OPTIONS: string[] = [];
+const EMPTY_PAYMENT_METHOD_OPTIONS: string[] = [];
+const EMPTY_DESTINATION_ACCOUNT_OPTIONS: string[] = [];
+
 export function FeaturePaymentCreateForm({
   onCancel,
   onSubmit,
   submitLabel = "Record Payment",
   isSubmitting = false,
   errorMessage,
-  outstandingInvoices = [],
-  customerOptions = [],
-  paymentMethodOptions = [],
-  destinationAccountOptions = [],
+  outstandingInvoices = EMPTY_OUTSTANDING_INVOICES,
+  customerOptions = EMPTY_CUSTOMER_OPTIONS,
+  paymentMethodOptions = EMPTY_PAYMENT_METHOD_OPTIONS,
+  destinationAccountOptions = EMPTY_DESTINATION_ACCOUNT_OPTIONS,
 }: FeaturePaymentCreateFormProps) {
-  const [customer, setCustomer] = useState(INITIAL_PAYMENT_DRAFT.customer);
-  const [paymentDate, setPaymentDate] = useState(
-    INITIAL_PAYMENT_DRAFT.payment_date,
-  );
-  const [paymentMethod, setPaymentMethod] = useState(
-    INITIAL_PAYMENT_DRAFT.payment_method,
-  );
-  const [destinationAccount, setDestinationAccount] = useState(
-    INITIAL_PAYMENT_DRAFT.destination_account,
-  );
-  const [amountReceived, setAmountReceived] = useState(
-    INITIAL_PAYMENT_DRAFT.amount_received,
-  );
-  const [selectedInvoiceNumbers, setSelectedInvoiceNumbers] = useState<
-    string[]
-  >(INITIAL_PAYMENT_DRAFT.selected_invoice_numbers);
+  const [formState, setFormState] = useState(() => ({
+    customer: INITIAL_PAYMENT_DRAFT.customer,
+    paymentDate: INITIAL_PAYMENT_DRAFT.payment_date,
+    paymentMethod: INITIAL_PAYMENT_DRAFT.payment_method,
+    destinationAccount: INITIAL_PAYMENT_DRAFT.destination_account,
+    amountReceived: INITIAL_PAYMENT_DRAFT.amount_received,
+    selectedInvoiceNumbers: INITIAL_PAYMENT_DRAFT.selected_invoice_numbers,
+  }));
+  const {
+    customer,
+    paymentDate,
+    paymentMethod,
+    destinationAccount,
+    amountReceived,
+    selectedInvoiceNumbers,
+  } = formState;
+
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const allChecked =
     outstandingInvoices.length > 0 &&
@@ -81,9 +96,17 @@ export function FeaturePaymentCreateForm({
   );
 
   const toggleInvoice = (invoiceNumber: string, checked: boolean) => {
-    setSelectedInvoiceNumbers((current) => {
-      if (checked) return Array.from(new Set([...current, invoiceNumber]));
-      return current.filter((item) => item !== invoiceNumber);
+    patchFormState((current) => {
+      return {
+        ...current,
+        selectedInvoiceNumbers: checked
+          ? Array.from(
+              new Set([...current.selectedInvoiceNumbers, invoiceNumber]),
+            )
+          : current.selectedInvoiceNumbers.filter(
+              (item) => item !== invoiceNumber,
+            ),
+      };
     });
   };
 
@@ -119,14 +142,20 @@ export function FeaturePaymentCreateForm({
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="payment-create-customer"
+                className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Customer
               </label>
               <div className="relative">
                 <User className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
+                  id="payment-create-customer"
                   value={customer}
-                  onChange={(event) => setCustomer(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ customer: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   placeholder="Customer name"
                   list="payment-customer-options"
@@ -142,29 +171,41 @@ export function FeaturePaymentCreateForm({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="payment-create-date"
+                className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Payment Date
               </label>
               <div className="relative">
                 <Calendar className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
+                  id="payment-create-date"
                   type="date"
                   value={paymentDate}
-                  onChange={(event) => setPaymentDate(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ paymentDate: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                 />
               </div>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="payment-create-method"
+                className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Payment Method
               </label>
               <div className="relative">
                 <CreditCard className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
+                  id="payment-create-method"
                   value={paymentMethod}
-                  onChange={(event) => setPaymentMethod(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ paymentMethod: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   placeholder="Payment method"
                   list="payment-method-options"
@@ -180,15 +221,21 @@ export function FeaturePaymentCreateForm({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="payment-create-destination-account"
+                className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Destination Account
               </label>
               <div className="relative">
                 <Banknote className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
+                  id="payment-create-destination-account"
                   value={destinationAccount}
                   onChange={(event) =>
-                    setDestinationAccount(event.target.value)
+                    patchFormState({
+                      destinationAccount: event.target.value,
+                    })
                   }
                   className="bg-gray-50 pl-10 dark:bg-gray-800"
                   placeholder="Destination account"
@@ -205,7 +252,10 @@ export function FeaturePaymentCreateForm({
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="payment-create-amount"
+                className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Amount Received
               </label>
               <div className="relative">
@@ -213,8 +263,11 @@ export function FeaturePaymentCreateForm({
                   Rp
                 </span>
                 <Input
+                  id="payment-create-amount"
                   value={amountReceived}
-                  onChange={(event) => setAmountReceived(event.target.value)}
+                  onChange={(event) =>
+                    patchFormState({ amountReceived: event.target.value })
+                  }
                   className="bg-gray-50 pl-10 font-bold dark:bg-gray-800"
                 />
               </div>
@@ -222,9 +275,9 @@ export function FeaturePaymentCreateForm({
 
             <div className="md:col-span-2">
               <div className="mb-3 flex items-center justify-between">
-                <label className="text-sm font-bold text-gray-900 dark:text-white">
+                <span className="text-sm font-bold text-gray-900 dark:text-white">
                   Pay Against Invoices
-                </label>
+                </span>
                 <Badge className="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:bg-indigo-900/40">
                   {selectedCount} Outstanding
                 </Badge>
@@ -239,13 +292,13 @@ export function FeaturePaymentCreateForm({
                           <Checkbox
                             checked={allChecked}
                             onCheckedChange={(checked) => {
-                              setSelectedInvoiceNumbers(
-                                checked
+                              patchFormState({
+                                selectedInvoiceNumbers: checked
                                   ? outstandingInvoices.map(
                                       (item) => item.invoice_number,
                                     )
                                   : [],
-                              );
+                              });
                             }}
                             aria-label="Select all outstanding invoices"
                           />

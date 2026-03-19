@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import { Image as ImageIcon, Plus, Save, Trash2, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -395,6 +395,10 @@ const buildInitialState = (
 };
 
 export function ProductVariantPage({ id }: ProductVariantPageProps) {
+  return <ProductVariantPageContent key={id} id={id} />;
+}
+
+function ProductVariantPageContent({ id }: ProductVariantPageProps) {
   const router = useRouter();
   const qc = useQueryClient();
   const variantActions = useInventoryVariantActions();
@@ -411,19 +415,86 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     return "SKU";
   }, [product?.sku, product?.name]);
 
-  const [saving, setSaving] = useState(false);
-  const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
-  const [bulkPriceValue, setBulkPriceValue] = useState("");
-  const [bulkStockOpen, setBulkStockOpen] = useState(false);
-  const [bulkStockValue, setBulkStockValue] = useState("");
-  const [newAttributeOpen, setNewAttributeOpen] = useState(false);
-  const [newAttributeName, setNewAttributeName] = useState("");
-  const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
-  const [valueInputs, setValueInputs] = useState<Record<string, string>>({});
+  const [uiState, setUiState] = useState({
+    saving: false,
+    bulkPriceOpen: false,
+    bulkPriceValue: "",
+    bulkStockOpen: false,
+    bulkStockValue: "",
+    newAttributeOpen: false,
+    newAttributeName: "",
+    pendingDelete: null as PendingDelete,
+    valueInputs: {} as Record<string, string>,
+    isDirty: false,
+  });
+  const {
+    saving,
+    bulkPriceOpen,
+    bulkPriceValue,
+    bulkStockOpen,
+    bulkStockValue,
+    newAttributeOpen,
+    newAttributeName,
+    pendingDelete,
+    valueInputs,
+    isDirty,
+  } = uiState;
 
+  const resolveUpdate = <T,>(current: T, next: SetStateAction<T>): T =>
+    typeof next === "function" ? (next as (prev: T) => T)(current) : next;
+
+  const setSaving = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      saving: resolveUpdate(current.saving, next),
+    }));
+  const setBulkPriceOpen = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      bulkPriceOpen: resolveUpdate(current.bulkPriceOpen, next),
+    }));
+  const setBulkPriceValue = (next: SetStateAction<string>) =>
+    setUiState((current) => ({
+      ...current,
+      bulkPriceValue: resolveUpdate(current.bulkPriceValue, next),
+    }));
+  const setBulkStockOpen = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      bulkStockOpen: resolveUpdate(current.bulkStockOpen, next),
+    }));
+  const setBulkStockValue = (next: SetStateAction<string>) =>
+    setUiState((current) => ({
+      ...current,
+      bulkStockValue: resolveUpdate(current.bulkStockValue, next),
+    }));
+  const setNewAttributeOpen = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      newAttributeOpen: resolveUpdate(current.newAttributeOpen, next),
+    }));
+  const setNewAttributeName = (next: SetStateAction<string>) =>
+    setUiState((current) => ({
+      ...current,
+      newAttributeName: resolveUpdate(current.newAttributeName, next),
+    }));
+  const setPendingDelete = (next: SetStateAction<PendingDelete>) =>
+    setUiState((current) => ({
+      ...current,
+      pendingDelete: resolveUpdate(current.pendingDelete, next),
+    }));
+  const setValueInputs = (next: SetStateAction<Record<string, string>>) =>
+    setUiState((current) => ({
+      ...current,
+      valueInputs: resolveUpdate(current.valueInputs, next),
+    }));
+  const setIsDirty = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      isDirty: resolveUpdate(current.isDirty, next),
+    }));
   const [attributes, setAttributes] = useState<VariantAttribute[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
-  const [isDirty, setIsDirty] = useState(false);
   const serverVariantMaps = useMemo(() => {
     const activeAttributes = getActiveAttributes(attributes);
     if (!variantsData || activeAttributes.length === 0) return null;
@@ -439,20 +510,18 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
     [variantsData],
   );
 
-  useEffect(() => {
-    // Reset local draft when opening another product variant page.
-    setAttributes([]);
-    setVariants([]);
+  const applyInitialVariantState = (
+    initial: ReturnType<typeof buildInitialState>,
+  ) => {
+    setAttributes(initial.attributes);
+    setVariants(initial.variants);
     setValueInputs({});
-    setIsDirty(false);
-  }, [id]);
+  };
 
   useEffect(() => {
     if (!variantsData || !product || isDirty) return;
     const initial = buildInitialState(variantsData, basePrice, skuPrefix);
-    setAttributes(initial.attributes);
-    setVariants(initial.variants);
-    setValueInputs({});
+    applyInitialVariantState(initial);
   }, [variantsData, product, basePrice, skuPrefix, isDirty]);
 
   useEffect(() => {
@@ -1100,10 +1169,11 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      <label htmlFor={`variant-attribute-name-${attribute.id}`} className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                         Nama atribut
                       </label>
                       <Input
+                        id={`variant-attribute-name-${attribute.id}`}
                         value={attribute.name}
                         onChange={(event) =>
                           handleChangeAttributeName(
@@ -1472,10 +1542,11 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             Tambah Atribut Baru
           </DialogTitle>
           <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="new-attribute-name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Nama atribut
             </label>
             <Input
+              id="new-attribute-name"
               value={newAttributeName}
               onChange={(event) => setNewAttributeName(event.target.value)}
               placeholder="Contoh: Ukuran, RAM, Warna"
@@ -1512,10 +1583,11 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             Terapkan Harga ke Semua Varian
           </DialogTitle>
           <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="bulk-price-value" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Harga jual (Rp)
             </label>
             <Input
+              id="bulk-price-value"
               type="number"
               value={bulkPriceValue}
               onChange={(event) => setBulkPriceValue(event.target.value)}
@@ -1549,10 +1621,11 @@ export function ProductVariantPage({ id }: ProductVariantPageProps) {
             Terapkan Stok ke Semua Varian
           </DialogTitle>
           <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="bulk-stock-value" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Jumlah stok
             </label>
             <Input
+              id="bulk-stock-value"
               type="number"
               value={bulkStockValue}
               onChange={(event) => setBulkStockValue(event.target.value)}

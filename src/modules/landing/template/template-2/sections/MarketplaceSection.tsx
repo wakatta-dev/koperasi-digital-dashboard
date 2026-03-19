@@ -1,5 +1,6 @@
 /** @format */
 
+import Link from "next/link";
 import { asArray, asRecord, asString } from "../../shared/content";
 
 const DEFAULT_TABS = [
@@ -182,7 +183,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
       <div className="flex overflow-x-auto pb-4 gap-3 justify-start md:justify-center mb-10 no-scrollbar">
         {tabs.map((tab, index) => (
           <button
-            key={`${tab.label}-${index}`}
+            key={tab.label}
             className={
               index === 0 ? TAB_BUTTON_CLASSES[0] : TAB_BUTTON_CLASSES[((index - 1) % (TAB_BUTTON_CLASSES.length - 1)) + 1]
             }
@@ -197,7 +198,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
         {cards.map((card, index) => {
           const theme = CARD_THEME[index % CARD_THEME.length];
           return (
-            <div key={`${card.title}-${index}`} className={theme.card}>
+            <div key={`${card.title}-${card.price}`} className={theme.card}>
               <div
                 className={`aspect-[4/3] rounded-2xl overflow-hidden mb-4 relative bg-gray-100 ${
                   card.image_url ? "" : "flex items-center justify-center"
@@ -247,9 +248,9 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
           );
         })}
 
-        <a
+        <Link
           className="group bg-village-dark rounded-3xl p-8 border-b-8 border-r-8 border-market-teal border-b-market-teal hover:bg-market-teal hover:border-village-dark transition-all duration-300 transform hover:-translate-y-2 flex flex-col items-center justify-center text-center h-full min-h-[400px]"
-          href="#"
+          href="/"
         >
           <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mb-6 group-hover:bg-white/20">
             <span className="material-symbols-outlined text-5xl text-white">arrow_forward</span>
@@ -260,7 +261,7 @@ export function TemplateTwoMarketplaceSection({ data }: TemplateTwoMarketplaceSe
             Produk Desa
           </h3>
           <p className="text-white/70 font-medium">Masih ada 50+ produk lainnya</p>
-        </a>
+        </Link>
       </div>
     </section>
   );

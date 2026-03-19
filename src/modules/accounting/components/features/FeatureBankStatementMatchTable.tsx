@@ -17,13 +17,15 @@ type FeatureBankStatementMatchTableProps = {
   onRowsChange?: (rows: BankStatementLineItem[]) => void;
 };
 
+const EMPTY_BANK_STATEMENT_ROWS: BankStatementLineItem[] = [];
+
 export function FeatureBankStatementMatchTable({
-  rows = [],
+  rows = EMPTY_BANK_STATEMENT_ROWS,
   onRowsChange,
 }: FeatureBankStatementMatchTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [internalRows, setInternalRows] =
-    useState<BankStatementLineItem[]>(rows);
+    useState<BankStatementLineItem[]>(EMPTY_BANK_STATEMENT_ROWS);
 
   useEffect(() => {
     if (!onRowsChange) {

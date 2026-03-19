@@ -321,12 +321,29 @@ function resolveNextValidAction(detail: OrderDetail | null, data: any) {
 export function OrderDetailPage({ id }: OrderDetailPageProps) {
   const { data, isLoading, isError, error } = useMarketplaceOrder(id);
   const { updateStatus } = useMarketplaceOrderActions();
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [statusValue, setStatusValue] = useState<OrderStatus>("PENDING_PAYMENT");
-  const [noteValue, setNoteValue] = useState("");
-  const [noteError, setNoteError] = useState<string | null>(null);
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
-  const [internalNotes, setInternalNotes] = useState("");
+  const [uiState, setUiState] = useState({
+    statusOpen: false,
+    statusValue: "PENDING_PAYMENT" as OrderStatus,
+    noteValue: "",
+    noteError: null as string | null,
+    invoiceOpen: false,
+    internalNotes: "",
+  });
+  const {
+    statusOpen,
+    statusValue,
+    noteValue,
+    noteError,
+    invoiceOpen,
+    internalNotes,
+  } = uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const detail: OrderDetail | null = useMemo(() => {
     if (!data) return null;
@@ -411,20 +428,17 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
   const handleOpenStatus = () => {
     if (!detail) return;
 
-    setNoteValue("");
-    setNoteError(null);
-
-    if (statusOptions.length > 0) {
-      setStatusValue(statusOptions[0].value);
-    } else {
-      setStatusValue(detail.status);
-    }
-
-    setStatusOpen(true);
+    patchUiState({
+      noteValue: "",
+      noteError: null,
+      statusValue:
+        statusOptions.length > 0 ? statusOptions[0].value : detail.status,
+      statusOpen: true,
+    });
   };
 
   useEffect(() => {
-    setInternalNotes(detail?.internalNotes ?? "");
+    patchUiState({ internalNotes: detail?.internalNotes ?? "" });
   }, [detail?.internalNotes]);
 
   const workspacePaymentState = useMemo(() => resolveWorkspacePaymentState(data), [data]);
@@ -457,7 +471,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
       isMarketplaceTransitionReasonRequired(data.status, statusValue) &&
       reason.length === 0
     ) {
-      setNoteError("Alasan wajib diisi untuk transisi status ini.");
+      patchUiState({ noteError: "Alasan wajib diisi untuk transisi status ini." });
       toast.error("Alasan wajib diisi sebelum memperbarui status.");
       return;
     }
@@ -466,8 +480,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
       id: data.id,
       payload: { status: statusValue, reason: reason || undefined },
     });
-    setNoteError(null);
-    setStatusOpen(false);
+    patchUiState({ noteError: null, statusOpen: false });
   };
 
   if (isLoading) {
@@ -488,7 +501,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         orderNumber={detail.orderCode}
         status={detail.status}
         createdAt={detail.createdAt}
-        onPrintInvoice={() => setInvoiceOpen(true)}
+        onPrintInvoice={() => patchUiState({ invoiceOpen: true })}
         onSendMessage={() => undefined}
         onUpdateStatus={handleOpenStatus}
       />
@@ -680,14 +693,17 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
             shippingAddress={detail.shippingAddress.line1}
             billingSameAsShipping
           />
-          <OrderNotesForm value={internalNotes} onChange={setInternalNotes} />
+          <OrderNotesForm
+            value={internalNotes}
+            onChange={(value) => patchUiState({ internalNotes: value })}
+          />
           <div className="surface-card p-6">
             <h3 className="text-base font-semibold text-gray-900 dark:text-white">Riwayat Status</h3>
             <div className="mt-4 space-y-4">
               {detail.statusHistory.length > 0 ? (
                 detail.statusHistory.map((entry, index) => (
                   <div
-                    key={`${entry.status}-${entry.timestamp}-${index}`}
+                    key={`${entry.status}-${entry.timestamp}-${entry.reason ?? "no-reason"}`}
                     className="rounded-lg border border-border bg-muted/20 p-4"
                   >
                     <p className="text-sm font-semibold text-foreground">
@@ -711,7 +727,7 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
 
       <OrderStatusModal
         open={statusOpen}
-        onOpenChange={setStatusOpen}
+        onOpenChange={(open) => patchUiState({ statusOpen: open })}
         orderNumber={detail.orderCode}
         currentStatusLabel={getOrderStatusDisplayLabel(detail.status)}
         status={statusValue}
@@ -722,21 +738,24 @@ export function OrderDetailPage({ id }: OrderDetailPageProps) {
         reasonRequired={reasonRequired}
         noteError={noteError ?? undefined}
         onStatusChange={(value) => {
-          setStatusValue(value as OrderStatus);
-          setNoteError(null);
+          patchUiState({
+            statusValue: value as OrderStatus,
+            noteError: null,
+          });
         }}
         onNoteChange={(value) => {
-          setNoteValue(value);
-          if (noteError) {
-            setNoteError(null);
-          }
+          patchUiState((current) => ({
+            ...current,
+            noteValue: value,
+            noteError: current.noteError ? null : current.noteError,
+          }));
         }}
         onSubmit={handleSubmitStatus}
       />
 
       <OrderInvoiceDialog
         open={invoiceOpen}
-        onOpenChange={setInvoiceOpen}
+        onOpenChange={(open) => patchUiState({ invoiceOpen: open })}
         orderId={detail.orderId}
       />
     </div>

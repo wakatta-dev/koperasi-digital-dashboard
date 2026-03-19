@@ -3,7 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
@@ -25,10 +24,16 @@ import {
   withMarketplaceDenyReasonMessage,
 } from "@/services/api";
 
-export function MarketplaceConfirmationPage() {
-  const searchParams = useSearchParams();
-  const orderId = Number(searchParams.get("order_id") ?? "");
-  const trackingToken = (searchParams.get("tracking_token") ?? "").trim();
+type MarketplaceConfirmationPageProps = {
+  orderId?: number;
+  trackingToken?: string;
+};
+
+export function MarketplaceConfirmationPage({
+  orderId = Number.NaN,
+  trackingToken: rawTrackingToken = "",
+}: MarketplaceConfirmationPageProps) {
+  const trackingToken = rawTrackingToken.trim();
 
   const {
     data: guestStatusDetail,

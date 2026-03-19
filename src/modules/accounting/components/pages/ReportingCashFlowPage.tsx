@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAccountingReportingCashFlow } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -16,10 +16,19 @@ import {
 } from "../features/FeatureReportingStatements";
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
-export function ReportingCashFlowPage() {
+type ReportingCashFlowPageProps = {
+  queryString?: string;
+};
+
+export function ReportingCashFlowPage({
+  queryString = "",
+}: ReportingCashFlowPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialState = useMemo(
     () =>
@@ -37,19 +46,22 @@ export function ReportingCashFlowPage() {
     setEnd(initialState.end ?? "");
   }, [initialState.end, initialState.start]);
 
-  useEffect(() => {
-    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
+  const updateDateRange = (nextStart: string, nextEnd: string) => {
+    const resolvedPreset =
+      nextStart && nextEnd ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
       preset: resolvedPreset,
-      start: start || undefined,
-      end: end || undefined,
+      start: nextStart || undefined,
+      end: nextEnd || undefined,
       page: undefined,
       page_size: undefined,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [end, initialState, pathname, router, searchParams, start]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reportQuery = useAccountingReportingCashFlow({
     preset: start && end ? "custom" : initialState.preset || "today",
@@ -71,7 +83,18 @@ export function ReportingCashFlowPage() {
             Detailed view of cash inflows and outflows.
           </p>
         </div>
-        <FeatureCashFlowToolbar start={start} end={end} onStartChange={setStart} onEndChange={setEnd} />
+        <FeatureCashFlowToolbar
+          start={start}
+          end={end}
+          onStartChange={(value) => {
+            setStart(value);
+            updateDateRange(value, end);
+          }}
+          onEndChange={(value) => {
+            setEnd(value);
+            updateDateRange(start, value);
+          }}
+        />
       </section>
 
       {reportQuery.error ? (

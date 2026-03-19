@@ -27,6 +27,8 @@ type VendorBillsApBatchPaymentPageProps = {
   preselectedBillNumbers?: string[];
 };
 
+const EMPTY_PRESELECTED_BILL_NUMBERS: string[] = [];
+
 function buildDueState(dueDateRaw: string, status: string): {
   label: string;
   tone: BatchPaymentBillItem["due_state_tone"];
@@ -56,7 +58,7 @@ function buildDueState(dueDateRaw: string, status: string): {
 }
 
 export function VendorBillsApBatchPaymentPage({
-  preselectedBillNumbers = [],
+  preselectedBillNumbers = EMPTY_PRESELECTED_BILL_NUMBERS,
 }: VendorBillsApBatchPaymentPageProps) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

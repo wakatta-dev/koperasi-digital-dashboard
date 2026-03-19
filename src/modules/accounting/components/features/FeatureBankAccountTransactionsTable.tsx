@@ -20,10 +20,11 @@ type FeatureBankAccountTransactionsTableProps = {
   onViewDetail?: (row: BankAccountTransactionItem) => void;
 };
 
+const EMPTY_BANK_ACCOUNT_TRANSACTION_ROWS: BankAccountTransactionItem[] = [];
 const PAGE_SIZE = 4;
 
 export function FeatureBankAccountTransactionsTable({
-  rows = [],
+  rows = EMPTY_BANK_ACCOUNT_TRANSACTION_ROWS,
   filters,
   onViewDetail,
 }: FeatureBankAccountTransactionsTableProps) {

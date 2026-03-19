@@ -5,6 +5,27 @@ import { LandingFooter } from "@/modules/landing/components/footer";
 import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { CART_BADGE } from "../../constants";
 
+const PAYMENT_STEP_SKELETON_IDS = [
+  "payment-step-1",
+  "payment-step-2",
+  "payment-step-3",
+  "payment-step-4",
+];
+const PAYMENT_METHOD_SKELETON_IDS = [
+  "payment-method-1",
+  "payment-method-2",
+];
+const PAYMENT_UPLOAD_SKELETON_IDS = [
+  "payment-upload-1",
+  "payment-upload-2",
+];
+const PAYMENT_SUMMARY_SKELETON_IDS = [
+  "payment-summary-1",
+  "payment-summary-2",
+  "payment-summary-3",
+  "payment-summary-4",
+];
+
 function StepSkeleton() {
   return (
     <div className="relative flex flex-col items-center z-10 group cursor-default">
@@ -25,8 +46,8 @@ export function MarketplacePaymentSkeleton() {
             <div className="relative flex items-center justify-between">
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-border rounded-full z-0"></div>
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2/3 h-1 bg-indigo-600 rounded-full z-0"></div>
-              {[...Array(4)].map((_, idx) => (
-                <StepSkeleton key={idx} />
+              {PAYMENT_STEP_SKELETON_IDS.map((id) => (
+                <StepSkeleton key={id} />
               ))}
             </div>
           </div>
@@ -36,14 +57,14 @@ export function MarketplacePaymentSkeleton() {
             <div className="lg:col-span-8 space-y-6">
               <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
                 <Skeleton className="h-5 w-48" />
-                {[...Array(2)].map((_, idx) => (
-                  <Skeleton key={idx} className="h-16 w-full rounded-xl" />
+                {PAYMENT_METHOD_SKELETON_IDS.map((id) => (
+                  <Skeleton key={id} className="h-16 w-full rounded-xl" />
                 ))}
               </div>
               <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
                 <Skeleton className="h-5 w-44" />
-                {[...Array(2)].map((_, idx) => (
-                  <Skeleton key={idx} className="h-16 w-full rounded-xl" />
+                {PAYMENT_UPLOAD_SKELETON_IDS.map((id) => (
+                  <Skeleton key={id} className="h-16 w-full rounded-xl" />
                 ))}
               </div>
               <Skeleton className="h-4 w-48" />
@@ -51,8 +72,8 @@ export function MarketplacePaymentSkeleton() {
             <div className="lg:col-span-4">
               <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
                 <Skeleton className="h-5 w-40" />
-                {[...Array(4)].map((_, idx) => (
-                  <div key={idx} className="flex justify-between items-center">
+                {PAYMENT_SUMMARY_SKELETON_IDS.map((id) => (
+                  <div key={id} className="flex justify-between items-center">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-20" />
                   </div>

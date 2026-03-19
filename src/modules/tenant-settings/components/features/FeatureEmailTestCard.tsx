@@ -61,8 +61,8 @@ export function FeatureEmailTestCard({
 
           {placeholders.length ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {placeholders.map((placeholder, index) => (
-                <div key={`${placeholder}-${index}`} className="space-y-2">
+              {placeholders.map((placeholder) => (
+                <div key={placeholder} className="space-y-2">
                   <Label htmlFor={`placeholder-${placeholder}`}>{`{{${placeholder}}}`}</Label>
                   <Input
                     id={`placeholder-${placeholder}`}

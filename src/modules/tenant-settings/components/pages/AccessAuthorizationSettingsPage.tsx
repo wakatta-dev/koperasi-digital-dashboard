@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   usePermissionCatalog,
@@ -26,26 +26,72 @@ import {
   isRoleProtected,
 } from "../../lib/settings";
 
-export function AccessAuthorizationSettingsPage() {
+type AccessAuthorizationSettingsPageProps = {
+  queryString?: string;
+};
+
+function dedupeByAlias<T extends { alias: string }>(items: T[]) {
+  const seenAliases = new Set<string>();
+
+  return items.filter((item) => {
+    if (seenAliases.has(item.alias)) {
+      return false;
+    }
+
+    seenAliases.add(item.alias);
+    return true;
+  });
+}
+
+export function AccessAuthorizationSettingsPage({
+  queryString = "",
+}: AccessAuthorizationSettingsPageProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
   const tenantType = getSettingsTenantType(
     (session?.user as { jenis_tenant?: string } | undefined)?.jenis_tenant
   );
   const requestedRoleId = searchParams.get("role") ?? "";
-  const pendingSelectedRoleIdRef = useRef<string | null>(null);
 
-  const [search, setSearch] = useState("");
-  const [selectedRoleId, setSelectedRoleId] = useState("");
-  const [newRoleName, setNewRoleName] = useState("");
-  const [newRoleDescription, setNewRoleDescription] = useState("");
-  const [editRoleName, setEditRoleName] = useState("");
-  const [editRoleDescription, setEditRoleDescription] = useState("");
+  const [uiState, setUiState] = useState({
+    search: "",
+    selectedRoleId: "",
+    newRoleName: "",
+    newRoleDescription: "",
+    editRoleName: "",
+    editRoleDescription: "",
+    selectedPermissionAlias: "",
+  });
   const [assignRoleByUser, setAssignRoleByUser] = useState<Record<number, string>>({});
-  const [selectedPermissionAlias, setSelectedPermissionAlias] = useState("");
+  const {
+    search,
+    selectedRoleId,
+    newRoleName,
+    newRoleDescription,
+    editRoleName,
+    editRoleDescription,
+    selectedPermissionAlias,
+  } = uiState;
+
+  const patchUiState = useCallback(
+    (
+      updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+    ) => {
+      setUiState((current) =>
+        typeof updates === "function" ? updates(current) : { ...current, ...updates },
+      );
+    },
+    [],
+  );
+  const handleSearchChange = useCallback((value: string) => {
+    setUiState((current) => ({ ...current, search: value }));
+  }, []);
 
   const usersQuery = useUsers({ term: search || undefined, limit: 100 });
   const rolesQuery = useRoles({ limit: 100 });
@@ -60,7 +106,14 @@ export function AccessAuthorizationSettingsPage() {
     [roles, selectedRoleId]
   );
   const rolePermissionsQuery = useRolePermissions(selectedRoleId || undefined, { limit: 200 });
-  const permissions = useMemo(() => rolePermissionsQuery.data ?? [], [rolePermissionsQuery.data]);
+  const permissions = useMemo(
+    () => dedupeByAlias(rolePermissionsQuery.data ?? []),
+    [rolePermissionsQuery.data]
+  );
+  const permissionCatalog = useMemo(
+    () => dedupeByAlias(permissionCatalogQuery.data ?? []),
+    [permissionCatalogQuery.data]
+  );
 
   const syncRoleQuery = useCallback(
     (roleId: string) => {
@@ -75,81 +128,78 @@ export function AccessAuthorizationSettingsPage() {
 
   const handleSelectRole = useCallback(
     (roleId: string) => {
-      pendingSelectedRoleIdRef.current = roleId;
-      setSelectedRoleId(roleId);
+      patchUiState({ selectedRoleId: roleId });
       syncRoleQuery(roleId);
     },
-    [syncRoleQuery]
+    [patchUiState, syncRoleQuery]
   );
 
   useEffect(() => {
+    let nextRoleId = selectedRoleId;
     if (!roles.length) {
-      pendingSelectedRoleIdRef.current = null;
-      setSelectedRoleId("");
+      nextRoleId = "";
+    } else if (
+      requestedRoleId &&
+      roles.some((role) => String(role.id) === requestedRoleId)
+    ) {
+      nextRoleId = requestedRoleId;
+    } else if (
+      !selectedRoleId ||
+      !roles.some((role) => String(role.id) === selectedRoleId)
+    ) {
+      const firstEditable =
+        roles.find((role) => !isRoleProtected(role)) ?? roles[0];
+      nextRoleId = String(firstEditable.id);
+    }
+
+    if (nextRoleId === selectedRoleId) {
       return;
     }
 
-    const hasRole = (roleId: string) => roles.some((role) => String(role.id) === roleId);
-
-    if (pendingSelectedRoleIdRef.current) {
-      if (requestedRoleId === pendingSelectedRoleIdRef.current) {
-        pendingSelectedRoleIdRef.current = null;
-      } else if (hasRole(pendingSelectedRoleIdRef.current)) {
-        return;
-      } else {
-        pendingSelectedRoleIdRef.current = null;
-      }
+    patchUiState({ selectedRoleId: nextRoleId });
+    if (nextRoleId) {
+      syncRoleQuery(nextRoleId);
     }
+  }, [patchUiState, requestedRoleId, roles, selectedRoleId, syncRoleQuery]);
 
-    if (requestedRoleId && roles.some((role) => String(role.id) === requestedRoleId)) {
-      if (selectedRoleId !== requestedRoleId) {
-        setSelectedRoleId(requestedRoleId);
-      }
+  const syncSelectedRoleDraft = useCallback((role: typeof selectedRole) => {
+    if (!role) {
+      patchUiState({
+        editRoleName: "",
+        editRoleDescription: "",
+      });
       return;
     }
-
-    if (selectedRoleId && hasRole(selectedRoleId)) {
-      return;
-    }
-
-    const firstEditable = roles.find((role) => !isRoleProtected(role)) ?? roles[0];
-    const fallbackRoleId = String(firstEditable.id);
-    if (selectedRoleId !== fallbackRoleId) {
-      pendingSelectedRoleIdRef.current = fallbackRoleId;
-      setSelectedRoleId(fallbackRoleId);
-      syncRoleQuery(fallbackRoleId);
-    }
-  }, [requestedRoleId, roles, selectedRoleId, syncRoleQuery]);
+    patchUiState({
+      editRoleName: role.name,
+      editRoleDescription: role.description ?? "",
+    });
+  }, [patchUiState]);
 
   useEffect(() => {
-    if (!selectedRole) {
-      setEditRoleName("");
-      setEditRoleDescription("");
-      return;
-    }
-    setEditRoleName(selectedRole.name);
-    setEditRoleDescription(selectedRole.description ?? "");
-  }, [selectedRole]);
+    syncSelectedRoleDraft(selectedRole);
+  }, [selectedRole, syncSelectedRoleDraft]);
 
   const assignedAliases = useMemo(
     () => new Set(permissions.map((permission) => permission.alias)),
     [permissions]
   );
   const availablePermissionCatalog = useMemo(
-    () =>
-      (permissionCatalogQuery.data ?? []).filter((item) => !assignedAliases.has(item.alias)),
-    [assignedAliases, permissionCatalogQuery.data]
+    () => permissionCatalog.filter((item) => !assignedAliases.has(item.alias)),
+    [assignedAliases, permissionCatalog]
   );
 
   useEffect(() => {
     if (!availablePermissionCatalog.length) {
-      setSelectedPermissionAlias("");
+      patchUiState({ selectedPermissionAlias: "" });
       return;
     }
     if (!selectedPermissionAlias || !availablePermissionCatalog.some((item) => item.alias === selectedPermissionAlias)) {
-      setSelectedPermissionAlias(availablePermissionCatalog[0].alias);
+      patchUiState({
+        selectedPermissionAlias: availablePermissionCatalog[0].alias,
+      });
     }
-  }, [availablePermissionCatalog, selectedPermissionAlias]);
+  }, [availablePermissionCatalog, patchUiState, selectedPermissionAlias]);
 
   return (
     <TenantSettingsShell
@@ -195,7 +245,7 @@ export function AccessAuthorizationSettingsPage() {
         savingRole={userActions.setPrimaryRole.isPending}
         savingStatus={userActions.patchStatus.isPending}
         roleByUser={assignRoleByUser}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         onRoleChange={(userId, roleId) =>
           setAssignRoleByUser((prev) => ({ ...prev, [userId]: roleId }))
         }
@@ -210,8 +260,10 @@ export function AccessAuthorizationSettingsPage() {
         description={newRoleDescription}
         disabled={!canManage}
         saving={roleActions.create.isPending}
-        onNameChange={setNewRoleName}
-        onDescriptionChange={setNewRoleDescription}
+        onNameChange={(value) => patchUiState({ newRoleName: value })}
+        onDescriptionChange={(value) =>
+          patchUiState({ newRoleDescription: value })
+        }
         onCreate={() => {
           roleActions.create.mutate({
             name: newRoleName.trim(),
@@ -220,8 +272,10 @@ export function AccessAuthorizationSettingsPage() {
             tenant_type: tenantType,
             is_custom: true,
           });
-          setNewRoleName("");
-          setNewRoleDescription("");
+          patchUiState({
+            newRoleName: "",
+            newRoleDescription: "",
+          });
         }}
       />
 
@@ -241,8 +295,10 @@ export function AccessAuthorizationSettingsPage() {
           roleActions.addPermission.isPending || roleActions.removePermission.isPending
         }
         onSelectRole={handleSelectRole}
-        onEditRoleName={setEditRoleName}
-        onEditRoleDescription={setEditRoleDescription}
+        onEditRoleName={(value) => patchUiState({ editRoleName: value })}
+        onEditRoleDescription={(value) =>
+          patchUiState({ editRoleDescription: value })
+        }
         onSaveRole={() =>
           selectedRole &&
           roleActions.update.mutate({
@@ -256,7 +312,9 @@ export function AccessAuthorizationSettingsPage() {
           })
         }
         onDeleteRole={() => selectedRole && roleActions.remove.mutate(selectedRole.id)}
-        onSelectPermissionAlias={setSelectedPermissionAlias}
+        onSelectPermissionAlias={(value) =>
+          patchUiState({ selectedPermissionAlias: value })
+        }
         onAddPermission={() =>
           selectedRole &&
           selectedPermissionAlias &&

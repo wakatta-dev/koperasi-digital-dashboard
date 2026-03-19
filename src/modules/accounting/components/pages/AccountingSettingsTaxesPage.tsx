@@ -16,16 +16,26 @@ import { mapTaxRows } from "../../utils/settings-api-mappers";
 import type { TaxRow } from "../../types/settings";
 
 export function AccountingSettingsTaxesPage() {
-  const [page, setPage] = useState(1);
+  const [uiState, setUiState] = useState({
+    page: 1,
+    isCreateModalOpen: false,
+    editingTax: null as TaxRow | null,
+    deletingTax: null as TaxRow | null,
+    actionError: null as string | null,
+  });
   const perPage = 20;
+  const { page, isCreateModalOpen, editingTax, deletingTax, actionError } =
+    uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const taxesQuery = useAccountingSettingsTaxes({ page, per_page: perPage });
   const { createTax, updateTax, toggleTaxStatus, duplicateTax, deleteTax } =
     useAccountingSettingsTaxMutations();
-
-  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
-  const [editingTax, setEditingTax] = useState<TaxRow | null>(null);
-  const [deletingTax, setDeletingTax] = useState<TaxRow | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const rows = useMemo(() => {
     return mapTaxRows(taxesQuery.data?.items ?? []);
@@ -44,11 +54,11 @@ export function AccountingSettingsTaxesPage() {
     description?: string;
     is_active: boolean;
   }) => {
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await createTax.mutateAsync({ payload });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
@@ -62,42 +72,42 @@ export function AccountingSettingsTaxesPage() {
   }) => {
     if (!editingTax) return;
 
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await updateTax.mutateAsync({ taxId: editingTax.tax_id, payload });
-      setEditingTax(null);
+      patchUiState({ editingTax: null });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
   const handleToggleTax = async (tax: TaxRow, next: boolean) => {
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await toggleTaxStatus.mutateAsync({ taxId: tax.tax_id, isActive: next });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
   const handleDuplicateTax = async (tax: TaxRow) => {
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await duplicateTax.mutateAsync({ taxId: tax.tax_id, newName: `${tax.tax_name} Copy` });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
   const handleDeleteTax = async () => {
     if (!deletingTax) return;
 
-    setActionError(null);
+    patchUiState({ actionError: null });
     try {
       await deleteTax.mutateAsync({ taxId: deletingTax.tax_id });
-      setDeletingTax(null);
+      patchUiState({ deletingTax: null });
     } catch (err) {
-      setActionError(toAccountingSettingsApiError(err).message);
+      patchUiState({ actionError: toAccountingSettingsApiError(err).message });
     }
   };
 
@@ -111,7 +121,7 @@ export function AccountingSettingsTaxesPage() {
 
       <FeatureTaxesTable
         rows={rows}
-        onCreateTax={() => setCreateModalOpen(true)}
+        onCreateTax={() => patchUiState({ isCreateModalOpen: true })}
         onToggleStatus={handleToggleTax}
         pagination={
           taxesQuery.data?.pagination
@@ -128,27 +138,27 @@ export function AccountingSettingsTaxesPage() {
                 totalPages: 1,
               }
         }
-        onPageChange={setPage}
+        onPageChange={(nextPage) => patchUiState({ page: nextPage })}
         renderActions={(tax) => (
           <FeatureTaxActionMenu
             tax={tax}
-            onEdit={setEditingTax}
+            onEdit={(value) => patchUiState({ editingTax: value })}
             onDuplicate={handleDuplicateTax}
-            onDelete={setDeletingTax}
+            onDelete={(value) => patchUiState({ deletingTax: value })}
           />
         )}
       />
 
       <FeatureCreateTaxModal
         open={isCreateModalOpen}
-        onOpenChange={setCreateModalOpen}
+        onOpenChange={(open) => patchUiState({ isCreateModalOpen: open })}
         onSave={handleCreateTax}
       />
 
       <FeatureEditTaxModal
         open={Boolean(editingTax)}
         onOpenChange={(open) => {
-          if (!open) setEditingTax(null);
+          if (!open) patchUiState({ editingTax: null });
         }}
         tax={editingTax}
         onSave={handleUpdateTax}
@@ -157,7 +167,7 @@ export function AccountingSettingsTaxesPage() {
       <FeatureDeleteTaxModal
         open={Boolean(deletingTax)}
         onOpenChange={(open) => {
-          if (!open) setDeletingTax(null);
+          if (!open) patchUiState({ deletingTax: null });
         }}
         taxName={deletingTax?.tax_name}
         onDelete={handleDeleteTax}

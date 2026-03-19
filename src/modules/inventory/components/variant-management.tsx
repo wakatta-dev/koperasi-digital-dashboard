@@ -60,20 +60,80 @@ const DEFAULT_OPTION_FORM: OptionFormState = {
 export function VariantManagement({ productId }: Props) {
   const { data, isLoading, isError, error } = useInventoryVariants(productId);
   const actions = useInventoryVariantActions();
-  const [groupForm, setGroupForm] =
-    useState<GroupFormState>(DEFAULT_GROUP_FORM);
-  const [editGroupId, setEditGroupId] = useState<number | null>(null);
-  const [editGroupForm, setEditGroupForm] =
-    useState<GroupFormState>(DEFAULT_GROUP_FORM);
-  const [groupFiles, setGroupFiles] = useState<Record<number, File | null>>({});
-  const [groupError, setGroupError] = useState<string | null>(null);
-
-  const [optionForm, setOptionForm] =
-    useState<OptionFormState>(DEFAULT_OPTION_FORM);
-  const [editOptionId, setEditOptionId] = useState<number | null>(null);
-  const [editOptionForm, setEditOptionForm] =
-    useState<OptionFormState>(DEFAULT_OPTION_FORM);
-  const [optionError, setOptionError] = useState<string | null>(null);
+  const [uiState, setUiState] = useState({
+    groupForm: DEFAULT_GROUP_FORM,
+    editGroupId: null as number | null,
+    editGroupForm: DEFAULT_GROUP_FORM,
+    groupFiles: {} as Record<number, File | null>,
+    groupError: null as string | null,
+    optionForm: DEFAULT_OPTION_FORM,
+    editOptionId: null as number | null,
+    editOptionForm: DEFAULT_OPTION_FORM,
+    optionError: null as string | null,
+  });
+  const {
+    groupForm,
+    editGroupId,
+    editGroupForm,
+    groupFiles,
+    groupError,
+    optionForm,
+    editOptionId,
+    editOptionForm,
+    optionError,
+  } = uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
+  const setGroupForm = (
+    updates: GroupFormState | ((current: GroupFormState) => GroupFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      groupForm:
+        typeof updates === "function" ? updates(current.groupForm) : updates,
+    }));
+  };
+  const setEditGroupId = (value: number | null) => {
+    patchUiState({ editGroupId: value });
+  };
+  const setEditGroupForm = (
+    updates: GroupFormState | ((current: GroupFormState) => GroupFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      editGroupForm:
+        typeof updates === "function" ? updates(current.editGroupForm) : updates,
+    }));
+  };
+  const setOptionForm = (
+    updates: OptionFormState | ((current: OptionFormState) => OptionFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      optionForm:
+        typeof updates === "function" ? updates(current.optionForm) : updates,
+    }));
+  };
+  const setEditOptionId = (value: number | null) => {
+    patchUiState({ editOptionId: value });
+  };
+  const setEditOptionForm = (
+    updates: OptionFormState | ((current: OptionFormState) => OptionFormState),
+  ) => {
+    patchUiState((current) => ({
+      ...current,
+      editOptionForm:
+        typeof updates === "function" ? updates(current.editOptionForm) : updates,
+    }));
+  };
+  const setOptionError = (value: string | null) => {
+    patchUiState({ optionError: value });
+  };
 
   const groups = data?.variant_groups ?? EMPTY_GROUPS;
   const options = data?.options ?? EMPTY_OPTIONS;
@@ -92,7 +152,10 @@ export function VariantManagement({ productId }: Props) {
   }, [options, groupMap]);
 
   const handleGroupFileChange = (groupId: number, file: File | null) => {
-    setGroupFiles((prev) => ({ ...prev, [groupId]: file }));
+    patchUiState((current) => ({
+      ...current,
+      groupFiles: { ...current.groupFiles, [groupId]: file },
+    }));
   };
 
   const parseAttributes = (raw: string) => {
@@ -111,9 +174,9 @@ export function VariantManagement({ productId }: Props) {
   };
 
   const handleCreateGroup = async () => {
-    setGroupError(null);
+    patchUiState({ groupError: null });
     if (!groupForm.name.trim()) {
-      setGroupError("Nama grup wajib diisi.");
+      patchUiState({ groupError: "Nama grup wajib diisi." });
       return;
     }
     try {
@@ -125,26 +188,30 @@ export function VariantManagement({ productId }: Props) {
           image_url: groupForm.imageUrl || undefined,
         },
       });
-      setGroupForm(DEFAULT_GROUP_FORM);
+      patchUiState({ groupForm: DEFAULT_GROUP_FORM });
     } catch (err) {
-      setGroupError((err as Error)?.message || "Gagal membuat grup varian.");
+      patchUiState({
+        groupError: (err as Error)?.message || "Gagal membuat grup varian.",
+      });
     }
   };
 
   const handleEditGroup = (group: InventoryVariantGroupResponse) => {
-    setEditGroupId(group.id);
-    setEditGroupForm({
+    patchUiState({
+      editGroupId: group.id,
+      editGroupForm: {
       name: group.name,
       sortOrder: String(group.sort_order ?? 0),
       imageUrl: group.image_url ?? "",
+      },
     });
   };
 
   const handleUpdateGroup = async () => {
     if (!editGroupId) return;
-    setGroupError(null);
+    patchUiState({ groupError: null });
     if (!editGroupForm.name.trim()) {
-      setGroupError("Nama grup wajib diisi.");
+      patchUiState({ groupError: "Nama grup wajib diisi." });
       return;
     }
     try {
@@ -157,56 +224,59 @@ export function VariantManagement({ productId }: Props) {
           image_url: editGroupForm.imageUrl || undefined,
         },
       });
-      setEditGroupId(null);
+      patchUiState({ editGroupId: null });
     } catch (err) {
-      setGroupError(
-        (err as Error)?.message || "Gagal memperbarui grup varian.",
-      );
+      patchUiState({
+        groupError: (err as Error)?.message || "Gagal memperbarui grup varian.",
+      });
     }
   };
 
   const handleUploadGroupImage = async (groupId: number) => {
     const file = groupFiles[groupId];
     if (!file) return;
-    setGroupError(null);
+    patchUiState({ groupError: null });
     try {
       await actions.uploadGroupImage.mutateAsync({ productId, groupId, file });
       handleGroupFileChange(groupId, null);
     } catch (err) {
-      setGroupError((err as Error)?.message || "Gagal mengunggah foto grup.");
+      patchUiState({
+        groupError: (err as Error)?.message || "Gagal mengunggah foto grup.",
+      });
     }
   };
 
   const handleArchiveGroup = async (groupId: number) => {
-    setGroupError(null);
+    patchUiState({ groupError: null });
     try {
       await actions.archiveGroup.mutateAsync({ productId, groupId });
     } catch (err) {
-      setGroupError(
-        (err as Error)?.message || "Gagal mengarsipkan grup varian.",
-      );
+      patchUiState({
+        groupError:
+          (err as Error)?.message || "Gagal mengarsipkan grup varian.",
+      });
     }
   };
 
   const handleCreateOption = async () => {
-    setOptionError(null);
+    patchUiState({ optionError: null });
     if (!optionForm.groupId) {
-      setOptionError("Pilih grup varian terlebih dahulu.");
+      patchUiState({ optionError: "Pilih grup varian terlebih dahulu." });
       return;
     }
     if (!optionForm.sku.trim()) {
-      setOptionError("SKU varian wajib diisi.");
+      patchUiState({ optionError: "SKU varian wajib diisi." });
       return;
     }
     if (!optionForm.priceOverride.trim()) {
-      setOptionError("Harga varian wajib diisi.");
+      patchUiState({ optionError: "Harga varian wajib diisi." });
       return;
     }
     try {
       const attributes = parseAttributes(optionForm.attributes);
       const priceOverride = Number(optionForm.priceOverride);
       if (Number.isNaN(priceOverride) || priceOverride <= 0) {
-        setOptionError("Harga varian harus lebih dari 0.");
+        patchUiState({ optionError: "Harga varian harus lebih dari 0." });
         return;
       }
       await actions.createOption.mutateAsync({
@@ -221,15 +291,18 @@ export function VariantManagement({ productId }: Props) {
           track_stock: optionForm.trackStock,
         },
       });
-      setOptionForm(DEFAULT_OPTION_FORM);
+      patchUiState({ optionForm: DEFAULT_OPTION_FORM });
     } catch (err) {
-      setOptionError((err as Error)?.message || "Gagal membuat opsi varian.");
+      patchUiState({
+        optionError: (err as Error)?.message || "Gagal membuat opsi varian.",
+      });
     }
   };
 
   const handleEditOption = (option: InventoryVariantOptionResponse) => {
-    setEditOptionId(option.id);
-    setEditOptionForm({
+    patchUiState({
+      editOptionId: option.id,
+      editOptionForm: {
       groupId: String(option.variant_group_id),
       sku: option.sku,
       attributes: option.attributes
@@ -241,6 +314,7 @@ export function VariantManagement({ productId }: Props) {
           : "",
       stock: String(option.stock ?? 0),
       trackStock: option.track_stock,
+      },
     });
   };
 

@@ -562,9 +562,9 @@ export function ProductMainInfo({
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">
+              <span className="block text-sm font-medium text-foreground mb-1.5">
                 {product.variantLabel}
-              </label>
+              </span>
               <div className="rounded-lg border border-border bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
                 Standar
               </div>
@@ -572,7 +572,7 @@ export function ProductMainInfo({
           )}
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">
+            <label htmlFor="marketplace-product-quantity" className="block text-sm font-medium text-foreground mb-1.5">
               Jumlah
             </label>
             <div className="flex items-center overflow-hidden rounded-xl border border-border bg-card">
@@ -586,6 +586,7 @@ export function ProductMainInfo({
                 <span className="material-icons-outlined text-sm">remove</span>
               </button>
               <input
+                id="marketplace-product-quantity"
                 data-testid="marketplace-product-detail-quantity-input"
                 type="text"
                 value={quantity}

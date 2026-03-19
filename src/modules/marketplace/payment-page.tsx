@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
@@ -45,13 +45,18 @@ function validateProofFile(file: File): string | null {
   return null;
 }
 
-export function MarketplacePaymentPage() {
+type MarketplacePaymentPageProps = {
+  orderId?: number;
+  trackingToken?: string;
+};
+
+export function MarketplacePaymentPage({
+  orderId: initialOrderId,
+  trackingToken: initialTrackingToken,
+}: MarketplacePaymentPageProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const orderId = Number(searchParams.get("order_id") ?? "");
-  const trackingTokenFromQuery = (
-    searchParams.get("tracking_token") ?? ""
-  ).trim();
+  const orderId = initialOrderId ?? Number.NaN;
+  const trackingTokenFromQuery = (initialTrackingToken ?? "").trim();
 
   const { data: cart } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;
@@ -69,22 +74,34 @@ export function MarketplacePaymentPage() {
       trackingTokenFromQuery.length > 0,
   });
 
-  const [contextResult, setContextResult] =
-    useState<BuyerOrderContextReadResult>({
+  const [uiState, setUiState] = useState({
+    contextResult: {
       context: null,
       state: "missing",
-    });
-  const [proofFile, setProofFile] = useState<File | null>(null);
-  const [proofTouched, setProofTouched] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+    } as BuyerOrderContextReadResult,
+    proofFile: null as File | null,
+    proofTouched: false,
+    uploading: false,
+    uploadError: null as string | null,
+  });
+  const { contextResult, proofFile, proofTouched, uploading, uploadError } =
+    uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   useEffect(() => {
     if (!Number.isFinite(orderId) || orderId <= 0) {
-      setContextResult({ context: null, state: "missing" });
+      patchUiState({
+        contextResult: { context: null, state: "missing" },
+      });
       return;
     }
-    setContextResult(readBuyerOrderContext(orderId));
+    patchUiState({ contextResult: readBuyerOrderContext(orderId) });
   }, [orderId]);
 
   const storedContext = contextResult.context;
@@ -204,22 +221,26 @@ export function MarketplacePaymentPage() {
 
   const handleProofChange = (file: File | null) => {
     if (!file) {
-      setProofFile(null);
+      patchUiState({ proofFile: null });
       return;
     }
 
     const validationError = validateProofFile(file);
     if (validationError) {
-      setProofFile(null);
-      setProofTouched(true);
-      setUploadError(validationError);
+      patchUiState({
+        proofFile: null,
+        proofTouched: true,
+        uploadError: validationError,
+      });
       showToastError("File bukti transfer tidak valid", validationError);
       return;
     }
 
-    setUploadError(null);
-    setProofFile(file);
-    setProofTouched(true);
+    patchUiState({
+      uploadError: null,
+      proofFile: file,
+      proofTouched: true,
+    });
   };
 
   const handleNext = async () => {
@@ -227,7 +248,7 @@ export function MarketplacePaymentPage() {
       return;
     }
 
-    setProofTouched(true);
+    patchUiState({ proofTouched: true });
     if (!proofFile) {
       showToastError(
         "Bukti transfer diperlukan",
@@ -244,8 +265,7 @@ export function MarketplacePaymentPage() {
       return;
     }
 
-    setUploading(true);
-    setUploadError(null);
+    patchUiState({ uploading: true, uploadError: null });
     try {
       let trackingToken = trackingTokenFromQuery;
       if (!trackingToken) {
@@ -253,7 +273,7 @@ export function MarketplacePaymentPage() {
         if (!trackingOrderNumber || !contact) {
           const message =
             "Token pelacakan belum tersedia. Lacak pesanan terlebih dulu dari halaman pelacakan sebelum upload bukti pembayaran.";
-          setUploadError(message);
+          patchUiState({ uploadError: message });
           showToastError("Token pelacakan diperlukan", message);
           return;
         }
@@ -316,10 +336,10 @@ export function MarketplacePaymentPage() {
           "Gagal mengunggah bukti pembayaran. Silakan periksa file dan coba lagi."
         );
       })();
-      setUploadError(message);
+      patchUiState({ uploadError: message });
       showToastError("Gagal mengunggah bukti", message);
     } finally {
-      setUploading(false);
+      patchUiState({ uploading: false });
     }
   };
 

@@ -39,13 +39,15 @@ type FeatureCreateVendorBillModalProps = {
   vendorOptions?: string[];
 };
 
+const EMPTY_VENDOR_OPTIONS: string[] = [];
+
 export function FeatureCreateVendorBillModal({
   open,
   onOpenChange,
   onSubmit,
   isSubmitting = false,
   errorMessage,
-  vendorOptions = [],
+  vendorOptions = EMPTY_VENDOR_OPTIONS,
 }: FeatureCreateVendorBillModalProps) {
   const [draft, setDraft] = useState<CreateVendorBillDraft>(
     INITIAL_CREATE_VENDOR_BILL_DRAFT,
@@ -102,10 +104,14 @@ export function FeatureCreateVendorBillModal({
         <div className="min-h-0 flex-1 space-y-8 overflow-y-auto p-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="lg:col-span-2">
-              <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="vendor-bill-vendor-name"
+                className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Vendor <span className="text-red-500">*</span>
               </label>
               <Input
+                id="vendor-bill-vendor-name"
                 type="text"
                 value={draft.vendor_name}
                 placeholder="Type vendor name"
@@ -128,10 +134,14 @@ export function FeatureCreateVendorBillModal({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="vendor-bill-number"
+                className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Bill Number
               </label>
               <Input
+                id="vendor-bill-number"
                 type="text"
                 value={draft.bill_number}
                 placeholder="e.g. INV-2024-001"
@@ -146,19 +156,23 @@ export function FeatureCreateVendorBillModal({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <span className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Status
-              </label>
+              </span>
               <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-500 italic dark:bg-gray-800">
                 <div className="h-2 w-2 rounded-full bg-gray-400" /> Draft
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="vendor-bill-date"
+                className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Bill Date
               </label>
               <Input
+                id="vendor-bill-date"
                 type="date"
                 value={draft.bill_date}
                 onChange={(event) =>
@@ -172,10 +186,14 @@ export function FeatureCreateVendorBillModal({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="vendor-bill-due-date"
+                className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Due Date
               </label>
               <Input
+                id="vendor-bill-due-date"
                 type="date"
                 value={draft.due_date}
                 onChange={(event) =>
@@ -406,9 +424,9 @@ export function FeatureCreateVendorBillModal({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <span className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
               Attachments
-            </label>
+            </span>
             <div className="cursor-pointer rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-8 text-center transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800/30">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm dark:bg-gray-800">
                 <UploadCloud className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />

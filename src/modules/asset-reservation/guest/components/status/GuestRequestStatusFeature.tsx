@@ -2,6 +2,7 @@
 
 "use client";
 
+import Link from "next/link";
 import { InputField } from "@/components/shared/inputs/input-field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -656,12 +657,12 @@ export function GuestRequestStatusFeature({
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Mengalami kendala saat mengecek status?{" "}
-            <a
+            <Link
               className="text-brand-primary hover:text-brand-primary-hover font-medium"
-              href="#"
+              href="/"
             >
               Hubungi Admin Desa
-            </a>
+            </Link>
           </p>
         </div>
       </div>

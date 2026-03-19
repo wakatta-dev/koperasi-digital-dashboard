@@ -5,6 +5,18 @@ import { LandingFooter } from "@/modules/landing/components/footer";
 import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { CART_BADGE } from "../../constants";
 
+const DETAIL_THUMBNAIL_SKELETON_IDS = [
+  "detail-thumb-1",
+  "detail-thumb-2",
+  "detail-thumb-3",
+  "detail-thumb-4",
+];
+const DETAIL_REVIEW_SKELETON_IDS = [
+  "detail-review-1",
+  "detail-review-2",
+  "detail-review-3",
+];
+
 export function MarketplaceDetailSkeleton() {
   return (
     <div className="bg-background text-foreground min-h-screen">
@@ -17,8 +29,8 @@ export function MarketplaceDetailSkeleton() {
             <div className="lg:col-span-5 space-y-4">
               <Skeleton className="h-[420px] w-full rounded-2xl" />
               <div className="grid grid-cols-4 gap-4">
-                {[...Array(4)].map((_, idx) => (
-                  <Skeleton key={idx} className="aspect-square w-full rounded-xl" />
+                {DETAIL_THUMBNAIL_SKELETON_IDS.map((id) => (
+                  <Skeleton key={id} className="aspect-square w-full rounded-xl" />
                 ))}
               </div>
             </div>
@@ -39,8 +51,8 @@ export function MarketplaceDetailSkeleton() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
             <div className="lg:col-span-2 space-y-4">
               <Skeleton className="h-10 w-64" />
-              {[...Array(3)].map((_, idx) => (
-                <Skeleton key={idx} className="h-20 w-full" />
+              {DETAIL_REVIEW_SKELETON_IDS.map((id) => (
+                <Skeleton key={id} className="h-20 w-full" />
               ))}
             </div>
             <div className="space-y-4">

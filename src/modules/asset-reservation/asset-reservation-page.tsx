@@ -7,7 +7,7 @@ import { LandingNavbar } from "@/components/shared/navigation/landing-navbar";
 import { AssetReservationFooter } from "./components/reservation-footer";
 import { useMemo, useState, useEffect } from "react";
 import type { AssetFilterQuery } from "@/types/api/asset";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAssetList } from "./hooks";
 import { STITCH_GUEST_CATEGORIES } from "./guest/data/stitch-dummy";
 import { AssetCatalogFeature } from "./guest/components/asset-catalog/AssetCatalogFeature";
@@ -22,10 +22,19 @@ const plusJakarta = Plus_Jakarta_Sans({
 const PAGE_SIZE = 9;
 const DEFAULT_SORT = "newest" as const;
 
-export function AssetReservationPage() {
+type AssetReservationPageProps = {
+  queryString?: string;
+};
+
+export function AssetReservationPage({
+  queryString = "",
+}: AssetReservationPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialSearch = searchParams.get("search") ?? "";
   const initialCategory = searchParams.get("category") ?? "";
@@ -40,20 +49,6 @@ export function AssetReservationPage() {
   const [pageCursor, setPageCursor] = useState<string | number | undefined>(
     initialCursor,
   );
-
-  useEffect(() => {
-    const search = searchParams.get("search") ?? "";
-    const category = searchParams.get("category") ?? "";
-    const cursor = searchParams.get("cursor") ?? undefined;
-
-    setSearchTerm(search);
-    setFilters({
-      sort: DEFAULT_SORT,
-      category: category || undefined,
-      search: search || undefined,
-    });
-    setPageCursor(cursor || undefined);
-  }, [searchParams]);
 
   const updateParams = (updates: {
     search?: string;

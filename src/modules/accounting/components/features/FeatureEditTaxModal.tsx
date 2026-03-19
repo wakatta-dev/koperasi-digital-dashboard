@@ -47,19 +47,24 @@ export function FeatureEditTaxModal({
   tax,
   onSave,
 }: FeatureEditTaxModalProps) {
-  const [taxName, setTaxName] = useState("PPN 11%");
-  const [taxType, setTaxType] = useState("Sales");
-  const [taxRate, setTaxRate] = useState("11.00");
-  const [taxAccount, setTaxAccount] = useState("210101");
-  const [description, setDescription] = useState("VAT 11 Percent");
+  const [formState, setFormState] = useState({
+    taxName: "PPN 11%",
+    taxType: "Sales",
+    taxRate: "11.00",
+    taxAccount: "210101",
+    description: "VAT 11 Percent",
+  });
+  const { taxName, taxType, taxRate, taxAccount, description } = formState;
 
   useEffect(() => {
     if (!tax) return;
-    setTaxName(tax.tax_name);
-    setTaxType(tax.tax_type);
-    setTaxRate(tax.rate_percent.replace("%", ""));
-    setTaxAccount(tax.tax_account.split(" - ")[0] ?? "210101");
-    setDescription(tax.description);
+    setFormState({
+      taxName: tax.tax_name,
+      taxType: tax.tax_type,
+      taxRate: tax.rate_percent.replace("%", ""),
+      taxAccount: tax.tax_account.split(" - ")[0] ?? "210101",
+      description: tax.description,
+    });
   }, [tax]);
 
   const handleSave = () => {
@@ -105,7 +110,12 @@ export function FeatureEditTaxModal({
             </Label>
             <Input
               value={taxName}
-              onChange={(event) => setTaxName(event.target.value)}
+              onChange={(event) =>
+                setFormState((current) => ({
+                  ...current,
+                  taxName: event.target.value,
+                }))
+              }
               className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-800 dark:text-white"
             />
           </div>
@@ -115,7 +125,12 @@ export function FeatureEditTaxModal({
               <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Jenis Pajak
               </Label>
-              <Select value={taxType} onValueChange={setTaxType}>
+              <Select
+                value={taxType}
+                onValueChange={(value) =>
+                  setFormState((current) => ({ ...current, taxType: value }))
+                }
+              >
                 <SelectTrigger className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-800 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -133,7 +148,12 @@ export function FeatureEditTaxModal({
               <div className="relative">
                 <Input
                   value={taxRate}
-                  onChange={(event) => setTaxRate(event.target.value)}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      taxRate: event.target.value,
+                    }))
+                  }
                   className="border-gray-300 px-3 py-2 pr-8 dark:border-gray-600 dark:bg-slate-800 dark:text-white"
                 />
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-gray-500">
@@ -147,7 +167,12 @@ export function FeatureEditTaxModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Akun Pajak
             </Label>
-            <Select value={taxAccount} onValueChange={setTaxAccount}>
+            <Select
+              value={taxAccount}
+              onValueChange={(value) =>
+                setFormState((current) => ({ ...current, taxAccount: value }))
+              }
+            >
               <SelectTrigger className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-800 dark:text-white">
                 <SelectValue />
               </SelectTrigger>
@@ -166,7 +191,12 @@ export function FeatureEditTaxModal({
             </Label>
             <Textarea
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) =>
+                setFormState((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }))
+              }
               rows={3}
               className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-slate-800 dark:text-white"
             />

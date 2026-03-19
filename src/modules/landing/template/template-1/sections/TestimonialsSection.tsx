@@ -78,7 +78,7 @@ export function TemplateOneTestimonialsSection({ data }: TemplateOneTestimonials
         <div className="grid md:grid-cols-3 gap-8">
           {items.map((item, index) => (
             <div
-              key={`${item.name}-${index}`}
+              key={`${item.name}-${item.role}`}
               className="bg-white dark:bg-surface-dark p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800"
             >
               <div className="flex text-yellow-400 mb-4">

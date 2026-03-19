@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getSession } from "next-auth/react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
@@ -25,9 +25,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-export function AuthLoginForm() {
+type AuthLoginFormProps = {
+  redirectTarget?: string;
+};
+
+export function AuthLoginForm({ redirectTarget }: AuthLoginFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const passwordToggle = usePasswordToggle(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +43,6 @@ export function AuthLoginForm() {
 
   const handleRedirect = async () => {
     const session: any = await getSession();
-    const redirectTarget = searchParams?.get("redirect");
     if (redirectTarget) {
       router.push(redirectTarget);
       return;
@@ -64,12 +66,11 @@ export function AuthLoginForm() {
       await login(values.email, values.password);
       await handleRedirect();
     } catch {
-      const redirectTarget = searchParams?.get("redirect") ?? "";
       const allowMarketplaceGuestRedirect =
         process.env.NODE_ENV !== "production" &&
-        redirectTarget.startsWith("/marketplace");
+        (redirectTarget ?? "").startsWith("/marketplace");
       if (allowMarketplaceGuestRedirect) {
-        router.push(redirectTarget);
+        router.push(redirectTarget!);
         return;
       }
       setError("Gagal masuk. Periksa kembali email dan kata sandi kamu.");
@@ -78,8 +79,6 @@ export function AuthLoginForm() {
     }
   };
   const emailInputId = "auth-login-email";
-  const passwordInputId = "auth-login-password";
-
   return (
     <div className="rounded-2xl border bg-card/80 p-6 shadow-lg backdrop-blur-sm">
       <Form {...form}>
@@ -117,7 +116,7 @@ export function AuthLoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel htmlFor={passwordInputId}>Kata sandi</FormLabel>
+                  <FormLabel htmlFor="auth-login-password">Kata sandi</FormLabel>
                   <Link
                     href="/forgot-password"
                     className="text-sm font-medium text-primary hover:text-primary/90"
@@ -129,7 +128,7 @@ export function AuthLoginForm() {
                   <div className="relative">
                     <Input
                       {...field}
-                      id={passwordInputId}
+                      id="auth-login-password"
                       type={passwordToggle.type}
                       placeholder="Masukkan kata sandi"
                       autoComplete="current-password"

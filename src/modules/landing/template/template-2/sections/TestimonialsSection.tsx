@@ -70,7 +70,7 @@ export function TemplateTwoTestimonialsSection({ data }: TemplateTwoTestimonials
 
       <div className="grid lg:grid-cols-3 gap-6">
         {items.map((item, index) => (
-          <div key={`${item.name}-${index}`} className={CARD_CLASS[index % CARD_CLASS.length]}>
+          <div key={`${item.name}-${item.role}`} className={CARD_CLASS[index % CARD_CLASS.length]}>
             <div className="flex gap-1 mb-4 text-market-yellow">
               {Array.from({ length: 5 }).map((_, starIndex) => (
                 <span key={starIndex} className="material-symbols-outlined">
