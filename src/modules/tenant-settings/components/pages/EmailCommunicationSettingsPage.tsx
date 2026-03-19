@@ -64,23 +64,26 @@ export function EmailCommunicationSettingsPage({
   );
 
   useEffect(() => {
+    let nextTemplateId = selectedTemplateId;
     if (!templates.length) {
-      setSelectedTemplateId("");
+      nextTemplateId = "";
+    } else if (
+      requestedTemplateId &&
+      templates.some((item) => String(item.id) === requestedTemplateId)
+    ) {
+      nextTemplateId = requestedTemplateId;
+    } else if (
+      !selectedTemplateId ||
+      !templates.some((item) => String(item.id) === selectedTemplateId)
+    ) {
+      nextTemplateId = String(templates[0].id);
+    }
+    if (nextTemplateId === selectedTemplateId) {
       return;
     }
-    const hasTemplate = (templateId: string) =>
-      templates.some((item) => String(item.id) === templateId);
-
-    if (requestedTemplateId && templates.some((item) => String(item.id) === requestedTemplateId)) {
-      if (selectedTemplateId !== requestedTemplateId) {
-        setSelectedTemplateId(requestedTemplateId);
-      }
-      return;
-    }
-    if (!selectedTemplateId || !templates.some((item) => String(item.id) === selectedTemplateId)) {
-      const fallbackTemplateId = String(templates[0].id);
-      setSelectedTemplateId(fallbackTemplateId);
-      syncTemplateQuery(fallbackTemplateId);
+    setSelectedTemplateId(nextTemplateId);
+    if (nextTemplateId) {
+      syncTemplateQuery(nextTemplateId);
     }
   }, [requestedTemplateId, selectedTemplateId, syncTemplateQuery, templates]);
 

@@ -353,16 +353,24 @@ export function FeatureOperationalTraceWorkbench() {
   );
   const selectedRowKey = selectedRow?.key ?? null;
 
+  const syncExceptionDraft = (
+    ownerLabel?: string | null,
+    nextStep?: string | null,
+  ) => {
+    setExceptionOwner(ownerLabel ?? "");
+    setExceptionNextStep(nextStep ?? "");
+    setExceptionMessage("");
+  };
+
   useEffect(() => {
     if (!selectedRowKey) {
-      setExceptionOwner("");
-      setExceptionNextStep("");
-      setExceptionMessage("");
+      syncExceptionDraft();
       return;
     }
-    setExceptionOwner(exceptionContextQuery.data?.owner_label ?? "");
-    setExceptionNextStep(exceptionContextQuery.data?.next_step ?? "");
-    setExceptionMessage("");
+    syncExceptionDraft(
+      exceptionContextQuery.data?.owner_label,
+      exceptionContextQuery.data?.next_step,
+    );
   }, [
     selectedRowKey,
     exceptionContextQuery.data?.owner_label,

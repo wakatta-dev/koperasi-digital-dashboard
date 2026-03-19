@@ -156,19 +156,24 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
     }
   };
 
-  useEffect(() => {
-    if (!product) return;
-    setName(product.name);
-    setSku(product.sku);
-    setBrand(product.brand ?? "");
-    setCategory(product.category ?? "");
+  const hydrateProductForm = (nextProduct: NonNullable<typeof product>) => {
+    setName(nextProduct.name);
+    setSku(nextProduct.sku);
+    setBrand(nextProduct.brand ?? "");
+    setCategory(nextProduct.category ?? "");
     setWeight(
-      typeof product.weightKg === "number" && !Number.isNaN(product.weightKg)
-        ? String(product.weightKg)
+      typeof nextProduct.weightKg === "number" &&
+        !Number.isNaN(nextProduct.weightKg)
+        ? String(nextProduct.weightKg)
         : "",
     );
-    setDescription(product.description ?? "");
+    setDescription(nextProduct.description ?? "");
     setPendingFiles([]);
+  };
+
+  useEffect(() => {
+    if (!product) return;
+    hydrateProductForm(product);
   }, [product]);
 
   const submitting =

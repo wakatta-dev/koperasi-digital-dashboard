@@ -44,17 +44,22 @@ export function FeatureEditCoaAccountModal({
   account,
   onSave,
 }: FeatureEditCoaAccountModalProps) {
-  const [accountCode, setAccountCode] = useState("11101");
-  const [accountName, setAccountName] = useState("Bank BCA");
-  const [accountType, setAccountType] = useState("Bank & Cash");
-  const [parentAccount, setParentAccount] = useState("11100");
+  const [formState, setFormState] = useState({
+    accountCode: "11101",
+    accountName: "Bank BCA",
+    accountType: "Bank & Cash",
+    parentAccount: "11100",
+  });
+  const { accountCode, accountName, accountType, parentAccount } = formState;
 
   useEffect(() => {
     if (!account) return;
-    setAccountCode(account.account_code);
-    setAccountName(account.account_name);
-    setAccountType(account.account_type);
-    setParentAccount(account.level > 0 ? "11100" : "root");
+    setFormState({
+      accountCode: account.account_code,
+      accountName: account.account_name,
+      accountType: account.account_type,
+      parentAccount: account.level > 0 ? "11100" : "root",
+    });
   }, [account]);
 
   const handleSave = () => {
@@ -99,7 +104,12 @@ export function FeatureEditCoaAccountModal({
             </Label>
             <Input
               value={accountCode}
-              onChange={(event) => setAccountCode(event.target.value)}
+              onChange={(event) =>
+                setFormState((current) => ({
+                  ...current,
+                  accountCode: event.target.value,
+                }))
+              }
               className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
           </div>
@@ -110,7 +120,12 @@ export function FeatureEditCoaAccountModal({
             </Label>
             <Input
               value={accountName}
-              onChange={(event) => setAccountName(event.target.value)}
+              onChange={(event) =>
+                setFormState((current) => ({
+                  ...current,
+                  accountName: event.target.value,
+                }))
+              }
               className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             />
           </div>
@@ -119,7 +134,15 @@ export function FeatureEditCoaAccountModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Tipe Akun <span className="text-red-500">*</span>
             </Label>
-            <Select value={accountType} onValueChange={setAccountType}>
+            <Select
+              value={accountType}
+              onValueChange={(value) =>
+                setFormState((current) => ({
+                  ...current,
+                  accountType: value,
+                }))
+              }
+            >
               <SelectTrigger className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                 <SelectValue />
               </SelectTrigger>
@@ -139,7 +162,15 @@ export function FeatureEditCoaAccountModal({
             <Label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Akun Induk
             </Label>
-            <Select value={parentAccount} onValueChange={setParentAccount}>
+            <Select
+              value={parentAccount}
+              onValueChange={(value) =>
+                setFormState((current) => ({
+                  ...current,
+                  parentAccount: value,
+                }))
+              }
+            >
               <SelectTrigger className="border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                 <SelectValue />
               </SelectTrigger>

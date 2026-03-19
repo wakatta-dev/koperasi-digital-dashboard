@@ -47,20 +47,32 @@ export function ReportingAccountLedgerPage({
     [searchParams],
   );
 
-  const [resolvedAccountId, setResolvedAccountId] = useState(initialState.accountId ?? "");
-  const [resolvedStart, setResolvedStart] = useState(initialState.start ?? "");
-  const [resolvedEnd, setResolvedEnd] = useState(initialState.end ?? "");
-  const [resolvedSearch, setResolvedSearch] = useState(initialState.search ?? "");
-  const [resolvedPage, setResolvedPage] = useState(initialState.page ?? 1);
-  const [resolvedPageSize, setResolvedPageSize] = useState(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+  const [filtersState, setFiltersState] = useState(() => ({
+    accountId: initialState.accountId ?? "",
+    start: initialState.start ?? "",
+    end: initialState.end ?? "",
+    search: initialState.search ?? "",
+    page: initialState.page ?? 1,
+    pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+  }));
+  const {
+    accountId: resolvedAccountId,
+    start: resolvedStart,
+    end: resolvedEnd,
+    search: resolvedSearch,
+    page: resolvedPage,
+    pageSize: resolvedPageSize,
+  } = filtersState;
 
   useEffect(() => {
-    setResolvedAccountId(initialState.accountId ?? "");
-    setResolvedStart(initialState.start ?? "");
-    setResolvedEnd(initialState.end ?? "");
-    setResolvedSearch(initialState.search ?? "");
-    setResolvedPage(initialState.page ?? 1);
-    setResolvedPageSize(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+    setFiltersState({
+      accountId: initialState.accountId ?? "",
+      start: initialState.start ?? "",
+      end: initialState.end ?? "",
+      search: initialState.search ?? "",
+      page: initialState.page ?? 1,
+      pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+    });
   }, [
     initialState.accountId,
     initialState.end,
@@ -119,13 +131,14 @@ export function ReportingAccountLedgerPage({
 
     const firstAccount = fallbackContextQuery.data.groups[0]?.account_id;
     if (!firstAccount) return;
-    setResolvedAccountId(firstAccount);
-    setResolvedPage(1);
+    setFiltersState((current) => ({
+      ...current,
+      accountId: firstAccount,
+      page: 1,
+    }));
   }, [
     fallbackContextQuery.data,
     resolvedAccountId,
-    setResolvedAccountId,
-    setResolvedPage,
   ]);
 
   const accountLedgerQuery = useAccountingReportingAccountLedger(
@@ -182,8 +195,11 @@ export function ReportingAccountLedgerPage({
         start={resolvedStart}
         end={resolvedEnd}
         onAccountChange={(value) => {
-          setResolvedAccountId(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({
+            ...current,
+            accountId: value,
+            page: 1,
+          }));
           updateQueryState(
             value,
             resolvedStart,
@@ -194,8 +210,7 @@ export function ReportingAccountLedgerPage({
           );
         }}
         onStartChange={(value) => {
-          setResolvedStart(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({ ...current, start: value, page: 1 }));
           updateQueryState(
             resolvedAccountId,
             value,
@@ -206,8 +221,7 @@ export function ReportingAccountLedgerPage({
           );
         }}
         onEndChange={(value) => {
-          setResolvedEnd(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({ ...current, end: value, page: 1 }));
           updateQueryState(
             resolvedAccountId,
             resolvedStart,
@@ -291,8 +305,11 @@ export function ReportingAccountLedgerPage({
         }
         search={resolvedSearch}
         onSearchChange={(value) => {
-          setResolvedSearch(value);
-          setResolvedPage(1);
+          setFiltersState((current) => ({
+            ...current,
+            search: value,
+            page: 1,
+          }));
           updateQueryState(
             resolvedAccountId,
             resolvedStart,
@@ -322,7 +339,7 @@ export function ReportingAccountLedgerPage({
             : undefined
         }
         onPageChange={(nextPage) => {
-          setResolvedPage(nextPage);
+          setFiltersState((current) => ({ ...current, page: nextPage }));
           updateQueryState(
             resolvedAccountId,
             resolvedStart,

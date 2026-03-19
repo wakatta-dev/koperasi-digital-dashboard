@@ -83,26 +83,30 @@ export function AssetEditFormFeature({
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const objectURLRef = useRef<string | null>(null);
 
+  const hydrateFromInitialModel = (nextModel: AssetFormModel) => {
+    setName(nextModel.name);
+    setSerialNumber(nextModel.serialNumber);
+    setCategory(nextModel.category);
+    setStatus(nextModel.status);
+    setLocation(nextModel.location);
+    setAssignedTo(nextModel.assignedTo);
+    setPurchaseDate(nextModel.purchaseDate);
+    setVendor(nextModel.vendor);
+    setRentalPriceDisplay(nextModel.rentalPriceDisplay);
+    setPurchasePriceDisplay(nextModel.purchasePriceDisplay);
+    setWarrantyEndDate(nextModel.warrantyEndDate);
+    setDescription(nextModel.description);
+    setImageFile(null);
+    setImagePreviewURL(nextModel.photoUrl);
+  };
+
   useEffect(() => {
     if (!initialModel) return;
     if (objectURLRef.current) {
       URL.revokeObjectURL(objectURLRef.current);
       objectURLRef.current = null;
     }
-    setName(initialModel.name);
-    setSerialNumber(initialModel.serialNumber);
-    setCategory(initialModel.category);
-    setStatus(initialModel.status);
-    setLocation(initialModel.location);
-    setAssignedTo(initialModel.assignedTo);
-    setPurchaseDate(initialModel.purchaseDate);
-    setVendor(initialModel.vendor);
-    setRentalPriceDisplay(initialModel.rentalPriceDisplay);
-    setPurchasePriceDisplay(initialModel.purchasePriceDisplay);
-    setWarrantyEndDate(initialModel.warrantyEndDate);
-    setDescription(initialModel.description);
-    setImageFile(null);
-    setImagePreviewURL(initialModel.photoUrl);
+    hydrateFromInitialModel(initialModel);
     if (imageInputRef.current) {
       imageInputRef.current.value = "";
     }

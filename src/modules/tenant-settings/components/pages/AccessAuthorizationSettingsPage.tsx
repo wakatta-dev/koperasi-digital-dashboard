@@ -90,41 +90,46 @@ export function AccessAuthorizationSettingsPage({
   );
 
   useEffect(() => {
+    let nextRoleId = selectedRoleId;
     if (!roles.length) {
-      setSelectedRoleId("");
+      nextRoleId = "";
+    } else if (
+      requestedRoleId &&
+      roles.some((role) => String(role.id) === requestedRoleId)
+    ) {
+      nextRoleId = requestedRoleId;
+    } else if (
+      !selectedRoleId ||
+      !roles.some((role) => String(role.id) === selectedRoleId)
+    ) {
+      const firstEditable =
+        roles.find((role) => !isRoleProtected(role)) ?? roles[0];
+      nextRoleId = String(firstEditable.id);
+    }
+
+    if (nextRoleId === selectedRoleId) {
       return;
     }
 
-    const hasRole = (roleId: string) => roles.some((role) => String(role.id) === roleId);
-
-    if (requestedRoleId && roles.some((role) => String(role.id) === requestedRoleId)) {
-      if (selectedRoleId !== requestedRoleId) {
-        setSelectedRoleId(requestedRoleId);
-      }
-      return;
-    }
-
-    if (selectedRoleId && hasRole(selectedRoleId)) {
-      return;
-    }
-
-    const firstEditable = roles.find((role) => !isRoleProtected(role)) ?? roles[0];
-    const fallbackRoleId = String(firstEditable.id);
-    if (selectedRoleId !== fallbackRoleId) {
-      setSelectedRoleId(fallbackRoleId);
-      syncRoleQuery(fallbackRoleId);
+    setSelectedRoleId(nextRoleId);
+    if (nextRoleId) {
+      syncRoleQuery(nextRoleId);
     }
   }, [requestedRoleId, roles, selectedRoleId, syncRoleQuery]);
 
-  useEffect(() => {
-    if (!selectedRole) {
+  const syncSelectedRoleDraft = useCallback((role: typeof selectedRole) => {
+    if (!role) {
       setEditRoleName("");
       setEditRoleDescription("");
       return;
     }
-    setEditRoleName(selectedRole.name);
-    setEditRoleDescription(selectedRole.description ?? "");
-  }, [selectedRole]);
+    setEditRoleName(role.name);
+    setEditRoleDescription(role.description ?? "");
+  }, []);
+
+  useEffect(() => {
+    syncSelectedRoleDraft(selectedRole);
+  }, [selectedRole, syncSelectedRoleDraft]);
 
   const assignedAliases = useMemo(
     () => new Set(permissions.map((permission) => permission.alias)),

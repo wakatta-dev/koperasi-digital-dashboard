@@ -45,18 +45,23 @@ export function ReportingGeneralLedgerPage({
     [searchParams],
   );
 
-  const [start, setStart] = useState(initialState.start ?? "");
-  const [end, setEnd] = useState(initialState.end ?? "");
-  const [accountId, setAccountId] = useState(initialState.accountId ?? "all");
-  const [page, setPage] = useState(initialState.page ?? 1);
-  const [pageSize, setPageSize] = useState(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+  const [filtersState, setFiltersState] = useState(() => ({
+    start: initialState.start ?? "",
+    end: initialState.end ?? "",
+    accountId: initialState.accountId ?? "all",
+    page: initialState.page ?? 1,
+    pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+  }));
+  const { start, end, accountId, page, pageSize } = filtersState;
 
   useEffect(() => {
-    setStart(initialState.start ?? "");
-    setEnd(initialState.end ?? "");
-    setAccountId(initialState.accountId ?? "all");
-    setPage(initialState.page ?? 1);
-    setPageSize(initialState.page_size ?? DEFAULT_PAGE_SIZE);
+    setFiltersState({
+      start: initialState.start ?? "",
+      end: initialState.end ?? "",
+      accountId: initialState.accountId ?? "all",
+      page: initialState.page ?? 1,
+      pageSize: initialState.page_size ?? DEFAULT_PAGE_SIZE,
+    });
   }, [initialState.accountId, initialState.end, initialState.page, initialState.page_size, initialState.start]);
 
   const updateQueryState = (
@@ -136,18 +141,19 @@ export function ReportingGeneralLedgerPage({
         accountId={accountId}
         accountOptions={accountOptions}
         onStartChange={(value) => {
-          setStart(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, start: value, page: 1 }));
           updateQueryState(value, end, accountId, 1, pageSize);
         }}
         onEndChange={(value) => {
-          setEnd(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, end: value, page: 1 }));
           updateQueryState(start, value, accountId, 1, pageSize);
         }}
         onAccountChange={(value) => {
-          setAccountId(value);
-          setPage(1);
+          setFiltersState((current) => ({
+            ...current,
+            accountId: value,
+            page: 1,
+          }));
           updateQueryState(start, end, value, 1, pageSize);
         }}
       />
@@ -183,7 +189,7 @@ export function ReportingGeneralLedgerPage({
             : undefined
         }
         onPageChange={(nextPage) => {
-          setPage(nextPage);
+          setFiltersState((current) => ({ ...current, page: nextPage }));
           updateQueryState(start, end, accountId, nextPage, pageSize);
         }}
       />

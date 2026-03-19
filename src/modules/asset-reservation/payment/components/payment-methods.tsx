@@ -146,6 +146,35 @@ export function PaymentMethods({
     }
   };
 
+  const applyBootstrapFailure = (
+    message: string,
+    options?: { session?: PaymentSession | null; clearCallback?: boolean },
+  ) => {
+    if (options && "session" in options) {
+      setSession(options.session ?? null);
+    }
+    setSessionError(message);
+    if (options?.clearCallback) {
+      onSessionChangeRef.current?.(null);
+    }
+  };
+
+  const applyBootstrapSession = (nextSession: PaymentSession) => {
+    setSession(nextSession);
+    setStatus(nextSession.status);
+    setSessionError(null);
+    onSessionChangeRef.current?.(nextSession);
+  };
+
+  const beginBootstrapRequest = () => {
+    setIsLoading(true);
+    setSessionError(null);
+  };
+
+  const finishBootstrapRequest = () => {
+    setIsLoading(false);
+  };
+
   const handleSubmitProof = async (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if (!session?.paymentId || !proofFile || !reservationId || !ownershipToken) {
@@ -199,18 +228,19 @@ export function PaymentMethods({
     let ignore = false;
     async function bootstrapSession(methodValue: string) {
       if (!hasMethods || !methodValue) {
-        setSession(null);
-        setSessionError("Metode pembayaran belum tersedia.");
+        applyBootstrapFailure("Metode pembayaran belum tersedia.", {
+          session: null,
+        });
         return;
       }
       if (!reservationId) {
-        setSessionError(
+        applyBootstrapFailure(
           "ID reservasi wajib diisi sebelum membuat sesi pembayaran.",
         );
         return;
       }
       if (!ownershipToken) {
-        setSessionError(
+        applyBootstrapFailure(
           "Token kepemilikan reservasi tidak tersedia. Gunakan tautan resmi terbaru.",
         );
         return;
@@ -220,14 +250,10 @@ export function PaymentMethods({
         reusableSession.method === methodValue &&
         reusableSession.type === mode
       ) {
-        setSession(reusableSession);
-        setStatus(reusableSession.status);
-        setSessionError(null);
-        onSessionChangeRef.current?.(reusableSession);
+        applyBootstrapSession(reusableSession);
         return;
       }
-      setIsLoading(true);
-      setSessionError(null);
+      beginBootstrapRequest();
       try {
         const res = await createPaymentSession({
           reservation_id: reservationId,
@@ -237,7 +263,7 @@ export function PaymentMethods({
         });
         if (ignore) return;
         if (res.success && res.data) {
-          setSession({
+          applyBootstrapSession({
             paymentId: res.data.payment_id,
             reservationId: res.data.reservation_id,
             amount: res.data.amount,
@@ -246,37 +272,29 @@ export function PaymentMethods({
             payBy: res.data.pay_by,
             status: res.data.status,
           });
-          setStatus(res.data.status as PaymentStatus);
-          onSessionChangeRef.current?.({
-            paymentId: res.data.payment_id,
-            reservationId: res.data.reservation_id,
-            amount: res.data.amount,
-            type: res.data.type as PaymentMode,
-            method: res.data.method,
-            payBy: res.data.pay_by,
-            status: res.data.status as PaymentStatus,
-          });
         } else {
-          setSessionError(
+          applyBootstrapFailure(
             resolvePublicPaymentSessionErrorMessage(
               res.message || "Tidak dapat membuat sesi pembayaran",
             ),
+            { clearCallback: true },
           );
-          onSessionChangeRef.current?.(null);
         }
       } catch (err) {
         if (!ignore) {
-          setSessionError(
+          applyBootstrapFailure(
             resolvePublicPaymentSessionErrorMessage(
               err instanceof Error
                 ? err.message
                 : "Gagal membuat sesi pembayaran",
             ),
+            { clearCallback: true },
           );
-          onSessionChangeRef.current?.(null);
         }
       } finally {
-        if (!ignore) setIsLoading(false);
+        if (!ignore) {
+          finishBootstrapRequest();
+        }
       }
     }
     bootstrapSession(selected);

@@ -49,17 +49,22 @@ export function MarketplaceCartPage() {
     !isLoading && !isSyncingEmptyCart && emptySyncRetries >= 2;
   const isEmpty = canShowEmptyState && !hasItems;
 
+  const applyEmptyCartSyncState = (
+    nextRetries: number,
+    nextSyncing: boolean,
+  ) => {
+    setEmptySyncRetries(nextRetries);
+    setIsSyncingEmptyCart(nextSyncing);
+  };
+
   useEffect(() => {
     if (isLoading || isError) {
       return;
     }
 
     if (hasItems) {
-      if (emptySyncRetries !== 0) {
-        setEmptySyncRetries(0);
-      }
-      if (isSyncingEmptyCart) {
-        setIsSyncingEmptyCart(false);
+      if (emptySyncRetries !== 0 || isSyncingEmptyCart) {
+        applyEmptyCartSyncState(0, false);
       }
       return;
     }
@@ -68,11 +73,12 @@ export function MarketplaceCartPage() {
       return;
     }
 
-    setIsSyncingEmptyCart(true);
+    applyEmptyCartSyncState(emptySyncRetries, true);
     const timer = window.setTimeout(() => {
-      setEmptySyncRetries((count) => count + 1);
+      const nextRetries = emptySyncRetries + 1;
+      applyEmptyCartSyncState(nextRetries, true);
       void refetch().finally(() => {
-        setIsSyncingEmptyCart(false);
+        applyEmptyCartSyncState(nextRetries, false);
       });
     }, 350);
 

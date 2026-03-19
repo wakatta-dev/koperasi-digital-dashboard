@@ -443,12 +443,18 @@ function ProductVariantPageContent({ id }: ProductVariantPageProps) {
     [variantsData],
   );
 
-  useEffect(() => {
-    if (!variantsData || !product || isDirty) return;
-    const initial = buildInitialState(variantsData, basePrice, skuPrefix);
+  const applyInitialVariantState = (
+    initial: ReturnType<typeof buildInitialState>,
+  ) => {
     setAttributes(initial.attributes);
     setVariants(initial.variants);
     setValueInputs({});
+  };
+
+  useEffect(() => {
+    if (!variantsData || !product || isDirty) return;
+    const initial = buildInitialState(variantsData, basePrice, skuPrefix);
+    applyInitialVariantState(initial);
   }, [variantsData, product, basePrice, skuPrefix, isDirty]);
 
   useEffect(() => {

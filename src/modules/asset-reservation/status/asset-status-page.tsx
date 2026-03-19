@@ -216,22 +216,35 @@ export function AssetStatusPage({
     return [];
   }, [reservation]);
 
+  const applyDecodedTokenState = (
+    nextDecoded: ReservationSummary | null,
+    nextTokenError: string | null,
+  ) => {
+    setTokenError(nextTokenError);
+    setDecoded(nextDecoded);
+  };
+
   useEffect(() => {
     if (!token) return;
     const parsedId = Number.parseInt(token, 10);
     if (!Number.isFinite(parsedId) || parsedId <= 0) {
-      setTokenError("Tautan tidak valid. Gunakan tautan status resmi dari sistem.");
+      applyDecodedTokenState(
+        null,
+        "Tautan tidak valid. Gunakan tautan status resmi dari sistem.",
+      );
       return;
     }
-    setTokenError(null);
-    setDecoded({
-      reservationId: parsedId,
-      assetId: 0,
-      status,
-      startDate: "",
-      endDate: "",
-      amounts: { total: 0, dp: 0, remaining: 0 },
-    });
+    applyDecodedTokenState(
+      {
+        reservationId: parsedId,
+        assetId: 0,
+        status,
+        startDate: "",
+        endDate: "",
+        amounts: { total: 0, dp: 0, remaining: 0 },
+      },
+      null,
+    );
   }, [token, status]);
 
   const handleCancel = async () => {

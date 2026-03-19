@@ -42,16 +42,21 @@ export function ReportingTrialBalancePage({
     [searchParams],
   );
 
-  const [start, setStart] = useState(initialState.start ?? "");
-  const [end, setEnd] = useState(initialState.end ?? "");
-  const [branch, setBranch] = useState(initialState.branch ?? "all");
-  const [page, setPage] = useState(initialState.page ?? 1);
+  const [filtersState, setFiltersState] = useState(() => ({
+    start: initialState.start ?? "",
+    end: initialState.end ?? "",
+    branch: initialState.branch ?? "all",
+    page: initialState.page ?? 1,
+  }));
+  const { start, end, branch, page } = filtersState;
 
   useEffect(() => {
-    setStart(initialState.start ?? "");
-    setEnd(initialState.end ?? "");
-    setBranch(initialState.branch ?? "all");
-    setPage(initialState.page ?? 1);
+    setFiltersState({
+      start: initialState.start ?? "",
+      end: initialState.end ?? "",
+      branch: initialState.branch ?? "all",
+      page: initialState.page ?? 1,
+    });
   }, [initialState.branch, initialState.end, initialState.page, initialState.start]);
 
   const updateQueryState = (
@@ -115,18 +120,15 @@ export function ReportingTrialBalancePage({
         branch={branch}
         branches={branchOptions}
         onStartChange={(value) => {
-          setStart(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, start: value, page: 1 }));
           updateQueryState(value, end, branch, 1);
         }}
         onEndChange={(value) => {
-          setEnd(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, end: value, page: 1 }));
           updateQueryState(start, value, branch, 1);
         }}
         onBranchChange={(value) => {
-          setBranch(value);
-          setPage(1);
+          setFiltersState((current) => ({ ...current, branch: value, page: 1 }));
           updateQueryState(start, end, value, 1);
         }}
       />
@@ -169,7 +171,7 @@ export function ReportingTrialBalancePage({
         }}
         paginationInfo={`Showing ${pagedRows.length} of ${allRows.length} entries`}
         onPageChange={(nextPage) => {
-          setPage(nextPage);
+          setFiltersState((current) => ({ ...current, page: nextPage }));
           updateQueryState(start, end, branch, nextPage);
         }}
       />

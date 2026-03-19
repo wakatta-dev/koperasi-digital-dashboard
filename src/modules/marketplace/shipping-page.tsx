@@ -276,6 +276,24 @@ export function MarketplaceShippingPage() {
       ),
   });
 
+  const applyTrackingFailureState = (
+    next: Partial<{
+      errorMessage: string;
+      view: TrackingView;
+      trackResult: MarketplaceGuestTrackResponse | null;
+    }>
+  ) => {
+    if ("errorMessage" in next) {
+      setErrorMessage(next.errorMessage);
+    }
+    if ("view" in next && next.view) {
+      setView(next.view);
+    }
+    if ("trackResult" in next) {
+      setTrackResult(next.trackResult ?? null);
+    }
+  };
+
   useEffect(() => {
     if (!statusQuery.isError || !trackResult) {
       return;
@@ -284,46 +302,51 @@ export function MarketplaceShippingPage() {
     const classified = classifyMarketplaceApiError(statusQuery.error);
 
     if (classified.kind === "deny") {
-      setErrorMessage(
-        withMarketplaceDenyReasonMessage({
+      applyTrackingFailureState({
+        errorMessage: withMarketplaceDenyReasonMessage({
           fallbackMessage:
             "Tautan pelacakan ditolak oleh kebijakan marketplace. Silakan lacak ulang pesanan Anda.",
           code: classified.code,
-        })
-      );
-      setView("track");
-      setTrackResult(null);
+        }),
+        view: "track",
+        trackResult: null,
+      });
       return;
     }
 
     if (classified.kind === "not_found") {
-      setErrorMessage(
-        "Pesanan tidak ditemukan. Silakan periksa ulang kode pesanan dan data kontak Anda."
-      );
-      setView("not-found");
-      setTrackResult(null);
+      applyTrackingFailureState({
+        errorMessage:
+          "Pesanan tidak ditemukan. Silakan periksa ulang kode pesanan dan data kontak Anda.",
+        view: "not-found",
+        trackResult: null,
+      });
       return;
     }
 
     if (classified.kind === "service_unavailable") {
-      setErrorMessage(
-        "Layanan pelacakan sedang tidak tersedia. Silakan coba kembali beberapa menit lagi."
-      );
-      setView("service-unavailable");
+      applyTrackingFailureState({
+        errorMessage:
+          "Layanan pelacakan sedang tidak tersedia. Silakan coba kembali beberapa menit lagi.",
+        view: "service-unavailable",
+      });
       return;
     }
 
     if (classified.kind === "conflict") {
-      setErrorMessage(
-        "Status pesanan sedang diperbarui dan belum dapat ditampilkan. Silakan coba lagi."
-      );
-      setView("conflict");
-      setTrackResult(null);
+      applyTrackingFailureState({
+        errorMessage:
+          "Status pesanan sedang diperbarui dan belum dapat ditampilkan. Silakan coba lagi.",
+        view: "conflict",
+        trackResult: null,
+      });
       return;
     }
 
-    setErrorMessage("Gagal memuat status pesanan. Silakan coba lagi.");
-    setView("track");
+    applyTrackingFailureState({
+      errorMessage: "Gagal memuat status pesanan. Silakan coba lagi.",
+      view: "track",
+    });
   }, [statusQuery.error, statusQuery.isError, trackResult]);
 
   const submitReview = useMutation({
