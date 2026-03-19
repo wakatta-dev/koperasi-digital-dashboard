@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SetStateAction } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -203,23 +203,114 @@ function getTemplateComponent(templateCode: string | undefined) {
 }
 
 export function LandingPageManagement() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSwitchingTemplate, setIsSwitchingTemplate] = useState(false);
-  const [editorState, setEditorState] = useState<LandingEditorState | null>(
-    null,
-  );
-  const [templates, setTemplates] = useState<LandingTemplateSummary[]>([]);
-  const [draftContent, setDraftContent] = useState<Record<string, any>>({});
-  const [selectedSectionKey, setSelectedSectionKey] = useState<string>("");
-  const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
-  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
-  const [builderTab, setBuilderTab] = useState<BuilderTab>("content");
-  const [previewHost, setPreviewHost] = useState("bumdes.3portals.id");
-  const [previewTemplate, setPreviewTemplate] =
-    useState<LandingTemplateSummary | null>(null);
+  const [uiState, setUiState] = useState({
+    isLoading: true,
+    isSwitchingTemplate: false,
+    editorState: null as LandingEditorState | null,
+    templates: [] as LandingTemplateSummary[],
+    draftContent: {} as Record<string, any>,
+    selectedSectionKey: "",
+    saveState: "idle" as SaveState,
+    isPublishing: false,
+    isDirty: false,
+    previewDevice: "desktop" as PreviewDevice,
+    isBuilderOpen: false,
+    builderTab: "content" as BuilderTab,
+    previewHost: "bumdes.3portals.id",
+    previewTemplate: null as LandingTemplateSummary | null,
+  });
+  const {
+    isLoading,
+    isSwitchingTemplate,
+    editorState,
+    templates,
+    draftContent,
+    selectedSectionKey,
+    saveState,
+    isPublishing,
+    isDirty,
+    previewDevice,
+    isBuilderOpen,
+    builderTab,
+    previewHost,
+    previewTemplate,
+  } = uiState;
+
+  const resolveUpdate = <T,>(current: T, next: SetStateAction<T>): T =>
+    typeof next === "function" ? (next as (prev: T) => T)(current) : next;
+
+  const setIsLoading = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      isLoading: resolveUpdate(current.isLoading, next),
+    }));
+  const setIsSwitchingTemplate = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      isSwitchingTemplate: resolveUpdate(current.isSwitchingTemplate, next),
+    }));
+  const setEditorState = (next: SetStateAction<LandingEditorState | null>) =>
+    setUiState((current) => ({
+      ...current,
+      editorState: resolveUpdate(current.editorState, next),
+    }));
+  const setTemplates = (next: SetStateAction<LandingTemplateSummary[]>) =>
+    setUiState((current) => ({
+      ...current,
+      templates: resolveUpdate(current.templates, next),
+    }));
+  const setDraftContent = (next: SetStateAction<Record<string, any>>) =>
+    setUiState((current) => ({
+      ...current,
+      draftContent: resolveUpdate(current.draftContent, next),
+    }));
+  const setSelectedSectionKey = (next: SetStateAction<string>) =>
+    setUiState((current) => ({
+      ...current,
+      selectedSectionKey: resolveUpdate(current.selectedSectionKey, next),
+    }));
+  const setSaveState = (next: SetStateAction<SaveState>) =>
+    setUiState((current) => ({
+      ...current,
+      saveState: resolveUpdate(current.saveState, next),
+    }));
+  const setIsPublishing = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      isPublishing: resolveUpdate(current.isPublishing, next),
+    }));
+  const setIsDirty = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      isDirty: resolveUpdate(current.isDirty, next),
+    }));
+  const setPreviewDevice = (next: SetStateAction<PreviewDevice>) =>
+    setUiState((current) => ({
+      ...current,
+      previewDevice: resolveUpdate(current.previewDevice, next),
+    }));
+  const setIsBuilderOpen = (next: SetStateAction<boolean>) =>
+    setUiState((current) => ({
+      ...current,
+      isBuilderOpen: resolveUpdate(current.isBuilderOpen, next),
+    }));
+  const setBuilderTab = (next: SetStateAction<BuilderTab>) =>
+    setUiState((current) => ({
+      ...current,
+      builderTab: resolveUpdate(current.builderTab, next),
+    }));
+  const setPreviewHost = (next: SetStateAction<string>) =>
+    setUiState((current) => ({
+      ...current,
+      previewHost: resolveUpdate(current.previewHost, next),
+    }));
+  const setPreviewTemplate = (
+    next: SetStateAction<LandingTemplateSummary | null>,
+  ) =>
+    setUiState((current) => ({
+      ...current,
+      previewTemplate: resolveUpdate(current.previewTemplate, next),
+    }));
 
   const schemaSections = useMemo(
     () => editorState?.section_schema?.sections ?? [],
