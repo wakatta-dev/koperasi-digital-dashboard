@@ -44,16 +44,19 @@ export function ReportingProfitLossPage({
     setPreset(initialState.preset ?? "");
   }, [initialState.preset]);
 
-  useEffect(() => {
+  const handlePresetChange = (nextPreset: string) => {
+    setPreset(nextPreset);
     const nextQuery = buildReportingQueryString({
       ...initialState,
-      preset: preset || undefined,
+      preset: nextPreset || undefined,
       page: undefined,
       page_size: undefined,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [initialState, pathname, preset, router, searchParams]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reportQuery = useAccountingReportingProfitLoss({
     preset: preset || undefined,
@@ -74,7 +77,10 @@ export function ReportingProfitLossPage({
             Detailed statement of income, costs, and expenses.
           </p>
         </div>
-        <FeatureProfitLossToolbar preset={preset} onPresetChange={setPreset} />
+        <FeatureProfitLossToolbar
+          preset={preset}
+          onPresetChange={handlePresetChange}
+        />
       </section>
 
       {reportQuery.error ? (

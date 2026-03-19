@@ -140,10 +140,13 @@ export function JournalEntriesManagementPage({
   const periodLockMonth = periodLockQuery.data?.month;
   const periodLockYear = periodLockQuery.data?.year;
 
-  useEffect(() => {
+  const updateQueryState = (
+    nextFilters: JournalEntriesFilterValue,
+    nextPagination: JournalEntriesPagination,
+  ) => {
     const nextQuery = buildJournalListQueryString({
-      filters,
-      pagination,
+      filters: nextFilters,
+      pagination: nextPagination,
       sort,
     });
     const currentQuery = searchParams.toString();
@@ -154,7 +157,7 @@ export function JournalEntriesManagementPage({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, pagination, pathname, router, searchParams, sort]);
+  };
 
   useEffect(() => {
     if (periodLockMonth === undefined && periodLockYear === undefined) {
@@ -329,8 +332,10 @@ export function JournalEntriesManagementPage({
         <FeatureJournalEntriesFilterBar
         value={filters}
         onChange={(next) => {
+          const nextPagination = { ...pagination, page: 1 };
           setFilters(next);
-          setPagination((current) => ({ ...current, page: 1 }));
+          setPagination(nextPagination);
+          updateQueryState(next, nextPagination);
         }}
       />
       {entriesQuery.error ? (
@@ -354,10 +359,14 @@ export function JournalEntriesManagementPage({
           router.push(withReturnContext);
         }}
         onPageChange={(nextPage) =>
-          setPagination((current) => ({
-            ...current,
-            page: nextPage,
-          }))
+          {
+            const nextPagination = {
+              ...resolvedPagination,
+              page: nextPage,
+            };
+            setPagination(nextPagination);
+            updateQueryState(filters, nextPagination);
+          }
         }
       />
       <FeatureLockAccountingPeriodModal

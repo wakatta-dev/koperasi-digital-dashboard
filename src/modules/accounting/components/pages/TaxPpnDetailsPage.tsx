@@ -143,8 +143,15 @@ export function TaxPpnDetailsPage({
     period,
   ]);
 
-  useEffect(() => {
-    const baseQuery = buildTaxPpnQueryString({ filters, page, perPage });
+  const updateQueryState = (
+    nextFilters: TaxPpnFilterValue,
+    nextPage: number,
+  ) => {
+    const baseQuery = buildTaxPpnQueryString({
+      filters: nextFilters,
+      page: nextPage,
+      perPage,
+    });
     const params = new URLSearchParams(baseQuery);
     const fromValue = searchParams.get("from") ?? returnToQuery;
     if (fromValue) {
@@ -158,7 +165,7 @@ export function TaxPpnDetailsPage({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, page, pathname, perPage, returnToQuery, router, searchParams]);
+  };
 
   const activePeriodCode =
     filters.period === "All Periods"
@@ -284,6 +291,7 @@ export function TaxPpnDetailsPage({
           onChange={(next) => {
             setFilters(next);
             setPage(1);
+            updateQueryState(next, 1);
           }}
         />
         {vatTransactionsQuery.isPending && !vatTransactionsQuery.data ? (
@@ -301,7 +309,10 @@ export function TaxPpnDetailsPage({
             totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
           }}
           paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
-          onPageChange={setPage}
+          onPageChange={(nextPage) => {
+            setPage(nextPage);
+            updateQueryState(filters, nextPage);
+          }}
         />
       </div>
     </div>

@@ -59,20 +59,29 @@ export function ReportingGeneralLedgerPage({
     setPageSize(initialState.page_size ?? DEFAULT_PAGE_SIZE);
   }, [initialState.accountId, initialState.end, initialState.page, initialState.page_size, initialState.start]);
 
-  useEffect(() => {
-    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
+  const updateQueryState = (
+    nextStart: string,
+    nextEnd: string,
+    nextAccountId: string,
+    nextPage: number,
+    nextPageSize: number,
+  ) => {
+    const resolvedPreset =
+      nextStart && nextEnd ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
       preset: resolvedPreset,
-      start: start || undefined,
-      end: end || undefined,
-      accountId,
-      page,
-      page_size: pageSize,
+      start: nextStart || undefined,
+      end: nextEnd || undefined,
+      accountId: nextAccountId,
+      page: nextPage,
+      page_size: nextPageSize,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [accountId, end, initialState, page, pageSize, pathname, router, searchParams, start]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reportQuery = useAccountingReportingGeneralLedger({
     preset: start && end ? "custom" : initialState.preset || "today",
@@ -129,14 +138,17 @@ export function ReportingGeneralLedgerPage({
         onStartChange={(value) => {
           setStart(value);
           setPage(1);
+          updateQueryState(value, end, accountId, 1, pageSize);
         }}
         onEndChange={(value) => {
           setEnd(value);
           setPage(1);
+          updateQueryState(start, value, accountId, 1, pageSize);
         }}
         onAccountChange={(value) => {
           setAccountId(value);
           setPage(1);
+          updateQueryState(start, end, value, 1, pageSize);
         }}
       />
 
@@ -170,7 +182,10 @@ export function ReportingGeneralLedgerPage({
             ? `Showing ${reportQuery.data.groups.length} of ${reportQuery.data.pagination.total_accounts} accounts`
             : undefined
         }
-        onPageChange={setPage}
+        onPageChange={(nextPage) => {
+          setPage(nextPage);
+          updateQueryState(start, end, accountId, nextPage, pageSize);
+        }}
       />
     </div>
   );

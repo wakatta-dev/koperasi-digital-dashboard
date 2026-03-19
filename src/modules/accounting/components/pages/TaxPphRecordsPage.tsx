@@ -77,8 +77,15 @@ export function TaxPphRecordsPage({
   });
   const mutations = useAccountingTaxMutations();
 
-  useEffect(() => {
-    const nextQuery = buildTaxPphQueryString({ filters, page, perPage });
+  const updateQueryState = (
+    nextFilters: TaxPphFilterValue,
+    nextPage: number,
+  ) => {
+    const nextQuery = buildTaxPphQueryString({
+      filters: nextFilters,
+      page: nextPage,
+      perPage,
+    });
     const currentQuery = searchParams.toString();
     if (nextQuery === currentQuery) {
       return;
@@ -86,7 +93,7 @@ export function TaxPphRecordsPage({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, page, pathname, perPage, router, searchParams]);
+  };
 
   const summaryItems = useMemo<KpiItem[]>(() => {
     return (pphRecordsQuery.data?.summary_cards ?? []).map((card, index) => ({
@@ -186,6 +193,7 @@ export function TaxPphRecordsPage({
           onChange={(next) => {
             setFilters(next);
             setPage(1);
+            updateQueryState(next, 1);
           }}
         />
         {pphRecordsQuery.isPending && !pphRecordsQuery.data ? (
@@ -202,7 +210,10 @@ export function TaxPphRecordsPage({
             totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
           }}
           paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
-          onPageChange={setPage}
+          onPageChange={(nextPage) => {
+            setPage(nextPage);
+            updateQueryState(filters, nextPage);
+          }}
         />
       </div>
     </div>

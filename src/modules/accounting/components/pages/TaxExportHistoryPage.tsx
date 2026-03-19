@@ -88,10 +88,13 @@ export function TaxExportHistoryPage({
   });
   const mutations = useAccountingTaxMutations();
 
-  useEffect(() => {
+  const updateQueryState = (
+    nextFilters: TaxExportHistoryFilterValue,
+    nextPage: number,
+  ) => {
     const nextQuery = buildTaxExportHistoryQueryString({
-      filters,
-      page,
+      filters: nextFilters,
+      page: nextPage,
       perPage,
     });
     const currentQuery = searchParams.toString();
@@ -102,7 +105,7 @@ export function TaxExportHistoryPage({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, page, pathname, perPage, router, searchParams]);
+  };
 
   const summaryItems = useMemo<KpiItem[]>(() => {
     return (overviewQuery.data?.cards ?? []).map((card) => ({
@@ -209,6 +212,7 @@ export function TaxExportHistoryPage({
           onChange={(next) => {
             setFilters(next);
             setPage(1);
+            updateQueryState(next, 1);
           }}
         />
 
@@ -227,7 +231,10 @@ export function TaxExportHistoryPage({
             totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
           }}
           paginationInfo={`Showing ${rows.length} of ${totalItems} results`}
-          onPageChange={setPage}
+          onPageChange={(nextPage) => {
+            setPage(nextPage);
+            updateQueryState(filters, nextPage);
+          }}
           onDownload={() => toast.success("Download link requested.")}
           onRetry={handleRetryExport}
         />

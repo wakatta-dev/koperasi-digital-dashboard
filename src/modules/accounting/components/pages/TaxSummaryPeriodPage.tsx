@@ -87,8 +87,15 @@ export function TaxSummaryPeriodPage({
   });
   const mutations = useAccountingTaxMutations();
 
-  useEffect(() => {
-    const nextQuery = buildTaxSummaryQueryString({ filters, page, perPage });
+  const updateQueryState = (
+    nextFilters: TaxSummaryFilterValue,
+    nextPage: number,
+  ) => {
+    const nextQuery = buildTaxSummaryQueryString({
+      filters: nextFilters,
+      page: nextPage,
+      perPage,
+    });
     const currentQuery = searchParams.toString();
     if (nextQuery === currentQuery) {
       return;
@@ -96,7 +103,7 @@ export function TaxSummaryPeriodPage({
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
       scroll: false,
     });
-  }, [filters, page, perPage, pathname, router, searchParams]);
+  };
 
   const summaryItems = useMemo<KpiItem[]>(() => {
     return (overviewQuery.data?.cards ?? []).map((card) => ({
@@ -206,6 +213,7 @@ export function TaxSummaryPeriodPage({
           onChange={(next) => {
             setFilters(next);
             setPage(1);
+            updateQueryState(next, 1);
           }}
         />
         {periodsQuery.isPending && !periodsQuery.data ? (
@@ -222,7 +230,10 @@ export function TaxSummaryPeriodPage({
             totalPages: Math.max(1, Math.ceil(totalItems / resolvedPerPage)),
           }}
           paginationInfo={`Showing ${summaryRows.length} of ${totalItems} results`}
-          onPageChange={setPage}
+          onPageChange={(nextPage) => {
+            setPage(nextPage);
+            updateQueryState(filters, nextPage);
+          }}
           onDetails={(row) => {
             const backQuery = buildTaxSummaryQueryString({
               filters,

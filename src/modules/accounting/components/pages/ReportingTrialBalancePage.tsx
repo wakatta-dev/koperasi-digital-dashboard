@@ -54,20 +54,28 @@ export function ReportingTrialBalancePage({
     setPage(initialState.page ?? 1);
   }, [initialState.branch, initialState.end, initialState.page, initialState.start]);
 
-  useEffect(() => {
-    const resolvedPreset = start && end ? "custom" : initialState.preset || "today";
+  const updateQueryState = (
+    nextStart: string,
+    nextEnd: string,
+    nextBranch: string,
+    nextPage: number,
+  ) => {
+    const resolvedPreset =
+      nextStart && nextEnd ? "custom" : initialState.preset || "today";
     const nextQuery = buildReportingQueryString({
       ...initialState,
       preset: resolvedPreset,
-      start: start || undefined,
-      end: end || undefined,
-      branch,
-      page,
+      start: nextStart || undefined,
+      end: nextEnd || undefined,
+      branch: nextBranch,
+      page: nextPage,
       page_size: undefined,
     });
     if (nextQuery === searchParams.toString()) return;
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [branch, end, initialState, page, pathname, router, searchParams, start]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reportQuery = useAccountingReportingTrialBalance({
     preset: start && end ? "custom" : initialState.preset || "today",
@@ -109,14 +117,17 @@ export function ReportingTrialBalancePage({
         onStartChange={(value) => {
           setStart(value);
           setPage(1);
+          updateQueryState(value, end, branch, 1);
         }}
         onEndChange={(value) => {
           setEnd(value);
           setPage(1);
+          updateQueryState(start, value, branch, 1);
         }}
         onBranchChange={(value) => {
           setBranch(value);
           setPage(1);
+          updateQueryState(start, end, value, 1);
         }}
       />
 
@@ -157,7 +168,10 @@ export function ReportingTrialBalancePage({
           ),
         }}
         paginationInfo={`Showing ${pagedRows.length} of ${allRows.length} entries`}
-        onPageChange={setPage}
+        onPageChange={(nextPage) => {
+          setPage(nextPage);
+          updateQueryState(start, end, branch, nextPage);
+        }}
       />
     </div>
   );
