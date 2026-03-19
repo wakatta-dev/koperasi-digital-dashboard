@@ -114,6 +114,7 @@ export type AssetRentalFinancialResolutionRequest = {
 
 export type AssetRentalBooking = {
   id: number;
+  reservation_id?: number | string;
   asset_id: number;
   asset_name: string;
   renter_name: string;

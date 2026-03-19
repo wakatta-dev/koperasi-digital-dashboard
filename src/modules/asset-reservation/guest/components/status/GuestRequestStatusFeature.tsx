@@ -47,6 +47,7 @@ export type GuestRequestStatusResult = {
   variant: GuestRequestStatusVariant;
   status: ReservationStatus;
   statusDescription?: string;
+  dataWarning?: string;
   details: GuestRequestStatusDetails;
   rejectionReason?: string;
   paymentInstruction?: GuestRequestPaymentInstruction;
@@ -454,6 +455,11 @@ export function GuestRequestStatusFeature({
                     {result.statusDescription ? (
                       <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                         {result.statusDescription}
+                      </p>
+                    ) : null}
+                    {result.dataWarning ? (
+                      <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                        {result.dataWarning}
                       </p>
                     ) : null}
                   </div>

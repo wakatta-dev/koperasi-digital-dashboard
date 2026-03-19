@@ -39,6 +39,7 @@ vi.mock("../guest/components/status/GuestRequestStatusFeature", () => ({
       <div>result-ticket:{result?.ticketLabel ?? "-"}</div>
       <div>result-badge:{result?.badgeLabel ?? "-"}</div>
       <div>result-description:{result?.statusDescription ?? "-"}</div>
+      <div>result-warning:{result?.dataWarning ?? "-"}</div>
       <div>result-payment-href:{result?.paymentHref ?? "-"}</div>
     </div>
   ),
@@ -125,6 +126,38 @@ describe("GuestStatusLookupPage", () => {
     expect(
       screen.getByText(
         "result-payment-href:/penyewaan-aset/payment?reservationId=27&type=settlement&sig=token-27",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("falls back to awaiting settlement when verification state is inconsistent with latest payment", () => {
+    lookupMock.mockReturnValue({
+      data: {
+        reservation_id: 8,
+        asset_name: "E2E Asset Click Clean 20260319",
+        renter_name: "Faizal Fakhri",
+        renter_contact: "085730853685",
+        start_date: "2026-03-22T08:00:00Z",
+        end_date: "2026-03-23T15:00:00Z",
+        status: "awaiting_payment_verification",
+        payment_flow: "dp",
+        latest_payment: {
+          id: "pay-8",
+          type: "settlement",
+          status: "initiated",
+        },
+        amounts: { total: 650000, dp: 130000, remaining: 520000 },
+      },
+      mutate: vi.fn(),
+      isPending: false,
+    });
+
+    render(<GuestStatusLookupPage />);
+
+    expect(screen.getByText("result-badge:Menunggu Pelunasan")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "result-warning:Status pembayaran belum sinkron. Jika Anda baru mengirim bukti, tunggu beberapa menit lalu muat ulang halaman atau hubungi admin desa.",
       ),
     ).toBeTruthy();
   });

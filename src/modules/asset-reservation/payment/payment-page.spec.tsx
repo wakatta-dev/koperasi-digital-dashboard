@@ -122,4 +122,33 @@ describe("AssetPaymentPage public access gating", () => {
     expect(screen.getByText("Nomor Tiket: #SQ-00041")).toBeTruthy();
     expect(screen.getByText("Pembayaran Sedang Dicek")).toBeTruthy();
   });
+
+  it("keeps settlement upload accessible when verification status is inconsistent with latest payment", () => {
+    useReservationMock.mockReturnValue({
+      data: {
+        reservationId: 8,
+        status: "awaiting_payment_verification",
+        paymentFlow: "dp",
+        latestPayment: {
+          type: "settlement",
+          status: "initiated",
+        },
+        amounts: { total: 650000, dp: 130000, remaining: 520000 },
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(
+      <AssetPaymentPage reservationId={8} mode="settlement" ownershipToken="token-8" />
+    );
+
+    expect(screen.queryByText(/shell-error:/)).toBeNull();
+    expect(screen.getByText("payment-methods")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Status pembayaran belum sinkron. Jika Anda baru mengirim bukti, muat ulang beberapa menit lagi atau hubungi admin desa.",
+      )
+    ).toBeTruthy();
+  });
 });

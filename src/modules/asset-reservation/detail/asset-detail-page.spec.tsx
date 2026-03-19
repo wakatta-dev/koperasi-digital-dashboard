@@ -144,7 +144,7 @@ describe("AssetDetailPage public reservation flow", () => {
 
     expect(await screen.findByText("success-ticket:#SQ-00042")).toBeTruthy();
     expect(screen.getByText(/success-status:/).textContent).toContain(
-      "/penyewaan-aset/status-reservasi?"
+      "/penyewaan-aset/status?"
     );
     expect(screen.getByText(/success-status:/).textContent).toContain("id=42");
     expect(screen.getByText(/success-status:/).textContent).toContain(

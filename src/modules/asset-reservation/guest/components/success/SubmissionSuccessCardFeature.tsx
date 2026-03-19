@@ -42,7 +42,7 @@ export function SubmissionSuccessCardFeature({
 
           <p className="mt-6 text-base text-gray-500 dark:text-gray-400 leading-relaxed">
             {statusHref
-              ? "Simpan nomor pengajuan ini dan gunakan tautan status aman untuk memantau langkah selanjutnya."
+              ? "Simpan nomor pengajuan ini dan gunakan halaman status pengajuan untuk memantau langkah selanjutnya."
               : "Simpan nomor pengajuan ini. Admin kami akan menghubungi Anda melalui WA/Email untuk langkah verifikasi selanjutnya."}
           </p>
         </div>

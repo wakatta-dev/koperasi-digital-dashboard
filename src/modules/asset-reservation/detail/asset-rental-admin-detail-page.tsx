@@ -353,6 +353,60 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
   };
 }
 
+function buildLocalPaymentDiagnostics(input: {
+  bookingStatus?: string;
+  latestPayment?: {
+    status?: string | null;
+    proof_url?: string | null;
+    type?: string | null;
+  } | null;
+}) {
+  const normalizedBookingStatus = (input.bookingStatus || "").trim().toUpperCase();
+  const latestPaymentStatus = (input.latestPayment?.status || "").trim().toLowerCase();
+  const latestPaymentType =
+    (input.latestPayment?.type || "").trim().toLowerCase() || "payment";
+
+  const diagnostics: Array<{
+    scope: string;
+    code: string;
+    severity: string;
+    message: string;
+    next_action?: string;
+  }> = [];
+
+  if (
+    normalizedBookingStatus === "AWAITING_PAYMENT_VERIFICATION" &&
+    latestPaymentStatus &&
+    latestPaymentStatus !== "pending_verification"
+  ) {
+    diagnostics.push({
+      scope: "payment",
+      code: "payment_status_mismatch",
+      severity: "warning",
+      message: `Status booking menyatakan pembayaran sedang menunggu verifikasi, tetapi payment ${latestPaymentType} terakhir masih berstatus ${latestPaymentStatus}.`,
+      next_action:
+        "Periksa proses upload bukti pembayaran dan sinkronisasi status payment di backend.",
+    });
+  }
+
+  if (
+    latestPaymentStatus === "pending_verification" &&
+    !input.latestPayment?.proof_url
+  ) {
+    diagnostics.push({
+      scope: "payment",
+      code: "missing_payment_proof",
+      severity: "warning",
+      message:
+        "Payment sudah masuk tahap pending verification, tetapi file bukti pembayaran belum tersedia pada detail reservasi.",
+      next_action:
+        "Pastikan proof_url disimpan dan dikembalikan oleh API detail reservasi.",
+    });
+  }
+
+  return diagnostics;
+}
+
 export function AssetRentalAdminDetailPage({
   bookingId,
   section,
@@ -407,6 +461,14 @@ export function AssetRentalAdminDetailPage({
       bookingsQuery.data?.find((item) => String(item.id) === bookingId) ?? null,
     [bookingsQuery.data, bookingId],
   );
+  const reservationIdentifier = useMemo(() => {
+    const rawIdentifier = booking?.reservation_id ?? booking?.id;
+    if (typeof rawIdentifier === "string") {
+      const trimmedIdentifier = rawIdentifier.trim();
+      return trimmedIdentifier.length > 0 ? trimmedIdentifier : undefined;
+    }
+    return rawIdentifier;
+  }, [booking?.id, booking?.reservation_id]);
 
   const assetQuery = useQuery({
     enabled: Boolean(booking?.asset_id),
@@ -421,10 +483,12 @@ export function AssetRentalAdminDetailPage({
   });
 
   const reservationDetailQuery = useQuery({
-    enabled: Boolean(booking?.id),
-    queryKey: QK.assetRental.reservation(`admin:${booking?.id ?? "unknown"}`),
+    enabled: Boolean(reservationIdentifier),
+    queryKey: QK.assetRental.reservation(
+      `admin:${reservationIdentifier ?? "unknown"}`,
+    ),
     queryFn: async () => {
-      const response = await getReservation(booking?.id ?? "");
+      const response = await getReservation(reservationIdentifier ?? "");
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memuat detail reservasi");
       }
@@ -432,7 +496,7 @@ export function AssetRentalAdminDetailPage({
     },
   });
   const reservationDetailQueryKey = QK.assetRental.reservation(
-    `admin:${booking?.id ?? "unknown"}`,
+    `admin:${reservationIdentifier ?? "unknown"}`,
   );
 
   const updateStatusMutation = useMutation({
@@ -747,6 +811,14 @@ export function AssetRentalAdminDetailPage({
   );
   const latestPayment =
     reservationDetailQuery.data?.latest_payment ?? booking?.latest_payment;
+  const localPaymentDiagnostics = buildLocalPaymentDiagnostics({
+    bookingStatus: booking?.booking_state || booking?.status,
+    latestPayment,
+  });
+  const combinedDiagnostics = [
+    ...(rentalDiagnostics?.items ?? []),
+    ...localPaymentDiagnostics,
+  ];
   const latestPaymentStatus = (latestPayment?.status || "")
     .trim()
     .toLowerCase();
@@ -1328,13 +1400,13 @@ export function AssetRentalAdminDetailPage({
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           Diagnostics
         </p>
-        {(rentalDiagnostics?.items ?? []).length === 0 ? (
+        {combinedDiagnostics.length === 0 ? (
           <p className="mt-2 text-sm text-slate-600">
             Belum ada blocker utama untuk booking rental ini.
           </p>
         ) : (
           <div className="mt-3 space-y-2">
-            {(rentalDiagnostics?.items ?? []).map((diag) => (
+            {combinedDiagnostics.map((diag) => (
               <div
                 key={`${diag.scope}-${diag.code}`}
                 className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
@@ -1994,6 +2066,23 @@ export function AssetRentalAdminDetailPage({
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Pembayaran & Verifikasi
               </p>
+              {localPaymentDiagnostics.length > 0 ? (
+                <div className="space-y-2">
+                  {localPaymentDiagnostics.map((diag) => (
+                    <div
+                      key={`payment-alert-${diag.code}`}
+                      className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                    >
+                      <p className="font-semibold">{diag.message}</p>
+                      {diag.next_action ? (
+                        <p className="mt-1 text-xs text-amber-700">
+                          Next action: {diag.next_action}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">

@@ -23,5 +23,11 @@ describe("PaymentSidebar", () => {
 
     expect(screen.getByText("Nomor Tiket: #SQ-00064")).toBeTruthy();
     expect(screen.queryByText(/ID Reservasi/i)).toBeNull();
+    expect(screen.getByRole("link", { name: "Lihat Status Pengajuan" })).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Tombol ini tidak mengirim bukti pembayaran. Pengiriman bukti dilakukan dari form upload di panel metode pembayaran."
+      )
+    ).toBeTruthy();
   });
 });

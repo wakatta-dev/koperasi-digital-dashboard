@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import type { PaymentMode } from "../../types";
+import type { PaymentMode, ReservationSummary } from "../../types";
 import {
   createPaymentSession,
   uploadPaymentProof,
@@ -38,6 +38,7 @@ type PaymentMethodsProps = {
   methodGroups?: ReadonlyArray<MethodGroup>;
   reservationId?: number;
   ownershipToken?: string;
+  existingPayment?: ReservationSummary["latestPayment"];
   onStatusChange?: (payload: {
     paymentId: string;
     status: PaymentStatus;
@@ -56,17 +57,55 @@ function toPaymentTestId(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
 
+function toReusablePaymentSession(input: {
+  existingPayment?: ReservationSummary["latestPayment"];
+  reservationId?: number;
+  mode: PaymentMode;
+}): PaymentSession | null {
+  const payment = input.existingPayment;
+  if (!payment?.id || !input.reservationId) return null;
+
+  const normalizedType = (payment.type || "").trim().toLowerCase();
+  if (normalizedType !== input.mode) return null;
+
+  const normalizedStatus = (payment.status || "").trim().toLowerCase();
+  if (normalizedStatus !== "initiated" && normalizedStatus !== "pending_verification") {
+    return null;
+  }
+
+  const payBy =
+    typeof payment.payBy === "number"
+      ? new Date(payment.payBy * 1000).toISOString()
+      : payment.payBy || "";
+
+  return {
+    paymentId: payment.id,
+    reservationId: input.reservationId,
+    amount: payment.amount,
+    type: input.mode,
+    method: payment.method || "",
+    payBy,
+    status: normalizedStatus as PaymentStatus,
+  };
+}
+
 export function PaymentMethods({
   mode,
   methodGroups,
   reservationId,
   ownershipToken,
+  existingPayment,
   onStatusChange,
   onSessionChange,
 }: PaymentMethodsProps) {
+  const proofInputId = "asset-rental-payment-proof-file";
   const hasMethods = Boolean(methodGroups && methodGroups.length > 0);
+  const reusableSession = useMemo(
+    () => toReusablePaymentSession({ existingPayment, reservationId, mode }),
+    [existingPayment, mode, reservationId],
+  );
   const [selected, setSelected] = useState<string>(
-    () => methodGroups?.[0]?.options?.[0]?.value ?? "",
+    () => reusableSession?.method || (methodGroups?.[0]?.options?.[0]?.value ?? ""),
   );
   const [status, setStatus] = useState<PaymentStatus>("initiated");
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -84,6 +123,11 @@ export function PaymentMethods({
   useEffect(() => {
     onStatusChangeRef.current = onStatusChange;
   }, [onStatusChange]);
+
+  useEffect(() => {
+    if (!reusableSession?.method) return;
+    setSelected((current) => current || reusableSession.method);
+  }, [reusableSession?.method]);
 
   const payByText = useMemo(() => {
     if (!session?.payBy) return null;
@@ -171,6 +215,17 @@ export function PaymentMethods({
         );
         return;
       }
+      if (
+        reusableSession &&
+        reusableSession.method === methodValue &&
+        reusableSession.type === mode
+      ) {
+        setSession(reusableSession);
+        setStatus(reusableSession.status);
+        setSessionError(null);
+        onSessionChangeRef.current?.(reusableSession);
+        return;
+      }
       setIsLoading(true);
       setSessionError(null);
       try {
@@ -234,6 +289,7 @@ export function PaymentMethods({
     selected,
     hasMethods,
     ownershipToken,
+    reusableSession,
   ]);
 
   return (
@@ -341,6 +397,21 @@ export function PaymentMethods({
       ) : null}
 
       <div className="mt-6 space-y-3 bg-gray-50 dark:bg-gray-800/50 border border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-4">
+        <div className="rounded-2xl border border-indigo-100 dark:border-indigo-800/60 bg-gradient-to-br from-indigo-50 via-white to-sky-50 dark:from-indigo-950/40 dark:via-slate-900 dark:to-sky-950/30 p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/25">
+              <span className="material-icons-outlined text-[22px]">upload_file</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-base font-bold text-slate-900 dark:text-white">
+                Kirim bukti pembayaran untuk verifikasi admin
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                Setelah transfer selesai, unggah bukti pembayaran di sini. Ini adalah aksi utama yang menyelesaikan langkah pembayaran pada halaman ini.
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-100">
           <span className="material-icons-outlined text-brand-primary">
             verified
@@ -370,11 +441,15 @@ export function PaymentMethods({
           </span>
         </div>
 
-        <form className="flex flex-col gap-2" onSubmit={handleSubmitProof}>
-          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+        <form className="flex flex-col gap-3" onSubmit={handleSubmitProof}>
+          <label
+            htmlFor={proofInputId}
+            className="text-sm font-semibold text-gray-800 dark:text-gray-200"
+          >
             Unggah bukti pembayaran (jpg/png/pdf)
           </label>
           <input
+            id={proofInputId}
             type="file"
             accept=".jpg,.jpeg,.png,.pdf"
             data-testid="asset-rental-payment-proof-file-input"
@@ -389,24 +464,32 @@ export function PaymentMethods({
               setSessionError(null);
               setProofFile(file ?? null);
             }}
-            className="text-xs"
+            className="block w-full rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-950 px-4 py-4 text-sm text-slate-700 dark:text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-500"
           />
           {proofFile ? (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Bukti dipilih: <strong>{proofFile.name}</strong>
+            <p className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-200">
+              Bukti siap dikirim: <strong>{proofFile.name}</strong>
             </p>
           ) : null}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="space-y-3">
             <button
               type="submit"
               data-testid="asset-rental-payment-submit-button"
-              className="px-3 py-2 text-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary"
-              disabled={actionsDisabled || !proofFile || isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300 disabled:shadow-none dark:disabled:bg-indigo-900/40"
+              disabled={actionsDisabled || !session?.paymentId || !proofFile || isLoading}
             >
-              {isLoading ? "Memproses..." : "Kirim bukti pembayaran"}
+              <span
+                aria-hidden="true"
+                className="material-icons-outlined text-[18px]"
+              >
+                {isLoading ? "progress_activity" : "upload"}
+              </span>
+              {isLoading
+                ? "Mengirim bukti pembayaran..."
+                : "Kirim Bukti Pembayaran"}
             </button>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Bukti akan diverifikasi admin sebelum status sewa berjalan.
+            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+              Setelah tombol ini diklik, bukti akan dikirim ke admin untuk diverifikasi. Tombol di sidebar hanya digunakan untuk melihat status pengajuan.
             </p>
           </div>
         </form>

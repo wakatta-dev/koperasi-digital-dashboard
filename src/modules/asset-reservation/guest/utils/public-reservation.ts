@@ -15,20 +15,12 @@ export async function buildPublicReservationSuccessState(
 ): Promise<PublicReservationSuccessState> {
   const reservationId = reservation.reservation_id;
   const ticket = formatTicketFromReservationId(reservationId);
-  const guestToken = reservation.guest_token?.trim();
-
-  if (!guestToken) {
-    return {
-      reservationId,
-      ticket,
-    };
-  }
 
   const signedStatusLink = await createSignedReservationLink({
     reservationId,
     status: reservation.status,
     expiresAt: reservation.hold_expires_at,
-    guestToken,
+    guestToken: reservation.guest_token?.trim(),
   });
 
   return {
