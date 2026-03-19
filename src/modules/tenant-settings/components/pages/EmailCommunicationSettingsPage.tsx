@@ -68,7 +68,7 @@ export function EmailCommunicationSettingsPage({
     variables: testVariablesDraft,
   } = testState;
 
-  const patchEditorState = (
+  const patchEditorState = useCallback(
     updates:
       | Partial<typeof editorState>
       | ((current: typeof editorState) => typeof editorState),
@@ -78,7 +78,7 @@ export function EmailCommunicationSettingsPage({
         ? updates(current)
         : { ...current, ...updates },
     );
-  };
+  }, []);
 
   const patchTestState = (
     updates:
