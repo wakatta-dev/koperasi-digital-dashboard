@@ -37,9 +37,12 @@ const PAGE_SIZE = 10;
 export function OrderListPage() {
   const router = useRouter();
   const confirm = useConfirm();
-  const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [filterState, setFilterState] = useState({
+    search: "",
+    dateFilter: "",
+    statusFilter: "all",
+  });
+  const { search, dateFilter, statusFilter } = filterState;
   const pageKey = `${search}::${dateFilter}::${statusFilter}`;
   const [pageState, setPageState] = useState<{
     key: string;
@@ -74,6 +77,16 @@ export function OrderListPage() {
     }),
     [search, statusFilter, dateFilter, page],
   );
+
+  const patchFilterState = (
+    updates:
+      | Partial<typeof filterState>
+      | ((current: typeof filterState) => typeof filterState),
+  ) => {
+    setFilterState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const { data, isLoading, isError, error } = useMarketplaceOrders(queryParams);
   const { updateStatus } = useMarketplaceOrderActions();
@@ -162,9 +175,9 @@ export function OrderListPage() {
         dateValue={dateFilter}
         statusValue={statusFilter}
         statusOptions={MARKETPLACE_ORDER_FILTER_OPTIONS}
-        onSearchChange={setSearch}
-        onDateChange={setDateFilter}
-        onStatusChange={setStatusFilter}
+        onSearchChange={(value) => patchFilterState({ search: value })}
+        onDateChange={(value) => patchFilterState({ dateFilter: value })}
+        onStatusChange={(value) => patchFilterState({ statusFilter: value })}
       />
 
       <OrderTable
