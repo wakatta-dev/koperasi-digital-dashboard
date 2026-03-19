@@ -35,12 +35,50 @@ export function EmailCommunicationSettingsPage({
   const { saveTemplate, sendTestEmail } = useSupportEmailActions();
   const templates = useMemo(() => templatesQuery.data ?? [], [templatesQuery.data]);
   const requestedTemplateId = searchParams.get("template") ?? "";
-  const [selectedTemplateId, setSelectedTemplateId] = useState("");
-  const [draftTemplateId, setDraftTemplateId] = useState("");
-  const [formDraft, setFormDraft] = useState<EmailTemplateFormState | null>(null);
-  const [testStateTemplateId, setTestStateTemplateId] = useState("");
-  const [testRecipientDraft, setTestRecipientDraft] = useState("");
-  const [testVariablesDraft, setTestVariablesDraft] = useState<Record<string, string>>({});
+  const [editorState, setEditorState] = useState<{
+    selectedTemplateId: string;
+    draftTemplateId: string;
+    formDraft: EmailTemplateFormState | null;
+  }>({
+    selectedTemplateId: "",
+    draftTemplateId: "",
+    formDraft: null,
+  });
+  const [testState, setTestState] = useState<{
+    templateId: string;
+    recipient: string;
+    variables: Record<string, string>;
+  }>({
+    templateId: "",
+    recipient: "",
+    variables: {},
+  });
+  const { selectedTemplateId, draftTemplateId, formDraft } = editorState;
+  const {
+    templateId: testStateTemplateId,
+    recipient: testRecipientDraft,
+    variables: testVariablesDraft,
+  } = testState;
+
+  const patchEditorState = (
+    updates:
+      | Partial<typeof editorState>
+      | ((current: typeof editorState) => typeof editorState),
+  ) => {
+    setEditorState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
+
+  const patchTestState = (
+    updates:
+      | Partial<typeof testState>
+      | ((current: typeof testState) => typeof testState),
+  ) => {
+    setTestState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const syncTemplateQuery = useCallback(
     (templateId: string) => {
@@ -57,7 +95,7 @@ export function EmailCommunicationSettingsPage({
 
   const handleSelectTemplate = useCallback(
     (templateId: string) => {
-      setSelectedTemplateId(templateId);
+      patchEditorState({ selectedTemplateId: templateId });
       syncTemplateQuery(templateId);
     },
     [syncTemplateQuery]
@@ -81,7 +119,7 @@ export function EmailCommunicationSettingsPage({
     if (nextTemplateId === selectedTemplateId) {
       return;
     }
-    setSelectedTemplateId(nextTemplateId);
+    patchEditorState({ selectedTemplateId: nextTemplateId });
     if (nextTemplateId) {
       syncTemplateQuery(nextTemplateId);
     }
@@ -165,8 +203,10 @@ export function EmailCommunicationSettingsPage({
           dirty={isTemplateDirty}
           saving={saveTemplate.isPending}
           onChange={(next) => {
-            setDraftTemplateId(selectedTemplateId);
-            setFormDraft(next);
+            patchEditorState({
+              draftTemplateId: selectedTemplateId,
+              formDraft: next,
+            });
           }}
           onSave={() =>
             selectedTemplate &&
@@ -185,14 +225,22 @@ export function EmailCommunicationSettingsPage({
           disabled={!canManage || !selectedTemplate}
           sending={sendTestEmail.isPending}
           onRecipientChange={(value) => {
-            setTestStateTemplateId(selectedTemplateId);
-            setTestRecipientDraft(value);
+            patchTestState({
+              templateId: selectedTemplateId,
+              recipient: value,
+            });
           }}
           onVariableChange={(key, value) => {
-            setTestStateTemplateId(selectedTemplateId);
-            setTestVariablesDraft((prev) => ({
-              ...(testStateTemplateId === selectedTemplateId ? prev : defaultTestVariables),
-              [key]: value,
+            patchTestState((current) => ({
+              templateId: selectedTemplateId,
+              recipient:
+                current.templateId === selectedTemplateId ? current.recipient : "",
+              variables: {
+                ...(current.templateId === selectedTemplateId
+                  ? current.variables
+                  : defaultTestVariables),
+                [key]: value,
+              },
             }));
           }}
           onSend={() =>
@@ -205,9 +253,11 @@ export function EmailCommunicationSettingsPage({
               },
               {
                 onSuccess: () => {
-                  setTestStateTemplateId(selectedTemplateId);
-                  setTestRecipientDraft("");
-                  setTestVariablesDraft(defaultTestVariables);
+                  patchTestState({
+                    templateId: selectedTemplateId,
+                    recipient: "",
+                    variables: defaultTestVariables,
+                  });
                 },
               }
             )

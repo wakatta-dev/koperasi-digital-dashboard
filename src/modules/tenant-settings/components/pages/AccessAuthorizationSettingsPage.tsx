@@ -46,14 +46,33 @@ export function AccessAuthorizationSettingsPage({
   );
   const requestedRoleId = searchParams.get("role") ?? "";
 
-  const [search, setSearch] = useState("");
-  const [selectedRoleId, setSelectedRoleId] = useState("");
-  const [newRoleName, setNewRoleName] = useState("");
-  const [newRoleDescription, setNewRoleDescription] = useState("");
-  const [editRoleName, setEditRoleName] = useState("");
-  const [editRoleDescription, setEditRoleDescription] = useState("");
+  const [uiState, setUiState] = useState({
+    search: "",
+    selectedRoleId: "",
+    newRoleName: "",
+    newRoleDescription: "",
+    editRoleName: "",
+    editRoleDescription: "",
+    selectedPermissionAlias: "",
+  });
   const [assignRoleByUser, setAssignRoleByUser] = useState<Record<number, string>>({});
-  const [selectedPermissionAlias, setSelectedPermissionAlias] = useState("");
+  const {
+    search,
+    selectedRoleId,
+    newRoleName,
+    newRoleDescription,
+    editRoleName,
+    editRoleDescription,
+    selectedPermissionAlias,
+  } = uiState;
+
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const usersQuery = useUsers({ term: search || undefined, limit: 100 });
   const rolesQuery = useRoles({ limit: 100 });
@@ -83,7 +102,7 @@ export function AccessAuthorizationSettingsPage({
 
   const handleSelectRole = useCallback(
     (roleId: string) => {
-      setSelectedRoleId(roleId);
+      patchUiState({ selectedRoleId: roleId });
       syncRoleQuery(roleId);
     },
     [syncRoleQuery]
@@ -111,7 +130,7 @@ export function AccessAuthorizationSettingsPage({
       return;
     }
 
-    setSelectedRoleId(nextRoleId);
+    patchUiState({ selectedRoleId: nextRoleId });
     if (nextRoleId) {
       syncRoleQuery(nextRoleId);
     }
@@ -119,12 +138,16 @@ export function AccessAuthorizationSettingsPage({
 
   const syncSelectedRoleDraft = useCallback((role: typeof selectedRole) => {
     if (!role) {
-      setEditRoleName("");
-      setEditRoleDescription("");
+      patchUiState({
+        editRoleName: "",
+        editRoleDescription: "",
+      });
       return;
     }
-    setEditRoleName(role.name);
-    setEditRoleDescription(role.description ?? "");
+    patchUiState({
+      editRoleName: role.name,
+      editRoleDescription: role.description ?? "",
+    });
   }, []);
 
   useEffect(() => {
@@ -143,11 +166,13 @@ export function AccessAuthorizationSettingsPage({
 
   useEffect(() => {
     if (!availablePermissionCatalog.length) {
-      setSelectedPermissionAlias("");
+      patchUiState({ selectedPermissionAlias: "" });
       return;
     }
     if (!selectedPermissionAlias || !availablePermissionCatalog.some((item) => item.alias === selectedPermissionAlias)) {
-      setSelectedPermissionAlias(availablePermissionCatalog[0].alias);
+      patchUiState({
+        selectedPermissionAlias: availablePermissionCatalog[0].alias,
+      });
     }
   }, [availablePermissionCatalog, selectedPermissionAlias]);
 
@@ -210,8 +235,10 @@ export function AccessAuthorizationSettingsPage({
         description={newRoleDescription}
         disabled={!canManage}
         saving={roleActions.create.isPending}
-        onNameChange={setNewRoleName}
-        onDescriptionChange={setNewRoleDescription}
+        onNameChange={(value) => patchUiState({ newRoleName: value })}
+        onDescriptionChange={(value) =>
+          patchUiState({ newRoleDescription: value })
+        }
         onCreate={() => {
           roleActions.create.mutate({
             name: newRoleName.trim(),
@@ -220,8 +247,10 @@ export function AccessAuthorizationSettingsPage({
             tenant_type: tenantType,
             is_custom: true,
           });
-          setNewRoleName("");
-          setNewRoleDescription("");
+          patchUiState({
+            newRoleName: "",
+            newRoleDescription: "",
+          });
         }}
       />
 
@@ -241,8 +270,10 @@ export function AccessAuthorizationSettingsPage({
           roleActions.addPermission.isPending || roleActions.removePermission.isPending
         }
         onSelectRole={handleSelectRole}
-        onEditRoleName={setEditRoleName}
-        onEditRoleDescription={setEditRoleDescription}
+        onEditRoleName={(value) => patchUiState({ editRoleName: value })}
+        onEditRoleDescription={(value) =>
+          patchUiState({ editRoleDescription: value })
+        }
         onSaveRole={() =>
           selectedRole &&
           roleActions.update.mutate({
@@ -256,7 +287,9 @@ export function AccessAuthorizationSettingsPage({
           })
         }
         onDeleteRole={() => selectedRole && roleActions.remove.mutate(selectedRole.id)}
-        onSelectPermissionAlias={setSelectedPermissionAlias}
+        onSelectPermissionAlias={(value) =>
+          patchUiState({ selectedPermissionAlias: value })
+        }
         onAddPermission={() =>
           selectedRole &&
           selectedPermissionAlias &&

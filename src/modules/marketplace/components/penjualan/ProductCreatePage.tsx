@@ -26,39 +26,67 @@ export function ProductCreatePage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const { create, update, addImage, initialStock } = useInventoryActions();
   const { data: categoriesData } = useInventoryCategories();
-  const [name, setName] = useState("");
-  const [sku, setSku] = useState("");
-  const [brand, setBrand] = useState("");
-  const [category, setCategory] = useState("");
-  const [priceSell, setPriceSell] = useState("");
-  const [hasVariants, setHasVariants] = useState(false);
-  const [trackStock, setTrackStock] = useState(true);
-  const [initialStockQty, setInitialStockQty] = useState("");
-  const [minStock, setMinStock] = useState("");
-  const [showInMarketplace, setShowInMarketplace] = useState(false);
-  const [weight, setWeight] = useState("");
-  const [description, setDescription] = useState("");
+  const [formState, setFormState] = useState({
+    name: "",
+    sku: "",
+    brand: "",
+    category: "",
+    priceSell: "",
+    hasVariants: false,
+    trackStock: true,
+    initialStockQty: "",
+    minStock: "",
+    showInMarketplace: false,
+    weight: "",
+    description: "",
+  });
   const [files, setFiles] = useState<File[]>([]);
+  const {
+    name,
+    sku,
+    brand,
+    category,
+    priceSell,
+    hasVariants,
+    trackStock,
+    initialStockQty,
+    minStock,
+    showInMarketplace,
+    weight,
+    description,
+  } = formState;
   const activeCategoryNames = useMemo(
     () => selectableInventoryCategoryNames(categoriesData),
     [categoriesData]
   );
 
+  const patchFormState = (
+    updates:
+      | Partial<typeof formState>
+      | ((current: typeof formState) => typeof formState),
+  ) => {
+    setFormState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
+
   const submitting = create.isPending || addImage.isPending || initialStock.isPending;
 
   const resetForm = () => {
-    setName("");
-    setSku("");
-    setBrand("");
-    setCategory("");
-    setPriceSell("");
-    setHasVariants(false);
-    setTrackStock(true);
-    setInitialStockQty("");
-    setMinStock("");
-    setShowInMarketplace(false);
-    setWeight("");
-    setDescription("");
+    setFormState({
+      name: "",
+      sku: "",
+      brand: "",
+      category: "",
+      priceSell: "",
+      hasVariants: false,
+      trackStock: true,
+      initialStockQty: "",
+      minStock: "",
+      showInMarketplace: false,
+      weight: "",
+      description: "",
+    });
     setFiles([]);
   };
 
@@ -210,7 +238,7 @@ export function ProductCreatePage() {
               <Input
                 id="product-create-name"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) => patchFormState({ name: event.target.value })}
                 data-testid="marketplace-admin-product-create-name-input"
                 placeholder="Masukkan nama produk"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
@@ -223,7 +251,7 @@ export function ProductCreatePage() {
               <Input
                 id="product-create-sku"
                 value={sku}
-                onChange={(event) => setSku(event.target.value)}
+                onChange={(event) => patchFormState({ sku: event.target.value })}
                 data-testid="marketplace-admin-product-create-sku-input"
                 placeholder="Contoh: PROD-001"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
@@ -236,7 +264,7 @@ export function ProductCreatePage() {
               <Input
                 id="product-create-brand"
                 value={brand}
-                onChange={(event) => setBrand(event.target.value)}
+                onChange={(event) => patchFormState({ brand: event.target.value })}
                 placeholder="Masukkan merek produk"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
@@ -245,7 +273,10 @@ export function ProductCreatePage() {
               <label htmlFor="product-create-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Kategori
               </label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select
+                value={category}
+                onValueChange={(value) => patchFormState({ category: value })}
+              >
                 <SelectTrigger
                   id="product-create-category"
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600"
@@ -277,7 +308,9 @@ export function ProductCreatePage() {
                 type="number"
                 min={hasVariants ? 0 : 1}
                 value={priceSell}
-                onChange={(event) => setPriceSell(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ priceSell: event.target.value })
+                }
                 data-testid="marketplace-admin-product-create-price-input"
                 placeholder={hasVariants ? "Contoh: 0 atau 15000" : "Contoh: 15000"}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
@@ -296,7 +329,7 @@ export function ProductCreatePage() {
                 id="product-create-weight"
                 type="number"
                 value={weight}
-                onChange={(event) => setWeight(event.target.value)}
+                onChange={(event) => patchFormState({ weight: event.target.value })}
                 placeholder="0.0"
                 step="0.1"
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
@@ -311,7 +344,9 @@ export function ProductCreatePage() {
                 type="number"
                 min={0}
                 value={initialStockQty}
-                onChange={(event) => setInitialStockQty(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ initialStockQty: event.target.value })
+                }
                 data-testid="marketplace-admin-product-create-initial-stock-input"
                 placeholder={trackStock ? "Contoh: 10" : "Tidak dilacak"}
                 disabled={!trackStock}
@@ -327,7 +362,9 @@ export function ProductCreatePage() {
                 type="number"
                 min={0}
                 value={minStock}
-                onChange={(event) => setMinStock(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ minStock: event.target.value })
+                }
                 placeholder={trackStock ? "Contoh: 3" : "Tidak dilacak"}
                 disabled={!trackStock}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600 disabled:opacity-60"
@@ -345,7 +382,9 @@ export function ProductCreatePage() {
                 </div>
                 <Switch
                   checked={hasVariants}
-                  onCheckedChange={setHasVariants}
+                  onCheckedChange={(checked) =>
+                    patchFormState({ hasVariants: checked })
+                  }
                   data-testid="marketplace-admin-product-create-has-variants-switch"
                 />
               </div>
@@ -360,7 +399,9 @@ export function ProductCreatePage() {
                 </div>
                 <Switch
                   checked={trackStock}
-                  onCheckedChange={setTrackStock}
+                  onCheckedChange={(checked) =>
+                    patchFormState({ trackStock: checked })
+                  }
                   data-testid="marketplace-admin-product-create-track-stock-switch"
                 />
               </div>
@@ -375,7 +416,9 @@ export function ProductCreatePage() {
                 </div>
                 <Switch
                   checked={showInMarketplace}
-                  onCheckedChange={setShowInMarketplace}
+                  onCheckedChange={(checked) =>
+                    patchFormState({ showInMarketplace: checked })
+                  }
                   data-testid="marketplace-admin-product-create-show-marketplace-switch"
                 />
               </div>
@@ -387,7 +430,9 @@ export function ProductCreatePage() {
               <Textarea
                 id="product-create-description"
                 value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                onChange={(event) =>
+                  patchFormState({ description: event.target.value })
+                }
                 data-testid="marketplace-admin-product-create-description-textarea"
                 placeholder="Tuliskan deskripsi lengkap produk..."
                 rows={4}
