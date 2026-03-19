@@ -194,11 +194,22 @@ function resolveDisplayedReservationState(input: {
 }
 
 export function GuestStatusLookupPage() {
-  const [ticket, setTicket] = useState("");
-  const [contact, setContact] = useState("");
-  const [paymentOpen, setPaymentOpen] = useState(false);
-  const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [paymentAmountLabel, setPaymentAmountLabel] = useState<string>("-");
+  const [uiState, setUiState] = useState({
+    ticket: "",
+    contact: "",
+    paymentOpen: false,
+    paymentId: null as string | null,
+    paymentAmountLabel: "-",
+  });
+  const { ticket, contact, paymentOpen, paymentId, paymentAmountLabel } =
+    uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const lookup = useLookupReservationByTicket();
   const createPayment = useCreateGuestPaymentSession();
@@ -283,9 +294,11 @@ export function GuestStatusLookupPage() {
                 method: "transfer_bank",
                 ownership_token: reservation.guest_token,
               });
-              setPaymentId(session.payment_id);
-              setPaymentAmountLabel(paymentInstruction.amountLabel);
-              setPaymentOpen(true);
+              patchUiState({
+                paymentId: session.payment_id,
+                paymentAmountLabel: paymentInstruction.amountLabel,
+                paymentOpen: true,
+              });
             } catch (_err) {
               // Keep UI copy unchanged; failures surface through disabled states in future iterations.
             }
@@ -306,9 +319,9 @@ export function GuestStatusLookupPage() {
         <main className="flex-grow pt-20">
           <GuestRequestStatusFeature
             ticketValue={ticket}
-            onTicketValueChange={setTicket}
+            onTicketValueChange={(value) => patchUiState({ ticket: value })}
             contactValue={contact}
-            onContactValueChange={setContact}
+            onContactValueChange={(value) => patchUiState({ contact: value })}
             submitting={lookup.isPending || createPayment.isPending}
             onSubmit={() => {
               if (!ticket.trim() || !contact.trim()) return;
@@ -321,7 +334,7 @@ export function GuestStatusLookupPage() {
 
         <UploadPaymentProofModalFeature
           open={paymentOpen}
-          onOpenChange={setPaymentOpen}
+          onOpenChange={(open) => patchUiState({ paymentOpen: open })}
           totalLabel={modalAmountLabel}
           submitting={uploadProof.isPending}
           onSubmit={async ({ file, note }) => {
@@ -338,7 +351,7 @@ export function GuestStatusLookupPage() {
               reservationId: reservation.reservation_id,
               ownershipToken: reservation.guest_token,
             });
-            setPaymentOpen(false);
+            patchUiState({ paymentOpen: false });
           }}
         />
       </div>

@@ -73,6 +73,9 @@ export function AccessAuthorizationSettingsPage({
       typeof updates === "function" ? updates(current) : { ...current, ...updates },
     );
   };
+  const handleSearchChange = useCallback((value: string) => {
+    setUiState((current) => ({ ...current, search: value }));
+  }, []);
 
   const usersQuery = useUsers({ term: search || undefined, limit: 100 });
   const rolesQuery = useRoles({ limit: 100 });
@@ -220,7 +223,7 @@ export function AccessAuthorizationSettingsPage({
         savingRole={userActions.setPrimaryRole.isPending}
         savingStatus={userActions.patchStatus.isPending}
         roleByUser={assignRoleByUser}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         onRoleChange={(userId, roleId) =>
           setAssignRoleByUser((prev) => ({ ...prev, [userId]: roleId }))
         }

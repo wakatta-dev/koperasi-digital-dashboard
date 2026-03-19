@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ProductListHeader } from "./ProductListHeader";
 import { ProductTable } from "./ProductTable";
 import { ProductFilterSheet } from "./ProductFilterSheet";
@@ -45,46 +45,77 @@ export function ProductListPage({
 }: ProductListPageProps = {}) {
   const router = useRouter();
   const actions = useInventoryActions();
-  const [searchValue, setSearchValue] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [appliedFilters, setAppliedFilters] = useState(() => ({
-    categories: [] as string[],
-    statuses: [] as string[],
-    minPrice: "",
-    maxPrice: "",
-    dateFrom: "",
-    dateTo: "",
+  const [uiState, setUiState] = useState(() => ({
+    searchValue: "",
+    filterOpen: false,
+    selectedIds: [] as string[],
+    appliedFilters: {
+      categories: [] as string[],
+      statuses: [] as string[],
+      minPrice: "",
+      maxPrice: "",
+      dateFrom: "",
+      dateTo: "",
+    },
+    draftFilters: {
+      categories: [] as string[],
+      statuses: [] as string[],
+      minPrice: "",
+      maxPrice: "",
+      dateFrom: "",
+      dateTo: "",
+    },
+    page: 1,
   }));
-  const [draftFilters, setDraftFilters] = useState(appliedFilters);
-  const [page, setPage] = useState(1);
+  const {
+    searchValue,
+    filterOpen,
+    selectedIds,
+    appliedFilters,
+    draftFilters,
+    page,
+  } = uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
   const { data: categoriesData } = useInventoryCategories();
 
-  if (createdProductId && searchValue) {
-    setSearchValue("");
-    setPage(1);
-    setSelectedIds([]);
-    setAppliedFilters({
-      categories: [],
-      statuses: [],
-      minPrice: "",
-      maxPrice: "",
-      dateFrom: "",
-      dateTo: "",
-    });
-    setDraftFilters({
-      categories: [],
-      statuses: [],
-      minPrice: "",
-      maxPrice: "",
-      dateFrom: "",
-      dateTo: "",
-    });
-  }
+  useEffect(() => {
+    if (!createdProductId || !searchValue) return;
+    patchUiState((current) => ({
+      ...current,
+      searchValue: "",
+      page: 1,
+      selectedIds: [],
+      appliedFilters: {
+        categories: [],
+        statuses: [],
+        minPrice: "",
+        maxPrice: "",
+        dateFrom: "",
+        dateTo: "",
+      },
+      draftFilters: {
+        categories: [],
+        statuses: [],
+        minPrice: "",
+        maxPrice: "",
+        dateFrom: "",
+        dateTo: "",
+      },
+    }));
+  }, [createdProductId, searchValue]);
 
   useEffect(() => {
     if (filterOpen) {
-      setDraftFilters(appliedFilters);
+      patchUiState((current) => ({
+        ...current,
+        draftFilters: current.appliedFilters,
+      }));
     }
   }, [filterOpen, appliedFilters]);
 
@@ -180,30 +211,41 @@ export function ProductListPage({
   }, [products, draftFilters.statuses]);
 
   const handleToggleSelect = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    patchUiState((current) => ({
+      ...current,
+      selectedIds: current.selectedIds.includes(id)
+        ? current.selectedIds.filter((item) => item !== id)
+        : [...current.selectedIds, id],
+    }));
   };
 
   const handleToggleAll = (checked: boolean) => {
-    setSelectedIds(checked ? products.map((item) => item.id) : []);
+    patchUiState({
+      selectedIds: checked ? products.map((item) => item.id) : [],
+    });
   };
 
   const handleToggleCategory = (label: string) => {
-    setDraftFilters((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(label)
-        ? prev.categories.filter((item) => item !== label)
-        : [...prev.categories, label],
+    patchUiState((current) => ({
+      ...current,
+      draftFilters: {
+        ...current.draftFilters,
+        categories: current.draftFilters.categories.includes(label)
+          ? current.draftFilters.categories.filter((item) => item !== label)
+          : [...current.draftFilters.categories, label],
+      },
     }));
   };
 
   const handleToggleStatus = (label: string) => {
-    setDraftFilters((prev) => ({
-      ...prev,
-      statuses: prev.statuses.includes(label)
-        ? prev.statuses.filter((item) => item !== label)
-        : [...prev.statuses, label],
+    patchUiState((current) => ({
+      ...current,
+      draftFilters: {
+        ...current.draftFilters,
+        statuses: current.draftFilters.statuses.includes(label)
+          ? current.draftFilters.statuses.filter((item) => item !== label)
+          : [...current.draftFilters.statuses, label],
+      },
     }));
   };
 
@@ -216,15 +258,19 @@ export function ProductListPage({
       dateFrom: "",
       dateTo: "",
     };
-    setDraftFilters(reset);
-    setAppliedFilters(reset);
-    setPage(1);
+    patchUiState({
+      draftFilters: reset,
+      appliedFilters: reset,
+      page: 1,
+    });
   };
 
   const handleApplyFilters = () => {
-    setAppliedFilters(draftFilters);
-    setFilterOpen(false);
-    setPage(1);
+    patchUiState({
+      appliedFilters: draftFilters,
+      filterOpen: false,
+      page: 1,
+    });
   };
 
   const total = data?.total ?? products.length;
@@ -240,10 +286,9 @@ export function ProductListPage({
       <ProductListHeader
         searchValue={searchValue}
         onSearchChange={(value) => {
-          setSearchValue(value);
-          setPage(1);
+          patchUiState({ searchValue: value, page: 1 });
         }}
-        onOpenFilter={() => setFilterOpen(true)}
+        onOpenFilter={() => patchUiState({ filterOpen: true })}
         onAddProduct={() => router.push("/bumdes/marketplace/inventory/create")}
       />
 
@@ -292,12 +337,12 @@ export function ProductListPage({
           totalPages,
         }}
         paginationInfo={`Menampilkan ${rangeStart}-${rangeEnd} dari ${total} produk`}
-        onPageChange={setPage}
+        onPageChange={(nextPage) => patchUiState({ page: nextPage })}
       />
 
       <ProductFilterSheet
         open={filterOpen}
-        onOpenChange={setFilterOpen}
+        onOpenChange={(open) => patchUiState({ filterOpen: open })}
         categories={categoryOptions}
         statuses={statusOptions}
         minPrice={draftFilters.minPrice}
