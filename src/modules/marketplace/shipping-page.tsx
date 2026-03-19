@@ -169,32 +169,50 @@ export function MarketplaceShippingPage() {
     process.env.NEXT_PUBLIC_MARKETPLACE_LOCAL_FALLBACK_ENABLED !== "false";
   const allowDevelopmentPreset = allowLocalTrackingFallback;
 
-  const [view, setView] = useState<TrackingView>("track");
-  const [orderNumber, setOrderNumber] = useState("");
-  const [contact, setContact] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{
-    orderNumber?: string;
-    contact?: string;
-  }>({});
-  const [errorMessage, setErrorMessage] = useState<string | undefined>();
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [reviewError, setReviewError] = useState<string | undefined>();
-  const [trackResult, setTrackResult] = useState<
-    MarketplaceGuestTrackResponse | null
-  >(null);
-  const [localPreview, setLocalPreview] = useState<LocalTrackingPreview | null>(
-    null
-  );
+  const [uiState, setUiState] = useState({
+    view: "track" as TrackingView,
+    orderNumber: "",
+    contact: "",
+    fieldErrors: {} as {
+      orderNumber?: string;
+      contact?: string;
+    },
+    errorMessage: undefined as string | undefined,
+    reviewOpen: false,
+    reviewError: undefined as string | undefined,
+    trackResult: null as MarketplaceGuestTrackResponse | null,
+    localPreview: null as LocalTrackingPreview | null,
+  });
+  const {
+    view,
+    orderNumber,
+    contact,
+    fieldErrors,
+    errorMessage,
+    reviewOpen,
+    reviewError,
+    trackResult,
+    localPreview,
+  } = uiState;
+  const patchUiState = (
+    updates: Partial<typeof uiState> | ((current: typeof uiState) => typeof uiState),
+  ) => {
+    setUiState((current) =>
+      typeof updates === "function" ? updates(current) : { ...current, ...updates },
+    );
+  };
 
   const trackingLookup = useMutation({
     mutationFn: async (payload: { order_number: string; contact: string }) =>
       ensureMarketplaceSuccess(await trackMarketplaceOrder(payload)),
     onSuccess: (payload) => {
-      setTrackResult(payload);
-      setLocalPreview(null);
-      setErrorMessage(undefined);
-      setFieldErrors({});
-      setView("status");
+      patchUiState({
+        trackResult: payload,
+        localPreview: null,
+        errorMessage: undefined,
+        fieldErrors: {},
+        view: "status",
+      });
     },
     onError: (err: any, payload) => {
       const classified = classifyMarketplaceApiError(err);
@@ -208,56 +226,63 @@ export function MarketplaceShippingPage() {
           }
         );
         if (localResolved) {
-          setTrackResult(null);
-          setLocalPreview(localResolved);
-          setErrorMessage(undefined);
-          setFieldErrors({});
-          setView("status");
+          patchUiState({
+            trackResult: null,
+            localPreview: localResolved,
+            errorMessage: undefined,
+            fieldErrors: {},
+            view: "status",
+          });
           return;
         }
 
-        setView("not-found");
-        setLocalPreview(null);
-        setErrorMessage(
-          "Kami tidak dapat menemukan pesanan. Periksa kode pesanan dan email/nomor HP yang digunakan saat checkout."
-        );
+        patchUiState({
+          view: "not-found",
+          localPreview: null,
+          errorMessage:
+            "Kami tidak dapat menemukan pesanan. Periksa kode pesanan dan email/nomor HP yang digunakan saat checkout.",
+        });
         return;
       }
 
       if (classified.kind === "deny") {
-        setView("deny");
-        setLocalPreview(null);
-        setErrorMessage(
-          withMarketplaceDenyReasonMessage({
+        patchUiState({
+          view: "deny",
+          localPreview: null,
+          errorMessage: withMarketplaceDenyReasonMessage({
             fallbackMessage:
               "Akses pelacakan ditolak oleh kebijakan marketplace. Pastikan data pelacakan valid dan berasal dari tenant yang benar.",
             code: classified.code,
-          })
-        );
+          }),
+        });
         return;
       }
 
       if (classified.kind === "conflict") {
-        setView("conflict");
-        setLocalPreview(null);
-        setErrorMessage(
-          "Status pesanan belum konsisten untuk ditampilkan. Tunggu beberapa saat lalu coba lacak ulang."
-        );
+        patchUiState({
+          view: "conflict",
+          localPreview: null,
+          errorMessage:
+            "Status pesanan belum konsisten untuk ditampilkan. Tunggu beberapa saat lalu coba lacak ulang.",
+        });
         return;
       }
 
       if (classified.kind === "service_unavailable") {
-        setView("service-unavailable");
-        setLocalPreview(null);
-        setErrorMessage(
-          "Layanan pelacakan sedang tidak tersedia. Coba lagi beberapa menit lagi."
-        );
+        patchUiState({
+          view: "service-unavailable",
+          localPreview: null,
+          errorMessage:
+            "Layanan pelacakan sedang tidak tersedia. Coba lagi beberapa menit lagi.",
+        });
         return;
       }
 
-      setView("track");
-      setLocalPreview(null);
-      setErrorMessage("Terjadi gangguan saat melacak pesanan. Silakan coba lagi.");
+      patchUiState({
+        view: "track",
+        localPreview: null,
+        errorMessage: "Terjadi gangguan saat melacak pesanan. Silakan coba lagi.",
+      });
     },
   });
 
