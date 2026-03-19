@@ -8,5 +8,9 @@ type PageProps = {
 
 export default async function InventoryVariantPage({ params }: PageProps) {
   const { id } = await params;
-  return <ProductVariantPage id={id} />;
+  return (
+    <div data-testid="marketplace-admin-product-variants-route-root">
+      <ProductVariantPage id={id} />
+    </div>
+  );
 }

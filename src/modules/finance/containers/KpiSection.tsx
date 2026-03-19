@@ -3,10 +3,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFinanceSummary } from "../hooks/useFinanceSummary";
+import { renderSalesKpiTrend, toSalesKpiItems } from "../lib/kpi-items";
 import type { FinanceQuery } from "../types";
-import { KpiCards } from "../components/KpiCards";
 
 type Props = {
   params: FinanceQuery;
@@ -53,6 +54,10 @@ export function KpiSection({ params, rangeLabel }: Props) {
     () => query.data?.kpis?.last_updated ?? query.data?.range?.display_label,
     [query.data]
   );
+  const items = useMemo(
+    () => (query.data?.kpis ? toSalesKpiItems(query.data.kpis) : []),
+    [query.data?.kpis],
+  );
 
   return (
     <Card className="border border-border/60 shadow-sm">
@@ -70,16 +75,19 @@ export function KpiSection({ params, rangeLabel }: Props) {
       </CardHeader>
       <CardContent>
         <KpiCards
-          kpis={query.data?.kpis}
+          items={items}
           isLoading={query.isLoading || query.isFetching}
           isError={query.isError}
           onRetry={() => query.refetch()}
+          columns={{ md: 2, xl: 3 }}
+          trendSlot={renderSalesKpiTrend}
+          emptyState={
+            <div className="rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500">
+              Sesuaikan rentang tanggal atau ekspor setelah data tersedia.
+            </div>
+          }
+          lastUpdated={lastUpdated}
         />
-        {lastUpdated ? (
-          <p className="mt-2 text-xs text-muted-foreground" aria-live="polite">
-            Terakhir diperbarui: {new Date(lastUpdated).toLocaleString("id-ID")}
-          </p>
-        ) : null}
       </CardContent>
     </Card>
   );

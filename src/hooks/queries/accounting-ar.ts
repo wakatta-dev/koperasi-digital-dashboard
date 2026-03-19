@@ -3,6 +3,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import {
   createAccountingArCreditNote,
@@ -35,10 +36,19 @@ import type {
 
 import { QK } from "./queryKeys";
 
+function useAccountingQueryEnabled(explicitEnabled = true) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+  const hasSessionError = Boolean((session as { error?: string } | null)?.error);
+
+  return status === "authenticated" && hasAccessToken && !hasSessionError && explicitEnabled;
+}
+
 export function useAccountingArInvoices(
   params?: AccountingArInvoiceListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingArInvoiceListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -47,9 +57,10 @@ export function useAccountingArInvoices(
 
   return useQuery({
     queryKey: QK.accountingAr.invoices(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingArInvoiceListResponse> =>
       ensureAccountingArSuccess(await listAccountingArInvoices(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -58,12 +69,16 @@ export function useAccountingArInvoiceDetail(
   options?: { enabled?: boolean }
 ) {
   const normalizedInvoiceNumber = (invoiceNumber ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedInvoiceNumber) && (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingAr.invoiceDetail(normalizedInvoiceNumber),
-    enabled: Boolean(normalizedInvoiceNumber) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingArInvoiceDetailResponse> =>
       ensureAccountingArSuccess(await getAccountingArInvoiceDetail(normalizedInvoiceNumber)),
+    retry: false,
   });
 }
 
@@ -71,6 +86,7 @@ export function useAccountingArCreditNotes(
   params?: AccountingArCreditNoteListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingArCreditNoteListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -79,9 +95,10 @@ export function useAccountingArCreditNotes(
 
   return useQuery({
     queryKey: QK.accountingAr.creditNotes(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingArCreditNoteListResponse> =>
       ensureAccountingArSuccess(await listAccountingArCreditNotes(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -89,6 +106,7 @@ export function useAccountingArPayments(
   params?: AccountingArPaymentListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingArPaymentListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -97,9 +115,10 @@ export function useAccountingArPayments(
 
   return useQuery({
     queryKey: QK.accountingAr.payments(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingArPaymentListResponse> =>
       ensureAccountingArSuccess(await listAccountingArPayments(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 

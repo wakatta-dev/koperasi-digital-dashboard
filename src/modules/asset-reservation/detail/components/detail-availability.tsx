@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { AssetAvailabilityRange, AssetAvailabilityResponse } from "@/types/api/asset";
+import { todayLocalDateOnly } from "@/lib/date-only";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 type CellType =
@@ -114,7 +115,7 @@ function buildCalendar(monthBase: string, start: string, end: string, blocked?: 
   }
   const startTs = new Date(`${start}T00:00:00`).getTime();
   const endTs = new Date(`${end}T00:00:00`).getTime();
-  const todayTs = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime();
+  const todayTs = new Date(`${todayLocalDateOnly()}T00:00:00`).getTime();
 
   const overlapsBlocked = (dateStr: string) => {
     if (!blocked || blocked.length === 0) return false;
@@ -180,8 +181,9 @@ export function DetailAvailability({
   }, [suggestion?.start_date, suggestion?.end_date]);
 
   const [viewMonth, setViewMonth] = useState(() => {
-    const base = selectedRange?.start ?? suggestedRange?.start ?? new Date().toISOString().slice(0, 10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(base) ? base : new Date().toISOString().slice(0, 10);
+    const today = todayLocalDateOnly();
+    const base = selectedRange?.start ?? suggestedRange?.start ?? today;
+    return /^\d{4}-\d{2}-\d{2}$/.test(base) ? base : today;
   });
 
   useEffect(() => {
@@ -194,7 +196,7 @@ export function DetailAvailability({
   }, [onRangeChange, suggestedRange]);
 
   const baseRange = selectedRange ?? suggestedRange;
-  const fallbackDate = viewMonth || new Date().toISOString().slice(0, 10);
+  const fallbackDate = viewMonth || todayLocalDateOnly();
   const startLabel = selectedRange?.start ?? suggestedRange?.start ?? fallbackDate;
   const endLabel = selectedRange?.end ?? suggestedRange?.end ?? fallbackDate;
   const durationDays = calculateDurationDays(baseRange?.start, baseRange?.end);

@@ -54,7 +54,10 @@ export function AssetCatalogFeature({
     null;
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section
+      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+      data-testid="asset-rental-catalog-section"
+    >
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12">
         <div className="max-w-xl">
           <span className="inline-block px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-brand-primary text-xs font-bold uppercase tracking-wider mb-3">
@@ -74,7 +77,7 @@ export function AssetCatalogFeature({
             variant="outline"
             className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white dark:bg-surface-card-dark border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 hover:border-brand-primary hover:text-brand-primary transition-all shadow-sm"
           >
-            <a href={statusHref}>
+            <a href={statusHref} data-testid="asset-rental-catalog-status-link">
               <span className="material-icons-outlined">
                 assignment_turned_in
               </span>
@@ -90,6 +93,7 @@ export function AssetCatalogFeature({
                 startIcon={<span className="material-icons-outlined">search</span>}
                 value={searchValue}
                 onValueChange={onSearchValueChange}
+                data-testid="asset-rental-catalog-search-input"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -102,6 +106,7 @@ export function AssetCatalogFeature({
             <Button
               type="button"
               onClick={onSearchSubmit}
+              data-testid="asset-rental-catalog-search-button"
               className="p-3.5 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-105"
             >
               <span className="material-icons-outlined">tune</span>
@@ -117,7 +122,10 @@ export function AssetCatalogFeature({
       />
 
       <div className="flex flex-col lg:flex-row gap-8 relative items-start">
-        <div className="w-full lg:w-2/3 xl:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div
+          className="w-full lg:w-2/3 xl:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6"
+          data-testid="asset-rental-catalog-grid"
+        >
           {assets.length === 0 ? (
             <div className="md:col-span-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-card-dark px-6 py-10 text-sm text-gray-500 dark:text-gray-400">
               Tidak ada aset yang cocok dengan filter Anda.

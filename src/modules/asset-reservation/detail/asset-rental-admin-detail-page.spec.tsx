@@ -9,6 +9,8 @@ import { AssetRentalAdminDetailPage } from "./asset-rental-admin-detail-page";
 const getAssetRentalBookingsMock = vi.fn();
 const updateAssetBookingStatusMock = vi.fn();
 const completeAssetBookingMock = vi.fn();
+const classifyAssetRentalPaymentMock = vi.fn();
+const resolveAssetRentalFinancialOutcomeMock = vi.fn();
 const getAssetByIdMock = vi.fn();
 const registerAssetFixedAssetMock = vi.fn();
 const updateAssetFixedAssetProfileMock = vi.fn();
@@ -22,6 +24,10 @@ vi.mock("@/services/api/asset-rental", () => ({
     updateAssetBookingStatusMock(...args),
   completeAssetBooking: (...args: unknown[]) =>
     completeAssetBookingMock(...args),
+  classifyAssetRentalPayment: (...args: unknown[]) =>
+    classifyAssetRentalPaymentMock(...args),
+  resolveAssetRentalFinancialOutcome: (...args: unknown[]) =>
+    resolveAssetRentalFinancialOutcomeMock(...args),
 }));
 
 vi.mock("@/services/api/assets", () => ({
@@ -42,6 +48,8 @@ describe("AssetRentalAdminDetailPage", () => {
     getAssetRentalBookingsMock.mockReset();
     updateAssetBookingStatusMock.mockReset();
     completeAssetBookingMock.mockReset();
+    classifyAssetRentalPaymentMock.mockReset();
+    resolveAssetRentalFinancialOutcomeMock.mockReset();
     getAssetByIdMock.mockReset();
     registerAssetFixedAssetMock.mockReset();
     updateAssetFixedAssetProfileMock.mockReset();
@@ -155,6 +163,14 @@ describe("AssetRentalAdminDetailPage", () => {
       data: {},
     });
     finalizePaymentMock.mockResolvedValue({ success: true, data: {} });
+    classifyAssetRentalPaymentMock.mockResolvedValue({
+      success: true,
+      data: {},
+    });
+    resolveAssetRentalFinancialOutcomeMock.mockResolvedValue({
+      success: true,
+      data: {},
+    });
   });
 
   it("renders rental workspace with separated operational and payment states", async () => {
@@ -196,6 +212,163 @@ describe("AssetRentalAdminDetailPage", () => {
       expect(screen.getByText("Payment Completed")).toBeTruthy();
       expect(
         screen.getByText("Status: Awaiting Payment Verification"),
+      ).toBeTruthy();
+    });
+  });
+
+  it("loads reservation detail using reservation_id when booking id differs", async () => {
+    getAssetRentalBookingsMock.mockResolvedValueOnce({
+      success: true,
+      data: [
+        {
+          id: 501,
+          reservation_id: 8,
+          asset_id: 10,
+          asset_name: "Gedung Serbaguna Desa",
+          renter_name: "Karang Taruna",
+          renter_contact: "08123456789",
+          renter_email: "karangtaruna@example.com",
+          purpose: "Pelatihan UMKM",
+          start_time: 1762732800,
+          end_time: 1762819200,
+          status: "AWAITING_PAYMENT_VERIFICATION",
+          total_amount: 750000,
+          created_at: 1762600000,
+          updated_at: 1762650000,
+          latest_payment: {
+            id: "pay-8",
+            status: "pending_verification",
+            type: "settlement",
+            method: "manual_transfer",
+            amount: 450000,
+            updated_at: 1762653600,
+          },
+        },
+      ],
+    });
+    getReservationMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        reservation_id: 8,
+        asset_id: 10,
+        asset_name: "Gedung Serbaguna Desa",
+        renter_name: "Karang Taruna",
+        renter_contact: "08123456789",
+        renter_email: "karangtaruna@example.com",
+        purpose: "Pelatihan UMKM",
+        start_date: "2025-11-10",
+        end_date: "2025-11-11",
+        status: "awaiting_payment_verification",
+        amounts: { total: 750000, dp: 300000, remaining: 450000 },
+        latest_payment: {
+          id: "pay-8",
+          status: "pending_verification",
+          type: "settlement",
+          method: "manual_transfer",
+          amount: 450000,
+          proof_url: "https://example.com/proof-settlement.jpg",
+          proof_note: "Pelunasan dikirim",
+          updated_at: 1762653600,
+        },
+        timeline: [],
+      },
+    });
+
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="501" section="pengajuan" />,
+    );
+
+    await waitFor(() => {
+      expect(getReservationMock).toHaveBeenCalledWith(8);
+      expect(
+        screen.getByRole("link", { name: "Lihat Bukti Pembayaran" }),
+      ).toBeTruthy();
+      expect(screen.getByText("Catatan: Pelunasan dikirim")).toBeTruthy();
+    });
+  });
+
+  it("surfaces local diagnostics when verification status is inconsistent with latest payment state", async () => {
+    getAssetRentalBookingsMock.mockResolvedValueOnce({
+      success: true,
+      data: [
+        {
+          id: 8,
+          reservation_id: 8,
+          asset_id: 10,
+          asset_name: "E2E Asset Click Clean 20260319",
+          renter_name: "Faizal Fakhri",
+          renter_contact: "085730853685",
+          renter_email: "faisalfakhri0001@gmail.com",
+          purpose: "oke",
+          start_time: 1762732800,
+          end_time: 1762819200,
+          status: "AWAITING_PAYMENT_VERIFICATION",
+          total_amount: 650000,
+          created_at: 1762600000,
+          updated_at: 1762650000,
+          accounting_readiness: {
+            status: "not_ready",
+            reason:
+              "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+            reference: "RSV-000008",
+          },
+          latest_payment: {
+            id: "pay-8",
+            status: "initiated",
+            type: "settlement",
+            method: "va_bca",
+            amount: 520000,
+            updated_at: 1762653600,
+          },
+        },
+      ],
+    });
+    getReservationMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        reservation_id: 8,
+        asset_id: 10,
+        asset_name: "E2E Asset Click Clean 20260319",
+        renter_name: "Faizal Fakhri",
+        renter_contact: "085730853685",
+        renter_email: "faisalfakhri0001@gmail.com",
+        purpose: "oke",
+        start_date: "2026-03-22",
+        end_date: "2026-03-23",
+        status: "awaiting_payment_verification",
+        amounts: { total: 650000, dp: 130000, remaining: 520000 },
+        accounting_readiness: {
+          status: "not_ready",
+          reason:
+            "Accounting menunggu kepastian pembayaran atau status rental yang lebih lanjut.",
+          reference: "RSV-000008",
+        },
+        latest_payment: {
+          id: "pay-8",
+          status: "initiated",
+          type: "settlement",
+          method: "va_bca",
+          amount: 520000,
+          updated_at: 1762653600,
+        },
+        timeline: [],
+      },
+    });
+
+    renderFeature(
+      <AssetRentalAdminDetailPage bookingId="8" section="pengajuan" />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Status booking menyatakan pembayaran sedang menunggu verifikasi, tetapi payment settlement terakhir masih berstatus initiated.",
+        ),
+      ).toBeTruthy();
+      expect(
+        screen.getByText(
+          "Next action: Periksa proses upload bukti pembayaran dan sinkronisasi status payment di backend.",
+        ),
       ).toBeTruthy();
     });
   });
@@ -420,8 +593,11 @@ describe("AssetRentalAdminDetailPage", () => {
       <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
     );
 
+    fireEvent.click(
+      screen.getByRole("button", { name: "Register Aset Tetap" }),
+    );
+
     await waitFor(() => {
-      expect(screen.getByText("Register Aset Tetap")).toBeTruthy();
       expect(
         screen.getByDisplayValue("Bangunan Operasional"),
       ).toBeTruthy();
@@ -436,6 +612,10 @@ describe("AssetRentalAdminDetailPage", () => {
   it("can register rental asset into fixed asset register", async () => {
     renderFeature(
       <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Register Aset Tetap" }),
     );
 
     await waitFor(() => {
@@ -485,6 +665,10 @@ describe("AssetRentalAdminDetailPage", () => {
 
     renderFeature(
       <AssetRentalAdminDetailPage bookingId="501" section="penyewaan" />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Register Aset Tetap" }),
     );
 
     await waitFor(() => {

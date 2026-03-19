@@ -14,7 +14,9 @@ export default function MarketplaceOrderPage() {
       allowedRoles={MARKETPLACE_ADMIN_ALLOWED_ROLES}
       fallbackPath="/bumdes/dashboard"
     >
-      <OrderListPage />
+      <div data-testid="marketplace-admin-order-route-root">
+        <OrderListPage />
+      </div>
     </ProtectedRoute>
   );
 }

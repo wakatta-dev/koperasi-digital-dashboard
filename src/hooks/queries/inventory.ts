@@ -11,6 +11,7 @@ import {
   archiveInventoryProduct,
   archiveInventoryVariantGroup,
   archiveInventoryVariantOption,
+  createInventoryCategory,
   createInventoryVariantGroup,
   createInventoryVariantOption,
   createInventoryProduct,
@@ -31,6 +32,7 @@ import {
   deleteInventoryProductImage,
   setInventoryProductPrimaryImage,
   deleteInventoryVariantOptionImage,
+  updateInventoryCategory,
   updateInventoryVariantGroup,
   updateInventoryVariantOption,
   updateInventoryProduct,
@@ -199,6 +201,16 @@ export function useInventoryActions() {
     onError: (err: any) => toast.error(err?.message || "Gagal membuat produk"),
   });
 
+  const createCategory = useMutation({
+    mutationFn: async (payload: { name: string; is_active?: boolean }) =>
+      ensureSuccess(await createInventoryCategory(payload)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.inventory.categories() });
+      toast.success("Kategori berhasil dibuat");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal membuat kategori"),
+  });
+
   const update = useMutation({
     mutationFn: async (vars: { id: string | number; payload: UpdateInventoryProductRequest }) =>
       ensureSuccess(await updateInventoryProduct(vars.id, vars.payload)),
@@ -208,6 +220,19 @@ export function useInventoryActions() {
       toast.success("Produk diperbarui");
     },
     onError: (err: any) => toast.error(err?.message || "Gagal memperbarui produk"),
+  });
+
+  const updateCategory = useMutation({
+    mutationFn: async (vars: {
+      id: string | number;
+      payload: { name: string; is_active?: boolean };
+    }) => ensureSuccess(await updateInventoryCategory(vars.id, vars.payload)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: QK.inventory.categories() });
+      invalidateLists();
+      toast.success("Kategori diperbarui");
+    },
+    onError: (err: any) => toast.error(err?.message || "Gagal memperbarui kategori"),
   });
 
   const uploadImage = useMutation({
@@ -300,7 +325,9 @@ export function useInventoryActions() {
 
   return {
     create,
+    createCategory,
     update,
+    updateCategory,
     uploadImage,
     addImage,
     deleteImage,

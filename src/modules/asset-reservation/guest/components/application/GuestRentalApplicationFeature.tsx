@@ -10,7 +10,7 @@ type GuestRentalApplicationFeatureProps = Readonly<{
   description: string;
   values: GuestRentalApplicationFormValues;
   onValuesChange: (next: GuestRentalApplicationFormValues) => void;
-  onSubmit: () => void;
+  onSubmit: (values?: GuestRentalApplicationFormValues) => void;
   submitting?: boolean;
   selectedAsset: SelectedAssetSummary;
 }>;
@@ -25,7 +25,10 @@ export function GuestRentalApplicationFeature({
   selectedAsset,
 }: GuestRentalApplicationFeatureProps) {
   return (
-    <section className="min-h-screen pb-20 pt-8">
+    <section
+      className="min-h-screen pb-20 pt-8"
+      data-testid="asset-rental-application-feature-root"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -36,7 +39,10 @@ export function GuestRentalApplicationFeature({
 
         <div className="lg:grid lg:grid-cols-3 lg:gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 lg:p-8">
+            <div
+              className="bg-white dark:bg-surface-card-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 lg:p-8"
+              data-testid="asset-rental-application-feature-main"
+            >
               <div className="flex items-center gap-3 mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
                 <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2 rounded-lg text-brand-primary">
                   <span className="material-symbols-outlined">description</span>
@@ -63,4 +69,3 @@ export function GuestRentalApplicationFeature({
     </section>
   );
 }
-

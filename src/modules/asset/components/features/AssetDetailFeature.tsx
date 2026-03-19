@@ -1,4 +1,5 @@
 /** @format */
+"use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Cpu, History, Copy, MapPin } from "lucide-react";
@@ -15,104 +16,111 @@ type AssetDetailFeatureProps = Readonly<{
 }>;
 
 export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
-  const specificationColumns: ColumnDef<(typeof detail.specifications)[number], unknown>[] =
-    [
-      {
-        id: "key",
-        header: "",
-        meta: {
-          cellClassName:
-            "w-1/3 bg-slate-50 px-4 text-sm font-medium text-slate-500",
-        },
-        cell: ({ row }) => row.original.key,
+  const specificationColumns: ColumnDef<
+    (typeof detail.specifications)[number],
+    unknown
+  >[] = [
+    {
+      id: "key",
+      header: "",
+      meta: {
+        cellClassName:
+          "w-1/3 bg-slate-50 px-4 text-sm font-medium text-slate-500",
       },
-      {
-        id: "value",
-        header: "",
-        meta: {
-          cellClassName: "px-4 text-sm text-slate-900",
-        },
-        cell: ({ row }) => row.original.value,
+      cell: ({ row }) => row.original.key,
+    },
+    {
+      id: "value",
+      header: "",
+      meta: {
+        cellClassName: "px-4 text-sm text-slate-900",
       },
-    ];
+      cell: ({ row }) => row.original.value,
+    },
+  ];
 
-  const activityColumns: ColumnDef<(typeof detail.activityRows)[number], unknown>[] =
-    [
-      {
-        id: "renter",
-        header: "Peminjam",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4",
-        },
-        cell: ({ row }) => (
-          <>
-            <div className="text-sm font-medium text-slate-900">
-              {row.original.renterName}
-            </div>
-            <div className="text-xs text-slate-500">
-              {row.original.renterContact}
-            </div>
-          </>
-        ),
+  const activityColumns: ColumnDef<
+    (typeof detail.activityRows)[number],
+    unknown
+  >[] = [
+    {
+      id: "renter",
+      header: "Peminjam",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4",
       },
-      {
-        id: "startDate",
-        header: "Tanggal Pinjam",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4 text-sm text-slate-600",
-        },
-        cell: ({ row }) => row.original.startDate,
+      cell: ({ row }) => (
+        <>
+          <div className="text-sm font-medium text-slate-900">
+            {row.original.renterName}
+          </div>
+          <div className="text-xs text-slate-500">
+            {row.original.renterContact}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: "startDate",
+      header: "Tanggal Pinjam",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4 text-sm text-slate-600",
       },
-      {
-        id: "endDate",
-        header: "Tanggal Kembali",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4 text-sm text-slate-600",
-        },
-        cell: ({ row }) => row.original.endDate,
+      cell: ({ row }) => row.original.startDate,
+    },
+    {
+      id: "endDate",
+      header: "Tanggal Kembali",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4 text-sm text-slate-600",
       },
-      {
-        id: "duration",
-        header: "Durasi",
-        meta: {
-          headerClassName: "px-4",
-          cellClassName: "px-4 text-sm text-slate-600",
-        },
-        cell: ({ row }) => row.original.duration,
+      cell: ({ row }) => row.original.endDate,
+    },
+    {
+      id: "duration",
+      header: "Durasi",
+      meta: {
+        headerClassName: "px-4",
+        cellClassName: "px-4 text-sm text-slate-600",
       },
-      {
-        id: "status",
-        header: "Status",
-        meta: {
-          align: "right",
-          headerClassName: "px-4 text-right",
-          cellClassName: "px-4 text-right",
-        },
-        cell: ({ row }) => (
-          <Badge
-            className={
-              row.original.status === "Selesai"
-                ? "rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
-                : row.original.status === "Menunggu"
-                  ? "rounded-full border border-amber-200 bg-amber-50 text-amber-700"
-                  : "rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"
-            }
-          >
-            {row.original.status}
-          </Badge>
-        ),
+      cell: ({ row }) => row.original.duration,
+    },
+    {
+      id: "status",
+      header: "Status",
+      meta: {
+        align: "right",
+        headerClassName: "px-4 text-right",
+        cellClassName: "px-4 text-right",
       },
-    ];
+      cell: ({ row }) => (
+        <Badge
+          className={
+            row.original.status === "Selesai"
+              ? "rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
+              : row.original.status === "Menunggu"
+                ? "rounded-full border border-amber-200 bg-amber-50 text-amber-700"
+                : "rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700"
+          }
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <AssetRentalFeatureShell
       title="Detail Aset"
       description="Struktur informasi aset utama dari desain Stitch."
     >
-      <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        data-testid="asset-admin-detail-summary-grid"
+      >
         {detail.summaryCards.map((card) => (
           <section
             key={card.id}
@@ -130,7 +138,10 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px,1fr]">
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+        <section
+          className="space-y-4 rounded-xl border border-slate-200 bg-white p-5"
+          data-testid="asset-admin-detail-sidebar"
+        >
           {detail.photoUrl ? (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
               <img
@@ -157,6 +168,7 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-slate-500 hover:text-indigo-600"
+                data-testid="asset-admin-detail-copy-asset-tag-button"
               >
                 <Copy className="h-4 w-4" />
                 <span className="sr-only">Salin Asset Tag</span>
@@ -223,7 +235,10 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
         </section>
 
         <div className="space-y-4">
-          <section className="rounded-xl border border-slate-200 bg-white p-5">
+          <section
+            className="rounded-xl border border-slate-200 bg-white p-5"
+            data-testid="asset-admin-detail-specifications"
+          >
             <div className="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
               <Cpu className="h-4 w-4 text-indigo-600" />
               <span>Spesifikasi</span>
@@ -238,7 +253,10 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <section
+            className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+            data-testid="asset-admin-detail-activity-table"
+          >
             <div className="flex items-center justify-between border-b border-slate-200 p-5">
               <div className="flex items-center gap-2 text-base font-semibold text-slate-900">
                 <History className="h-4 w-4 text-indigo-600" />
@@ -248,6 +266,7 @@ export function AssetDetailFeature({ detail }: AssetDetailFeatureProps) {
                 type="button"
                 variant="ghost"
                 className="px-0 text-indigo-600 hover:text-indigo-700"
+                data-testid="asset-admin-detail-view-all-activity-button"
               >
                 Lihat Semua
               </Button>

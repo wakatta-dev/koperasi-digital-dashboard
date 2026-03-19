@@ -105,6 +105,13 @@ type TableShellSharedProps = {
   nextPageButtonClassName?: string;
 };
 
+type TableShellRowProps = Omit<
+  ComponentProps<"tr">,
+  "children" | "className" | "onClick"
+> & {
+  "data-testid"?: string;
+};
+
 type TableShellColumnModeProps<Row> = TableShellSharedProps & {
   columns: TableShellColumn<Row>[];
   data: Row[];
@@ -115,6 +122,7 @@ type TableShellColumnModeProps<Row> = TableShellSharedProps & {
   onRowClick?: (row: Row) => void;
   rowHoverable?: boolean;
   rowClassName?: string | ((row: Row) => string | undefined);
+  rowProps?: (row: Row) => TableShellRowProps | undefined;
   headerClassName?: string;
   headerRowClassName?: string;
   bodyClassName?: string;

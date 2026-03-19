@@ -3,6 +3,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import {
   createAccountingJournalEntry,
@@ -50,12 +51,22 @@ import type {
 
 import { QK } from "./queryKeys";
 
+function useAccountingQueryEnabled(explicitEnabled = true) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+  const hasSessionError = Boolean((session as { error?: string } | null)?.error);
+
+  return status === "authenticated" && hasAccessToken && !hasSessionError && explicitEnabled;
+}
+
 export function useAccountingJournalOverview(options?: { enabled?: boolean }) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   return useQuery({
     queryKey: QK.accountingJournal.overview(),
+    enabled,
     queryFn: async (): Promise<AccountingJournalOverviewResponse> =>
       ensureAccountingJournalSuccess(await getAccountingJournalOverview()),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -63,6 +74,7 @@ export function useAccountingJournalPostingPolicies(
   params?: AccountingJournalPostingPoliciesQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingJournalPostingPoliciesQuery = {
     domain: params?.domain,
     status: params?.status,
@@ -70,9 +82,10 @@ export function useAccountingJournalPostingPolicies(
 
   return useQuery({
     queryKey: QK.accountingJournal.postingPolicies(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingJournalPostingPoliciesResponse> =>
       ensureAccountingJournalSuccess(await listAccountingJournalPostingPolicies(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -83,17 +96,20 @@ export function useAccountingJournalSourceTrace(
 ) {
   const normalizedDomain = (domain ?? "").trim();
   const normalizedSourceId = String(sourceId ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedDomain) &&
+      Boolean(normalizedSourceId) &&
+      (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingJournal.sourceTrace(normalizedDomain, normalizedSourceId),
-    enabled:
-      Boolean(normalizedDomain) &&
-      Boolean(normalizedSourceId) &&
-      (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingJournalSourceTraceResponse> =>
       ensureAccountingJournalSuccess(
         await getAccountingJournalSourceTrace(normalizedDomain, normalizedSourceId)
       ),
+    retry: false,
   });
 }
 
@@ -101,6 +117,7 @@ export function useAccountingJournalEntries(
   params?: AccountingJournalEntriesQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingJournalEntriesQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -109,9 +126,10 @@ export function useAccountingJournalEntries(
 
   return useQuery({
     queryKey: QK.accountingJournal.entries(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingJournalEntriesResponse> =>
       ensureAccountingJournalSuccess(await listAccountingJournalEntries(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -120,14 +138,18 @@ export function useAccountingJournalEntryDetail(
   options?: { enabled?: boolean }
 ) {
   const normalizedJournalNumber = (journalNumber ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedJournalNumber) && (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingJournal.entryDetail(normalizedJournalNumber),
-    enabled: Boolean(normalizedJournalNumber) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingJournalDetailResponse> =>
       ensureAccountingJournalSuccess(
         await getAccountingJournalEntryDetail(normalizedJournalNumber)
       ),
+    retry: false,
   });
 }
 
@@ -137,6 +159,9 @@ export function useAccountingJournalEntryAuditLogs(
   options?: { enabled?: boolean }
 ) {
   const normalizedJournalNumber = (journalNumber ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedJournalNumber) && (options?.enabled ?? true)
+  );
   const normalizedParams: AccountingJournalEntryAuditLogsQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 10,
@@ -148,7 +173,7 @@ export function useAccountingJournalEntryAuditLogs(
       normalizedJournalNumber,
       normalizedParams
     ),
-    enabled: Boolean(normalizedJournalNumber) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingJournalEntryAuditLogsResponse> =>
       ensureAccountingJournalSuccess(
         await listAccountingJournalEntryAuditLogs(
@@ -156,6 +181,7 @@ export function useAccountingJournalEntryAuditLogs(
           normalizedParams
         )
       ),
+    retry: false,
   });
 }
 
@@ -163,6 +189,7 @@ export function useAccountingJournalAuditLogs(
   params?: AccountingJournalAuditLogsQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingJournalAuditLogsQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -171,9 +198,10 @@ export function useAccountingJournalAuditLogs(
 
   return useQuery({
     queryKey: QK.accountingJournal.auditLogs(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingJournalAuditLogsResponse> =>
       ensureAccountingJournalSuccess(await listAccountingJournalAuditLogs(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -181,6 +209,7 @@ export function useAccountingJournalCurrentPeriodLock(
   params?: AccountingJournalCurrentPeriodLockQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingJournalCurrentPeriodLockQuery = {
     year: params?.year,
     month: params?.month,
@@ -188,11 +217,12 @@ export function useAccountingJournalCurrentPeriodLock(
 
   return useQuery({
     queryKey: QK.accountingJournal.periodLockCurrent(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingJournalCurrentPeriodLockResponse> =>
       ensureAccountingJournalSuccess(
         await getAccountingJournalCurrentPeriodLock(normalized)
       ),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 

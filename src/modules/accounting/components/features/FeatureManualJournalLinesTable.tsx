@@ -79,7 +79,10 @@ export function FeatureManualJournalLinesTable({
   const totalCredit = lines.reduce((sum, line) => sum + line.credit_amount, 0);
 
   return (
-    <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
+    <Card
+      className="overflow-hidden rounded-xl border border-gray-200 shadow-sm dark:border-gray-700"
+      data-testid="accounting-journal-create-lines-table"
+    >
       <CardContent className="p-6">
         <div className="overflow-x-auto">
           <TableShell
@@ -99,6 +102,7 @@ export function FeatureManualJournalLinesTable({
                     }
                   >
                     <SelectTrigger
+                      data-testid={`accounting-journal-create-line-account-select-${row.original.line_id}`}
                       aria-label={`Account line ${table.getRowModel().rows.findIndex((item) => item.id === row.id) + 1}`}
                       className="bg-white text-sm dark:bg-slate-900"
                     >
@@ -127,6 +131,7 @@ export function FeatureManualJournalLinesTable({
                     type="text"
                     placeholder="Description"
                     value={row.original.label_description}
+                    data-testid={`accounting-journal-create-line-description-input-${row.original.line_id}`}
                     onChange={(event) =>
                       patchLine(row.original.line_id, (current) => ({
                         ...current,
@@ -162,6 +167,7 @@ export function FeatureManualJournalLinesTable({
                         aria-label={`Debit line ${rowNumber}`}
                         value={formatCurrency(row.original.debit_amount)}
                         disabled={debitDisabled}
+                        data-testid={`accounting-journal-create-line-debit-input-${row.original.line_id}`}
                         onChange={(event) =>
                           patchLine(row.original.line_id, (current) => {
                             const nextAmount = parseCurrencyInput(
@@ -206,6 +212,7 @@ export function FeatureManualJournalLinesTable({
                         aria-label={`Credit line ${rowNumber}`}
                         value={formatCurrency(row.original.credit_amount)}
                         disabled={creditDisabled}
+                        data-testid={`accounting-journal-create-line-credit-input-${row.original.line_id}`}
                         onChange={(event) =>
                           patchLine(row.original.line_id, (current) => {
                             const nextAmount = parseCurrencyInput(
@@ -245,6 +252,7 @@ export function FeatureManualJournalLinesTable({
                       variant="ghost"
                       size="icon"
                       aria-label={`Remove line ${rowNumber}`}
+                      data-testid={`accounting-journal-create-line-remove-button-${row.original.line_id}`}
                       onClick={() => removeLine(row.original.line_id)}
                       className="text-gray-400 transition-colors hover:text-red-500"
                     >
@@ -272,6 +280,7 @@ export function FeatureManualJournalLinesTable({
             type="button"
             variant="link"
             onClick={addLine}
+            data-testid="accounting-journal-create-add-line-button"
             className="h-auto p-0 text-sm font-medium text-indigo-600 hover:text-indigo-700"
           >
             <PlusCircle className="mr-2 h-4 w-4" />

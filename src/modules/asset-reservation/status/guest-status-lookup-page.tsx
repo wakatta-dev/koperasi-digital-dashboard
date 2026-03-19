@@ -21,6 +21,7 @@ import {
   type GuestRequestStatusResult,
 } from "../guest/components/status/GuestRequestStatusFeature";
 import { UploadPaymentProofModalFeature } from "../guest/components/status/UploadPaymentProofModalFeature";
+import { inclusiveEndDate, parseLocalDateInput } from "@/lib/date-only";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -34,8 +35,8 @@ function formatCurrency(amount?: number) {
 }
 
 function formatDateRange(start?: string, end?: string) {
-  const s = start ? new Date(start) : null;
-  const e = end ? new Date(end) : null;
+  const s = parseLocalDateInput(start);
+  const e = inclusiveEndDate(end);
   const validS = s && !Number.isNaN(s.getTime()) ? s : null;
   const validE = e && !Number.isNaN(e.getTime()) ? e : null;
   if (!validS || !validE) return "-";
@@ -90,7 +91,7 @@ function paymentInstructionForStatus(
       ctaLabel: "Unggah Bukti DP",
     };
   }
-  if (status === "awaiting_settlement") {
+  if (status === "confirmed_dp" || status === "awaiting_settlement") {
     const isDirectSettlement = paymentFlow === "settlement_direct";
     return {
       mode: "settlement",
@@ -110,6 +111,22 @@ function resolveLatestPaymentType(rawType?: string | null): "dp" | "settlement" 
   if (normalized === "dp") return "dp";
   if (normalized === "settlement") return "settlement";
   return undefined;
+}
+
+function resolveLatestPaymentStatus(
+  rawStatus?: string | null,
+): "initiated" | "pending_verification" | "succeeded" | "failed" | "expired" | undefined {
+  const normalized = (rawStatus || "").trim().toLowerCase();
+  switch (normalized) {
+    case "initiated":
+    case "pending_verification":
+    case "succeeded":
+    case "failed":
+    case "expired":
+      return normalized;
+    default:
+      return undefined;
+  }
 }
 
 function resolvePaymentFlow(input: {
@@ -132,11 +149,48 @@ function resolvePaymentFlow(input: {
   return "settlement_direct";
 }
 
-function shouldForceSettlementBySchedule(startDate?: string): boolean {
-  if (!startDate) return false;
-  const start = new Date(startDate);
-  if (Number.isNaN(start.getTime())) return false;
-  return start.getTime() <= Date.now() + 72 * 60 * 60 * 1000;
+function resolveInconsistentVerificationFallback(input: {
+  paymentFlow: "dp" | "settlement_direct" | "pending_decision";
+  latestPaymentType?: "dp" | "settlement";
+}): ReservationStatus {
+  if (input.latestPaymentType === "settlement") return "awaiting_settlement";
+  if (input.latestPaymentType === "dp") return "awaiting_dp";
+  if (input.paymentFlow === "settlement_direct") return "awaiting_settlement";
+  if (input.paymentFlow === "pending_decision") return "pending_review";
+  return "awaiting_dp";
+}
+
+function resolveDisplayedReservationState(input: {
+  status: ReservationStatus;
+  paymentFlow: "dp" | "settlement_direct" | "pending_decision";
+  latestPaymentType?: "dp" | "settlement";
+  latestPaymentStatus?:
+    | "initiated"
+    | "pending_verification"
+    | "succeeded"
+    | "failed"
+    | "expired";
+}): { status: ReservationStatus; warning?: string } {
+  if (input.status !== "awaiting_payment_verification") {
+    return { status: input.status };
+  }
+
+  if (
+    !input.latestPaymentStatus ||
+    input.latestPaymentStatus === "pending_verification" ||
+    input.latestPaymentStatus === "succeeded"
+  ) {
+    return { status: input.status };
+  }
+
+  return {
+    status: resolveInconsistentVerificationFallback({
+      paymentFlow: input.paymentFlow,
+      latestPaymentType: input.latestPaymentType,
+    }),
+    warning:
+      "Status pembayaran belum sinkron. Jika Anda baru mengirim bukti, tunggu beberapa menit lalu muat ulang halaman atau hubungi admin desa.",
+  };
 }
 
 export function GuestStatusLookupPage() {
@@ -152,25 +206,32 @@ export function GuestStatusLookupPage() {
 
   const reservation = lookup.data ?? null;
   const status = reservation ? toReservationStatus(reservation.status) : null;
-  const effectiveStatus = useMemo(() => {
-    if (!status) return null;
-    if (status === "awaiting_dp" && shouldForceSettlementBySchedule(reservation?.start_date)) {
-      return "awaiting_settlement" as ReservationStatus;
-    }
-    return status;
-  }, [reservation?.start_date, status]);
   const latestPaymentType = useMemo(
     () => resolveLatestPaymentType(reservation?.latest_payment?.type),
     [reservation?.latest_payment?.type]
   );
+  const latestPaymentStatus = useMemo(
+    () => resolveLatestPaymentStatus(reservation?.latest_payment?.status),
+    [reservation?.latest_payment?.status],
+  );
   const paymentFlow = useMemo(() => {
-    if (!effectiveStatus) return "pending_decision" as const;
+    if (!status) return "pending_decision" as const;
     return resolvePaymentFlow({
-      status: effectiveStatus,
+      status,
       backendFlow: reservation?.payment_flow,
       latestPaymentType,
     });
-  }, [effectiveStatus, latestPaymentType, reservation?.payment_flow]);
+  }, [latestPaymentType, reservation?.payment_flow, status]);
+  const statusResolution = useMemo(() => {
+    if (!status) return null;
+    return resolveDisplayedReservationState({
+      status,
+      paymentFlow,
+      latestPaymentType,
+      latestPaymentStatus,
+    });
+  }, [latestPaymentStatus, latestPaymentType, paymentFlow, status]);
+  const effectiveStatus = statusResolution?.status ?? null;
 
   const paymentInstruction = useMemo(() => {
     if (!reservation || !effectiveStatus) return undefined;
@@ -190,6 +251,7 @@ export function GuestStatusLookupPage() {
       variant: statusPresentation.variant,
       status: effectiveStatus,
       statusDescription: statusPresentation.description,
+      dataWarning: statusResolution?.warning,
       details: {
         renterName: reservation.renter_name || "-",
         assetKind: reservation.asset_name || "-",
@@ -203,6 +265,14 @@ export function GuestStatusLookupPage() {
       paymentInstruction,
       paymentFlow,
       latestPaymentType,
+      paymentHref:
+        paymentInstruction && reservation.guest_token
+          ? `/penyewaan-aset/payment?reservationId=${encodeURIComponent(
+              String(reservation.reservation_id),
+            )}&type=${encodeURIComponent(
+              paymentInstruction.mode,
+            )}&sig=${encodeURIComponent(reservation.guest_token)}`
+          : undefined,
       onOpenUploadProof: paymentInstruction
         ? async () => {
             try {
@@ -222,7 +292,7 @@ export function GuestStatusLookupPage() {
           }
         : undefined,
     };
-  }, [createPayment, effectiveStatus, latestPaymentType, paymentFlow, paymentInstruction, reservation]);
+  }, [createPayment, effectiveStatus, latestPaymentType, paymentFlow, paymentInstruction, reservation, statusResolution?.warning]);
 
   const modalAmountLabel =
     paymentAmountLabel || formatCurrency(reservation?.amounts?.total);

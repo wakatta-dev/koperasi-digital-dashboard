@@ -129,7 +129,10 @@ export function AssetEditPage({ assetId }: AssetEditPageProps) {
     : undefined;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 text-foreground">
+    <div
+      className="mx-auto max-w-7xl space-y-6 text-foreground"
+      data-testid="asset-admin-edit-page-root"
+    >
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -142,7 +145,10 @@ export function AssetEditPage({ assetId }: AssetEditPageProps) {
             ) : null}
           </div>
           <Button asChild variant="outline" className="gap-2 border-slate-200">
-            <Link href={ASSET_MANAGEMENT_PATH}>
+            <Link
+              href={ASSET_MANAGEMENT_PATH}
+              data-testid="asset-admin-edit-back-link"
+            >
               <ArrowLeft className="h-4 w-4" />
               <span>Kembali ke Daftar Aset</span>
             </Link>

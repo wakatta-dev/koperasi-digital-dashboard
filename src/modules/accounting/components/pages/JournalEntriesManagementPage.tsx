@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import {
   useAccountingJournalCurrentPeriodLock,
   useAccountingJournalEntries,
@@ -32,7 +33,6 @@ import {
 } from "../../utils/journal-query-state";
 import { FeatureJournalEntriesActionBar } from "../features/FeatureJournalEntriesActionBar";
 import { FeatureJournalEntriesFilterBar } from "../features/FeatureJournalEntriesFilterBar";
-import { FeatureJournalEntriesSummaryCards } from "../features/FeatureJournalEntriesSummaryCards";
 import { FeatureJournalEntriesTable } from "../features/FeatureJournalEntriesTable";
 import { FeatureLockAccountingPeriodModal } from "../features/FeatureLockAccountingPeriodModal";
 
@@ -272,9 +272,45 @@ export function JournalEntriesManagementPage() {
           Loading journal overview...
         </div>
       ) : null}
-      <FeatureJournalEntriesSummaryCards
-        cards={summaryCards}
-        onLockedPeriodsClick={() => setLockPeriodOpen(true)}
+      <KpiCards
+        items={summaryCards.map<KpiItem>((card) => {
+          const isPosted = card.key === "posted_entries";
+          const isLocked = card.key === "locked_periods";
+          const helperValueClass = isPosted
+            ? "font-semibold text-emerald-600 dark:text-emerald-400"
+            : isLocked
+            ? "font-semibold text-red-600 dark:text-red-400"
+            : "font-semibold text-orange-600 dark:text-orange-400";
+
+          return {
+            id: card.key,
+            label: card.label,
+            value: card.value,
+            tone: isPosted ? "success" : isLocked ? "danger" : "warning",
+            showAccent: true,
+            interactive: isLocked,
+            onClick: isLocked ? () => setLockPeriodOpen(true) : undefined,
+            ariaLabel: isLocked ? "Open lock accounting period modal" : undefined,
+            className: isLocked
+              ? "cursor-pointer border-indigo-400/60 hover:border-indigo-500 dark:hover:border-indigo-400"
+              : "hover:border-indigo-300 dark:hover:border-indigo-800",
+            iconContainerClassName: isPosted
+              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400"
+              : isLocked
+              ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
+              : "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400",
+            labelClassName: "text-xs font-semibold uppercase tracking-wide",
+            footer: (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                {card.helper_value ? (
+                  <span className={helperValueClass}>{card.helper_value}</span>
+                ) : null}
+                <span>{card.helper_text}</span>
+              </div>
+            ),
+          };
+        })}
+        columns={{ md: 2, xl: Math.min(summaryCards.length, 4) }}
       />
       {overviewQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

@@ -3,6 +3,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import {
   confirmAccountingApOcrSession,
@@ -49,12 +50,22 @@ import type {
 
 import { QK } from "./queryKeys";
 
+function useAccountingQueryEnabled(explicitEnabled = true) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+  const hasSessionError = Boolean((session as { error?: string } | null)?.error);
+
+  return status === "authenticated" && hasAccessToken && !hasSessionError && explicitEnabled;
+}
+
 export function useAccountingApOverview(options?: { enabled?: boolean }) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   return useQuery({
     queryKey: QK.accountingAp.overview(),
+    enabled,
     queryFn: async (): Promise<AccountingApOverviewResponse> =>
       ensureAccountingApSuccess(await listAccountingApOverview()),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -62,6 +73,7 @@ export function useAccountingApBills(
   params?: AccountingApBillListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingApBillListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -70,9 +82,10 @@ export function useAccountingApBills(
 
   return useQuery({
     queryKey: QK.accountingAp.bills(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingApBillListResponse> =>
       ensureAccountingApSuccess(await listAccountingApBills(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -81,12 +94,16 @@ export function useAccountingApBillDetail(
   options?: { enabled?: boolean }
 ) {
   const normalizedBillNumber = (billNumber ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedBillNumber) && (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingAp.billDetail(normalizedBillNumber),
-    enabled: Boolean(normalizedBillNumber) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingApBillDetailResponse> =>
       ensureAccountingApSuccess(await getAccountingApBillDetail(normalizedBillNumber)),
+    retry: false,
   });
 }
 
@@ -95,12 +112,16 @@ export function useAccountingApBillPayments(
   options?: { enabled?: boolean }
 ) {
   const normalizedBillNumber = (billNumber ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedBillNumber) && (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingAp.billPayments(normalizedBillNumber),
-    enabled: Boolean(normalizedBillNumber) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingApBillPaymentHistoryResponse> =>
       ensureAccountingApSuccess(await listAccountingApBillPayments(normalizedBillNumber)),
+    retry: false,
   });
 }
 
@@ -108,6 +129,7 @@ export function useAccountingApVendorCredits(
   params?: AccountingApVendorCreditListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingApVendorCreditListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -116,9 +138,10 @@ export function useAccountingApVendorCredits(
 
   return useQuery({
     queryKey: QK.accountingAp.vendorCredits(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingApVendorCreditListResponse> =>
       ensureAccountingApSuccess(await listAccountingApVendorCredits(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -127,14 +150,18 @@ export function useAccountingApBatchDetail(
   options?: { enabled?: boolean }
 ) {
   const normalizedBatchReference = (batchReference ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedBatchReference) && (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingAp.batchDetail(normalizedBatchReference),
-    enabled: Boolean(normalizedBatchReference) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingApBatchDetailResponse> =>
       ensureAccountingApSuccess(
         await getAccountingApBatchPaymentDetail(normalizedBatchReference)
       ),
+    retry: false,
   });
 }
 

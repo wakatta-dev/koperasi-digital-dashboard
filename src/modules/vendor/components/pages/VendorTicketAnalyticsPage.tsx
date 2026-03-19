@@ -3,8 +3,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import { useVendorSupportAnalytics } from "@/hooks/queries";
-import { VendorKpiGrid } from "../VendorKpiGrid";
 import { VendorPageHeader } from "../VendorPageHeader";
 
 const SLA_POLICIES = [
@@ -17,30 +17,44 @@ export function VendorTicketAnalyticsPage() {
   const analyticsQuery = useVendorSupportAnalytics();
   const analytics = analyticsQuery.data;
 
-  const kpis = [
+  const kpiItems: KpiItem[] = [
     {
       id: "ticket_total_open",
       label: "Open Cases",
       value: analytics?.total_open ?? 0,
-      helper: "Case operasional yang sedang aktif",
+      footer: (
+        <p className="text-xs text-muted-foreground">
+          Case operasional yang sedang aktif
+        </p>
+      ),
     },
     {
       id: "ticket_high_priority",
       label: "High Priority",
       value: analytics?.total_high_priority ?? 0,
-      helper: "Perlu respons tercepat",
+      footer: (
+        <p className="text-xs text-muted-foreground">Perlu respons tercepat</p>
+      ),
     },
     {
       id: "ticket_sla_breaches",
       label: "SLA Breaches",
       value: analytics?.sla_breaches ?? 0,
-      helper: "Melewati target working SLA",
+      footer: (
+        <p className="text-xs text-muted-foreground">
+          Melewati target working SLA
+        </p>
+      ),
     },
     {
       id: "ticket_billing",
       label: "Billing Cases",
       value: analytics?.billing_cases ?? 0,
-      helper: "Kasus yang bersumber dari invoice overdue",
+      footer: (
+        <p className="text-xs text-muted-foreground">
+          Kasus yang bersumber dari invoice overdue
+        </p>
+      ),
     },
   ];
 
@@ -51,7 +65,7 @@ export function VendorTicketAnalyticsPage() {
         description="Analitik support queue sementara berbasis signal operasional yang sudah tersedia di platform."
       />
 
-      <VendorKpiGrid items={kpis} />
+      <KpiCards items={kpiItems} columns={{ md: 2, xl: 4 }} />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="border-border/70">

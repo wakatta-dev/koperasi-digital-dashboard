@@ -23,10 +23,7 @@ import {
   buildReportingQueryString,
   parseReportingQueryState,
 } from "../../utils/reporting-query-state";
-import {
-  FeatureReportingDateRangeControl,
-  FeatureReportingSourceOfTruthCallout,
-} from "../features/FeatureReportingShared";
+import { FeatureReportingDateRangeControl } from "../features/FeatureReportingShared";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -48,8 +45,8 @@ function toSentenceCase(value?: string) {
 
 function toFixedAssetGapTone(item: AccountingReportingTieOutFixedAssetItem) {
   return item.maturity_status === "missing_register"
-    ? "border border-red-200 bg-red-50 text-red-700"
-    : "border border-amber-200 bg-amber-50 text-amber-700";
+    ? "border border-red-200 bg-white text-red-700"
+    : "border border-amber-200 bg-white text-amber-700";
 }
 
 function toSummaryTone(summary: AccountingReportingTieOutSummary) {
@@ -57,16 +54,24 @@ function toSummaryTone(summary: AccountingReportingTieOutSummary) {
 
   return {
     badge: isBalanced
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
-      : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50",
+      ? "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100"
+      : "border-slate-900 bg-slate-900 text-white hover:bg-slate-900",
     card: isBalanced
-      ? "border-emerald-100 bg-white shadow-[0_18px_40px_-32px_rgba(5,150,105,0.55)]"
-      : "border-amber-100 bg-white shadow-[0_18px_40px_-32px_rgba(217,119,6,0.45)]",
+      ? "border-slate-200 bg-white"
+      : "border-slate-300 bg-white",
     deltaPanel: isBalanced
-      ? "border-emerald-100 bg-emerald-50/80 text-emerald-900"
-      : "border-amber-100 bg-amber-50/90 text-amber-900",
-    accent: isBalanced ? "bg-emerald-500" : "bg-amber-500",
+      ? "border-slate-200 bg-slate-50 text-slate-900"
+      : "border-slate-300 bg-slate-100 text-slate-950",
+    accent: isBalanced ? "bg-slate-300" : "bg-slate-900",
   };
+}
+
+function toSourceOfTruthLabel(sourceOfTruth?: string) {
+  return sourceOfTruth === "general_ledger"
+    ? "General Ledger"
+    : sourceOfTruth === "operational_subledger_vs_gl_control"
+      ? "Operational Subledger vs GL Control"
+      : sourceOfTruth ?? "-";
 }
 
 export function ReportingTieOutPage() {
@@ -158,7 +163,7 @@ export function ReportingTieOutPage() {
         <>
           <button
             type="button"
-            className="text-left font-semibold text-indigo-700 hover:text-indigo-800 dark:text-indigo-300"
+            className="text-left font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-white"
             onClick={() => setSelectedReference(row.original.source_reference)}
           >
             {row.original.source_reference}
@@ -217,36 +222,37 @@ export function ReportingTieOutPage() {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,#fff8eb_0%,#ffffff_42%,#f8fafc_100%)] p-6 shadow-sm lg:p-8">
-        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-amber-100/70 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-sky-100/70 blur-3xl" />
-        <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-3xl space-y-4">
-            <Badge className="w-fit border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50">
-              Control Workspace
-            </Badge>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-950 md:text-4xl dark:text-white">
-                Operational vs GL Tie-Out
-              </h1>
-              <p className="mt-3 max-w-3xl text-base leading-8 text-slate-600 dark:text-gray-300">
-                Workspace ini membandingkan operational subledger dengan angka GL
-                resmi agar gap readiness, posting lag, dan reference yang tidak
-                match terlihat sebelum laporan finansial dipakai sebagai source
-                of truth.
-              </p>
+      <section className="rounded-[24px] border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+        <div className="grid gap-6 p-6 lg:p-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)]">
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <Badge className="w-fit border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                Control Workspace
+              </Badge>
+              <div>
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-4xl dark:text-white">
+                  Operational vs GL Tie-Out
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300">
+                  Workspace ini membandingkan operational subledger dengan angka GL
+                  resmi agar gap readiness, posting lag, dan reference yang tidak
+                  match terlihat sebelum laporan finansial dipakai sebagai source
+                  of truth.
+                </p>
+              </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                   Periode
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
                   {reportQuery.data?.period_label || "Periode berjalan"}
                 </p>
               </div>
-              <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                   Domain Sehat
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -256,8 +262,8 @@ export function ReportingTieOutPage() {
                   domain sudah balanced
                 </p>
               </div>
-              <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                   Reference Review
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -267,15 +273,26 @@ export function ReportingTieOutPage() {
                   mismatch siap ditindaklanjuti
                 </p>
               </div>
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                  Gap Aset
+                </p>
+                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
+                  {summaryOverview.fixedAssetGapCount}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  butuh tindak lanjut
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="w-full max-w-xl space-y-3 rounded-[24px] border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur xl:max-w-sm">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          <div className="space-y-4 rounded-[20px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="space-y-1">
+              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-500">
                 Filter Analisis
               </p>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                 Pilih rentang tanggal untuk membaca gap operasional dan GL pada periode yang sama.
               </p>
             </div>
@@ -285,32 +302,47 @@ export function ReportingTieOutPage() {
               onStartChange={setStart}
               onEndChange={setEnd}
             />
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-slate-950 px-4 py-3 text-white">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-300">
-                  Total Delta
-                </p>
-                <p className="mt-2 text-lg font-semibold">
-                  {formatCurrency(summaryOverview.totalDelta)}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                  Gap Aset
-                </p>
-                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
-                  {summaryOverview.fixedAssetGapCount}
-                </p>
-              </div>
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                Total Delta
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
+                {formatCurrency(summaryOverview.totalDelta)}
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                akumulasi selisih nominal seluruh domain
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      <FeatureReportingSourceOfTruthCallout
-        sourceOfTruth={reportQuery.data?.report_context.source_of_truth}
-        reportTier={reportQuery.data?.report_context.report_tier}
-      />
+      {reportQuery.data?.report_context.source_of_truth ||
+      reportQuery.data?.report_context.report_tier ? (
+        <section className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                Reporting Context
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Source of truth:
+                {" "}
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {toSourceOfTruthLabel(
+                    reportQuery.data?.report_context.source_of_truth,
+                  )}
+                </span>
+              </p>
+            </div>
+            <Badge className="w-fit border-slate-200 bg-white text-slate-700 hover:bg-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+              {reportQuery.data?.report_context.report_tier === "official_financial"
+                ? "Official Financial Report"
+                : "Control Workspace"}
+            </Badge>
+          </div>
+        </section>
+      ) : null}
 
       {reportQuery.error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -319,7 +351,7 @@ export function ReportingTieOutPage() {
       ) : null}
 
       {reportQuery.isPending && !reportQuery.data ? (
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-slate-900 dark:text-gray-300">
           Loading tie-out workspace...
         </div>
       ) : null}
@@ -346,11 +378,11 @@ export function ReportingTieOutPage() {
               <Card
                 key={summary.domain}
                 className={cn(
-                  "overflow-hidden border-slate-200 transition-all dark:border-gray-700 dark:bg-slate-900",
+                  "overflow-hidden border-slate-200 transition-colors dark:border-gray-700 dark:bg-slate-900",
                   tone.card,
                 )}
               >
-                <div className={cn("h-1 w-full", tone.accent)} />
+                <div className={cn("h-px w-full", tone.accent)} />
                 <CardHeader className="gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="space-y-3">
@@ -368,11 +400,11 @@ export function ReportingTieOutPage() {
                     </div>
                     <div
                       className={cn(
-                        "min-w-40 rounded-2xl border px-4 py-3",
+                        "min-w-44 rounded-2xl border px-4 py-3",
                         tone.deltaPanel,
                       )}
                     >
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em]">
                         Delta
                       </p>
                       <p className="mt-2 text-2xl font-semibold">
@@ -384,7 +416,7 @@ export function ReportingTieOutPage() {
                 <CardContent className="space-y-4 pt-6 text-sm">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/80">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                         Operational
                       </p>
                       <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -392,7 +424,7 @@ export function ReportingTieOutPage() {
                       </p>
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                         GL
                       </p>
                       <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -401,19 +433,19 @@ export function ReportingTieOutPage() {
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-xs text-slate-500 dark:text-gray-400">
-                    <div className="rounded-2xl border border-slate-200 px-3 py-3 dark:border-slate-700">
+                    <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 dark:border-slate-700 dark:bg-slate-900">
                       <div className="text-lg font-semibold text-slate-950 dark:text-white">
                         {summary.operational_count}
                       </div>
                       <div className="mt-1 leading-5">Operational refs</div>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 px-3 py-3 dark:border-slate-700">
+                    <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 dark:border-slate-700 dark:bg-slate-900">
                       <div className="text-lg font-semibold text-slate-950 dark:text-white">
                         {summary.gl_count}
                       </div>
                       <div className="mt-1 leading-5">GL refs</div>
                     </div>
-                    <div className="rounded-2xl border border-slate-200 px-3 py-3 dark:border-slate-700">
+                    <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 dark:border-slate-700 dark:bg-slate-900">
                       <div className="text-lg font-semibold text-slate-950 dark:text-white">
                         {summary.mismatch_count}
                       </div>
@@ -432,7 +464,7 @@ export function ReportingTieOutPage() {
           <CardHeader className="gap-3 border-b border-slate-100 pb-4 dark:border-slate-800">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-white">
-                <ArrowRightLeft className="h-5 w-5 text-indigo-600" />
+                <ArrowRightLeft className="h-5 w-5 text-slate-500" />
                 Mismatch Drill-Down
               </CardTitle>
               <Badge variant="secondary" className="bg-slate-100 text-slate-700">
@@ -456,13 +488,13 @@ export function ReportingTieOutPage() {
                   headerRowClassName="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"
                   rowClassName={(row) =>
                     row.source_reference === selectedMismatch?.source_reference
-                      ? "bg-indigo-50/80 dark:bg-indigo-950/20"
+                      ? "bg-slate-100 dark:bg-slate-800/70"
                       : ""
                   }
                 />
               </div>
             ) : (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-6 text-sm text-emerald-700">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-300">
                 Semua reference dasar sudah tie-out untuk periode ini.
               </div>
             )}
@@ -472,14 +504,14 @@ export function ReportingTieOutPage() {
         <Card className="border-gray-200 dark:border-gray-700 dark:bg-slate-900">
           <CardHeader className="gap-3 border-b border-slate-100 pb-4 dark:border-slate-800">
             <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-white">
-              <Link2 className="h-5 w-5 text-indigo-600" />
+              <Link2 className="h-5 w-5 text-slate-500" />
               Selected Reference
             </CardTitle>
             <p className="text-sm text-slate-500 dark:text-gray-400">
               Detail operasional dan GL untuk reference yang sedang dipilih.
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 xl:sticky xl:top-4">
             {selectedMismatch ? (
               <>
                 <div className="rounded-xl border border-gray-200 bg-slate-50 px-4 py-3 dark:border-gray-700 dark:bg-slate-800/70">
@@ -496,7 +528,7 @@ export function ReportingTieOutPage() {
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-700">
+                  <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-slate-900">
                     <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                       Operational Amount
                     </p>
@@ -507,7 +539,7 @@ export function ReportingTieOutPage() {
                       {toSentenceCase(selectedMismatch.readiness_status || "-")}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-700">
+                  <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-slate-900">
                     <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                       GL Amount
                     </p>
@@ -547,7 +579,7 @@ export function ReportingTieOutPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
                   <p className="font-semibold">Mismatch Reason</p>
                   <p className="mt-1">
                     {selectedMismatch.mismatch_reason ||
@@ -556,7 +588,7 @@ export function ReportingTieOutPage() {
                 </div>
 
                 {selectedMismatch.readiness_reason ? (
-                  <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/20 dark:text-sky-200">
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                     <p className="font-semibold">Readiness Context</p>
                     <p className="mt-1">{selectedMismatch.readiness_reason}</p>
                   </div>
@@ -576,7 +608,7 @@ export function ReportingTieOutPage() {
         <Card className="border-gray-200 dark:border-gray-700 dark:bg-slate-900">
           <CardHeader className="gap-3 border-b border-slate-100 pb-4 dark:border-slate-800">
             <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-white">
-              <FileStack className="h-5 w-5 text-indigo-600" />
+              <FileStack className="h-5 w-5 text-slate-500" />
               Fixed Asset Maturity
             </CardTitle>
             <p className="text-sm text-slate-500 dark:text-gray-400">
@@ -586,7 +618,7 @@ export function ReportingTieOutPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/70">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                   Qualified
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -594,7 +626,7 @@ export function ReportingTieOutPage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/70">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                   Registered
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
@@ -602,14 +634,14 @@ export function ReportingTieOutPage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/70">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                   Profiled
                 </p>
                 <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-white">
                   {reportQuery.data?.fixed_asset_summary?.profiled_asset_count ?? 0}
                 </p>
               </div>
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-950/20">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
                 <p className="text-[11px] uppercase tracking-[0.18em] text-red-600 dark:text-red-300">
                   Missing Register
                 </p>
@@ -617,7 +649,7 @@ export function ReportingTieOutPage() {
                   {reportQuery.data?.fixed_asset_summary?.missing_register_count ?? 0}
                 </p>
               </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-950/20">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
                 <p className="text-[11px] uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
                   Missing Profile
                 </p>
@@ -634,7 +666,7 @@ export function ReportingTieOutPage() {
                   reportQuery.data?.fixed_asset_summary?.review_items ?? []
                 ).map((item, index) => (
                   <div
-                    key={`${item.asset_reference}-${index}`}
+                    key={`${item.asset_id ?? item.asset_reference ?? index}-${item.maturity_status}`}
                     className="rounded-xl border border-gray-200 px-4 py-4 dark:border-gray-700"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -690,7 +722,7 @@ export function ReportingTieOutPage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-6 text-sm text-emerald-700">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-300">
                 Semua aset rental yang qualified sudah berada di fixed asset
                 register dengan profile dasar yang lengkap.
               </div>

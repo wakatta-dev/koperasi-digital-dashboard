@@ -154,7 +154,10 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-background text-foreground antialiased">
+    <div
+      className="flex h-full flex-col overflow-hidden bg-background text-foreground antialiased"
+      data-testid="marketplace-admin-order-manual-payment-page-root"
+    >
       <div className="relative flex flex-1 flex-col overflow-hidden bg-background">
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-6">
           <div className="flex items-center">
@@ -466,7 +469,10 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                             setNoteError(null);
                           }}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger
+                            className="w-full"
+                            data-testid="marketplace-admin-order-manual-payment-status-trigger"
+                          >
                             <SelectValue placeholder="Pilih status" />
                           </SelectTrigger>
                           <SelectContent>
@@ -530,6 +536,7 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                               setNoteError(null);
                             }
                           }}
+                          data-testid="marketplace-admin-order-manual-payment-note-textarea"
                         />
                         {noteError ? (
                           <p className="mt-2 text-xs text-red-600 dark:text-red-400">
@@ -541,6 +548,7 @@ export function OrderManualPaymentPage({ id }: OrderManualPaymentPageProps) {
                         <Button
                           className="w-full"
                           onClick={handleConfirm}
+                          data-testid="marketplace-admin-order-manual-payment-submit-button"
                           disabled={
                             !order ||
                             isSubmitting ||

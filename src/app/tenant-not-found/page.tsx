@@ -7,7 +7,10 @@ import Link from "next/link";
 
 export default function TenantNotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-6 text-center">
+    <div
+      className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-6 text-center"
+      data-testid="guest-tenant-not-found-page-root"
+    >
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

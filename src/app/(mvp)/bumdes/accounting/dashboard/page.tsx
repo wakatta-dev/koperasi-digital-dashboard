@@ -19,9 +19,9 @@ import {
 } from "lucide-react";
 
 import {
-  SummaryMetricsGrid,
-  type SummaryMetricItem,
-} from "@/components/shared/data-display/SummaryMetricsGrid";
+  KpiCards,
+  type KpiItem,
+} from "@/components/shared/data-display/KpiCards";
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ const DASHBOARD_PRESET = "today";
 
 type MetricVisual = {
   Icon: LucideIcon;
-  tone: SummaryMetricItem["tone"];
+  tone: KpiItem["tone"];
   iconContainerClassName: string;
   showAccent: boolean;
 };
@@ -300,7 +300,7 @@ export default function AccountingDashboardPage() {
     preset: DASHBOARD_PRESET,
   });
 
-  const metrics = useMemo<SummaryMetricItem[]>(() => {
+  const metrics = useMemo<KpiItem[]>(() => {
     return (overviewQuery.data?.kpis ?? []).map((kpi, index) => {
       const visual = resolveKpiVisual(kpi.icon_key, kpi.title);
       const Icon = visual.Icon;
@@ -308,7 +308,7 @@ export default function AccountingDashboardPage() {
       return {
         id: `${kpi.title}-${index}`,
         label: kpi.title,
-        displayValue: kpi.value_display,
+        value: kpi.value_display,
         icon: <Icon className="h-5 w-5" />,
         tone: visual.tone,
         showAccent: visual.showAccent,
@@ -365,8 +365,11 @@ export default function AccountingDashboardPage() {
   }, [transactions]);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="space-y-6" data-testid="accounting-dashboard-page-root">
+      <section
+        className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+        data-testid="accounting-dashboard-page-main"
+      >
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.9fr)]">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-3">
@@ -424,13 +427,21 @@ export default function AccountingDashboardPage() {
 
             <div className="flex flex-wrap gap-3">
               <Button asChild>
-                <Link href="/bumdes/accounting/reporting">
+                <Link
+                  href="/bumdes/accounting/reporting"
+                  data-testid="accounting-dashboard-reporting-link"
+                >
                   Buka Reporting
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/bumdes/accounting/journal">Lihat Jurnal</Link>
+                <Link
+                  href="/bumdes/accounting/journal"
+                  data-testid="accounting-dashboard-journal-link"
+                >
+                  Lihat Jurnal
+                </Link>
               </Button>
             </div>
           </div>
@@ -491,7 +502,7 @@ export default function AccountingDashboardPage() {
         </div>
       ) : null}
 
-      <section className="space-y-4">
+      <section className="space-y-4" data-testid="accounting-dashboard-kpi-grid">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
@@ -506,15 +517,18 @@ export default function AccountingDashboardPage() {
           </Badge>
         </div>
 
-        <SummaryMetricsGrid
-          metrics={metrics}
+        <KpiCards
+          items={metrics}
           isLoading={overviewQuery.isPending && !overview}
           isError={Boolean(overviewQuery.error)}
         />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <Card className="flex max-h-[34rem] flex-col rounded-[28px] border-slate-200 py-0 shadow-sm dark:border-slate-800">
+        <Card
+          className="flex max-h-[34rem] flex-col rounded-[28px] border-slate-200 py-0 shadow-sm dark:border-slate-800"
+          data-testid="accounting-dashboard-monthly-performance"
+        >
           <CardHeader className="px-6 py-5">
             <CardTitle className="text-base text-slate-900 dark:text-slate-50">
               Performa bulanan
@@ -672,7 +686,10 @@ export default function AccountingDashboardPage() {
         <FeatureOperationalTraceWorkbench />
       </section>
 
-      <Card className="rounded-[28px] border-slate-200 py-0 shadow-sm dark:border-slate-800">
+      <Card
+        className="rounded-[28px] border-slate-200 py-0 shadow-sm dark:border-slate-800"
+        data-testid="accounting-dashboard-recent-transactions"
+      >
         <CardHeader className="px-6 py-5">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>

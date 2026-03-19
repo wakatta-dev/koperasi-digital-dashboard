@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import {
   useAccountingTaxMutations,
   useAccountingTaxOverview,
@@ -16,14 +17,12 @@ import { toAccountingTaxApiError } from "@/services/api/accounting-tax";
 import { ACCOUNTING_TAX_ROUTES } from "../../constants/tax-routes";
 import type {
   TaxSummaryFilterValue,
-  TaxSummaryMetricCard,
   TaxSummaryTone,
 } from "../../types/tax";
 import {
   buildTaxSummaryQueryString,
   parseTaxSummaryQueryState,
 } from "../../utils/tax-query-state";
-import { FeatureTaxSummaryCards } from "../features/FeatureTaxSummaryCards";
 import { FeatureTaxSummaryFilterBar } from "../features/FeatureTaxSummaryFilterBar";
 import { FeatureTaxSummaryPeriodTable } from "../features/FeatureTaxSummaryPeriodTable";
 import { FeatureTaxTopActions } from "../features/FeatureTaxTopActions";
@@ -90,13 +89,15 @@ export function TaxSummaryPeriodPage() {
     });
   }, [filters, page, perPage, pathname, router, searchParams]);
 
-  const summaryCards = useMemo<TaxSummaryMetricCard[]>(() => {
+  const summaryItems = useMemo<KpiItem[]>(() => {
     return (overviewQuery.data?.cards ?? []).map((card) => ({
-      key: card.key,
+      id: card.key,
       label: card.label,
       value: card.value,
-      helper_text: card.helper_text,
       tone: toSummaryTone(card.tone),
+      footer: card.helper_text ? (
+        <p className="text-xs text-muted-foreground">{card.helper_text}</p>
+      ) : undefined,
     }));
   }, [overviewQuery.data?.cards]);
 
@@ -187,7 +188,7 @@ export function TaxSummaryPeriodPage() {
         </div>
       ) : null}
 
-      <FeatureTaxSummaryCards cards={summaryCards} />
+      <KpiCards items={summaryItems} />
 
       <div className="overflow-hidden bg-white dark:bg-slate-900 space-y-2">
         <FeatureTaxSummaryFilterBar

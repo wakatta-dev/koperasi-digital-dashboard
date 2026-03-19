@@ -39,6 +39,7 @@ function categoryChipClasses(category: string) {
 export function AssetCard({ item, onSelect, selected }: AssetCardProps) {
   return (
     <Card
+      data-testid={`asset-rental-catalog-card-${item.id}`}
       className={
         selected
           ? "bg-white dark:bg-surface-card-dark rounded-3xl overflow-hidden border-2 border-brand-primary ring-4 ring-brand-primary/5 shadow-2xl relative group"
@@ -100,6 +101,7 @@ export function AssetCard({ item, onSelect, selected }: AssetCardProps) {
             variant="ghost"
             size="icon"
             onClick={() => onSelect?.(item.id)}
+            data-testid={`asset-rental-catalog-select-asset-${item.id}`}
             className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 hover:bg-brand-primary hover:text-white flex items-center justify-center transition-colors text-gray-400 dark:text-gray-500"
           >
             <span className="material-icons-outlined">arrow_forward</span>

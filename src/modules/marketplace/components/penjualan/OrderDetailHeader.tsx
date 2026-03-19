@@ -50,6 +50,7 @@ export function OrderDetailHeader({
           type="button"
           variant="outline"
           onClick={onPrintInvoice}
+          data-testid="marketplace-admin-order-detail-print-button"
           className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-surface-dark hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium rounded-lg transition-colors shadow-sm"
         >
           <Printer className="h-4 w-4" />
@@ -59,6 +60,7 @@ export function OrderDetailHeader({
           type="button"
           variant="outline"
           onClick={onSendMessage}
+          data-testid="marketplace-admin-order-detail-message-button"
           className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-surface-dark hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium rounded-lg transition-colors shadow-sm"
         >
           <Mail className="h-4 w-4" />
@@ -67,6 +69,7 @@ export function OrderDetailHeader({
         <Button
           type="button"
           onClick={onUpdateStatus}
+          data-testid="marketplace-admin-order-detail-update-status-button"
           className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
         >
           <CheckCircle className="h-4 w-4" />

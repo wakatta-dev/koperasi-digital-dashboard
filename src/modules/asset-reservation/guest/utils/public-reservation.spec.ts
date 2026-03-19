@@ -9,7 +9,7 @@ import {
 } from "./public-reservation";
 
 describe("public reservation helpers", () => {
-  it("builds secure status link when guest token is available", async () => {
+  it("builds canonical status link when guest token is available", async () => {
     const result = await buildPublicReservationSuccessState({
       reservation_id: 42,
       status: "pending_review",
@@ -23,12 +23,12 @@ describe("public reservation helpers", () => {
     });
 
     expect(result.ticket).toBe("#SQ-00042");
-    expect(result.statusHref).toContain("/penyewaan-aset/status-reservasi?");
+    expect(result.statusHref).toContain("/penyewaan-aset/status?");
     expect(result.statusHref).toContain("id=42");
     expect(result.statusHref).toContain("sig=v1.2000000000.signature");
   });
 
-  it("omits secure status link when backend guest token is unavailable", async () => {
+  it("falls back to the shared guest status page when backend guest token is unavailable", async () => {
     const result = await buildPublicReservationSuccessState({
       reservation_id: 7,
       status: "pending_review",
@@ -41,7 +41,7 @@ describe("public reservation helpers", () => {
     });
 
     expect(result.ticket).toBe("#SQ-00007");
-    expect(result.statusHref).toBeUndefined();
+    expect(result.statusHref).toBe("/penyewaan-aset/status");
   });
 
   it("maps backend canonical errors to public-friendly messages", () => {

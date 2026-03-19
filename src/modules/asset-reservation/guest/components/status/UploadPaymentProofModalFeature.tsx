@@ -71,6 +71,7 @@ export function UploadPaymentProofModalFeature({
         showCloseButton={false}
         overlayClassName="bg-gray-900/60 backdrop-blur-sm"
         className="bg-white dark:bg-surface-card-dark w-full max-w-lg rounded-2xl p-0 overflow-hidden"
+        data-testid="asset-rental-payment-proof-dialog"
       >
         <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
           <DialogTitle className="text-lg font-bold text-gray-900 dark:text-white">
@@ -112,6 +113,7 @@ export function UploadPaymentProofModalFeature({
               <input
                 id="payment-proof-file"
                 type="file"
+                data-testid="asset-rental-payment-proof-file-input"
                 className="sr-only"
                 accept="image/png,image/jpeg,application/pdf"
                 onChange={(e) => {
@@ -191,6 +193,7 @@ export function UploadPaymentProofModalFeature({
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
+              data-testid="asset-rental-payment-proof-note-textarea"
               className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-xl p-3 text-sm focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:border-brand-primary outline-none transition-shadow"
               placeholder="Contoh: Sudah transfer ke rekening BCA a.n BUMDes"
               rows={2}
@@ -210,6 +213,7 @@ export function UploadPaymentProofModalFeature({
           <Button
             type="button"
             disabled={!file || Boolean(submitting)}
+            data-testid="asset-rental-payment-proof-submit-button"
             className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-white font-bold text-sm shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all flex items-center gap-2"
             onClick={() => {
               if (!file) return;

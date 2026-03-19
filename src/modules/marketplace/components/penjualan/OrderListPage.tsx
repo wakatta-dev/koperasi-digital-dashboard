@@ -145,7 +145,10 @@ export function OrderListPage() {
   const rangeEnd = Math.min(page * PAGE_SIZE, totalItems);
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6"
+      data-testid="marketplace-admin-order-page-root"
+    >
       <OrderListHeader
         searchValue={search}
         dateValue={dateFilter}

@@ -231,7 +231,10 @@ export function ProductListPage() {
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6"
+      data-testid="marketplace-admin-inventory-page-root"
+    >
       <ProductListHeader
         searchValue={searchValue}
         onSearchChange={(value) => {

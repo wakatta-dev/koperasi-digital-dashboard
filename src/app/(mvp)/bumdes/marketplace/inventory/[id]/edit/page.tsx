@@ -8,5 +8,9 @@ type PageProps = {
 
 export default async function InventoryEditPage({ params }: PageProps) {
   const { id } = await params;
-  return <ProductEditPage id={id} />;
+  return (
+    <div data-testid="marketplace-admin-product-edit-route-root">
+      <ProductEditPage id={id} />
+    </div>
+  );
 }

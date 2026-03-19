@@ -80,13 +80,15 @@ export function InvoicingArCreateInvoicePage() {
   };
 
   return (
-    <FeatureCreateInvoiceForm
-      onCancel={() => router.push(INVOICING_AR_ROUTES.index)}
-      onSubmit={handleSubmit}
-      isSubmitting={invoiceMutations.createInvoice.isPending}
-      errorMessage={errorMessage}
-      customerOptions={customerOptions}
-      productOptions={productOptions}
-    />
+    <div data-testid="accounting-ar-invoice-create-page-root">
+      <FeatureCreateInvoiceForm
+        onCancel={() => router.push(INVOICING_AR_ROUTES.index)}
+        onSubmit={handleSubmit}
+        isSubmitting={invoiceMutations.createInvoice.isPending}
+        errorMessage={errorMessage}
+        customerOptions={customerOptions}
+        productOptions={productOptions}
+      />
+    </div>
   );
 }

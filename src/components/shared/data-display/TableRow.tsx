@@ -1,6 +1,6 @@
 /** @format */
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { TableRow as UiTableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -10,9 +10,15 @@ type TableRowProps = {
   className?: string;
   hoverable?: boolean;
   onClick?: () => void;
-};
+} & Omit<ComponentProps<"tr">, "children" | "className" | "onClick">;
 
-export function TableRow({ children, className, hoverable, onClick }: TableRowProps) {
+export function TableRow({
+  children,
+  className,
+  hoverable,
+  onClick,
+  ...props
+}: TableRowProps) {
   return (
     <UiTableRow
       className={cn(
@@ -21,6 +27,7 @@ export function TableRow({ children, className, hoverable, onClick }: TableRowPr
         className
       )}
       onClick={onClick}
+      {...props}
     >
       {children}
     </UiTableRow>

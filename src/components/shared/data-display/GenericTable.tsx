@@ -2,7 +2,7 @@
 
 "use client";
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -26,6 +26,7 @@ export type GenericTableProps<TData> = {
   onRowClick?: (row: TData) => void;
   rowHoverable?: boolean;
   rowClassName?: string | ((row: TData) => string | undefined);
+  rowProps?: (row: TData) => TableRowExtraProps | undefined;
   footer?: ReactNode;
   wrapperClassName?: string;
   tableClassName?: string;
@@ -34,6 +35,13 @@ export type GenericTableProps<TData> = {
   headerRowClassName?: string;
   bodyClassName?: string;
   surface?: "card" | "bare";
+};
+
+type TableRowExtraProps = Omit<
+  ComponentProps<"tr">,
+  "children" | "className" | "onClick"
+> & {
+  "data-testid"?: string;
 };
 
 export function GenericTable<TData>({
@@ -46,6 +54,7 @@ export function GenericTable<TData>({
   onRowClick,
   rowHoverable = true,
   rowClassName,
+  rowProps,
   footer,
   wrapperClassName,
   tableClassName,
@@ -141,6 +150,7 @@ export function GenericTable<TData>({
                 onClick={
                   onRowClick ? () => onRowClick(row.original) : undefined
                 }
+                {...rowProps?.(row.original)}
               >
                 {row.getVisibleCells().map((cell) => {
                   const meta = cell.column.columnDef.meta;

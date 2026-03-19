@@ -30,6 +30,10 @@ export function PaymentSidebar({
           ownershipToken ? `?sig=${encodeURIComponent(ownershipToken)}` : ""
         }`
       : null;
+  const statusButtonLabel =
+    reservation.status === "awaiting_payment_verification"
+      ? "Lihat Status Verifikasi"
+      : "Lihat Status Pengajuan";
 
   return (
     <div className="bg-white dark:bg-surface-card-dark rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl sticky top-24 overflow-hidden ring-1 ring-gray-900/5">
@@ -82,23 +86,73 @@ export function PaymentSidebar({
             Pembayaran Anda aman dan terenkripsi. Dana akan diteruskan ke BUMDes setelah dikonfirmasi.
           </p>
         </div>
+        <div className="mb-6 rounded-xl border border-indigo-100 dark:border-indigo-800/60 bg-gradient-to-br from-indigo-50 via-white to-sky-50 dark:from-indigo-950/40 dark:via-slate-900 dark:to-sky-950/30 p-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-indigo-600 text-white shadow-md shadow-indigo-500/30">
+              <span className="material-icons-outlined text-[18px]">flag</span>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">
+                  Langkah terakhir di halaman ini
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                  Selesaikan transfer lalu unggah bukti pembayaran pada panel metode pembayaran di sebelah kiri.
+                </p>
+              </div>
+              <div className="space-y-2 text-xs text-slate-700 dark:text-slate-200">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white dark:bg-white dark:text-slate-900">
+                    1
+                  </span>
+                  Transfer sesuai nominal dan metode yang dipilih.
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white dark:bg-white dark:text-slate-900">
+                    2
+                  </span>
+                  Unggah bukti pembayaran agar admin bisa memverifikasi.
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white dark:bg-white dark:text-slate-900">
+                    3
+                  </span>
+                  Gunakan tombol di bawah untuk memantau status pengajuan.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <Button
-          className="w-full bg-brand-primary hover:bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition transform active:scale-[0.98] flex items-center justify-center gap-2 group"
+          className="w-full border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-950 text-indigo-700 dark:text-indigo-100 py-4 rounded-xl font-bold shadow-md shadow-indigo-500/10 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition transform active:scale-[0.98] flex items-center justify-center gap-2 group"
           disabled={!confirmationHref}
           asChild={Boolean(confirmationHref)}
         >
           {confirmationHref ? (
             <a href={confirmationHref}>
-              <span className="material-icons-outlined group-hover:scale-110 transition">lock</span>
-              Selesaikan Pembayaran
+              <span
+                aria-hidden="true"
+                className="material-icons-outlined group-hover:scale-110 transition"
+              >
+                query_stats
+              </span>
+              {statusButtonLabel}
             </a>
           ) : (
             <>
-              <span className="material-icons-outlined group-hover:scale-110 transition">lock</span>
-              Selesaikan Pembayaran
+              <span
+                aria-hidden="true"
+                className="material-icons-outlined group-hover:scale-110 transition"
+              >
+                query_stats
+              </span>
+              {statusButtonLabel}
             </>
           )}
         </Button>
+        <p className="mt-3 text-center text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+          Tombol ini tidak mengirim bukti pembayaran. Pengiriman bukti dilakukan dari form upload di panel metode pembayaran.
+        </p>
       </div>
       <div className="bg-gray-50 dark:bg-gray-800/50 p-4 border-t border-gray-100 dark:border-gray-800">
         <p className="text-xs text-gray-500 dark:text-gray-400 text-center">

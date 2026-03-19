@@ -125,7 +125,7 @@ export function CustomerListPage() {
   const to = Math.min(start + customers.length, total);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="marketplace-admin-customer-page-root">
       <CustomerListToolbar
         searchValue={searchValue}
         onSearchChange={(value) => {

@@ -142,6 +142,8 @@ export function FeatureTenantProfileIdentityCard({
         <SettingsStickyActionBar
           onReset={onReset}
           onSave={onSave}
+          resetTestId="bumdes-settings-profile-identity-reset-button"
+          saveTestId="bumdes-settings-profile-identity-save-button"
           saveLabel="Simpan Perubahan"
           dirty={dirty}
           resetDisabled={disabled || !dirty || saving}

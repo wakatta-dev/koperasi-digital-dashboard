@@ -3,8 +3,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DatePickerField } from "@/components/shared/inputs/date-picker-field";
 import { InputField } from "@/components/shared/inputs/input-field";
 import { TextareaField } from "@/components/shared/inputs/textarea-field";
+import { parseLocalDateInput } from "@/lib/date-only";
 
 export type GuestRentalApplicationFormValues = {
   fullName: string;
@@ -18,7 +20,7 @@ export type GuestRentalApplicationFormValues = {
 type GuestRentalApplicationFormProps = Readonly<{
   values: GuestRentalApplicationFormValues;
   onValuesChange: (next: GuestRentalApplicationFormValues) => void;
-  onSubmit: () => void;
+  onSubmit: (values?: GuestRentalApplicationFormValues) => void;
   submitting?: boolean;
 }>;
 
@@ -31,9 +33,18 @@ export function GuestRentalApplicationForm({
   return (
     <form
       className="space-y-6"
+      data-testid="asset-rental-application-form"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit();
+        const formData = new FormData(e.currentTarget);
+        onSubmit({
+          fullName: String(formData.get("full-name") ?? values.fullName),
+          phone: String(formData.get("phone") ?? values.phone),
+          email: String(formData.get("email") ?? values.email),
+          purpose: String(formData.get("purpose") ?? values.purpose),
+          startDate: String(formData.get("start-date") ?? values.startDate),
+          endDate: String(formData.get("end-date") ?? values.endDate),
+        });
       }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -51,6 +62,7 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, fullName: next })}
             placeholder="Masukkan nama lengkap Anda sesuai KTP"
             autoComplete="name"
+            data-testid="asset-rental-application-full-name-input"
           />
         </div>
 
@@ -66,6 +78,7 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, phone: next })}
             placeholder="Contoh: 08123456789"
             autoComplete="tel"
+            data-testid="asset-rental-application-phone-input"
           />
         </div>
 
@@ -81,6 +94,7 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, email: next })}
             placeholder="Contoh: nama@email.com"
             autoComplete="email"
+            data-testid="asset-rental-application-email-input"
           />
         </div>
 
@@ -97,43 +111,42 @@ export function GuestRentalApplicationForm({
             onValueChange={(next) => onValuesChange({ ...values, purpose: next })}
             placeholder="Jelaskan secara singkat kegiatan yang akan dilaksanakan..."
             rows={3}
+            data-testid="asset-rental-application-purpose-textarea"
           />
         </div>
 
         <div className="col-span-2 space-y-2">
           <p className="text-sm font-medium">Rentang Tanggal Sewa</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <InputField
+            <DatePickerField
               id="start-date"
               name="start-date"
-              type="date"
               ariaLabel="Mulai sewa"
-              size="lg"
-              startIcon={
-                <span className="material-symbols-outlined text-xl">
-                  calendar_today
-                </span>
-              }
               value={values.startDate}
               onValueChange={(next) =>
                 onValuesChange({ ...values, startDate: next })
               }
               helperText="Mulai Sewa"
+              placeholder="Pilih tanggal mulai"
+              dialogTitle="Pilih Tanggal Mulai Sewa"
+              minDate={new Date()}
+              data-testid="asset-rental-application-start-date-input"
             />
-            <InputField
+            <DatePickerField
               id="end-date"
               name="end-date"
-              type="date"
               ariaLabel="Selesai sewa"
-              size="lg"
-              startIcon={
-                <span className="material-symbols-outlined text-xl">
-                  event_busy
-                </span>
-              }
               value={values.endDate}
               onValueChange={(next) => onValuesChange({ ...values, endDate: next })}
               helperText="Selesai Sewa"
+              placeholder="Pilih tanggal selesai"
+              dialogTitle="Pilih Tanggal Selesai Sewa"
+              minDate={
+                values.startDate
+                  ? parseLocalDateInput(values.startDate) ?? new Date()
+                  : new Date()
+              }
+              data-testid="asset-rental-application-end-date-input"
             />
           </div>
         </div>
@@ -143,6 +156,7 @@ export function GuestRentalApplicationForm({
         <Button
           type="submit"
           disabled={Boolean(submitting)}
+          data-testid="asset-rental-application-submit-button"
           className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/30 text-sm font-bold text-white bg-brand-primary hover:bg-brand-primary-hover focus-visible:ring-2 focus-visible:ring-brand-primary transition-all hover:-translate-y-0.5"
         >
           Kirim Pengajuan

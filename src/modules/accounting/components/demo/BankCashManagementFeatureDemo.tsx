@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -13,7 +14,6 @@ import {
 import type { AddBankAccountDraft, ImportStatementDraft } from "../../types/bank-cash";
 import { FeatureAddBankAccountModal } from "../features/FeatureAddBankAccountModal";
 import { FeatureBankAccountsGrid } from "../features/FeatureBankAccountsGrid";
-import { FeatureBankCashSummaryCards } from "../features/FeatureBankCashSummaryCards";
 import { FeatureCashRegistersGrid } from "../features/FeatureCashRegistersGrid";
 import { FeatureImportBankStatementModal } from "../features/FeatureImportBankStatementModal";
 import { FeatureUnreconciledTransactionsTable } from "../features/FeatureUnreconciledTransactionsTable";
@@ -46,7 +46,14 @@ export function BankCashManagementFeatureDemo() {
         </Button>
       </div>
 
-      <FeatureBankCashSummaryCards />
+      <KpiCards
+        items={[]}
+        emptyState={
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900/20 dark:text-gray-300">
+            Ringkasan bank & kas belum tersedia.
+          </div>
+        }
+      />
       <FeatureBankAccountsGrid />
       <FeatureUnreconciledTransactionsTable />
       <FeatureCashRegistersGrid />

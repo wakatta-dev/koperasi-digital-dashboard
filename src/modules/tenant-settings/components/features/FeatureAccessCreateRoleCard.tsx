@@ -51,6 +51,7 @@ export function FeatureAccessCreateRoleCard({
               placeholder="Contoh: Auditor Internal"
               className={settingsFieldClassName}
               disabled={disabled}
+              data-testid="bumdes-settings-role-name-input"
               onChange={(event) => onNameChange(event.target.value)}
             />
           </div>
@@ -64,6 +65,7 @@ export function FeatureAccessCreateRoleCard({
               placeholder="Tugas dan cakupan akses secara singkat…"
               className={settingsFieldClassName}
               disabled={disabled}
+              data-testid="bumdes-settings-role-description-input"
               onChange={(event) => onDescriptionChange(event.target.value)}
             />
           </div>
@@ -72,6 +74,7 @@ export function FeatureAccessCreateRoleCard({
             className="whitespace-nowrap bg-slate-950 text-white hover:bg-slate-800 focus-visible:ring-slate-900 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-slate-100"
             disabled={disabled || !name.trim() || saving}
             onClick={onCreate}
+            data-testid="bumdes-settings-role-create-button"
           >
             <Plus aria-hidden="true" className="mr-2 h-4 w-4" />
             {saving ? "Menambah…" : "Tambah Role"}

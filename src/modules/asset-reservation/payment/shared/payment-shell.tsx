@@ -38,15 +38,24 @@ export function PaymentShell({
   const isSettlement = mode === "settlement";
   return (
     <div className={plusJakarta.className}>
-      <div className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col">
+      <div
+        className="bg-surface-subtle dark:bg-surface-dark text-surface-text dark:text-surface-text-dark min-h-screen flex flex-col"
+        data-testid="asset-rental-payment-page-root"
+      >
         <LandingNavbar activeLabel="Penyewaan Aset" />
-        <main className="flex-grow pt-20">
+        <main
+          className="flex-grow pt-20"
+          data-testid="asset-rental-payment-page-main"
+        >
           {breadcrumb}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
             {header}
             {info}
             {error ? (
-              <div className="mt-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <div
+                className="mt-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3"
+                data-testid="asset-rental-payment-status-alert"
+              >
                 {error}
               </div>
             ) : null}

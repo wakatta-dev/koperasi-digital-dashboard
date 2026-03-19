@@ -300,7 +300,7 @@ export function ProductDetailPage({ id }: ProductDetailPageProps) {
   const channelStates = channelsQuery.data ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="marketplace-admin-product-detail-page-root">
       <ProductDetailHeader
         name={item.name}
         sku={item.sku}

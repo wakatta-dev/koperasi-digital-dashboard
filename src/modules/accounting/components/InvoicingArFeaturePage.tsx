@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 
 import { EMPTY_INVOICE_DETAIL } from "../constants/invoicing-ar-initial-state";
@@ -11,7 +12,6 @@ import { FeatureCreditNotesTable } from "./features/FeatureCreditNotesTable";
 import { FeatureCreditNoteModal } from "./features/FeatureCreditNoteModal";
 import { FeatureCreateInvoiceModal } from "./features/FeatureCreateInvoiceModal";
 import { FeatureInvoiceDetailView } from "./features/FeatureInvoiceDetailView";
-import { FeatureInvoiceSummaryCards } from "./features/FeatureInvoiceSummaryCards";
 import { FeatureInvoiceTable } from "./features/FeatureInvoiceTable";
 import { FeaturePaymentsTable } from "./features/FeaturePaymentsTable";
 import { FeatureReceivePaymentModal } from "./features/FeatureReceivePaymentModal";
@@ -57,7 +57,14 @@ export function InvoicingArFeaturePage() {
         </div>
       </section>
 
-      <FeatureInvoiceSummaryCards />
+      <KpiCards
+        items={[]}
+        emptyState={
+          <div className="rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500">
+            Invoice summary belum tersedia.
+          </div>
+        }
+      />
       <FeatureInvoiceTable />
 
       <div className="space-y-6">

@@ -50,11 +50,11 @@ const emptyModules: OperationalModulesFormState = {
 };
 
 const emptyAssetRental: AssetRentalPolicyFormState = {
-  approval_required: false,
-  default_slot_minutes: 0,
-  min_dp_percent: 0,
-  grace_period_hours: 0,
-  late_fee_per_hour: 0,
+  approval_required: true,
+  default_slot_minutes: 60,
+  min_dp_percent: 20,
+  grace_period_hours: 2,
+  late_fee_per_hour: 25000,
 };
 
 const emptyMarketplaceAccounting: MarketplaceAccountingFormState = {

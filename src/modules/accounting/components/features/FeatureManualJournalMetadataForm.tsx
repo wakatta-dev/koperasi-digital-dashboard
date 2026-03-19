@@ -36,6 +36,7 @@ export function FeatureManualJournalMetadataForm({
               type="text"
               readOnly
               value={value.reference_number}
+              data-testid="accounting-journal-create-reference-input"
               className="bg-gray-50 text-sm text-gray-900 dark:bg-gray-800 dark:text-white"
             />
           </div>
@@ -50,6 +51,7 @@ export function FeatureManualJournalMetadataForm({
               id="journal-reference-text"
               type="text"
               value={value.journal_reference}
+              data-testid="accounting-journal-create-journal-reference-input"
               onChange={(event) => patch({ journal_reference: event.target.value })}
               placeholder="e.g., Adjustment for Nov Expenses"
               className="bg-white text-sm text-gray-900 dark:bg-slate-900 dark:text-white"
@@ -66,6 +68,7 @@ export function FeatureManualJournalMetadataForm({
               id="journal-entry-date"
               type="date"
               value={value.journal_date}
+              data-testid="accounting-journal-create-date-input"
               onChange={(event) => patch({ journal_date: event.target.value })}
               className="bg-white text-sm text-gray-900 dark:bg-slate-900 dark:text-white"
             />

@@ -4,9 +4,10 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 import { useAccountingArInvoices } from "@/hooks/queries";
-import { FeatureInvoiceSummaryCards, FeatureInvoiceTable } from "@/modules/accounting";
+import { FeatureInvoiceTable } from "@/modules/accounting";
 import type { InvoiceStatus } from "@/modules/accounting";
 import { VendorPageHeader } from "../VendorPageHeader";
 import { VENDOR_ROUTES } from "../../constants/routes";
@@ -35,7 +36,7 @@ export function VendorInvoicesPage() {
     [items]
   );
 
-  const metrics = useMemo(() => {
+  const kpiItems = useMemo<KpiItem[]>(() => {
     const summary = {
       Draft: { count: 0, amount: 0 },
       Sent: { count: 0, amount: 0 },
@@ -51,26 +52,26 @@ export function VendorInvoicesPage() {
       {
         id: "draft",
         label: "Draft",
-        displayValue: formatVendorCurrency(summary.Draft.amount),
-        helperText: `${summary.Draft.count} invoice`,
+        value: formatVendorCurrency(summary.Draft.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.Draft.count} invoice</p>,
       },
       {
         id: "sent",
         label: "Sent",
-        displayValue: formatVendorCurrency(summary.Sent.amount),
-        helperText: `${summary.Sent.count} invoice`,
+        value: formatVendorCurrency(summary.Sent.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.Sent.count} invoice</p>,
       },
       {
         id: "paid",
         label: "Paid",
-        displayValue: formatVendorCurrency(summary.Paid.amount),
-        helperText: `${summary.Paid.count} invoice`,
+        value: formatVendorCurrency(summary.Paid.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.Paid.count} invoice</p>,
       },
       {
         id: "overdue",
         label: "Overdue",
-        displayValue: formatVendorCurrency(summary.Overdue.amount),
-        helperText: `${summary.Overdue.count} invoice`,
+        value: formatVendorCurrency(summary.Overdue.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.Overdue.count} invoice</p>,
       },
     ];
   }, [items]);
@@ -93,10 +94,15 @@ export function VendorInvoicesPage() {
         </div>
       ) : null}
 
-      <FeatureInvoiceSummaryCards
-        metrics={metrics}
+      <KpiCards
+        items={kpiItems}
         isLoading={invoicesQuery.isPending}
         isError={Boolean(invoicesQuery.error)}
+        emptyState={
+          <div className="rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500">
+            Invoice summary belum tersedia.
+          </div>
+        }
       />
 
       <FeatureInvoiceTable

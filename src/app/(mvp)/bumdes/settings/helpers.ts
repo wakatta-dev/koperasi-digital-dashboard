@@ -15,11 +15,11 @@ export const DEFAULT_SETTINGS_FEATURE_FLAGS = {
 
 export const DEFAULT_SETTINGS_OPERATIONAL_CONFIGS = {
   asset_rental: {
-    approval_required: false,
-    default_slot_minutes: 0,
-    min_dp_percent: 0,
-    grace_period_hours: 0,
-    late_fee_per_hour: 0,
+    approval_required: true,
+    default_slot_minutes: 60,
+    min_dp_percent: 20,
+    grace_period_hours: 2,
+    late_fee_per_hour: 25000,
   },
   marketplace: {
     manual_payment_window_min: 0,

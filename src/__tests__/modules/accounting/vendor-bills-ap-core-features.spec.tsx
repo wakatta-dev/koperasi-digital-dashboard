@@ -2,13 +2,13 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 
 import {
   FeatureVendorBillDetailOverview,
   FeatureVendorBillInternalNoteCard,
   FeatureVendorBillLineItemsTable,
   FeatureVendorBillPaymentHistoryTable,
-  FeatureVendorBillsSummaryCards,
   FeatureVendorBillsTable,
 } from "@/modules/accounting";
 
@@ -16,35 +16,37 @@ describe("vendor-bills-ap core features", () => {
   it("renders summary cards and list table labels from source", () => {
     render(
       <div>
-        <FeatureVendorBillsSummaryCards
-          metrics={[
+        <KpiCards
+          items={[
             {
-              key: "total-outstanding",
+              id: "total-outstanding",
               label: "Total Outstanding",
               value: "Rp 12,500,000",
-              helper_text: "Belum dibayar",
-              status_tone: "primary",
+              tone: "primary",
+              footer: <p className="text-xs text-muted-foreground">Belum dibayar</p>,
             },
             {
-              key: "due-this-week",
+              id: "due-this-week",
               label: "Due This Week",
               value: "Rp 4,200,000",
-              helper_text: "Jatuh tempo pekan ini",
-              status_tone: "warning",
+              tone: "warning",
+              footer: (
+                <p className="text-xs text-muted-foreground">Jatuh tempo pekan ini</p>
+              ),
             },
             {
-              key: "overdue-bills",
+              id: "overdue-bills",
               label: "Overdue Bills",
               value: "2",
-              helper_text: "Lewat jatuh tempo",
-              status_tone: "danger",
+              tone: "danger",
+              footer: <p className="text-xs text-muted-foreground">Lewat jatuh tempo</p>,
             },
             {
-              key: "vendor-credits",
+              id: "vendor-credits",
               label: "Vendor Credits",
               value: "Rp 500,000",
-              helper_text: "Kredit tersedia",
-              status_tone: "success",
+              tone: "success",
+              footer: <p className="text-xs text-muted-foreground">Kredit tersedia</p>,
             },
           ]}
         />
@@ -98,7 +100,7 @@ describe("vendor-bills-ap core features", () => {
       />
     );
 
-    fireEvent.click(screen.getByTestId("vendor-bill-row-BILL-2023-089"));
+    fireEvent.click(screen.getByRole("row", { name: /BILL-2023-089/i }));
     expect(handleRowOpen).toHaveBeenCalledWith(
       expect.objectContaining({ bill_number: "BILL-2023-089" })
     );

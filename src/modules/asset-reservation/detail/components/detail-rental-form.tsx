@@ -12,6 +12,7 @@ import type { ReservationSummary } from "../../types";
 import { createSignedReservationLink } from "../../utils/signed-link";
 import { formatPublicReservationIdentifier } from "../../guest/utils/public-status";
 import { humanizeReservationStatus } from "../../utils/status";
+import { todayLocalDateOnly } from "@/lib/date-only";
 
 const rentalSchema = z.object({
   start_date: z.string().min(1, "Tanggal mulai wajib diisi."),
@@ -105,7 +106,7 @@ export function DetailRentalForm({
     const fullName = String(formData.get("full_name") ?? "").trim();
     const phone = String(formData.get("phone") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
-    const now = new Date().toISOString().slice(0, 10);
+    const now = todayLocalDateOnly();
     const parsedAssetId = assetId ? Number.parseInt(assetId, 10) : Number.NaN;
     const numericAssetId =
       Number.isFinite(parsedAssetId) && parsedAssetId > 0 ? parsedAssetId : undefined;

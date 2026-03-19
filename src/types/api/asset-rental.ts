@@ -48,6 +48,7 @@ export type AssetRentalBookingPayment = {
   method?: string;
   amount: number;
   status?: string;
+  normalized_status?: string;
   proof_url?: string;
   proof_note?: string;
   pay_by?: number;
@@ -88,8 +89,32 @@ export type AssetRentalFinancialResolution = {
   accounting_reference?: string;
 };
 
+export type AssetRentalPaymentClassificationRequest = {
+  classification_type: "DP" | "DEPOSIT" | "REVENUE_RECOGNITION" | string;
+  amount: number;
+  reason: string;
+  follow_up_reference?: string;
+  evidence_reference?: string;
+};
+
+export type AssetRentalFinancialResolutionRequest = {
+  outcome_type:
+    | "DAMAGE_CHARGE"
+    | "PENALTY"
+    | "DEPOSIT_APPLIED"
+    | "DEPOSIT_REFUNDED"
+    | string;
+  amount: number;
+  reason: string;
+  review_context_type?: string;
+  review_context_id?: number;
+  follow_up_reference?: string;
+  evidence_reference?: string;
+};
+
 export type AssetRentalBooking = {
   id: number;
+  reservation_id?: number | string;
   asset_id: number;
   asset_name: string;
   renter_name: string;
@@ -99,6 +124,11 @@ export type AssetRentalBooking = {
   start_time: number;
   end_time: number;
   status: "BOOKED" | "COMPLETED" | "AWAITING_PAYMENT_VERIFICATION" | string;
+  booking_state?: string;
+  payment_state?: string;
+  normalized_payment_status?: string;
+  usage_state?: string;
+  return_state?: string;
   rejection_reason?: string;
   total_amount: number;
   completed_at?: number;

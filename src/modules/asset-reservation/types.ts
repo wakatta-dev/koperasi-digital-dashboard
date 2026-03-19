@@ -60,6 +60,11 @@ export type ReservationSummary = {
   assetId: number;
   assetName?: string;
   status: ReservationStatus;
+  bookingState?: string;
+  paymentState?: string;
+  normalizedPaymentStatus?: string;
+  usageState?: string;
+  returnState?: string;
   startDate: string;
   endDate: string;
   renterName?: string;
@@ -74,6 +79,7 @@ export type ReservationSummary = {
     method?: string;
     amount: number;
     status?: string;
+    normalizedStatus?: string;
     proofUrl?: string;
     proofNote?: string;
     payBy?: number;

@@ -3,6 +3,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import {
   createAccountingSettingsAnalyticAccount,
@@ -70,12 +71,22 @@ import type {
 
 import { QK } from "./queryKeys";
 
+function useAccountingQueryEnabled(explicitEnabled = true) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+  const hasSessionError = Boolean((session as { error?: string } | null)?.error);
+
+  return status === "authenticated" && hasAccessToken && !hasSessionError && explicitEnabled;
+}
+
 export function useAccountingSettingsOverview(options?: { enabled?: boolean }) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   return useQuery({
     queryKey: QK.accountingSettings.overview(),
+    enabled,
     queryFn: async (): Promise<AccountingSettingsOverviewResponse> =>
       ensureAccountingSettingsSuccess(await getAccountingSettingsOverview()),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -83,6 +94,7 @@ export function useAccountingSettingsCoa(
   params?: AccountingSettingsCoaListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingSettingsCoaListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -91,9 +103,10 @@ export function useAccountingSettingsCoa(
 
   return useQuery({
     queryKey: QK.accountingSettings.coa(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingSettingsCoaListResponse> =>
       ensureAccountingSettingsSuccess(await listAccountingSettingsCoa(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -101,6 +114,7 @@ export function useAccountingSettingsTaxes(
   params?: AccountingSettingsTaxListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingSettingsTaxListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -109,9 +123,10 @@ export function useAccountingSettingsTaxes(
 
   return useQuery({
     queryKey: QK.accountingSettings.taxes(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingSettingsTaxListResponse> =>
       ensureAccountingSettingsSuccess(await listAccountingSettingsTaxes(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -119,6 +134,7 @@ export function useAccountingSettingsCurrencies(
   params?: AccountingSettingsCurrencyListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingSettingsCurrencyListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -127,9 +143,10 @@ export function useAccountingSettingsCurrencies(
 
   return useQuery({
     queryKey: QK.accountingSettings.currencies(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingSettingsCurrencyListResponse> =>
       ensureAccountingSettingsSuccess(await listAccountingSettingsCurrencies(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -137,6 +154,7 @@ export function useAccountingSettingsAnalyticAccounts(
   params?: AccountingSettingsAnalyticAccountListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingSettingsAnalyticAccountListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -145,9 +163,10 @@ export function useAccountingSettingsAnalyticAccounts(
 
   return useQuery({
     queryKey: QK.accountingSettings.analyticAccounts(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingSettingsAnalyticAccountListResponse> =>
       ensureAccountingSettingsSuccess(await listAccountingSettingsAnalyticAccounts(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -155,6 +174,7 @@ export function useAccountingSettingsBudgets(
   params?: AccountingSettingsBudgetListQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingSettingsBudgetListQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -163,9 +183,10 @@ export function useAccountingSettingsBudgets(
 
   return useQuery({
     queryKey: QK.accountingSettings.budgets(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingSettingsBudgetListResponse> =>
       ensureAccountingSettingsSuccess(await listAccountingSettingsBudgets(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 

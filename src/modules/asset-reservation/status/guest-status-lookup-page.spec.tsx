@@ -39,6 +39,8 @@ vi.mock("../guest/components/status/GuestRequestStatusFeature", () => ({
       <div>result-ticket:{result?.ticketLabel ?? "-"}</div>
       <div>result-badge:{result?.badgeLabel ?? "-"}</div>
       <div>result-description:{result?.statusDescription ?? "-"}</div>
+      <div>result-warning:{result?.dataWarning ?? "-"}</div>
+      <div>result-payment-href:{result?.paymentHref ?? "-"}</div>
     </div>
   ),
 }));
@@ -76,6 +78,87 @@ describe("GuestStatusLookupPage", () => {
       screen.getByText(
         "result-description:Bukti pembayaran Anda sudah diterima dan sedang dicek admin."
       )
+    ).toBeTruthy();
+  });
+
+  it("does not force settlement status from local schedule heuristics", () => {
+    lookupMock.mockReturnValue({
+      data: {
+        reservation_id: 26,
+        asset_name: "Mobil Desa",
+        renter_name: "Sari",
+        renter_contact: "0812000000",
+        start_date: "2026-03-13T10:00:00Z",
+        end_date: "2026-03-13T15:00:00Z",
+        status: "awaiting_dp",
+        payment_flow: "dp",
+        amounts: { total: 750000, dp: 300000, remaining: 450000 },
+      },
+      mutate: vi.fn(),
+      isPending: false,
+    });
+
+    render(<GuestStatusLookupPage />);
+
+    expect(screen.getByText("result-badge:Menunggu Pembayaran")).toBeTruthy();
+  });
+
+  it("provides settlement payment href once dp is confirmed", () => {
+    lookupMock.mockReturnValue({
+      data: {
+        reservation_id: 27,
+        asset_name: "Balai Desa",
+        renter_name: "Sari",
+        renter_contact: "0812000001",
+        start_date: "2026-03-20T08:00:00Z",
+        end_date: "2026-03-21T15:00:00Z",
+        status: "confirmed_dp",
+        payment_flow: "dp",
+        guest_token: "token-27",
+        amounts: { total: 750000, dp: 300000, remaining: 450000 },
+      },
+      mutate: vi.fn(),
+      isPending: false,
+    });
+
+    render(<GuestStatusLookupPage />);
+
+    expect(
+      screen.getByText(
+        "result-payment-href:/penyewaan-aset/payment?reservationId=27&type=settlement&sig=token-27",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("falls back to awaiting settlement when verification state is inconsistent with latest payment", () => {
+    lookupMock.mockReturnValue({
+      data: {
+        reservation_id: 8,
+        asset_name: "E2E Asset Click Clean 20260319",
+        renter_name: "Faizal Fakhri",
+        renter_contact: "085730853685",
+        start_date: "2026-03-22T08:00:00Z",
+        end_date: "2026-03-23T15:00:00Z",
+        status: "awaiting_payment_verification",
+        payment_flow: "dp",
+        latest_payment: {
+          id: "pay-8",
+          type: "settlement",
+          status: "initiated",
+        },
+        amounts: { total: 650000, dp: 130000, remaining: 520000 },
+      },
+      mutate: vi.fn(),
+      isPending: false,
+    });
+
+    render(<GuestStatusLookupPage />);
+
+    expect(screen.getByText("result-badge:Menunggu Pelunasan")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "result-warning:Status pembayaran belum sinkron. Jika Anda baru mengirim bukti, tunggu beberapa menit lalu muat ulang halaman atau hubungi admin desa.",
+      ),
     ).toBeTruthy();
   });
 });

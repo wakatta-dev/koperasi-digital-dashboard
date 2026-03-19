@@ -40,10 +40,12 @@ export function AssetRentalReturnConfirmationDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Konfirmasi Pengembalian Aset"
+      contentTestId="asset-rental-return-confirmation-dialog"
       footer={
         <>
           <Button
             className="bg-indigo-600 text-white hover:bg-indigo-700"
+            data-testid="asset-rental-return-confirmation-submit-button"
             onClick={onConfirm}
           >
             Konfirmasi &amp; Selesaikan
@@ -51,6 +53,7 @@ export function AssetRentalReturnConfirmationDialog({
           <Button
             variant="outline"
             className="border-slate-300"
+            data-testid="asset-rental-return-confirmation-cancel-button"
             onClick={() => onOpenChange(false)}
           >
             Batal
@@ -66,6 +69,7 @@ export function AssetRentalReturnConfirmationDialog({
           type="datetime-local"
           value={returnTimestamp}
           onValueChange={setReturnTimestamp}
+          data-testid="asset-rental-return-confirmation-timestamp-input"
         />
       </div>
 
@@ -73,11 +77,12 @@ export function AssetRentalReturnConfirmationDialog({
         <Label>Kondisi Akhir Aset</Label>
         <div className="grid grid-cols-2 gap-3">
           {["Baik / Normal", "Rusak / Hilang"].map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setCondition(item)}
-              className={cn(
+              <button
+                key={item}
+                type="button"
+                onClick={() => setCondition(item)}
+                data-testid={`asset-rental-return-confirmation-condition-${item === "Baik / Normal" ? "baik" : "rusak"}`}
+                className={cn(
                 "rounded-lg border p-3 text-center text-sm font-medium transition-colors",
                 condition === item
                   ? "border-indigo-500 bg-indigo-50 text-indigo-700"
@@ -98,6 +103,7 @@ export function AssetRentalReturnConfirmationDialog({
           onValueChange={setNotes}
           label="Catatan Pengembalian"
           placeholder="Contoh: Lecet halus pada body bagian bawah..."
+          data-testid="asset-rental-return-confirmation-notes-textarea"
         />
       </div>
 

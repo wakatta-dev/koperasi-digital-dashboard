@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -21,7 +22,6 @@ import { FeatureOcrAccuracyFooter } from "../features/FeatureOcrAccuracyFooter";
 import { FeatureOcrDocumentPreviewPanel } from "../features/FeatureOcrDocumentPreviewPanel";
 import { FeatureOcrExtractedDataPanel } from "../features/FeatureOcrExtractedDataPanel";
 import { FeaturePaymentSchedulingSuccessCard } from "../features/FeaturePaymentSchedulingSuccessCard";
-import { FeatureVendorBillsSummaryCards } from "../features/FeatureVendorBillsSummaryCards";
 import { FeatureVendorBillsTable } from "../features/FeatureVendorBillsTable";
 
 type DemoStep = "list" | "batch" | "ocr" | "confirmation";
@@ -76,7 +76,14 @@ export function VendorBillsApFeatureDemo() {
               New Bill
             </Button>
           </div>
-          <FeatureVendorBillsSummaryCards />
+          <KpiCards
+            items={[]}
+            emptyState={
+              <div className="rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500">
+                Ringkasan vendor bill belum tersedia.
+              </div>
+            }
+          />
           <FeatureVendorBillsTable
             selectedBillNumbers={selectedBillNumbers}
             onSelectionChange={setSelectedBillNumbers}

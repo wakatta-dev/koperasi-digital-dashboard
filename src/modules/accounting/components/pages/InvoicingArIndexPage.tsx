@@ -4,13 +4,13 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 
 import { useAccountingArInvoices } from "@/hooks/queries";
 import { toAccountingArApiError } from "@/services/api/accounting-ar";
 import { Button } from "@/components/ui/button";
 
 import { INVOICING_AR_ROUTES } from "../../constants/routes";
-import { FeatureInvoiceSummaryCards } from "../features/FeatureInvoiceSummaryCards";
 import { FeatureInvoiceTable } from "../features/FeatureInvoiceTable";
 import {
   formatAccountingArCurrency,
@@ -20,7 +20,10 @@ import {
 
 export function InvoicingArIndexPage() {
   const invoicesQuery = useAccountingArInvoices({ page: 1, per_page: 20 });
-  const invoiceItems = invoicesQuery.data?.items ?? [];
+  const invoiceItems = useMemo(
+    () => invoicesQuery.data?.items ?? [],
+    [invoicesQuery.data?.items],
+  );
 
   const rows = useMemo(
     () =>
@@ -35,7 +38,7 @@ export function InvoicingArIndexPage() {
     [invoiceItems],
   );
 
-  const summaryMetrics = useMemo(() => {
+  const summaryItems = useMemo<KpiItem[]>(() => {
     const summary = {
       draft: { count: 0, amount: 0 },
       sent: { count: 0, amount: 0 },
@@ -67,26 +70,26 @@ export function InvoicingArIndexPage() {
       {
         id: "draft",
         label: "Total Drafts",
-        displayValue: formatAccountingArCurrency(summary.draft.amount),
-        helperText: `${summary.draft.count} invoices`,
+        value: formatAccountingArCurrency(summary.draft.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.draft.count} invoices</p>,
       },
       {
         id: "sent",
         label: "Total Sent",
-        displayValue: formatAccountingArCurrency(summary.sent.amount),
-        helperText: `${summary.sent.count} invoices`,
+        value: formatAccountingArCurrency(summary.sent.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.sent.count} invoices</p>,
       },
       {
         id: "paid",
         label: "Total Paid",
-        displayValue: formatAccountingArCurrency(summary.paid.amount),
-        helperText: `${summary.paid.count} invoices`,
+        value: formatAccountingArCurrency(summary.paid.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.paid.count} invoices</p>,
       },
       {
         id: "overdue",
         label: "Total Overdue",
-        displayValue: formatAccountingArCurrency(summary.overdue.amount),
-        helperText: `${summary.overdue.count} invoices`,
+        value: formatAccountingArCurrency(summary.overdue.amount),
+        footer: <p className="text-xs text-muted-foreground">{summary.overdue.count} invoices</p>,
       },
     ];
   }, [invoiceItems]);
@@ -132,10 +135,15 @@ export function InvoicingArIndexPage() {
         </div>
       </section>
 
-      <FeatureInvoiceSummaryCards
-        metrics={summaryMetrics}
+      <KpiCards
+        items={summaryItems}
         isLoading={invoicesQuery.isPending}
         isError={Boolean(invoicesQuery.error)}
+        emptyState={
+          <div className="rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500">
+            Invoice summary belum tersedia.
+          </div>
+        }
       />
 
       {invoicesQuery.error ? (

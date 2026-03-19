@@ -58,6 +58,7 @@ export function OrderStatusModal({
         overlayClassName="bg-gray-900/60 backdrop-blur-sm"
         className="bg-white dark:bg-surface-dark w-full max-w-md rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden p-0"
         showCloseButton={false}
+        data-testid="marketplace-admin-order-detail-status-dialog"
       >
         <DialogTitle className="sr-only">Update Status Pesanan</DialogTitle>
         <DialogDescription className="sr-only">
@@ -84,7 +85,10 @@ export function OrderStatusModal({
             </label>
             <div className="relative">
               <Select value={status} onValueChange={onStatusChange}>
-                <SelectTrigger className="w-full appearance-none bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg py-2.5 px-4 pr-10 focus:ring-2 focus:ring-indigo-600/50 focus:border-indigo-600 transition-all">
+                <SelectTrigger
+                  className="w-full appearance-none bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg py-2.5 px-4 pr-10 focus:ring-2 focus:ring-indigo-600/50 focus:border-indigo-600 transition-all"
+                  data-testid="marketplace-admin-order-detail-status-trigger"
+                >
                   <SelectValue placeholder="Pilih status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -130,6 +134,7 @@ export function OrderStatusModal({
               rows={3}
               className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg py-2.5 px-4 focus-visible:ring-2 focus-visible:ring-indigo-600/50 focus-visible:border-indigo-600 transition-all resize-none"
               aria-invalid={Boolean(noteError)}
+              data-testid="marketplace-admin-order-detail-status-note-textarea"
             />
             {noteError ? (
               <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{noteError}</p>
@@ -149,6 +154,7 @@ export function OrderStatusModal({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            data-testid="marketplace-admin-order-detail-status-cancel-button"
             className="px-4 py-2 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Batal
@@ -157,6 +163,7 @@ export function OrderStatusModal({
             type="button"
             onClick={onSubmit}
             disabled={submitDisabled || isSubmitting}
+            data-testid="marketplace-admin-order-detail-status-submit-button"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors shadow-sm"
           >
             {isSubmitting ? "Menyimpan..." : "Perbarui Status"}

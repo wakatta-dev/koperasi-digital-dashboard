@@ -16,7 +16,6 @@ import {
 import { TableShell } from "@/components/shared/data-display/TableShell";
 import type {
   AccountingReportingAccountLedgerEntry,
-  AccountingReportingAccountLedgerResponse,
   AccountingReportingGeneralLedgerGroup,
   AccountingReportingLedgerEntry,
   AccountingReportingProfitLossComparativeRow,
@@ -854,49 +853,6 @@ export function FeatureAccountLedgerFilterPanel({
       >
         Apply Filter
       </Button>
-    </div>
-  );
-}
-
-export interface FeatureAccountLedgerSummaryCardsProps {
-  readonly summary: AccountingReportingAccountLedgerResponse["summary"];
-}
-
-export function FeatureAccountLedgerSummaryCards({
-  summary,
-}: FeatureAccountLedgerSummaryCardsProps) {
-  return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <Card className="border-gray-200 dark:border-gray-700 dark:bg-slate-900">
-        <CardContent className="pt-6">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Debit
-          </p>
-          <h3 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-            {formatRupiah(summary.total_debit)}
-          </h3>
-        </CardContent>
-      </Card>
-      <Card className="border-gray-200 dark:border-gray-700 dark:bg-slate-900">
-        <CardContent className="pt-6">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Credit
-          </p>
-          <h3 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-            {formatRupiah(summary.total_credit)}
-          </h3>
-        </CardContent>
-      </Card>
-      <Card className="border-indigo-100 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-900/20">
-        <CardContent className="pt-6">
-          <p className="text-sm font-medium text-indigo-600 dark:text-indigo-300">
-            Current Balance
-          </p>
-          <h3 className="mt-1 text-2xl font-bold text-indigo-700 dark:text-indigo-300">
-            {formatRupiah(summary.current_balance)}
-          </h3>
-        </CardContent>
-      </Card>
     </div>
   );
 }

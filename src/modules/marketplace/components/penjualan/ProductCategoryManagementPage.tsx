@@ -5,12 +5,25 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TableShell } from "@/components/shared/data-display/TableShell";
+import {
+  useInventoryActions,
+  useInventoryCategories,
+} from "@/hooks/queries/inventory";
+import type { InventoryCategoryResponse } from "@/types/api/inventory";
 
-type CategoryRow = {
+export type CategoryRow = {
   id: string;
   name: string;
   count: number;
@@ -22,24 +35,82 @@ type ProductCategoryManagementPageProps = {
   isLoading?: boolean;
   isError?: boolean;
   onToggleActive?: (row: CategoryRow) => void;
+  onCreateCategory?: (payload: { name: string }) => Promise<void> | void;
 };
 
+function toCategoryRow(category: InventoryCategoryResponse): CategoryRow {
+  return {
+    id: String(category.id),
+    name: category.name,
+    count: category.count,
+    isActive: category.is_active,
+  };
+}
+
 export function ProductCategoryManagementPage({
-  categories = [],
-  isLoading = false,
-  isError = false,
+  categories,
+  isLoading,
+  isError,
   onToggleActive,
+  onCreateCategory,
 }: ProductCategoryManagementPageProps) {
+  const { data, isLoading: queryLoading, isError: queryError } =
+    useInventoryCategories();
+  const actions = useInventoryActions();
   const [searchValue, setSearchValue] = useState("");
   const [newCategoryOpen, setNewCategoryOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryError, setNewCategoryError] = useState("");
+
+  const resolvedCategories = useMemo(
+    () => categories ?? (data ?? []).map(toCategoryRow),
+    [categories, data]
+  );
+  const resolvedLoading = categories !== undefined ? (isLoading ?? false) : (isLoading ?? queryLoading);
+  const resolvedError = categories !== undefined ? (isError ?? false) : (isError ?? queryError);
+  const isCreatingCategory = !onCreateCategory && actions.createCategory.isPending;
+  const isUpdatingCategory = !onToggleActive && actions.updateCategory.isPending;
 
   const filteredCategories = useMemo(() => {
     const normalized = searchValue.trim().toLowerCase();
-    if (!normalized) return categories;
-    return categories.filter((item) =>
+    if (!normalized) return resolvedCategories;
+    return resolvedCategories.filter((item) =>
       item.name.toLowerCase().includes(normalized),
     );
-  }, [categories, searchValue]);
+  }, [resolvedCategories, searchValue]);
+
+  const handleCreateCategory = async () => {
+    const normalizedName = newCategoryName.trim();
+    if (!normalizedName) {
+      setNewCategoryError("Nama kategori wajib diisi.");
+      return;
+    }
+
+    setNewCategoryError("");
+    if (onCreateCategory) {
+      await onCreateCategory({ name: normalizedName });
+    } else {
+      await actions.createCategory.mutateAsync({ name: normalizedName });
+    }
+
+    setNewCategoryName("");
+    setNewCategoryOpen(false);
+  };
+
+  const handleToggleActive = async (row: CategoryRow) => {
+    if (onToggleActive) {
+      onToggleActive(row);
+      return;
+    }
+
+    await actions.updateCategory.mutateAsync({
+      id: row.id,
+      payload: {
+        name: row.name,
+        is_active: !row.isActive,
+      },
+    });
+  };
 
   const columns: ColumnDef<CategoryRow, unknown>[] = [
     {
@@ -99,7 +170,8 @@ export function ProductCategoryManagementPage({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => onToggleActive?.(row.original)}
+            onClick={() => void handleToggleActive(row.original)}
+            disabled={isUpdatingCategory}
           >
             {row.original.isActive ? "Nonaktifkan" : "Aktifkan"}
           </Button>
@@ -137,6 +209,7 @@ export function ProductCategoryManagementPage({
           <Button
             type="button"
             onClick={() => setNewCategoryOpen(true)}
+            disabled={isCreatingCategory}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm"
           >
             Tambah Kategori
@@ -147,12 +220,12 @@ export function ProductCategoryManagementPage({
           <TableShell
             tableClassName="w-full text-left"
             columns={columns}
-            data={isLoading || isError ? [] : filteredCategories}
+            data={resolvedLoading || resolvedError ? [] : filteredCategories}
             getRowId={(row) => row.id}
-            loading={isLoading}
+            loading={resolvedLoading}
             loadingState="Memuat kategori..."
             emptyState={
-              isError
+              resolvedError
                 ? "Gagal memuat kategori."
                 : "Belum ada kategori yang tersedia."
             }
@@ -161,6 +234,75 @@ export function ProductCategoryManagementPage({
           />
         </div>
       </div>
+
+      <Dialog
+        open={newCategoryOpen}
+        onOpenChange={(open) => {
+          setNewCategoryOpen(open);
+          if (!open) {
+            setNewCategoryName("");
+            setNewCategoryError("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tambah kategori produk</DialogTitle>
+            <DialogDescription>
+              Buat kategori baru agar dapat dipakai pada form produk marketplace.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="new-category-name"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >
+              Nama kategori
+            </label>
+            <Input
+              id="new-category-name"
+              value={newCategoryName}
+              onChange={(event) => {
+                setNewCategoryName(event.target.value);
+                if (newCategoryError) {
+                  setNewCategoryError("");
+                }
+              }}
+              placeholder="Contoh: Kerajinan Desa"
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void handleCreateCategory();
+                }
+              }}
+            />
+            {newCategoryError ? (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {newCategoryError}
+              </p>
+            ) : null}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setNewCategoryOpen(false)}
+              disabled={isCreatingCategory}
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleCreateCategory()}
+              disabled={isCreatingCategory}
+            >
+              {isCreatingCategory ? "Menyimpan..." : "Simpan kategori"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

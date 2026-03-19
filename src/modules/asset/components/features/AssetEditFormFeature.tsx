@@ -137,6 +137,7 @@ export function AssetEditFormFeature({
   return (
     <form
       className="space-y-6"
+      data-testid="asset-admin-edit-form"
       onSubmit={async (event) => {
         event.preventDefault();
         await onSubmit?.({
@@ -167,23 +168,32 @@ export function AssetEditFormFeature({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <Label className="mb-1 block">Nama Aset</Label>
-            <Input value={name} onChange={(event) => setName(event.target.value)} required />
+            <Input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              data-testid="asset-admin-edit-name-input"
+            />
           </div>
           <div>
             <Label className="mb-1 block">Asset Tag (Otomatis)</Label>
-            <Input defaultValue={sourceModel.assetTag} disabled />
+            <Input defaultValue={sourceModel.assetTag} disabled data-testid="asset-admin-edit-asset-tag-input" />
           </div>
           <div>
             <Label className="mb-1 block">Serial Number</Label>
             <Input
               value={serialNumber}
               onChange={(event) => setSerialNumber(event.target.value)}
+              data-testid="asset-admin-edit-serial-number-input"
             />
           </div>
           <div>
             <Label className="mb-1 block">Kategori</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger disabled={isLoadingOptions || categories.length === 0}>
+              <SelectTrigger
+                disabled={isLoadingOptions || categories.length === 0}
+                data-testid="asset-admin-edit-category-trigger"
+              >
                 <SelectValue placeholder="Pilih Kategori" />
               </SelectTrigger>
               <SelectContent>
@@ -198,7 +208,10 @@ export function AssetEditFormFeature({
           <div>
             <Label className="mb-1 block">Status</Label>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger disabled={isLoadingOptions || statuses.length === 0}>
+              <SelectTrigger
+                disabled={isLoadingOptions || statuses.length === 0}
+                data-testid="asset-admin-edit-status-trigger"
+              >
                 <SelectValue placeholder="Pilih Status" />
               </SelectTrigger>
               <SelectContent>
@@ -237,6 +250,7 @@ export function AssetEditFormFeature({
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
                   className="hidden"
+                  data-testid="asset-admin-edit-file-input"
                   onChange={(event) => {
                     const selected = event.target.files?.[0] ?? null;
                     setImageFile(selected);
@@ -261,6 +275,7 @@ export function AssetEditFormFeature({
                   type="button"
                   variant="outline"
                   className="border-slate-300"
+                  data-testid="asset-admin-edit-file-select-button"
                   onClick={() => imageInputRef.current?.click()}
                 >
                   Ganti Gambar
@@ -271,6 +286,7 @@ export function AssetEditFormFeature({
                     type="button"
                     variant="ghost"
                     className="text-slate-600 hover:text-slate-900"
+                    data-testid="asset-admin-edit-file-clear-button"
                     onClick={() => {
                       if (objectURLRef.current) {
                         URL.revokeObjectURL(objectURLRef.current);
@@ -300,7 +316,10 @@ export function AssetEditFormFeature({
           <div className="md:col-span-2">
             <Label className="mb-1 block">Lokasi Utama</Label>
             <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger disabled={isLoadingOptions || locations.length === 0}>
+              <SelectTrigger
+                disabled={isLoadingOptions || locations.length === 0}
+                data-testid="asset-admin-edit-location-trigger"
+              >
                 <SelectValue placeholder="Pilih Lokasi" />
               </SelectTrigger>
               <SelectContent>
@@ -321,6 +340,7 @@ export function AssetEditFormFeature({
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
               placeholder="Cari nama karyawan..."
+              data-testid="asset-admin-edit-assigned-to-input"
             />
             <p className="mt-1 text-xs text-slate-500">Ketik untuk mencari karyawan dari database.</p>
           </div>
@@ -339,6 +359,7 @@ export function AssetEditFormFeature({
               value={rentalPriceDisplay}
               onChange={(event) => setRentalPriceDisplay(event.target.value)}
               placeholder="Contoh: 250000"
+              data-testid="asset-admin-edit-rental-price-input"
             />
           </div>
           <div>
@@ -349,6 +370,7 @@ export function AssetEditFormFeature({
               value={purchasePriceDisplay}
               onChange={(event) => setPurchasePriceDisplay(event.target.value)}
               placeholder="Contoh: 15000000"
+              data-testid="asset-admin-edit-purchase-price-input"
             />
           </div>
           <div>
@@ -357,11 +379,16 @@ export function AssetEditFormFeature({
               type="date"
               value={purchaseDate}
               onChange={(event) => setPurchaseDate(event.target.value)}
+              data-testid="asset-admin-edit-purchase-date-input"
             />
           </div>
           <div>
             <Label className="mb-1 block">Supplier</Label>
-            <Input value={vendor} onChange={(event) => setVendor(event.target.value)} />
+            <Input
+              value={vendor}
+              onChange={(event) => setVendor(event.target.value)}
+              data-testid="asset-admin-edit-vendor-input"
+            />
           </div>
           <div className="md:col-span-2">
             <Label className="mb-1 block">Masa Garansi Berakhir</Label>
@@ -369,6 +396,7 @@ export function AssetEditFormFeature({
               type="date"
               value={warrantyEndDate}
               onChange={(event) => setWarrantyEndDate(event.target.value)}
+              data-testid="asset-admin-edit-warranty-end-date-input"
             />
           </div>
         </div>
@@ -381,14 +409,26 @@ export function AssetEditFormFeature({
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Tuliskan deskripsi aset, kondisi, dan catatan penting lainnya..."
           rows={5}
+          data-testid="asset-admin-edit-description-textarea"
         />
       </section>
 
       <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+          data-testid="asset-admin-edit-cancel-button"
+        >
           Batal
         </Button>
-        <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="bg-indigo-600 text-white hover:bg-indigo-700"
+          disabled={isSubmitting}
+          data-testid="asset-admin-edit-submit-button"
+        >
           {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
         </Button>
       </div>

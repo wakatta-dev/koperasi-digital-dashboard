@@ -3,6 +3,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import {
   confirmAccountingBankCashReconciliation,
@@ -51,12 +52,22 @@ import type {
 
 import { QK } from "./queryKeys";
 
+function useAccountingQueryEnabled(explicitEnabled = true) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+  const hasSessionError = Boolean((session as { error?: string } | null)?.error);
+
+  return status === "authenticated" && hasAccessToken && !hasSessionError && explicitEnabled;
+}
+
 export function useAccountingBankCashOverview(options?: { enabled?: boolean }) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   return useQuery({
     queryKey: QK.accountingBankCash.overview(),
+    enabled,
     queryFn: async (): Promise<AccountingBankCashOverviewResponse> =>
       ensureAccountingBankCashSuccess(await getAccountingBankCashOverview()),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -64,6 +75,7 @@ export function useAccountingBankCashAccounts(
   params?: AccountingBankCashAccountsQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingBankCashAccountsQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -72,9 +84,10 @@ export function useAccountingBankCashAccounts(
 
   return useQuery({
     queryKey: QK.accountingBankCash.accounts(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingBankCashAccountsResponse> =>
       ensureAccountingBankCashSuccess(await listAccountingBankCashAccounts(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -82,6 +95,7 @@ export function useAccountingBankCashUnreconciledTransactions(
   params?: AccountingBankCashUnreconciledQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingBankCashUnreconciledQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -90,11 +104,12 @@ export function useAccountingBankCashUnreconciledTransactions(
 
   return useQuery({
     queryKey: QK.accountingBankCash.unreconciledTransactions(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingBankCashUnreconciledResponse> =>
       ensureAccountingBankCashSuccess(
         await listAccountingBankCashUnreconciledTransactions(normalized)
       ),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -103,14 +118,18 @@ export function useAccountingBankCashReconciliationSession(
   options?: { enabled?: boolean }
 ) {
   const normalizedAccountId = (accountId ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedAccountId) && (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingBankCash.reconciliationSession(normalizedAccountId),
-    enabled: Boolean(normalizedAccountId) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingBankCashReconciliationSessionResponse> =>
       ensureAccountingBankCashSuccess(
         await getAccountingBankCashReconciliationSession(normalizedAccountId)
       ),
+    retry: false,
   });
 }
 
@@ -120,6 +139,9 @@ export function useAccountingBankCashBankLines(
   options?: { enabled?: boolean }
 ) {
   const normalizedAccountId = (accountId ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedAccountId) && (options?.enabled ?? true)
+  );
   const normalizedParams: AccountingBankCashReconciliationLinesQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -128,11 +150,12 @@ export function useAccountingBankCashBankLines(
 
   return useQuery({
     queryKey: QK.accountingBankCash.bankLines(normalizedAccountId, normalizedParams),
-    enabled: Boolean(normalizedAccountId) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingBankCashBankLinesResponse> =>
       ensureAccountingBankCashSuccess(
         await listAccountingBankCashBankLines(normalizedAccountId, normalizedParams)
       ),
+    retry: false,
   });
 }
 
@@ -142,6 +165,9 @@ export function useAccountingBankCashSystemLines(
   options?: { enabled?: boolean }
 ) {
   const normalizedAccountId = (accountId ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedAccountId) && (options?.enabled ?? true)
+  );
   const normalizedParams: AccountingBankCashReconciliationLinesQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -150,11 +176,12 @@ export function useAccountingBankCashSystemLines(
 
   return useQuery({
     queryKey: QK.accountingBankCash.systemLines(normalizedAccountId, normalizedParams),
-    enabled: Boolean(normalizedAccountId) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingBankCashSystemLinesResponse> =>
       ensureAccountingBankCashSuccess(
         await listAccountingBankCashSystemLines(normalizedAccountId, normalizedParams)
       ),
+    retry: false,
   });
 }
 
@@ -164,6 +191,9 @@ export function useAccountingBankCashAccountTransactions(
   options?: { enabled?: boolean }
 ) {
   const normalizedAccountId = (accountId ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedAccountId) && (options?.enabled ?? true)
+  );
   const normalizedParams: AccountingBankCashTransactionsQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -172,11 +202,12 @@ export function useAccountingBankCashAccountTransactions(
 
   return useQuery({
     queryKey: QK.accountingBankCash.accountTransactions(normalizedAccountId, normalizedParams),
-    enabled: Boolean(normalizedAccountId) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingBankCashTransactionsResponse> =>
       ensureAccountingBankCashSuccess(
         await listAccountingBankCashAccountTransactions(normalizedAccountId, normalizedParams)
       ),
+    retry: false,
   });
 }
 

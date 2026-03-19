@@ -3,6 +3,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import {
   ensureAccountingTaxSuccess,
@@ -51,12 +52,22 @@ import type {
 
 import { QK } from "./queryKeys";
 
+function useAccountingQueryEnabled(explicitEnabled = true) {
+  const { data: session, status } = useSession();
+  const hasAccessToken = Boolean((session as { accessToken?: string } | null)?.accessToken);
+  const hasSessionError = Boolean((session as { error?: string } | null)?.error);
+
+  return status === "authenticated" && hasAccessToken && !hasSessionError && explicitEnabled;
+}
+
 export function useAccountingTaxOverview(options?: { enabled?: boolean }) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   return useQuery({
     queryKey: QK.accountingTax.overview(),
+    enabled,
     queryFn: async (): Promise<AccountingTaxOverviewResponse> =>
       ensureAccountingTaxSuccess(await getAccountingTaxOverview()),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -64,6 +75,7 @@ export function useAccountingTaxPeriods(
   params?: AccountingTaxPeriodsQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingTaxPeriodsQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -72,9 +84,10 @@ export function useAccountingTaxPeriods(
 
   return useQuery({
     queryKey: QK.accountingTax.periods(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingTaxPeriodsResponse> =>
       ensureAccountingTaxSuccess(await listAccountingTaxPeriods(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -82,6 +95,7 @@ export function useAccountingTaxVatTransactions(
   params?: AccountingTaxVatTransactionsQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingTaxVatTransactionsQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -90,9 +104,10 @@ export function useAccountingTaxVatTransactions(
 
   return useQuery({
     queryKey: QK.accountingTax.vatTransactions(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingTaxVatTransactionsResponse> =>
       ensureAccountingTaxSuccess(await listAccountingTaxVatTransactions(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -100,6 +115,7 @@ export function useAccountingTaxPphRecords(
   params?: AccountingTaxPphRecordsQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingTaxPphRecordsQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -108,9 +124,10 @@ export function useAccountingTaxPphRecords(
 
   return useQuery({
     queryKey: QK.accountingTax.pphRecords(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingTaxPphRecordsResponse> =>
       ensureAccountingTaxSuccess(await listAccountingTaxPphRecords(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -118,6 +135,7 @@ export function useAccountingTaxExportHistory(
   params?: AccountingTaxExportHistoryQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingTaxExportHistoryQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -126,9 +144,10 @@ export function useAccountingTaxExportHistory(
 
   return useQuery({
     queryKey: QK.accountingTax.exportHistory(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingTaxExportHistoryResponse> =>
       ensureAccountingTaxSuccess(await listAccountingTaxExportHistory(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -136,6 +155,7 @@ export function useAccountingTaxEfakturReady(
   params?: AccountingTaxEfakturReadyQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   const normalized: AccountingTaxEfakturReadyQuery = {
     page: params?.page ?? 1,
     per_page: params?.per_page ?? 20,
@@ -144,9 +164,10 @@ export function useAccountingTaxEfakturReady(
 
   return useQuery({
     queryKey: QK.accountingTax.efakturReady(normalized),
+    enabled,
     queryFn: async (): Promise<AccountingTaxEfakturReadyResponse> =>
       ensureAccountingTaxSuccess(await listAccountingTaxEfakturReady(normalized)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -154,11 +175,13 @@ export function useAccountingTaxIncomeTaxReport(
   params?: AccountingTaxIncomeTaxReportQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   return useQuery({
     queryKey: QK.accountingTax.incomeTaxReport(params ?? {}),
+    enabled,
     queryFn: async (): Promise<AccountingTaxIncomeTaxReportResponse> =>
       ensureAccountingTaxSuccess(await getAccountingTaxIncomeTaxReport(params)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -166,11 +189,13 @@ export function useAccountingTaxCompliance(
   params?: AccountingTaxComplianceQuery,
   options?: { enabled?: boolean }
 ) {
+  const enabled = useAccountingQueryEnabled(options?.enabled ?? true);
   return useQuery({
     queryKey: QK.accountingTax.compliance(params ?? {}),
+    enabled,
     queryFn: async (): Promise<AccountingTaxComplianceResponse> =>
       ensureAccountingTaxSuccess(await getAccountingTaxCompliance(params)),
-    ...(options?.enabled !== undefined ? { enabled: options.enabled } : {}),
+    retry: false,
   });
 }
 
@@ -179,12 +204,16 @@ export function useAccountingTaxFileDownload(
   options?: { enabled?: boolean }
 ) {
   const normalizedFileId = (fileId ?? "").trim();
+  const enabled = useAccountingQueryEnabled(
+    Boolean(normalizedFileId) && (options?.enabled ?? true)
+  );
 
   return useQuery({
     queryKey: QK.accountingTax.fileDownload(normalizedFileId),
-    enabled: Boolean(normalizedFileId) && (options?.enabled ?? true),
+    enabled,
     queryFn: async (): Promise<AccountingTaxDownloadFileResponse> =>
       ensureAccountingTaxSuccess(await getAccountingTaxFileDownload(normalizedFileId)),
+    retry: false,
   });
 }
 

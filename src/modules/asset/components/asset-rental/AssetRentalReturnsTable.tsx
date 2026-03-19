@@ -2,7 +2,6 @@
 
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
@@ -23,6 +22,24 @@ type AssetRentalReturnsTableProps = Readonly<{
   buildDetailHref?: (id: string) => string;
   actionDisabled?: boolean;
 }>;
+
+function navigateWithFallback(
+  event: React.MouseEvent<HTMLAnchorElement>,
+  href: string,
+) {
+  if (
+    event.defaultPrevented ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    event.button !== 0
+  ) {
+    return;
+  }
+  event.preventDefault();
+  window.location.assign(href);
+}
 
 const statusStyles: Record<AssetRentalReturnsRow["status"], string> = {
   "Menunggu Pengembalian":
@@ -76,12 +93,16 @@ export function AssetRentalReturnsTable({
       },
       cell: ({ row }) =>
         buildDetailHref ? (
-          <Link
+          <a
             href={buildDetailHref(row.original.id)}
+            data-testid={`asset-rental-return-detail-link-${row.original.id}`}
             className="text-sm font-semibold text-slate-900 hover:text-indigo-600"
+            onClick={(event) =>
+              navigateWithFallback(event, buildDetailHref(row.original.id))
+            }
           >
             {row.original.assetName}
-          </Link>
+          </a>
         ) : (
           <p className="text-sm font-semibold text-slate-900">
             {row.original.assetName}
@@ -127,7 +148,8 @@ export function AssetRentalReturnsTable({
         <Button
           className="h-7 bg-indigo-600 px-3 text-xs text-white hover:bg-indigo-700"
           onClick={() => onProcess(row.original.id)}
-          disabled={actionDisabled}
+          disabled={actionDisabled || row.original.status === "Selesai"}
+          data-testid={`asset-rental-return-process-button-${row.original.id}`}
         >
           Proses Kembali
         </Button>
@@ -136,7 +158,7 @@ export function AssetRentalReturnsTable({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="asset-rental-returns-table">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <p className="text-sm font-medium text-slate-500">Menunggu Pengecekan</p>
         <h3 className="mt-2 text-3xl font-bold text-slate-900">{rows.length}</h3>
@@ -153,6 +175,7 @@ export function AssetRentalReturnsTable({
             placeholder="Cari aset atau nama peminjam..."
             value={search}
             onValueChange={onSearchChange}
+            data-testid="asset-rental-returns-search-input"
           />
         </div>
       </div>
@@ -163,6 +186,9 @@ export function AssetRentalReturnsTable({
           columns={columns}
           data={pagedRows}
           getRowId={(row) => row.id}
+          rowProps={(row) => ({
+            "data-testid": `asset-rental-return-row-${row.id}`,
+          })}
           emptyState="Tidak ada data pengembalian."
           headerClassName="bg-slate-50"
           pagination={{

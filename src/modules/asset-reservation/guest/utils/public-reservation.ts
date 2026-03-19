@@ -15,20 +15,12 @@ export async function buildPublicReservationSuccessState(
 ): Promise<PublicReservationSuccessState> {
   const reservationId = reservation.reservation_id;
   const ticket = formatTicketFromReservationId(reservationId);
-  const guestToken = reservation.guest_token?.trim();
-
-  if (!guestToken) {
-    return {
-      reservationId,
-      ticket,
-    };
-  }
 
   const signedStatusLink = await createSignedReservationLink({
     reservationId,
     status: reservation.status,
     expiresAt: reservation.hold_expires_at,
-    guestToken,
+    guestToken: reservation.guest_token?.trim(),
   });
 
   return {
@@ -41,6 +33,7 @@ export async function buildPublicReservationSuccessState(
 export function resolvePublicReservationSubmissionErrorMessage(
   message: string | null | undefined
 ): string {
+  const original = (message ?? "").trim();
   const normalized = (message ?? "").trim().toLowerCase();
 
   if (
@@ -55,6 +48,10 @@ export function resolvePublicReservationSubmissionErrorMessage(
     normalized.includes("asset archived")
   ) {
     return "Aset ini sudah tidak tersedia untuk diajukan. Silakan pilih aset lain yang tersedia.";
+  }
+
+  if (normalized.includes("invalid input:")) {
+    return original;
   }
 
   if (normalized.includes("invalid input")) {

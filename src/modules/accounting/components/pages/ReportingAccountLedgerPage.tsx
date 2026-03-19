@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import {
   useAccountingReportingAccountLedger,
   useAccountingReportingGeneralLedger,
@@ -16,7 +17,6 @@ import { buildReportingQueryString, parseReportingQueryState } from "../../utils
 import {
   FeatureAccountLedgerFilterPanel,
   FeatureAccountLedgerJournalTable,
-  FeatureAccountLedgerSummaryCards,
   FeatureAccountLedgerTopActions,
 } from "../features/FeatureReportingLedgers";
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
@@ -243,7 +243,36 @@ export function ReportingAccountLedgerPage({
       ) : null}
 
       {accountLedgerQuery.data?.summary ? (
-        <FeatureAccountLedgerSummaryCards summary={accountLedgerQuery.data.summary} />
+        <KpiCards
+          items={[
+            {
+              id: "total-debit",
+              label: "Total Debit",
+              value: formatRupiah(accountLedgerQuery.data.summary.total_debit),
+              className: "border-gray-200 dark:border-gray-700 dark:bg-slate-900",
+              labelClassName: "text-sm font-medium text-gray-500 dark:text-gray-400",
+              valueClassName: "mt-1 text-2xl font-bold text-gray-900 dark:text-white",
+            },
+            {
+              id: "total-credit",
+              label: "Total Credit",
+              value: formatRupiah(accountLedgerQuery.data.summary.total_credit),
+              className: "border-gray-200 dark:border-gray-700 dark:bg-slate-900",
+              labelClassName: "text-sm font-medium text-gray-500 dark:text-gray-400",
+              valueClassName: "mt-1 text-2xl font-bold text-gray-900 dark:text-white",
+            },
+            {
+              id: "current-balance",
+              label: "Current Balance",
+              value: formatRupiah(accountLedgerQuery.data.summary.current_balance),
+              className:
+                "border-indigo-100 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-900/20",
+              labelClassName: "text-sm font-medium text-indigo-600 dark:text-indigo-300",
+              valueClassName: "mt-1 text-2xl font-bold text-indigo-700 dark:text-indigo-300",
+            },
+          ]}
+          columns={{ md: 2, xl: 3 }}
+        />
       ) : null}
 
       <FeatureAccountLedgerJournalTable
@@ -282,4 +311,12 @@ export function ReportingAccountLedgerPage({
       />
     </div>
   );
+}
+
+function formatRupiah(value: number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(value);
 }

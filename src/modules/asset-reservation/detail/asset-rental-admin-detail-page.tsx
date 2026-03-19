@@ -17,6 +17,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { QK } from "@/hooks/queries/queryKeys";
@@ -24,6 +31,7 @@ import {
   ASSET_RENTAL_BOOKING_STATUS,
   resolveAssetRentalBookingStatus,
 } from "@/lib/asset-rental-booking-status";
+import { formatLocalDateOnly, inclusiveEndDate, todayLocalDateOnly } from "@/lib/date-only";
 import { showToastError, showToastSuccess } from "@/lib/toast";
 import {
   getAssetById,
@@ -31,8 +39,10 @@ import {
   updateAssetFixedAssetProfile,
 } from "@/services/api/assets";
 import {
+  classifyAssetRentalPayment,
   completeAssetBooking,
   getAssetRentalBookings,
+  resolveAssetRentalFinancialOutcome,
   updateAssetBookingStatus,
 } from "@/services/api/asset-rental";
 import { finalizePayment, getReservation } from "@/services/api/reservations";
@@ -62,6 +72,13 @@ function formatDateTime(unixSeconds?: number) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatEndDateTime(unixSeconds?: number) {
+  if (!unixSeconds) return "-";
+  const date = inclusiveEndDate(new Date(unixSeconds * 1000));
+  if (!date) return "-";
+  return `${formatLocalDateOnly(date)}, 23:59`;
 }
 
 function formatCurrency(amount?: number) {
@@ -273,8 +290,16 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
     };
   }
 
-  const bookingStatus = (booking?.status || "").trim().toUpperCase();
+  const bookingStatus = (
+    booking?.booking_state ||
+    booking?.status ||
+    ""
+  )
+    .trim()
+    .toUpperCase();
   const paymentStatus = (
+    reservation?.payment_state ||
+    booking?.payment_state ||
     reservation?.latest_payment?.status ||
     booking?.latest_payment?.status ||
     ""
@@ -328,15 +353,85 @@ function resolveRentalAccountingWorkspace(booking: any, reservation: any) {
   };
 }
 
+function buildLocalPaymentDiagnostics(input: {
+  bookingStatus?: string;
+  latestPayment?: {
+    status?: string | null;
+    proof_url?: string | null;
+    type?: string | null;
+  } | null;
+}) {
+  const normalizedBookingStatus = (input.bookingStatus || "").trim().toUpperCase();
+  const latestPaymentStatus = (input.latestPayment?.status || "").trim().toLowerCase();
+  const latestPaymentType =
+    (input.latestPayment?.type || "").trim().toLowerCase() || "payment";
+
+  const diagnostics: Array<{
+    scope: string;
+    code: string;
+    severity: string;
+    message: string;
+    next_action?: string;
+  }> = [];
+
+  if (
+    normalizedBookingStatus === "AWAITING_PAYMENT_VERIFICATION" &&
+    latestPaymentStatus &&
+    latestPaymentStatus !== "pending_verification"
+  ) {
+    diagnostics.push({
+      scope: "payment",
+      code: "payment_status_mismatch",
+      severity: "warning",
+      message: `Status booking menyatakan pembayaran sedang menunggu verifikasi, tetapi payment ${latestPaymentType} terakhir masih berstatus ${latestPaymentStatus}.`,
+      next_action:
+        "Periksa proses upload bukti pembayaran dan sinkronisasi status payment di backend.",
+    });
+  }
+
+  if (
+    latestPaymentStatus === "pending_verification" &&
+    !input.latestPayment?.proof_url
+  ) {
+    diagnostics.push({
+      scope: "payment",
+      code: "missing_payment_proof",
+      severity: "warning",
+      message:
+        "Payment sudah masuk tahap pending verification, tetapi file bukti pembayaran belum tersedia pada detail reservasi.",
+      next_action:
+        "Pastikan proof_url disimpan dan dikembalikan oleh API detail reservasi.",
+    });
+  }
+
+  return diagnostics;
+}
+
 export function AssetRentalAdminDetailPage({
   bookingId,
   section,
 }: AssetRentalAdminDetailPageProps) {
   const queryClient = useQueryClient();
+  const [fixedAssetDialogOpen, setFixedAssetDialogOpen] = useState(false);
+  const [classificationDialogOpen, setClassificationDialogOpen] = useState(false);
+  const [financialResolutionDialogOpen, setFinancialResolutionDialogOpen] =
+    useState(false);
   const [paymentDecisionNote, setPaymentDecisionNote] = useState("");
   const [paymentDecisionError, setPaymentDecisionError] = useState<
     string | null
   >(null);
+  const [classificationType, setClassificationType] = useState("REVENUE_RECOGNITION");
+  const [classificationAmount, setClassificationAmount] = useState("");
+  const [classificationReason, setClassificationReason] = useState("");
+  const [classificationFollowUpRef, setClassificationFollowUpRef] = useState("");
+  const [classificationEvidenceRef, setClassificationEvidenceRef] = useState("");
+  const [financialOutcomeType, setFinancialOutcomeType] = useState("DEPOSIT_REFUNDED");
+  const [financialOutcomeAmount, setFinancialOutcomeAmount] = useState("");
+  const [financialOutcomeReason, setFinancialOutcomeReason] = useState("");
+  const [financialOutcomeReviewType, setFinancialOutcomeReviewType] = useState("return_inspection");
+  const [financialOutcomeReviewId, setFinancialOutcomeReviewId] = useState("");
+  const [financialOutcomeFollowUpRef, setFinancialOutcomeFollowUpRef] = useState("");
+  const [financialOutcomeEvidenceRef, setFinancialOutcomeEvidenceRef] = useState("");
   const [fixedAssetCategory, setFixedAssetCategory] = useState("");
   const [fixedAssetRecognitionDate, setFixedAssetRecognitionDate] =
     useState("");
@@ -366,6 +461,14 @@ export function AssetRentalAdminDetailPage({
       bookingsQuery.data?.find((item) => String(item.id) === bookingId) ?? null,
     [bookingsQuery.data, bookingId],
   );
+  const reservationIdentifier = useMemo(() => {
+    const rawIdentifier = booking?.reservation_id ?? booking?.id;
+    if (typeof rawIdentifier === "string") {
+      const trimmedIdentifier = rawIdentifier.trim();
+      return trimmedIdentifier.length > 0 ? trimmedIdentifier : undefined;
+    }
+    return rawIdentifier;
+  }, [booking?.id, booking?.reservation_id]);
 
   const assetQuery = useQuery({
     enabled: Boolean(booking?.asset_id),
@@ -380,16 +483,21 @@ export function AssetRentalAdminDetailPage({
   });
 
   const reservationDetailQuery = useQuery({
-    enabled: Boolean(booking?.id),
-    queryKey: QK.assetRental.reservation(`admin:${booking?.id ?? "unknown"}`),
+    enabled: Boolean(reservationIdentifier),
+    queryKey: QK.assetRental.reservation(
+      `admin:${reservationIdentifier ?? "unknown"}`,
+    ),
     queryFn: async () => {
-      const response = await getReservation(booking?.id ?? "");
+      const response = await getReservation(reservationIdentifier ?? "");
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal memuat detail reservasi");
       }
       return response.data;
     },
   });
+  const reservationDetailQueryKey = QK.assetRental.reservation(
+    `admin:${reservationIdentifier ?? "unknown"}`,
+  );
 
   const updateStatusMutation = useMutation({
     mutationFn: async (status: string) => {
@@ -410,6 +518,9 @@ export function AssetRentalAdminDetailPage({
       await queryClient.invalidateQueries({
         queryKey: ["asset-rental", "bookings"],
       });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
+      });
     },
   });
 
@@ -428,6 +539,9 @@ export function AssetRentalAdminDetailPage({
       await queryClient.invalidateQueries({
         queryKey: ["asset-rental", "bookings"],
       });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
+      });
     },
   });
 
@@ -439,7 +553,9 @@ export function AssetRentalAdminDetailPage({
       status: "succeeded" | "failed";
       reason?: string;
     }) => {
-      const paymentID = booking?.latest_payment?.id?.trim();
+      const paymentID =
+        reservationDetailQuery.data?.latest_payment?.id?.trim() ||
+        booking?.latest_payment?.id?.trim();
       if (!paymentID) {
         throw new Error("Pembayaran belum tersedia");
       }
@@ -452,6 +568,79 @@ export function AssetRentalAdminDetailPage({
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["asset-rental", "bookings"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
+      });
+    },
+  });
+
+  const paymentClassificationMutation = useMutation({
+    mutationFn: async (payload: {
+      classificationType: string;
+      amount: number;
+      reason: string;
+      followUpReference?: string;
+      evidenceReference?: string;
+    }) => {
+      if (!booking?.id) {
+        throw new Error("Booking tidak ditemukan");
+      }
+      const response = await classifyAssetRentalPayment(booking.id, {
+        classification_type: payload.classificationType,
+        amount: payload.amount,
+        reason: payload.reason,
+        follow_up_reference: payload.followUpReference,
+        evidence_reference: payload.evidenceReference,
+      });
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal menyimpan klasifikasi payment");
+      }
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["asset-rental", "bookings"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
+      });
+    },
+  });
+
+  const financialResolutionMutation = useMutation({
+    mutationFn: async (payload: {
+      outcomeType: string;
+      amount: number;
+      reason: string;
+      reviewContextType?: string;
+      reviewContextId?: number;
+      followUpReference?: string;
+      evidenceReference?: string;
+    }) => {
+      if (!booking?.id) {
+        throw new Error("Booking tidak ditemukan");
+      }
+      const response = await resolveAssetRentalFinancialOutcome(booking.id, {
+        outcome_type: payload.outcomeType,
+        amount: payload.amount,
+        reason: payload.reason,
+        review_context_type: payload.reviewContextType,
+        review_context_id: payload.reviewContextId,
+        follow_up_reference: payload.followUpReference,
+        evidence_reference: payload.evidenceReference,
+      });
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal menyimpan resolution finance");
+      }
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["asset-rental", "bookings"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: reservationDetailQueryKey,
       });
     },
   });
@@ -542,6 +731,7 @@ export function AssetRentalAdminDetailPage({
     reservationDetailQuery.data?.financial_resolutions ??
     booking?.financial_resolutions ??
     [];
+  const rentalDiagnostics = reservationDetailQuery.data?.diagnostics;
   const fixedAssetRegister = assetQuery.data?.fixed_asset_register;
   const fixedAssetCategoryValue =
     fixedAssetCategory.trim() ||
@@ -552,7 +742,7 @@ export function AssetRentalAdminDetailPage({
     fixedAssetRecognitionDate ||
     fixedAssetRegister?.recognition_date ||
     assetQuery.data?.purchase_date ||
-    new Date().toISOString().slice(0, 10);
+    todayLocalDateOnly();
   const depreciationMethodValue =
     depreciationMethod || fixedAssetRegister?.depreciation_method || "";
   const usefulLifeMonthsValue =
@@ -571,17 +761,64 @@ export function AssetRentalAdminDetailPage({
     updateStatusMutation.isPending ||
     completeMutation.isPending ||
     paymentDecisionMutation.isPending ||
+    paymentClassificationMutation.isPending ||
+    financialResolutionMutation.isPending ||
     fixedAssetRegisterMutation.isPending ||
     fixedAssetProfileMutation.isPending;
 
-  const canApprove = (booking?.status || "").toUpperCase() === "PENDING_REVIEW";
+  const normalizedBookingStatus = (booking?.booking_state || booking?.status || "").toUpperCase();
+  const directSettlementFlow = reservationDetailQuery.data?.payment_flow === "settlement_direct";
+  const expectedDPAmount = reservationDetailQuery.data?.amounts?.dp ?? 0;
+  const expectedSettlementAmount = directSettlementFlow
+    ? booking?.total_amount ?? 0
+    : reservationDetailQuery.data?.amounts?.remaining ?? 0;
+  const currentDepositAmount =
+    paymentClassifications.find((item) => item.classification_type === "DEPOSIT")?.amount ?? 0;
+  const currentRevenueAmount =
+    paymentClassifications.find((item) => item.classification_type === "REVENUE_RECOGNITION")?.amount ?? 0;
+  const currentDPAmount =
+    paymentClassifications.find((item) => item.classification_type === "DP")?.amount ?? 0;
+  const accountingActionItems = [
+    {
+      title: "Klasifikasi Payment",
+      description:
+        "Catat DP, deposit, atau revenue recognition agar readiness accounting dapat dihitung ulang.",
+      actionLabel: "Buka Form Klasifikasi",
+      onClick: () => setClassificationDialogOpen(true),
+      disabled: isBusy,
+    },
+    {
+      title: "Resolution Deposit",
+      description:
+        "Putuskan penggunaan atau refund deposit setelah booking selesai agar lifecycle finance tertutup rapi.",
+      actionLabel: "Buka Form Resolution",
+      onClick: () => setFinancialResolutionDialogOpen(true),
+      disabled: isBusy || normalizedBookingStatus !== "COMPLETED",
+      helper:
+        normalizedBookingStatus !== "COMPLETED"
+          ? "Hanya aktif ketika booking sudah selesai."
+          : null,
+    },
+  ];
+
+  const canApprove =
+    normalizedBookingStatus === "PENDING_REVIEW";
   const canReject = ["PENDING_REVIEW", "BOOKED"].includes(
-    (booking?.status || "").toUpperCase(),
+    normalizedBookingStatus,
   );
   const canComplete = ["CONFIRMED_FULL"].includes(
-    (booking?.status || "").toUpperCase(),
+    normalizedBookingStatus,
   );
-  const latestPayment = booking?.latest_payment;
+  const latestPayment =
+    reservationDetailQuery.data?.latest_payment ?? booking?.latest_payment;
+  const localPaymentDiagnostics = buildLocalPaymentDiagnostics({
+    bookingStatus: booking?.booking_state || booking?.status,
+    latestPayment,
+  });
+  const combinedDiagnostics = [
+    ...(rentalDiagnostics?.items ?? []),
+    ...localPaymentDiagnostics,
+  ];
   const latestPaymentStatus = (latestPayment?.status || "")
     .trim()
     .toLowerCase();
@@ -600,7 +837,7 @@ export function AssetRentalAdminDetailPage({
   const rejectionReason = booking?.rejection_reason?.trim() || "-";
   const returnConditionLabel = toReturnConditionLabel(
     booking?.return_condition,
-    booking?.status,
+    booking?.booking_state || booking?.status,
   );
   const returnConditionNotes = booking?.return_condition_notes?.trim() || "-";
   const nextValidAction = canConfirmPayment
@@ -752,6 +989,66 @@ export function AssetRentalAdminDetailPage({
     }
   };
 
+  const handleClassifyPayment = async () => {
+    const amount = Number(classificationAmount);
+    if (!Number.isFinite(amount) || amount <= 0 || classificationReason.trim().length === 0) {
+      showToastError(
+        "Form klasifikasi belum lengkap",
+        "Jenis klasifikasi, amount, dan alasan wajib diisi.",
+      );
+      return;
+    }
+    try {
+      await paymentClassificationMutation.mutateAsync({
+        classificationType,
+        amount,
+        reason: classificationReason.trim(),
+        followUpReference: classificationFollowUpRef.trim() || undefined,
+        evidenceReference: classificationEvidenceRef.trim() || undefined,
+      });
+      showToastSuccess(
+        "Klasifikasi payment tersimpan",
+        "Status accounting akan dihitung ulang dari data klasifikasi terbaru.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Gagal menyimpan klasifikasi payment";
+      showToastError("Gagal klasifikasi payment", message);
+    }
+  };
+
+  const handleResolveFinancialOutcome = async () => {
+    const amount = Number(financialOutcomeAmount);
+    const reviewId = Number(financialOutcomeReviewId);
+    if (!Number.isFinite(amount) || amount <= 0 || financialOutcomeReason.trim().length === 0) {
+      showToastError(
+        "Form resolution belum lengkap",
+        "Outcome, amount, dan alasan wajib diisi.",
+      );
+      return;
+    }
+    try {
+      await financialResolutionMutation.mutateAsync({
+        outcomeType: financialOutcomeType,
+        amount,
+        reason: financialOutcomeReason.trim(),
+        reviewContextType: financialOutcomeReviewType.trim() || undefined,
+        reviewContextId:
+          Number.isFinite(reviewId) && reviewId > 0 ? reviewId : undefined,
+        followUpReference: financialOutcomeFollowUpRef.trim() || undefined,
+        evidenceReference: financialOutcomeEvidenceRef.trim() || undefined,
+      });
+      showToastSuccess(
+        "Resolution finance tersimpan",
+        "Status accounting akan dihitung ulang dari outcome finansial terbaru.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Gagal menyimpan resolution finance";
+      showToastError("Gagal resolution finance", message);
+    }
+  };
+
   const handleRejectPayment = async () => {
     if (paymentDecisionNote.trim().length === 0) {
       setPaymentDecisionError(
@@ -829,9 +1126,328 @@ export function AssetRentalAdminDetailPage({
   };
 
   const backPath = backPathBySection[section];
+  const fixedAssetSummaryLabel = fixedAssetRegister
+    ? toSentenceCase(fixedAssetRegister.status)
+    : "Operational Only";
+  const sourceAssetReferenceFallback = booking?.asset_id
+    ? `AST-${String(booking.asset_id).padStart(6, "0")}`
+    : "-";
+  const assetIdentityLabel = assetQuery.data?.name || booking?.asset_name || "-";
+  const fixedAssetWorkspace = (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Register Aset Tetap
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            Konteks fixed asset untuk aset rental yang memenuhi kriteria
+            pencatatan jangka panjang.
+          </p>
+        </div>
+        <Badge className="border border-slate-200 bg-slate-50 text-slate-700">
+          {fixedAssetSummaryLabel}
+        </Badge>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="fixed-asset-category"
+                className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Kategori Fixed Asset
+              </label>
+              <Input
+                id="fixed-asset-category"
+                value={fixedAssetCategoryValue}
+                onChange={(event) =>
+                  setFixedAssetCategory(event.target.value)
+                }
+                placeholder="Contoh: Bangunan Operasional"
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="fixed-asset-recognition-date"
+                className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Tanggal Pengakuan
+              </label>
+              <Input
+                id="fixed-asset-recognition-date"
+                type="date"
+                value={fixedAssetRecognitionDateValue}
+                onChange={(event) =>
+                  setFixedAssetRecognitionDate(event.target.value)
+                }
+                className="mt-2"
+              />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-slate-600">
+            Register ini tetap terhubung ke identitas aset rental dan
+            tidak mengubah lifecycle penyewaan.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-4 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+            onClick={handleRegisterFixedAsset}
+            disabled={
+              isBusy || !fixedAssetCategoryValue || !fixedAssetRecognitionDateValue
+            }
+          >
+            {fixedAssetRegister
+              ? "Perbarui Register Aset Tetap"
+              : "Masukkan ke Register Aset Tetap"}
+          </Button>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="space-y-2 text-sm text-slate-600">
+            <p>
+              Status Keterkaitan:{" "}
+              <span className="font-medium text-slate-900">
+                {toSentenceCase(
+                  fixedAssetRegister?.rental_linkage_status ||
+                    "linked_rental_asset",
+                )}
+              </span>
+            </p>
+            <p>
+              Referensi Fixed Asset:{" "}
+              <span className="font-medium text-slate-900">
+                {fixedAssetRegister?.fixed_asset_reference || "-"}
+              </span>
+            </p>
+            <p>
+              Referensi Aset Sumber:{" "}
+              <span className="font-medium text-slate-900">
+                {fixedAssetRegister?.source_asset_reference ||
+                  sourceAssetReferenceFallback}
+              </span>
+            </p>
+            <p>
+              Identitas Aset:{" "}
+              <span className="font-medium text-slate-900">
+                {assetIdentityLabel}
+              </span>
+            </p>
+            <p>
+              Harga Perolehan:{" "}
+              <span className="font-medium text-slate-900">
+                {formatCurrency(assetQuery.data?.purchase_price)}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="depreciation-method"
+                className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Metode Depresiasi
+              </label>
+              <Input
+                id="depreciation-method"
+                value={depreciationMethodValue}
+                onChange={(event) =>
+                  setDepreciationMethod(event.target.value)
+                }
+                placeholder="STRAIGHT_LINE"
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="useful-life-months"
+                className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Umur Manfaat (Bulan)
+              </label>
+              <Input
+                id="useful-life-months"
+                type="number"
+                min="1"
+                value={usefulLifeMonthsValue}
+                onChange={(event) =>
+                  setUsefulLifeMonths(event.target.value)
+                }
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="residual-value"
+                className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Nilai Residu
+              </label>
+              <Input
+                id="residual-value"
+                type="number"
+                min="0"
+                value={residualValueValue}
+                onChange={(event) => setResidualValue(event.target.value)}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="maintenance-classification"
+                className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Klasifikasi Maintenance
+              </label>
+              <Input
+                id="maintenance-classification"
+                value={maintenanceClassificationValue}
+                onChange={(event) =>
+                  setMaintenanceClassification(event.target.value)
+                }
+                placeholder="PREVENTIVE"
+                className="mt-2"
+              />
+            </div>
+          </div>
+          <div className="mt-3">
+            <label
+              htmlFor="maintenance-notes"
+              className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Catatan Maintenance
+            </label>
+            <Textarea
+              id="maintenance-notes"
+              value={maintenanceNotesValue}
+              onChange={(event) =>
+                setMaintenanceNotes(event.target.value)
+              }
+              placeholder="Contoh: inspeksi struktural per kuartal."
+              className="mt-2 min-h-[96px]"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-4 border-amber-200 text-amber-700 hover:bg-amber-50"
+            onClick={handleSaveFixedAssetProfile}
+            disabled={
+              isBusy ||
+              !fixedAssetRegister ||
+              !depreciationMethodValue ||
+              !usefulLifeMonthsValue ||
+              !maintenanceClassificationValue
+            }
+          >
+            Simpan Profile Depresiasi & Maintenance
+          </Button>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="space-y-2 text-sm text-slate-600">
+            <p>
+              Metode Depresiasi:{" "}
+              <span className="font-medium text-slate-900">
+                {toSentenceCase(
+                  fixedAssetRegister?.depreciation_method || "-",
+                )}
+              </span>
+            </p>
+            <p>
+              Umur Manfaat:{" "}
+              <span className="font-medium text-slate-900">
+                {fixedAssetRegister?.useful_life_months
+                  ? `${fixedAssetRegister.useful_life_months} bulan`
+                  : "-"}
+              </span>
+            </p>
+            <p>
+              Nilai Residu:{" "}
+              <span className="font-medium text-slate-900">
+                {fixedAssetRegister?.residual_value !== undefined
+                  ? formatCurrency(fixedAssetRegister.residual_value)
+                  : "-"}
+              </span>
+            </p>
+            <p>
+              Maintenance:{" "}
+              <span className="font-medium text-slate-900">
+                {toSentenceCase(
+                  fixedAssetRegister?.maintenance_classification || "-",
+                )}
+              </span>
+            </p>
+            <p>
+              Catatan:{" "}
+              <span className="font-medium text-slate-900">
+                {fixedAssetRegister?.maintenance_notes || "-"}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Diagnostics
+        </p>
+        {combinedDiagnostics.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-600">
+            Belum ada blocker utama untuk booking rental ini.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {combinedDiagnostics.map((diag) => (
+              <div
+                key={`${diag.scope}-${diag.code}`}
+                className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+              >
+                <p className="font-medium text-slate-900">
+                  {diag.scope}: {diag.code}
+                </p>
+                <p className="text-slate-600">{diag.message}</p>
+                {diag.next_action ? (
+                  <p className="text-xs text-slate-500">
+                    Next action: {diag.next_action}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+        {rentalDiagnostics?.finance_follow_up_reference ? (
+          <p className="mt-3 text-xs text-slate-500">
+            Finance follow-up ref: {rentalDiagnostics.finance_follow_up_reference}
+          </p>
+        ) : null}
+        {rentalDiagnostics?.hardening_evidence_reference ? (
+          <p className="text-xs text-slate-500">
+            Hardening evidence ref: {rentalDiagnostics.hardening_evidence_reference}
+          </p>
+        ) : null}
+        {rentalDiagnostics?.support_reference ? (
+          <p className="text-xs text-slate-500">
+            Support ref: {rentalDiagnostics.support_reference}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 text-foreground">
+    <div
+      className="mx-auto max-w-7xl space-y-6 text-foreground"
+      data-testid="asset-rental-admin-detail-page-root"
+    >
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -842,12 +1458,23 @@ export function AssetRentalAdminDetailPage({
               Ringkasan transaksi penyewaan untuk ID {bookingId}
             </p>
           </div>
-          <Button asChild variant="outline" className="gap-2 border-slate-200">
-            <Link href={backPath}>
-              <ArrowLeft className="h-4 w-4" />
-              <span>Kembali</span>
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-2 border-slate-200"
+              onClick={() => setFixedAssetDialogOpen(true)}
+            >
+              <FileText className="h-4 w-4" />
+              <span>Register Aset Tetap</span>
+            </Button>
+            <Button asChild variant="outline" className="gap-2 border-slate-200">
+              <Link href={backPath}>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Kembali</span>
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {bookingsQuery.isLoading ? (
@@ -871,7 +1498,10 @@ export function AssetRentalAdminDetailPage({
         {booking ? (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className={statusMeta.badgeClass}>
+              <Badge
+                className={statusMeta.badgeClass}
+                data-testid="asset-rental-admin-detail-status-badge"
+              >
                 {statusMeta.label}
               </Badge>
               <span className="text-xs text-slate-500">
@@ -879,64 +1509,121 @@ export function AssetRentalAdminDetailPage({
               </span>
             </div>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="mb-5 flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-end lg:justify-between">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                     Workspace Transaksi Rental
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-slate-900">
-                    Booking #{String(booking.id).padStart(5, "0")}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-2xl font-semibold tracking-tight text-slate-900">
+                      Booking #{String(booking.id).padStart(5, "0")}
+                    </p>
+                    <div className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-500">
+                      Lifecycle Rental
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-500">
                     Terakhir diperbarui{" "}
                     {formatDateTime(booking.updated_at || booking.created_at)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm text-slate-500">
-                  Lifecycle Rental
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[
+                    {
+                      title: "Klasifikasi Payment",
+                      description:
+                        "Pindahkan input klasifikasi ke dialog agar workspace utama tetap fokus pada status dan tindak lanjut.",
+                      actionLabel: "Buka Form Klasifikasi",
+                      onClick: () => setClassificationDialogOpen(true),
+                      disabled: isBusy,
+                      tone: "slate",
+                    },
+                    {
+                      title: "Resolution Deposit",
+                      description:
+                        "Catat outcome deposit secara terpisah setelah lifecycle operasional selesai.",
+                      actionLabel: "Buka Form Resolution",
+                      onClick: () => setFinancialResolutionDialogOpen(true),
+                      disabled: isBusy || normalizedBookingStatus !== "COMPLETED",
+                      helper:
+                        normalizedBookingStatus !== "COMPLETED"
+                          ? "Aktif saat booking sudah selesai."
+                          : null,
+                      tone: "amber",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.title}
+                      className="rounded-xl border border-slate-200 bg-slate-50/60 p-3"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        {item.title}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">
+                        {item.description}
+                      </p>
+                      {item.helper ? (
+                        <p className="mt-2 text-xs text-slate-500">{item.helper}</p>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={`mt-4 w-full ${
+                          item.tone === "amber"
+                            ? "border-amber-200 text-amber-700 hover:bg-amber-50"
+                            : "border-slate-300 text-slate-700 hover:bg-white"
+                        }`}
+                        onClick={item.onClick}
+                        disabled={item.disabled}
+                      >
+                        {item.actionLabel}
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="grid gap-4 xl:grid-cols-4">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+
+              <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                     Status Operasional
                   </p>
-                  <Badge className={`mt-2 ${statusMeta.badgeClass}`}>
+                  <Badge className={`mt-3 ${statusMeta.badgeClass}`}>
                     {statusMeta.label}
                   </Badge>
-                  <p className="mt-3 text-sm text-slate-600">
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
                     Status operasional rental mengikuti lifecycle booking aset
                     secara internal.
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                     Status Pembayaran
                   </p>
                   <span
-                    className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${paymentWorkspace.className}`}
+                    className={`mt-3 inline-flex rounded-full px-3 py-1 text-sm font-medium ${paymentWorkspace.className}`}
                   >
                     {paymentWorkspace.label}
                   </span>
-                  <p className="mt-3 text-sm text-slate-600">
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
                     {paymentWorkspace.helper}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                     Status Accounting
                   </p>
                   <span
-                    className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-medium ${accountingWorkspace.className}`}
+                    className={`mt-3 inline-flex rounded-full px-3 py-1 text-sm font-medium ${accountingWorkspace.className}`}
                   >
                     {accountingWorkspace.label}
                   </span>
-                  <p className="mt-3 text-sm text-slate-600">
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
                     {accountingWorkspace.helper}
                   </p>
                   {accountingWorkspace.reference ? (
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="mt-3 text-xs text-slate-500">
                       Referensi Accounting:{" "}
                       <span className="font-medium text-slate-900">
                         {accountingWorkspace.reference}
@@ -944,22 +1631,22 @@ export function AssetRentalAdminDetailPage({
                     </p>
                   ) : null}
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                     Tindakan Berikutnya
                   </p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                  <p className="mt-3 text-sm font-semibold text-slate-900">
                     {nextValidAction.label}
                   </p>
-                  <p className="mt-3 text-sm text-slate-600">
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
                     {nextValidAction.helper}
                   </p>
                 </div>
               </div>
               {paymentClassifications.length > 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                       Klasifikasi Pembayaran Finance
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
@@ -971,7 +1658,7 @@ export function AssetRentalAdminDetailPage({
                     {paymentClassifications.map((item) => (
                       <div
                         key={`${item.classification_type}-${item.accounting_reference ?? item.amount}`}
-                        className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                        className="rounded-xl border border-slate-200 bg-slate-50/70 p-4"
                       >
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                           {toSentenceCase(item.classification_type)}
@@ -1010,9 +1697,9 @@ export function AssetRentalAdminDetailPage({
                 </div>
               ) : null}
               {financialResolutions.length > 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-white p-5">
+                <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                       Resolution Finance Rental
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
@@ -1025,7 +1712,7 @@ export function AssetRentalAdminDetailPage({
                     {financialResolutions.map((item) => (
                       <div
                         key={`${item.outcome_type}-${item.accounting_reference ?? item.amount}`}
-                        className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+                        className="rounded-xl border border-slate-200 bg-slate-50/70 p-4"
                       >
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                           {toSentenceCase(item.outcome_type)}
@@ -1064,6 +1751,173 @@ export function AssetRentalAdminDetailPage({
                 </div>
               ) : null}
             </section>
+
+            <Dialog
+              open={classificationDialogOpen}
+              onOpenChange={setClassificationDialogOpen}
+            >
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Klasifikasi Payment</DialogTitle>
+                  <DialogDescription>
+                    Isi klasifikasi payment untuk menggerakkan readiness accounting.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    value={classificationType}
+                    onChange={(event) =>
+                      setClassificationType(event.target.value)
+                    }
+                    placeholder="DP / DEPOSIT / REVENUE_RECOGNITION"
+                  />
+                  <Input
+                    type="number"
+                    min="1"
+                    value={classificationAmount}
+                    onChange={(event) =>
+                      setClassificationAmount(event.target.value)
+                    }
+                    placeholder={
+                      classificationType === "DP"
+                        ? String(expectedDPAmount || "")
+                        : String(
+                            classificationType === "REVENUE_RECOGNITION"
+                              ? currentRevenueAmount ||
+                                  expectedSettlementAmount ||
+                                  booking.total_amount
+                              : currentDepositAmount || expectedSettlementAmount,
+                          )
+                    }
+                  />
+                </div>
+                <Textarea
+                  value={classificationReason}
+                  onChange={(event) =>
+                    setClassificationReason(event.target.value)
+                  }
+                  placeholder="Alasan klasifikasi accounting untuk booking rental ini..."
+                  className="min-h-[120px]"
+                />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    value={classificationFollowUpRef}
+                    onChange={(event) =>
+                      setClassificationFollowUpRef(event.target.value)
+                    }
+                    placeholder="Follow-up reference (opsional)"
+                  />
+                  <Input
+                    value={classificationEvidenceRef}
+                    onChange={(event) =>
+                      setClassificationEvidenceRef(event.target.value)
+                    }
+                    placeholder="Evidence reference (opsional)"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                    onClick={handleClassifyPayment}
+                    disabled={isBusy}
+                  >
+                    Simpan Klasifikasi Payment
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog
+              open={financialResolutionDialogOpen}
+              onOpenChange={setFinancialResolutionDialogOpen}
+            >
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Resolution Deposit</DialogTitle>
+                  <DialogDescription>
+                    Catat outcome deposit setelah booking selesai.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    value={financialOutcomeType}
+                    onChange={(event) =>
+                      setFinancialOutcomeType(event.target.value)
+                    }
+                    placeholder="DEPOSIT_APPLIED / DEPOSIT_REFUNDED"
+                  />
+                  <Input
+                    type="number"
+                    min="1"
+                    value={financialOutcomeAmount}
+                    onChange={(event) =>
+                      setFinancialOutcomeAmount(event.target.value)
+                    }
+                    placeholder={String(currentDepositAmount || "")}
+                  />
+                </div>
+                <Textarea
+                  value={financialOutcomeReason}
+                  onChange={(event) =>
+                    setFinancialOutcomeReason(event.target.value)
+                  }
+                  placeholder="Alasan penggunaan / refund deposit..."
+                  className="min-h-[120px]"
+                />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    value={financialOutcomeReviewType}
+                    onChange={(event) =>
+                      setFinancialOutcomeReviewType(event.target.value)
+                    }
+                    placeholder="return_inspection"
+                  />
+                  <Input
+                    type="number"
+                    min="1"
+                    value={financialOutcomeReviewId}
+                    onChange={(event) =>
+                      setFinancialOutcomeReviewId(event.target.value)
+                    }
+                    placeholder="Review context id (opsional)"
+                  />
+                  <Input
+                    value={financialOutcomeFollowUpRef}
+                    onChange={(event) =>
+                      setFinancialOutcomeFollowUpRef(event.target.value)
+                    }
+                    placeholder="Follow-up reference (opsional)"
+                  />
+                  <Input
+                    value={financialOutcomeEvidenceRef}
+                    onChange={(event) =>
+                      setFinancialOutcomeEvidenceRef(event.target.value)
+                    }
+                    placeholder="Evidence reference (opsional)"
+                  />
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  {normalizedBookingStatus !== "COMPLETED" ? (
+                    <p className="text-xs text-slate-500">
+                      Outcome deposit baru bisa dicatat setelah booking selesai.
+                    </p>
+                  ) : (
+                    <span />
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                    onClick={handleResolveFinancialOutcome}
+                    disabled={isBusy || normalizedBookingStatus !== "COMPLETED"}
+                  >
+                    Simpan Resolution Deposit
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <div className="grid gap-4 lg:grid-cols-2">
               <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
@@ -1132,269 +1986,20 @@ export function AssetRentalAdminDetailPage({
               </section>
             </div>
 
-            <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Register Aset Tetap
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    Konteks fixed asset untuk aset rental yang memenuhi kriteria
-                    pencatatan jangka panjang.
-                  </p>
-                </div>
-                <Badge className="border border-slate-200 bg-slate-50 text-slate-700">
-                  {fixedAssetRegister
-                    ? toSentenceCase(fixedAssetRegister.status)
-                    : "Operational Only"}
-                </Badge>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label
-                        htmlFor="fixed-asset-category"
-                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        Kategori Fixed Asset
-                      </label>
-                      <Input
-                        id="fixed-asset-category"
-                        value={fixedAssetCategoryValue}
-                        onChange={(event) =>
-                          setFixedAssetCategory(event.target.value)
-                        }
-                        placeholder="Contoh: Bangunan Operasional"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="fixed-asset-recognition-date"
-                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        Tanggal Pengakuan
-                      </label>
-                      <Input
-                        id="fixed-asset-recognition-date"
-                        type="date"
-                        value={fixedAssetRecognitionDateValue}
-                        onChange={(event) =>
-                          setFixedAssetRecognitionDate(event.target.value)
-                        }
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm text-slate-600">
-                    Register ini tetap terhubung ke identitas aset rental dan
-                    tidak mengubah lifecycle penyewaan.
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-4 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                    onClick={handleRegisterFixedAsset}
-                    disabled={isBusy || !fixedAssetCategoryValue || !fixedAssetRecognitionDateValue}
-                  >
-                    {fixedAssetRegister
-                      ? "Perbarui Register Aset Tetap"
-                      : "Masukkan ke Register Aset Tetap"}
-                  </Button>
-                </div>
-
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <div className="space-y-2 text-sm text-slate-600">
-                    <p>
-                      Status Keterkaitan:{" "}
-                      <span className="font-medium text-slate-900">
-                        {toSentenceCase(
-                          fixedAssetRegister?.rental_linkage_status ||
-                            "linked_rental_asset",
-                        )}
-                      </span>
-                    </p>
-                    <p>
-                      Referensi Fixed Asset:{" "}
-                      <span className="font-medium text-slate-900">
-                        {fixedAssetRegister?.fixed_asset_reference || "-"}
-                      </span>
-                    </p>
-                    <p>
-                      Referensi Aset Sumber:{" "}
-                      <span className="font-medium text-slate-900">
-                        {fixedAssetRegister?.source_asset_reference ||
-                          `AST-${String(booking.asset_id).padStart(6, "0")}`}
-                      </span>
-                    </p>
-                    <p>
-                      Identitas Aset:{" "}
-                      <span className="font-medium text-slate-900">
-                        {assetQuery.data?.name || booking.asset_name}
-                      </span>
-                    </p>
-                    <p>
-                      Harga Perolehan:{" "}
-                      <span className="font-medium text-slate-900">
-                        {formatCurrency(assetQuery.data?.purchase_price)}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label
-                        htmlFor="depreciation-method"
-                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        Metode Depresiasi
-                      </label>
-                      <Input
-                        id="depreciation-method"
-                        value={depreciationMethodValue}
-                        onChange={(event) =>
-                          setDepreciationMethod(event.target.value)
-                        }
-                        placeholder="STRAIGHT_LINE"
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="useful-life-months"
-                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        Umur Manfaat (Bulan)
-                      </label>
-                      <Input
-                        id="useful-life-months"
-                        type="number"
-                        min="1"
-                        value={usefulLifeMonthsValue}
-                        onChange={(event) =>
-                          setUsefulLifeMonths(event.target.value)
-                        }
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="residual-value"
-                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        Nilai Residu
-                      </label>
-                      <Input
-                        id="residual-value"
-                        type="number"
-                        min="0"
-                        value={residualValueValue}
-                        onChange={(event) => setResidualValue(event.target.value)}
-                        className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="maintenance-classification"
-                        className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-                      >
-                        Klasifikasi Maintenance
-                      </label>
-                      <Input
-                        id="maintenance-classification"
-                        value={maintenanceClassificationValue}
-                        onChange={(event) =>
-                          setMaintenanceClassification(event.target.value)
-                        }
-                        placeholder="PREVENTIVE"
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <label
-                      htmlFor="maintenance-notes"
-                      className="text-xs font-semibold uppercase tracking-wide text-slate-500"
-                    >
-                      Catatan Maintenance
-                    </label>
-                    <Textarea
-                      id="maintenance-notes"
-                      value={maintenanceNotesValue}
-                      onChange={(event) =>
-                        setMaintenanceNotes(event.target.value)
-                      }
-                      placeholder="Contoh: inspeksi struktural per kuartal."
-                      className="mt-2 min-h-[96px]"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-4 border-amber-200 text-amber-700 hover:bg-amber-50"
-                    onClick={handleSaveFixedAssetProfile}
-                    disabled={
-                      isBusy ||
-                      !fixedAssetRegister ||
-                      !depreciationMethodValue ||
-                      !usefulLifeMonthsValue ||
-                      !maintenanceClassificationValue
-                    }
-                  >
-                    Simpan Profile Depresiasi & Maintenance
-                  </Button>
-                </div>
-
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <div className="space-y-2 text-sm text-slate-600">
-                    <p>
-                      Metode Depresiasi:{" "}
-                      <span className="font-medium text-slate-900">
-                        {toSentenceCase(
-                          fixedAssetRegister?.depreciation_method || "-",
-                        )}
-                      </span>
-                    </p>
-                    <p>
-                      Umur Manfaat:{" "}
-                      <span className="font-medium text-slate-900">
-                        {fixedAssetRegister?.useful_life_months
-                          ? `${fixedAssetRegister.useful_life_months} bulan`
-                          : "-"}
-                      </span>
-                    </p>
-                    <p>
-                      Nilai Residu:{" "}
-                      <span className="font-medium text-slate-900">
-                        {fixedAssetRegister?.residual_value !== undefined
-                          ? formatCurrency(fixedAssetRegister.residual_value)
-                          : "-"}
-                      </span>
-                    </p>
-                    <p>
-                      Maintenance:{" "}
-                      <span className="font-medium text-slate-900">
-                        {toSentenceCase(
-                          fixedAssetRegister?.maintenance_classification || "-",
-                        )}
-                      </span>
-                    </p>
-                    <p>
-                      Catatan:{" "}
-                      <span className="font-medium text-slate-900">
-                        {fixedAssetRegister?.maintenance_notes || "-"}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <Dialog
+              open={fixedAssetDialogOpen}
+              onOpenChange={setFixedAssetDialogOpen}
+            >
+              <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
+                <DialogHeader>
+                  <DialogTitle>Register Aset Tetap</DialogTitle>
+                  <DialogDescription>
+                    Workspace fixed asset untuk booking rental ini.
+                  </DialogDescription>
+                </DialogHeader>
+                {fixedAssetWorkspace}
+              </DialogContent>
+            </Dialog>
 
             <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -1410,7 +2015,7 @@ export function AssetRentalAdminDetailPage({
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs text-slate-500">Selesai</p>
                   <p className="mt-1 text-sm font-medium text-slate-900">
-                    {formatDateTime(booking.end_time)}
+                    {formatEndDateTime(booking.end_time)}
                   </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -1449,6 +2054,7 @@ export function AssetRentalAdminDetailPage({
                     className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                     onClick={handleComplete}
                     disabled={isBusy}
+                    data-testid="asset-rental-admin-detail-complete-return-button"
                   >
                     Tandai Selesai
                   </Button>
@@ -1460,6 +2066,23 @@ export function AssetRentalAdminDetailPage({
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Pembayaran & Verifikasi
               </p>
+              {localPaymentDiagnostics.length > 0 ? (
+                <div className="space-y-2">
+                  {localPaymentDiagnostics.map((diag) => (
+                    <div
+                      key={`payment-alert-${diag.code}`}
+                      className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                    >
+                      <p className="font-semibold">{diag.message}</p>
+                      {diag.next_action ? (
+                        <p className="mt-1 text-xs text-amber-700">
+                          Next action: {diag.next_action}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -1568,11 +2191,12 @@ export function AssetRentalAdminDetailPage({
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                           Catatan Keputusan
                         </p>
-                        <Textarea
-                          className="mt-2 min-h-[96px] border-slate-200 bg-white"
-                          placeholder="Tambahkan catatan keputusan untuk kebutuhan audit dan tindak lanjut internal..."
-                          value={paymentDecisionNote}
-                          aria-invalid={Boolean(paymentDecisionError)}
+                          <Textarea
+                            className="mt-2 min-h-[96px] border-slate-200 bg-white"
+                            placeholder="Tambahkan catatan keputusan untuk kebutuhan audit dan tindak lanjut internal..."
+                            value={paymentDecisionNote}
+                            data-testid="asset-rental-admin-detail-payment-decision-note-textarea"
+                            aria-invalid={Boolean(paymentDecisionError)}
                           onChange={(event) => {
                             setPaymentDecisionNote(event.target.value);
                             if (paymentDecisionError) {
@@ -1596,6 +2220,7 @@ export function AssetRentalAdminDetailPage({
                           className="bg-emerald-600 text-white hover:bg-emerald-700"
                           onClick={handleConfirmPayment}
                           disabled={isBusy}
+                          data-testid="asset-rental-admin-detail-verify-payment-button"
                         >
                           Konfirmasi Pembayaran
                         </Button>
@@ -1605,6 +2230,7 @@ export function AssetRentalAdminDetailPage({
                           className="border-red-200 text-red-600 hover:bg-red-50"
                           onClick={handleRejectPayment}
                           disabled={isBusy}
+                          data-testid="asset-rental-admin-detail-reject-payment-button"
                         >
                           Tolak Pembayaran
                         </Button>

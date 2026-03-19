@@ -43,10 +43,12 @@ export function AssetRentalMarkReturnDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Tandai Selesai Pengembalian"
+      contentTestId="asset-rental-return-complete-dialog"
       footer={
         <>
           <Button
             className="bg-indigo-600 text-white hover:bg-indigo-700"
+            data-testid="asset-rental-return-complete-submit-button"
             onClick={() => {
               onConfirm?.({
                 condition: selected,
@@ -62,6 +64,7 @@ export function AssetRentalMarkReturnDialog({
           <Button
             variant="outline"
             className="border-slate-300"
+            data-testid="asset-rental-return-complete-cancel-button"
             onClick={() => {
               setSelected("baik");
               setNotes("");
@@ -91,6 +94,7 @@ export function AssetRentalMarkReturnDialog({
                 key={option.value}
                 type="button"
                 onClick={() => setSelected(option.value)}
+                data-testid={`asset-rental-return-complete-condition-${option.value}`}
                 className={cn(
                   "rounded-xl border p-3 text-center transition-colors",
                   selected === option.value
@@ -115,6 +119,7 @@ export function AssetRentalMarkReturnDialog({
           rows={4}
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
+          data-testid="asset-rental-return-complete-notes-textarea"
           placeholder="Contoh: Layar baret halus, charger lengkap..."
           className="border-slate-200 bg-slate-50"
         />

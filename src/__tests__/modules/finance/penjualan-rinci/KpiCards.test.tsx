@@ -2,12 +2,22 @@
 
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { KpiCards } from "@/modules/finance/components/KpiCards";
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import { sampleSummary } from "@/__tests__/__fixtures__/finance-report/sampleResponses";
+import {
+  renderSalesKpiTrend,
+  toSalesKpiItems,
+} from "@/modules/finance/lib/kpi-items";
 
 describe("KpiCards", () => {
   it("renders KPI values and trend", () => {
-    render(<KpiCards kpis={sampleSummary.kpis} />);
+    render(
+      <KpiCards
+        items={toSalesKpiItems(sampleSummary.kpis)}
+        columns={{ md: 2, xl: 3 }}
+        trendSlot={renderSalesKpiTrend}
+      />,
+    );
 
     expect(screen.getByText("Omzet Total")).toBeTruthy();
     expect(
@@ -19,8 +29,8 @@ describe("KpiCards", () => {
   });
 
   it("shows empty state when missing data", () => {
-    render(<KpiCards kpis={undefined} />);
+    render(<KpiCards items={[]} />);
 
-    expect(screen.getByText(/Belum ada data/)).toBeTruthy();
+    expect(screen.getByRole("alert")).toBeTruthy();
   });
 });

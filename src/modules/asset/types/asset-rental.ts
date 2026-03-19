@@ -11,6 +11,7 @@ export type AssetRentalRentalsRow = Readonly<{
   status:
     | "Menunggu Pembayaran"
     | "Menunggu Verifikasi Pembayaran"
+    | "Menunggu Hari Pakai/Pengambilan"
     | "Berjalan"
     | "Terlambat"
     | "Selesai";

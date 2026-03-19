@@ -13,6 +13,7 @@ import {
   RadioTower,
   TriangleAlert,
 } from "lucide-react";
+import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +36,6 @@ import {
   useNotifications,
 } from "@/hooks/queries";
 import { VendorPageHeader } from "../VendorPageHeader";
-import { VendorKpiGrid } from "../VendorKpiGrid";
 import { VENDOR_ROUTES } from "../../constants/routes";
 import { formatVendorDateTime } from "../../utils/format";
 
@@ -115,31 +115,47 @@ export function VendorNotificationsPage() {
     },
   );
 
-  const kpis = useMemo(
+  const kpiItems = useMemo<KpiItem[]>(
     () => [
       {
         id: "notification_total_attempts",
         label: "Total Attempts",
         value: metrics?.total_attempts ?? notifications.length,
-        helper: "Akumulasi pengiriman notifikasi",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Akumulasi pengiriman notifikasi
+          </p>
+        ),
       },
       {
         id: "notification_unread",
         label: "Unread",
         value: unreadCount,
-        helper: "Belum ditandai read",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Belum ditandai read
+          </p>
+        ),
       },
       {
         id: "notification_failures",
         label: "Failures",
         value: metrics?.total_failures ?? 0,
-        helper: "Delivery failure yang tercatat",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Delivery failure yang tercatat
+          </p>
+        ),
       },
       {
         id: "notification_failure_rate",
         label: "Failure Rate",
         value: `${Math.round((metrics?.failure_rate ?? 0) * 100)}%`,
-        helper: "Proporsi failure di seluruh channel",
+        footer: (
+          <p className="text-xs text-muted-foreground">
+            Proporsi failure di seluruh channel
+          </p>
+        ),
       },
     ],
     [
@@ -256,7 +272,7 @@ export function VendorNotificationsPage() {
         }
       />
 
-      <VendorKpiGrid items={kpis} />
+      <KpiCards items={kpiItems} columns={{ md: 2, xl: 4 }} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.9fr)]">
         <Card className="border-border/70">

@@ -30,4 +30,14 @@ describe("resolveApiBaseUrl", () => {
       })
     ).toBe("http://192.168.1.4:8080");
   });
+
+  it("falls back to localhost backend in local browser runtime when env is empty", () => {
+    expect(
+      resolveApiBaseUrl("", {
+        isBrowser: true,
+        origin: "http://localhost:3004",
+        nodeEnv: "development",
+      })
+    ).toBe("http://localhost:8080");
+  });
 });

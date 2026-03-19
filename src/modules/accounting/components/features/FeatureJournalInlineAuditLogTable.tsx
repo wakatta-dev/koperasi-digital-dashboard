@@ -90,7 +90,10 @@ export function FeatureJournalInlineAuditLogTable({
   ];
 
   return (
-    <Card className="rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
+    <Card
+      className="rounded-xl border border-gray-200 shadow-sm dark:border-gray-700"
+      data-testid="accounting-journal-create-inline-audit-table"
+    >
       <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 bg-gray-50/50 px-5 py-4 dark:border-gray-700 dark:bg-gray-800/30">
         <h3 className="flex items-center gap-2 font-bold text-gray-900 dark:text-white">
           <History className="h-5 w-5 text-indigo-600" />
@@ -117,6 +120,7 @@ export function FeatureJournalInlineAuditLogTable({
           type="button"
           variant="link"
           onClick={onViewFullHistory}
+          data-testid="accounting-journal-create-inline-audit-history-button"
           className="h-auto p-0 text-xs font-medium text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400"
         >
           View Full History

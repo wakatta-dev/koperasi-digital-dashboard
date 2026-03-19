@@ -1,18 +1,17 @@
 /** @format */
 
 import { fireEvent, render, screen } from "@testing-library/react";
+import { KpiCards } from "@/components/shared/data-display/KpiCards";
 
 import {
   FeatureAddBankAccountModal,
   FeatureBankAccountTransactionFilters,
   FeatureBankAccountTransactionsTable,
   FeatureBankAccountsGrid,
-  FeatureBankCashSummaryCards,
   FeatureBankStatementMatchTable,
   FeatureCashRegistersGrid,
   FeatureImportBankStatementModal,
   FeatureReconciliationActions,
-  FeatureReconciliationBalanceCards,
   FeatureReconciliationDifferenceBanner,
   FeatureReconciliationSelectionBar,
   FeatureSystemTransactionsMatchTable,
@@ -23,28 +22,36 @@ describe("bank-cash core features", () => {
   it("renders overview and reconciliation labels from source", () => {
     render(
       <div>
-        <FeatureBankCashSummaryCards
-          cards={[
+        <KpiCards
+          items={[
             {
-              key: "total-cash-balance",
+              id: "total-cash-balance",
               label: "Total Cash Balance",
               value: "Rp 55,000,000",
-              helper_text: "Across all active accounts",
               tone: "primary",
+              footer: (
+                <p className="text-xs text-muted-foreground">
+                  Across all active accounts
+                </p>
+              ),
             },
             {
-              key: "pending-reconciliation",
+              id: "pending-reconciliation",
               label: "Pending Reconciliation",
               value: "Rp 2,500,000",
-              helper_text: "Needs matching",
               tone: "warning",
+              footer: (
+                <p className="text-xs text-muted-foreground">Needs matching</p>
+              ),
             },
             {
-              key: "petty-cash-balance",
+              id: "petty-cash-balance",
               label: "Petty Cash Balance",
               value: "Rp 1,200,000",
-              helper_text: "Cash register total",
               tone: "success",
+              footer: (
+                <p className="text-xs text-muted-foreground">Cash register total</p>
+              ),
             },
           ]}
         />
@@ -89,7 +96,13 @@ describe("bank-cash core features", () => {
           ]}
         />
         <FeatureReconciliationDifferenceBanner />
-        <FeatureReconciliationBalanceCards />
+        <KpiCards
+          items={[
+            { id: "statement", label: "Statement Balance", value: "Rp 0" },
+            { id: "system", label: "System Balance", value: "Rp 0" },
+            { id: "difference", label: "Difference to Reconcile", value: "Rp 0" },
+          ]}
+        />
         <FeatureReconciliationSelectionBar
           selectedBankLinesCount={2}
           selectedSystemLinesCount={2}
@@ -171,7 +184,7 @@ describe("bank-cash core features", () => {
     expect(screen.getByPlaceholderText("Search description or amount...")).toBeTruthy();
     expect(screen.getByPlaceholderText("Search ref, partner, or amount...")).toBeTruthy();
     expect(screen.getByPlaceholderText("Search transactions...")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "2" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
     expect(screen.getByText("E")).toBeTruthy();
   });
 
