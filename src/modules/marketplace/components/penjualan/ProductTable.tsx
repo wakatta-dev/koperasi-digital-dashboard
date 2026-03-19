@@ -49,6 +49,8 @@ export type ProductTableProps = Readonly<{
   onPageChange?: (nextPage: number) => void;
 }>;
 
+const EMPTY_SELECTED_PRODUCT_IDS: string[] = [];
+
 const resolveCategoryIcon = (category: string) => {
   const normalized = category.toLowerCase();
   if (normalized.includes("laptop")) return Laptop;
@@ -63,7 +65,7 @@ const resolveCategoryIcon = (category: string) => {
 
 export function ProductTable({
   products,
-  selectedIds = [],
+  selectedIds = EMPTY_SELECTED_PRODUCT_IDS,
   onToggleSelect,
   onToggleAll,
   onRowClick,

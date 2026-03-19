@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   usePermissionCatalog,
@@ -26,17 +26,25 @@ import {
   isRoleProtected,
 } from "../../lib/settings";
 
-export function AccessAuthorizationSettingsPage() {
+type AccessAuthorizationSettingsPageProps = {
+  queryString?: string;
+};
+
+export function AccessAuthorizationSettingsPage({
+  queryString = "",
+}: AccessAuthorizationSettingsPageProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
   const tenantType = getSettingsTenantType(
     (session?.user as { jenis_tenant?: string } | undefined)?.jenis_tenant
   );
   const requestedRoleId = searchParams.get("role") ?? "";
-  const pendingSelectedRoleIdRef = useRef<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState("");
@@ -75,7 +83,6 @@ export function AccessAuthorizationSettingsPage() {
 
   const handleSelectRole = useCallback(
     (roleId: string) => {
-      pendingSelectedRoleIdRef.current = roleId;
       setSelectedRoleId(roleId);
       syncRoleQuery(roleId);
     },
@@ -84,22 +91,11 @@ export function AccessAuthorizationSettingsPage() {
 
   useEffect(() => {
     if (!roles.length) {
-      pendingSelectedRoleIdRef.current = null;
       setSelectedRoleId("");
       return;
     }
 
     const hasRole = (roleId: string) => roles.some((role) => String(role.id) === roleId);
-
-    if (pendingSelectedRoleIdRef.current) {
-      if (requestedRoleId === pendingSelectedRoleIdRef.current) {
-        pendingSelectedRoleIdRef.current = null;
-      } else if (hasRole(pendingSelectedRoleIdRef.current)) {
-        return;
-      } else {
-        pendingSelectedRoleIdRef.current = null;
-      }
-    }
 
     if (requestedRoleId && roles.some((role) => String(role.id) === requestedRoleId)) {
       if (selectedRoleId !== requestedRoleId) {
@@ -115,7 +111,6 @@ export function AccessAuthorizationSettingsPage() {
     const firstEditable = roles.find((role) => !isRoleProtected(role)) ?? roles[0];
     const fallbackRoleId = String(firstEditable.id);
     if (selectedRoleId !== fallbackRoleId) {
-      pendingSelectedRoleIdRef.current = fallbackRoleId;
       setSelectedRoleId(fallbackRoleId);
       syncRoleQuery(fallbackRoleId);
     }

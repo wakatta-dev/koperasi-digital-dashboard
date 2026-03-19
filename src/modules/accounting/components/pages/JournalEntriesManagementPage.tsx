@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
@@ -89,10 +89,19 @@ function toJournalEntryStatus(value?: string): JournalEntryStatus {
   return "Reversed";
 }
 
-export function JournalEntriesManagementPage() {
+type JournalEntriesManagementPageProps = {
+  queryString?: string;
+};
+
+export function JournalEntriesManagementPage({
+  queryString = "",
+}: JournalEntriesManagementPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialQueryState = useMemo(
     () =>

@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Accounting - Reporting - Tie Out page.",
 };
 
-export default function AccountingReportingTieOutRoute() {
-  return <ReportingTieOutPage />;
+type AccountingReportingTieOutRouteProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AccountingReportingTieOutRoute({
+  searchParams,
+}: AccountingReportingTieOutRouteProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <ReportingTieOutPage queryString={query.toString()} />;
 }

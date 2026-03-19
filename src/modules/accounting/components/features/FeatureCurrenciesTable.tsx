@@ -24,8 +24,10 @@ type FeatureCurrenciesTableProps = {
   onPageChange?: (nextPage: number) => void;
 };
 
+const EMPTY_CURRENCY_ROWS: CurrencyRow[] = [];
+
 export function FeatureCurrenciesTable({
-  rows = [],
+  rows = EMPTY_CURRENCY_ROWS,
   onUpdateRates,
   onAddCurrency,
   pagination,

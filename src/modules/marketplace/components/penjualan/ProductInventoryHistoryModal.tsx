@@ -306,9 +306,9 @@ export function ProductInventoryHistoryModal({
             <div className="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-900">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
                 <div className="lg:col-span-7 min-w-0">
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
+                  <span className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
                     Rentang Tanggal
-                  </label>
+                  </span>
                   <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
                     <InputField
                       ariaLabel="Tanggal mulai"
@@ -329,11 +329,17 @@ export function ProductInventoryHistoryModal({
                   </div>
                 </div>
                 <div className="lg:col-span-5 min-w-0">
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">
+                  <label
+                    htmlFor="product-history-activity-type"
+                    className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider"
+                  >
                     Tipe Aktivitas
                   </label>
                   <Select value={activityType} onValueChange={setActivityType}>
-                    <SelectTrigger className="w-full rounded-lg border-gray-200 bg-white py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900">
+                    <SelectTrigger
+                      id="product-history-activity-type"
+                      className="w-full rounded-lg border-gray-200 bg-white py-2.5 text-sm focus:border-indigo-600 focus:ring-indigo-600 dark:border-gray-700 dark:bg-slate-900"
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

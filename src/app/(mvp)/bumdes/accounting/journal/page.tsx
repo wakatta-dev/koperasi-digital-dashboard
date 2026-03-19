@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Accounting - Journal page.",
 };
 
-export default function AccountingJournalPage() {
-  return <JournalEntriesManagementPage />;
+type AccountingJournalPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AccountingJournalPage({
+  searchParams,
+}: AccountingJournalPageProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <JournalEntriesManagementPage queryString={query.toString()} />;
 }

@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { LandingFooter } from "../landing/components/footer";
@@ -45,13 +45,18 @@ function validateProofFile(file: File): string | null {
   return null;
 }
 
-export function MarketplacePaymentPage() {
+type MarketplacePaymentPageProps = {
+  orderId?: number;
+  trackingToken?: string;
+};
+
+export function MarketplacePaymentPage({
+  orderId: initialOrderId,
+  trackingToken: initialTrackingToken,
+}: MarketplacePaymentPageProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const orderId = Number(searchParams.get("order_id") ?? "");
-  const trackingTokenFromQuery = (
-    searchParams.get("tracking_token") ?? ""
-  ).trim();
+  const orderId = initialOrderId ?? Number.NaN;
+  const trackingTokenFromQuery = (initialTrackingToken ?? "").trim();
 
   const { data: cart } = useMarketplaceCart();
   const cartCount = cart?.item_count ?? 0;

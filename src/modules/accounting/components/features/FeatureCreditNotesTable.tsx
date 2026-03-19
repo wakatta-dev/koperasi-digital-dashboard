@@ -21,8 +21,10 @@ type FeatureCreditNotesTableProps = {
   createHref?: string;
 };
 
+const EMPTY_CREDIT_NOTE_ROWS: CreditNoteListItem[] = [];
+
 export function FeatureCreditNotesTable({
-  rows = [],
+  rows = EMPTY_CREDIT_NOTE_ROWS,
   createHref,
 }: FeatureCreditNotesTableProps) {
   const [searchTerm, setSearchTerm] = useState("");

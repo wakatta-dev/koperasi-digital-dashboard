@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { KpiCards } from "@/components/shared/data-display/KpiCards";
 import {
@@ -22,45 +22,29 @@ import {
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
 type ReportingAccountLedgerPageProps = {
-  accountId?: string;
-  preset?: string;
-  start?: string;
-  end?: string;
-  branch?: string;
-  search?: string;
-  page?: number;
-  pageSize?: number;
+  queryString?: string;
 };
 
 const DEFAULT_PAGE_SIZE = 20;
 
 export function ReportingAccountLedgerPage({
-  accountId,
-  preset,
-  start,
-  end,
-  branch,
-  search,
-  page,
-  pageSize,
+  queryString = "",
 }: ReportingAccountLedgerPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {
-        preset: preset ?? "today",
-        start,
-        end,
-        branch,
-        accountId,
-        search,
-        page: page ?? 1,
-        page_size: pageSize ?? DEFAULT_PAGE_SIZE,
+        preset: "today",
+        page: 1,
+        page_size: DEFAULT_PAGE_SIZE,
       }),
-    [accountId, branch, end, page, pageSize, preset, search, searchParams, start],
+    [searchParams],
   );
 
   const [resolvedAccountId, setResolvedAccountId] = useState(initialState.accountId ?? "");

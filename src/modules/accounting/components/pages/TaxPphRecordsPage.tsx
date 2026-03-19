@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
@@ -37,10 +37,19 @@ const PPH_PER_PAGE = 5;
 
 const PPH_TONES: TaxPphSummaryTone[] = ["neutral", "purple", "teal", "orange"];
 
-export function TaxPphRecordsPage() {
+type TaxPphRecordsPageProps = {
+  queryString?: string;
+};
+
+export function TaxPphRecordsPage({
+  queryString = "",
+}: TaxPphRecordsPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialQueryState = useMemo(
     () =>

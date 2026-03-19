@@ -1096,10 +1096,11 @@ function ProductVariantPageContent({ id }: ProductVariantPageProps) {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      <label htmlFor={`variant-attribute-name-${attribute.id}`} className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                         Nama atribut
                       </label>
                       <Input
+                        id={`variant-attribute-name-${attribute.id}`}
                         value={attribute.name}
                         onChange={(event) =>
                           handleChangeAttributeName(
@@ -1468,10 +1469,11 @@ function ProductVariantPageContent({ id }: ProductVariantPageProps) {
             Tambah Atribut Baru
           </DialogTitle>
           <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="new-attribute-name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Nama atribut
             </label>
             <Input
+              id="new-attribute-name"
               value={newAttributeName}
               onChange={(event) => setNewAttributeName(event.target.value)}
               placeholder="Contoh: Ukuran, RAM, Warna"
@@ -1508,10 +1510,11 @@ function ProductVariantPageContent({ id }: ProductVariantPageProps) {
             Terapkan Harga ke Semua Varian
           </DialogTitle>
           <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="bulk-price-value" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Harga jual (Rp)
             </label>
             <Input
+              id="bulk-price-value"
               type="number"
               value={bulkPriceValue}
               onChange={(event) => setBulkPriceValue(event.target.value)}
@@ -1545,10 +1548,11 @@ function ProductVariantPageContent({ id }: ProductVariantPageProps) {
             Terapkan Stok ke Semua Varian
           </DialogTitle>
           <div className="mt-4 space-y-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="bulk-stock-value" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Jumlah stok
             </label>
             <Input
+              id="bulk-stock-value"
               type="number"
               value={bulkStockValue}
               onChange={(event) => setBulkStockValue(event.target.value)}

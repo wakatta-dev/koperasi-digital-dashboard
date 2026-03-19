@@ -194,9 +194,9 @@ export function InventoryDetailPage({ id }: Props) {
         <div className="p-8">
           <div className="flex flex-col gap-6 md:flex-row">
             <div className="flex-shrink-0">
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">
+              <p className="mb-2 block text-sm font-medium text-muted-foreground">
                 Foto Produk
-              </label>
+              </p>
               <div className="mt-1">
                 <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
                   {item.image ? (
@@ -364,7 +364,10 @@ export function InventoryDetailPage({ id }: Props) {
                   </p>
                   {activeVariantGroups.length > 0 ? (
                     <div className="mt-3 space-y-1">
-                      <label className="text-xs font-medium text-muted-foreground">
+                      <label
+                        htmlFor="inventory-featured-variant-group"
+                        className="text-xs font-medium text-muted-foreground"
+                      >
                         Varian unggulan di listing
                       </label>
                       <Select
@@ -379,7 +382,10 @@ export function InventoryDetailPage({ id }: Props) {
                           )
                         }
                       >
-                        <SelectTrigger className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground h-auto">
+                        <SelectTrigger
+                          id="inventory-featured-variant-group"
+                          className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground h-auto"
+                        >
                           <SelectValue placeholder="Gunakan cover produk" />
                         </SelectTrigger>
                         <SelectContent className="border border-border bg-popover text-foreground">
@@ -417,9 +423,10 @@ export function InventoryDetailPage({ id }: Props) {
               </div>
               {item.trackStock ? (
                 <form className="space-y-2" onSubmit={handleStockSubmit}>
-                  <label className="text-sm font-medium text-foreground">Perbarui stok</label>
+                  <label htmlFor="inventory-stock-input" className="text-sm font-medium text-foreground">Perbarui stok</label>
                   <div className="flex gap-2">
                     <Input
+                      id="inventory-stock-input"
                       type="number"
                       min={0}
                       value={stockInput}

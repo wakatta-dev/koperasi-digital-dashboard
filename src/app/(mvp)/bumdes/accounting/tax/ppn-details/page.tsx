@@ -5,10 +5,7 @@ import type { Metadata } from "next";
 import { TaxPpnDetailsPage } from "@/modules/accounting";
 
 type AccountingTaxPpnDetailsRouteProps = {
-  searchParams?: Promise<{
-    period?: string;
-    from?: string;
-  }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export const metadata: Metadata = {
@@ -20,11 +17,16 @@ export default async function AccountingTaxPpnDetailsRoute({
   searchParams,
 }: AccountingTaxPpnDetailsRouteProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolvedSearchParams)) {
+    if (typeof value === "string") query.set(key, value);
+  }
 
   return (
     <TaxPpnDetailsPage
-      period={resolvedSearchParams.period}
-      returnToQuery={resolvedSearchParams.from}
+      period={typeof resolvedSearchParams.period === "string" ? resolvedSearchParams.period : undefined}
+      returnToQuery={typeof resolvedSearchParams.from === "string" ? resolvedSearchParams.from : undefined}
+      queryString={query.toString()}
     />
   );
 }

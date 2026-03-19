@@ -41,14 +41,17 @@ type FeatureCreditNoteCreateFormProps = {
   invoiceReferenceOptions?: string[];
 };
 
+const EMPTY_CUSTOMER_OPTIONS: string[] = [];
+const EMPTY_INVOICE_REFERENCE_OPTIONS: string[] = [];
+
 export function FeatureCreditNoteCreateForm({
   onCancel,
   onSubmit,
   submitLabel = "Create Credit Note",
   isSubmitting = false,
   errorMessage,
-  customerOptions = [],
-  invoiceReferenceOptions = [],
+  customerOptions = EMPTY_CUSTOMER_OPTIONS,
+  invoiceReferenceOptions = EMPTY_INVOICE_REFERENCE_OPTIONS,
 }: FeatureCreditNoteCreateFormProps) {
   const [customer, setCustomer] = useState(INITIAL_CREDIT_NOTE_DRAFT.customer);
   const [creditNoteDate, setCreditNoteDate] = useState(
@@ -133,10 +136,14 @@ export function FeatureCreditNoteCreateForm({
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="credit-note-customer"
+                className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Customer <span className="text-red-500">*</span>
               </label>
               <Input
+                id="credit-note-customer"
                 value={customer}
                 onChange={(event) => setCustomer(event.target.value)}
                 placeholder="Type customer name"
@@ -152,10 +159,14 @@ export function FeatureCreditNoteCreateForm({
               ) : null}
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="credit-note-date"
+                className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Credit Note Date <span className="text-red-500">*</span>
               </label>
               <Input
+                id="credit-note-date"
                 type="date"
                 value={creditNoteDate}
                 onChange={(event) => setCreditNoteDate(event.target.value)}
@@ -163,11 +174,15 @@ export function FeatureCreditNoteCreateForm({
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="credit-note-invoice-ref"
+                className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Original Invoice Reference{" "}
                 <span className="font-normal text-gray-400">(Optional)</span>
               </label>
               <Input
+                id="credit-note-invoice-ref"
                 value={invoiceRef}
                 onChange={(event) => setInvoiceRef(event.target.value)}
                 placeholder="e.g. INV-2023-108"
@@ -183,10 +198,14 @@ export function FeatureCreditNoteCreateForm({
               ) : null}
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="credit-note-reason"
+                className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
                 Reason for Credit <span className="text-red-500">*</span>
               </label>
               <Input
+                id="credit-note-reason"
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
                 placeholder="Describe credit reason"

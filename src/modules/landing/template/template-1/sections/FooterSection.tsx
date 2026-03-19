@@ -1,5 +1,6 @@
 /** @format */
 
+import Link from "next/link";
 import { asArray, asHref, asRecord, asString } from "../../shared/content";
 
 const DEFAULT_MAP_IMAGE =
@@ -76,12 +77,12 @@ export function TemplateOneFooterSection({ data }: TemplateOneFooterSectionProps
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
             <div className="flex gap-4 mt-2">
-              <a className="text-slate-400 hover:text-white transition-colors" href="#">
+              <Link className="text-slate-400 hover:text-white transition-colors" href="/">
                 <span className="material-symbols-outlined">social_leaderboard</span>
-              </a>
-              <a className="text-slate-400 hover:text-white transition-colors" href="#">
+              </Link>
+              <Link className="text-slate-400 hover:text-white transition-colors" href="/">
                 <span className="material-symbols-outlined">photo_camera</span>
-              </a>
+              </Link>
             </div>
           </div>
 

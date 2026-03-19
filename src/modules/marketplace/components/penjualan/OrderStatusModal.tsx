@@ -80,12 +80,13 @@ export function OrderStatusModal({
         </div>
         <div className="p-6 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="marketplace-order-status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Status Pesanan
             </label>
             <div className="relative">
               <Select value={status} onValueChange={onStatusChange}>
                 <SelectTrigger
+                  id="marketplace-order-status"
                   className="w-full appearance-none bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg py-2.5 px-4 pr-10 focus:ring-2 focus:ring-indigo-600/50 focus:border-indigo-600 transition-all"
                   data-testid="marketplace-admin-order-detail-status-trigger"
                 >

@@ -102,31 +102,9 @@ export function AssetCreateFormFeature({
   }, [location, locations]);
 
   return (
-    <form
+    <div
       className="space-y-6"
       data-testid="asset-admin-create-form"
-      onSubmit={async (event) => {
-        event.preventDefault();
-
-        await onSubmit?.({
-          mode: "create",
-          name: name.trim(),
-          photoUrl: imagePreviewURL,
-          imageFile,
-          assetTag: "",
-          serialNumber: serialNumber.trim(),
-          category,
-          status,
-          location: location.trim(),
-          assignedTo: assignedTo.trim(),
-          purchaseDate,
-          vendor: vendor.trim(),
-          rentalPriceDisplay: rentalPriceDisplay.trim(),
-          purchasePriceDisplay: purchasePriceDisplay.trim(),
-          warrantyEndDate,
-          description: description.trim(),
-        });
-      }}
     >
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
         <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">
@@ -396,14 +374,34 @@ export function AssetCreateFormFeature({
           Batal
         </Button>
         <Button
-          type="submit"
+          type="button"
           className="bg-indigo-600 text-white hover:bg-indigo-700"
           disabled={isSubmitting}
           data-testid="asset-admin-create-submit-button"
+          onClick={async () => {
+            await onSubmit?.({
+              mode: "create",
+              name: name.trim(),
+              photoUrl: imagePreviewURL,
+              imageFile,
+              assetTag: "",
+              serialNumber: serialNumber.trim(),
+              category,
+              status,
+              location: location.trim(),
+              assignedTo: assignedTo.trim(),
+              purchaseDate,
+              vendor: vendor.trim(),
+              rentalPriceDisplay: rentalPriceDisplay.trim(),
+              purchasePriceDisplay: purchasePriceDisplay.trim(),
+              warrantyEndDate,
+              description: description.trim(),
+            });
+          }}
         >
           {isSubmitting ? "Menyimpan..." : "Simpan Aset"}
         </Button>
       </div>
-    </form>
+    </div>
   );
 }

@@ -9,10 +9,15 @@ export const metadata: Metadata = {
   description: "Login page.",
 };
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<{ redirect?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const searchParamsResolved = await searchParams;
   return (
     <div data-testid="guest-login-page-root">
-      <LoginView />
+      <LoginView redirectTarget={searchParamsResolved?.redirect} />
     </div>
   );
 }

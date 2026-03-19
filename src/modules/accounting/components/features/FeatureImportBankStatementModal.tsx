@@ -69,22 +69,22 @@ export function FeatureImportBankStatementModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          className="space-y-6 p-6"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSubmit?.();
-          }}
-        >
+        <div className="space-y-6 p-6">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="import-bank-statement-account"
+              className="text-sm font-semibold text-gray-700 dark:text-gray-300"
+            >
               Target Bank Account
             </label>
             <Select
               value={draft.account_id}
               onValueChange={(next) => patch({ account_id: next })}
             >
-              <SelectTrigger className="bg-gray-50 text-sm dark:bg-gray-800">
+              <SelectTrigger
+                id="import-bank-statement-account"
+                className="bg-gray-50 text-sm dark:bg-gray-800"
+              >
                 <SelectValue placeholder="Select Bank Account" />
               </SelectTrigger>
               <SelectContent>
@@ -103,9 +103,9 @@ export function FeatureImportBankStatementModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Upload Statement File
-            </label>
+            </span>
             <button
               type="button"
               onClick={() =>
@@ -157,11 +157,11 @@ export function FeatureImportBankStatementModal({
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Button type="button" className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={() => onSubmit?.()}>
               Upload & Process
             </Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

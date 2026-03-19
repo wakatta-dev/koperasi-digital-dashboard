@@ -39,11 +39,15 @@ export function FeatureOcrExtractedDataPanel({
           </h4>
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="ocr-vendor-name"
+                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Vendor Name
               </label>
               <div className="relative">
                 <Input
+                  id="ocr-vendor-name"
                   value={session.general_info.vendor_name}
                   onChange={(event) =>
                     updateSession({
@@ -63,11 +67,15 @@ export function FeatureOcrExtractedDataPanel({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="ocr-bill-number"
+                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Bill Number
               </label>
               <div className="relative">
                 <Input
+                  id="ocr-bill-number"
                   value={session.general_info.bill_number}
                   onChange={(event) =>
                     updateSession({
@@ -91,10 +99,14 @@ export function FeatureOcrExtractedDataPanel({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="ocr-bill-date"
+                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
                   Bill Date
                 </label>
                 <Input
+                  id="ocr-bill-date"
                   type="date"
                   value={session.general_info.bill_date}
                   onChange={(event) =>
@@ -110,10 +122,14 @@ export function FeatureOcrExtractedDataPanel({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="ocr-due-date"
+                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
                   Due Date
                 </label>
                 <Input
+                  id="ocr-due-date"
                   type="date"
                   value={session.general_info.due_date}
                   onChange={(event) =>
@@ -135,7 +151,10 @@ export function FeatureOcrExtractedDataPanel({
         <div className="space-y-4">
           <h4 className="text-xs font-bold tracking-wider text-gray-400 uppercase">Financials</h4>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="ocr-total-amount"
+              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Total Amount
             </label>
             <div className="relative">
@@ -143,6 +162,7 @@ export function FeatureOcrExtractedDataPanel({
                 Rp
               </span>
               <Input
+                id="ocr-total-amount"
                 value={session.financials.total_amount}
                 onChange={(event) =>
                   updateSession({
@@ -215,8 +235,14 @@ export function FeatureOcrExtractedDataPanel({
                 />
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">Qty</label>
+                    <label
+                      htmlFor={`ocr-line-item-qty-${lineItem.id}`}
+                      className="text-[10px] font-bold text-gray-500 uppercase"
+                    >
+                      Qty
+                    </label>
                     <Input
+                      id={`ocr-line-item-qty-${lineItem.id}`}
                       value={lineItem.qty}
                       onChange={(event) =>
                         updateSession({

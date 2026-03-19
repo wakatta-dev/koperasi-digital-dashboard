@@ -14,8 +14,10 @@ type FeatureBankAccountsGridProps = {
   onDetails?: (account: BankAccountCardItem) => void;
 };
 
+const EMPTY_BANK_ACCOUNTS: BankAccountCardItem[] = [];
+
 export function FeatureBankAccountsGrid({
-  accounts = [],
+  accounts = EMPTY_BANK_ACCOUNTS,
   onReconcileNow,
   onDetails,
 }: FeatureBankAccountsGridProps) {

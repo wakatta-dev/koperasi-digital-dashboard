@@ -13,6 +13,8 @@ type FeatureVendorBillPaymentHistoryTableProps = {
   rows?: VendorBillPaymentHistoryItem[];
 };
 
+const EMPTY_PAYMENT_HISTORY_ROWS: VendorBillPaymentHistoryItem[] = [];
+
 const PAYMENT_HISTORY_STATUS_CLASS: Record<
   VendorBillPaymentHistoryItem["status"],
   string
@@ -25,7 +27,7 @@ const PAYMENT_HISTORY_STATUS_CLASS: Record<
 };
 
 export function FeatureVendorBillPaymentHistoryTable({
-  rows = [],
+  rows = EMPTY_PAYMENT_HISTORY_ROWS,
 }: FeatureVendorBillPaymentHistoryTableProps) {
   const columns: ColumnDef<VendorBillPaymentHistoryItem, unknown>[] = [
     {

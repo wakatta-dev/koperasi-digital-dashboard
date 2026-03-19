@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Settings - Activity Log page.",
 };
 
-export default function SettingsActivityLogPage() {
-  return <ActivityLogSettingsPage />;
+type SettingsActivityLogPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function SettingsActivityLogPage({
+  searchParams,
+}: SettingsActivityLogPageProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <ActivityLogSettingsPage queryString={query.toString()} />;
 }

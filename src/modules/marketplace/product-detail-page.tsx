@@ -19,7 +19,7 @@ import {
 } from "./hooks/useMarketplaceProducts";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 type Props = {
@@ -35,17 +35,11 @@ function MarketplaceProductDetailPageContent({ productId }: Props) {
     useMarketplaceProductDetail(productId);
   const { data: variants } = useMarketplaceProductVariants(productId);
   const { data: cart } = useMarketplaceCart();
-  const router = useRouter();
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
 
   const notFoundLike =
     isError && error?.message?.toLowerCase().includes("not found");
-  useEffect(() => {
-    if (notFoundLike) {
-      router.replace("/404");
-    }
-  }, [notFoundLike, router]);
 
   const variantGroups = useMemo(
     () => variants?.groups ?? [],
@@ -176,7 +170,18 @@ function MarketplaceProductDetailPageContent({ productId }: Props) {
               </Button>
             </div>
           ) : null}
-          {!isLoading && !product && !isError ? (
+          {!isLoading && notFoundLike ? (
+            <div className="py-12 text-center text-muted-foreground space-y-3">
+              <div>Produk tidak ditemukan.</div>
+              <Link
+                href="/marketplace"
+                className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              >
+                Kembali ke Marketplace
+              </Link>
+            </div>
+          ) : null}
+          {!isLoading && !product && !isError && !notFoundLike ? (
             <div className="py-12 text-center text-muted-foreground">
               Produk tidak ditemukan.
             </div>

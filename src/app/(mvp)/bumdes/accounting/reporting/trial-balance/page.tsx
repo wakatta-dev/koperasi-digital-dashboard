@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Accounting - Reporting - Trial Balance page.",
 };
 
-export default function AccountingReportingTrialBalanceRoute() {
-  return <ReportingTrialBalancePage />;
+type AccountingReportingTrialBalanceRouteProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AccountingReportingTrialBalanceRoute({
+  searchParams,
+}: AccountingReportingTrialBalanceRouteProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <ReportingTrialBalancePage queryString={query.toString()} />;
 }

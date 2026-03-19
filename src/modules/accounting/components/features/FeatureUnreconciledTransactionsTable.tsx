@@ -16,8 +16,10 @@ type FeatureUnreconciledTransactionsTableProps = {
   rows?: UnreconciledTransactionItem[];
 };
 
+const EMPTY_UNRECONCILED_TRANSACTION_ROWS: UnreconciledTransactionItem[] = [];
+
 export function FeatureUnreconciledTransactionsTable({
-  rows = [],
+  rows = EMPTY_UNRECONCILED_TRANSACTION_ROWS,
 }: FeatureUnreconciledTransactionsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 

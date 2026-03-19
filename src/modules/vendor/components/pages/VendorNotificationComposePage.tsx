@@ -171,7 +171,7 @@ export function VendorNotificationComposePage() {
                     .map((tenant) => {
                       const checked = selectedTenantIds.includes(String(tenant.id));
                       return (
-                        <label
+                        <div
                           key={tenant.id}
                           className="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2"
                         >
@@ -192,7 +192,7 @@ export function VendorNotificationComposePage() {
                               {tenant.contact_email} · {tenant.business_type} · {tenant.domain || "-"}
                             </div>
                           </div>
-                        </label>
+                        </div>
                       );
                     })}
                 </div>

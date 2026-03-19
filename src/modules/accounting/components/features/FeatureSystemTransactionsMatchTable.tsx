@@ -18,13 +18,15 @@ type FeatureSystemTransactionsMatchTableProps = {
   onRowsChange?: (rows: SystemLedgerLineItem[]) => void;
 };
 
+const EMPTY_SYSTEM_TRANSACTION_ROWS: SystemLedgerLineItem[] = [];
+
 export function FeatureSystemTransactionsMatchTable({
-  rows = [],
+  rows = EMPTY_SYSTEM_TRANSACTION_ROWS,
   onRowsChange,
 }: FeatureSystemTransactionsMatchTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [internalRows, setInternalRows] =
-    useState<SystemLedgerLineItem[]>(rows);
+    useState<SystemLedgerLineItem[]>(EMPTY_SYSTEM_TRANSACTION_ROWS);
 
   useEffect(() => {
     if (!onRowsChange) {

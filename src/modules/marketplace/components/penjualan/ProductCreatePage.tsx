@@ -204,10 +204,11 @@ export function ProductCreatePage() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nama Produk
               </label>
               <Input
+                id="product-create-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 data-testid="marketplace-admin-product-create-name-input"
@@ -216,10 +217,11 @@ export function ProductCreatePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-sku" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 SKU
               </label>
               <Input
+                id="product-create-sku"
                 value={sku}
                 onChange={(event) => setSku(event.target.value)}
                 data-testid="marketplace-admin-product-create-sku-input"
@@ -228,10 +230,11 @@ export function ProductCreatePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-brand" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Merek
               </label>
               <Input
+                id="product-create-brand"
                 value={brand}
                 onChange={(event) => setBrand(event.target.value)}
                 placeholder="Masukkan merek produk"
@@ -239,11 +242,12 @@ export function ProductCreatePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Kategori
               </label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger
+                  id="product-create-category"
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600"
                   data-testid="marketplace-admin-product-create-category-trigger"
                 >
@@ -265,10 +269,11 @@ export function ProductCreatePage() {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {hasVariants ? "Harga Dasar Produk (Opsional)" : "Harga Default Produk"}
               </label>
               <Input
+                id="product-create-price"
                 type="number"
                 min={hasVariants ? 0 : 1}
                 value={priceSell}
@@ -284,10 +289,11 @@ export function ProductCreatePage() {
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-weight" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Berat (kg)
               </label>
               <Input
+                id="product-create-weight"
                 type="number"
                 value={weight}
                 onChange={(event) => setWeight(event.target.value)}
@@ -297,10 +303,11 @@ export function ProductCreatePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-initial-stock" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Stok Awal
               </label>
               <Input
+                id="product-create-initial-stock"
                 type="number"
                 min={0}
                 value={initialStockQty}
@@ -312,10 +319,11 @@ export function ProductCreatePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-min-stock" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Minimum Stok
               </label>
               <Input
+                id="product-create-min-stock"
                 type="number"
                 min={0}
                 value={minStock}
@@ -373,10 +381,11 @@ export function ProductCreatePage() {
               </div>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-create-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Deskripsi
               </label>
               <Textarea
+                id="product-create-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 data-testid="marketplace-admin-product-create-description-textarea"

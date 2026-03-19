@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -30,6 +30,7 @@ import { FeaturePpnDetailTable } from "../features/FeaturePpnDetailTable";
 type TaxPpnDetailsPageProps = {
   period?: string;
   returnToQuery?: string;
+  queryString?: string;
 };
 
 const DEFAULT_PPN_FILTERS: TaxPpnFilterValue = {
@@ -62,10 +63,14 @@ function formatPeriodLabel(periodCode: string): string {
 export function TaxPpnDetailsPage({
   period,
   returnToQuery,
+  queryString = "",
 }: TaxPpnDetailsPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const periodFromQuery = searchParams.get("period") ?? "";
 
   const initialQueryState = useMemo(() => {

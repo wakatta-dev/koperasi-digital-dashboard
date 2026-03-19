@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Accounting - Tax - Summary page.",
 };
 
-export default function AccountingTaxPage() {
-  return <TaxSummaryPeriodPage />;
+type AccountingTaxPageRouteProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AccountingTaxPage({
+  searchParams,
+}: AccountingTaxPageRouteProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <TaxSummaryPeriodPage queryString={query.toString()} />;
 }

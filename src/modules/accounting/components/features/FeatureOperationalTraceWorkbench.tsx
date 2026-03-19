@@ -1265,10 +1265,14 @@ export function FeatureOperationalTraceWorkbench() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        <label
+                          htmlFor="exception-owner"
+                          className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                        >
                           Owner Penanganan
                         </label>
                         <Input
+                          id="exception-owner"
                           value={exceptionOwner}
                           onChange={(event) =>
                             setExceptionOwner(event.target.value)
@@ -1277,10 +1281,14 @@ export function FeatureOperationalTraceWorkbench() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        <label
+                          htmlFor="exception-next-step"
+                          className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                        >
                           Next Step
                         </label>
                         <Input
+                          id="exception-next-step"
                           value={exceptionNextStep}
                           onChange={(event) =>
                             setExceptionNextStep(event.target.value)
@@ -1317,10 +1325,14 @@ export function FeatureOperationalTraceWorkbench() {
                     </div>
 
                     <div className="mt-4 space-y-2">
-                      <label className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      <label
+                        htmlFor="exception-message"
+                        className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                      >
                         Catatan Exception
                       </label>
                       <Textarea
+                        id="exception-message"
                         value={exceptionMessage}
                         onChange={(event) =>
                           setExceptionMessage(event.target.value)

@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -40,10 +40,19 @@ const DEFAULT_EFAKTUR_FILTERS: TaxEfakturFilterValue = {
 
 const EFAKTUR_PER_PAGE = 5;
 
-export function TaxEfakturExportPage() {
+type TaxEfakturExportPageProps = {
+  queryString?: string;
+};
+
+export function TaxEfakturExportPage({
+  queryString = "",
+}: TaxEfakturExportPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialQueryState = useMemo(
     () =>

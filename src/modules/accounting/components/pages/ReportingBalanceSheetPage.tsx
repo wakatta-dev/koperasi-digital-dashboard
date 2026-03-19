@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAccountingReportingBalanceSheet } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -16,10 +16,19 @@ import {
 } from "../features/FeatureReportingStatements";
 import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReportingShared";
 
-export function ReportingBalanceSheetPage() {
+type ReportingBalanceSheetPageProps = {
+  queryString?: string;
+};
+
+export function ReportingBalanceSheetPage({
+  queryString = "",
+}: ReportingBalanceSheetPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialState = useMemo(
     () =>

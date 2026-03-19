@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Accounting - Reporting - General Ledger page.",
 };
 
-export default function AccountingReportingGeneralLedgerRoute() {
-  return <ReportingGeneralLedgerPage />;
+type AccountingReportingGeneralLedgerRouteProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AccountingReportingGeneralLedgerRoute({
+  searchParams,
+}: AccountingReportingGeneralLedgerRouteProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <ReportingGeneralLedgerPage queryString={query.toString()} />;
 }

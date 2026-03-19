@@ -27,6 +27,8 @@ type FeatureTaxesTableProps = {
   onPageChange?: (nextPage: number) => void;
 };
 
+const EMPTY_TAX_ROWS: TaxRow[] = [];
+
 const TAX_TYPE_CLASS: Record<TaxRow["tax_type"], string> = {
   Sales:
     "bg-indigo-50 text-indigo-700 border border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800",
@@ -37,7 +39,7 @@ const TAX_TYPE_CLASS: Record<TaxRow["tax_type"], string> = {
 };
 
 export function FeatureTaxesTable({
-  rows = [],
+  rows = EMPTY_TAX_ROWS,
   onCreateTax,
   onOpenActions,
   renderActions,

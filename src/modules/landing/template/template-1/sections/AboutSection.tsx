@@ -1,5 +1,6 @@
 /** @format */
 
+import Link from "next/link";
 import { asArray, asRecord, asString } from "../../shared/content";
 
 const DEFAULT_IMAGE =
@@ -69,13 +70,13 @@ export function TemplateOneAboutSection({ data }: TemplateOneAboutSectionProps) 
               ))}
             </ul>
 
-            <a
+            <Link
               className="text-primary font-bold hover:text-primary-hover inline-flex items-center gap-1 transition-colors"
-              href="#"
+              href="/"
             >
               Pelajari Selengkapnya
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </a>
+            </Link>
           </div>
         </div>
       </div>

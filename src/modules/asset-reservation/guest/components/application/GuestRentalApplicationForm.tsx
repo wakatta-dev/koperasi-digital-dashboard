@@ -31,21 +31,9 @@ export function GuestRentalApplicationForm({
   submitting,
 }: GuestRentalApplicationFormProps) {
   return (
-    <form
+    <div
       className="space-y-6"
       data-testid="asset-rental-application-form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        onSubmit({
-          fullName: String(formData.get("full-name") ?? values.fullName),
-          phone: String(formData.get("phone") ?? values.phone),
-          email: String(formData.get("email") ?? values.email),
-          purpose: String(formData.get("purpose") ?? values.purpose),
-          startDate: String(formData.get("start-date") ?? values.startDate),
-          endDate: String(formData.get("end-date") ?? values.endDate),
-        });
-      }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="col-span-2">
@@ -154,14 +142,24 @@ export function GuestRentalApplicationForm({
 
       <div className="pt-6 border-t border-gray-100 dark:border-gray-700">
         <Button
-          type="submit"
+          type="button"
           disabled={Boolean(submitting)}
           data-testid="asset-rental-application-submit-button"
           className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/30 text-sm font-bold text-white bg-brand-primary hover:bg-brand-primary-hover focus-visible:ring-2 focus-visible:ring-brand-primary transition-all hover:-translate-y-0.5"
+          onClick={() =>
+            onSubmit({
+              fullName: values.fullName,
+              phone: values.phone,
+              email: values.email,
+              purpose: values.purpose,
+              startDate: values.startDate,
+              endDate: values.endDate,
+            })
+          }
         >
           Kirim Pengajuan
         </Button>
       </div>
-    </form>
+    </div>
   );
 }

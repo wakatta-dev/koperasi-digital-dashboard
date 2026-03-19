@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Settings - Akses Otorisasi page.",
 };
 
-export default function SettingsAksesOtorisasiPage() {
-  return <AccessAuthorizationSettingsPage />;
+type SettingsAksesOtorisasiPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function SettingsAksesOtorisasiPage({
+  searchParams,
+}: SettingsAksesOtorisasiPageProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <AccessAuthorizationSettingsPage queryString={query.toString()} />;
 }

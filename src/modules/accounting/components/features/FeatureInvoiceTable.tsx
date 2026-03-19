@@ -28,10 +28,11 @@ type FeatureInvoiceTableProps = {
   getInvoiceHref?: (row: InvoiceListItem) => string;
 };
 
+const EMPTY_INVOICE_ROWS: InvoiceListItem[] = [];
 const PAGE_SIZE = 4;
 
 export function FeatureInvoiceTable({
-  rows = [],
+  rows = EMPTY_INVOICE_ROWS,
   getInvoiceHref,
 }: FeatureInvoiceTableProps) {
   const [searchTerm, setSearchTerm] = useState("");

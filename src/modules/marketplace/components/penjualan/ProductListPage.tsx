@@ -2,8 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { ProductListHeader } from "./ProductListHeader";
 import { ProductTable } from "./ProductTable";
 import { ProductFilterSheet } from "./ProductFilterSheet";
@@ -37,9 +36,14 @@ const resolveStockStatus = (
   return "Tersedia";
 };
 
-export function ProductListPage() {
+type ProductListPageProps = {
+  createdProductId?: string;
+};
+
+export function ProductListPage({
+  createdProductId,
+}: ProductListPageProps = {}) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const actions = useInventoryActions();
   const [searchValue, setSearchValue] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -54,11 +58,9 @@ export function ProductListPage() {
   }));
   const [draftFilters, setDraftFilters] = useState(appliedFilters);
   const [page, setPage] = useState(1);
-  const createdProductId = searchParams.get("created");
   const { data: categoriesData } = useInventoryCategories();
 
-  useEffect(() => {
-    if (!createdProductId) return;
+  if (createdProductId && searchValue) {
     setSearchValue("");
     setPage(1);
     setSelectedIds([]);
@@ -78,7 +80,7 @@ export function ProductListPage() {
       dateFrom: "",
       dateTo: "",
     });
-  }, [createdProductId]);
+  }
 
   useEffect(() => {
     if (filterOpen) {

@@ -35,8 +35,10 @@ type FeatureAccountingSettingsCardsProps = {
   items?: SettingsCardItem[];
 };
 
+const EMPTY_SETTINGS_CARDS: SettingsCardItem[] = [];
+
 export function FeatureAccountingSettingsCards({
-  items = [],
+  items = EMPTY_SETTINGS_CARDS,
 }: FeatureAccountingSettingsCardsProps) {
   if (items.length === 0) {
     return (

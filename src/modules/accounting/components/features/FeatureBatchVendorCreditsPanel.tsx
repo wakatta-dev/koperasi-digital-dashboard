@@ -12,8 +12,10 @@ type FeatureBatchVendorCreditsPanelProps = {
   onCreditsChange?: (nextCredits: VendorCreditNoteItem[]) => void;
 };
 
+const EMPTY_VENDOR_CREDITS: VendorCreditNoteItem[] = [];
+
 export function FeatureBatchVendorCreditsPanel({
-  credits = [],
+  credits = EMPTY_VENDOR_CREDITS,
   onCreditsChange,
 }: FeatureBatchVendorCreditsPanelProps) {
   return (

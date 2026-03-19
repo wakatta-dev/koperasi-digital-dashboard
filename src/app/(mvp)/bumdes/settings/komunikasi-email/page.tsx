@@ -9,6 +9,17 @@ export const metadata: Metadata = {
   description: "Bumdes - Settings - Komunikasi Email page.",
 };
 
-export default function SettingsKomunikasiEmailPage() {
-  return <EmailCommunicationSettingsPage />;
+type SettingsKomunikasiEmailPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function SettingsKomunikasiEmailPage({
+  searchParams,
+}: SettingsKomunikasiEmailPageProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
+  return <EmailCommunicationSettingsPage queryString={query.toString()} />;
 }

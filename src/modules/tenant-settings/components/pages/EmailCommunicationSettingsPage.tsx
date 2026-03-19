@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSupportEmailActions, useSupportEmailTemplates } from "@/hooks/queries";
 import { FeatureEmailTemplateEditorCard } from "../features/FeatureEmailTemplateEditorCard";
@@ -16,18 +16,25 @@ import { isDeepEqual } from "../../lib/forms";
 import { buildQueryString, canManageTenantSettings } from "../../lib/settings";
 import type { EmailTemplateFormState } from "../../types/forms";
 
-export function EmailCommunicationSettingsPage() {
+type EmailCommunicationSettingsPageProps = {
+  queryString?: string;
+};
+
+export function EmailCommunicationSettingsPage({
+  queryString = "",
+}: EmailCommunicationSettingsPageProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const { data: session } = useSession();
   const canManage = canManageTenantSettings((session?.user as { role?: string } | undefined)?.role);
   const templatesQuery = useSupportEmailTemplates();
   const { saveTemplate, sendTestEmail } = useSupportEmailActions();
   const templates = useMemo(() => templatesQuery.data ?? [], [templatesQuery.data]);
   const requestedTemplateId = searchParams.get("template") ?? "";
-  const pendingSelectedTemplateIdRef = useRef<string | null>(null);
-
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [draftTemplateId, setDraftTemplateId] = useState("");
   const [formDraft, setFormDraft] = useState<EmailTemplateFormState | null>(null);
@@ -50,7 +57,6 @@ export function EmailCommunicationSettingsPage() {
 
   const handleSelectTemplate = useCallback(
     (templateId: string) => {
-      pendingSelectedTemplateIdRef.current = templateId;
       setSelectedTemplateId(templateId);
       syncTemplateQuery(templateId);
     },
@@ -59,22 +65,11 @@ export function EmailCommunicationSettingsPage() {
 
   useEffect(() => {
     if (!templates.length) {
-      pendingSelectedTemplateIdRef.current = null;
       setSelectedTemplateId("");
       return;
     }
     const hasTemplate = (templateId: string) =>
       templates.some((item) => String(item.id) === templateId);
-
-    if (pendingSelectedTemplateIdRef.current) {
-      if (requestedTemplateId === pendingSelectedTemplateIdRef.current) {
-        pendingSelectedTemplateIdRef.current = null;
-      } else if (hasTemplate(pendingSelectedTemplateIdRef.current)) {
-        return;
-      } else {
-        pendingSelectedTemplateIdRef.current = null;
-      }
-    }
 
     if (requestedTemplateId && templates.some((item) => String(item.id) === requestedTemplateId)) {
       if (selectedTemplateId !== requestedTemplateId) {
@@ -84,7 +79,6 @@ export function EmailCommunicationSettingsPage() {
     }
     if (!selectedTemplateId || !templates.some((item) => String(item.id) === selectedTemplateId)) {
       const fallbackTemplateId = String(templates[0].id);
-      pendingSelectedTemplateIdRef.current = fallbackTemplateId;
       setSelectedTemplateId(fallbackTemplateId);
       syncTemplateQuery(fallbackTemplateId);
     }

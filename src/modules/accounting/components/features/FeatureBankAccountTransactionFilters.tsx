@@ -35,7 +35,10 @@ export function FeatureBankAccountTransactionFilters({
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-slate-900">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div>
-          <label className="mb-1.5 ml-1 block text-xs font-semibold text-gray-500 uppercase dark:text-gray-400">
+          <label
+            htmlFor="bank-transaction-date-range"
+            className="mb-1.5 ml-1 block text-xs font-semibold text-gray-500 uppercase dark:text-gray-400"
+          >
             Date Range
           </label>
           <div className="relative">
@@ -44,7 +47,10 @@ export function FeatureBankAccountTransactionFilters({
               value={current.date_range}
               onValueChange={(next) => patch({ date_range: next })}
             >
-              <SelectTrigger className="border-none bg-gray-50 pl-10 text-sm focus:ring-2 focus:ring-indigo-600/20 dark:bg-gray-800">
+              <SelectTrigger
+                id="bank-transaction-date-range"
+                className="border-none bg-gray-50 pl-10 text-sm focus:ring-2 focus:ring-indigo-600/20 dark:bg-gray-800"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -58,7 +64,10 @@ export function FeatureBankAccountTransactionFilters({
         </div>
 
         <div>
-          <label className="mb-1.5 ml-1 block text-xs font-semibold text-gray-500 uppercase dark:text-gray-400">
+          <label
+            htmlFor="bank-transaction-type"
+            className="mb-1.5 ml-1 block text-xs font-semibold text-gray-500 uppercase dark:text-gray-400"
+          >
             Transaction Type
           </label>
           <Select
@@ -69,7 +78,10 @@ export function FeatureBankAccountTransactionFilters({
               })
             }
           >
-            <SelectTrigger className="border-none bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600/20 dark:bg-gray-800">
+            <SelectTrigger
+              id="bank-transaction-type"
+              className="border-none bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600/20 dark:bg-gray-800"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -81,7 +93,10 @@ export function FeatureBankAccountTransactionFilters({
         </div>
 
         <div>
-          <label className="mb-1.5 ml-1 block text-xs font-semibold text-gray-500 uppercase dark:text-gray-400">
+          <label
+            htmlFor="bank-transaction-status"
+            className="mb-1.5 ml-1 block text-xs font-semibold text-gray-500 uppercase dark:text-gray-400"
+          >
             Status
           </label>
           <Select
@@ -90,7 +105,10 @@ export function FeatureBankAccountTransactionFilters({
               patch({ status: next as BankCashTransactionFilters["status"] })
             }
           >
-            <SelectTrigger className="border-none bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600/20 dark:bg-gray-800">
+            <SelectTrigger
+              id="bank-transaction-status"
+              className="border-none bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600/20 dark:bg-gray-800"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

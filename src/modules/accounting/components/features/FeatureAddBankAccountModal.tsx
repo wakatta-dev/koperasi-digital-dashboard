@@ -59,20 +59,18 @@ export function FeatureAddBankAccountModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          className="space-y-4 p-6"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSubmit?.();
-          }}
-        >
+        <div className="space-y-4 p-6">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="add-bank-account-bank-name"
+              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Bank Name
             </label>
             <div className="relative">
               <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
+                id="add-bank-account-bank-name"
                 type="text"
                 value={draft.bank_name}
                 onChange={(event) => patch({ bank_name: event.target.value })}
@@ -83,10 +81,14 @@ export function FeatureAddBankAccountModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="add-bank-account-account-name"
+              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Account Name
             </label>
             <Input
+              id="add-bank-account-account-name"
               type="text"
               value={draft.account_name}
               onChange={(event) => patch({ account_name: event.target.value })}
@@ -96,10 +98,14 @@ export function FeatureAddBankAccountModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="add-bank-account-account-number"
+              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Account Number
             </label>
             <Input
+              id="add-bank-account-account-number"
               type="text"
               value={draft.account_number}
               onChange={(event) => patch({ account_number: event.target.value })}
@@ -110,14 +116,17 @@ export function FeatureAddBankAccountModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="add-bank-account-currency"
+                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Currency
               </label>
               <Select
                 value={draft.currency_code}
                 onValueChange={(next) => patch({ currency_code: next })}
               >
-                <SelectTrigger className="bg-gray-50 text-sm dark:bg-gray-800">
+                <SelectTrigger id="add-bank-account-currency" className="bg-gray-50 text-sm dark:bg-gray-800">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,7 +138,10 @@ export function FeatureAddBankAccountModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="add-bank-account-initial-balance"
+                className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Initial Balance
               </label>
               <div className="relative">
@@ -137,6 +149,7 @@ export function FeatureAddBankAccountModal({
                   Rp
                 </span>
                 <Input
+                  id="add-bank-account-initial-balance"
                   type="number"
                   value={draft.initial_balance_amount}
                   onChange={(event) =>
@@ -158,11 +171,11 @@ export function FeatureAddBankAccountModal({
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-indigo-600 text-white hover:bg-indigo-700">
+            <Button type="button" className="bg-indigo-600 text-white hover:bg-indigo-700" onClick={() => onSubmit?.()}>
               Add Account
             </Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAccountingReportingGeneralLedger } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -21,10 +21,19 @@ import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReporti
 
 const DEFAULT_PAGE_SIZE = 20;
 
-export function ReportingGeneralLedgerPage() {
+type ReportingGeneralLedgerPageProps = {
+  queryString?: string;
+};
+
+export function ReportingGeneralLedgerPage({
+  queryString = "",
+}: ReportingGeneralLedgerPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {

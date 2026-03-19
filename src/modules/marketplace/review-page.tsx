@@ -3,7 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -19,10 +18,15 @@ import {
   withMarketplaceDenyReasonMessage,
 } from "@/services/api";
 
-export function MarketplaceReviewPage() {
-  const searchParams = useSearchParams();
-  const orderId = Number(searchParams.get("order_id") ?? "");
-  const trackingToken = searchParams.get("tracking_token") ?? "";
+type MarketplaceReviewPageProps = {
+  orderId?: number;
+  trackingToken?: string;
+};
+
+export function MarketplaceReviewPage({
+  orderId = Number.NaN,
+  trackingToken = "",
+}: MarketplaceReviewPageProps) {
   const hasTrackingParams = Boolean(orderId > 0 && trackingToken);
   const allowDevelopmentQuickReview =
     process.env.NODE_ENV !== "production" &&

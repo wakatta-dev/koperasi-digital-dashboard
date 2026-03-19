@@ -318,10 +318,11 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nama Produk
               </label>
               <Input
+                id="product-edit-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 data-testid="marketplace-admin-product-edit-name-input"
@@ -329,10 +330,11 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-sku" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 SKU
               </label>
               <Input
+                id="product-edit-sku"
                 value={sku}
                 onChange={(event) => setSku(event.target.value)}
                 data-testid="marketplace-admin-product-edit-sku-input"
@@ -340,21 +342,23 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-brand" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Merek
               </label>
               <Input
+                id="product-edit-brand"
                 value={brand}
                 onChange={(event) => setBrand(event.target.value)}
                 className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus-visible:ring-indigo-600 focus-visible:border-indigo-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Kategori
               </label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger
+                  id="product-edit-category"
                   className="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:ring-indigo-600 focus:border-indigo-600"
                   data-testid="marketplace-admin-product-edit-category-trigger"
                 >
@@ -376,10 +380,11 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-weight" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Berat (kg)
               </label>
               <Input
+                id="product-edit-weight"
                 type="number"
                 value={weight}
                 onChange={(event) => setWeight(event.target.value)}
@@ -388,10 +393,11 @@ export function ProductEditPage({ id }: ProductEditPageProps) {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="product-edit-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Deskripsi
               </label>
               <Textarea
+                id="product-edit-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={4}

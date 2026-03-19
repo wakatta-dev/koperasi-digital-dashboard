@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAccountingReportingTrialBalance } from "@/hooks/queries";
 import { toAccountingReportingApiError } from "@/services/api/accounting-reporting";
@@ -18,10 +18,19 @@ import { FeatureReportingSourceOfTruthCallout } from "../features/FeatureReporti
 
 const TRIAL_BALANCE_PAGE_SIZE = 12;
 
-export function ReportingTrialBalancePage() {
+type ReportingTrialBalancePageProps = {
+  queryString?: string;
+};
+
+export function ReportingTrialBalancePage({
+  queryString = "",
+}: ReportingTrialBalancePageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialState = useMemo(
     () =>

@@ -1,5 +1,6 @@
 /** @format */
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { ReservationSummary } from "../../types";
 import { formatPublicReservationIdentifier } from "../../guest/utils/public-status";
@@ -157,9 +158,9 @@ export function PaymentSidebar({
       <div className="bg-gray-50 dark:bg-gray-800/50 p-4 border-t border-gray-100 dark:border-gray-800">
         <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
           Dengan membayar, Anda menyetujui{" "}
-          <a className="text-brand-primary hover:underline" href="#">
+          <Link className="text-brand-primary hover:underline" href="/">
             Syarat &amp; Ketentuan
-          </a>{" "}
+          </Link>{" "}
           sewa aset BUMDes Sukamaju.
         </p>
       </div>

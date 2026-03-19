@@ -9,6 +9,20 @@ export const metadata: Metadata = {
   description: "Konfirmasi pesanan marketplace BUMDes Sukamaju.",
 };
 
-export default function MarketplaceConfirmation() {
-  return <MarketplaceConfirmationPage />;
+type MarketplaceConfirmationRouteProps = {
+  searchParams?: Promise<{ order_id?: string; tracking_token?: string }>;
+};
+
+export default async function MarketplaceConfirmation({
+  searchParams,
+}: MarketplaceConfirmationRouteProps) {
+  const searchParamsResolved = await searchParams;
+  const orderId = Number.parseInt(searchParamsResolved?.order_id ?? "", 10);
+
+  return (
+    <MarketplaceConfirmationPage
+      orderId={Number.isFinite(orderId) ? orderId : undefined}
+      trackingToken={searchParamsResolved?.tracking_token}
+    />
+  );
 }

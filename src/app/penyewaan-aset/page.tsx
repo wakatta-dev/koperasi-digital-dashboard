@@ -11,7 +11,18 @@ export const metadata: Metadata = {
     "Sewa gedung, alat pertanian, kendaraan, dan fasilitas desa dengan transparan di BUMDes Sukamaju.",
 };
 
-export default function PenyewaanAssetPage() {
+type PenyewaanAssetPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function PenyewaanAssetPage({
+  searchParams,
+}: PenyewaanAssetPageProps) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolved ?? {})) {
+    if (typeof value === "string") query.set(key, value);
+  }
   return (
     <Suspense
       fallback={
@@ -20,7 +31,7 @@ export default function PenyewaanAssetPage() {
         </div>
       }
     >
-      <AssetReservationPage />
+      <AssetReservationPage queryString={query.toString()} />
     </Suspense>
   );
 }

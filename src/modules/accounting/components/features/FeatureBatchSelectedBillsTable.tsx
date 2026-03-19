@@ -22,6 +22,8 @@ type FeatureBatchSelectedBillsTableProps = {
   onRowsChange?: (rows: BatchPaymentBillItem[]) => void;
 };
 
+const EMPTY_BATCH_PAYMENT_ROWS: BatchPaymentBillItem[] = [];
+
 const DUE_STATE_CLASS: Record<BatchPaymentBillItem["due_state_tone"], string> =
   {
     normal: "text-gray-600 dark:text-gray-400",
@@ -38,7 +40,7 @@ type BatchSelectedBillsTableRow =
     };
 
 export function FeatureBatchSelectedBillsTable({
-  rows = [],
+  rows = EMPTY_BATCH_PAYMENT_ROWS,
   onRowsChange,
 }: FeatureBatchSelectedBillsTableProps) {
   const selectedRows = rows.filter((row) => row.is_selected);

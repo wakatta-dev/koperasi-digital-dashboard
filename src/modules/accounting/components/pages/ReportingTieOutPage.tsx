@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowRightLeft, FileStack, Link2 } from "lucide-react";
 
@@ -74,10 +74,19 @@ function toSourceOfTruthLabel(sourceOfTruth?: string) {
       : sourceOfTruth ?? "-";
 }
 
-export function ReportingTieOutPage() {
+type ReportingTieOutPageProps = {
+  queryString?: string;
+};
+
+export function ReportingTieOutPage({
+  queryString = "",
+}: ReportingTieOutPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
   const initialState = useMemo(
     () =>
       parseReportingQueryState(searchParams, {

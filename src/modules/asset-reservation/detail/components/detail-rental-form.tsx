@@ -214,10 +214,11 @@ export function DetailRentalForm({
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-start-date" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Mulai Sewa
             </label>
             <Input
+              id="detail-rental-start-date"
               type="date"
               value={dates.start}
               onChange={(e) => handleDateUpdate("start", e.target.value)}
@@ -231,10 +232,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-end-date" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Selesai Sewa
             </label>
             <Input
+              id="detail-rental-end-date"
               type="date"
               value={dates.end}
               onChange={(e) => handleDateUpdate("end", e.target.value)}
@@ -285,10 +287,11 @@ export function DetailRentalForm({
 
         <div className="space-y-3 pt-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-full-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nama Lengkap
             </label>
             <Input
+              id="detail-rental-full-name"
               type="text"
               placeholder="Nama Anda"
               name="full_name"
@@ -301,10 +304,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nomor Telepon (WhatsApp)
             </label>
             <Input
+              id="detail-rental-phone"
               type="tel"
               placeholder="0812..."
               name="phone"
@@ -317,10 +321,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Email
             </label>
             <Input
+              id="detail-rental-email"
               type="email"
               placeholder="email@contoh.com"
               name="email"
@@ -333,10 +338,11 @@ export function DetailRentalForm({
             ) : null}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="detail-rental-purpose" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Tujuan Sewa
             </label>
             <Textarea
+              id="detail-rental-purpose"
               placeholder="Jelaskan acara atau kebutuhan Anda..."
               rows={3}
               name="purpose"

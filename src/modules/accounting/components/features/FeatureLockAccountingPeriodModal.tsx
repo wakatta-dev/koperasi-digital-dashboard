@@ -72,11 +72,14 @@ export function FeatureLockAccountingPeriodModal({
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                <label
+                  htmlFor="lock-period-month"
+                  className="text-[10px] font-bold tracking-wider text-gray-400 uppercase"
+                >
                   Month
                 </label>
                 <Select value={selection.month} onValueChange={(next) => patch({ month: next })}>
-                  <SelectTrigger className="bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600 dark:bg-gray-800">
+                  <SelectTrigger id="lock-period-month" className="bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600 dark:bg-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -96,11 +99,14 @@ export function FeatureLockAccountingPeriodModal({
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                <label
+                  htmlFor="lock-period-year"
+                  className="text-[10px] font-bold tracking-wider text-gray-400 uppercase"
+                >
                   Year
                 </label>
                 <Select value={selection.year} onValueChange={(next) => patch({ year: next })}>
-                  <SelectTrigger className="bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600 dark:bg-gray-800">
+                  <SelectTrigger id="lock-period-year" className="bg-gray-50 text-sm focus:ring-2 focus:ring-indigo-600 dark:bg-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

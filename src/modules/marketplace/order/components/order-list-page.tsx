@@ -313,10 +313,11 @@ export function OrderListPage() {
           <div className="absolute right-0 top-12 z-20 hidden w-64 rounded-md border border-border bg-popover shadow-lg group-hover:block">
             <div className="space-y-4 p-4">
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                <label htmlFor="marketplace-order-filter-date" className="mb-1 block text-xs font-medium text-muted-foreground">
                   Rentang Tanggal
                 </label>
                 <Input
+                  id="marketplace-order-filter-date"
                   className="w-full text-xs"
                   type="date"
                   value={dateFilter}
@@ -325,11 +326,12 @@ export function OrderListPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                <label htmlFor="marketplace-order-filter-status" className="mb-1 block text-xs font-medium text-muted-foreground">
                   Status Pembayaran
                 </label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger
+                    id="marketplace-order-filter-status"
                     className="w-full h-auto rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
                     data-testid="marketplace-admin-order-status-filter"
                   >

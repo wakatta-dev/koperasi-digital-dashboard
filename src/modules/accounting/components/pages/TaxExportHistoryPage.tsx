@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { KpiCards, type KpiItem } from "@/components/shared/data-display/KpiCards";
@@ -48,10 +48,19 @@ function toSummaryTone(tone?: string): TaxSummaryTone {
   return "primary";
 }
 
-export function TaxExportHistoryPage() {
+type TaxExportHistoryPageProps = {
+  queryString?: string;
+};
+
+export function TaxExportHistoryPage({
+  queryString = "",
+}: TaxExportHistoryPageProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams(queryString),
+    [queryString],
+  );
 
   const initialQueryState = useMemo(
     () =>

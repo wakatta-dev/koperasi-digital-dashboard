@@ -196,10 +196,11 @@ export function ProductCategoryManagementPage({
       <div className="surface-card p-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="w-full sm:max-w-sm">
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <label htmlFor="product-category-search" className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
               Cari kategori
             </label>
             <Input
+              id="product-category-search"
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
               placeholder="Cari nama kategori..."

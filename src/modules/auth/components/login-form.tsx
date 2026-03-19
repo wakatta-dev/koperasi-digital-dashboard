@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getSession } from "next-auth/react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
@@ -25,9 +25,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-export function AuthLoginForm() {
+type AuthLoginFormProps = {
+  redirectTarget?: string;
+};
+
+export function AuthLoginForm({ redirectTarget }: AuthLoginFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const passwordToggle = usePasswordToggle(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +43,6 @@ export function AuthLoginForm() {
 
   const handleRedirect = async () => {
     const session: any = await getSession();
-    const redirectTarget = searchParams?.get("redirect");
     if (redirectTarget) {
       router.push(redirectTarget);
       return;
@@ -64,12 +66,11 @@ export function AuthLoginForm() {
       await login(values.email, values.password);
       await handleRedirect();
     } catch {
-      const redirectTarget = searchParams?.get("redirect") ?? "";
       const allowMarketplaceGuestRedirect =
         process.env.NODE_ENV !== "production" &&
-        redirectTarget.startsWith("/marketplace");
+        (redirectTarget ?? "").startsWith("/marketplace");
       if (allowMarketplaceGuestRedirect) {
-        router.push(redirectTarget);
+        router.push(redirectTarget!);
         return;
       }
       setError("Gagal masuk. Periksa kembali email dan kata sandi kamu.");

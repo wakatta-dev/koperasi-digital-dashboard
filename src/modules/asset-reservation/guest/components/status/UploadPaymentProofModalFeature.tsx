@@ -105,7 +105,10 @@ export function UploadPaymentProofModalFeature({
           </div>
 
           <div className="space-y-4">
-            <label className="block text-sm font-semibold text-gray-900 dark:text-white">
+            <label
+              htmlFor="payment-proof-file"
+              className="block text-sm font-semibold text-gray-900 dark:text-white"
+            >
               Upload Bukti Transfer
             </label>
 
@@ -187,10 +190,14 @@ export function UploadPaymentProofModalFeature({
           </div>
 
           <div className="mt-6">
-            <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            <label
+              htmlFor="payment-proof-note"
+              className="block text-sm font-semibold text-gray-900 dark:text-white mb-2"
+            >
               Catatan Tambahan (Opsional)
             </label>
             <Textarea
+              id="payment-proof-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               data-testid="asset-rental-payment-proof-note-textarea"
